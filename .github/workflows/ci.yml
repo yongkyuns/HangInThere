@@ -36,6 +36,18 @@ jobs:
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
           python3 scripts/prepare-fixtures.py
+      # Temporary qualification artifact: inspect the complete pinned public
+      # source before choosing a real exercise interval. Remove after review.
+      - name: Retain pinned source for exercise-fixture review
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-source-review
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            Data/external/p0-pullup-source.webm
+            HangInThereTests/Fixtures/source.json
       - name: Native macOS real-model and replay integration
         run: ./scripts/test-apple-host.sh
       - name: Build device target and run simulator tests
