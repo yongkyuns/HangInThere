@@ -17,7 +17,11 @@ enum VideoTestSupport {
     static let timestamps: [CMTime] = [0, 10, 23, 41].map { CMTime(value: $0, timescale: 100) }
 
     static func resource(_ name: String) throws -> URL {
+        #if SWIFT_PACKAGE
+        let bundle = Bundle.module
+        #else
         let bundle = Bundle(for: FixtureBundleToken.self)
+        #endif
         let root = try #require(bundle.resourceURL)
         let url = root.appendingPathComponent("Fixtures/generated/\(name)")
         guard FileManager.default.fileExists(atPath: url.path) else {

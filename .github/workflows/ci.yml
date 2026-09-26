@@ -15,11 +15,12 @@ concurrency:
 
 jobs:
   simulator:
-    name: Simulator tests and unsigned device build
+    name: Apple host integration, simulator tests and unsigned device build
     runs-on: macos-15
     timeout-minutes: 30
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      # Qualify a newer runtime after iOS 18.5 lacked Vision body-pose weights.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - name: Checkout exact revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -35,7 +36,12 @@ jobs:
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
           python3 scripts/prepare-fixtures.py
+      - name: Native macOS real-model and replay integration
+        run: ./scripts/test-apple-host.sh
       - name: Build device target and run simulator tests
+        # Collect simulator evidence even when the distinct host check fails.
+        # Both checks retain their real failure status; neither is skipped green.
+        if: ${{ !cancelled() }}
         run: ./scripts/test-ios.sh
       - name: Retain test results and provenance
         if: always()
@@ -48,7 +54,7 @@ jobs:
             build/SimulatorTests.xcresult
             build/*.txt
             HangInThereTests/Fixtures/generated/prepared.json
-      # Only the pinned, public-domain test derivative is exported. Never glob
+      # Only the pinned public-source test derivative is exported. Never glob
       # user recordings or the app's Documents/temporary import directories.
       - name: Retain approved smoke fixture for visual review
         if: always()
