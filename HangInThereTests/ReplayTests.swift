@@ -78,6 +78,44 @@ final class ReplayTests: XCTestCase {
     }
 
     @MainActor
+    func testUIModelReceivesRealFramesAndRestartResetsPlayback() async throws {
+        let model = ReplayModel()
+        defer { model.shutdown() }
+        model.load(try fixture())
+        try await Self.waitUntil { model.phase != .loading }
+        XCTAssertEqual(model.phase, .ready, model.errorMessage ?? "")
+        let first = try XCTUnwrap(model.frame)
+        XCTAssertEqual(first.index, 1)
+        XCTAssertEqual(first.pose.personCount, 1)
+        XCTAssertFalse(first.pose.landmarks.isEmpty)
+
+        model.play()
+        // Exercise immediate pause/resume while the one playback task exists.
+        model.pause()
+        model.play()
+        try await Self.waitUntil { (model.frame?.index ?? 0) >= 3 || model.phase == .failed }
+        XCTAssertEqual(model.phase, .playing, model.errorMessage ?? "")
+        XCTAssertGreaterThan(try XCTUnwrap(model.frame).pose.timestamp, first.pose.timestamp)
+        model.pause()
+        XCTAssertEqual(model.phase, .paused)
+
+        model.restart()
+        try await Self.waitUntil { model.phase != .loading }
+        XCTAssertEqual(model.phase, .ready, model.errorMessage ?? "")
+        XCTAssertEqual(model.frame?.index, 1)
+        XCTAssertEqual(model.frame?.pose.timestamp, first.pose.timestamp)
+    }
+
+    @MainActor
+    private static func waitUntil(_ condition: () -> Bool) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(30))
+        while !condition(), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertTrue(condition(), "Timed out waiting for replay state")
+    }
+
+    @MainActor
     func testReplacingImportCannotPublishTheOldSession() async throws {
         let model = ReplayModel()
         model.load(try fixture())
