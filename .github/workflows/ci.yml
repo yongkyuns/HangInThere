@@ -11,16 +11,30 @@ concurrency:
   cancel-in-progress: true
 jobs:
   ios:
-    name: Simulator tests and device compilation
+    name: Native Vision, simulator tests, and device compilation
     runs-on: macos-15
     timeout-minutes: 25
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      SIMULATOR_RUNTIME: iOS-26-2
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Prepare explicitly licensed real-video fixture
         run: python3 scripts/prepare-fixtures.py
+      - name: Check the same replay and Vision code on native macOS
+        if: ${{ !cancelled() }}
+        run: |
+          set -o pipefail
+          mkdir -p build
+          xcrun --sdk macosx swiftc -swift-version 6 -parse-as-library -O \
+            -target "$(uname -m)-apple-macosx14.0" \
+            HangInThere/Analysis/Pose.swift \
+            HangInThere/Pose/VisionPoseEstimator.swift \
+            HangInThere/Capture/VideoReplay.swift scripts/NativeReplayCheck.swift \
+            -o build/native-replay-check
+          build/native-replay-check HangInThereTests/Fixtures/pullups.mov 2>&1 | tee build/native.log
       - name: Run simulator geometry, replay, and real Vision tests
+        if: ${{ !cancelled() }}
         run: bash scripts/ci.sh
       - name: Compile physical-device target without signing
         if: ${{ !cancelled() }}

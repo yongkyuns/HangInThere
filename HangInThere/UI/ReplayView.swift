@@ -20,7 +20,7 @@ struct ReplayView: View {
                     } else if model.phase == .loading {
                         ProgressView("Reading video…").tint(.white).foregroundStyle(.white)
                     } else {
-                        ContentUnavailableView("Import a workout video", systemImage: "figure.pullup",
+                        ContentUnavailableView("Import a workout video", systemImage: "video",
                             description: Text("Choose a local MOV or MP4. Processing stays on this device."))
                             .foregroundStyle(.white)
                     }
