@@ -58,4 +58,55 @@ struct VideoReplayReaderTests {
             // Expected lifecycle error.
         }
     }
+
+    @Test func replacingVideoTransfersFreshDecoderGeometryAndTimeline() async throws {
+        let landscape = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: landscape) }
+        let portrait = try await VideoTestSupport.makeVideo(
+            transform: CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: 96, ty: 0))
+        defer { try? FileManager.default.removeItem(at: portrait) }
+        let reader = VideoReplayReader()
+        _ = try await reader.open(landscape)
+        _ = try await reader.nextFrame()
+        let oldSecond = try await reader.nextFrame()
+        #expect(oldSecond?.pose.timestamp.seconds == 0.1)
+
+        _ = try await reader.open(portrait)
+        let newFirst = try await reader.nextFrame()
+        let frame = try #require(newFirst)
+        #expect(frame.pose.timestamp.seconds == 0)
+        #expect(frame.image.width == 96 && frame.image.height == 160)
+        #expect(frame.pose.imageSize == ImageSize(width: 96, height: 160))
+        await reader.close()
+        // Import ownership must never remove the caller's original files.
+        #expect(FileManager.default.fileExists(atPath: landscape.path))
+        #expect(FileManager.default.fileExists(atPath: portrait.path))
+    }
+
+    @Test func failedPreparationLeavesReaderClosedAndAllowsRecovery() async throws {
+        let corrupt = FileManager.default.temporaryDirectory
+            .appendingPathComponent("invalid-\(UUID().uuidString).mp4")
+        try Data("not a video".utf8).write(to: corrupt)
+        defer { try? FileManager.default.removeItem(at: corrupt) }
+        let valid = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: valid) }
+        let reader = VideoReplayReader()
+        do {
+            _ = try await reader.open(corrupt)
+            Issue.record("Invalid video unexpectedly opened.")
+        } catch {
+            // AVFoundation's precise error varies by decoder/OS.
+        }
+        do {
+            _ = try await reader.nextFrame()
+            Issue.record("Failed preparation left a readable decoder installed.")
+        } catch ReplayError.notOpen {
+            // No partial setup may escape to the next read.
+        }
+        _ = try await reader.open(valid)
+        let first = try await reader.nextFrame()
+        #expect(first?.pose.timestamp.seconds == 0)
+        #expect(first?.pose.imageSize == ImageSize(width: 160, height: 96))
+        await reader.close()
+    }
 }
