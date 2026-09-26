@@ -1,75 +1,75 @@
 # P0 implementation and evidence
 
-**Prepared:** 2026-09-26
+**Updated:** 2026-09-26
 
-**Base:** `42162fdcfc31101039da8718d974962847064634`
+**Scope:** video replay and real Vision integration, not rep counting or live capture.
 
-**Scope:** video replay and real Vision integration, not rep counting or live capture
+[PR #2](https://github.com/yongkyuns/HangInThere/pull/2) is the canonical change.
+Use its exact-head check and linked Actions logs for the current execution result.
+Run-specific qualification updates belong in the PR discussion; this document
+records the implementation, evidence history, and limits rather than presenting a
+moving CI badge as an accuracy result.
 
-## Implemented source
+## Implemented
 
-One committed Xcode project, app target, hosted test target, and shared scheme.
-The app imports a security-scoped file into temporary storage, decodes one frame
-at a time, applies its preferred orientation, scales it to a bounded processing
-size, runs `VNDetectHumanBodyPoseRequest` revision 1, and displays that exact image
-with its landmarks. It reports invalid timestamps, unsupported geometry, decode
-failures, and absent bodies rather than generating placeholder observations.
+One Xcode project, SwiftUI app, hosted test target, and shared scheme. Local video
+is imported into temporary storage, decoded sequentially, oriented once, scaled
+to bounded image dimensions, analyzed with Vision body-pose revision 1, and shown
+using the exact analyzed image. Invalid timestamps, geometry, decoding, and
+missing bodies do not generate placeholder observations.
 
-The reader owns decoder/inference state in one actor. The main-actor controller
-owns presentation. Pause preserves an in-flight consumed frame; restart, close,
-and source replacement invalidate stale results. Source presentation timestamps
-control replay; neither a nominal 30 FPS clock nor UI interpolation supplies
-observation evidence. No full-video frame cache or unbounded task queue is used.
+The replay actor exclusively owns the decoder and inference state. AVFoundation
+preparation now happens in a nonisolated async factory, which returns its fresh
+object graph with Swift 6 `sending`. After transfer, only the replay actor uses it.
+Cancellation and session-generation checks run before starting the decoder.
+No `@preconcurrency` import, `@unchecked Sendable` wrapper, or relaxed language
+mode was added. The ownership-transfer mechanism is described in
+[Swift SE-0430](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md).
 
-Only the small pose, geometry, and timeline value types are framework-free. The
-real app uses Apple frameworks directly. A temporary SwiftPM test harness does
-not introduce a parallel production library. There are no third-party runtime
-dependencies, analytics, or paid signing requirements in the workflow.
+The main-actor controller owns presentation. Pause preserves an in-flight
+consumed frame; restart, close, and source replacement invalidate stale results.
+Source timestamps control pacing. There is no full-video image cache, unbounded
+frame queue, additional production package, or third-party runtime dependency.
 
-## Verification performed
+## Evidence history
 
-| Check | Actual outcome |
+| Evidence | Observed outcome |
 | --- | --- |
-| Exact app `Analysis/` sources and checked-in core tests | **21 Swift Testing tests passed**, in three suites, using Swift 6.2.1 on Linux x86_64. Parameterized cases cover angles and confidence values. |
-| Swift source syntax parsing | Passed for app and test files; parsing does not resolve Apple SDK symbols or prove an iOS build. |
-| Xcode project | OpenStep plist lint, referenced-file membership, and shared-scheme XML validation passed. Not compiled by Xcode. |
-| Shell, Python, JSON, workflow | Shell syntax, Python byte-compilation, JSON parsing, and workflow YAML validation passed. Not a workflow execution. |
-| Fixture preparation mechanics | Prepared/replaced a 40-frame clip in an isolated temporary test using original synthetic pixels; checked digests/timestamps and rejection against the real-source pin. This proves script mechanics only, not real-footage availability or pose inference. |
-| Controller cancellation logic, auxiliary check | Four isolated checks passed using a temporary decoder stub and a copy without Observation macros. The unmodified Observation harness hit a Linux runtime linker error. Neither run qualifies SwiftUI, AVFoundation, or iOS execution; actual controller integration tests are checked in for Xcode. |
+| Original local core checks | 21 Swift Testing tests passed on Linux with Swift 6.2.1. Source/project/script parsing also passed, but did not exercise Apple frameworks. |
+| First published CI: [run 36268170256](https://github.com/yongkyuns/HangInThere/actions/runs/36268170256), head `085f8a1` | All 21 core tests passed on macOS. The real source downloaded and its integrity pin passed; a 40-frame derivative was prepared. The unsigned device compile then failed at `loadTracks(withMediaType:)`: non-Sendable `AVAssetTrack` crossed an actor boundary. No simulator or model result was established by that run. |
+| Repair `0ad2f43` | Replaced that crossing with an exclusively owned decoder graph and a compiler-checked `sending` transfer. This is a source fix; its effectiveness must be established by subsequent Apple CI. |
+| Regression additions | Actual-decoder tests now cover replacement of geometry/timestamps and recovery from malformed media, as well as prior orientation, rewind, pause/resume, and stale-result checks. The workflow retains only the specifically named approved smoke derivative for visual review. Test definitions alone are not passing results. |
+| Subsequent runs | See the exact-head checks and qualification notes in PR #2. Cancelled or superseded runs are not counted as complete qualification. |
 
-## Required checks not yet performed
+## Qualification gates and limits
 
-| Gate | Current status |
-| --- | --- |
-| Xcode app and unsigned device compilation | **Not run**; the working environment is Linux without the Apple SDK. |
-| iOS simulator tests | **Not run**, including actual decoder orientation, controller lifecycle, and real Vision extraction. |
-| Real pull-up fixture | Source metadata and published integrity pin recorded; footage not downloaded or visually reviewed here. Preparation and body assertions must run on a networked host. |
-| GitHub publication and CI | **Not pushed; no PR or Actions run created.** This session exposes only read actions for GitHub, and the shell cannot reach GitHub. Source and an apply-ready patch are provided instead. |
-| Physical iPhone | **Not run**; later local Xcode/Personal Team testing remains required. |
-| Pull-up/dip counting, form accuracy, performance | **Not implemented or qualified in P0.** No dataset-level accuracy or phone latency is claimed. |
+The Apple-platform gate must pass the unsigned Release device build and all
+simulator tests, including actual Vision extraction from the real still and
+40-frame replay. No missing-media skip or model stub substitutes for that gate.
+The generated four-colour videos test decoding/orientation only, not human pose.
 
-The real-human test is deliberately not replaced by a generated silhouette or
-mocked landmarks. Missing fixture files and failure to find a visible arm make
-that test fail. A first run may reveal fixture, SDK, orientation, or backend
-problems that still need repair. Until the required build and model/video tests
-pass, this change is **P0 implementation awaiting qualification**, not completed P0.
+The smoke fixture also requires direct visual review of its still and clip.
+The `p0-smoke-fixture` artifact contains the derivative, source manifest, and
+prepared hashes. It is distinct from `p0-test-results`, which holds execution
+logs and the Xcode result bundle. Do not publish private videos, app imports,
+or broad simulator directories as artifacts.
 
-## Reproduce and finish the gate
+Even successful P0 CI establishes **integration**, not exercise accuracy:
 
-From the repository root, run `./scripts/test-core.sh`. On a compatible Mac,
-install the test-only ffmpeg tools, run `python3 scripts/prepare-fixtures.py`, and
-then `./scripts/test-ios.sh`. The app itself can be opened and run without the
-fixture downloader. The CI job performs the same checks after publication.
+- Physical iPhone capture, acceleration, heat, and sustained performance remain untested.
+- Pull-up/dip counting and form validation are not implemented in P0.
+- The smoke source has no independent joint-error or rep-validity labels.
+- Model selection and accuracy/coverage targets still require reviewed data for both exercises.
 
-Review the source and derived still/clip before accepting the smoke fixture.
-A detected arm is only an integration assertion. Keep review and any later
-independent joint/rep labels separate; do not treat model predictions as labels.
-If the source starts with a title or unusable view, change the documented trim
-only after inspecting the footage, preserve provenance, and requalify the test.
+## Reproduce
 
-Retain the actual build/test results and replace these pending statuses with
-measured evidence. Do not add a passing badge or advance the model/counting
-qualification solely because the project parses or the core tests pass.
+Run `./scripts/test-core.sh`. On a compatible Mac, install test-only ffmpeg,
+run `python3 scripts/prepare-fixtures.py`, then `./scripts/test-ios.sh`.
+The app itself opens without fixture downloads. No Apple signing credentials
+are used by CI; device installation later uses local Xcode and a Personal Team.
 
-The original [POC plan](POC.md) remains the product and accuracy contract. Its
-historical “at creation” checklist has not been retroactively marked complete.
+Keep the source/configuration, fixture hashes, target, OS, and run result together
+when comparing outputs. Do not infer phone FPS from simulator timing or treat
+model-generated landmarks as independent labels. The original [POC plan](POC.md)
+remains the product and accuracy contract; its historical checklist is not a
+claim that these later gates have passed.

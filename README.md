@@ -3,11 +3,11 @@
 A lean, on-device iPhone app in development for pull-up and parallel-bar dip
 counting and camera-view-specific range-of-motion analysis.
 
-**P0 implementation source is present; iOS execution is not yet verified.** This
-change adds video import/replay and a real Apple Vision pose-estimation path. The
-framework-free tests have run locally. Xcode compilation, simulator integration
-tests, real-media smoke tests, and physical-iPhone qualification have **not** run.
-See [the exact evidence and remaining gates](docs/P0_STATUS.md).
+**P0: video import/replay and real Apple Vision integration.** The source and
+GitHub qualification workflow are published in [PR #2](https://github.com/yongkyuns/HangInThere/pull/2).
+Use that PR's exact-head checks and [the evidence record](docs/P0_STATUS.md) for
+build/test status. A source change or passing core test does not establish that
+the iOS app runs, that exercise tracking is accurate, or that a phone keeps up.
 
 ## What this version does
 
@@ -27,8 +27,10 @@ or replacement; recordings are never uploaded by the app.
 
 ## Open the app
 
+Until PR #2 merges, check out its implementation branch:
+
 ```sh
-git clone https://github.com/yongkyuns/HangInThere.git
+git clone --branch feat/p0-video-pose https://github.com/yongkyuns/HangInThere.git
 cd HangInThere
 open HangInThere.xcodeproj
 ```
@@ -41,9 +43,8 @@ not needed to build/run the app and import your own video.
 
 For a physical phone, use a local Xcode version that supports its installed iOS,
 select your Personal Team under Signing & Capabilities, and use your own unique
-bundle identifier. There is no paid-account requirement in this development
-plan and no TestFlight pipeline. Do not commit your team or signing credentials.
-See [the local-device checklist](docs/POC.md#10-local-iphone-verification-with-a-free-account)
+bundle identifier. There is no TestFlight pipeline. Do not commit your team or
+signing credentials. See [the local-device checklist](docs/POC.md#10-local-iphone-verification-with-a-free-account)
 and its Apple references for account and provisioning restrictions.
 
 ## Tests
@@ -56,9 +57,9 @@ there is no second production package.
 ./scripts/test-core.sh
 ```
 
-The iOS integration tests additionally exercise real AVFoundation decoding,
-variable presentation timestamps, portrait orientation, replay state transitions,
-and actual Vision requests. Prepare their pinned public-source smoke media first:
+The iOS tests exercise actual AVFoundation decoding, variable timestamps,
+portrait orientation, decoder replacement/recovery, controller lifecycle,
+and real Vision requests. Prepare their pinned public-source smoke media first:
 
 ```sh
 # macOS; test preparation only, not an app dependency
@@ -67,40 +68,34 @@ python3 scripts/prepare-fixtures.py
 ./scripts/test-ios.sh
 ```
 
-Preparation verifies the original source's published digest and size, derives a
-small video and still, and records exact timestamps, derivative checksums, and
-encoder provenance. See [fixture provenance and limits](HangInThereTests/Fixtures/README.md).
+Preparation verifies the original source's digest and size, derives a small
+video and still, and records exact timestamps, derivative checksums, and encoder
+provenance. See [fixture provenance and limits](HangInThereTests/Fixtures/README.md).
 Missing media, integrity failures, missing expected body landmarks, and backend
-errors are **failures**, not skipped checks or successful accuracy reports.
-The source metadata has been reviewed; the actual footage and tests remain to
-be inspected/run. This is a backend smoke check, **not** a pull-up accuracy set.
+errors are failures, not skipped checks or successful accuracy reports.
+This is a backend smoke check, **not** a pull-up/dip accuracy set.
 
-`scripts/test-ios.sh` compiles an unsigned Release device target, discovers an
-available iPhone simulator for the selected SDK, and executes all app tests.
-Unsigned compilation does not produce an installable phone app. Normal local
-signing is not disabled in the project.
-
-The single [GitHub Actions workflow](.github/workflows/ci.yml) uses a macOS runner,
-pinned action commits, read-only repository permissions, no Apple secrets, and
-bounded artifact retention. It has been authored but has not run for this change.
+The single [GitHub workflow](.github/workflows/ci.yml) compiles an unsigned Release
+device target and runs the simulator tests using a pinned Xcode. It uses read-only
+repository permissions and no Apple credentials. Retained artifacts contain
+results/provenance and a separately named, approved smoke clip/still for review;
+private app imports are never collected. Unsigned compilation does not produce
+an installable phone app. Normal local signing is not disabled in the project.
 
 ## Scope and next steps
 
-Read [the POC implementation and validation plan](docs/POC.md). Keep one app and
-small components. Camera and video must eventually share pose normalization and
-exercise logic. Do not add services or a cross-platform architecture.
-
-First clear P0's real build/backend/video gates. Then measure Vision against
-MediaPipe Heavy on independently reviewed pull-up **and dip** footage; implement
-deterministic counting and uncertain outcomes; add the live workout UI; qualify
-endpoint measurements and sustained phone performance. A skeleton alone does
-not establish chin-over-bar clearance or accurate 3D joint angles.
+Read [the POC implementation and validation plan](docs/POC.md). First clear the
+real build/backend/video gates. Then measure Vision against MediaPipe Heavy on
+independently reviewed pull-up **and dip** footage; implement deterministic
+counting and uncertain outcomes; add live capture; qualify endpoints and sustained
+phone performance. A skeleton alone does not establish chin-over-bar clearance
+or accurate 3D joint angles. Keep one app and small components, not services or a
+cross-platform architecture.
 
 ## Data and licensing
 
 No workout recordings or model weights are committed. The test-preparation
-manifest identifies a public source with its recorded rights basis and credit;
-derived files and downloaded originals are ignored and are not app resources.
-No source-code licence has been selected. Public access is not a substitute for
-reviewing the applicable media/model permissions, and smoke fixtures are not
-independent anatomical or exercise-form ground truth.
+manifest records its public source, rights basis, and credit; generated media are
+ignored and are not app resources. No source-code licence has been selected.
+Public access does not replace checking media/model permissions, and smoke
+fixtures are not independent anatomical or exercise-form ground truth.
