@@ -1,67 +1,70 @@
 # HangInThere
 
-A lean, on-device iPhone app for pull-up and parallel-bar dip counting, with
-confidence-aware, camera-view-specific range-of-motion analysis.
+A lean, native iPhone experiment for accurate pull-up and parallel-bar-dip tracking.
 
-**Status: POC design only.** This initial package contains documentation, not a
-runnable app. No pose model, dataset, iOS build, or accuracy claim has been
-qualified yet.
+**P0 implementation:** import a local MOV/MP4, decode it sequentially, run real
+Apple Vision 2D body-pose estimation, and replay the exact processed images with
+an aligned skeleton. Pause, resume, restart and import replacement are supported.
+Processing is on-device. There is no server, account, third-party pose dependency,
+or paid Apple developer membership requirement for simulator development.
 
-## Start here
+**Not implemented/qualified yet:** rep counting, form checks, live camera capture,
+MediaPipe comparison, annotated exercise accuracy, and physical-iPhone performance.
+The app explicitly labels this as a pose preview, not a workout validator.
 
-Read [the POC implementation and validation plan](docs/POC.md).
+## Build and run
 
-The intended first version has one SwiftUI app, AVFoundation camera/video input,
-one selected pose backend, and deterministic Swift repetition logic. Apple
-Vision is the zero-dependency baseline; MediaPipe Heavy is the first independent
-comparison. The production choice depends on exercise-specific measurements,
-not generic benchmark rankings.
+Open `HangInThere.xcodeproj`, choose the shared **HangInThere** scheme and an iPhone
+simulator, then Run. The app targets iOS 17+. CI pins Xcode 16.4 and the iOS 18.5
+simulator on `macos-15`; local Xcode must also support your phone's installed OS.
+No project generator, package manager, API key, or signing secret is needed.
 
-## Product boundaries
+Import through the app's **Import** button. On the simulator, put a MOV/MP4 into
+Files (for example through Safari or Finder drag/drop as appropriate) and select
+it using the document picker. The app does not request camera or microphone access.
+The file provider must make the selected movie locally readable. Slow/unsupported
+or damaged assets report errors rather than showing a fake successful result.
 
-- One person, a stationary rear camera, and explicitly supported camera placement.
-- Pull-ups and parallel-bar dips selected by the user; no automatic exercise classifier.
-- Live tracking and imported-video replay use the same processing and counting code.
-- Checked reps, observed partial attempts, and unverified movement stay distinct.
-- No login, server, cloud inference, subscription, Android layer, or model-training
-  platform in the POC.
+Playback is **analysis-paced**, not a real-time FPS benchmark. Every decoded frame
+is processed in order, with its source presentation timestamp. Inference may slow
+playback. The overlay and preview use the same image; there is no independent
+AVPlayer clock. More than one detected person withholds the overlay in P0.
 
-A body skeleton alone does not establish chin-over-bar clearance. The plan
-includes a calibrated bar reference, a separately evaluated face-contour
-measurement, and an explicit unknown result when the evidence is insufficient.
-Image-plane observations are not presented as motion-capture-grade 3D measurements.
-
-## Development without a paid Apple account
-
-The planned GitHub workflow builds and tests against an iOS simulator and checks
-an unsigned device build. It has no Apple credentials, TestFlight publishing,
-or installable-IPA promise.
-
-Physical-iPhone testing happens later from local Xcode using the owner's free
-Personal Team. See [the local-device checklist](docs/POC.md#10-local-iphone-verification-with-a-free-account)
-and the linked Apple documentation for current provisioning restrictions.
-
-## First implementation milestone
-
-Create a real Xcode project and shared scheme, run an actual Apple Vision request
-on a reviewed fixture, replay a local video through the app, and execute its
-first simulator test in GitHub Actions. Do not add passing placeholder tests
-or badges before those operations run.
-
-## Data and licensing
-
-No third-party footage, model weights, personal workout recordings, signing
-material, or access tokens are included. A source-code licence has not been
-selected. Dataset permissions and model-asset terms must be reviewed separately
-before acquisition, use, redistribution, or bundling.
-
-## Repository
+## Tests
 
 ```sh
-git clone https://github.com/yongkyuns/HangInThere.git
-cd HangInThere
+python3 scripts/prepare-fixtures.py
+bash scripts/ci.sh
 ```
 
-This repository currently contains the documentation seed only. The Xcode project,
-application code, and CI workflow will be added with the first implementation
-milestone; there is no runnable app or installable build yet.
+The preparation step downloads one specifically attributed CC BY 3.0 pull-up clip
+into the ignored test-fixture directory. See
+[fixture provenance](HangInThereTests/Fixtures/README.md). Tests themselves are
+network-free and fail when the real fixture is missing. This clip is a smoke
+fixture, **not** ground truth for joint accuracy or valid repetitions.
+
+Tests cover coordinate origin and aspect-fit mapping, image-plane geometry,
+eight video-transform conventions, timestamp rejection/reset, actual Vision
+landmarks from video, comparison with source timestamps, reader restart, bad
+input, and stale-import suppression. GitHub Actions additionally compiles an
+unsigned physical-device build; that does not install or run on an iPhone.
+
+## Later: install on your own iPhone
+
+In local Xcode, sign in with your Apple account, select your Personal Team under
+Signing & Capabilities, set a unique bundle identifier, pair your phone, enable
+Developer Mode when prompted, and Run. Keep team/signing changes local. Apple's
+free Personal Team provisioning expires after seven days. A compatible Mac/Xcode
+and physical phone are still needed for live camera/performance verification.
+
+## Design and next steps
+
+[POC plan](docs/POC.md) defines the capture profile, architecture, repetition
+semantics, model comparison, acceptance targets, privacy and data requirements.
+[Implementation evidence](docs/P0.md) distinguishes code, checks and remaining
+qualification. Next: reviewed pull-up/dip measurements and a focused Vision versus
+MediaPipe Heavy comparison, then deterministic counting. Do not grow a framework
+before those experiments establish a need.
+
+Source-code license selection remains open. Third-party fixture media has its own
+explicit license and attribution; a public repository does not relicense it.

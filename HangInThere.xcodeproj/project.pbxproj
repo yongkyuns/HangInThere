@@ -1,0 +1,53 @@
+// !$*UTF8*$!
+{
+ archiveVersion = 1;
+ classes = {};
+ objectVersion = 56;
+ objects = {
+  54BC541612DC0C3107EE6081 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThere/Analysis/Pose.swift"; sourceTree = SOURCE_ROOT; };
+  FCF0C61D10065C0B2664F71A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThere/App/HangInThereApp.swift"; sourceTree = SOURCE_ROOT; };
+  ECC33DCDB3939EBC42165AAF = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThere/App/ReplayModel.swift"; sourceTree = SOURCE_ROOT; };
+  E01DEF254F5ED23BA3708EF8 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThere/Capture/VideoReplay.swift"; sourceTree = SOURCE_ROOT; };
+  472A59258FC6B5968143DCA2 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThere/Pose/VisionPoseEstimator.swift"; sourceTree = SOURCE_ROOT; };
+  27E7AF07E6FAA1C6A830864E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThere/UI/ReplayView.swift"; sourceTree = SOURCE_ROOT; };
+  D7D95021D3FDD4BB8F9E570D = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThereTests/GeometryTests.swift"; sourceTree = SOURCE_ROOT; };
+  1EC40AD14F16CC702AB971F7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HangInThereTests/ReplayTests.swift"; sourceTree = SOURCE_ROOT; };
+  D1A14EC124EE735D6560D803 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HangInThere.app; sourceTree = BUILT_PRODUCTS_DIR; };
+  247790A67E80A2848346A9EA = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HangInThereTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+  5B4818F81C7256E686BA2E05 = { isa = PBXFileReference; lastKnownFileType = folder; path = HangInThereTests/Fixtures; sourceTree = SOURCE_ROOT; };
+  4EDC8BFAFC6BD936B849F38C = { isa = PBXGroup; children = ( D1A14EC124EE735D6560D803, 247790A67E80A2848346A9EA, ); name = "Products"; sourceTree = "<group>"; };
+  5AAC1BFE532DB602AE864FFD = { isa = PBXGroup; children = ( 54BC541612DC0C3107EE6081, FCF0C61D10065C0B2664F71A, ECC33DCDB3939EBC42165AAF, E01DEF254F5ED23BA3708EF8, 472A59258FC6B5968143DCA2, 27E7AF07E6FAA1C6A830864E, ); name = "HangInThere"; sourceTree = "<group>"; };
+  304530E58ABA6A115FDEB5DE = { isa = PBXGroup; children = ( D7D95021D3FDD4BB8F9E570D, 1EC40AD14F16CC702AB971F7, 5B4818F81C7256E686BA2E05, ); name = "HangInThereTests"; sourceTree = "<group>"; };
+  44CB005EE2E65D9CC817B0A0 = { isa = PBXGroup; children = ( 5AAC1BFE532DB602AE864FFD, 304530E58ABA6A115FDEB5DE, 4EDC8BFAFC6BD936B849F38C, ); name = "Root"; sourceTree = "<group>"; };
+  A9B60B42EAFF3FCFFB74A564 = { isa = PBXBuildFile; fileRef = 54BC541612DC0C3107EE6081; };
+  BD725A850C22980D72F2ABFD = { isa = PBXBuildFile; fileRef = FCF0C61D10065C0B2664F71A; };
+  834426EBB012B51FB863E3C3 = { isa = PBXBuildFile; fileRef = ECC33DCDB3939EBC42165AAF; };
+  04AFE4F924637ED6735C98E8 = { isa = PBXBuildFile; fileRef = E01DEF254F5ED23BA3708EF8; };
+  8714B4254CBAE4F5A93E8AA1 = { isa = PBXBuildFile; fileRef = 472A59258FC6B5968143DCA2; };
+  242630A83A298D5FE4B93A3A = { isa = PBXBuildFile; fileRef = 27E7AF07E6FAA1C6A830864E; };
+  D8AFF257B45D0C513672EC45 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A9B60B42EAFF3FCFFB74A564, BD725A850C22980D72F2ABFD, 834426EBB012B51FB863E3C3, 04AFE4F924637ED6735C98E8, 8714B4254CBAE4F5A93E8AA1, 242630A83A298D5FE4B93A3A, ); runOnlyForDeploymentPostprocessing = 0; };
+  9799952D2EA214D3AC43D340 = { isa = PBXBuildFile; fileRef = D7D95021D3FDD4BB8F9E570D; };
+  F890A7D8D05D5D97DEA21C90 = { isa = PBXBuildFile; fileRef = 1EC40AD14F16CC702AB971F7; };
+  B2298129A58493C45A5D7D9A = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( 9799952D2EA214D3AC43D340, F890A7D8D05D5D97DEA21C90, ); runOnlyForDeploymentPostprocessing = 0; };
+  DC549ACCB7C726C62ECFD4E2 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+  34A18B5B4CADA13CECDC494D = { isa = PBXBuildFile; fileRef = 5B4818F81C7256E686BA2E05; };
+  3F6BC17F79ADBDD97FB52430 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( 34A18B5B4CADA13CECDC494D, ); runOnlyForDeploymentPostprocessing = 0; };
+  91024282FFD499F5807DB5BC = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+  28557525D9B40FEE6754FB60 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+  1241936D4DD3AAD68FE7BFBD = { isa = PBXContainerItemProxy; containerPortal = 244210E48437B6556980A702; proxyType = 1; remoteGlobalIDString = AC44A5EE06496B21A17CA082; remoteInfo = HangInThere; };
+  B9E7EDFEA5781C84549BB689 = { isa = PBXTargetDependency; target = AC44A5EE06496B21A17CA082; targetProxy = 1241936D4DD3AAD68FE7BFBD; };
+  73EBF6644258C120893E685D = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = "YES"; CLANG_ENABLE_OBJC_ARC = "YES"; SDKROOT = "iphoneos"; IPHONEOS_DEPLOYMENT_TARGET = "17.0"; SWIFT_VERSION = "6.0"; SWIFT_STRICT_CONCURRENCY = "complete"; TARGETED_DEVICE_FAMILY = "1"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; ENABLE_USER_SCRIPT_SANDBOXING = "YES"; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; DEBUG_INFORMATION_FORMAT = "dwarf"; ENABLE_TESTABILITY = "YES"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; }; name = Debug; };
+  0B0C687DF8B6B8DC790B519C = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = "YES"; CLANG_ENABLE_OBJC_ARC = "YES"; SDKROOT = "iphoneos"; IPHONEOS_DEPLOYMENT_TARGET = "17.0"; SWIFT_VERSION = "6.0"; SWIFT_STRICT_CONCURRENCY = "complete"; TARGETED_DEVICE_FAMILY = "1"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; ENABLE_USER_SCRIPT_SANDBOXING = "YES"; SWIFT_OPTIMIZATION_LEVEL = "-O"; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; }; name = Release; };
+  4AA05EC3301949773ED0AC0A = { isa = XCConfigurationList; buildConfigurations = ( 73EBF6644258C120893E685D, 0B0C687DF8B6B8DC790B519C, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  B00CCDD09424E369308D67FA = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "dev.hanginthere.app"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_KEY_CFBundleDisplayName = "HangInThere"; CURRENT_PROJECT_VERSION = "1"; MARKETING_VERSION = "0.1"; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = "YES"; INFOPLIST_KEY_UILaunchScreen_Generation = "YES"; INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"; CODE_SIGN_STYLE = "Automatic"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; SUPPORTS_MACCATALYST = "NO"; }; name = Debug; };
+  1B104479E55E37CF8A63CBDF = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "dev.hanginthere.app"; GENERATE_INFOPLIST_FILE = "YES"; INFOPLIST_KEY_CFBundleDisplayName = "HangInThere"; CURRENT_PROJECT_VERSION = "1"; MARKETING_VERSION = "0.1"; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = "YES"; INFOPLIST_KEY_UILaunchScreen_Generation = "YES"; INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"; CODE_SIGN_STYLE = "Automatic"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks"; SUPPORTS_MACCATALYST = "NO"; }; name = Release; };
+  671B466153DB183FE9E409BE = { isa = XCConfigurationList; buildConfigurations = ( B00CCDD09424E369308D67FA, 1B104479E55E37CF8A63CBDF, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  22341BB87F410D35D057D37C = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "dev.hanginthere.tests"; GENERATE_INFOPLIST_FILE = "YES"; CODE_SIGN_STYLE = "Automatic"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere"; BUNDLE_LOADER = "$(TEST_HOST)"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Debug; };
+  A188B1844D481F2A55033242 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_NAME = "$(TARGET_NAME)"; PRODUCT_BUNDLE_IDENTIFIER = "dev.hanginthere.tests"; GENERATE_INFOPLIST_FILE = "YES"; CODE_SIGN_STYLE = "Automatic"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere"; BUNDLE_LOADER = "$(TEST_HOST)"; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Release; };
+  81E1DC6C205DA91DF0465737 = { isa = XCConfigurationList; buildConfigurations = ( 22341BB87F410D35D057D37C, A188B1844D481F2A55033242, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  AC44A5EE06496B21A17CA082 = { isa = PBXNativeTarget; buildConfigurationList = 671B466153DB183FE9E409BE; buildPhases = ( D8AFF257B45D0C513672EC45, 91024282FFD499F5807DB5BC, DC549ACCB7C726C62ECFD4E2, ); buildRules = (); dependencies = (); name = HangInThere; productName = HangInThere; productReference = D1A14EC124EE735D6560D803; productType = "com.apple.product-type.application"; };
+  3A0C9CEF9D8F3BC090274361 = { isa = PBXNativeTarget; buildConfigurationList = 81E1DC6C205DA91DF0465737; buildPhases = ( B2298129A58493C45A5D7D9A, 28557525D9B40FEE6754FB60, 3F6BC17F79ADBDD97FB52430, ); buildRules = (); dependencies = ( B9E7EDFEA5781C84549BB689, ); name = HangInThereTests; productName = HangInThereTests; productReference = 247790A67E80A2848346A9EA; productType = "com.apple.product-type.bundle.unit-test"; };
+  244210E48437B6556980A702 = { isa = PBXProject; attributes = { BuildIndependentTargetsInParallel = YES; LastSwiftUpdateCheck = 1640; LastUpgradeCheck = 1640; TargetAttributes = { AC44A5EE06496B21A17CA082 = { CreatedOnToolsVersion = 16.4; }; 3A0C9CEF9D8F3BC090274361 = { CreatedOnToolsVersion = 16.4; TestTargetID = AC44A5EE06496B21A17CA082; }; }; }; buildConfigurationList = 4AA05EC3301949773ED0AC0A; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = 44CB005EE2E65D9CC817B0A0; productRefGroup = 4EDC8BFAFC6BD936B849F38C; projectDirPath = ""; projectRoot = ""; targets = ( AC44A5EE06496B21A17CA082, 3A0C9CEF9D8F3BC090274361, ); };
+ };
+ rootObject = 244210E48437B6556980A702;
+}

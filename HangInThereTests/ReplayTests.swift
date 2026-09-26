@@ -1,0 +1,92 @@
+import AVFoundation
+import XCTest
+@testable import HangInThere
+
+final class ReplayTests: XCTestCase {
+    private func fixture() throws -> URL {
+        try XCTUnwrap(Bundle(for: Self.self).url(forResource: "pullups", withExtension: "mov", subdirectory: "Fixtures"),
+                      "Missing licensed real-video fixture. Run python3 scripts/prepare-fixtures.py before building.")
+    }
+
+    func testRealVideoFlowsThroughActualVisionWithSourceTimestamps() async throws {
+        let url = try fixture()
+        let asset = AVURLAsset(url: url)
+        let tracks = try await asset.loadTracks(withMediaType: .video)
+        let track = try XCTUnwrap(tracks.first)
+        let reader = try AVAssetReader(asset: asset)
+        let output = AVAssetReaderTrackOutput(track: track, outputSettings: nil)
+        reader.add(output)
+        XCTAssertTrue(reader.startReading())
+        var expectedTimes: [Double] = []
+        while let sample = output.copyNextSampleBuffer(), expectedTimes.count < 16 {
+            expectedTimes.append(CMSampleBufferGetPresentationTimeStamp(sample).seconds)
+        }
+        // MPEG-4 decode order can differ from presentation order. Sort the
+        // independent compressed-sample timestamps before comparing.
+        expectedTimes.sort()
+        XCTAssertEqual(expectedTimes.count, 16)
+
+        let replay = VideoReplay()
+        try await replay.open(url)
+        var framesWithTorso = 0
+        for (index, timestamp) in expectedTimes.enumerated() {
+            let decoded = try await replay.next()
+            let frame = try XCTUnwrap(decoded)
+            XCTAssertEqual(frame.index, index + 1)
+            XCTAssertEqual(frame.pose.timestamp, timestamp, accuracy: 1e-6)
+            XCTAssertEqual(frame.image.width, Int(frame.pose.imageSize.width))
+            XCTAssertEqual(frame.image.height, Int(frame.pose.imageSize.height))
+            XCTAssertGreaterThan(frame.image.width, 300)
+            XCTAssertGreaterThan(frame.image.height, 200)
+            let required: [Joint] = [.leftShoulder, .rightShoulder, .leftHip, .rightHip]
+            if frame.pose.personCount == 1 && required.allSatisfy({ (frame.pose.landmarks[$0]?.confidence ?? 0) > 0.1 }) {
+                framesWithTorso += 1
+            }
+            for landmark in frame.pose.landmarks.values {
+                XCTAssertTrue((0...frame.pose.imageSize.width).contains(landmark.position.x))
+                XCTAssertTrue((0...frame.pose.imageSize.height).contains(landmark.position.y))
+                XCTAssertGreaterThan(landmark.confidence, 0)
+            }
+        }
+        await replay.close()
+        XCTAssertGreaterThanOrEqual(framesWithTorso, 8, "Real Vision torso extraction failed; mocks cannot pass this test.")
+    }
+
+    func testRestartReopensAtIdenticalSourceFrameAndResetsIndex() async throws {
+        let replay = VideoReplay()
+        let url = try fixture()
+        try await replay.open(url)
+        let a = try await replay.next()
+        _ = try await replay.next()
+        await replay.close()
+        try await replay.open(url)
+        let b = try await replay.next()
+        XCTAssertEqual(try XCTUnwrap(a).pose.timestamp, try XCTUnwrap(b).pose.timestamp)
+        XCTAssertEqual(b?.index, 1)
+        await replay.close()
+    }
+
+    func testMissingOrInvalidFileFailsRatherThanReturningSuccessfulEmptyReplay() async throws {
+        let replay = VideoReplay()
+        do {
+            try await replay.open(URL(fileURLWithPath: "/not-a-video/absent.mov"))
+            XCTFail("Opening a missing file must fail")
+        } catch { /* Expected: reader/asset failure. */ }
+        await replay.close()
+    }
+
+    @MainActor
+    func testReplacingImportCannotPublishTheOldSession() async throws {
+        let model = ReplayModel()
+        model.load(try fixture())
+        model.load(URL(fileURLWithPath: "/not-a-video/absent.mov"))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
+        while model.phase == .loading, ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertEqual(model.phase, .failed)
+        XCTAssertNil(model.frame)
+        XCTAssertNotNil(model.errorMessage)
+        model.shutdown()
+    }
+}

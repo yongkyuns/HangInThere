@@ -1,26 +1,24 @@
-# macOS / Xcode local state
 .DS_Store
-xcuserdata/
-*.xcuserstate
-DerivedData/
 build/
-.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
 *.xcresult
-
-# Personal signing and local configuration
 Local.xcconfig
+*.mobileprovision
 *.p12
 *.p8
-*.mobileprovision
 .env
-.env.local
-
-# Downloaded datasets, private recordings, models and generated evaluations
-Data/local/
-Data/external/
-Evaluation/output/
-Models/downloads/
-
-# Keep project files, shared schemes, dependency lockfiles, reviewed annotations,
-# and explicitly approved small test fixtures under version control.
-
+.env.*
+# Explicitly downloaded smoke fixture; fetched and checked before test bundling.
+HangInThereTests/Fixtures/*.mov
+# Private recordings, model assets and research corpora never enter public git.
+Recordings/
+Datasets/
+Models/
+*.mp4
+*.webm
+*.mlmodel
+*.mlmodelc/
+*.tflite
+__pycache__/
