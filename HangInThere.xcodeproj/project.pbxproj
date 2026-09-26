@@ -1,0 +1,595 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		845F65209D19F1E91A3C573D = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = HangInThere.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		9FEED0499F36FF4A8531E2EC = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = HangInThereTests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		508378606804E3EE893CF9D2 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Geometry.swift;
+			sourceTree = "<group>";
+		};
+		4FCAF8DC138451CD331D2CBA = {
+			isa = PBXBuildFile;
+			fileRef = 508378606804E3EE893CF9D2;
+		};
+		43CB0B7C6E08EDC8E4AA2F66 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = PoseObservation.swift;
+			sourceTree = "<group>";
+		};
+		9D3E611A749B44DBBE2C91D5 = {
+			isa = PBXBuildFile;
+			fileRef = 43CB0B7C6E08EDC8E4AA2F66;
+		};
+		5BC7DD8ACA3C903E46747468 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ReplayTimeline.swift;
+			sourceTree = "<group>";
+		};
+		0996E9AF653C1BA777C60ABA = {
+			isa = PBXBuildFile;
+			fileRef = 5BC7DD8ACA3C903E46747468;
+		};
+		F299B545EFBEFE12C9D250A1 = {
+			isa = PBXGroup;
+			children = (
+				508378606804E3EE893CF9D2,
+				43CB0B7C6E08EDC8E4AA2F66,
+				5BC7DD8ACA3C903E46747468,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
+		36ADCB7CD80AA7BA057BA74D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = HangInThereApp.swift;
+			sourceTree = "<group>";
+		};
+		6701F93B4C431819319367FA = {
+			isa = PBXBuildFile;
+			fileRef = 36ADCB7CD80AA7BA057BA74D;
+		};
+		F9B283C779FB7E0777862B5F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ReplayController.swift;
+			sourceTree = "<group>";
+		};
+		416A0916046EB339EA9673D8 = {
+			isa = PBXBuildFile;
+			fileRef = F9B283C779FB7E0777862B5F;
+		};
+		CCE821A490FF555C22802A44 = {
+			isa = PBXGroup;
+			children = (
+				36ADCB7CD80AA7BA057BA74D,
+				F9B283C779FB7E0777862B5F,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		B798D0952C0283EE3BA0F9A9 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = VideoReplayReader.swift;
+			sourceTree = "<group>";
+		};
+		F9B57C2A9301AC3E37D4D15E = {
+			isa = PBXBuildFile;
+			fileRef = B798D0952C0283EE3BA0F9A9;
+		};
+		18E1CB92F764A905D90209F5 = {
+			isa = PBXGroup;
+			children = (
+				B798D0952C0283EE3BA0F9A9,
+			);
+			path = Capture;
+			sourceTree = "<group>";
+		};
+		F45C66EEAF842203B810112A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = VisionPoseEstimator.swift;
+			sourceTree = "<group>";
+		};
+		CDD19EB39340058AFAD45F5A = {
+			isa = PBXBuildFile;
+			fileRef = F45C66EEAF842203B810112A;
+		};
+		6373B7DAFB361BB9B3D41449 = {
+			isa = PBXGroup;
+			children = (
+				F45C66EEAF842203B810112A,
+			);
+			path = Pose;
+			sourceTree = "<group>";
+		};
+		6758D022E8F77CCCED9D45C3 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = PoseOverlay.swift;
+			sourceTree = "<group>";
+		};
+		3AF7243FFF763D7F730B1474 = {
+			isa = PBXBuildFile;
+			fileRef = 6758D022E8F77CCCED9D45C3;
+		};
+		4D67D56A1AC5DE6556E876BF = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ReplayView.swift;
+			sourceTree = "<group>";
+		};
+		3A7A75359E86E2A3E8712F61 = {
+			isa = PBXBuildFile;
+			fileRef = 4D67D56A1AC5DE6556E876BF;
+		};
+		26246615A4936E3BFAA5AF3A = {
+			isa = PBXGroup;
+			children = (
+				6758D022E8F77CCCED9D45C3,
+				4D67D56A1AC5DE6556E876BF,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		3AA483116254740FBE6590D1 = {
+			isa = PBXGroup;
+			children = (
+				F299B545EFBEFE12C9D250A1,
+				CCE821A490FF555C22802A44,
+				18E1CB92F764A905D90209F5,
+				6373B7DAFB361BB9B3D41449,
+				26246615A4936E3BFAA5AF3A,
+			);
+			path = HangInThere;
+			sourceTree = "<group>";
+		};
+		2479ED1A3F78983439EE4C41 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = GeometryTests.swift;
+			sourceTree = "<group>";
+		};
+		9F515F569E5290F4F4BB1565 = {
+			isa = PBXBuildFile;
+			fileRef = 2479ED1A3F78983439EE4C41;
+		};
+		20D103A57978004A86CB32BB = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ObservationTests.swift;
+			sourceTree = "<group>";
+		};
+		97569001D677958331EBAE90 = {
+			isa = PBXBuildFile;
+			fileRef = 20D103A57978004A86CB32BB;
+		};
+		4F379B112854E7D1DBC649C1 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ReplayTimelineTests.swift;
+			sourceTree = "<group>";
+		};
+		ACBA66C5AD79A82B40C4DF2D = {
+			isa = PBXBuildFile;
+			fileRef = 4F379B112854E7D1DBC649C1;
+		};
+		03FBF5F3317ABD701B6FBCEA = {
+			isa = PBXGroup;
+			children = (
+				2479ED1A3F78983439EE4C41,
+				20D103A57978004A86CB32BB,
+				4F379B112854E7D1DBC649C1,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		566636E8F351B44E6192B6DF = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder;
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		CD3A32C41ABB290B011C88C0 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ReplayControllerTests.swift;
+			sourceTree = "<group>";
+		};
+		5DD0334308E628B6C11F1A2B = {
+			isa = PBXBuildFile;
+			fileRef = CD3A32C41ABB290B011C88C0;
+		};
+		CC5B3102915A09B885C06EE4 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = VideoReplayReaderTests.swift;
+			sourceTree = "<group>";
+		};
+		F3976C42629141D52BC55FF7 = {
+			isa = PBXBuildFile;
+			fileRef = CC5B3102915A09B885C06EE4;
+		};
+		A20E1F89E8237D1E85479D5D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = VideoTestSupport.swift;
+			sourceTree = "<group>";
+		};
+		24F6944020F289B6A39DA48D = {
+			isa = PBXBuildFile;
+			fileRef = A20E1F89E8237D1E85479D5D;
+		};
+		9DCAAE36C33459EEF10F1FC1 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = VisionSmokeTests.swift;
+			sourceTree = "<group>";
+		};
+		CFE480A6C0D45218FB415ADC = {
+			isa = PBXBuildFile;
+			fileRef = 9DCAAE36C33459EEF10F1FC1;
+		};
+		C04727BFE9DBF2ABB295A662 = {
+			isa = PBXGroup;
+			children = (
+				CD3A32C41ABB290B011C88C0,
+				CC5B3102915A09B885C06EE4,
+				A20E1F89E8237D1E85479D5D,
+				9DCAAE36C33459EEF10F1FC1,
+			);
+			path = Integration;
+			sourceTree = "<group>";
+		};
+		C3297E1E92F59FA549992046 = {
+			isa = PBXGroup;
+			children = (
+				03FBF5F3317ABD701B6FBCEA,
+				566636E8F351B44E6192B6DF,
+				C04727BFE9DBF2ABB295A662,
+			);
+			path = HangInThereTests;
+			sourceTree = "<group>";
+		};
+		692092DE1C1C8624E142B71D = {
+			isa = PBXGroup;
+			children = (
+				845F65209D19F1E91A3C573D,
+				9FEED0499F36FF4A8531E2EC,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AB48CFA305015276AB5620D4 = {
+			isa = PBXGroup;
+			children = (
+				3AA483116254740FBE6590D1,
+				C3297E1E92F59FA549992046,
+				692092DE1C1C8624E142B71D,
+			);
+			sourceTree = "<group>";
+		};
+		847D247ABFFC5EE045BE1B99 = {
+			isa = PBXBuildFile;
+			fileRef = 566636E8F351B44E6192B6DF;
+		};
+		998956B575E8FA62FC710546 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		9998DFE6509E420B33231035 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		51C0E81AE2566243C2D71444 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				998956B575E8FA62FC710546,
+				9998DFE6509E420B33231035,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9F88269D30200F75DF5FC671 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 0.1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThere;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		5269FA304F4FEBACD0ACC9DE = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 0.1.0;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThere;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		70336279113C6D09893D9716 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F88269D30200F75DF5FC671,
+				5269FA304F4FEBACD0ACC9DE,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		19FCD8E35C8B1EBF35F40ED0 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThereTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere";
+				TARGETED_DEVICE_FAMILY = 1;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+			};
+			name = Debug;
+		};
+		5D5DFBD70461FC7225B3CCD4 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThereTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere";
+				TARGETED_DEVICE_FAMILY = 1;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+			};
+			name = Release;
+		};
+		490BE6FF84DB936A8164CDCB = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				19FCD8E35C8B1EBF35F40ED0,
+				5D5DFBD70461FC7225B3CCD4,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6B4FE4C1419F272671268E97 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 98F54143AB4E86B28C3AFEE0;
+			proxyType = 1;
+			remoteGlobalIDString = B902F7C2327297FC583709E1;
+			remoteInfo = HangInThere;
+		};
+		95AC710730130ABE5CA113A9 = {
+			isa = PBXTargetDependency;
+			target = B902F7C2327297FC583709E1;
+			targetProxy = 6B4FE4C1419F272671268E97;
+		};
+		68794D95D50DF8ED5158D413 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4FCAF8DC138451CD331D2CBA,
+				9D3E611A749B44DBBE2C91D5,
+				0996E9AF653C1BA777C60ABA,
+				6701F93B4C431819319367FA,
+				416A0916046EB339EA9673D8,
+				F9B57C2A9301AC3E37D4D15E,
+				CDD19EB39340058AFAD45F5A,
+				3AF7243FFF763D7F730B1474,
+				3A7A75359E86E2A3E8712F61,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF8D21E9E84F4DF4F2CFEE1E = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		253694B87BCB5FB6ECA0DC84 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B902F7C2327297FC583709E1 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 70336279113C6D09893D9716;
+			buildPhases = (
+				68794D95D50DF8ED5158D413,
+				BF8D21E9E84F4DF4F2CFEE1E,
+				253694B87BCB5FB6ECA0DC84,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = HangInThere;
+			productName = HangInThere;
+			productReference = 845F65209D19F1E91A3C573D;
+			productType = "com.apple.product-type.application";
+		};
+		DBA958A7378A46E5249DC865 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F515F569E5290F4F4BB1565,
+				97569001D677958331EBAE90,
+				ACBA66C5AD79A82B40C4DF2D,
+				5DD0334308E628B6C11F1A2B,
+				F3976C42629141D52BC55FF7,
+				24F6944020F289B6A39DA48D,
+				CFE480A6C0D45218FB415ADC,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4F12A3572FBE21543BA46A8 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29527BA9BC9C4A2D8521E2A3 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				847D247ABFFC5EE045BE1B99,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6A1E24F1D627678E5C8106C0 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 490BE6FF84DB936A8164CDCB;
+			buildPhases = (
+				DBA958A7378A46E5249DC865,
+				C4F12A3572FBE21543BA46A8,
+				29527BA9BC9C4A2D8521E2A3,
+			);
+			buildRules = ();
+			dependencies = (
+				95AC710730130ABE5CA113A9,
+			);
+			name = HangInThereTests;
+			productName = HangInThereTests;
+			productReference = 9FEED0499F36FF4A8531E2EC;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		98F54143AB4E86B28C3AFEE0 = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					B902F7C2327297FC583709E1 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					6A1E24F1D627678E5C8106C0 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = B902F7C2327297FC583709E1;
+					};
+				};
+			};
+			buildConfigurationList = 51C0E81AE2566243C2D71444;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AB48CFA305015276AB5620D4;
+			productRefGroup = 692092DE1C1C8624E142B71D;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B902F7C2327297FC583709E1,
+				6A1E24F1D627678E5C8106C0,
+			);
+		};
+	};
+	rootObject = 98F54143AB4E86B28C3AFEE0;
+}

@@ -24,3 +24,7 @@ Models/downloads/
 # Keep project files, shared schemes, dependency lockfiles, reviewed annotations,
 # and explicitly approved small test fixtures under version control.
 
+# Reproducibly prepared public smoke media (test bundle only)
+HangInThereTests/Fixtures/generated/
+HangInThereTests/Fixtures/prepare-*/
+__pycache__/

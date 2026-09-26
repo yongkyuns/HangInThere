@@ -1,0 +1,196 @@
+import Foundation
+import Observation
+
+enum ReplayPhase: String {
+    case idle = "Choose a video"
+    case loading = "Opening video…"
+    case paused = "Paused"
+    case playing = "Replaying"
+    case finished = "Replay complete"
+    case failed = "Unable to replay"
+}
+
+@MainActor @Observable
+final class ReplayController {
+    private(set) var phase: ReplayPhase = .idle
+    private(set) var frame: ProcessedFrame?
+    private(set) var sourceName: String?
+    private(set) var errorMessage: String?
+    private(set) var displayedFrames = 0
+    private(set) var durationSeconds = 0.0
+    @ObservationIgnored private var firstSourceTime = 0.0
+    @ObservationIgnored private var reader = VideoReplayReader()
+    @ObservationIgnored private var operation: Task<Void, Never>?
+    @ObservationIgnored private var pending: ProcessedFrame?
+    @ObservationIgnored private var session: UInt64 = 0
+    @ObservationIgnored private var playback: UInt64 = 0
+
+    var canPlay: Bool { phase == .paused }
+    var canRestart: Bool { frame != nil && phase != .loading }
+    var elapsed: Double { max(0, (frame?.pose.timestamp.seconds ?? 0) - firstSourceTime) }
+    var progress: Double {
+        if phase == .finished { return 1 }
+        return durationSeconds > 0 ? min(1, max(0, elapsed / durationSeconds)) : 0
+    }
+
+    func open(_ url: URL) {
+        let previous = operation
+        previous?.cancel()
+        session &+= 1
+        playback &+= 1
+        let token = session
+        let oldReader = reader
+        let nextReader = VideoReplayReader()
+        reader = nextReader
+        frame = nil
+        pending = nil
+        displayedFrames = 0
+        durationSeconds = 0
+        errorMessage = nil
+        sourceName = url.lastPathComponent
+        phase = .loading
+        operation = Task {
+            await previous?.value
+            await oldReader.close()
+            guard session == token, !Task.isCancelled else { return }
+            do {
+                let info = try await nextReader.open(url)
+                let first = try await nextReader.nextFrame()
+                guard session == token, !Task.isCancelled else { await nextReader.close(); return }
+                try showFirst(first, info: info)
+            } catch {
+                await nextReader.close()
+                if session == token, !Task.isCancelled { fail(error) }
+            }
+        }
+    }
+
+    func close() {
+        let previous = operation
+        previous?.cancel()
+        session &+= 1
+        playback &+= 1
+        let token = session
+        let oldReader = reader
+        reader = VideoReplayReader()
+        frame = nil
+        pending = nil
+        sourceName = nil
+        errorMessage = nil
+        displayedFrames = 0
+        durationSeconds = 0
+        phase = .idle
+        operation = Task {
+            await previous?.value
+            await oldReader.close()
+            if session == token { operation = nil }
+        }
+    }
+
+    func restart() {
+        guard canRestart else { return }
+        let previous = operation
+        previous?.cancel()
+        session &+= 1
+        playback &+= 1
+        let token = session
+        let currentReader = reader
+        pending = nil
+        errorMessage = nil
+        phase = .loading
+        operation = Task {
+            await previous?.value
+            guard session == token, !Task.isCancelled else { return }
+            do {
+                let info = try await currentReader.rewind()
+                let first = try await currentReader.nextFrame()
+                guard session == token, !Task.isCancelled else { return }
+                try showFirst(first, info: info)
+            } catch {
+                if session == token, !Task.isCancelled { fail(error) }
+            }
+        }
+    }
+
+    private func showFirst(_ first: ProcessedFrame?, info: VideoInfo) throws {
+        guard let first else { throw ReplayError.noFrames }
+        frame = first
+        firstSourceTime = first.pose.timestamp.seconds
+        displayedFrames = 1
+        durationSeconds = info.durationSeconds
+        phase = .paused
+        operation = nil
+    }
+
+    func pause() {
+        guard phase == .playing else { return }
+        phase = .paused
+        playback &+= 1
+        operation?.cancel()
+        // Do not discard the task yet: resume waits for it. An inference already
+        // in progress must hand its consumed frame to `pending`, not lose it.
+    }
+
+    func play() {
+        guard canPlay, let frame else { return }
+        let previous = operation
+        let currentReader = reader
+        let token = session
+        playback &+= 1
+        let playToken = playback
+        phase = .playing
+        operation = Task {
+            await previous?.value
+            guard isCurrent(token, playToken) else { return }
+            let clock = ContinuousClock()
+            var lastShownAt = clock.now
+            var lastPTS = frame.pose.timestamp.seconds
+            do {
+                while isCurrent(token, playToken) {
+                    let next: ProcessedFrame?
+                    if let pending { next = pending } else { next = try await currentReader.nextFrame() }
+                    // Save a consumed result even if pause cancelled this task.
+                    // Replacing/restarting the source, however, invalidates it.
+                    guard session == token else { return }
+                    pending = next
+                    guard isCurrent(token, playToken) else { return }
+                    guard let next else {
+                        phase = .finished
+                        operation = nil
+                        return
+                    }
+                    let spent = lastShownAt.duration(to: clock.now).components
+                    let wall = Double(spent.seconds) + Double(spent.attoseconds) / 1e18
+                    let delay = ReplayPacing.delay(sourceDelta: next.pose.timestamp.seconds - lastPTS,
+                                                   wallDelta: wall)
+                    if delay > 0 { try await clock.sleep(for: .seconds(delay)) }
+                    guard isCurrent(token, playToken) else { return }
+                    self.frame = next
+                    pending = nil
+                    displayedFrames += 1
+                    lastPTS = next.pose.timestamp.seconds
+                    lastShownAt = clock.now
+                }
+            } catch is CancellationError {
+                // A source change, pause, or lifecycle event intentionally stopped replay.
+            } catch {
+                if isCurrent(token, playToken) { fail(error) }
+            }
+        }
+    }
+
+    func reportImportFailure(_ error: Error) {
+        pause()
+        errorMessage = error.localizedDescription
+    }
+
+    private func isCurrent(_ token: UInt64, _ playToken: UInt64) -> Bool {
+        session == token && playback == playToken && phase == .playing && !Task.isCancelled
+    }
+
+    private func fail(_ error: Error) {
+        phase = .failed
+        errorMessage = error.localizedDescription
+        operation = nil
+    }
+}
