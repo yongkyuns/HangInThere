@@ -9,7 +9,7 @@ struct VisionSmokeTests {
         let url = try VideoTestSupport.resource("pullup-smoke.png")
         let source = try #require(CGImageSourceCreateWithURL(url as CFURL, nil))
         let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
-        let result = try VisionPoseEstimator().estimate(image: image, timestamp: PresentationTime(value: 1, timescale: 1))
+        let result = try VisionPoseEstimator().estimate(image: image, timestamp: PresentationTime(value: 19, timescale: 10))
         #expect(result.requestRevision == 1)
         #expect(VideoTestSupport.hasVisibleArm(result), "A real human fixture must produce shoulder/elbow/wrist observations, not just a successful request.")
         print("[Vision smoke] \(ProcessInfo.processInfo.operatingSystemVersionString); revision=\(result.requestRevision); people=\(result.people.count)")
@@ -23,11 +23,30 @@ struct VisionSmokeTests {
         _ = try await reader.open(url)
         var timestamps: [Double] = []
         var framesWithArm = 0
+        var checkpointRootY: [Int: Double] = [:]
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
         while let frame = try await reader.nextFrame() {
             timestamps.append(frame.pose.timestamp.seconds)
             if VideoTestSupport.hasVisibleArm(frame.pose) { framesWithArm += 1 }
             #expect(frame.pose.imageSize == ImageSize(width: Double(frame.image.width), height: Double(frame.image.height)))
             #expect(frame.pose.requestRevision == 1)
+            let index = timestamps.count - 1
+            if [10, 24, 36].contains(index) {
+                // Independently inspected hang / peak / returned-hang frames.
+                // A broad directional check, not anatomical or rep ground truth.
+                #expect(frame.pose.people.count == 1, "The reviewed motion checkpoints contain one athlete.")
+                if let root = frame.pose.people.first?.landmark(.root, minimumConfidence: 0.2) {
+                    checkpointRootY[index] = root.position.y / frame.pose.imageSize.height
+                } else {
+                    Issue.record("Missing root at reviewed motion checkpoint \(index).")
+                }
+            }
+            // Only this pinned, public-source fixture is logged. These are model
+            // predictions for inspection, never independent ground-truth labels.
+            let sample = PoseSmokeSample(videoSHA256: metadata.videoSHA256,
+                                         frameIndex: timestamps.count - 1, pose: frame.pose)
+            print("[Pose sample] \(String(decoding: try encoder.encode(sample), as: UTF8.self))")
         }
         await reader.close()
         #expect(timestamps.count == metadata.framePTSSeconds.count)
@@ -36,6 +55,11 @@ struct VisionSmokeTests {
             #expect(abs(actual - expected) < 1e-6)
         }
         #expect(framesWithArm > 0, "Decoding a video without real pose extraction is not a model smoke test.")
+        let hang = try #require(checkpointRootY[10])
+        let peak = try #require(checkpointRootY[24])
+        let returnedHang = try #require(checkpointRootY[36])
+        #expect(hang - peak > 0.10, "The reviewed ascent must move the inferred body root upward.")
+        #expect(returnedHang - peak > 0.10, "The reviewed descent must return the inferred body root downward.")
         print("[Video smoke] frames=\(timestamps.count); armFrames=\(framesWithArm); derivativeSHA256=\(metadata.videoSHA256); not a counting/accuracy benchmark")
     }
 }
@@ -48,4 +72,10 @@ private struct PreparedFixture: Decodable {
         case framePTSSeconds = "frame_pts_seconds"
         case videoSHA256 = "video_sha256"
     }
+}
+
+private struct PoseSmokeSample: Encodable {
+    let videoSHA256: String
+    let frameIndex: Int
+    let pose: PoseResult
 }

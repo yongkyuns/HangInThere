@@ -5,71 +5,94 @@
 **Scope:** video replay and real Vision integration, not rep counting or live capture.
 
 [PR #2](https://github.com/yongkyuns/HangInThere/pull/2) is the canonical change.
-Use its exact-head check and linked Actions logs for the current execution result.
-Run-specific qualification updates belong in the PR discussion; this document
-records the implementation, evidence history, and limits rather than presenting a
-moving CI badge as an accuracy result.
+Use its exact-head checks and linked Actions logs for current execution results.
+P0 remains awaiting qualification; a successful host test is not a successful
+simulator test, iPhone test, or accuracy benchmark.
 
 ## Implemented
 
 One Xcode project, SwiftUI app, hosted test target, and shared scheme. Local video
-is imported into temporary storage, decoded sequentially, oriented once, scaled
-to bounded image dimensions, analyzed with Vision body-pose revision 1, and shown
-using the exact analyzed image. Invalid timestamps, geometry, decoding, and
-missing bodies do not generate placeholder observations.
+is copied into temporary storage, decoded sequentially, oriented once, scaled to
+bounded image dimensions, analyzed with Vision body-pose revision 1, and shown
+using that exact image. Invalid timestamps, geometry, decoding and missing bodies
+do not generate placeholder observations.
 
 The replay actor exclusively owns the decoder and inference state. AVFoundation
-preparation now happens in a nonisolated async factory, which returns its fresh
-object graph with Swift 6 `sending`. After transfer, only the replay actor uses it.
-Cancellation and session-generation checks run before starting the decoder.
-No `@preconcurrency` import, `@unchecked Sendable` wrapper, or relaxed language
-mode was added. The ownership-transfer mechanism is described in
-[Swift SE-0430](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md).
+preparation uses a nonisolated async factory returning a fresh graph with Swift 6
+`sending`. Cancellation and generation checks precede decoder startup. There is
+no `@unchecked Sendable`, `@preconcurrency`, or relaxed language mode. The
+[Swift SE-0430 proposal](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0430-transferring-parameters-and-results.md)
+describes the ownership-transfer mechanism.
 
-The main-actor controller owns presentation. Pause preserves an in-flight
-consumed frame; restart, close, and source replacement invalidate stale results.
-Source timestamps control pacing. There is no full-video image cache, unbounded
-frame queue, additional production package, or third-party runtime dependency.
+The main-actor controller owns presentation. Pause preserves a consumed frame;
+restart, close and source replacement reject stale results. Source timestamps
+control pacing. No full-video cache, unbounded queue, second production package,
+third-party runtime, server or paid signing requirement has been added.
 
-## Evidence history
+## Verified execution history
 
-| Evidence | Observed outcome |
+| Exact run / scope | Result |
 | --- | --- |
-| Original local core checks | 21 Swift Testing tests passed on Linux with Swift 6.2.1. Source/project/script parsing also passed, but did not exercise Apple frameworks. |
-| First published CI: [run 36268170256](https://github.com/yongkyuns/HangInThere/actions/runs/36268170256), head `085f8a1` | All 21 core tests passed on macOS. The real source downloaded and its integrity pin passed; a 40-frame derivative was prepared. The unsigned device compile then failed at `loadTracks(withMediaType:)`: non-Sendable `AVAssetTrack` crossed an actor boundary. No simulator or model result was established by that run. |
-| Repair `0ad2f43` | Replaced that crossing with an exclusively owned decoder graph and a compiler-checked `sending` transfer. This is a source fix; its effectiveness must be established by subsequent Apple CI. |
-| Regression additions | Actual-decoder tests now cover replacement of geometry/timestamps and recovery from malformed media, as well as prior orientation, rewind, pause/resume, and stale-result checks. The workflow retains only the specifically named approved smoke derivative for visual review. Test definitions alone are not passing results. |
-| Subsequent runs | See the exact-head checks and qualification notes in PR #2. Cancelled or superseded runs are not counted as complete qualification. |
+| Original Linux core tests, Swift 6.2.1 | 21 tests passed; not Apple SDK execution. |
+| [Run 36268170256](https://github.com/yongkyuns/HangInThere/actions/runs/36268170256), `085f8a1` | Core tests and source acquisition passed. Device build failed on non-Sendable `AVAssetTrack` crossing; fixed in `0ad2f43` using checked ownership transfer. |
+| [Run 36273681747](https://github.com/yongkyuns/HangInThere/actions/runs/36273681747), `095d001` | **All 32 native macOS tests passed**, including real Vision, decoder, controller and 40-frame replay. Unsigned Release iPhone build and simulator compilation passed. iOS 26.2 simulator execution failed with 12 issues: missing Vision weights and test-video writer readiness timeouts. |
+| [Run 36279923261](https://github.com/yongkyuns/HangInThere/actions/runs/36279923261), `0384fd7` | **All 32 native macOS tests passed** again; unsigned iPhone build passed. Simulator-only CPU inference still failed with `Missing weights path cnn_human_pose.espresso.weights`, Vision Code 9. The 32-test simulator suite reported 20 issues. The ineffective CPU override was removed rather than retained as a speculative workaround. |
 
-## Qualification gates and limits
+These native runs used macOS 15.7.9 arm64 and Xcode 26.3. The older iOS 18.5
+simulator had also failed to load the body-pose weights. This is evidence about
+these tested hosted runtimes, not a claim that every simulator is unsupported.
+The canceled/superseded CPU-probe run is not counted as a complete qualification.
+No model files were copied between operating systems and no request failures
+were converted into successful empty observations.
 
-The Apple-platform gate must pass the unsigned Release device build and all
-simulator tests, including actual Vision extraction from the real still and
-40-frame replay. No missing-media skip or model stub substitutes for that gate.
-The generated four-colour videos test decoding/orientation only, not human pose.
+## Real exercise fixture correction
 
-The smoke fixture also requires direct visual review of its still and clip.
-The `p0-smoke-fixture` artifact contains the derivative, source manifest, and
-prepared hashes. It is distinct from `p0-test-results`, which holds execution
-logs and the Xcode result bundle. Do not publish private videos, app imports,
-or broad simulator directories as artifacts.
+The earlier 0-4-second fixture showed two people introducing the exercise, not
+pull-ups. Its successful inference was only a real-human integration check.
 
-Even successful P0 CI establishes **integration**, not exercise accuracy:
+The complete pinned source has now been acquired, checksum-verified and visually
+reviewed. Source seconds **29-33** show one continuous pull-up movement: hang,
+ascent, peak, descent, returned hang. All 40 selected frames were inspected
+before running the new model checks. The head/chin is cropped at the peak:
+**strict top clearance remains ungradable**, not passed or failed.
 
-- Physical iPhone capture, acceleration, heat, and sustained performance remain untested.
-- Pull-up/dip counting and form validation are not implemented in P0.
-- The smoke source has no independent joint-error or rep-validity labels.
-- Model selection and accuracy/coverage targets still require reviewed data for both exercises.
+The manifest records the trim, source pin and single-reviewer limitations. Local
+preparation/verification yielded 40 ordered timestamps. The new smoke test checks
+body-root movement at three preselected frames and logs actual frame-by-frame
+pose observations tied to the derivative hash. These are broad motion sanity
+checks, not rep counting or anatomical ground truth. The temporary full-source
+artifact step was removed after review; only the named small derivative remains.
+See [fixture provenance](../HangInThereTests/Fixtures/README.md).
+
+The old introduction's passing results must not be attributed to this new motion
+interval. Consult the new exact-head run for its execution and inspect the
+reported landmarks before advancing measurement claims.
+
+## Outstanding gates
+
+The declared Apple-platform gate still requires the unsigned device build and
+all simulator tests, including actual Vision inference. The simulator gate is
+**unresolved**, not skipped or silently replaced by native host results. Keep
+native-model, simulator-model, compile-only and physical-device evidence separate.
+
+Physical iPhone installation, live capture, acceleration, heat and sustained
+performance are untested. Pull-up/dip counting and form validation are not yet
+implemented. There is no independent joint-error or rep-validity test set and
+no reviewed parallel-bar dip corpus. These remain subsequent milestones; the
+motion smoke fixture cannot satisfy the POC accuracy/coverage targets.
 
 ## Reproduce
 
-Run `./scripts/test-core.sh`. On a compatible Mac, install test-only ffmpeg,
-run `python3 scripts/prepare-fixtures.py`, then `./scripts/test-ios.sh`.
-The app itself opens without fixture downloads. No Apple signing credentials
-are used by CI; device installation later uses local Xcode and a Personal Team.
+Run `./scripts/test-core.sh`. On macOS with test-only ffmpeg installed, run:
 
-Keep the source/configuration, fixture hashes, target, OS, and run result together
-when comparing outputs. Do not infer phone FPS from simulator timing or treat
-model-generated landmarks as independent labels. The original [POC plan](POC.md)
-remains the product and accuracy contract; its historical checklist is not a
-claim that these later gates have passed.
+```sh
+python3 scripts/prepare-fixtures.py
+./scripts/test-apple-host.sh  # exact non-UI production pipeline on macOS
+./scripts/test-ios.sh        # unsigned device compile + real simulator tests
+```
+
+The app itself needs no fixture download. Later physical-device installation
+uses local Xcode and a Personal Team. Keep source/configuration, fixture hashes,
+target, OS and run result together. Never infer phone FPS from host/simulator
+timing or use model predictions as independent labels. The original
+[POC plan](POC.md) remains the product and accuracy contract.

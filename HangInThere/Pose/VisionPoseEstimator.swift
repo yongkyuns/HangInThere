@@ -10,11 +10,6 @@ struct VisionPoseEstimator: PoseEstimator {
     func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
         let request = VNDetectHumanBodyPoseRequest()
         request.revision = VNDetectHumanBodyPoseRequestRevision1
-        #if targetEnvironment(simulator)
-        // Qualify real CPU inference independently of the simulator's GPU path.
-        // Never substitute observations or turn a failed request into an empty pose.
-        request.usesCPUOnly = true
-        #endif
         // The pixels are already oriented. Do not apply the track orientation again.
         try VNImageRequestHandler(cgImage: image, orientation: .up, options: [:]).perform([request])
         let size = ImageSize(width: Double(image.width), height: Double(image.height))

@@ -12,10 +12,22 @@
   "reviewed_metadata_date": "2026-09-26",
   "use": "Test-only decoder and pose-backend smoke fixture. No endorsement, no medical or form ground truth, no commercial marketing use.",
   "recipe": {
-    "source_start_seconds": 0,
+    "source_start_seconds": 29,
     "duration_seconds": 4,
     "frames_per_second": 10,
     "width": 640,
-    "still_seconds": 1
+    "still_seconds": 1.9
+  },
+  "visual_review": {
+    "date": "2026-09-26",
+    "method": "Complete-source contact sheet and all 40 selected frames inspected before model inference. Single-reviewer observation, not adjudicated ground truth.",
+    "selected_interval_seconds": [29, 33],
+    "observed_content": "One athlete in a continuous rear/oblique view: hang, ascent, peak, descent and return to hang. One visually observed movement cycle.",
+    "limitations": [
+      "Head/chin cropped around the peak; strict top criterion is ungradable.",
+      "Hands and apparatus are close to the top image boundary.",
+      "No anatomical joint labels or qualified rep-validity labels."
+    ],
+    "replaces": "Original 0-4 second interval showed two people introducing the exercise, not repetitions."
   }
 }
