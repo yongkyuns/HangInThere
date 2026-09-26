@@ -28,7 +28,8 @@ enum ReplayError: LocalizedError {
     }
 }
 
-// The reader, sample buffers, CIContext and inference all belong to this actor.
+// Preparation transfers an exclusively owned decoder graph into this actor.
+// After that, the reader, sample buffers, CIContext and inference stay here.
 // The main actor only receives immutable CGImages and Sendable observation data.
 // One nextFrame() call consumes exactly one source frame; no frame queue or timer.
 actor VideoReplayReader {
@@ -87,6 +88,28 @@ actor VideoReplayReader {
     }
 
     private func prepare(_ url: URL, token: UInt64) async throws -> VideoInfo {
+        let prepared = try await Self.makeDecoder(url)
+        try Task.checkCancellation()
+        guard token == generation else { throw CancellationError() }
+        // Do not start a decoder for a cancelled or superseded session.
+        guard prepared.reader.startReading() else {
+            throw ReplayError.decoding(prepared.reader.error?.localizedDescription ?? "Could not start the decoder.")
+        }
+        transform = prepared.transform
+        timeline = ReplayTimeline()
+        reader = prepared.reader
+        output = prepared.output
+        return prepared.info
+    }
+
+    // AVAssetTrack is non-Sendable in the supported SDK. Load it outside actor
+    // isolation, then transfer the whole fresh object graph once using `sending`.
+    // Nothing here is shared with another task or retained after the transfer;
+    // the compiler checks ownership without @preconcurrency/@unchecked Sendable.
+    private nonisolated static func makeDecoder(_ url: URL) async throws -> sending (
+        reader: AVAssetReader, output: AVAssetReaderTrackOutput,
+        transform: Affine2D, info: VideoInfo
+    ) {
         let asset = AVURLAsset(url: url)
         guard let track = try await asset.loadTracks(withMediaType: .video).first else {
             throw ReplayError.noVideo
@@ -94,7 +117,6 @@ actor VideoReplayReader {
         let preferred = try await track.load(.preferredTransform)
         let range = try await track.load(.timeRange)
         try Task.checkCancellation()
-        guard token == generation else { throw CancellationError() }
         guard range.duration.isNumeric, range.duration.seconds.isFinite,
               range.duration.seconds > 0 else { throw ReplayError.invalidTime }
 
@@ -105,15 +127,12 @@ actor VideoReplayReader {
         nextOutput.alwaysCopiesSampleData = false
         guard nextReader.canAdd(nextOutput) else { throw ReplayError.noVideo }
         nextReader.add(nextOutput)
-        guard nextReader.startReading() else {
-            throw ReplayError.decoding(nextReader.error?.localizedDescription ?? "Could not start the decoder.")
-        }
-        transform = Affine2D(a: preferred.a, b: preferred.b, c: preferred.c,
-                             d: preferred.d, tx: preferred.tx, ty: preferred.ty)
-        timeline = ReplayTimeline()
-        reader = nextReader
-        output = nextOutput
-        return VideoInfo(durationSeconds: range.duration.seconds)
+        return (
+            nextReader, nextOutput,
+            Affine2D(a: preferred.a, b: preferred.b, c: preferred.c,
+                     d: preferred.d, tx: preferred.tx, ty: preferred.ty),
+            VideoInfo(durationSeconds: range.duration.seconds)
+        )
     }
 
     func nextFrame() throws -> ProcessedFrame? {
