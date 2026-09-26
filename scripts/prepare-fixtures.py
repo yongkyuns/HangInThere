@@ -3,7 +3,6 @@
 import hashlib
 import json
 from pathlib import Path
-import sys
 import time
 import urllib.request
 
@@ -14,8 +13,10 @@ MANIFEST = ROOT / "HangInThereTests/Fixtures/source.json"
 def main():
     manifest = json.loads(MANIFEST.read_text())
     target = MANIFEST.parent / "pullups.mov"
-    expected = manifest.get("sha256")
-    if target.exists() and expected and hashlib.sha256(target.read_bytes()).hexdigest() == expected:
+    expected = manifest["sha256"]
+    if not isinstance(expected, str) or len(expected) != 64 or any(c not in "0123456789abcdef" for c in expected):
+        raise ValueError("A reviewed SHA-256 pin is required before acquiring fixtures.")
+    if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest() == expected:
         print("Fixture checksum verified (cached).")
         return
     request = urllib.request.Request(manifest["download_url"], headers={
@@ -36,10 +37,8 @@ def main():
         raise ValueError("Response is not a QuickTime/MP4 file.")
     actual = hashlib.sha256(data).hexdigest()
     print(f"FIXTURE_SHA256={actual} bytes={len(data)}")
-    if expected and actual != expected:
+    if actual != expected or len(data) != manifest["byte_count"]:
         raise ValueError("Fixture checksum changed. Review the upstream media before changing the pin.")
-    if not expected:
-        print("WARNING: initial acquisition; pin this digest before qualification.", file=sys.stderr)
     temporary = target.with_suffix(".tmp")
     temporary.write_bytes(data)
     temporary.replace(target)

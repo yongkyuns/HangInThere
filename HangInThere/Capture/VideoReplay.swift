@@ -18,6 +18,7 @@ actor VideoReplay {
     private var hasSecurityScope = false
     private var orientation: Int32 = 1
     private var timeline = FrameTimeline()
+    private var generation = UUID()
     private let estimator = VisionPoseEstimator()
     private let context = CIContext(options: [.cacheIntermediates: false])
 
@@ -27,31 +28,51 @@ actor VideoReplay {
         // Keep this scope local while awaiting metadata: actor reentrancy cannot
         // cause a concurrent close() to release a different import's access.
         do {
-            let asset = AVURLAsset(url: url)
-            guard let track = try await asset.loadTracks(withMediaType: .video).first else {
-                throw ReplayError.noVideo
+            let token = generation
+            let prepared = try await Self.prepare(url)
+            guard generation == token, !Task.isCancelled else {
+                prepared.reader.cancelReading()
+                throw CancellationError()
             }
-            let transform = try await track.load(.preferredTransform)
-            try Task.checkCancellation()
-            let orientation = try VideoOrientation(a: transform.a, b: transform.b,
-                                                   c: transform.c, d: transform.d)
-            let reader = try AVAssetReader(asset: asset)
-            let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
-            ])
-            output.alwaysCopiesSampleData = false
-            guard reader.canAdd(output) else { throw ReplayError.decoderUnavailable }
-            reader.add(output)
-            guard reader.startReading() else { throw reader.error ?? ReplayError.decoderUnavailable }
-            self.reader = reader
-            self.output = output
-            self.orientation = orientation.exif
+            reader = prepared.reader
+            output = prepared.output
+            orientation = prepared.orientation
             scopedURL = url
             hasSecurityScope = access
         } catch {
             if access { url.stopAccessingSecurityScopedResource() }
             throw error
         }
+    }
+
+    private struct PreparedReader {
+        let reader: AVAssetReader
+        let output: AVAssetReaderTrackOutput
+        let orientation: Int32
+    }
+
+    // AVAssetTrack is not Sendable in the pinned SDK. Load its metadata in one
+    // nonisolated task, then transfer the fresh reader graph exactly once. No
+    // aliases escape this function; after transfer, only this actor accesses it.
+    // `sending` preserves Swift 6 checking instead of suppressing SDK diagnostics.
+    private nonisolated static func prepare(_ url: URL) async throws -> sending PreparedReader {
+        let asset = AVURLAsset(url: url)
+        guard let track = try await asset.loadTracks(withMediaType: .video).first else {
+            throw ReplayError.noVideo
+        }
+        let transform = try await track.load(.preferredTransform)
+        try Task.checkCancellation()
+        let orientation = try VideoOrientation(a: transform.a, b: transform.b,
+                                               c: transform.c, d: transform.d)
+        let reader = try AVAssetReader(asset: asset)
+        let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+        ])
+        output.alwaysCopiesSampleData = false
+        guard reader.canAdd(output) else { throw ReplayError.decoderUnavailable }
+        reader.add(output)
+        guard reader.startReading() else { throw reader.error ?? ReplayError.decoderUnavailable }
+        return PreparedReader(reader: reader, output: output, orientation: orientation.exif)
     }
 
     func next() throws -> AnalyzedFrame? {
@@ -61,6 +82,7 @@ actor VideoReplay {
             guard let sample = output.copyNextSampleBuffer() else {
                 if reader.status == .failed { throw reader.error ?? ReplayError.invalidFrame }
                 if reader.status == .cancelled { throw CancellationError() }
+                guard reader.status == .completed else { throw ReplayError.invalidFrame }
                 return nil
             }
             let timestamp = CMSampleBufferGetPresentationTimeStamp(sample).seconds
@@ -84,6 +106,7 @@ actor VideoReplay {
     }
 
     func close() {
+        generation = UUID()
         reader?.cancelReading()
         output = nil
         reader = nil

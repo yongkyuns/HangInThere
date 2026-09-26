@@ -18,12 +18,14 @@ final class ReplayTests: XCTestCase {
         reader.add(output)
         XCTAssertTrue(reader.startReading())
         var expectedTimes: [Double] = []
-        while let sample = output.copyNextSampleBuffer(), expectedTimes.count < 16 {
+        while let sample = output.copyNextSampleBuffer() {
             expectedTimes.append(CMSampleBufferGetPresentationTimeStamp(sample).seconds)
         }
         // MPEG-4 decode order can differ from presentation order. Sort the
-        // independent compressed-sample timestamps before comparing.
-        expectedTimes.sort()
+        // complete independent compressed-sample timeline before taking a prefix.
+        // A prefix of decode-order samples can omit earlier presentation frames.
+        XCTAssertEqual(reader.status, .completed)
+        expectedTimes = Array(expectedTimes.sorted().prefix(16))
         XCTAssertEqual(expectedTimes.count, 16)
 
         let replay = VideoReplay()

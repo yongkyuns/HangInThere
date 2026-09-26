@@ -8,7 +8,6 @@ final class ReplayModel {
     private(set) var phase: Phase = .empty
     private(set) var frame: AnalyzedFrame?
     private(set) var errorMessage: String?
-    private(set) var filename: String?
     private var source: URL?
     private var session: VideoReplay?
     private var task: Task<Void, Never>?
@@ -26,7 +25,6 @@ final class ReplayModel {
         let session = VideoReplay()
         self.session = session
         source = url
-        filename = url.lastPathComponent
         frame = nil
         errorMessage = nil
         phase = .loading
@@ -78,6 +76,7 @@ final class ReplayModel {
                     frame = next
                 }
             } catch {
+                await session.close()
                 guard generation == token else { return }
                 if !(error is CancellationError) { fail(error) }
             }
