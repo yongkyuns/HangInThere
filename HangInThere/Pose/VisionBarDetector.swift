@@ -32,9 +32,11 @@ actor VisionBarDetector {
                         let contour = try observation.contour(at: i)
                         pointCount += contour.pointCount
                         guard pointCount <= BarFitter.maximumPoints else { throw BarFitError.tooComplex }
-                        contours.append(contour.normalizedPoints.map {
-                            Point2D(x: rect.minX + Double($0.x)*rect.width,
-                                    y: rect.minY + (1-Double($0.y))*rect.height)
+                        contours.append(try contour.normalizedPoints.map {
+                            guard let point = cropRegion.contourPoint(x: $0.x, y: $0.y) else {
+                                throw BarFitError.invalidContour
+                            }
+                            return point
                         })
                     }
                 }

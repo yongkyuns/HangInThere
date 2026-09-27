@@ -84,6 +84,29 @@ import Testing
             oppositeEdge:line(50,90,550,110),imageSize:size,sourceTime:PresentationTime(value:0,timescale:30))
         #expect(!crossed.isValid)
     }
+    @Test func cropBorderRoundoffIsNormalizedButInvalidSamplesAreNotClamped() throws {
+        let r = BarRegion(Point2D(x:365,y:90),Point2D(x:480,y:135))
+        let epsilon = Float.ulpOfOne
+        #expect(r.contourPoint(x:0.5,y:-epsilon) == Point2D(x:422.5,y:135))
+        #expect(r.contourPoint(x:1+epsilon,y:1+epsilon) == Point2D(x:480,y:90))
+        #expect(r.contourPoint(x:-0.01,y:0.5) == nil)
+        #expect(r.contourPoint(x:0.5,y:1.01) == nil)
+        #expect(r.contourPoint(x:.nan,y:0.5) == nil)
+        #expect(r.contourPoint(x:0.5,y:.infinity) == nil)
+        let polygon = [(Float(0),Float(0.3)), (1,0.3), (1,-epsilon), (0,-epsilon)]
+        let points = try polygon.map { try #require(r.contourPoint(x:$0.0,y:$0.1)) }
+        #expect(points.allSatisfy { r.contains($0) })
+    }
+    @Test func cropLengthIsNotAWholeBarAspectRatio() throws {
+        // The same 20-pixel-wide rail seen through long/short setup windows.
+        // Both contain enough independent edge support; neither needs extrapolation.
+        for length in [Double(60),120,240] {
+            let value = try #require(BarFitter.pair(line(50,100,50+length,100),
+                line(50,120,50+length,120),minimumLength:24))
+            #expect(value.centerline.length == length)
+        }
+        #expect(BarFitter.pair(line(50,100,75,100),line(50,130,75,130),minimumLength:24) == nil)
+    }
     @Test func screenGuideMapsBackToUnmirroredPixels() throws {
         let fit = try #require(AspectFit(image:size,viewport:ImageSize(width:320,height:400)))
         #expect(fit.imagePoint(fit.displayPoint(Point2D(x:50,y:100))) == Point2D(x:50,y:100))

@@ -45,8 +45,8 @@ Crop-border edges are excluded. Opposite-polarity duplicates are collapsed;
 adjacent rack bars remain separate candidates requiring confirmation.
 
 Initial engineering limits: overlap >=24 pixels and >=30% of the guide's longest
-side; direction difference <=5 degrees; edge separation 2–40 pixels; overlap >=6
-bar widths; taper minimum width >=40% of maximum width. These are **not validated
+side; direction difference <=5 degrees; edge separation 2–40 pixels; overlap >=1
+bar width; taper minimum width >=40% of maximum width. These are **not validated
 accuracy targets**. Thick, highly foreshortened, curved, heavily wrapped/occluded
 bars and confusing rack edges can fail. Input points, segments and simplification
 work are bounded; excess complexity fails rather than silently accepting a guess.
@@ -77,3 +77,20 @@ Chin localization, physical contact and 3D clearance remain separate requirement
 Primary API references:
 - https://developer.apple.com/documentation/vision/vndetectcontoursrequest
 - https://developer.apple.com/documentation/vision/vncontour
+
+## Initial photograph audit and bounded repair
+
+The first native run (`2272782`) produced no candidate in any of the three images.
+An isolated raw-contour probe found normalized Float samples a few ULPs beyond the
+crop border, which made the fitter discard entire otherwise usable contours.
+The adapter now corrects only boundary rounding within four Float ULPs; truly
+out-of-range/nonfinite samples still fail. This is not a looser landmark gate.
+
+A separate defect was applying a whole-bar aspect-ratio assumption to a local
+cropped contour segment. The old six-width minimum is removed: the visible overlap
+must still exceed its thickness and the unchanged absolute/ROI-relative minimum.
+Synthetic crop-length invariance and crop-border tests cover this change. This is
+a development revision prompted by observed failure, not held-out validation.
+References and guides are unchanged. Missing/fragmented edges remain a real failure,
+not evidence that an entire bar was localized. New native audit results must be
+reported separately from the original zero-candidate run.

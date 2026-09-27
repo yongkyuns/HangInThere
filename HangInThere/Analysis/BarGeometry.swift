@@ -30,6 +30,16 @@ struct BarRegion: Equatable, Sendable {
             && minX >= 0 && minY >= 0 && maxX <= size.width && maxY <= size.height
             && width >= 16 && height >= 16
     }
+    // Vision contours use Float coordinates. A crop-border sample can overshoot
+    // [0,1] by a few ULPs; normalize only that rounding, not genuinely outside data.
+    func contourPoint(x: Float, y: Float) -> Point2D? {
+        let tolerance = 4 * Float.ulpOfOne
+        guard x.isFinite, y.isFinite, (-tolerance...1+tolerance).contains(x),
+              (-tolerance...1+tolerance).contains(y),
+              [minX,minY,maxX,maxY].allSatisfy(\.isFinite), width > 0, height > 0 else { return nil }
+        return Point2D(x: minX + Double(min(1,max(0,x)))*width,
+                       y: minY + (1-Double(min(1,max(0,y))))*height)
+    }
     init(_ a: Point2D, _ b: Point2D) {
         minX = min(a.x, b.x); minY = min(a.y, b.y)
         maxX = max(a.x, b.x); maxY = max(a.y, b.y)
@@ -53,7 +63,7 @@ struct BarCandidate: Codable, Equatable, Sendable {
     }
 }
 
-enum BarFitError: Error { case tooComplex, invalidRegion }
+enum BarFitError: Error { case tooComplex, invalidRegion, invalidContour }
 
 enum BarFitter {
     static let maximumPoints = 200_000
@@ -131,9 +141,11 @@ enum BarFitter {
         let w0 = (c.x-a.x)*(-uy) + (c.y-a.y)*ux
         let w1 = (d.x-b.x)*(-uy) + (d.y-b.y)*ux
         let narrow = min(abs(w0), abs(w1)), wide = max(abs(w0), abs(w1))
-        // Require two distinct noncrossing edges with substantial shared visible support.
+        // Require two distinct noncrossing edges with shared visible support.
+        // A crop truncates length independently of bar thickness: do not require
+        // a whole-apparatus aspect ratio from this local visible section.
         guard w0*w1 > 0, narrow >= 2, wide <= 40,
-              narrow >= 0.4*wide, hi-lo >= 6*wide else { return nil }
+              narrow >= 0.4*wide, hi-lo >= wide else { return nil }
         return BarCandidate(firstEdge: BarSegment(a: a, b: b), secondEdge: BarSegment(a: c, b: d),
                             geometryScore: (hi-lo)*dot)
     }

@@ -28,6 +28,14 @@ import Testing
         #expect(abs(candidate.centerline.midpoint.y - (71+0.2*candidate.centerline.midpoint.x)) < 4)
         #expect(candidate.centerline.length > 420)
     }
+    @Test func barCanContinueThroughBothCropBorders() async throws {
+        let image = try makeImage(width:640,height:360) { _,y in y >= 95 && y <= 107 }
+        let candidates = try await VisionBarDetector().detect(image:image,
+            region:BarRegion(Point2D(x:70,y:60),Point2D(x:230,y:150)))
+        let candidate = try #require(candidates.first)
+        #expect(abs(candidate.centerline.midpoint.y-101) < 4)
+        #expect(candidate.centerline.length > 150)
+    }
     @Test func blankImageDoesNotProduceBar() async throws {
         let image = try makeImage(width:160,height:100) { _,_ in false }
         #expect(try await VisionBarDetector().detect(image:image,
