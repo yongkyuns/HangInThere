@@ -1,0 +1,82 @@
+name: Inspect bar contour evidence
+on:
+  push:
+    branches: [ops/bar-contour-probe]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 10
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: dataset-evaluation
+          run-id: 36353618433
+          github-token: ${{ github.token }}
+          path: build/input
+      - name: Inspect raw contours without altering production policy
+        run: |
+          cat > build/Probe.swift <<'SWIFT'
+          import Foundation
+          import CoreGraphics
+          import ImageIO
+          import Vision
+          import CryptoKit
+          @main struct Probe {
+              static func main() throws {
+                  let root = URL(fileURLWithPath:"build/input/Data/local/source-pilot")
+                  let recipes = try JSONSerialization.jsonObject(with:Data(contentsOf:URL(fileURLWithPath:"Evaluation/fixtures/bar-setup.json"))) as! [[String:Any]]
+                  var rows:[[String:Any]] = []
+                  for recipe in recipes {
+                      let bytes = try Data(contentsOf:root.appendingPathComponent(recipe["image"] as! String))
+                      let hash = SHA256.hash(data:bytes).map{String(format:"%02x",$0)}.joined()
+                      guard hash == recipe["sha256"] as? String else { throw NSError(domain:"HashMismatch",code:1) }
+                      let image = CGImageSourceCreateImageAtIndex(CGImageSourceCreateWithData(bytes as CFData,nil)!,0,nil)!
+                      let r = recipe["region"] as! [Double]
+                      let rect = CGRect(x:r[0],y:r[1],width:r[2]-r[0],height:r[3]-r[1])
+                      let crop = image.cropping(to:rect)!
+                      var paths:[[[Double]]] = []
+                      var outside = 0
+                      for dark in [true,false] {
+                          let request = VNDetectContoursRequest()
+                          request.revision = VNDetectContourRequestRevision1
+                          request.maximumImageDimension = 1024
+                          request.detectsDarkOnLight = dark
+                          try VNImageRequestHandler(cgImage:crop,orientation:.up,options:[:]).perform([request])
+                          for observation in request.results ?? [] {
+                              for i in 0..<observation.contourCount {
+                                  let c = try observation.contour(at:i)
+                                  var p:[[Double]] = []
+                                  for v in c.normalizedPoints {
+                                      let x=rect.minX+Double(v.x)*rect.width, y=rect.minY+(1-Double(v.y))*rect.height
+                                      if x<r[0] || y<r[1] || x>r[2] || y>r[3] { outside += 1 }
+                                      p.append([x,y])
+                                  }
+                                  paths.append(p)
+                              }
+                          }
+                      }
+                      rows.append(["id":recipe["id"]!,"imageSHA256":hash,"region":r,"contours":paths,"pointsOutsideCrop":outside])
+                  }
+                  try JSONSerialization.data(withJSONObject:rows,options:[.sortedKeys]).write(to:URL(fileURLWithPath:"build/contours.json"))
+                  print(rows.map{["id":$0["id"]!,"outside":$0["pointsOutsideCrop"]!]})
+              }
+          }
+          SWIFT
+          xcrun swiftc -swift-version 6 -parse-as-library build/Probe.swift -o build/probe
+          build/probe
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bar-contour-evidence
+          retention-days: 3
+          path: |
+            build/contours.json
+            build/Probe.swift
+          if-no-files-found: error
