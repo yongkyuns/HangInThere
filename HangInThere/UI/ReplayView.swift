@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct ReplayView: View {
     @State private var model = ReplayController()
     @State private var importing = false
+    @State private var barSetup: BarSetupFrame?
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -15,6 +16,7 @@ struct ReplayView: View {
                         .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                     countingSetup
                     preview
+                    barControls
                     countingSummary
                     if let name = model.sourceName {
                         Text(name).font(.headline).lineLimit(2)
@@ -73,10 +75,30 @@ struct ReplayView: View {
                 case .failure(let error): model.reportImportFailure(error)
                 }
             }
+            .sheet(item: $barSetup) { setup in
+                BarSetupView(setup: setup) { bar in model.confirmBar(bar, for: setup) }
+            }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { model.pause() }
             }
         }
+    }
+
+    private var barControls: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Button("Set up bar", systemImage: "line.diagonal") { barSetup = model.beginBarSetup() }
+                    .buttonStyle(.bordered).disabled(model.frame == nil || model.phase == .loading || model.phase == .failed)
+                    .accessibilityIdentifier("setupBar")
+                if model.currentBar != nil { Button("Clear bar") { model.clearBar() } }
+            }
+            if let bar = model.currentBar {
+                Text("\(bar.role.title): \(bar.method == .guidedContours ? "guided edge proposal confirmed" : "manual reference edge")")
+                Text("Fixed reference from source \(bar.sourceTime.seconds, specifier: "%.2f") s. Not revalidated during replay; not yet used for counting.")
+            } else {
+                Text("Pause on a clear bar view to set up a reference. For dips, set the rail used by the selected hand. Switching hands clears this reference.")
+            }
+        }.font(.caption)
     }
 
     private var countingSetup: some View {
@@ -126,6 +148,7 @@ struct ReplayView: View {
                 Image(decorative: frame.image, scale: 1, orientation: .up)
                     .resizable().scaledToFit()
                 PoseOverlay(result: frame.pose)
+                BarOverlay(imageSize: frame.pose.imageSize, bar: model.currentBar)
             } else if model.phase == .loading {
                 ProgressView().tint(.white)
             } else {

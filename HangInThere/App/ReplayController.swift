@@ -10,9 +10,17 @@ enum ReplayPhase: String {
     case failed = "Unable to replay"
 }
 
+struct BarSetupFrame: Identifiable, Sendable {
+    let id = UUID()
+    let frame: ProcessedFrame
+    let role: ConfirmedBar.Role
+    let generation: UInt64
+}
+
 @MainActor @Observable
 final class ReplayController {
     private(set) var counter = ExerciseCounter()
+    private(set) var bar: ConfirmedBar?
     private(set) var phase: ReplayPhase = .idle
     private(set) var frame: ProcessedFrame?
     private(set) var sourceName: String?
@@ -32,6 +40,30 @@ final class ReplayController {
         self.estimator = estimator
         self.reader = VideoReplayReader(estimator: estimator)
     }
+
+    var barRole: ConfirmedBar.Role {
+        counter.exercise == .pullUp ? .pullUpGrip : (counter.side == .left ? .leftDipRail : .rightDipRail)
+    }
+    var currentBar: ConfirmedBar? {
+        guard let frame, let bar, bar.role == barRole, bar.imageSize == frame.pose.imageSize else { return nil }
+        return bar
+    }
+    func beginBarSetup() -> BarSetupFrame? {
+        guard phase == .paused || phase == .playing || phase == .finished, let frame else { return nil }
+        pause()
+        return BarSetupFrame(frame: frame, role: barRole, generation: session)
+    }
+    @discardableResult
+    func confirmBar(_ bar: ConfirmedBar, for setup: BarSetupFrame) -> Bool {
+        guard phase == .paused || phase == .finished,
+              setup.generation == session, setup.role == barRole, bar.role == barRole,
+              bar.isValid, bar.imageSize == frame?.pose.imageSize,
+              bar.sourceTime == frame?.pose.timestamp,
+              bar.sourceTime == setup.frame.pose.timestamp else { return false }
+        self.bar = bar
+        return true
+    }
+    func clearBar() { bar = nil }
 
     // Switching exercise/arm replays from the beginning instead of mixing two
     // policies in one set. Only displayed source frames advance the counter.
@@ -63,6 +95,7 @@ final class ReplayController {
         pending = nil
         displayedFrames = 0
         counter.reset()
+        clearBar()
         durationSeconds = 0
         errorMessage = nil
         failureReport = nil
@@ -99,6 +132,7 @@ final class ReplayController {
         failureReport = nil
         displayedFrames = 0
         counter.reset()
+        clearBar()
         durationSeconds = 0
         phase = .idle
         operation = Task {
@@ -121,6 +155,7 @@ final class ReplayController {
         failureReport = nil
         phase = .loading
         counter.reset()
+        clearBar()
         operation = Task {
             await previous?.value
             guard session == token, !Task.isCancelled else { return }
@@ -190,6 +225,7 @@ final class ReplayController {
                                                    wallDelta: wall)
                     if delay > 0 { try await clock.sleep(for: .seconds(delay)) }
                     guard isCurrent(token, playToken) else { return }
+                    if let bar, bar.imageSize != next.pose.imageSize { clearBar() }
                     self.frame = next
                     counter.consume(next.pose)
                     pending = nil

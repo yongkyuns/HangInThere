@@ -112,3 +112,11 @@ or valid reps. Photographs and analytical trajectories cannot close those gates.
 marked event comparison on complete decoded clips. Observed cycles, count errors
 and excluded initial portions are reported separately from form acceptance. The
 production counter and its provisional thresholds are unchanged by that tooling.
+
+## Controlled setup scope / bar work
+
+The user's target is **one athlete and a fixed phone**. Spectator-heavy or moving-camera
+clips above remain stress diagnostics, not requirements for adding identity tracking.
+[Guided bar setup](BAR_SETUP.md) now provides confirmed apparatus references in the
+replay UI. It is not yet consumed by this counter: the failed policy-v1 results and
+its projected-limb-length limitation remain unchanged until bar validation is qualified.
