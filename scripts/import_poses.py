@@ -101,7 +101,8 @@ def convert_clip(clip, root, output, review_sha256):
     ev.require(type(origin) is int and origin in (0, 1), 'Explicit reviewed pixel origin 0 or 1 required')
     if kind == 'penn_action_mat':
         coordinates, visible, info = penn_arrays(label_path)
-        ev.require(info['action'] == 'pull_ups' and clip['exercise'] == 'pull_up', 'This Penn importer selects pull_ups only')
+        ev.require(info['action'] in {'pull_ups', 'pullup'} and clip['exercise'] == 'pull_up',
+                   'This Penn importer selects only documented pull_ups or native pullup labels')
     else:
         coordinates, visible, info = haa_arrays(label_path, review)
     files = clip['media']['files']
@@ -149,6 +150,7 @@ def convert_clip(clip, root, output, review_sha256):
                  'native_annotation_sha256': native['sha256'], 'conversion_review_sha256': review_sha256,
                  'conversion': {'version': 1, 'format': kind, 'pixel_origin': origin,
                                 'joint_order_source': SOURCES[kind], 'native_split': info.get('native_split'),
+                                'native_action': info.get('action'),
                                 'omitted_native_joints': sorted(set(range(coordinates.shape[1])) - set(info['mapping'])),
                                 'exclusions': dict(excluded)}}
     ev.validate_reference(reference, clip)

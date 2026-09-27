@@ -50,6 +50,7 @@ def choose_sequences(rows, count):
 def inspect(source, root, public, count):
     from scipy.io import loadmat
     from PIL import Image, ImageDraw
+    import numpy as np
     root.mkdir(parents=True, exist_ok=False)
     public.mkdir(parents=True, exist_ok=False)
     rows, labels, texts = [], {}, {}
@@ -128,8 +129,17 @@ def inspect(source, root, public, count):
             frame_records.append({'frame_index': index, 'image_sha256': ev.digest(path),
                                   'width': width, 'height': height, 'points': points, 'visibility': visible})
         sheet.save(public / (identifier + '-review.jpg'), quality=85)
+        visible_mask = np.asarray(raw['visibility'], dtype=bool)
+        coords = np.stack([raw['x'], raw['y']], axis=-1)[visible_mask]
+        finite = np.isfinite(coords).all(axis=-1)
+        bounds = np.array([width, height])
+        summary = {'visible_points': int(len(coords)), 'nonfinite_visible': int((~finite).sum()),
+                   'outside_origin_zero': int(((coords < 0).any(axis=-1) | (coords >= bounds).any(axis=-1)).sum()),
+                   'outside_origin_one': int(((coords < 1).any(axis=-1) | (coords > bounds).any(axis=-1)).sum()),
+                   'visible_min': coords[finite].min(axis=0).tolist() if finite.any() else None,
+                   'visible_max': coords[finite].max(axis=0).tolist() if finite.any() else None}
         sampled.append({**row, 'native_sha256': ev.digest(root / 'labels' / (identifier + '.mat')),
-                        'review_frames': frame_records})
+                        'coordinate_summary': summary, 'review_frames': frame_records})
     report = {'schema_version': 1, 'scope': 'native format and visual-review acquisition; not permission approval or model evaluation',
               'source_url': SOURCE, 'source_sha256': ev.digest(source), 'source_bytes': source.stat().st_size,
               'sequences': len(rows), 'counts_by_action': dict(Counter(r['action'] for r in rows)),
@@ -165,8 +175,11 @@ def review_manifest(root, acquisition_path, review_path, destination):
         for i in range(row['nframes']):
             path = root / 'frames' / identifier / f'{i + 1:06d}.jpg'
             files.append({'path': str(path.relative_to(root)), 'sha256': ev.digest(path)})
+        reviewed = review.get('reviewed_frame_sha256', {}).get(identifier, {})
+        ev.require(set(reviewed) == {str(s['frame_index']) for s in row['review_frames']}, 'Reviewed frame selection changed')
         for sample in row['review_frames']:
-            ev.require(files[sample['frame_index']]['sha256'] == sample['image_sha256'], 'Reviewed frame changed')
+            ev.require(files[sample['frame_index']]['sha256'] == sample['image_sha256']
+                       == reviewed[str(sample['frame_index'])], 'Reviewed frame changed')
         # Native train/test flags are retained, but do not invent subject/source
         # independence from numeric sequence IDs. All pilot clips are unassigned.
         clips.append({'id': 'penn_' + identifier, 'dataset': 'Penn_Action_native_pilot',
@@ -193,6 +206,10 @@ def main():
     parser.add_argument('--count', type=int, default=12)
     parser.add_argument('--review', type=Path, help='Explicit frozen review; never generated from model results.')
     args = parser.parse_args()
+    if args.review:
+        review = ev.read_json(args.review)
+        ev.require(args.archive.stat().st_size == review['source_bytes']
+                   and ev.digest(args.archive) == review['source_sha256'], 'Native release integrity mismatch before parsing')
     inspect(args.archive, args.root, args.review_output, args.count)
     if args.review:
         review_manifest(args.root, args.review_output / 'acquisition.json', args.review, args.root / 'review.json')

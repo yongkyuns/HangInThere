@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "source_url": "https://www.cis.upenn.edu/~kostas/Penn_Action.tar.gz",
+  "source_sha256": "e3e41bd99deb7b3beb9785f78b209de272bb0fa60ff4432ffa88118907a797de",
+  "source_bytes": 3235203923,
+  "scope": "research_evaluation_only",
+  "rights": {
+    "status": "approved",
+    "public_outputs": true,
+    "evidence": "Narrow research-benchmark evaluation of the authors' publicly offered native release. The official project page (https://dreamdragon.github.io/PennAction/) and archive README invite dataset use and request citation of Zhang, Zhu and Derpanis, ICCV 2013. This record is an assistant review of that offered research use, not a grant of new rights or commercial clearance. Publish aggregate error/coverage and provenance only; do not redistribute the source archive, original images, native labels, or converted labels.",
+    "commercial_training_clearance": "not_established",
+    "media_redistribution_clearance": "not_established"
+  },
+  "pixel_origin": 1,
+  "pixel_origin_evidence": "The original tools/CreatePointLightDisplay.m rounds annotation.x/y and passes them directly to MATLAB sub2ind(dims,Y,...X...,T), without adding one. tools/visualize.m displays the resulting raster alongside the original frame. We therefore interpret native coordinates as one-based image pixel centres and subtract one once. No origin is tuned against predictions.",
+  "annotation_provenance": "Authors' native Penn Action 2D labels and visibility flags, with the published 13-joint ordering. Before this native inference run, an assistant visually inspected the first/middle/last source frame of every selected sequence (36 diagnostic frames) for order, geometry, apparatus and annotation alignment. This is format/sample review independent of the model, not expert relabelling or individual adjudication of every frame. Preserve all native labels and literal joint names; omit the non-equivalent head point. Labels beneath clothing, occlusions, interpolation and side conventions retain dataset uncertainty.",
+  "native_release_text_sha256": {
+    "Penn_Action/README": "050e97b6f586b71d8092d20485c758cc358ac524787982b6a64a75815b58d415",
+    "Penn_Action/tools/CreatePointLightDisplay.m": "1fbd4c8e1d868f8483c33cab26479f68f3b32cb70b73325aa75498883f86e121",
+    "Penn_Action/tools/visualize.m": "21c1ab2523dd5b4a98bdb01ef116494a97dd59a896ad3fe960481c95aa5a876a"
+  },
+  "selection": "Six equally spaced numeric sequence IDs per original train flag, fixed before native model inference. No post-hoc clip rejection based on model error.",
+  "selected_native_sha256": {
+    "1149": "ae150396f14b6f6774d41ab61b855f40fcd5a7e18d1751e6292f6d00f80a9b7f",
+    "1150": "13bad5a6a3100d59bbbb0754829e4924de326def1c6592b43510639265a9b0d0",
+    "1173": "65ca26e020d35fc4dae794c05c7455465aac143d5d1f0d5303c6604b5944bb41",
+    "1203": "93639253169e60da381e00252adc073b50e3d803742aeb397ff4af11ff249969",
+    "1213": "5a4190fe7b4371fb02cfd170122d1ddcae265b5d6c64be27b22b0a761012947c",
+    "1240": "6d15a6285ea14ace09b1ee198d6ee20526734ef7adc647d86342c98a94299089",
+    "1256": "09d31b55ace4159d3ef82f349c5b5f52e65c07531f8ead753a2346bbccd8758d",
+    "1275": "535de3bc28d83658af7db54ed7e8211947f97a38bb73cfd574559677318e08e6",
+    "1306": "6ac6382a2c96f7555ba3019a5a65ad3412fefabc93af11699ae1313acd9a87e3",
+    "1312": "4a0576d799a1a534908f897c1a9015f267884e05b06e3c57e48e6a856beac248",
+    "1345": "8c27f4f4e66f2782a6ae503fed2bdcb64eb3d6bef201b24e1f105924c7071a76",
+    "1347": "78565de243d8f3dfc88fdcf2af73b7ae4cc22189f8cdddea7db5f4d590ecac0d"
+  },
+  "reviewed_frame_sha256": {
+    "1149": {
+      "0": "f29cdf0dbf5ae70aebd326359f8eb272090ebae3168c6cee84190f6d0866b844",
+      "19": "136d4635747a64de7431555fc36c135b27a753576dfd478db3d6e641e4c4ad5b",
+      "38": "3d46d8388a601c83881ce8747ccc85bac3b9cf678792754d1dd3417459248a87"
+    },
+    "1150": {
+      "0": "31bb5d535962227ccf8cd3675ebcfe83fc227d01e56830d9dca32dac78867450",
+      "20": "fd6902733429acc87b7a37247a9f48d2f9cde4a2b1b5967115286256b6dbe020",
+      "39": "9bea20cbd0b20680066c744731a9ec030ad8884b04e4855cffb2170bd81d2553"
+    },
+    "1173": {
+      "0": "4ca32edeada659dbac3bd66165aadb812d8773578f763038235ef3b2a38419fa",
+      "150": "29109ec75075a74f9e9bbc82a1bbb627e9bf41ae76168ec0a5a939946d9950b5",
+      "300": "cfa020f65cf7ec1ad0f17fda71df91a4bf109fb0718cf1dd373ed2e87de26890"
+    },
+    "1203": {
+      "0": "e18d4970cba74eb0b590a63597a9cc913ac6e5f5635e68b8e33353a923ec1a49",
+      "15": "80730b9e40377a9f94a8e6292d91dadd32491b1a7d1e8661c12dcab80fb1807a",
+      "30": "9175186ed67415898b63e414e2f29589e75063d8e96aaa341522fabaf94cd79f"
+    },
+    "1213": {
+      "0": "dec872bd0518aec07b2110ffb8ba1d59c25ee5bbee6cc884d35a96bb24687649",
+      "39": "dff2ade8e0fcb95c96f4524e72e7683000759767dd32472b5d4f605755171647",
+      "78": "87ebbdd3dccf71a0604c941cd7785496a4eeaa38cfd26b28a50dfeb92b347ee5"
+    },
+    "1240": {
+      "0": "9495647067e04a4d8d973ded66d6be6181058e7ed21ba503aa4275b28dd00412",
+      "27": "3ca479f50e4935affa53cce6670658ed5f0d02d8fbfc3a3bf2e7734271e50fe2",
+      "53": "1fa7b0d688701b2b9eb2b80078eb563889f4c15b7ad93ec37a0dfb515dea34fb"
+    },
+    "1256": {
+      "0": "5e21692a01522c3ab7e2fa68d14a9e4c768fd8873d0f98f85b58ff9048db2c7e",
+      "54": "afdee50c368b67eebeac6e284764bc3915632db5d56ce181b5784b7ea0cfdda2",
+      "108": "6527a083b7206ed0d6ba6070a590f95159f3b54186939f153733aef3f76da651"
+    },
+    "1275": {
+      "0": "e4e793339f679e58241763d482d783a1141b54f0f8810f9f2b970704a9e19b97",
+      "58": "4db3c24b9222d9e46630764e41d5c47f4abfea5cdc92e0ad1c17f606faae8b2b",
+      "115": "63ab27b5cab486709dffafbdb35f3804489bd1ee055c1b8727e27498189939ca"
+    },
+    "1306": {
+      "0": "17981c7ace2be737e5196195f59a9a2bbc61d06bc5a305c982ba69194000c387",
+      "25": "fb6d45d07580b12585a74f5891e98951a69f685a74bfa13576634067fec5a8c8",
+      "50": "f3f5a417fea45a9d9620960e09391a488cec3787f2308999cfbfd0643ebb47de"
+    },
+    "1312": {
+      "0": "b6e53df56b9735e004a8539ed2615794e9563ec8a8352756b46121c17d13761e",
+      "39": "be000e56fe913f33f5bd68a70d5f0f7bfc924164aa9d983f3e26adefbc417b37",
+      "77": "30a54767c1e41bea060e8e728cbed04867ecbe42ab9c631c0a965ddc437ca5aa"
+    },
+    "1345": {
+      "0": "de7264aab19448cc6f088bc8f3b291a0367962568b4b4f8084d796029b81dbec",
+      "21": "d5b98422058d7a7b8f2a04c25ef272c1f6eb1562590d6aed5042e98e72b27b54",
+      "42": "3119bed4b282cf2b7a0380b9ff1f67f8ceac3c1216022223c4973aec090242a1"
+    },
+    "1347": {
+      "0": "ced18cb695b7f27001d382c1e5ae6470883805ff34bb44f16133a9e169138e8d",
+      "57": "fdbd53d4b21a6b894125d37f19e06b00c477211104a290aeaf1c521465482cb9",
+      "114": "fa0b23c87d83c78cf3daa68c8c6000b042b8d94c440dd2503ef1e7d6d1c6d1fd"
+    }
+  },
+  "review_notes": {
+    "1149": "Outdoor rear view; clear arms, head cropped at the peak.",
+    "1150": "Outdoor side/oblique view; lower legs cropped in some reviewed frames.",
+    "1173": "Indoor doorway rear view; long sequence, lower body cropped.",
+    "1203": "Indoor garage/rack rear view, largely visible body.",
+    "1213": "Small dim silhouette from a low camera angle; foreshortening and cropping.",
+    "1240": "Gym front view, mostly visible body and arms.",
+    "1256": "Outdoor front view with a second person behind the athlete; do not use reference labels to choose a prediction.",
+    "1275": "Portrait doorway side view, overlapping limbs and partial occlusion.",
+    "1306": "Outdoor oblique view; swinging/leg-raised motion, not a strict-rep reference.",
+    "1312": "Gym with mirror/reflected people; retain as a difficult full-frame pose case.",
+    "1345": "Low wide outdoor view; athlete relatively small in the frame.",
+    "1347": "Letterboxed gym footage with background people; reference-person ambiguity is possible."
+  },
+  "limits": [
+    "These are twelve native sequences, not twelve verified unique subjects. Unknown source/subject identities stay unassigned, and no held-out generalization claim is made.",
+    "Some published left/right names appear opposite anatomical/image expectations across views. Literal native mapping is retained, not swapped to minimize prediction error. Report this as native-label disagreement until convention audit resolves it.",
+    "No bounding-box oracle or native reference pose is supplied to the estimator; multiple predicted people remain ambiguous in the scorer.",
+    "No temporal/endpoint or rep-validity labels are created. Image sequences use frame indices, never invented FPS.",
+    "Commercial training/use rights and redistribution rights are not established by this narrow benchmark record.",
+    "The selected set contains pull-ups only, no parallel-bar-dip evaluation."
+  ]
+}

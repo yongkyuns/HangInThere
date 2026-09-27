@@ -77,6 +77,16 @@ class ImportTests(unittest.TestCase):
         self.assertEqual(ev.preflight(m['clips'][0], self.root), 'ready')
         self.assertEqual(r['conversion_review_sha256'], ev.digest(self.path))
 
+    def test_actual_native_pullup_spelling_is_preserved(self):
+        self.data['action'] = 'pullup'; self.change_mat()
+        self.assertEqual(self.run_import(), 0)
+        self.assertEqual(self.reference()['conversion']['native_action'], 'pullup')
+
+    def test_other_native_actions_are_not_promoted(self):
+        self.data['action'] = 'pushup'; self.change_mat()
+        self.assertEqual(self.run_import(), 2)
+        self.assertFalse((self.out / 'manifest.json').exists())
+
     def test_nested_mat_and_one_based_pixel_origin(self):
         self.change_mat(nested=True)
         self.clip['annotation_review']['pixel_origin'] = 1

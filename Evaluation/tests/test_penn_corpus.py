@@ -75,6 +75,36 @@ class PennCorpusTests(unittest.TestCase):
             self.assertEqual(2, len(list((work / 'review').glob('*-review.jpg'))))
             self.assertFalse(list((work / 'review').rglob('*.mat')))
 
+    def test_frozen_review_builds_manifest_without_inventing_heldout_subjects(self):
+        with tempfile.TemporaryDirectory() as work:
+            work = Path(work)
+            self.archive(work / 'test.tar.gz')
+            pc.inspect(work / 'test.tar.gz', work / 'data', work / 'review', 2)
+            acquired = pc.ev.read_json(work / 'review/acquisition.json')
+            review = {'schema_version': 1, 'source_sha256': acquired['source_sha256'],
+                      'source_bytes': acquired['source_bytes'], 'scope': 'research_evaluation_only',
+                      'rights': {'status': 'approved', 'evidence': 'original synthetic test pixels', 'public_outputs': False},
+                      'pixel_origin': 0, 'annotation_provenance': 'Original synthetic arrays',
+                      'selected_native_sha256': {r['id']: r['native_sha256'] for r in acquired['selected']},
+                      'reviewed_frame_sha256': {r['id']: {str(f['frame_index']): f['image_sha256'] for f in r['review_frames']} for r in acquired['selected']}}
+            pc.ev.write_json(work / 'review.json', review)
+            pc.review_manifest(work / 'data', work / 'review/acquisition.json', work / 'review.json', work / 'manifest.json')
+            result = pc.ev.read_json(work / 'manifest.json')
+            self.assertEqual(result['confidence_threshold'], 0.3)
+            self.assertTrue(all(c['split'] == 'unassigned' and c['subject_group'] is None for c in result['clips']))
+            self.assertTrue(all(pc.ev.preflight(c, work / 'data') == 'ready' for c in result['clips']))
+            self.assertTrue(all(pc.ev.preflight(c, work / 'data', True) == 'outputs_not_approved' for c in result['clips']))
+            for key, value in [('source_sha256', 'a' * 64), ('pixel_origin', None), ('scope', 'commercial_training'),
+                               ('selected_native_sha256', {}), ('reviewed_frame_sha256', {}), ('rights', {'status': 'pending'})]:
+                invalid = dict(review); invalid[key] = value
+                pc.ev.write_json(work / 'invalid.json', invalid)
+                with self.subTest(key=key), self.assertRaises(ValueError):
+                    pc.review_manifest(work / 'data', work / 'review/acquisition.json', work / 'invalid.json', work / 'out.json')
+            (work / 'data/labels/0001.mat').write_bytes(b'tampered')
+            with self.assertRaises(ValueError):
+                pc.review_manifest(work / 'data', work / 'review/acquisition.json', work / 'review.json', work / 'out.json')
+
+
     def test_missing_or_duplicate_frames_fail(self):
         for option in ('missing', 'duplicate'):
             with self.subTest(option=option), tempfile.TemporaryDirectory() as work:

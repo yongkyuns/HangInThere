@@ -4,6 +4,14 @@ on:
     paths:
       - '.github/workflows/native-corpus.yml'
       - 'scripts/penn_corpus.py'
+      - 'scripts/import_poses.py'
+      - 'scripts/evaluation.py'
+      - 'scripts/evaluate.sh'
+      - 'Evaluation/PoseBatch.swift'
+      - 'Evaluation/tests/**'
+      - 'HangInThere/Analysis/**'
+      - 'HangInThere/Pose/**'
+      - 'HangInThere/Capture/VideoReplayReader.swift'
       - 'Evaluation/fixtures/penn-review.json'
   workflow_dispatch:
 permissions:
@@ -28,7 +36,7 @@ jobs:
           echo '/tmp/hit-native-env/bin' >> "$GITHUB_PATH"
       - name: Validate acquisition and importer contracts
         run: python -m unittest discover -s Evaluation/tests -v
-      - name: Acquire official native release for format review
+      - name: Acquire pinned native release and apply frozen review
         run: |
           mkdir -p Data/external build
           curl --fail --location --retry 2 --max-time 900 --max-filesize 4294967296 \
@@ -36,15 +44,41 @@ jobs:
             'https://www.cis.upenn.edu/~kostas/Penn_Action.tar.gz' \
             --output Data/external/Penn_Action.tar.gz
           python scripts/penn_corpus.py Data/external/Penn_Action.tar.gz \
-            --root Data/local/penn-native --review-output Evaluation/output/penn-native-review
-      - name: Retain bounded diagnostic review only
+            --root Data/local/penn-native --review-output Evaluation/output/penn-native-review \
+            --review Evaluation/fixtures/penn-review.json
+      - name: Convert the complete fixed native sample
+        run: |
+          python scripts/import_poses.py Data/local/penn-native/review.json \
+            --root Data/local/penn-native --output Data/local/penn-native/converted
+      - name: Evaluate unchanged production Vision on native images
+        run: |
+          xcodebuild -version > build/penn-toolchain.txt
+          xcrun swift --version >> build/penn-toolchain.txt
+          ./scripts/evaluate.sh Data/local/penn-native/converted/manifest.json \
+            --root Data/local/penn-native --output Evaluation/output/penn-native --public-output
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('Evaluation/output/penn-native/report.json').read_text())
+          assert report['counts_by_status'] == {'processed': 12}, 'No clip may disappear from the frozen sample'
+          assert sum(c['frames'] for c in report['clips']) == 1056
+          assert all(c['pose_metrics']['status'] == 'measured_2d_only' for c in report['clips'])
+          assert all(c['rep_metrics']['status'] == 'not_implemented' for c in report['clips'])
+          assert all(c['split'] == 'unassigned' and c['subject_group'] is None for c in report['clips'])
+          print('Native Penn pilot executed and scored: 12 sequences, 1056 images; accuracy is measured, not gated green.')
+          PY
+      # No full image sequences, native/converted annotations or raw predictions
+      # are redistributed. Only aggregate results and acquisition provenance.
+      - name: Retain aggregate native evaluation evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: penn-native-review
-          retention-days: 1
+          name: penn-native-evaluation
+          retention-days: 7
           path: |
             build/penn-download-headers.txt
             Evaluation/output/penn-native-review/acquisition.json
             Evaluation/output/penn-native-review/inventory.json
-            Evaluation/output/penn-native-review/*-review.jpg
+            build/penn-toolchain.txt
+            Data/local/penn-native/converted/import-report.json
+            Evaluation/output/penn-native/report.json
