@@ -95,6 +95,22 @@ class IntakeTests(unittest.TestCase):
         self.assertTrue((self.output / 'converted/manifest.json').is_file())
         self.assertFalse((self.output / 'frames/0002').exists())
 
+    def test_publisher_native_action_and_documented_alias_keep_raw_provenance(self):
+        self.files['Penn_Action/labels/0001.mat'] = label('pullup')
+        self.write_archive()
+        report = intake.stage(self.archive, self.output)
+        self.assertEqual(report['pull_up_candidates'], 2)
+        self.assertEqual(report['counts_by_action'], {'pullup': 1, 'pull_ups': 1, 'push_ups': 1})
+        clips = ev.read_json(self.output / 'review.json')['clips']
+        self.assertEqual([c['native_action'] for c in clips], ['pullup', 'pull_ups'])
+        self.assertEqual([c['rights']['status'] for c in clips], ['pending', 'pending'])
+
+    def test_unknown_action_reports_observed_names_without_guessing(self):
+        self.files = {k: v for k, v in self.files.items() if '/0003/' not in k and not k.endswith('0003.mat')}
+        self.files['Penn_Action/labels/0001.mat'] = label('assisted_pullup')
+        self.write_archive()
+        self.rejected('observed actions.*assisted_pullup')
+
     def test_limit_is_explicit_and_unselected_candidates_are_recorded(self):
         self.write_archive()
         report = intake.stage(self.archive, self.output, limit=1)
@@ -105,7 +121,7 @@ class IntakeTests(unittest.TestCase):
 
     def test_unreviewed_intake_cannot_become_a_scored_corpus(self):
         self.write_archive()
-        intake.stage(self.archive, self.output)
+        self.assertEqual(intake.stage(self.archive, self.output)['selected_sequences'], 2)
         self.assertEqual(imp.convert_manifest(self.output / 'review.json', self.output, self.output / 'converted'), 2)
         self.assertFalse((self.output / 'converted/manifest.json').exists())
 

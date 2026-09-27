@@ -1,4 +1,5 @@
 name: Native Penn intake
+# Isolated execution branch; not the PR's manual-only workflow.
 on:
   push:
     branches: [ops/penn-intake-20260926]
@@ -20,40 +21,70 @@ jobs:
           python3 -m venv /tmp/hit-native-env
           /tmp/hit-native-env/bin/python -m pip install --only-binary=:all: -r Evaluation/import-requirements.txt
           echo '/tmp/hit-native-env/bin' >> "$GITHUB_PATH"
-      - name: Inspect actual native action names and archive documentation
+      - name: Test native intake and conversion contracts
+        run: python3 -m unittest discover -s Evaluation/tests -v
+      - name: Acquire pinned archive and stage six original sequences
         run: |
+          set -o pipefail
           mkdir -p build
-          python3 -u - <<'PY' 2>&1 | tee build/native-intake.txt
-          import sys, json
+          python3 -u scripts/stage_penn.py --archive Data/external/Penn_Action.tar.gz --fetch --output Data/local/penn-intake --limit 6 --sha256 e3e41bd99deb7b3beb9785f78b209de272bb0fa60ff4432ffa88118907a797de 2>&1 | tee build/native-intake.txt
+          python3 - <<'PY'
+          import json
           from pathlib import Path
-          sys.path.insert(0, 'scripts')
-          import evaluation as ev
-          import stage_penn as intake
-          archive = Path('Data/external/Penn_Action.tar.gz')
-          acquisition = intake.download(archive)
-          ev.write_json('build/penn-acquisition.json', acquisition)
-          print('Acquired publisher archive:', json.dumps(acquisition), flush=True)
-          inventory = intake.inspect_archive(archive)
-          ev.write_json('build/penn-inventory.json', inventory)
-          print('Native action counts:', json.dumps(inventory['counts_by_action']), flush=True)
-          # Inspect source documentation/code only; never upload image or joint-array bytes.
-          evidence = []
-          for tar, item, path in intake.members(archive):
-              if path.name.lower() in {'readme', 'readme.txt', 'license', 'license.txt', 'visualize.m'} and item.size <= 65536:
-                  content = tar.extractfile(item).read().decode('utf-8', errors='replace')
-                  evidence.append({'path': str(path), 'text': content})
-          ev.write_json('build/penn-documentation.json', evidence)
-          print('Recorded native metadata only. No model inference, permissions or action aliases inferred.')
+          d=json.loads(Path('Data/local/penn-intake/intake-report.json').read_text())
+          assert d['native_annotations_inspected']==2326 and d['pull_up_candidates']==199
+          assert d['selected_sequence_ids']==['1149','1150','1151','1152','1153','1154']
+          assert d['selected_frames']==271
+          print('Native six-sequence staging confirmed; no model inference or permission approval.')
           PY
-      - name: Retain diagnostic metadata only
+      - name: Encrypt the selected review copy before artifact transfer
+        # Only a public recipient certificate is present here. The private key
+        # stays in the active review session, never in GitHub, logs or artifacts.
+        run: |
+          cat > "$RUNNER_TEMP/review-recipient.pem" <<'PEM'
+          -----BEGIN CERTIFICATE-----
+          MIIEPzCCAqegAwIBAgIUUi5FJ0PtrUs0j1jf3tInb5BekegwDQYJKoZIhvcNAQEL
+          BQAwLzEtMCsGA1UEAwwkSGFuZ0luVGhlcmUgZXBoZW1lcmFsIGRhdGFzZXQgcmV2
+          aWV3MB4XDTI2MDkyNzAyMjkxMFoXDTI2MDkyOTAyMjkxMFowLzEtMCsGA1UEAwwk
+          SGFuZ0luVGhlcmUgZXBoZW1lcmFsIGRhdGFzZXQgcmV2aWV3MIIBojANBgkqhkiG
+          9w0BAQEFAAOCAY8AMIIBigKCAYEAzwk7GKFnKACnMmuR16YZDHDbeMfmWg7+wi0s
+          RSTpD8EnCJfdCmEsJBI+mGbOqSUZacNC/PFkn+I/PipWpQ+KwKD3ByaIKfvRZk+p
+          +H5Fb4+cFa/zSnvzXXbmbIkGdqkwSuIrWp7waulyEpGKhKO4cTSCneXWU05FZAbR
+          Rz8KBmreqWoxXVGazO9JJR/TNnRJ3cMk2RZKqzeUx72mWC1sFO58uiydVhVoGzsa
+          3RhoGcViWgbMYoJ7vWP5pGoOQNsVYsCHiV8u91bEG4ulEjL48Rmr4lsKEhfA28Ai
+          IEz4OMDjcCclCoMpU0/KZ2mvDvI8fZAabisGiQiJRMzb77Fj+BX2LeSOZcQgqjg7
+          wIXOV6cw82d7F0KzIeQNXAXwsDXHnzuA7IxQtaOqwHt6zrsfLzQaIDDkfsu3f2NI
+          Ixd+Px9kCMJzZngbhz8U53GolYnhWScfCT1GQC2EiIkiKLqYiVKFO6d7eB7r2PN3
+          AdkfUs7y+N69s4aOpBovL4wDfiqvAgMBAAGjUzBRMB0GA1UdDgQWBBR8GwR55DjD
+          T1FaDmPNko3c/DT8FDAfBgNVHSMEGDAWgBR8GwR55DjDT1FaDmPNko3c/DT8FDAP
+          BgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBgQCps+q2K69dQ61ekDN4
+          2Xx4xC4lyMJEPb/vKeD127/m9uCk8Qcc8rfePr/+vvZ6Hft6uHsqwk8DtK/JTb0d
+          wevR1XmkG0155mmCJmCJ20z6OV3BxKfXxjxv2ykPQRzLAnlsD9A+Vr4bZmh9cekU
+          66zGteaeqXb9yhw+3N0qJW+cD+qlXUmITj/sOscM0AtfP8qmOIut9rDPW/1wnQFt
+          BYCu+p8ulG0yBwhguTkP8ZXXNcldIL5YLNdMwlbMSpzTC1Ko2cYpBvxfAQONCPnf
+          Cke/q3Q55tPfMrP15Wt3xGkF9DqBatKHztwjkgs+kNqzFVtUe/iBpzhRJqYpAbJs
+          6trps9XKT3YxEFjVO1Q8107ZAMhJPZUY/LuXcvniI5W5XzynNsDCtvHvWubXqYND
+          ewcQ8QUcQbrTok6jouoX15z7zg4XBmSugfWZ7F25so2XgpZpPv7a6Lor5Wgppaig
+          u5Ana6TbB40tUHrjYxCo5QpAEeAwlnET54LOSXXvA2aEmxw=
+          -----END CERTIFICATE-----
+          PEM
+          tar -czf "$RUNNER_TEMP/native-review.tgz" -C Data/local/penn-intake .
+          openssl cms -encrypt -binary -aes256 -outform DER -in "$RUNNER_TEMP/native-review.tgz" -out build/penn-review.p7m "$RUNNER_TEMP/review-recipient.pem"
+          rm "$RUNNER_TEMP/native-review.tgz" "$RUNNER_TEMP/review-recipient.pem"
+      - name: Transfer encrypted private review copy only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-penn-encrypted-review
+          retention-days: 1
+          if-no-files-found: error
+          path: build/penn-review.p7m
+      - name: Retain non-media intake metadata
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: native-penn-intake-metadata
           retention-days: 7
-          if-no-files-found: warn
           path: |
             build/native-intake.txt
-            build/penn-acquisition.json
-            build/penn-inventory.json
-            build/penn-documentation.json
+            Data/local/penn-intake/intake-report.json
+            Data/local/penn-intake/acquisition.json
