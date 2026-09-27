@@ -61,6 +61,7 @@ struct ReplayControllerTests {
         try await wait { model.phase == .paused || model.phase == .failed }
         #expect(model.phase == .paused)
         #expect(model.errorMessage == nil)
+        #expect(model.failureReport == nil)
     }
 
     @Test func closeDuringReplayCannotPublishAStaleFrame() async throws {
@@ -96,7 +97,13 @@ struct ReplayControllerTests {
             #expect(model.frame == nil)
             #expect(model.displayedFrames == 0)
             #expect(!model.canPlay)
+            let report = try #require(model.failureReport)
+            #expect(report.contains("Successfully displayed frames: 0"))
+            #expect(!report.contains("Last successful pose:"))
+            #expect(!report.contains(url.lastPathComponent))
+            #expect(!report.contains(TestPoseEstimator.failureMessage))
             model.close()
+            #expect(model.failureReport == nil)
         }
     }
 
@@ -110,6 +117,7 @@ struct ReplayControllerTests {
             try await wait { model.phase == .paused || model.phase == .failed }
             try #require(model.phase == .paused)
             #expect(model.errorMessage == nil)
+            #expect(model.failureReport == nil)
             #expect(model.frame?.pose.backend == TestPoseEstimator.backend)
             model.play()
             try await wait { model.phase == .finished || model.phase == .failed }
@@ -117,7 +125,37 @@ struct ReplayControllerTests {
             #expect(model.errorMessage == TestPoseEstimator.failureMessage)
             #expect(model.displayedFrames == 1)
             #expect(model.frame?.pose.timestamp.seconds == 0)
+            let report = try #require(model.failureReport)
+            #expect(report.contains("Successfully displayed frames: 1"))
+            #expect(report.contains("Last successful pose: \(TestPoseEstimator.backend)"))
+            #expect(!report.contains(url.lastPathComponent))
+            model.restart()
+            try await wait { model.phase == .paused || model.phase == .failed }
+            #expect(model.phase == .paused)
+            #expect(model.failureReport == nil)
         }
+    }
+
+    @Test func sharedFailureDetailsDoNotExportPrivateErrorInformation() throws {
+        let privateName = "private-athlete-recording.mp4"
+        let privatePath = "/private/user-recordings/" + privateName
+        let error = NSError(domain: "com.apple.Vision", code: 9, userInfo: [
+            NSLocalizedDescriptionKey: "Could not process \(privatePath)",
+            NSFilePathErrorKey: privatePath,
+            NSUnderlyingErrorKey: NSError(domain: "private-nested-error", code: 2,
+                                          userInfo: [NSLocalizedDescriptionKey: privateName])
+        ])
+        let model = ReplayController(estimator: TestPoseEstimator())
+        model.reportImportFailure(error)
+        let report = try #require(model.failureReport)
+        #expect(report.contains("Error domain: com.apple.Vision; code: 9"))
+        #expect(report.contains("Operation: file selection"))
+        #expect(!report.contains(privateName))
+        #expect(!report.contains(privatePath))
+        #expect(!report.contains("private-nested-error"))
+        #expect(model.errorMessage == error.localizedDescription)
+        model.close()
+        #expect(model.failureReport == nil)
     }
 
     private func wait(until predicate: () -> Bool) async throws {

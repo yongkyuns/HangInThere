@@ -16,6 +16,7 @@ final class ReplayController {
     private(set) var frame: ProcessedFrame?
     private(set) var sourceName: String?
     private(set) var errorMessage: String?
+    private(set) var failureReport: String?
     private(set) var displayedFrames = 0
     private(set) var durationSeconds = 0.0
     @ObservationIgnored private var firstSourceTime = 0.0
@@ -53,6 +54,7 @@ final class ReplayController {
         displayedFrames = 0
         durationSeconds = 0
         errorMessage = nil
+        failureReport = nil
         sourceName = url.lastPathComponent
         phase = .loading
         operation = Task {
@@ -83,6 +85,7 @@ final class ReplayController {
         pending = nil
         sourceName = nil
         errorMessage = nil
+        failureReport = nil
         displayedFrames = 0
         durationSeconds = 0
         phase = .idle
@@ -103,6 +106,7 @@ final class ReplayController {
         let currentReader = reader
         pending = nil
         errorMessage = nil
+        failureReport = nil
         phase = .loading
         operation = Task {
             await previous?.value
@@ -188,6 +192,7 @@ final class ReplayController {
     func reportImportFailure(_ error: Error) {
         pause()
         errorMessage = error.localizedDescription
+        failureReport = makeFailureReport(error, operation: "file selection")
     }
 
     private func isCurrent(_ token: UInt64, _ playToken: UInt64) -> Bool {
@@ -197,6 +202,47 @@ final class ReplayController {
     private func fail(_ error: Error) {
         phase = .failed
         errorMessage = error.localizedDescription
+        failureReport = makeFailureReport(error, operation: "replay")
         operation = nil
+    }
+
+    // An explicit user share action can export this text. Never include a source
+    // URL/name, image, landmarks, error description/userInfo, or device identifier.
+    // A retained frame describes the LAST SUCCESS, not the frame that failed.
+    private func makeFailureReport(_ error: Error, operation: String) -> String {
+        #if targetEnvironment(simulator)
+        let environment = "iOS simulator"
+        #elseif os(iOS)
+        let environment = "physical iOS device"
+        #else
+        let environment = "native host"
+        #endif
+        #if arch(arm64)
+        let architecture = "arm64"
+        #elseif arch(x86_64)
+        let architecture = "x86_64"
+        #else
+        let architecture = "other"
+        #endif
+        let systemError = error as NSError
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
+        var lines = [
+            "HangInThere failure report v1",
+            "App: \(version) (\(build))",
+            "Environment: \(environment); architecture: \(architecture)",
+            "OS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
+            "Operation: \(operation)",
+            "Estimator type: \(String(reflecting: type(of: estimator)))",
+            "Error domain: \(systemError.domain); code: \(systemError.code)",
+            "Successfully displayed frames: \(displayedFrames)"
+        ]
+        if let frame {
+            lines.append("Last successful pose: \(frame.pose.backend), revision \(frame.pose.requestRevision)")
+            lines.append("Last successful image: \(frame.image.width) x \(frame.image.height)")
+            lines.append("Last successful source time: \(frame.pose.timestamp.value)/\(frame.pose.timestamp.timescale)")
+        }
+        lines.append("No video, filenames, paths, landmarks, or device identifiers included.")
+        return lines.joined(separator: "\n")
     }
 }

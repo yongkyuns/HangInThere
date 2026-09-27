@@ -35,6 +35,15 @@ struct ReplayView: View {
                         Label(message, systemImage: "exclamationmark.triangle")
                             .font(.callout).foregroundStyle(.red)
                             .accessibilityIdentifier("replayError")
+                        if let report = model.failureReport {
+                            ShareLink(item: report) {
+                                Label("Share failure details", systemImage: "square.and.arrow.up")
+                            }
+                            .font(.callout)
+                            .accessibilityIdentifier("shareReplayFailure")
+                            Text("Shares technical details only, not your video or filename.")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
                     }
                     if let frame = model.frame {
                         elbowMeasurements(frame.pose)
