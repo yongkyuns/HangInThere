@@ -1,107 +1,67 @@
-name: iOS P0
+name: Vision runtime probe
 
 on:
-  pull_request:
   push:
-    branches: [main]
+    branches: [ops/vision-runtime-probe-20260927]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: vision-runtime-probe-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
-
 jobs:
-  apple-host:
-    name: Native macOS real-Vision and replay integration
-    runs-on: macos-15
-    timeout-minutes: 30
-    steps:
-      - name: Checkout exact revision
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Verify selected toolchain
-        run: |
-          test -d "$DEVELOPER_DIR"
-          xcodebuild -version
-      - name: Test CI selection and failure propagation
-        run: python3 -m unittest discover -s scripts/tests -v
-      - name: Core geometry and timeline tests
-        run: ./scripts/test-core.sh
-      - name: Prepare pinned real-human smoke media
-        run: |
-          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
-          python3 scripts/prepare-fixtures.py
-      - name: Native macOS real-model and replay integration
-        run: ./scripts/test-apple-host.sh
-      - name: Retain native test results and provenance
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: p0-native-results
-          retention-days: 7
-          if-no-files-found: warn
-          path: |
-            build/*.txt
-            HangInThereTests/Fixtures/generated/prepared.json
-      # Only the pinned public-source test derivative is exported. Never glob
-      # user recordings or the app's Documents/temporary import directories.
-      - name: Retain approved smoke fixture for visual review
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: p0-smoke-fixture
-          retention-days: 7
-          if-no-files-found: warn
-          path: |
-            HangInThereTests/Fixtures/source.json
-            HangInThereTests/Fixtures/generated/prepared.json
-            HangInThereTests/Fixtures/generated/pullup-smoke.png
-            HangInThereTests/Fixtures/generated/pullup-smoke.mp4
-
-  simulator:
-    name: iOS simulator ${{ matrix.suite }}
-    runs-on: macos-15
-    timeout-minutes: 30
+  vision:
+    name: Real Vision / ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
     strategy:
-      # A backend failure must not cancel independent decoder/controller tests.
       fail-fast: false
       matrix:
-        suite: [mechanics, vision]
+        include:
+          - label: intel-xcode26.3
+            runner: macos-15-intel
+            xcode: '26.3'
+          - label: arm64-xcode26.6
+            runner: macos-26
+            xcode: '26.6'
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
-      - name: Checkout exact revision
+      - name: Checkout probe and parent
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Verify selected toolchain
+          fetch-depth: 2
+      - name: Verify unchanged production and test code
         run: |
+          mkdir -p build
+          git diff --exit-code 01706081a2f72bd70cf0cee823e8ae23e678d338 HEAD -- HangInThere HangInThereTests HangInThere.xcodeproj scripts Evaluation
+          git rev-parse HEAD HEAD^{tree} | tee build/probe-source.txt
+          git ls-tree -r HEAD -- HangInThere HangInThereTests scripts | tee -a build/probe-source.txt
           test -d "$DEVELOPER_DIR"
-          xcodebuild -version
-      - name: Prepare pinned real-human smoke media
-        if: matrix.suite == 'vision'
+          xcodebuild -version | tee build/probe-environment.txt
+          sw_vers | tee -a build/probe-environment.txt
+          uname -m | tee -a build/probe-environment.txt
+          xcrun simctl list runtimes --json > build/probe-runtimes.json
+      - name: Prepare identical pinned real-human fixture
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
           python3 scripts/prepare-fixtures.py
-      - name: Run simulator ${{ matrix.suite }} tests
-        # Model availability remains a real failing check, not continue-on-error
-        # or a fallback. Native host success never substitutes for iOS Vision.
-        if: ${{ !cancelled() }}
-        run: ./scripts/test-ios.sh "${{ matrix.suite }}"
-      - name: Retain simulator results and provenance
+      - name: Run unchanged real-Vision suite
+        run: ./scripts/test-ios.sh vision
+      - name: Retain test results without changing failure status
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: p0-${{ matrix.suite }}-results
-          retention-days: 7
+          name: vision-probe-${{ matrix.label }}
+          retention-days: 3
           if-no-files-found: warn
           path: |
-            build/Simulator-${{ matrix.suite }}.xcresult
+            build/Simulator-vision.xcresult
             build/*.txt
+            build/probe-runtimes.json
             build/simulators.json
             HangInThereTests/Fixtures/generated/prepared.json
