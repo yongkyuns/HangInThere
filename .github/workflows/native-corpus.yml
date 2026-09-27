@@ -1,0 +1,47 @@
+name: Native corpus investigation
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/native-corpus.yml'
+      - 'scripts/penn_corpus.py'
+      - 'Evaluation/fixtures/penn-review.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-corpus-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    runs-on: macos-15
+    timeout-minutes: 25
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install isolated host tools
+        run: |
+          python3 -m venv /tmp/hit-native-env
+          /tmp/hit-native-env/bin/python -m pip install -r Evaluation/import-requirements.txt
+          echo '/tmp/hit-native-env/bin' >> "$GITHUB_PATH"
+      - name: Acquire official native release for format review
+        run: |
+          mkdir -p Data/external build
+          curl --fail --location --retry 2 --max-time 900 --max-filesize 4294967296 \
+            --dump-header build/penn-download-headers.txt \
+            'https://www.cis.upenn.edu/~kostas/Penn_Action.tar.gz' \
+            --output Data/external/Penn_Action.tar.gz
+          python scripts/penn_corpus.py Data/external/Penn_Action.tar.gz \
+            --root Data/local/penn-native --review-output Evaluation/output/penn-native-review
+      - name: Retain bounded diagnostic review only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: penn-native-review
+          retention-days: 1
+          path: |
+            build/penn-download-headers.txt
+            Evaluation/output/penn-native-review/acquisition.json
+            Evaluation/output/penn-native-review/*-review.jpg
