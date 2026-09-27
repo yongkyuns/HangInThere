@@ -155,8 +155,8 @@ def stage(archive: Path, output: Path, limit: int = 6, expected_sha256: str | No
     if expected_sha256:
         ev.require(checksum == expected_sha256, 'Archive SHA-256 differs from supplied pin')
     inventory = inspect_archive(archive)
-    candidates = [r for r in inventory['annotations'] if r['action'] == 'pull_ups']
-    ev.require(candidates, 'No native pull_ups annotations found')
+    candidates = [r for r in inventory['annotations'] if r['action'] in imp.PENN_PULL_UP_ACTIONS]
+    ev.require(candidates, f"No supported pull-up annotations; observed actions: {sorted(inventory['counts_by_action'])}")
     selected = candidates[:limit] if limit else candidates
     wanted = {r['sequence_id']: r for r in selected}
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -192,6 +192,7 @@ def stage(archive: Path, output: Path, limit: int = 6, expected_sha256: str | No
             clips.append({'id': f'penn_{identifier}', 'dataset': 'Penn Action', 'exercise': 'pull_up',
                           'split': 'unassigned', 'source_group': 'penn_unresolved_sources', 'subject_group': None,
                           'native_sequence_id': identifier, 'native_split': row['native_split'],
+                          'native_action': row['action'],
                           'rights': {'status': 'pending', 'evidence': '', 'public_outputs': False},
                           'media': {'kind': 'images', 'expected_frames': row['frames'], 'files': files},
                           'native_annotations': {'format': 'penn_action_mat', 'path': f'labels/{identifier}.mat',
