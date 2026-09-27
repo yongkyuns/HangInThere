@@ -178,3 +178,15 @@ reviewed references. Image sequences still export frame indices without invented
 timestamps. The first six-sequence native Penn diagnostic is recorded in
 [results/penn-six-diagnostic.md](results/penn-six-diagnostic.md); broader,
 independent model qualification and HAA4D execution remain open.
+
+## MediaPipe Heavy comparison (host-only)
+
+The first independent-backend comparison is deliberately outside the iOS app target. `scripts/mediapipe_eval.py` runs the official MediaPipe Pose Landmarker **Heavy** task model on the same pre-oriented image files and independent labels used by the Vision image benchmark. It emits the same joint names used by the scorer where the models overlap; MediaPipe-only hand/foot landmarks are not promoted into the shared schema.
+
+The model asset is pinned to `pose_landmarker_heavy/float16/1`. `scripts/prepare-mediapipe-model.py` downloads the official Google-hosted asset and requires the recorded SHA-256 before it can be used. The CI runtime dependency is host-only (`Evaluation/mediapipe-requirements.txt`); it is not linked into `HangInThere.app`.
+
+MediaPipe exposes landmark `visibility` and `presence` separately. For the existing single-confidence scorer, the comparison conservatively uses `min(visibility, presence)`. Coordinates outside the image are preserved in raw observations and then treated as unavailable by the existing scorer rather than clamped into a plausible location.
+
+The comparison currently supports **ordered image sequences only**. This is intentional: it makes Vision and MediaPipe consume exactly the same labelled pixels without introducing a second video decoder or inferred frame timestamps. A descriptive side-by-side artifact is produced by `scripts/compare-pose-reports.py`; it does not pick a winner or claim iOS throughput, repetition accuracy, form accuracy, or 3D accuracy.
+
+Only if this benchmark shows a meaningful exercise-specific benefit should MediaPipe be considered for the iOS runtime. The current Google iOS setup documentation states that MediaPipe Tasks on iOS uses CPU execution, so host latency is not an iPhone performance proxy.
