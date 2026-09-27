@@ -36,7 +36,9 @@ def choose_sequences(rows, count):
     """Equally spaced IDs in each original split, chosen before inference."""
     ev.require(count >= 2 and count % 2 == 0, 'Use a positive even sample count')
     selected = []
-    for split in (-1, 1):
+    splits = sorted({r['train'] for r in rows})
+    ev.require(len(splits) == 2, 'Expected two native split flags')
+    for split in splits:
         candidates = sorted(r['id'] for r in rows if r['train'] == split)
         wanted = count // 2
         ev.require(len(candidates) >= wanted, 'Not enough target sequences in a native split')
@@ -70,7 +72,10 @@ def inspect(source, root, public, count):
             elif member.size < 262144 and (re.search(r'readme|license|licence|terms|copying', path.name, re.I)
                                           or path.suffix == '.m' and 'tools' in path.parts):
                 texts[str(path)] = read_member(archive, member, 262144).decode('utf-8', errors='replace')
-    targets = [r for r in rows if r['action'] == 'pull_ups']
+    ev.write_json(public / 'inventory.json', {'rows': rows, 'native_release_text': texts,
+                  'source_url': SOURCE, 'source_sha256': ev.digest(source), 'source_bytes': source.stat().st_size})
+    print('Native classes: ' + str(dict(Counter(r['action'] for r in rows))), flush=True)
+    targets = [r for r in rows if r['action'] in {'pull_ups', 'pullup'}]
     selected = choose_sequences(targets, count)
     (root / 'labels').mkdir()
     for identifier in selected:
@@ -129,11 +134,55 @@ def inspect(source, root, public, count):
               'source_url': SOURCE, 'source_sha256': ev.digest(source), 'source_bytes': source.stat().st_size,
               'sequences': len(rows), 'counts_by_action': dict(Counter(r['action'] for r in rows)),
               'target_sequences': len(targets), 'target_frames': sum(r['nframes'] for r in targets),
-              'selection': 'six equally spaced IDs in each native split, chosen before inference',
+              'selection': f'{count // 2} equally spaced IDs in each native split, chosen before inference',
               'selected': sampled, 'native_release_text': texts,
               'media_redistribution': 'No full videos, image sequences or archive exported; diagnostic thumbnails only.'}
     ev.write_json(public / 'acquisition.json', report)
     print(f"Penn native acquisition: {len(rows)} sequences; {len(targets)} pull-up sequences; {len(selected)} selected; {sum(extracted.values())} selected images", flush=True)
+
+
+def review_manifest(root, acquisition_path, review_path, destination):
+    """Bind an explicit, checked-in review to the exact acquired native samples."""
+    acquisition, review = ev.read_json(acquisition_path), ev.read_json(review_path)
+    ev.require(review.get('schema_version') == 1, 'Unsupported corpus review')
+    ev.require(acquisition['source_sha256'] == review['source_sha256']
+               and acquisition['source_bytes'] == review['source_bytes'], 'Native release changed')
+    ev.require(review.get('scope') == 'research_evaluation_only', 'Unreviewed use scope')
+    ev.require(review.get('rights', {}).get('status') == 'approved', 'Evaluation use is not approved')
+    provenance = review.get('annotation_provenance', '')
+    ev.require(isinstance(provenance, str) and provenance.strip(), 'Annotation provenance is required')
+    origin = review.get('pixel_origin')
+    ev.require(type(origin) is int and origin in (0, 1), 'Reviewed coordinate origin is required')
+    selected = acquisition['selected']
+    pins = review['selected_native_sha256']
+    ev.require(set(pins) == {r['id'] for r in selected}, 'Sample selection changed after review')
+    clips = []
+    for row in selected:
+        identifier = row['id']
+        native = root / 'labels' / (identifier + '.mat')
+        ev.require(row['native_sha256'] == pins[identifier] == ev.digest(native), 'Native labels changed')
+        files = []
+        for i in range(row['nframes']):
+            path = root / 'frames' / identifier / f'{i + 1:06d}.jpg'
+            files.append({'path': str(path.relative_to(root)), 'sha256': ev.digest(path)})
+        for sample in row['review_frames']:
+            ev.require(files[sample['frame_index']]['sha256'] == sample['image_sha256'], 'Reviewed frame changed')
+        # Native train/test flags are retained, but do not invent subject/source
+        # independence from numeric sequence IDs. All pilot clips are unassigned.
+        clips.append({'id': 'penn_' + identifier, 'dataset': 'Penn_Action_native_pilot',
+                      'exercise': 'pull_up', 'split': 'unassigned',
+                      'source_group': 'Penn_Action_sequence_' + identifier, 'subject_group': None,
+                      'rights': review['rights'], 'media': {'kind': 'images', 'files': files,
+                      'expected_frames': row['nframes']},
+                      'native_annotations': {'format': 'penn_action_mat',
+                          'path': str(native.relative_to(root)), 'sha256': pins[identifier]},
+                      'annotation_review': {'independently_reviewed': True,
+                          'provenance': provenance, 'pixel_origin': origin, 'endpoint_frames': []}})
+    manifest = {'schema_version': 1, 'confidence_threshold': 0.3, 'clips': clips,
+                'corpus_review_sha256': ev.digest(review_path), 'source_sha256': review['source_sha256'],
+                'scope': 'Native-label disagreement pilot, not subject-disjoint qualification or training.'}
+    ev.validate_manifest(manifest, root)
+    ev.write_json(destination, manifest)
 
 
 def main():
@@ -142,8 +191,11 @@ def main():
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--review-output', type=Path, required=True)
     parser.add_argument('--count', type=int, default=12)
+    parser.add_argument('--review', type=Path, help='Explicit frozen review; never generated from model results.')
     args = parser.parse_args()
     inspect(args.archive, args.root, args.review_output, args.count)
+    if args.review:
+        review_manifest(args.root, args.review_output / 'acquisition.json', args.review, args.root / 'review.json')
 
 
 if __name__ == '__main__':
