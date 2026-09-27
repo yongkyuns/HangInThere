@@ -155,3 +155,26 @@ pilot](IMPORTING.md#public-source-pilot-what-can-run-now) exercises real image
 sequences and scoring with approximate visual references. It is not a Penn/HAA
 benchmark or held-out qualification. Next: review actual native media/annotations,
 run wider comparisons, then add the counting engine and separate temporal labels.
+
+## Per-frame arm diagnostics
+
+The batch output now includes `armMeasurementPolicyVersion: 1` and
+`armMeasurements`, one entry for each labelled side. The app replay screen calls
+this same framework-free `ArmMeasurement` implementation. An entry has either
+`estimate` (interior elbow degrees, upper-arm/forearm pixel lengths, minimum SDK
+joint score) or `unavailableReason`; missing measurements are not zero degrees.
+No prior frame or opposite arm substitutes for unavailable evidence.
+
+Policy v1 uses a fixed joint-score threshold of 0.3 and a segment-length floor of
+2% of the image's short side. These are provisional numerical-quality gates,
+not probabilities, calibrated accuracy, or exercise criteria. Multiple detected
+people, duplicate joints, invalid geometry and missing joints are rejected.
+The raw projected angle can still be misleading through occlusion or
+foreshortening; there is no supported-view or temporal identity qualification
+in this component. It must not be used as a checked-rep decision by itself.
+
+These additive fields do not replace the scorer or change its independently
+reviewed references. Image sequences still export frame indices without invented
+timestamps. The first six-sequence native Penn diagnostic is recorded in
+[results/penn-six-diagnostic.md](results/penn-six-diagnostic.md); broader,
+independent model qualification and HAA4D execution remain open.

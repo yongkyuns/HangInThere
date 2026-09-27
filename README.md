@@ -14,7 +14,10 @@ the iOS app runs, that exercise tracking is accurate, or that a phone keeps up.
 Import a local MP4 or MOV from Files, inspect the first processed frame, then
 play, pause, restart, or close the video. The preview displays the **same oriented
 image that Vision analyzed**, with separate skeleton overlays, landmark counts,
-source timestamps, and processing-time diagnostics. Inference may slow replay;
+source timestamps, and processing-time diagnostics. The measurement
+extension adds left/right **image-plane elbow estimates** with explicit reasons
+when an arm cannot be measured. These are raw per-frame diagnostics, not checked
+reps or form scores. Inference may slow replay;
 frames are processed sequentially instead of silently skipped. Audio is not played.
 
 There is **no rep counting, form verdict, camera capture, or qualified accuracy
@@ -27,17 +30,17 @@ or replacement; recordings are never uploaded by the app.
 
 ## Open the app
 
-Until PR #2 merges, check out its implementation branch:
+Until the implementation PRs merge, check out the evaluation/measurement branch:
 
 ```sh
-git clone --branch feat/p0-video-pose https://github.com/yongkyuns/HangInThere.git
+git clone --branch feat/p1-batch-evaluation https://github.com/yongkyuns/HangInThere.git
 cd HangInThere
 open HangInThere.xcodeproj
 ```
 
 Choose the shared **HangInThere** scheme and an iPhone simulator, then Run.
 The app has a provisional iOS 17 deployment target and Swift 6 language mode.
-Use Xcode 16 or newer; the workflow selects Xcode 16.4 explicitly. The project
+Use Xcode 16 or newer; the current workflow selects Xcode 26.3 explicitly. The project
 has no code-generation or dependency-install step. Test-fixture preparation is
 not needed to build/run the app and import your own video.
 

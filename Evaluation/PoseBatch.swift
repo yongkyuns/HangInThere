@@ -17,6 +17,8 @@ private struct Observation: Encodable {
     let backend: String
     let requestRevision: Int
     let processingMilliseconds: Double
+    let armMeasurementPolicyVersion: Int
+    let armMeasurements: [ArmMeasurement]
 }
 private struct Completion: Encodable {
     let status: String
@@ -110,7 +112,9 @@ private enum PoseBatch {
         let observation = Observation(frameIndex: index, timebase: timebase,
             timestamp: timebase == "source_pts" ? result.timestamp : nil,
             imageSize: result.imageSize, people: result.people, backend: result.backend,
-            requestRevision: result.requestRevision, processingMilliseconds: milliseconds)
+            requestRevision: result.requestRevision, processingMilliseconds: milliseconds,
+            armMeasurementPolicyVersion: ArmMeasurement.policyVersion,
+            armMeasurements: ArmMeasurement.Side.allCases.map { ArmMeasurement(pose: result, side: $0) })
         try handle.write(contentsOf: encoder.encode(observation))
         try handle.write(contentsOf: Data([10]))
     }

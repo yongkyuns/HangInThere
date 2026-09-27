@@ -11,7 +11,7 @@ struct ReplayView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("POSE REPLAY · P0")
+                    Text("POSE REPLAY · MEASUREMENTS")
                         .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                     preview
                     if let name = model.sourceName {
@@ -36,7 +36,10 @@ struct ReplayView: View {
                             .font(.callout).foregroundStyle(.red)
                             .accessibilityIdentifier("replayError")
                     }
-                    if let frame = model.frame { diagnostics(frame) }
+                    if let frame = model.frame {
+                        elbowMeasurements(frame.pose)
+                        diagnostics(frame)
+                    }
                     Text("Import an MP4 or MOV from Files. Image and pose come from the same decoded frame; replay may slow down to keep them aligned. Audio is not played.")
                         .font(.footnote).foregroundStyle(.secondary)
                     Text("Counting, form validation and live camera capture are not implemented in P0. This overlay is not an accuracy result.")
@@ -104,6 +107,43 @@ struct ReplayView: View {
             Button("Restart", systemImage: "backward.end") { model.restart() }
                 .buttonStyle(.bordered).disabled(!model.canRestart)
                 .accessibilityIdentifier("restartReplay")
+        }
+    }
+
+    private func elbowMeasurements(_ pose: PoseResult) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Elbow estimates · image plane").font(.subheadline.weight(.semibold))
+            ForEach(ArmMeasurement.Side.allCases, id: \.rawValue) { side in
+                let measurement = ArmMeasurement(pose: pose, side: side)
+                HStack {
+                    Text("\(side.rawValue.capitalized) elbow")
+                    Spacer()
+                    if let estimate = measurement.estimate {
+                        Text(String(format: "%.0f°", estimate.elbowDegrees)).monospacedDigit()
+                    } else {
+                        Text(unavailableMessage(measurement.unavailableReason))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .font(.subheadline)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("\(side.rawValue)ElbowMeasurement")
+            }
+            Text("Per-frame 2D estimates, not form verdicts. Perspective and hidden joints can still make a confident estimate wrong.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func unavailableMessage(_ reason: ArmMeasurement.UnavailableReason?) -> String {
+        switch reason {
+        case .noPerson: "No person detected"
+        case .multiplePeople: "Multiple people"
+        case .invalidImageSize: "Invalid image geometry"
+        case .missingJoint: "Required joint missing"
+        case .duplicateJoint, .invalidJoint: "Unusable joint data"
+        case .lowConfidence: "Low joint confidence"
+        case .shortProjectedSegment: "Arm segment too small"
+        case nil: "Unavailable"
         }
     }
 

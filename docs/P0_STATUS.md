@@ -96,3 +96,44 @@ uses local Xcode and a Personal Team. Keep source/configuration, fixture hashes,
 target, OS and run result together. Never infer phone FPS from host/simulator
 timing or use model predictions as independent labels. The original
 [POC plan](POC.md) remains the product and accuracy contract.
+
+## Arm-measurement extension
+
+A small `Analysis/ArmMeasurement.swift` now extracts left/right image-plane elbow
+angles and segment lengths. Replay UI and `PoseBatch` call that exact function.
+There is no smoothing, previous-frame reuse, cross-arm substitution, new target,
+new package, new model, or new runtime dependency. Required joints must be unique,
+finite, in the image, above the fixed SDK-score gate, and numerically resolvable.
+A multi-person frame receives no angle until athlete selection is implemented.
+
+Original local preparation passed **34 Swift tests** (21 existing + 13 new
+measurement tests, with additional parameter cases) and **63 Python tests**.
+Publication preserves the newer native-intake fixes and six-sequence evidence
+at parent `96fd2d627fae0fd0bb492a5ada22fb5f23876762`; that parent already includes
+73 Python tests. The measurement sources are unchanged from local preparation.
+Exact-head CI must qualify this extension with the Apple SDK; prior builds do
+not establish the new UI or batch integration. Run results belong in PR #3.
+
+A temporary Linux audit executable compiled the exact production Analysis files
+and replayed **100 retained Vision observation records** from native macOS run
+`36285667508` (head `ba3bb5445c02732eb88a0402f97cc0cd937ca84a`). It performed
+no new image inference. Across the three same-source intervals, 185 of 200
+side/frame entries produced a numerical estimate; 14 were unavailable due to
+low scores and one due to a short projected segment. Every numerical angle
+agreed within 1e-9 degrees with an independent `atan2` calculation, and all
+frame identities and absent image timestamps were preserved.
+
+This establishes arithmetic/handling, not anatomical accuracy. For example,
+`descent` frame 13 (original source frame 728, 24.291 s) produces a left image-plane
+angle of approximately 1.89 degrees while all three joint scores exceed 0.3.
+Reviewing the original image shows the forearm/wrist are largely occluded in this
+view. A confidence gate alone cannot turn that number into an anatomical angle
+or valid-rep judgment. No labels or thresholds were adjusted to make it look
+more plausible. The public source and prior observation artifact were hash-checked.
+
+The earlier local-preparation access limitation is historical, not the current
+repository state. Native intake and its first six-sequence diagnostic are already
+published; see [the evidence report](../Evaluation/results/penn-six-diagnostic.md).
+This extension adds no new native-corpus inference, model training, counting
+qualification, or device performance result. It preserves all existing dataset
+work and leaves the separate simulator model-availability gate visible.
