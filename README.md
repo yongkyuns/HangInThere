@@ -20,8 +20,11 @@ when an arm cannot be measured. These are raw per-frame diagnostics, not checked
 reps or form scores. Inference may slow replay;
 frames are processed sequentially instead of silently skipped. Audio is not played.
 
-There is **no rep counting, form verdict, camera capture, or qualified accuracy
-claim yet**. These are subsequent milestones, not hidden behind placeholder UI.
+The replay screen now adds **timestamp-based observed-movement counting** for
+pull-ups and parallel-bar dips, with user-selected anatomical arm, partial and
+interrupted outcomes, and an explicit **Form unverified** status. See the
+[policy and test boundaries](docs/COUNTING.md). No strict rep acceptance, form
+verdict, live camera capture or qualified counting-accuracy claim is made.
 
 The app uses SwiftUI, AVFoundation, Core Image, and Vision. There are no third-party
 runtime packages, backend services, accounts, model downloads, or analytics.
@@ -30,10 +33,10 @@ or replacement; recordings are never uploaded by the app.
 
 ## Open the app
 
-Until the implementation PRs merge, check out the evaluation/measurement branch:
+Until the implementation PRs merge, check out the movement-counter branch:
 
 ```sh
-git clone --branch feat/p1-batch-evaluation https://github.com/yongkyuns/HangInThere.git
+git clone --branch feat/p2-movement-counter https://github.com/yongkyuns/HangInThere.git
 cd HangInThere
 open HangInThere.xcodeproj
 ```
@@ -101,10 +104,10 @@ an installable phone app. Normal local signing is not disabled in the project.
 ## Scope and next steps
 
 Read [the POC implementation and validation plan](docs/POC.md). First clear the
-real build/backend/video gates. Then measure Vision against MediaPipe Heavy on
-independently reviewed pull-up **and dip** footage; implement deterministic
-counting and uncertain outcomes; add live capture; qualify endpoints and sustained
-phone performance. A skeleton alone does not establish chin-over-bar clearance
+real build/backend/video gates. Continue the Vision/MediaPipe comparison on
+independently reviewed pull-up **and dip** footage; evaluate the provisional
+counter against full sequences and temporal labels; add live capture; qualify
+endpoints and sustained phone performance. A skeleton alone does not establish chin-over-bar clearance
 or accurate 3D joint angles. Keep one app and small components, not services or a
 cross-platform architecture.
 

@@ -65,9 +65,11 @@ struct VisionSmokeTests {
         var timestamps: [Double] = []
         var framesWithArm = 0
         var checkpointRootY: [Int: Double] = [:]
+        var counter = ExerciseCounter()
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         while let frame = try await reader.nextFrame() {
+            counter.consume(frame.pose)
             timestamps.append(frame.pose.timestamp.seconds)
             if VideoTestSupport.hasVisibleArm(frame.pose) { framesWithArm += 1 }
             #expect(frame.pose.imageSize == ImageSize(width: Double(frame.image.width), height: Double(frame.image.height)))
@@ -90,6 +92,8 @@ struct VisionSmokeTests {
             print("[Pose sample] \(String(decoding: try encoder.encode(sample), as: UTF8.self))")
         }
         await reader.close()
+        counter.finish()
+        print("[Movement diagnostic] \(String(decoding: try encoder.encode(counter.summary), as: UTF8.self))")
         #expect(timestamps.count == metadata.framePTSSeconds.count)
         #expect(timestamps.count == 40, "The prepared 4-second, 10-FPS fixture must not silently change length.")
         for (actual, expected) in zip(timestamps, metadata.framePTSSeconds) {

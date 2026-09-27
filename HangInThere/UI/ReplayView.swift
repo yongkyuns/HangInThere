@@ -11,9 +11,11 @@ struct ReplayView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("POSE REPLAY · MEASUREMENTS")
+                    Text("WORKOUT REPLAY · MOVEMENT COUNT")
                         .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    countingSetup
                     preview
+                    countingSummary
                     if let name = model.sourceName {
                         Text(name).font(.headline).lineLimit(2)
                     }
@@ -51,7 +53,7 @@ struct ReplayView: View {
                     }
                     Text("Import an MP4 or MOV from Files. Image and pose come from the same decoded frame; replay may slow down to keep them aligned. Audio is not played.")
                         .font(.footnote).foregroundStyle(.secondary)
-                    Text("Counting, form validation and live camera capture are not implemented in P0. This overlay is not an accuracy result.")
+                    Text("Movement counting is provisional. Chin-over-bar, dip depth and form are not verified. Keep the camera fixed and the selected arm visible. Live capture is not implemented.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 .padding()
@@ -75,6 +77,46 @@ struct ReplayView: View {
                 if phase != .active { model.pause() }
             }
         }
+    }
+
+    private var countingSetup: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Exercise", selection: Binding(
+                get: { model.counter.exercise },
+                set: { model.configureCounting(exercise: $0, side: model.counter.side) })) {
+                ForEach(ExerciseCounter.Exercise.allCases, id: \.rawValue) { exercise in
+                    Text(exercise.title).tag(exercise)
+                }
+            }.pickerStyle(.segmented)
+            Picker("Visible anatomical arm", selection: Binding(
+                get: { model.counter.side },
+                set: { model.configureCounting(exercise: model.counter.exercise, side: $0) })) {
+                ForEach(ArmMeasurement.Side.allCases, id: \.rawValue) { side in
+                    Text(side.rawValue.capitalized).tag(side)
+                }
+            }.pickerStyle(.segmented)
+            Text("Choose the athlete’s visible left or right arm, not the screen side. Changing this restarts the video and clears counts.")
+                .font(.caption).foregroundStyle(.secondary)
+        }.disabled(model.phase == .loading)
+    }
+
+    private var countingSummary: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("\(model.counter.observedMovements)")
+                    .font(.largeTitle.bold()).monospacedDigit()
+                    .accessibilityIdentifier("movementCount")
+                Text("observed movements").font(.headline)
+            }
+            Text("Form unverified").font(.subheadline.weight(.semibold))
+            Text(model.counter.phase.title).font(.subheadline)
+            Text("Partial attempts: \(model.counter.partialAttempts) · Interrupted: \(model.counter.interruptedAttempts)")
+                .font(.caption).monospacedDigit()
+            if let issue = model.counter.trackingIssue {
+                Text("Tracking unavailable (\(issue)). Re-establish the extended starting position.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }.accessibilityElement(children: .contain)
     }
 
     private var preview: some View {

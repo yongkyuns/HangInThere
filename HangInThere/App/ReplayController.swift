@@ -12,6 +12,7 @@ enum ReplayPhase: String {
 
 @MainActor @Observable
 final class ReplayController {
+    private(set) var counter = ExerciseCounter()
     private(set) var phase: ReplayPhase = .idle
     private(set) var frame: ProcessedFrame?
     private(set) var sourceName: String?
@@ -30,6 +31,15 @@ final class ReplayController {
     init(estimator: any PoseEstimator = VisionPoseEstimator()) {
         self.estimator = estimator
         self.reader = VideoReplayReader(estimator: estimator)
+    }
+
+    // Switching exercise/arm replays from the beginning instead of mixing two
+    // policies in one set. Only displayed source frames advance the counter.
+    func configureCounting(exercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side) {
+        guard phase != .loading, counter.exercise != exercise || counter.side != side else { return }
+        pause()
+        counter = ExerciseCounter(exercise: exercise, side: side)
+        if canRestart { restart() }
     }
 
     var canPlay: Bool { phase == .paused }
@@ -52,6 +62,7 @@ final class ReplayController {
         frame = nil
         pending = nil
         displayedFrames = 0
+        counter.reset()
         durationSeconds = 0
         errorMessage = nil
         failureReport = nil
@@ -87,6 +98,7 @@ final class ReplayController {
         errorMessage = nil
         failureReport = nil
         displayedFrames = 0
+        counter.reset()
         durationSeconds = 0
         phase = .idle
         operation = Task {
@@ -108,6 +120,7 @@ final class ReplayController {
         errorMessage = nil
         failureReport = nil
         phase = .loading
+        counter.reset()
         operation = Task {
             await previous?.value
             guard session == token, !Task.isCancelled else { return }
@@ -125,6 +138,7 @@ final class ReplayController {
     private func showFirst(_ first: ProcessedFrame?, info: VideoInfo) throws {
         guard let first else { throw ReplayError.noFrames }
         frame = first
+        counter.consume(first.pose)
         firstSourceTime = first.pose.timestamp.seconds
         displayedFrames = 1
         durationSeconds = info.durationSeconds
@@ -165,6 +179,7 @@ final class ReplayController {
                     pending = next
                     guard isCurrent(token, playToken) else { return }
                     guard let next else {
+                        counter.finish()
                         phase = .finished
                         operation = nil
                         return
@@ -176,6 +191,7 @@ final class ReplayController {
                     if delay > 0 { try await clock.sleep(for: .seconds(delay)) }
                     guard isCurrent(token, playToken) else { return }
                     self.frame = next
+                    counter.consume(next.pose)
                     pending = nil
                     displayedFrames += 1
                     lastPTS = next.pose.timestamp.seconds
@@ -200,6 +216,7 @@ final class ReplayController {
     }
 
     private func fail(_ error: Error) {
+        counter.interrupt()
         phase = .failed
         errorMessage = error.localizedDescription
         failureReport = makeFailureReport(error, operation: "replay")

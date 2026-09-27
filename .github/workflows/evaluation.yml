@@ -64,6 +64,17 @@ jobs:
           assert frames[-1]['timestamp']['value'] / frames[-1]['timestamp']['timescale'] == 3.9
           print('Real video batch smoke passed; no pose accuracy or counting score claimed.')
           PY
+      - name: Diagnose movement count on freshly inferred video poses
+        run: |
+          ./scripts/count-replay.sh Evaluation/output/ci-smoke/pullup_smoke/observations.jsonl pullUp left build/pullup-movement-diagnostic.json
+          python3 - <<'PY_COUNT'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('build/pullup-movement-diagnostic.json').read_text())
+          assert report['frames'] == 40
+          assert report['summary']['formVerification'] == 'unverified'
+          print('Real-video counter output retained; not an accuracy or strict-form gate.')
+          PY_COUNT
       - name: Evaluate frozen three-interval image pilot
         run: |
           python3 scripts/prepare-pilot.py --source Data/external/p0-pullup-source.webm --output Data/local/public-pilot
@@ -115,6 +126,7 @@ jobs:
           name: dataset-evaluation
           retention-days: 7
           path: |
+            build/pullup-movement-diagnostic.json
             build/batch-toolchain.txt
             build/batch-smoke.json
             Evaluation/output/ci-smoke/report.json
