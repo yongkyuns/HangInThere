@@ -22,6 +22,62 @@ references preserve input media hashes, native annotation hashes, review hash,
 joint-order source, omitted joints and exclusion counts. The evaluator still
 checks source/subject split separation and publication permission independently.
 
+## Acquire and stage native Penn sequences
+
+The intake helper closes the gap between the publisher's archive and the manual
+image manifest. It scans **all native annotations**, selects `pull_ups` from
+the actual MAT action field, and copies only selected sequences into a local
+corpus without re-encoding images or rewriting labels:
+
+```sh
+# Explicit large download, not a normal build/test dependency.
+python3 scripts/stage_penn.py --fetch \
+  --archive Data/external/Penn_Action.tar.gz \
+  --output Data/local/penn-intake --limit 6
+
+# Reuse an archive without re-downloading; use a NEW destination directory.
+python3 scripts/stage_penn.py --archive Data/external/Penn_Action.tar.gz \
+  --output Data/local/penn-intake-all --limit 0 --sha256 ARCHIVE_SHA256
+```
+
+The official source URL comes from the [publisher's dataset page](https://dreamdragon.github.io/PennAction/).
+For `--fetch`, the downloader records its requested/resolved URL, byte count and
+SHA-256. Without `--sha256`, this is a local snapshot digest, **not** a digest
+published by the author or independent authentication of dataset contents.
+Existing downloads and output corpora are never overwritten.
+
+`intake-report.json` records inspected native action counts, original split flags,
+frame counts/dimensions, annotation hashes, selected IDs, and all target IDs not
+selected. The default first-six selection is deterministic and independent of
+model predictions; it does not establish six independent people. `--limit 0`
+selects all pull-up candidates. Both supported archive layouts (`Penn_Action/`
+root and rootless `frames/` + `labels/`) must retain the original naming scheme.
+The reader rejects duplicate paths, traversal, links/special members, oversized
+members/archives, missing sequence frames and selected images with mismatched
+label dimensions. A failed intake does not leave a completed corpus directory.
+
+`review.json` is a **draft**, ready for the existing importer after review. Rights
+remain pending, pixel origin unset, all splits unassigned, and subjects unknown.
+Source groups are conservatively combined until actual original-source overlap
+is reviewed; filenames are not treated as proof of source/subject independence.
+No inference runs during intake and no automatic approval is granted. Complete
+those review fields using native image/annotation inspection before converting:
+
+```sh
+python3 scripts/import_poses.py Data/local/penn-intake/review.json \
+  --root Data/local/penn-intake --output Data/local/penn-intake/converted
+./scripts/evaluate.sh Data/local/penn-intake/converted/manifest.json \
+  --root Data/local/penn-intake --output Evaluation/output/native-penn
+```
+
+The optional `Native Penn intake` workflow is **manual-only**. It uploads only
+inventory/acquisition metadata, never source images, raw joint labels, a runnable
+approved manifest, or a claimed pose benchmark. Its ephemeral runner does not
+persist the staged media: full image/label review and subsequent evaluation use
+a retained local corpus. A successful intake is not a successful model test.
+HAA4D video acquisition and visibility review remain separate; this helper is
+specifically for the first Penn Action benchmark, not a generic dataset framework.
+
 ## Reviewed input contract
 
 Start with the image-clip manifest in [README.md](README.md). List original image
