@@ -1,207 +1,189 @@
-# Native annotation import and first visual-reference pilot
+# Native annotation intake and review
 
-## Scope
+The host-only tools stage original Penn Action data and convert reviewed Penn
+MAT or HAA4D raw 2D NPY annotations into the existing evaluation format. They do
+not train a network, infer visibility, or turn a download into blanket permission.
+NumPy/SciPy/Pillow are optional host tools; none ship in the app.
 
-`scripts/import_poses.py` converts Penn Action `.mat` or HAA4D raw 2D `.npy`
-annotations into the existing evaluation format. It does not download datasets,
-clear media permissions, train a network, or certify the native labels. The
-optional NumPy/SciPy/Pillow dependencies are host tools, never app dependencies.
+## Commands
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install -r Evaluation/import-requirements.txt
-python3 scripts/import_poses.py /data/review.json --root /data --output /data/converted
-./scripts/evaluate.sh /data/converted/manifest.json --root /data --output Evaluation/output/my-run
-```
 
-The output directory must be new and inside the data root. Inputs are read-only.
-Every requested clip gets a conversion status; any rejection prevents emitting a
-runnable partial manifest. No failed clip is silently discarded. The converted
-references preserve input media hashes, native annotation hashes, review hash,
-joint-order source, omitted joints and exclusion counts. The evaluator still
-checks source/subject split separation and publication permission independently.
-
-## Acquire and stage native Penn sequences
-
-The intake helper closes the gap between the publisher's archive and the manual
-image manifest. It scans **all native annotations**, selects `pull_ups` from
-the actual MAT action field, and copies only selected sequences into a local
-corpus without re-encoding images or rewriting labels:
-
-```sh
-# Explicit large download, not a normal build/test dependency.
+# Explicit large publisher download, never an ordinary build/test dependency.
 python3 scripts/stage_penn.py --fetch \
   --archive Data/external/Penn_Action.tar.gz \
   --output Data/local/penn-intake --limit 6
 
-# Reuse an archive without re-downloading; use a NEW destination directory.
-python3 scripts/stage_penn.py --archive Data/external/Penn_Action.tar.gz \
-  --output Data/local/penn-intake-all --limit 0 --sha256 ARCHIVE_SHA256
-```
-
-The official source URL comes from the [publisher's dataset page](https://dreamdragon.github.io/PennAction/).
-For `--fetch`, the downloader records its requested/resolved URL, byte count and
-SHA-256. Without `--sha256`, this is a local snapshot digest, **not** a digest
-published by the author or independent authentication of dataset contents.
-Existing downloads and output corpora are never overwritten.
-
-`intake-report.json` records inspected native action counts, original split flags,
-frame counts/dimensions, annotation hashes, selected IDs, and all target IDs not
-selected. The default first-six selection is deterministic and independent of
-model predictions; it does not establish six independent people. `--limit 0`
-selects all pull-up candidates. Both supported archive layouts (`Penn_Action/`
-root and rootless `frames/` + `labels/`) must retain the original naming scheme.
-The reader rejects duplicate paths, traversal, links/special members, oversized
-members/archives, missing sequence frames and selected images with mismatched
-label dimensions. A failed intake does not leave a completed corpus directory.
-
-`review.json` is a **draft**, ready for the existing importer after review. Rights
-remain pending, pixel origin unset, all splits unassigned, and subjects unknown.
-Source groups are conservatively combined until actual original-source overlap
-is reviewed; filenames are not treated as proof of source/subject independence.
-No inference runs during intake and no automatic approval is granted. Complete
-those review fields using native image/annotation inspection before converting:
-
-```sh
+# After inspecting originals and completing the review fields:
 python3 scripts/import_poses.py Data/local/penn-intake/review.json \
   --root Data/local/penn-intake --output Data/local/penn-intake/converted
 ./scripts/evaluate.sh Data/local/penn-intake/converted/manifest.json \
   --root Data/local/penn-intake --output Evaluation/output/native-penn
 ```
 
-The optional `Native Penn intake` workflow is **manual-only**. It uploads only
-inventory/acquisition metadata, never source images, raw joint labels, a runnable
-approved manifest, or a claimed pose benchmark. Its ephemeral runner does not
-persist the staged media: full image/label review and subsequent evaluation use
-a retained local corpus. A successful intake is not a successful model test.
-HAA4D video acquisition and visibility review remain separate; this helper is
-specifically for the first Penn Action benchmark, not a generic dataset framework.
+Use a new output directory for every stage/conversion/evaluation. To reuse an
+archive, omit `--fetch`; `--limit 0` explicitly selects all pull-up candidates.
+`--sha256` requires a matching independently established or previously observed
+archive pin. Without a pin, the downloader records a local snapshot digest, not
+a publisher-issued digest or independent authentication. Existing inputs are not
+overwritten. The publisher URL is linked from the [official page][penn].
 
-## Reviewed input contract
+## Intake is not approval
 
-Start with the image-clip manifest in [README.md](README.md). List original image
-files in their original order, with SHA-256 pins, and add the following fields to
-each clip (omit `annotations` until conversion):
+The stager scans all recognized native annotations, selects exact native action
+names, and copies the selected original images/labels without re-encoding. The
+actual publisher archive uses **`pullup`**, while its README lists `pull_ups`.
+Only these two verified literals are accepted; their raw strings are retained.
+Similar names such as `assisted_pullup` are not fuzzy-matched.
+
+`intake-report.json` records action counts, raw split flags, dimensions, hashes,
+selected IDs and target IDs not selected. Default selection is first-six native
+IDs in ascending order, not a model-selected sample or six independent subjects.
+`review.json` begins with pending rights, unknown subjects, unassigned splits,
+unresolved source grouping, unset pixel origin and unreviewed labels.
+
+The archive reader rejects traversal, links/special members, duplicate paths,
+size-limit violations, missing sequence frames, invalid JPEGs, EXIF rotations and
+image dimensions varying within a sequence. A native header/image-size mismatch
+is **retained as `native_geometry.status: review_required`**, not repaired or
+approved. This lets a reviewer inspect the actual originals instead of losing
+an entire corpus at the first incorrect header. The converter still rejects that
+clip until an exact geometry resolution is supplied. No failed conversion emits
+a runnable partial manifest; every requested clip has an explicit status.
+
+The manual-only `Native Penn intake` workflow uploads metadata, not readable
+source images or native labels. Its ephemeral runner does not retain a reusable
+corpus. Isolated acquisition/diagnostic branch runs are separate from normal CI;
+private review transfers, when needed, use encrypted artifacts and a private key
+outside GitHub. Neither a successful download nor encryption grants media rights.
+
+## Review manifest
+
+Start with an ordered image-clip manifest from [README.md](README.md). Include
+all original images with SHA-256 pins and add:
 
 ```json
 {
   "native_annotations": {
     "format": "penn_action_mat",
-    "path": "Penn_Action/labels/0001.mat",
-    "sha256": "REPLACE_WITH_REVIEWED_NATIVE_FILE_SHA256"
+    "path": "labels/1149.mat",
+    "sha256": "EXACT_NATIVE_FILE_SHA256"
   },
   "annotation_review": {
     "independently_reviewed": true,
-    "provenance": "Describe who checked the native labels, coordinate convention and visibility, independently of evaluated predictions.",
-    "pixel_origin": 0,
+    "provenance": "Actual review process and limitations, independent of tested predictions.",
+    "pixel_origin": 1,
     "endpoint_frames": []
   }
 }
 ```
 
-This is a field example, not permission approval or a ready-to-run manifest.
-`pixel_origin` must explicitly be 0 or 1 after review. The importer subtracts 1
-only for a reviewed one-based coordinate source. A MATLAB filename alone does
-not prove its coordinate origin. No FPS is inferred for image sequences. Original
-frame names begin at 1; exported `frame_index` begins at 0.
+This is a schema example, not permission approval. Inputs and review records
+must match their hashes. Source/person overlap remains unresolved until reviewed;
+filenames and official train/test flags do not establish subject-disjoint splits.
+Image sequences use zero-based frame indices with no invented FPS or timestamps.
+The converter preserves native hashes, review hash, joint mapping and exclusions.
 
-**Penn Action:** supports published `x`, `y`, `visibility`, `dimensions`, `nframes`,
-`action`, `train` fields, either top-level or in an `annotation` struct. Only the
-`pull_ups` category is admitted initially. The 12 limb joints follow the author's
-published ordering; `head` is deliberately not mapped to Vision `nose`. Native
-binary visibility gates scoring. Arrays cannot silently be transposed; missing
-images, wrong dimensions, changed hashes, EXIF rotations and invalid visible
-coordinates reject conversion. Preserve the raw split flag as `penn_train_flag`
-metadata; this does not assign subject-disjoint evaluation splits.
+### Penn Action
 
-**HAA4D:** supports only raw `[frames,17,2]` arrays with pickle disabled. Its author
-calls indices 13/16 `left_hand`/`right_hand`, not wrist. These and ambiguous
-head/spine joints are omitted; only the ten common limb joints are mapped.
-Consequently this native mapping does **not** produce elbow-angle scores, which
-need an independently established wrist point. Do not silently use hand as wrist.
+Read `x`, `y`, `visibility`, `dimensions`, `nframes`, `action`, and `train`, either
+as top-level fields or in an `annotation` struct. Keep original contiguous
+`000001.jpg` names and frame order. The twelve limb joints follow the author's
+published order; **head is not Vision nose**. Binary visibility controls which
+native references are scored. Nonfinite/out-of-image visible points reject the
+conversion rather than being clamped. No silent array transposition is allowed.
 
-The HAA4D labeling UI tracks visibility, but its `save()` routine writes only
-`[:2]` coordinate values. An NPY therefore does not establish which joints were
-visible. Require a separately reviewed, possibly sparse visibility list:
+Pixel origin must be explicitly reviewed, not inferred from `.mat`. The inspected
+publisher `tools/CreatePointLightDisplay.m` uses `sub2ind(dims,Y,X,T)` directly,
+which supports a one-based native display convention. Its observed SHA-256 is
+`1fbd4c8e1d868f8483c33cab26479f68f3b32cb70b73325aa75498883f86e121`.
+For that convention the converter subtracts one from x/y, and does not rescale
+coordinates. Preserve annotation uncertainty rather than tune origin to a model.
+
+The first six original sequences exposed two width-header discrepancies:
+1153 says 481x270 while its JPEGs are 480x270; 1154 says 481x365 while its JPEGs
+are 480x365. An independently reviewed identity mapping can be recorded under
+`annotation_review`, for example for sequence 1153:
 
 ```json
 {
-  "format": "haa4d_npy",
-  "annotation_review": {
-    "independently_reviewed": true,
-    "provenance": "Describe the independent visibility and coordinate review.",
-    "pixel_origin": 0,
-    "visible_frames": [
-      {"frame_index": 4, "visible_native_joints": [11, 12, 14, 15]}
-    ]
+  "geometry_resolution": {
+    "native_size": [481, 270],
+    "image_size": [480, 270],
+    "coordinate_mapping": "identity",
+    "evidence": "Describe the actual original-image/native-overlay review establishing unchanged coordinates on the decoded canvas."
   }
 }
 ```
 
-Put `format` inside `native_annotations` in the full clip; the shortened example
-shows the review-specific difference. Unlisted frames/joints remain unreviewed,
-not automatically visible. Lifted 3D/normalized skeleton arrays are rejected.
-The importer never generates a subject identity or a test split from filenames.
+Both sizes must match the actual inputs and the evidence must be nonempty.
+This is not a global one-pixel tolerance. Only identity mapping is supported:
+no inferred crop, stretch, resampling or model-fitted label correction. The exact
+resolution is retained in the converted reference provenance. A different
+header, image size or mapping is rejected. Pixel-origin conversion is separate.
 
-## Evidence and limits
+### HAA4D
 
-Converter tests create original synthetic MAT/NPY/image files. They test exact
-mapping, visibility, safe deserialization, shapes, hashes, order, origins and
-failure handling. They are **not** proof that native Penn/HAA media have been
-acquired, that all native variants work, or that either dataset is cleared for
-commercial training or redistribution. Those corpus gates remain open. No
-Penn/HAA images or native annotations are included in this change.
+Read raw `[frames,17,2]` NPY arrays with pickle disabled. Original frame names are
+`0001.png` onward. Lifted/normalized 3D and object-pickled arrays are rejected.
+The author calls indices 13/16 **hand**, not wrist. These and ambiguous head/spine
+points are omitted; ten common limb joints remain. This native mapping does not
+supply elbow-angle scores because it does not establish wrist references.
 
-The official Penn page offers a research dataset and asks for citation, but does
-not itself specify a media redistribution/commercial licence. HAA500's linked MIT
-notice is software wording and does not by itself settle HAA4D annotations or all
-source YouTube footage. Keep the separate review records; do not copy a blanket
-`approved` flag into an entire inventory. These are unresolved permission scopes,
-not a claim that research use is prohibited.
+The [author's save routine][haa-save] drops visibility and writes only `[:2]`
+coordinates. Require a separate, possibly sparse review; unlisted points remain
+unreviewed, not visible:
 
-## Public-source pilot: what can run now
+```json
+{
+  "visible_frames": [
+    {"frame_index": 4, "visible_native_joints": [11, 12, 14, 15]}
+  ]
+}
+```
 
-`fixtures/public-pilot.json` freezes three disjoint intervals of the already
-reviewed public-domain source: hanging/setup, upper-position/descent, and a
-hang/ascent/return cycle. They share **one source and an apparently common athlete**;
-they are not three independent subjects or held-out sets. All remain `smoke`.
+Place this in `annotation_review`, with explicit origin and provenance. Do not
+infer the visibility mask from the evaluated model.
 
-100 images are selected by exact decoded source-frame indices, with original PTS
-cross-checked for identity. No new timestamp is attributed to the image sequence.
-The scaler is fixed at 960x540. Source SHA-256, recipe SHA-256, generated image
-hashes, annotation hashes and ffmpeg version are retained. Different PNG encoding
-bytes may arise with encoder versions; the immutable source/frame selection and
-fixed geometric transform define label alignment. Generated image hashes bind
-that run's references to its actual images.
+## Evidence and scope
 
-Nine source frames have **46 approximate visible limb points** selected by one
-assistant visual review before viewing this pilot's model output. Hidden/cropped
-wrists are omitted, not inferred. Shoulder centres under clothing and other
-manual locations have uncalibrated uncertainty. No second human reviewer or
-motion-capture reference was used. These references can reveal large localization
-or mapping errors and exercise the scorer end to end, but cannot qualify the
-5-degree target, strict form, rep accuracy, or generalization. Model disagreement
-must trigger independent image review, not automatic relabeling toward the model.
+The full observed Penn archive pin and actual action inventory are recorded in
+[fixtures/penn-archive-snapshot.json](fixtures/penn-archive-snapshot.json): 2,326
+native annotation records, including 199 pull-up sequences / 13,865 frames.
+This is native-data inventory, not a benchmark score. Original sequences
+1149–1154 contain 271 images; their hashes and native overlays have been inspected
+and a private local conversion exercised. Latest execution/score evidence belongs
+in [PR #3](https://github.com/yongkyuns/HangInThere/pull/3), not an inferred badge.
+These are not six independently established people or held-out sets.
+
+Synthetic MAT/NPY/archive tests qualify importer contracts, not native label
+accuracy. Native labels themselves have uncertainty and were not expert-reannotated
+by this project. No Penn/HAA images or joint arrays are committed. The publisher
+provides a research dataset and requests citation; that does not settle commercial
+training, marketing or redistribution rights. Keep use scopes separate. HAA500's
+software-style MIT notice does not by itself establish rights to every source
+video or HAA4D annotation. HAA4D native-media evaluation remains unperformed.
+
+The earlier public-source pilot remains a separate smoke check: three intervals
+from one source/apparently one athlete, 100 images and 46 approximate visible
+points across nine assistant-reviewed frames, selected before model inspection.
+It tests real processing and scoring, not the five-degree target or generalization.
+Hidden/cropped wrists are omitted, not guessed. Source/frame selection and output
+hashes are retained. Reproduce it with:
 
 ```sh
-python3 scripts/prepare-fixtures.py  # existing public source acquisition/pin
+python3 scripts/prepare-fixtures.py
 python3 scripts/prepare-pilot.py --source Data/external/p0-pullup-source.webm --output Data/local/public-pilot
 ./scripts/evaluate.sh Data/local/public-pilot/manifest.json --root Data/local/public-pilot --output Evaluation/output/pilot --public-output
 ```
 
-CI checks processing of all 100 images and reference-denominator integrity. It
-does not gate on small measured errors from these approximate references. The
-artifact retains each hashed reference and its annotation provenance beside the report. Inspect the exact-head
-Dataset evaluation run for results; no outcome is asserted by this document.
-P0's hosted-simulator model failure is neither skipped nor reclassified by this
-host-only image evaluation.
+P0's hosted-simulator model failure is not skipped or reclassified by a passing
+host-only evaluation. Native Mac timing is not iPhone performance. No strict
+rep, chin/bar, 3D pose, live capture, or parallel-bar-dip qualification follows
+from these results.
 
-## Primary sources inspected
-
-- [Penn Action annotation fields and joint order](https://dreamdragon.github.io/PennAction/)
-- [HAA4D joint order](https://github.com/Morris88826/HAA4D/blob/0b15333a277e8fdf42b6dd6916f7a46cef389b96/libs/skeleton.py)
-- [HAA4D save routine: coordinates without visibility](https://github.com/Morris88826/HAA4D/blob/0b15333a277e8fdf42b6dd6916f7a46cef389b96/annotation_tool/labelling_ui/libs/ui/page2.py#L787-L801)
-- [HAA4D original image extraction](https://github.com/Morris88826/HAA4D/blob/0b15333a277e8fdf42b6dd6916f7a46cef389b96/get_HAA500.py)
-- [HAA4D annotation workflow](https://cse.hkust.edu.hk/haa4d/annotation.html)
-- [HAA500 linked licence](https://www.cse.ust.hk/haa/LICENSE)
+[penn]: https://dreamdragon.github.io/PennAction/
+[haa-save]: https://github.com/Morris88826/HAA4D/blob/0b15333a277e8fdf42b6dd6916f7a46cef389b96/annotation_tool/labelling_ui/libs/ui/page2.py#L787-L801

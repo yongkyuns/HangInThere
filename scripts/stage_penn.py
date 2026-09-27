@@ -179,20 +179,26 @@ def stage(archive: Path, output: Path, limit: int = 6, expected_sha256: str | No
         for row in selected:
             identifier = row['sequence_id']
             files = []
+            image_sizes = set()
             for index in range(1, row['frames'] + 1):
                 image_path = work / 'frames' / identifier / f'{index:06d}.jpg'
                 with Image.open(image_path) as image:
-                    ev.require(image.format == 'JPEG' and image.size == (row['width'], row['height']),
-                               f'{identifier}/{index}: original image format/dimensions disagree with native label')
+                    ev.require(image.format == 'JPEG', f'{identifier}/{index}: original image is not JPEG')
+                    image_sizes.add(image.size)
                     ev.require(image.getexif().get(274, 1) == 1, 'Original EXIF orientation needs a separate review')
                     image.load()
                 files.append({'path': image_path.relative_to(work).as_posix(), 'sha256': ev.digest(image_path)})
+            ev.require(len(image_sizes) == 1, f'{identifier}: original image dimensions vary within sequence')
+            actual_size = next(iter(image_sizes))
+            native_size = (row['width'], row['height'])
+            geometry = {'native_size': list(native_size), 'image_size': list(actual_size),
+                        'status': 'matches_header' if actual_size == native_size else 'review_required'}
             label = work / 'labels' / f'{identifier}.mat'
             ev.require(ev.digest(label) == row['native_annotation_sha256'], 'Native label changed between passes')
             clips.append({'id': f'penn_{identifier}', 'dataset': 'Penn Action', 'exercise': 'pull_up',
                           'split': 'unassigned', 'source_group': 'penn_unresolved_sources', 'subject_group': None,
                           'native_sequence_id': identifier, 'native_split': row['native_split'],
-                          'native_action': row['action'],
+                          'native_action': row['action'], 'native_geometry': geometry,
                           'rights': {'status': 'pending', 'evidence': '', 'public_outputs': False},
                           'media': {'kind': 'images', 'expected_frames': row['frames'], 'files': files},
                           'native_annotations': {'format': 'penn_action_mat', 'path': f'labels/{identifier}.mat',
@@ -216,7 +222,9 @@ def stage(archive: Path, output: Path, limit: int = 6, expected_sha256: str | No
                   'not_selected_sequence_ids': [r['sequence_id'] for r in candidates if r['sequence_id'] not in wanted],
                   'annotations': inventory['annotations'],
                   'model_inference': 'not_run', 'permissions': 'pending_per_corpus_review',
-                  'native_import': 'not_run', 'source_subject_disjointness': 'unresolved'}
+                  'native_import': 'not_run', 'source_subject_disjointness': 'unresolved',
+                  'geometry_review_required': [c['id'] for c in clips if c['native_geometry']['status'] == 'review_required'],
+                  'geometry': {c['id']: c['native_geometry'] for c in clips}}
         manifest = {'schema_version': 1, 'confidence_threshold': 0.3, 'clips': clips}
         ev.validate_manifest(manifest, work)
         ev.write_json(work / 'review.json', manifest)

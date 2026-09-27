@@ -129,7 +129,17 @@ def convert_clip(clip, root, output, review_sha256):
             width, height = image.size
             image.load()
         if kind == 'penn_action_mat':
-            ev.require((width, height) == (info['width'], info['height']), 'Penn dimensions differ from actual image')
+            native_size = [info['width'], info['height']]
+            resolution = review.get('geometry_resolution')
+            if [width, height] != native_size or resolution is not None:
+                ev.require(isinstance(resolution, dict)
+                           and resolution.get('native_size') == native_size
+                           and resolution.get('image_size') == [width, height]
+                           and resolution.get('coordinate_mapping') == 'identity'
+                           and isinstance(resolution.get('evidence'), str) and resolution['evidence'].strip(),
+                           'Penn dimensions differ: exact reviewed identity geometry resolution required')
+            # Geometry review changes only the declared canvas. Never rescale
+            # native coordinates or image bytes to hide a header discrepancy.
         points = {}
         for joint, name in info['mapping'].items():
             if not visible[index, joint]:
@@ -154,6 +164,7 @@ def convert_clip(clip, root, output, review_sha256):
                  'conversion': {'version': 1, 'format': kind, 'pixel_origin': origin,
                                 'joint_order_source': SOURCES[kind], 'native_split': info.get('native_split'),
                                 'native_action': info.get('action'),
+                                'geometry_resolution': review.get('geometry_resolution'),
                                 'omitted_native_joints': sorted(set(range(coordinates.shape[1])) - set(info['mapping'])),
                                 'exclusions': dict(excluded)}}
     ev.validate_reference(reference, clip)
