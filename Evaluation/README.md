@@ -5,9 +5,10 @@ compiles the exact app `Analysis/` files, `VideoReplayReader` and
 `VisionPoseEstimator` into one small macOS command-line entry point. Videos go
 through the same actor, decoder, orientation handling and Vision request as the
 app. Image sequences use the same Vision estimator after EXIF orientation; they
-are not converted into an invented fixed-rate video. Python tooling uses only the
-standard library. No training system, cloud inference, new iOS dependency or new
-Xcode target is added.
+are not converted into an invented fixed-rate video. Inventory/scoring use the
+Python standard library; optional native annotation conversion uses the pinned
+host-only dependencies in `import-requirements.txt`. No training system, cloud
+inference, new iOS dependency or new Xcode target is added.
 
 **Scope:** evaluate existing pose output first. Rep counting is not implemented
 in P0, so every report says `rep_metrics.status: not_implemented`. Unlabelled
@@ -17,7 +18,10 @@ batch smoke test does not clear PR #2's separate simulator or phone gates.
 ## Run
 
 ```sh
-# Available on Linux and macOS; no media needed for these synthetic contract tests.
+# Linux/macOS; dependencies are only for native annotation import tests.
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install -r Evaluation/import-requirements.txt
 python3 -m unittest discover -s Evaluation/tests -v
 
 # Metadata only: counts are listed candidates, NOT usable/evaluated videos.
@@ -90,8 +94,9 @@ A rights entry is the maintainer's recorded review, not legal authorization
 invented by the program. `pending` and `denied` are not processed. The supplied
 public metadata inventories do not confer rights to videos or annotations.
 `--public-output` additionally rejects clips not approved for public outputs.
-Only the fixed approved CI smoke fixture and public metadata reports are uploaded
-by the workflow; no arbitrary corpus or user recordings are uploaded.
+Only the fixed approved smoke/pilot observations, their reviewed labels, public
+metadata reports and tracked source snapshot are uploaded by the workflow. No
+arbitrary corpus or user recordings are uploaded.
 
 ## Reviewed 2D reference v1
 
@@ -119,10 +124,11 @@ images in the same order. No predicted or lifted 3D skeleton is ground truth.
 Joint names follow `PoseJoint` in the app. In a Penn Action conversion, use its
 published shoulder/elbow/wrist etc. definitions, but **do not map its head point
 to Vision's nose**. Verify pixel origin, indexing, visibility and actual dimensions
-when converting MATLAB labels. Native Penn MAT, HAA4D skeleton, HAA500, RepCount
-and OVR annotation importers are not implemented in this change; these sources
-can use the common format after a reviewed conversion. No guessed joint ordering
-or fabricated FPS is built into the runner.
+when converting MATLAB labels. [The Penn MAT/HAA4D NPY importer](IMPORTING.md) now
+handles reviewed native inputs, including original visibility and a separately
+reviewed HAA4D visibility mask. HAA4D hand points are not mapped to wrists. The
+HAA500, RepCount and OVR annotation converters remain unimplemented. No guessed
+joint ordering or fabricated FPS is built into the runner.
 
 ## What reports establish
 
@@ -144,6 +150,8 @@ pixel dimensions and rejects mismatched aspect ratios.
 There is no pooled accuracy claim across datasets/exercises, no pass/fail form
 score and no release gate inferred from tiny samples. Per-exercise status counts
 retain failed/unavailable clips. Training remains deferred until independently
-labelled data demonstrates a residual model failure. The next additions are
-reviewed dataset converters/rights clearance, real multi-clip pose comparisons,
-then the counting engine and its separate temporal labels.
+labelled data demonstrates a residual model failure. The [frozen public-source
+pilot](IMPORTING.md#public-source-pilot-what-can-run-now) exercises real image
+sequences and scoring with approximate visual references. It is not a Penn/HAA
+benchmark or held-out qualification. Next: review actual native media/annotations,
+run wider comparisons, then add the counting engine and separate temporal labels.

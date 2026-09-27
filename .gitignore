@@ -28,3 +28,6 @@ Models/downloads/
 HangInThereTests/Fixtures/generated/
 HangInThereTests/Fixtures/prepare-*/
 __pycache__/
+
+# Optional host annotation environment
+.venv/
