@@ -147,7 +147,7 @@ jobs:
             build/vision-artifact/Data/local/public-pilot/manifest.json \
             --root build/vision-artifact/Data/local/public-pilot \
             --output Evaluation/output/ci-image-pilot-mediapipe \
-            --model /tmp/hit-models/pose_landmarker_heavy.task
+            --model /tmp/hit-models/pose_landmarker_heavy.task --public-output
           python3 scripts/compare-pose-reports.py \
             build/vision-artifact/Evaluation/output/ci-image-pilot/report.json \
             Evaluation/output/ci-image-pilot-mediapipe/report.json \
@@ -159,6 +159,8 @@ jobs:
           comparison = json.loads(Path('Evaluation/output/ci-image-pilot-backend-comparison.json').read_text())
           assert mp['counts_by_status'] == {'processed': 3}
           assert mp['backend'] == ['MediaPipe Pose Landmarker Heavy', 'pose_landmarker_heavy/float16/1']
+          assert mp['options']['num_poses'] == 2 and mp['options']['delegate'] == 'CPU'
+          assert comparison['schema_version'] == 2 and comparison['timing_comparable'] is False
           assert sum(c['frames'] for c in mp['clips']) == 100
           assert all(c['pose_metrics']['status'] == 'measured_2d_only' for c in mp['clips'])
           assert len(comparison['clips']) == 3
@@ -178,4 +180,7 @@ jobs:
             Evaluation/output/ci-image-pilot-mediapipe/hang/observations.jsonl
             Evaluation/output/ci-image-pilot-mediapipe/descent/observations.jsonl
             Evaluation/output/ci-image-pilot-mediapipe/cycle/observations.jsonl
+            Evaluation/output/ci-image-pilot-mediapipe/hang/completion.json
+            Evaluation/output/ci-image-pilot-mediapipe/descent/completion.json
+            Evaluation/output/ci-image-pilot-mediapipe/cycle/completion.json
             Evaluation/output/ci-image-pilot-backend-comparison.json

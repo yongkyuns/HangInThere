@@ -181,12 +181,52 @@ independent model qualification and HAA4D execution remain open.
 
 ## MediaPipe Heavy comparison (host-only)
 
-The first independent-backend comparison is deliberately outside the iOS app target. `scripts/mediapipe_eval.py` runs the official MediaPipe Pose Landmarker **Heavy** task model on the same pre-oriented image files and independent labels used by the Vision image benchmark. It emits the same joint names used by the scorer where the models overlap; MediaPipe-only hand/foot landmarks are not promoted into the shared schema.
+The comparison runs outside the app target on Linux, using the same **100 upright
+PNG files and frozen approximate labels** transferred from the native Vision job.
+The file hashes and dimensions match; this is not a general guarantee of
+bit-identical decoding across Apple and MediaPipe image libraries. Other inputs
+with non-upright EXIF orientation are rejected, not silently misregistered.
 
-The model asset is pinned to `pose_landmarker_heavy/float16/1`. `scripts/prepare-mediapipe-model.py` downloads the official Google-hosted asset and requires the recorded SHA-256 before it can be used. The CI runtime dependency is host-only (`Evaluation/mediapipe-requirements.txt`); it is not linked into `HangInThere.app`.
+The official Heavy asset is pinned to `pose_landmarker_heavy/float16/1`. Both the
+downloader and runner enforce its SHA-256. The runner records SDK/dependency
+versions, CPU/IMAGE-mode options, source and scoring-code hashes, source revision,
+input hashes, streamed observations and completion status. Inputs/model are
+rechecked after processing; errors preserve partial output but never produce a
+completed score. `--public-output` requires the same explicit media/output
+permission gate as the Vision runner; it is enabled in CI, not by default for
+private local evaluation.
 
-MediaPipe exposes landmark `visibility` and `presence` separately. For the existing single-confidence scorer, the comparison conservatively uses `min(visibility, presence)`. Coordinates outside the image are preserved in raw observations and then treated as unavailable by the existing scorer rather than clamped into a plausible location.
+MediaPipe requests up to **two** poses and preserves both; two is enough to reject
+ambiguity under the shared exactly-one-person policy. It does not pick the first
+person or choose the prediction closest to a reference. This is not a complete
+multi-person detector benchmark. Policy v2 uses `min(visibility, presence)` only
+when both scores are finite values in [0,1]; otherwise confidence is zero. Raw
+visibility/presence are retained (nonfinite/missing values become JSON null).
+Apple confidence and MediaPipe scores are **not cross-model calibrated**, even
+with the common 0.3 scorer threshold. No labelled reference or threshold was
+changed for this audit.
 
-The comparison currently supports **ordered image sequences only**. This is intentional: it makes Vision and MediaPipe consume exactly the same labelled pixels without introducing a second video decoder or inferred frame timestamps. A descriptive side-by-side artifact is produced by `scripts/compare-pose-reports.py`; it does not pick a winner or claim iOS throughput, repetition accuracy, form accuracy, or 3D accuracy.
+`scripts/compare-pose-reports.py` rejects incomplete/duplicate reports and mismatched
+revisions, scoring code, thresholds, frame counts, media hashes, annotation hashes
+and reference support. It retains each backend's coverage alongside error; their
+measured subsets can still differ. The per-clip point mean is weighted by measured
+reference points; joint p95 values are never averaged into a fake aggregate p95.
 
-Only if this benchmark shows a meaningful exercise-specific benefit should MediaPipe be considered for the iOS runtime. The current Google iOS setup documentation states that MediaPipe Tasks on iOS uses CPU execution, so host latency is not an iPhone performance proxy.
+The [pilot report](results/mediapipe-pilot.md) records the first completed comparison
+and the audit limitations. The initial one-person run is historical evidence,
+not a qualified model-selection result. Repaired CI must pass real inference in
+addition to synthetic adapter/report-contract tests. No iOS package, model asset,
+training framework or new Xcode target is added. Host timings are not comparable
+between the Linux MediaPipe and macOS Vision jobs and imply no iPhone speedup.
+The P0 simulator Vision failure remains separate and fatal.
+
+```sh
+python3 scripts/prepare-mediapipe-model.py --output /tmp/heavy.task --metadata /tmp/heavy.json
+python3 scripts/mediapipe_eval.py /path/to/manifest.json --root /path/to/corpus \
+  --output Evaluation/output/mp-run --model /tmp/heavy.task
+python3 scripts/compare-pose-reports.py Evaluation/output/vision-run/report.json \
+  Evaluation/output/mp-run/report.json --output /tmp/comparison.json
+```
+
+References: [official task options](https://ai.google.dev/edge/api/mediapipe/python/mp/tasks/vision/PoseLandmarkerOptions)
+and [landmark score semantics](https://ai.google.dev/edge/api/mediapipe/python/mp/tasks/components/containers/NormalizedLandmark).
