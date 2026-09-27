@@ -1,5 +1,5 @@
-name: Native Penn intake
-# Isolated diagnostics only; never a normal PR workflow.
+name: Native Penn private diagnostic
+# Isolated experiment; the PR's ordinary CI and manual intake stay unchanged.
 on:
   push:
     branches: [ops/penn-intake-20260926]
@@ -9,43 +9,74 @@ concurrency:
   group: native-penn-intake-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  intake:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
+  native:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Install host-only importer dependencies
+      - name: Prepare host tools
         run: |
           python3 -m venv /tmp/hit-native-env
           /tmp/hit-native-env/bin/python -m pip install --only-binary=:all: -r Evaluation/import-requirements.txt
           echo '/tmp/hit-native-env/bin' >> "$GITHUB_PATH"
-      - name: Inspect originals without approving mismatched geometry
-        run: |
-          set -o pipefail
           mkdir -p build
-          openssl x509 -in scripts/review-recipient.pem -noout
-          python3 -u scripts/diagnose_penn.py 2>&1 | tee build/native-intake.txt
-      - name: Encrypt selected originals for private inspection
+          xcodebuild -version > build/native-toolchain.txt
+          xcrun swift --version >> build/native-toolchain.txt
+      - name: Acquire the same pinned original six sequences
+        run: python3 -u scripts/diagnose_penn.py
+      - name: Record narrowly scoped private inference review
         run: |
-          tar -czf "$RUNNER_TEMP/native-review.tgz" -C Data/local/penn-intake .
-          openssl cms -encrypt -binary -aes256 -outform DER -in "$RUNNER_TEMP/native-review.tgz" -out build/penn-review.p7m scripts/review-recipient.pem
-          rm "$RUNNER_TEMP/native-review.tgz"
-      - name: Transfer encrypted private review copy only
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, 'scripts')
+          import evaluation as ev
+          root=Path('Data/local/penn-intake')
+          m=ev.read_json(root/'review.json')
+          assert [c['id'] for c in m['clips']]==[f'penn_{n}' for n in range(1149,1155)]
+          assert sum(len(c['media']['files']) for c in m['clips'])==271
+          for c in m['clips']:
+              c['rights']={'status':'approved','public_outputs':False,'evidence':
+                  'Limited private research diagnostic of the publisher-offered Penn Action dataset '
+                  '(https://dreamdragon.github.io/PennAction/; Zhang, Zhu and Derpanis, ICCV 2013). '
+                  'Selected original images and native labels independently inspected before inference. '
+                  'No model training, raw media/annotation redistribution, marketing or commercial licence claimed. '
+                  'Readable per-frame outputs stay private; encrypted transfer only.'}
+              assert c['split']=='unassigned' and c['subject_group'] is None
+              assert not c.get('annotations')
+          ev.validate_manifest(m,root)
+          assert all(ev.preflight(c,root)=='ready' and ev.preflight(c,root,True)=='outputs_not_approved' for c in m['clips'])
+          ev.write_json(root/'private-inference.json',m)
+          PY
+      - name: Run exact production Vision pipeline without native-label input
+        run: |
+          ./scripts/evaluate.sh Data/local/penn-intake/private-inference.json --root Data/local/penn-intake --output Evaluation/output/native-penn-review
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('Evaluation/output/native-penn-review/report.json').read_text())
+          assert r['counts_by_status']=={'processed':6}
+          assert sum(c['frames'] for c in r['clips'])==271
+          assert all(c['pose_metrics']['status']=='no_independent_labels' for c in r['clips'])
+          print('Six native sequences / 271 original images processed; scoring requires separate reviewed references.')
+          PY
+      - name: Encrypt private predictions for independent local scoring
+        if: ${{ !cancelled() }}
+        run: |
+          cp build/native-toolchain.txt Evaluation/output/native-penn-review/
+          cp Data/local/penn-intake/intake-report.json Evaluation/output/native-penn-review/
+          tar -czf "$RUNNER_TEMP/native-results.tgz" -C Evaluation/output/native-penn-review .
+          openssl cms -encrypt -binary -aes256 -outform DER -in "$RUNNER_TEMP/native-results.tgz" -out build/penn-results.p7m scripts/review-recipient.pem
+          rm "$RUNNER_TEMP/native-results.tgz"
+      - name: Retain encrypted diagnostic only
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: native-penn-encrypted-review
+          name: native-penn-encrypted-results
           retention-days: 1
           if-no-files-found: error
-          path: build/penn-review.p7m
-      - name: Retain non-media diagnostic metadata
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: native-penn-intake-metadata
-          retention-days: 7
-          path: |
-            build/native-intake.txt
-            Data/local/penn-intake/intake-report.json
-            Data/local/penn-intake/acquisition.json
+          path: build/penn-results.p7m
