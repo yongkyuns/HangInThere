@@ -1,0 +1,194 @@
+{
+  "annotation_provenance": "Single assistant visual temporal review on raw pull-up frames and frame-correspondent dip review proxy acquired by source-only run 36347094316. Timing windows frozen before any counter run on these sequences. Prior pose-only exposure to pull-up source disclosed; no counter output used. Dips annotated from 0.2-second overview and cut-boundary images, allowing interval uncertainty plus fixed 0.35-second matching tolerance. No model-based event/threshold selection.",
+  "review_artifact_sha256": "3a85ad57dc18da66189f733caf4dd94d54753fe363c12fbd9cfaec7f0772234f",
+  "schema_version": 1,
+  "scope": "Three continuously decoded clips containing observable movement cycles, not full uncensored workouts. Model-independent approximate single-reviewer temporal labels; all sources unassigned, no expert or held-out qualification.",
+  "sources": [
+    {
+      "bytes": 358754,
+      "credit": "FitnessScape; source YouTube 0I6q9NqK9tM",
+      "encoder_time_base": "1:30",
+      "end_source_seconds": 6.0,
+      "events_source_seconds": [
+        [
+          4.433,
+          4.633
+        ]
+      ],
+      "exercise": "pullUp",
+      "first_source_pts": 0,
+      "frame_range": [
+        0,
+        180
+      ],
+      "id": "pullup_censored",
+      "last_source_pts": 5.967,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "page": "https://commons.wikimedia.org/wiki/File:Pull-ups_-_exercise_demonstration_video.webm",
+      "review_notes": "All 45 overview frames and denser second-ascent frames reviewed. Second visible hang-to-top event; final descent is cut, but the documented pull-up event is at top. One source already used for pose-only comparison, not held-out. No chin clearance label. Broad initial exclusion retained in coverage.",
+      "side": "left",
+      "source_frames": 180,
+      "source_group": "Commons-pullup_video",
+      "source_sha256": "1ddf02c690c6da9d27c9ca50453d2df212d777bb402203af116b70bf27a2227d",
+      "source_size": [
+        1280,
+        720
+      ],
+      "title": "Pull-ups - exercise demonstration video.webm",
+      "ungradable_source_intervals": [
+        {
+          "reason": "First ascent begins behind the opening graphic; initial extended start is not visible.",
+          "seconds": [
+            0,
+            2.6
+          ]
+        }
+      ],
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Pull-ups_-_exercise_demonstration_video.webm"
+    },
+    {
+      "bytes": 307808689,
+      "credit": "U.S. Army / Sgt. Jacob Moir / 49th Public Affairs Detachment",
+      "encoder_time_base": "1001:60000",
+      "end_source_seconds": 158.00785,
+      "events_source_seconds": [
+        [
+          146.95,
+          147.2
+        ],
+        [
+          147.95,
+          148.2
+        ],
+        [
+          148.95,
+          149.2
+        ],
+        [
+          149.95,
+          150.2
+        ],
+        [
+          150.95,
+          151.2
+        ],
+        [
+          151.92,
+          152.18
+        ],
+        [
+          152.95,
+          153.2
+        ],
+        [
+          153.95,
+          154.2
+        ],
+        [
+          155.08,
+          155.38
+        ],
+        [
+          156.35,
+          156.62
+        ]
+      ],
+      "exercise": "dip",
+      "first_source_pts": 144.8447,
+      "frame_range": [
+        8682,
+        9471
+      ],
+      "id": "dip_rear",
+      "last_source_pts": 157.991167,
+      "license": "PD-US-Army",
+      "license_url": "https://www.dvidshub.net/about/copyright",
+      "page": "https://www.dvidshub.net/video/884241/aaw23-fittest-all-american-challenge",
+      "review_notes": "Ten visible complete top-bottom-top cycles following an already-in-progress initial effort; last dismount/foreground occlusion remains in the negative interval. Rear view, spectators, mild camera movement. No depth/lockout validity labels.",
+      "side": "left",
+      "source_frames": 15010,
+      "source_group": "DVIDS-884241-session",
+      "source_sha256": "fc7c5cb37d598ce82057dea08358f724103088cb6acc58eee93519267b52e760",
+      "source_size": [
+        1920,
+        1080
+      ],
+      "title": "AAW23 - Fittest All American Challenge",
+      "ungradable_source_intervals": [
+        {
+          "reason": "Shot opens during an effort whose preceding top is outside the observed sequence.",
+          "seconds": [
+            144.8447,
+            146.0
+          ]
+        }
+      ],
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/2305/DOD_109654583/DOD_109654583.mp4"
+    },
+    {
+      "bytes": 307808689,
+      "credit": "U.S. Army / Sgt. Jacob Moir / 49th Public Affairs Detachment",
+      "encoder_time_base": "1001:60000",
+      "end_source_seconds": 175.792283,
+      "events_source_seconds": [
+        [
+          167.78,
+          168.05
+        ],
+        [
+          169.35,
+          169.62
+        ],
+        [
+          170.95,
+          171.2
+        ],
+        [
+          172.5,
+          172.7
+        ],
+        [
+          173.97,
+          174.22
+        ],
+        [
+          175.5,
+          175.77
+        ]
+      ],
+      "exercise": "dip",
+      "first_source_pts": 165.832333,
+      "frame_range": [
+        9940,
+        10537
+      ],
+      "id": "dip_side",
+      "last_source_pts": 175.7756,
+      "license": "PD-US-Army",
+      "license_url": "https://www.dvidshub.net/about/copyright",
+      "page": "https://www.dvidshub.net/video/884241/aaw23-fittest-all-american-challenge",
+      "review_notes": "Six visible complete top-bottom-top cycles after initial in-progress ascent. Side-oblique view, near left arm selected before inference; background spectators and partial head crop preserved. No depth or lockout validity labels.",
+      "side": "left",
+      "source_frames": 15010,
+      "source_group": "DVIDS-884241-session",
+      "source_sha256": "fc7c5cb37d598ce82057dea08358f724103088cb6acc58eee93519267b52e760",
+      "source_size": [
+        1920,
+        1080
+      ],
+      "title": "AAW23 - Fittest All American Challenge",
+      "ungradable_source_intervals": [
+        {
+          "reason": "Shot opens during an effort whose preceding top is outside the observed sequence.",
+          "seconds": [
+            165.832333,
+            166.4
+          ]
+        }
+      ],
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/2305/DOD_109654583/DOD_109654583.mp4"
+    }
+  ],
+  "tolerance_seconds": 0.35
+}

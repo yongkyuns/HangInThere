@@ -86,8 +86,8 @@ have ordered frame indices and real `source_pts` timestamps. Still-image sequenc
 are rejected: no assumed frame rate or invented timestamps. The diagnostic records
 input/source/executable hashes, source revision/dirty state and toolchain. It
 refuses to overwrite previous reports. Saved-prediction replay is not new inference.
-The pre-existing pose evaluator's `rep_metrics: not_implemented` means temporal
-accuracy **scoring** is not implemented; it is separate from this counter output.
+The pose-only evaluator retains `rep_metrics: not_implemented`; temporal scores
+now come from the separate, hash-bound evaluator linked below, not pose labels.
 
 A preliminary run on 40 retained Vision predictions from the reviewed four-second
 pull-up smoke video produced **one unverified movement at source time 2.2 seconds**
@@ -105,3 +105,10 @@ Physical iPhone inference/performance is still untested.
 Full parallel-bar-dip videos, independent temporal annotations, athlete/viewpoint
 coverage and endpoint measurements are required before claiming accurate counts
 or valid reps. Photographs and analytical trajectories cannot close those gates.
+
+## Continuous-video temporal diagnostic
+
+[Evaluation/TEMPORAL.md](../Evaluation/TEMPORAL.md) defines the first independently
+marked event comparison on complete decoded clips. Observed cycles, count errors
+and excluded initial portions are reported separately from form acceptance. The
+production counter and its provisional thresholds are unchanged by that tooling.
