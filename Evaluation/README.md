@@ -46,6 +46,12 @@ unapproved use, mismatched hashes and missing model assets never become success.
 No live-camera or real-time dropping is simulated here; timings are native Mac
 diagnostics only.
 
+Countix's official archive can omit the action-class column. Such rows are
+reported as `unclassified_rows`, never guessed or counted as known negatives.
+`selected_counts` covers only explicitly class-labelled rows. An external,
+exact source-ID/interval label join is still needed before claiming full
+pull-up/dip coverage for those splits.
+
 ## Manifest v1
 
 ```json

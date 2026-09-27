@@ -28,12 +28,14 @@ def category(name):
 def parse_csv(dataset, payload, split=None):
     reader = csv.DictReader(io.StringIO(payload.decode("utf-8-sig")))
     required = {"class_name", "videoname", "length"} if dataset == "haa4d" else {
-        "video_id", "class", "kinetics_start", "kinetics_end", "repetition_start", "repetition_end", "count"}
+        "video_id", "kinetics_start", "kinetics_end", "repetition_start", "repetition_end", "count"}
     if not required.issubset(set(reader.fieldnames or [])):
         raise ValueError(f"Unrecognized {dataset} CSV headers: {reader.fieldnames}")
     counts, selected, total = Counter(), [], 0
     for row in reader:
-        label = row["class_name" if dataset == "haa4d" else "class"]
+        # The official Countix archive may omit action classes.
+        # Preserve that missingness; do not infer labels from filenames or counts.
+        label = row.get("class_name" if dataset == "haa4d" else "class") or "__unclassified__"
         counts[label] += 1
         total += 1
         exercise = category(label)
@@ -53,7 +55,8 @@ def parse_csv(dataset, payload, split=None):
                         repetition_start=row["repetition_start"], repetition_end=row["repetition_end"],
                         annotated_count=row["count"])
         selected.append(item)
-    return {"metadata_rows": total, "class_counts": dict(counts), "selected": selected,
+    return {"metadata_rows": total, "unclassified_rows": counts["__unclassified__"],
+            "class_counts": dict(counts), "selected": selected,
             "csv_sha256": hashlib.sha256(payload).hexdigest()}
 
 
@@ -85,6 +88,7 @@ def inventory(dataset, payload):
             "metadata_sha256": hashlib.sha256(payload).hexdigest(),
             "scope": "metadata inventory, not downloaded/rights-cleared/evaluated media",
             "metadata_rows": sum(x["metadata_rows"] for x in sections.values()),
+            "unclassified_rows": sum(x["unclassified_rows"] for x in sections.values()),
             "selected_counts": dict(Counter(x["exercise"] for x in selected)),
             "selected_frames": {key: sum(x.get("frames", 0) for x in selected if x["exercise"] == key)
                                 for key in sorted({x["exercise"] for x in selected if "frames" in x})},
@@ -113,7 +117,7 @@ def main():
         report = inventory(args.dataset, payload)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-        print(json.dumps({k: report[k] for k in ("dataset", "metadata_rows", "selected_counts", "selected_frames", "metadata_sha256")}))
+        print(json.dumps({k: report[k] for k in ("dataset", "metadata_rows", "unclassified_rows", "selected_counts", "selected_frames", "metadata_sha256")}))
         return 0
     except (OSError, ValueError, tarfile.TarError, KeyError) as error:
         args.output.parent.mkdir(parents=True, exist_ok=True)
