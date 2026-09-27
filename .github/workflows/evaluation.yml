@@ -1,0 +1,72 @@
+name: Dataset evaluation
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: evaluation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  batch:
+    name: Manifest, scoring and real-pipeline batch smoke
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate evaluator contracts
+        run: python3 -m unittest discover -s Evaluation/tests -v
+      - name: Prepare already-approved motion fixture
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-fixtures.py
+          mkdir -p build
+          python3 scripts/evaluation.py smoke-manifest --root "$PWD" --output build/batch-smoke.json
+      - name: Run actual production pipeline in batch mode
+        run: |
+          xcodebuild -version > build/batch-toolchain.txt
+          xcrun swift --version >> build/batch-toolchain.txt
+          ./scripts/evaluate.sh build/batch-smoke.json --root "$PWD" --output Evaluation/output/ci-smoke --public-output
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('Evaluation/output/ci-smoke')
+          report = json.loads((root / 'report.json').read_text())
+          assert report['counts_by_status'] == {'processed': 1}
+          row = report['clips'][0]
+          assert row['frames'] == 40
+          assert row['pose_metrics']['status'] == 'no_independent_labels'
+          assert row['rep_metrics']['status'] == 'not_implemented'
+          frames = [json.loads(line) for line in (root / 'pullup_smoke/observations.jsonl').read_text().splitlines()]
+          assert any(any({'leftShoulder','leftElbow','leftWrist'} <= {
+              p['joint'] for p in person['landmarks'] if p['confidence'] >= .2
+          } for person in frame['people']) for frame in frames), 'Real visible arm required; not a request-only smoke test'
+          assert frames[-1]['timestamp']['value'] / frames[-1]['timestamp']['timescale'] == 3.9
+          print('Real video batch smoke passed; no pose accuracy or counting score claimed.')
+          PY
+      - name: Inventory HAA4D public metadata
+        if: ${{ !cancelled() }}
+        run: python3 scripts/inventory.py haa4d --fetch --output Evaluation/output/inventory/haa4d.json
+      - name: Inventory Countix public metadata
+        if: ${{ !cancelled() }}
+        run: python3 scripts/inventory.py countix --fetch --output Evaluation/output/inventory/countix.json
+      - name: Retain only approved reports and fixture observations
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dataset-evaluation
+          retention-days: 7
+          path: |
+            build/batch-toolchain.txt
+            build/batch-smoke.json
+            Evaluation/output/ci-smoke/report.json
+            Evaluation/output/ci-smoke/pullup_smoke/observations.jsonl
+            Evaluation/output/ci-smoke/pullup_smoke/completion.json
+            Evaluation/output/inventory/haa4d.json
+            Evaluation/output/inventory/countix.json
