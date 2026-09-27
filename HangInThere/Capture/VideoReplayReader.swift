@@ -40,8 +40,12 @@ actor VideoReplayReader {
     private var timeline = ReplayTimeline()
     private var generation: UInt64 = 0
     private let context = CIContext(options: [.cacheIntermediates: false])
-    private let estimator = VisionPoseEstimator()
+    private let estimator: any PoseEstimator
     private let maximumDimension = 1280.0
+
+    init(estimator: any PoseEstimator = VisionPoseEstimator()) {
+        self.estimator = estimator
+    }
 
     func open(_ source: URL) async throws -> VideoInfo {
         close()

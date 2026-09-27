@@ -7,14 +7,16 @@ struct VideoReplayReaderTests {
     @Test func decodedFramesKeepActualVariableRateTimestamps() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
-        let reader = VideoReplayReader()
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
         _ = try await reader.open(url)
         var seconds: [Double] = []
         while let frame = try await reader.nextFrame() {
             seconds.append(frame.pose.timestamp.seconds)
             #expect(frame.image.width == 160 && frame.image.height == 96)
             #expect(frame.pose.imageSize == ImageSize(width: 160, height: 96))
-            #expect(frame.pose.people.isEmpty, "Four solid quadrants must not fabricate a human skeleton.")
+            let expected = try TestPoseEstimator().estimate(
+                image: frame.image, timestamp: frame.pose.timestamp)
+            #expect(frame.pose == expected, "Forward the estimator result unchanged, not an empty fallback.")
         }
         await reader.close()
         #expect(seconds.count == VideoTestSupport.timestamps.count)
@@ -26,7 +28,7 @@ struct VideoReplayReaderTests {
     @Test func actualPortraitPixelsAreOrientedOnceAndMatchPoseDimensions() async throws {
         let url = try await VideoTestSupport.makeVideo(transform: CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: 96, ty: 0))
         defer { try? FileManager.default.removeItem(at: url) }
-        let reader = VideoReplayReader()
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
         _ = try await reader.open(url)
         let next = try await reader.nextFrame()
         let frame = try #require(next)
@@ -42,7 +44,7 @@ struct VideoReplayReaderTests {
     @Test func rewindRestoresFirstFrameAndClosePreventsFurtherReads() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
-        let reader = VideoReplayReader()
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
         _ = try await reader.open(url)
         _ = try await reader.nextFrame()
         let second = try await reader.nextFrame()
@@ -65,7 +67,7 @@ struct VideoReplayReaderTests {
         let portrait = try await VideoTestSupport.makeVideo(
             transform: CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: 96, ty: 0))
         defer { try? FileManager.default.removeItem(at: portrait) }
-        let reader = VideoReplayReader()
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
         _ = try await reader.open(landscape)
         _ = try await reader.nextFrame()
         let oldSecond = try await reader.nextFrame()
@@ -90,7 +92,7 @@ struct VideoReplayReaderTests {
         defer { try? FileManager.default.removeItem(at: corrupt) }
         let valid = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: valid) }
-        let reader = VideoReplayReader()
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
         do {
             _ = try await reader.open(corrupt)
             Issue.record("Invalid video unexpectedly opened.")
@@ -108,5 +110,24 @@ struct VideoReplayReaderTests {
         #expect(first?.pose.timestamp.seconds == 0)
         #expect(first?.pose.imageSize == ImageSize(width: 160, height: 96))
         await reader.close()
+    }
+
+    @Test func inferenceFailurePropagatesAndReopeningStartsWithFreshTime() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let reader = VideoReplayReader(estimator: TestPoseEstimator(failAtOrAfter: 0.1))
+        for _ in 0..<2 {
+            _ = try await reader.open(url)
+            let first = try await reader.nextFrame()
+            #expect(first?.pose.timestamp.seconds == 0)
+            #expect(first?.pose.backend == TestPoseEstimator.backend)
+            do {
+                _ = try await reader.nextFrame()
+                Issue.record("Inference failure must throw, not yield nil or a successful empty pose.")
+            } catch FixtureError.failed(let message) {
+                #expect(message == TestPoseEstimator.failureMessage)
+            }
+            await reader.close()
+        }
     }
 }

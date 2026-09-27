@@ -60,15 +60,24 @@ there is no second production package.
 ./scripts/test-core.sh
 ```
 
-The iOS tests exercise actual AVFoundation decoding, variable timestamps,
-portrait orientation, decoder replacement/recovery, controller lifecycle,
-and real Vision requests. Prepare their pinned public-source smoke media first:
+The iOS mechanics tests exercise actual AVFoundation decoding, variable
+timestamps, portrait orientation, decoder replacement/recovery, and controller
+lifecycle with an explicitly injected, test-only pose estimator. They also assert
+that inference errors propagate instead of becoming successful empty frames.
+Production reader/controller defaults remain real Apple Vision; there is no
+runtime fallback. The separate `VisionSmokeTests` use the production defaults
+for real-human still/video inference, negative video, and controller reimport.
+Prepare their pinned public-source smoke media first:
 
 ```sh
 # macOS; test preparation only, not an app dependency
 brew install ffmpeg
 python3 scripts/prepare-fixtures.py
-./scripts/test-ios.sh
+./scripts/test-ios.sh                 # device build + ALL simulator tests
+# Independent diagnostics; mechanics success does not qualify real Vision:
+./scripts/test-ios.sh mechanics       # device build + replay/core tests; no model media
+./scripts/test-ios.sh vision          # actual simulator Vision, failures remain fatal
+./scripts/test-apple-host.sh          # native Mac tests, not iPhone evidence
 ```
 
 Preparation verifies the original source's digest and size, derives a small
@@ -78,9 +87,13 @@ Missing media, integrity failures, missing expected body landmarks, and backend
 errors are failures, not skipped checks or successful accuracy reports.
 This is a backend smoke check, **not** a pull-up/dip accuracy set.
 
-The single [GitHub workflow](.github/workflows/ci.yml) compiles an unsigned Release
-device target and runs the simulator tests using a pinned Xcode. It uses read-only
-repository permissions and no Apple credentials. Retained artifacts contain
+The [P0 GitHub workflow](.github/workflows/ci.yml) reports three independent jobs:
+native Mac integration, iOS simulator mechanics (including the unsigned Release
+device build), and actual iOS simulator Vision. A failing job does not cancel
+the others. **All are required for the declared P0 qualification:** a green
+mechanics or native-Mac job does not resolve a red simulator-Vision job.
+The runner rejects an empty test selection and keeps separate result bundles.
+It uses a pinned Xcode, read-only repository permissions and no Apple credentials. Retained artifacts contain
 results/provenance and a separately named, approved smoke clip/still for review;
 private app imports are never collected. Unsigned compilation does not produce
 an installable phone app. Normal local signing is not disabled in the project.

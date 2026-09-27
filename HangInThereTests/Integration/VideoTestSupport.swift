@@ -129,3 +129,27 @@ enum VideoTestSupport {
         }
     }
 }
+
+// Explicit test-only inference, never a production fallback or model evidence.
+// Return a nonempty sentinel so tests detect dropped/replaced estimator output.
+struct TestPoseEstimator: PoseEstimator {
+    static let backend = "Test pose estimator (not Vision)"
+    static let failureMessage = "Injected pose inference failure."
+    let failAtOrAfter: Double?
+
+    init(failAtOrAfter: Double? = nil) {
+        self.failAtOrAfter = failAtOrAfter
+    }
+
+    func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
+        if let failAtOrAfter, timestamp.seconds >= failAtOrAfter {
+            throw FixtureError.failed(Self.failureMessage)
+        }
+        let size = ImageSize(width: Double(image.width), height: Double(image.height))
+        let marker = Landmark(joint: .leftWrist,
+                              position: Point2D(x: size.width / 4, y: size.height / 4), confidence: 1)
+        return PoseResult(timestamp: timestamp, imageSize: size,
+                          people: [PoseObservation(landmarks: [marker])],
+                          backend: Self.backend, requestRevision: 0)
+    }
+}

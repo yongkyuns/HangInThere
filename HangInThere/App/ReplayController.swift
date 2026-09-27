@@ -19,11 +19,17 @@ final class ReplayController {
     private(set) var displayedFrames = 0
     private(set) var durationSeconds = 0.0
     @ObservationIgnored private var firstSourceTime = 0.0
-    @ObservationIgnored private var reader = VideoReplayReader()
+    @ObservationIgnored private let estimator: any PoseEstimator
+    @ObservationIgnored private var reader: VideoReplayReader
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private var pending: ProcessedFrame?
     @ObservationIgnored private var session: UInt64 = 0
     @ObservationIgnored private var playback: UInt64 = 0
+
+    init(estimator: any PoseEstimator = VisionPoseEstimator()) {
+        self.estimator = estimator
+        self.reader = VideoReplayReader(estimator: estimator)
+    }
 
     var canPlay: Bool { phase == .paused }
     var canRestart: Bool { frame != nil && phase != .loading }
@@ -40,7 +46,7 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        let nextReader = VideoReplayReader()
+        let nextReader = VideoReplayReader(estimator: estimator)
         reader = nextReader
         frame = nil
         pending = nil
@@ -72,7 +78,7 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        reader = VideoReplayReader()
+        reader = VideoReplayReader(estimator: estimator)
         frame = nil
         pending = nil
         sourceName = nil

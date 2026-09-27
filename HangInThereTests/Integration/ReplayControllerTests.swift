@@ -7,7 +7,7 @@ struct ReplayControllerTests {
     @Test func pauseResumeAndRestartDoNotLoseConsumedFrames() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
-        let model = ReplayController()
+        let model = ReplayController(estimator: TestPoseEstimator())
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -38,7 +38,7 @@ struct ReplayControllerTests {
             try? FileManager.default.removeItem(at: portrait)
             try? FileManager.default.removeItem(at: landscape)
         }
-        let model = ReplayController()
+        let model = ReplayController(estimator: TestPoseEstimator())
         defer { model.close() }
         model.open(portrait)
         model.open(landscape)
@@ -52,7 +52,7 @@ struct ReplayControllerTests {
     @Test func invalidFileIsReportedAndAnotherImportCanRecover() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
-        let model = ReplayController()
+        let model = ReplayController(estimator: TestPoseEstimator())
         defer { model.close() }
         model.open(FileManager.default.temporaryDirectory.appendingPathComponent("missing-\(UUID().uuidString).mp4"))
         try await wait { model.phase == .failed }
@@ -66,7 +66,7 @@ struct ReplayControllerTests {
     @Test func closeDuringReplayCannotPublishAStaleFrame() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
-        let model = ReplayController()
+        let model = ReplayController(estimator: TestPoseEstimator())
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -79,6 +79,45 @@ struct ReplayControllerTests {
         #expect(model.frame == nil)
         #expect(model.sourceName == nil)
         #expect(model.displayedFrames == 0)
+    }
+
+    @Test func firstInferenceFailureIsNotASuccessfulEmptyFrame() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let model = ReplayController(estimator: TestPoseEstimator(failAtOrAfter: 0))
+        defer { model.close() }
+        // Closing and importing again must retain the dependency, not construct
+        // a different backend or silently turn an inference failure into success.
+        for _ in 0..<2 {
+            model.open(url)
+            try await wait { model.phase == .paused || model.phase == .failed }
+            try #require(model.phase == .failed)
+            #expect(model.errorMessage == TestPoseEstimator.failureMessage)
+            #expect(model.frame == nil)
+            #expect(model.displayedFrames == 0)
+            #expect(!model.canPlay)
+            model.close()
+        }
+    }
+
+    @Test func playbackInferenceFailurePreservesLastFrameAndImportCanRecover() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let model = ReplayController(estimator: TestPoseEstimator(failAtOrAfter: 0.1))
+        defer { model.close() }
+        for _ in 0..<2 {
+            model.open(url)
+            try await wait { model.phase == .paused || model.phase == .failed }
+            try #require(model.phase == .paused)
+            #expect(model.errorMessage == nil)
+            #expect(model.frame?.pose.backend == TestPoseEstimator.backend)
+            model.play()
+            try await wait { model.phase == .finished || model.phase == .failed }
+            try #require(model.phase == .failed)
+            #expect(model.errorMessage == TestPoseEstimator.failureMessage)
+            #expect(model.displayedFrames == 1)
+            #expect(model.frame?.pose.timestamp.seconds == 0)
+        }
     }
 
     private func wait(until predicate: () -> Bool) async throws {

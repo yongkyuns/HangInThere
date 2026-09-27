@@ -1,6 +1,6 @@
 # P0 implementation and evidence
 
-**Updated:** 2026-09-26
+**Updated:** 2026-09-27
 
 **Scope:** video replay and real Vision integration, not rep counting or live capture.
 
@@ -68,6 +68,42 @@ The old introduction's passing results must not be attributed to this new motion
 interval. Consult the new exact-head run for its execution and inspect the
 reported landmarks before advancing measurement claims.
 
+## Replay/backend test boundary repair (PR #3)
+
+At `f5e3def`, [P0 run 36318000241](https://github.com/yongkyuns/HangInThere/actions/runs/36318000241)
+passed 34 core tests, all 45 native Mac tests and the unsigned device build.
+The simulator passed the 34 core tests but failed 11 integration tests with
+20 issues after `cnn_human_pose.espresso.weights` could not load (Vision Code 9).
+These results are historical evidence for that exact head, not for this repair.
+
+The existing `PoseEstimator` protocol now requires checked `Sendable`
+conformance. Reader and controller accept an estimator, defaulting to real
+`VisionPoseEstimator`; replacement/close/reimport preserve the supplied
+estimator. No new production component, unchecked conformance, simulator-specific
+fallback, model override or empty-on-error behavior is introduced.
+
+Decoder/controller tests use a test-only nonempty sentinel estimator while still
+exercising the actual decoder, image orientation and controller. Added tests
+cover initial/playing inference failure, unchanged output propagation, and
+reopen/reimport recovery. The former solid-quadrant negative-model assertion is
+retained in `VisionSmokeTests` with REAL Vision; a real-default controller test
+covers close/reimport. Existing real still/video/motion assertions are unchanged.
+
+CI reports native Mac, simulator mechanics and simulator Vision independently
+with matrix fail-fast disabled. The mechanics job also builds the unsigned
+Release device target. Simulator Vision remains a fatal, separately visible
+check; missing weights are not skipped or converted to success. The default
+`test-ios.sh` still runs the full unfiltered suite. Explicit partitions retain
+separate logs/result bundles and reject a successful invocation with zero tests.
+
+Local repair checks: **34 core Swift tests, 73 evaluation Python tests and eight
+CI-runner routing/exit-status tests passed**. Runner tests use fake command-line
+tools to check selection, missing-runtime handling, zero-test rejection and
+failure propagation; they are not Apple execution. Swift syntax parsing also
+passed, but Apple SDK type checking and the new native/simulator tests require
+exact-head CI. No new Apple-platform success or resolved model startup is
+claimed in this source record; consult PR #3's exact-head run results.
+
 ## Outstanding gates
 
 The declared Apple-platform gate still requires the unsigned device build and
@@ -88,7 +124,9 @@ Run `./scripts/test-core.sh`. On macOS with test-only ffmpeg installed, run:
 ```sh
 python3 scripts/prepare-fixtures.py
 ./scripts/test-apple-host.sh  # exact non-UI production pipeline on macOS
-./scripts/test-ios.sh        # unsigned device compile + real simulator tests
+./scripts/test-ios.sh        # unsigned device compile + ALL simulator tests
+./scripts/test-ios.sh mechanics  # independent mechanics; not model qualification
+./scripts/test-ios.sh vision     # real simulator model check; remains fatal
 ```
 
 The app itself needs no fixture download. Later physical-device installation

@@ -5,6 +5,47 @@ import Testing
 
 @Suite(.serialized)
 struct VisionSmokeTests {
+    // Keep the former decoder test's negative-model assertion on REAL Vision.
+    // Mechanical replay tests use a sentinel estimator and cannot qualify this.
+    @Test func solidQuadrantVideoDoesNotFabricatePeople() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let reader = VideoReplayReader()
+        _ = try await reader.open(url)
+        var frames = 0
+        while let frame = try await reader.nextFrame() {
+            #expect(frame.pose.backend == "Apple Vision 2D")
+            #expect(frame.pose.requestRevision == 1)
+            #expect(frame.pose.people.isEmpty, "Four solid quadrants must not fabricate a human skeleton.")
+            frames += 1
+        }
+        await reader.close()
+        #expect(frames == VideoTestSupport.timestamps.count)
+    }
+
+    @MainActor @Test func defaultControllerKeepsRealVisionAfterCloseAndReimport() async throws {
+        let url = try VideoTestSupport.resource("pullup-smoke.mp4")
+        let model = ReplayController()
+        defer { model.close() }
+        for _ in 0..<2 {
+            model.open(url)
+            let deadline = ContinuousClock.now.advanced(by: .seconds(60))
+            while model.phase == .loading {
+                guard ContinuousClock.now < deadline else {
+                    throw FixtureError.failed("Real-Vision controller startup timed out.")
+                }
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            try #require(model.phase == .paused, "Real Vision startup failed: \(model.errorMessage ?? "unknown error")")
+            let frame = try #require(model.frame)
+            #expect(frame.pose.backend == "Apple Vision 2D")
+            #expect(frame.pose.requestRevision == 1)
+            #expect(VideoTestSupport.hasVisibleArm(frame.pose))
+            #expect(model.displayedFrames == 1)
+            model.close()
+        }
+    }
+
     @Test func realHumanImageProducesAnArmChain() throws {
         let url = try VideoTestSupport.resource("pullup-smoke.png")
         let source = try #require(CGImageSourceCreateWithURL(url as CFURL, nil))
