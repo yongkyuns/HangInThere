@@ -86,6 +86,22 @@ jobs:
               assert any(f['people'] for f in frames), 'Actual human observations required'
           print('Three same-source intervals / 100 images / 46 approximate reference points; not held-out accuracy qualification.')
           PY_CHECK
+      - name: Evaluate separately reviewed dip and pull-up sources
+        run: |
+          python3 scripts/prepare-source-pilot.py --cache Data/external/source-pilot --fetch --output Data/local/source-pilot
+          ./scripts/evaluate.sh Data/local/source-pilot/manifest.json --root Data/local/source-pilot --output Evaluation/output/ci-source-pilot --public-output
+          python3 - <<'PY_SOURCES'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('Evaluation/output/ci-source-pilot/report.json').read_text())
+          assert report['counts_by_status'] == {'processed': 5}
+          assert [c['frames'] for c in report['clips']] == [1, 1, 1, 1, 45]
+          assert sum(m['reference_count'] for c in report['clips'] for m in c['pose_metrics']['joint_pixels'].values()) == 38
+          assert all(c['pose_metrics']['status'] == 'measured_2d_only' for c in report['clips'])
+          assert all(c['split'] == 'unassigned' and c['subject_group'] is None for c in report['clips'])
+          assert [c['exercise'] for c in report['clips']] == ['parallel_bar_dip', 'parallel_bar_dip', 'bench_dip', 'pull_up', 'pull_up']
+          print('49 new-source images / 38 approximate references; still dips are NOT temporal/form qualification.')
+          PY_SOURCES
       - name: Inventory HAA4D public metadata
         if: ${{ !cancelled() }}
         run: python3 scripts/inventory.py haa4d --fetch --output Evaluation/output/inventory/haa4d.json
@@ -116,6 +132,18 @@ jobs:
             Data/local/public-pilot/hang/*.png
             Data/local/public-pilot/descent/*.png
             Data/local/public-pilot/cycle/*.png
+            Data/local/source-pilot/manifest.json
+            Data/local/source-pilot/prepared.json
+            Data/local/source-pilot/ATTRIBUTION.txt
+            Data/local/source-pilot/labels/*.json
+            Data/local/source-pilot/dip_front/*.png
+            Data/local/source-pilot/dip_cropped/*.png
+            Data/local/source-pilot/bench_control/*.png
+            Data/local/source-pilot/pullup_back/*.png
+            Data/local/source-pilot/pullup_video/*.png
+            Evaluation/output/ci-source-pilot/report.json
+            Evaluation/output/ci-source-pilot/*/observations.jsonl
+            Evaluation/output/ci-source-pilot/*/completion.json
 
 
   mediapipe-compare:
@@ -167,6 +195,28 @@ jobs:
           assert all(c['reference_points'] > 0 for c in comparison['clips'])
           print('MediaPipe Heavy same-pixel comparison complete; no iOS throughput or winner claim.')
           PY_COMPARE
+      - name: Compare the same separately reviewed source images
+        run: |
+          /tmp/hit-mediapipe-env/bin/python scripts/mediapipe_eval.py \
+            build/vision-artifact/Data/local/source-pilot/manifest.json \
+            --root build/vision-artifact/Data/local/source-pilot \
+            --output Evaluation/output/ci-source-pilot-mediapipe \
+            --model /tmp/hit-models/pose_landmarker_heavy.task --public-output
+          python3 scripts/compare-pose-reports.py \
+            build/vision-artifact/Evaluation/output/ci-source-pilot/report.json \
+            Evaluation/output/ci-source-pilot-mediapipe/report.json \
+            --output Evaluation/output/ci-source-pilot-backend-comparison.json
+          python3 - <<'PY_SOURCES'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('Evaluation/output/ci-source-pilot-mediapipe/report.json').read_text())
+          comparison = json.loads(Path('Evaluation/output/ci-source-pilot-backend-comparison.json').read_text())
+          assert report['counts_by_status'] == {'processed': 5}
+          assert [c['frames'] for c in report['clips']] == [1, 1, 1, 1, 45]
+          assert sum(c['reference_points'] for c in comparison['clips']) == 38
+          assert len(comparison['clips']) == 5 and not comparison['timing_comparable']
+          print('Separate-source comparison complete; coverage/error retained, no winner or strict-rep claim.')
+          PY_SOURCES
       - name: Retain MediaPipe comparison evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -184,3 +234,8 @@ jobs:
             Evaluation/output/ci-image-pilot-mediapipe/descent/completion.json
             Evaluation/output/ci-image-pilot-mediapipe/cycle/completion.json
             Evaluation/output/ci-image-pilot-backend-comparison.json
+            Evaluation/output/ci-source-pilot-mediapipe/report.json
+            Evaluation/output/ci-source-pilot-mediapipe/*/observations.jsonl
+            Evaluation/output/ci-source-pilot-mediapipe/*/completion.json
+            Evaluation/output/ci-source-pilot-backend-comparison.json
+            build/vision-artifact/Data/local/source-pilot/ATTRIBUTION.txt
