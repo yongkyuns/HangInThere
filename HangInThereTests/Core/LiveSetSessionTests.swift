@@ -10,7 +10,8 @@ struct LiveSetSessionTests {
         feed(&session, [(10.0, 170), (10.15, 170), (10.30, 80), (10.45, 80)])
         #expect(session.phase == .running)
         #expect(session.observedMovements == 1)
-        #expect(session.movementTimes == [0.45])
+        #expect(session.movementTimes.count == 1)
+        #expect(abs((session.movementTimes.first ?? -1) - 0.45) < 1e-9)
         #expect(session.trackingCoverage == 1)
 
         session.finish()
@@ -45,7 +46,7 @@ struct LiveSetSessionTests {
         session.consume(ExerciseCounterTests.pose(0.45, degrees: 80), referenceEdge: nil)
 
         #expect(session.observedMovements == 0)
-        #expect(session.trackingCoverage == 0)
+        #expect(session.trackingCoverage == 0.0)
         #expect(session.trackingIssue == "barReferenceUnavailable")
     }
 
