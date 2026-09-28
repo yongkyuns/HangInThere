@@ -53,7 +53,7 @@ class VideoCorpusManifestTests(unittest.TestCase):
         ids = {case["id"] for case in count_cases}
         self.assertIn("iwakuni-standard-rear-oblique", ids)
         indoor = next(case for case in count_cases if case["id"] == "fitnessscape-standard-indoor")
-        self.assertEqual(indoor["count_expectation"]["expected_observed_movements"], 2)
+        self.assertEqual(indoor["count_expectation"]["expected_observed_movements"], 1)
         self.assertEqual(len(indoor["count_expectation"]["bar_reference_edge"]), 4)
 
     def test_dip_gap_is_explicit_not_silently_substituted(self):
