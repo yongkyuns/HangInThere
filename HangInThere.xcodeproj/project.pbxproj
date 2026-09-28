@@ -23,12 +23,16 @@
 		B2D5F601A8C14F78A12E0202 = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0201;};
 		C3E6A701B9D24A89B23F0201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetSessionTests.swift; sourceTree = "<group>";};
 		C3E6A701B9D24A89B23F0202 = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0201;};
+		D4F7B801CAD35B90C3400201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStabilityTests.swift; sourceTree = "<group>";};
+		D4F7B801CAD35B90C3400202 = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400201;};
 		10D6300E99E681584D06FA5B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCounter.swift; sourceTree = "<group>";};
 		D55A8140E6AF83EDF4EC42F9 = {isa = PBXBuildFile; fileRef = 10D6300E99E681584D06FA5B;};
 		B2D5F601A8C14F78A12E0101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFramingAssessment.swift; sourceTree = "<group>";};
 		B2D5F601A8C14F78A12E0102 = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0101;};
 		C3E6A701B9D24A89B23F0101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetSession.swift; sourceTree = "<group>";};
 		C3E6A701B9D24A89B23F0102 = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0101;};
+		D4F7B801CAD35B90C3400101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStability.swift; sourceTree = "<group>";};
+		D4F7B801CAD35B90C3400102 = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400101;};
 		C8E44086FBEE2C6809322FFE = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -100,6 +104,7 @@
 				10D6300E99E681584D06FA5B,
 				B2D5F601A8C14F78A12E0101,
 				C3E6A701B9D24A89B23F0101,
+				D4F7B801CAD35B90C3400101,
 				508378606804E3EE893CF9D2,
 				43CB0B7C6E08EDC8E4AA2F66,
 				5BC7DD8ACA3C903E46747468,
@@ -259,6 +264,7 @@
 				0C5C97BB01A5DFA5E5B6704D,
 				B2D5F601A8C14F78A12E0201,
 				C3E6A701B9D24A89B23F0201,
+				D4F7B801CAD35B90C3400201,
 				2479ED1A3F78983439EE4C41,
 				20D103A57978004A86CB32BB,
 				4F379B112854E7D1DBC649C1,
@@ -424,6 +430,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -449,6 +456,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -549,6 +557,7 @@
 				D55A8140E6AF83EDF4EC42F9,
 				B2D5F601A8C14F78A12E0102,
 				C3E6A701B9D24A89B23F0102,
+				D4F7B801CAD35B90C3400102,
 				6701F93B4C431819319367FA,
 				416A0916046EB339EA9673D8,
 				F9B57C2A9301AC3E37D4D15E,
@@ -601,6 +610,7 @@
 				D471AA1A85E637305BAE6A1C,
 				B2D5F601A8C14F78A12E0202,
 				C3E6A701B9D24A89B23F0202,
+				D4F7B801CAD35B90C3400202,
 				5DD0334308E628B6C11F1A2B,
 				F3976C42629141D52BC55FF7,
 				24F6944020F289B6A39DA48D,
