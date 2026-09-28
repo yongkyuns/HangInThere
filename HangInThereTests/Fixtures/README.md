@@ -69,3 +69,40 @@ hashes may differ with the recorded encoder version. Consult the exact CI run
 for model results on this interval; passing on the old introduction is not
 qualification of the new motion fixture. Missing media or expected landmarks
 must remain real test failures.
+
+
+## Real-video diversity corpus
+
+`corpus.json` extends the single smoke clip into a tiered real-world corpus.
+Every downloaded source is HTTPS-addressed, byte-counted, SHA-256 pinned, licensed,
+credited, and transformed reproducibly by `scripts/prepare-video-corpus.py`.
+
+Current reviewed scenarios:
+
+- **Iwakuni standard rear/oblique** — existing count-qualified outdoor/military fixture;
+- **Iwakuni multi-person introduction** — two-person, zero-rep stress case;
+- **FitnessScape standard indoor** — second count-qualified standard pull-up view,
+  visually reviewed as two complete movement cycles across all 48 prepared frames;
+- **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
+- **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
+  background, swing/inversion stress.
+
+The new clips are not all rep ground truth. `tier` is deliberate:
+
+- `count-qualified`: reviewed movement-cycle expectation and fixed bar reference;
+- `tracking-qualified`: reviewed person/arm visibility floors;
+- `stress-coverage`: difficult real footage must decode and produce sufficient
+  real-Vision tracking/motion evidence, but no rep/form label is implied.
+
+All coverage floors and the indoor two-movement label were recorded from visual
+review **before** Apple Vision corpus inference. CI must not relax them merely to
+match model output.
+
+Preparation also emits review contact sheets and exact frame timestamps. CI retains
+the approved derived corpus temporarily for inspection; source media remains ignored
+under `Data/external/`.
+
+A real parallel-bar dip video remains an explicit gap. DVIDS has a public-domain
+Army competition video containing a 10-dip station, but its binary download requires
+authenticated DVIDS access, so it is not yet a reproducible CI source. Chair dips
+and still photographs are intentionally not substituted.
