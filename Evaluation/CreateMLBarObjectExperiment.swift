@@ -133,8 +133,8 @@ struct CreateMLBarObjectExperiment {
                     confidence: object.confidence,
                     x: Double(object.boundingBox.origin.x),
                     y: Double(object.boundingBox.origin.y),
-                    width: object.boundingBox.width,
-                    height: object.boundingBox.height
+                    width: Double(object.boundingBox.width),
+                    height: Double(object.boundingBox.height)
                 )
             }
             predictions.append(ImagePrediction(image: name, objects: objects))
