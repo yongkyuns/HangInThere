@@ -9,6 +9,8 @@
 		C476E88F0B62A3B7D2B8E034 = {isa = PBXBuildFile; fileRef = 6FAA384EC7A5412D562FC46C;};
 		E5A8C901DBE46CA1D4510401 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneRegistrationTests.swift; sourceTree = "<group>";};
 		E5A8C901DBE46CA1D4510402 = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510401;};
+		F8DBFC01AE179FD407840101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealVideoCorpusTests.swift; sourceTree = "<group>";};
+		F8DBFC01AE179FD407840102 = {isa = PBXBuildFile; fileRef = F8DBFC01AE179FD407840101;};
 		3B9FA338709B9E10B4C03079 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarDetectionTests.swift; sourceTree = "<group>";};
 		E907D117346B40511577EFAB = {isa = PBXBuildFile; fileRef = 3B9FA338709B9E10B4C03079;};
 		79196D918F8B048991F2F9AF = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarGeometryTests.swift; sourceTree = "<group>";};
@@ -347,6 +349,7 @@
 				A20E1F89E8237D1E85479D5D,
 				9DCAAE36C33459EEF10F1FC1,
 				E5A8C901DBE46CA1D4510401,
+				F8DBFC01AE179FD407840101,
 				3B9FA338709B9E10B4C03079,
 				6FAA384EC7A5412D562FC46C,
 			);
@@ -643,6 +646,7 @@
 				24F6944020F289B6A39DA48D,
 				CFE480A6C0D45218FB415ADC,
 				E5A8C901DBE46CA1D4510402,
+				F8DBFC01AE179FD407840102,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
