@@ -79,7 +79,7 @@ jobs:
       - name: Run native Vision contour extraction
         run: |
           mkdir -p build/bar-native-research
-          xcrun swiftc Evaluation/VisionContourDump.swift -o build/bar-native-research/vision-contour-dump
+          xcrun swiftc -parse-as-library Evaluation/VisionContourDump.swift -o build/bar-native-research/vision-contour-dump
           build/bar-native-research/vision-contour-dump build/source-pilot Evaluation/fixtures/bar-research.json build/bar-native-research/contours.json
       - name: Test and score contour-to-line refinement
         run: |
