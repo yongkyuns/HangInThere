@@ -216,9 +216,21 @@ incompatible analyzed image geometry. Setup reaches **Ready to start** only when
 
 This is still not a claim of automatic apparatus recognition: guided detection
 proposes observed image edges inside the user-selected region, and the user chooses
-the intended one. Phone-motion detection, live counting, start/stop set lifecycle,
-and form validity remain unimplemented. The screen remains unlinked from the normal
-customer entry flow until the start-set transition is functional.
+the intended one. Phone-motion detection and form validity remain unimplemented, but the live
+set lifecycle is now functional. Once setup is ready, **Start set** creates a fresh
+source-timestamped `LiveSetSession` using the same production `ExerciseCounter`
+as recorded review. Each analyzed live pose is consumed with the confirmed fixed
+bar edge; inference failures interrupt the active attempt and late camera frames
+are never fabricated or interpolated.
+
+During a running set the camera remains the primary surface with a large movement
+count and human-readable tracking state. **Stop set** freezes the counter and shows
+movement-only results with duration, tracking coverage, and a movement timeline.
+**New set** clears the previous result while preserving the current exercise/arm
+selection and confirmed bar when it is still geometrically compatible.
+
+The screen remains unlinked from the normal customer entry flow for this slice so
+the live workflow can qualify as one unit before becoming a primary app action.
 
 The intended complete live flow remains:
 
@@ -227,10 +239,10 @@ The intended complete live flow remains:
 3. show a framing guide;
 4. confirm that the athlete/selected arm is measurable and visually check the apparatus;
 5. acquire and explicitly confirm the fixed bar reference;
-6. start set;
-7. provide restrained live feedback;
-8. end set automatically or manually;
-9. show results.
+6. start set (implemented);
+7. provide restrained live movement count/tracking feedback (implemented);
+8. end set manually; automatic stop remains future work;
+9. show movement-only results (implemented).
 
 The live workout screen should stay substantially simpler than the review/debug
 screen: large count, clear tracking state, and minimal controls.
