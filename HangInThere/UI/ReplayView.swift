@@ -336,7 +336,8 @@ struct ReplayView: View {
 
                 DisclosureGroup {
                     VStack(spacing: 0) {
-                        ForEach(Array(model.movementTimes.enumerated()), id: \.offset) { index, time in
+                        ForEach(model.movementTimes.indices, id: \.self) { index in
+                            let time = model.movementTimes[index]
                             HStack {
                                 Label("Movement \(index + 1)", systemImage: "checkmark.circle")
                                 Spacer()
