@@ -147,6 +147,7 @@ final class LiveCameraPreviewController {
     private(set) var analysisFailures = 0
     private(set) var lastProcessingMilliseconds: Double?
     private(set) var bar: ConfirmedBar?
+    private(set) var liveSet = LiveSetSession()
 
     let session = AVCaptureSession()
 
@@ -197,12 +198,14 @@ final class LiveCameraPreviewController {
         exercise: ExerciseCounter.Exercise,
         side: ArmMeasurement.Side
     ) {
+        guard liveSet.phase != .running else { return }
         let changed = self.exercise != exercise || trackingSide != side
         self.exercise = exercise
         trackingSide = side
         if changed {
             setupGeneration &+= 1
             bar = nil
+            liveSet.reset(exercise: exercise, side: side)
         }
         if let latestFrame {
             framing = LiveFramingAssessment(pose: latestFrame.pose, side: side)
@@ -212,7 +215,8 @@ final class LiveCameraPreviewController {
     }
 
     func beginBarSetup() -> BarSetupFrame? {
-        guard isCameraReady,
+        guard liveSet.phase != .running,
+              isCameraReady,
               framing.state.isReady,
               let latestFrame
         else { return nil }
@@ -226,7 +230,8 @@ final class LiveCameraPreviewController {
 
     @discardableResult
     func confirmBar(_ bar: ConfirmedBar, for setup: BarSetupFrame) -> Bool {
-        guard isCameraReady,
+        guard liveSet.phase != .running,
+              isCameraReady,
               setup.generation == setupGeneration,
               setup.role == barRole,
               bar.role == barRole,
@@ -240,8 +245,27 @@ final class LiveCameraPreviewController {
     }
 
     func clearBar() {
+        guard liveSet.phase != .running else { return }
         setupGeneration &+= 1
         bar = nil
+    }
+
+    @discardableResult
+    func startSet() -> Bool {
+        guard setupReadiness.state.isReady,
+              liveSet.phase != .running
+        else { return false }
+
+        liveSet.start(exercise: exercise, side: trackingSide)
+        return true
+    }
+
+    func stopSet() {
+        liveSet.finish()
+    }
+
+    func prepareNextSet() {
+        liveSet.prepareNextSet()
     }
 
     func start() async {
@@ -274,6 +298,7 @@ final class LiveCameraPreviewController {
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
+        liveSet.reset(exercise: exercise, side: trackingSide)
         framing = LiveFramingAssessment()
 
         do {
@@ -312,6 +337,9 @@ final class LiveCameraPreviewController {
     }
 
     func stop() {
+        if liveSet.phase == .running {
+            liveSet.finish()
+        }
         startRequested = false
         if state == .ready || state == .starting || state == .requestingPermission {
             state = .idle
@@ -402,6 +430,10 @@ final class LiveCameraPreviewController {
             lastProcessingMilliseconds = frame.processingMilliseconds
             framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide)
 
+            if liveSet.phase == .running {
+                liveSet.consume(frame.pose, referenceEdge: currentBar?.referenceEdge)
+            }
+
         case .dropped:
             droppedFrames += 1
 
@@ -410,6 +442,7 @@ final class LiveCameraPreviewController {
             latestFrame = nil
             lastProcessingMilliseconds = nil
             framing = LiveFramingAssessment(state: .analysisUnavailable)
+            liveSet.interrupt(reason: "inferenceFailure")
         }
     }
 }
