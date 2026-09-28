@@ -19,7 +19,7 @@ struct StaticSceneRegistrationTests {
         let plausible = magnitudes.filter { $0 >= 5 && $0 <= 11 }
         #expect(plausible.count >= 2)
 
-        var policy = StaticSceneTranslationStability()
+        var policy = StaticSceneStability()
         let calibrated = policy.calibrate(imageShortSide: 400)
         #expect(calibrated)
         policy.observe(shifts, timestamp: 0.10)
@@ -39,7 +39,7 @@ struct StaticSceneRegistrationTests {
         #expect(shifts.count >= 2)
         #expect(shifts.filter { hypot($0.dxPixels, $0.dyPixels) < 1 }.count >= 2)
 
-        var policy = StaticSceneTranslationStability()
+        var policy = StaticSceneStability()
         _ = policy.calibrate(imageShortSide: 400)
         policy.observe(shifts, timestamp: 0.1)
         #expect(policy.state == .stable)
@@ -56,14 +56,14 @@ struct StaticSceneRegistrationTests {
         let shifts = try await worker.measure(reference: reference, image: scaledImage)
 
         #expect(shifts.count >= 3)
-        var policy = StaticSceneTranslationStability()
+        var policy = StaticSceneStability()
         _ = policy.calibrate(imageSize: .init(width: 400, height: 400))
         policy.observe(shifts, timestamp: 0.10)
         policy.observe(shifts, timestamp: 0.40)
 
         #expect(policy.state == .moved)
         #expect(policy.movementKind == .scale)
-        #expect((policy.latestScaleFraction ?? 0) >= StaticSceneTranslationStability.scaleThresholdFraction)
+        #expect((policy.latestScaleFraction ?? 0) >= StaticSceneStability.scaleThresholdFraction)
     }
 
     private func makePatternImage(
