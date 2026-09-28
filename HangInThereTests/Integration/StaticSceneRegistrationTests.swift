@@ -1,0 +1,102 @@
+import CoreGraphics
+import Foundation
+import Testing
+@testable import HangInThere
+
+struct StaticSceneRegistrationTests {
+    @Test func peripheralVisionRegistrationRecoversKnownTranslation() async throws {
+        let referenceImage = try #require(makePatternImage(shiftX: 0, shiftY: 0))
+        let movedImage = try #require(makePatternImage(shiftX: 7, shiftY: -5))
+        let reference = try #require(
+            VisionStaticSceneRegistrationWorker.makeReference(image: referenceImage)
+        )
+
+        let worker = VisionStaticSceneRegistrationWorker()
+        let shifts = try await worker.measure(reference: reference, image: movedImage)
+
+        #expect(shifts.count >= 2)
+        let magnitudes = shifts.map { hypot($0.dxPixels, $0.dyPixels) }
+        let plausible = magnitudes.filter { $0 >= 5 && $0 <= 11 }
+        #expect(plausible.count >= 2)
+
+        var policy = StaticSceneTranslationStability()
+        let calibrated = policy.calibrate(imageShortSide: 400)
+        #expect(calibrated)
+        policy.observe(shifts, timestamp: 0.10)
+        policy.observe(shifts, timestamp: 0.40)
+        #expect(policy.state == .moved)
+    }
+
+    @Test func identicalStaticSceneProducesNearZeroConsensus() async throws {
+        let image = try #require(makePatternImage(shiftX: 0, shiftY: 0))
+        let reference = try #require(
+            VisionStaticSceneRegistrationWorker.makeReference(image: image)
+        )
+
+        let worker = VisionStaticSceneRegistrationWorker()
+        let shifts = try await worker.measure(reference: reference, image: image)
+
+        #expect(shifts.count >= 2)
+        #expect(shifts.filter { hypot($0.dxPixels, $0.dyPixels) < 1 }.count >= 2)
+
+        var policy = StaticSceneTranslationStability()
+        _ = policy.calibrate(imageShortSide: 400)
+        policy.observe(shifts, timestamp: 0.1)
+        #expect(policy.state == .stable)
+    }
+
+    private func makePatternImage(
+        shiftX: CGFloat,
+        shiftY: CGFloat
+    ) -> CGImage? {
+        let width = 400
+        let height = 400
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        guard let context = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
+
+        context.setFillColor(CGColor(gray: 0.08, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.saveGState()
+        context.translateBy(x: shiftX, y: shiftY)
+
+        for row in 0..<10 {
+            for column in 0..<10 {
+                let x = CGFloat(column * 40 + 6)
+                let y = CGFloat(row * 40 + 7)
+                let value = CGFloat(((row * 17 + column * 29) % 80) + 15) / 100
+                context.setFillColor(CGColor(
+                    red: value,
+                    green: min(1, value + 0.16),
+                    blue: max(0, value - 0.07),
+                    alpha: 1
+                ))
+                context.fill(CGRect(
+                    x: x,
+                    y: y,
+                    width: CGFloat(13 + (column % 4) * 3),
+                    height: CGFloat(12 + (row % 5) * 2)
+                ))
+
+                context.setStrokeColor(CGColor(gray: 0.9 - value * 0.4, alpha: 1))
+                context.setLineWidth(2)
+                context.stroke(CGRect(
+                    x: x + 18,
+                    y: y + 11,
+                    width: CGFloat(9 + row % 3),
+                    height: CGFloat(8 + column % 5)
+                ))
+            }
+        }
+
+        context.restoreGState()
+        return context.makeImage()
+    }
+}
