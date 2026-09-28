@@ -52,6 +52,7 @@ jobs:
           path: |
             build/*.txt
             HangInThereTests/Fixtures/generated/prepared.json
+            HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
       # Only the pinned public-source test derivative is exported. Never glob
       # user recordings or the app's Documents/temporary import directories.
       - name: Retain approved smoke fixture for visual review
@@ -102,6 +103,7 @@ jobs:
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
           python3 scripts/prepare-fixtures.py
+          python3 scripts/prepare-video-corpus.py
       - name: Run simulator ${{ matrix.suite }} tests
         # Model availability remains a real failing check, not continue-on-error
         # or a fallback. Native host success never substitutes for iOS Vision.
