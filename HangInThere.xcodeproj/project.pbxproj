@@ -29,7 +29,7 @@
 		C3E6A701B9D24A89B23F0202 = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0201;};
 		D4F7B801CAD35B90C3400201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStabilityTests.swift; sourceTree = "<group>";};
 		D4F7B801CAD35B90C3400202 = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400201;};
-		E5A8C901DBE46CA1D4510201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneTranslationStabilityTests.swift; sourceTree = "<group>";};
+		E5A8C901DBE46CA1D4510201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneStabilityTests.swift; sourceTree = "<group>";};
 		E5A8C901DBE46CA1D4510202 = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510201;};
 		10D6300E99E681584D06FA5B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCounter.swift; sourceTree = "<group>";};
 		D55A8140E6AF83EDF4EC42F9 = {isa = PBXBuildFile; fileRef = 10D6300E99E681584D06FA5B;};
@@ -39,7 +39,7 @@
 		C3E6A701B9D24A89B23F0102 = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0101;};
 		D4F7B801CAD35B90C3400101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStability.swift; sourceTree = "<group>";};
 		D4F7B801CAD35B90C3400102 = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400101;};
-		E5A8C901DBE46CA1D4510101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneTranslationStability.swift; sourceTree = "<group>";};
+		E5A8C901DBE46CA1D4510101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneStability.swift; sourceTree = "<group>";};
 		E5A8C901DBE46CA1D4510102 = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510101;};
 		C8E44086FBEE2C6809322FFE = {
 			isa = PBXFileReference;
