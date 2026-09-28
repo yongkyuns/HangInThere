@@ -63,6 +63,177 @@ struct BarCandidate: Codable, Equatable, Sendable {
     }
 }
 
+
+struct BarLineCandidate: Codable, Equatable, Sendable {
+    let edge: BarSegment
+    // Deterministic observed-support ranking, not semantic confidence.
+    let geometryScore: Double
+}
+
+enum BarLineFitter {
+    private struct Group {
+        var points: [Point2D]
+        var ux: Double
+        var uy: Double
+        var offset: Double
+        var t0: Double
+        var t1: Double
+    }
+
+    // Guided single-edge recovery. It can bridge short gaps between collinear
+    // observed contour fragments, but never extends past the outermost samples.
+    static func candidates(contours: [[Point2D]], region: BarRegion,
+                           size: ImageSize) throws -> [BarLineCandidate] {
+        guard region.isValid(in: size) else { throw BarFitError.invalidRegion }
+        guard contours.reduce(0, { $0 + $1.count }) <= BarFitter.maximumPoints else {
+            throw BarFitError.tooComplex
+        }
+
+        var budget = 4_000_000
+        var segments: [BarSegment] = []
+        for contour in contours {
+            guard contour.count > 1, contour.allSatisfy({ region.contains($0) }) else { continue }
+            let points = try simplify(contour, tolerance: 1.0, budget: &budget)
+            for i in 1..<points.count {
+                let edge = BarSegment(a: points[i - 1], b: points[i])
+                if edge.isValid, edge.length >= 2 { segments.append(edge) }
+                guard segments.count <= BarFitter.maximumSegments else { throw BarFitError.tooComplex }
+            }
+        }
+
+        let major = max(region.width, region.height)
+        let maximumGap = min(45.0, 0.20 * major)
+        var groups: [Group] = []
+        for edge in segments.sorted(by: { $0.length > $1.length }) {
+            guard let unit = canonicalUnit(edge) else { continue }
+            let nx = -unit.1, ny = unit.0
+            let points = [edge.a, edge.b]
+            let offset = points.reduce(0.0) { $0 + $1.x * nx + $1.y * ny } / 2
+            let ts = points.map { $0.x * unit.0 + $0.y * unit.1 }
+            var placed = false
+            for index in groups.indices {
+                let dot = max(-1.0, min(1.0, unit.0 * groups[index].ux + unit.1 * groups[index].uy))
+                guard acos(dot) <= 8 * .pi / 180 else { continue }
+                let gnx = -groups[index].uy, gny = groups[index].ux
+                let candidateOffset = points.reduce(0.0) {
+                    $0 + $1.x * gnx + $1.y * gny
+                } / 2
+                let projections = points.map { $0.x * groups[index].ux + $0.y * groups[index].uy }
+                let r0 = projections.min()!, r1 = projections.max()!
+                let gap = max(groups[index].t0 - r1, r0 - groups[index].t1, 0)
+                guard abs(candidateOffset - groups[index].offset) <= 5,
+                      gap <= maximumGap else { continue }
+                groups[index].points.append(contentsOf: points)
+                if let fitted = fit(groups[index].points) {
+                    groups[index].ux = fitted.ux
+                    groups[index].uy = fitted.uy
+                    groups[index].offset = fitted.offset
+                    groups[index].t0 = fitted.t0
+                    groups[index].t1 = fitted.t1
+                }
+                placed = true
+                break
+            }
+            if !placed, let fitted = fit(points) {
+                groups.append(Group(points: points, ux: fitted.ux, uy: fitted.uy,
+                                    offset: fitted.offset, t0: fitted.t0, t1: fitted.t1))
+            }
+        }
+
+        var result: [BarLineCandidate] = []
+        for group in groups {
+            let nx = -group.uy, ny = group.ux
+            let a = Point2D(x: group.t0 * group.ux + group.offset * nx,
+                            y: group.t0 * group.uy + group.offset * ny)
+            let b = Point2D(x: group.t1 * group.ux + group.offset * nx,
+                            y: group.t1 * group.uy + group.offset * ny)
+            let edge = BarSegment(a: a, b: b).ordered
+            guard edge.isValid, edge.length >= 0.25 * major,
+                  !isCropBorder(edge, region: region) else { continue }
+            result.append(BarLineCandidate(edge: edge, geometryScore: edge.length))
+        }
+
+        result.sort {
+            if $0.geometryScore != $1.geometryScore { return $0.geometryScore > $1.geometryScore }
+            if $0.edge.midpoint.y != $1.edge.midpoint.y { return $0.edge.midpoint.y < $1.edge.midpoint.y }
+            return $0.edge.midpoint.x < $1.edge.midpoint.x
+        }
+        var unique: [BarLineCandidate] = []
+        for candidate in result {
+            if !unique.contains(where: {
+                $0.edge.distance(to: candidate.edge.midpoint) < 2
+                    && candidate.edge.distance(to: $0.edge.midpoint) < 2
+            }) {
+                unique.append(candidate)
+            }
+        }
+        return Array(unique.prefix(12))
+    }
+
+    private static func canonicalUnit(_ edge: BarSegment) -> (Double, Double)? {
+        guard edge.isValid else { return nil }
+        var ux = (edge.b.x - edge.a.x) / edge.length
+        var uy = (edge.b.y - edge.a.y) / edge.length
+        if ux < 0 || (abs(ux) < 1e-12 && uy < 0) { ux = -ux; uy = -uy }
+        return (ux, uy)
+    }
+
+    private static func fit(_ points: [Point2D])
+        -> (ux: Double, uy: Double, offset: Double, t0: Double, t1: Double)? {
+        guard points.count >= 2, points.allSatisfy({ $0.isFinite }) else { return nil }
+        let mx = points.reduce(0.0) { $0 + $1.x } / Double(points.count)
+        let my = points.reduce(0.0) { $0 + $1.y } / Double(points.count)
+        var xx = 0.0, xy = 0.0, yy = 0.0
+        for point in points {
+            let dx = point.x - mx, dy = point.y - my
+            xx += dx * dx; xy += dx * dy; yy += dy * dy
+        }
+        guard xx + yy > 1e-12 else { return nil }
+        let angle = 0.5 * atan2(2 * xy, xx - yy)
+        var ux = cos(angle), uy = sin(angle)
+        if ux < 0 || (abs(ux) < 1e-12 && uy < 0) { ux = -ux; uy = -uy }
+        let nx = -uy, ny = ux
+        let offset = points.reduce(0.0) { $0 + $1.x * nx + $1.y * ny } / Double(points.count)
+        let ts = points.map { $0.x * ux + $0.y * uy }
+        guard let t0 = ts.min(), let t1 = ts.max(), t1 > t0 else { return nil }
+        return (ux, uy, offset, t0, t1)
+    }
+
+    private static func isCropBorder(_ edge: BarSegment, region: BarRegion) -> Bool {
+        let tolerance = 2.0
+        return (abs(edge.a.x - region.minX) <= tolerance && abs(edge.b.x - region.minX) <= tolerance)
+            || (abs(edge.a.x - region.maxX) <= tolerance && abs(edge.b.x - region.maxX) <= tolerance)
+            || (abs(edge.a.y - region.minY) <= tolerance && abs(edge.b.y - region.minY) <= tolerance)
+            || (abs(edge.a.y - region.maxY) <= tolerance && abs(edge.b.y - region.maxY) <= tolerance)
+    }
+
+    private static func simplify(_ points: [Point2D], tolerance: Double,
+                                 budget: inout Int) throws -> [Point2D] {
+        guard points.count > 2 else { return points }
+        var keep = Set([0, points.count - 1])
+        var stack = [(0, points.count - 1)]
+        while let (a, b) = stack.popLast() {
+            guard b > a + 1 else { continue }
+            let segment = BarSegment(a: points[a], b: points[b])
+            var farthest = a, distance = tolerance
+            for i in (a + 1)..<b {
+                budget -= 1
+                guard budget >= 0 else { throw BarFitError.tooComplex }
+                let d = segment.isValid
+                    ? segment.distance(to: points[i])
+                    : hypot(points[i].x - points[a].x, points[i].y - points[a].y)
+                if d > distance { distance = d; farthest = i }
+            }
+            if farthest != a {
+                keep.insert(farthest)
+                stack.append((a, farthest))
+                stack.append((farthest, b))
+            }
+        }
+        return keep.sorted().map { points[$0] }
+    }
+}
+
 enum BarFitError: Error { case tooComplex, invalidRegion, invalidContour }
 
 enum BarFitter {
@@ -198,6 +369,6 @@ struct ConfirmedBar: Equatable, Sendable {
                 && bounds.contains(oppositeEdge.b)
                 && BarFitter.pair(referenceEdge, oppositeEdge, minimumLength: 24) != nil
         }
-        return method == .manualEdge
+        return method == .manualEdge || method == .guidedContours
     }
 }
