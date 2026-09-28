@@ -13,9 +13,9 @@ struct StaticSceneRegistrationReference: Sendable {
     let patches: [Patch]
 }
 
-// Vision's translational registration aligns a floating image to a fixed
-// reference. We use four peripheral patches and leave robustness/thresholds to
-// StaticSceneStability so one athlete-contaminated patch is an outlier.
+// Peripheral patches keep the moving athlete from dominating scene stability.
+// Translation and local homographic scale are measured independently, then a
+// framework-free policy decides whether enough patches agree.
 actor VisionStaticSceneRegistrationWorker {
     enum RegistrationError: LocalizedError {
         case invalidGeometry
@@ -33,6 +33,8 @@ actor VisionStaticSceneRegistrationWorker {
 
     static let patchFraction = 0.25
     static let maximumPatchShiftFraction = 0.45
+    static let minimumPlausibleHomographicScale = 0.5
+    static let maximumPlausibleHomographicScale = 2.0
 
     static func makeReference(
         image: CGImage
@@ -57,7 +59,7 @@ actor VisionStaticSceneRegistrationWorker {
     func measure(
         reference: StaticSceneRegistrationReference,
         image: CGImage
-    ) throws -> [StaticSceneStability.PatchShift] {
+    ) throws -> [StaticSceneStability.PatchMotion] {
         guard reference.imageSize.isValid, reference.patches.count >= 2 else {
             throw RegistrationError.invalidGeometry
         }
@@ -67,43 +69,111 @@ actor VisionStaticSceneRegistrationWorker {
             throw RegistrationError.incompatibleGeometry
         }
 
-        var shifts: [StaticSceneStability.PatchShift] = []
-        shifts.reserveCapacity(reference.patches.count)
+        var motions: [StaticSceneStability.PatchMotion] = []
+        motions.reserveCapacity(reference.patches.count)
 
         for patch in reference.patches {
             guard let current = image.cropping(to: patch.rect) else { continue }
 
-            let request = VNTranslationalImageRegistrationRequest(
-                targetedCGImage: patch.image,
-                orientation: .up,
-                options: [:]
+            let translation = translationMeasurement(
+                reference: patch.image,
+                current: current,
+                patchRect: patch.rect
             )
-            let handler = VNImageRequestHandler(
-                cgImage: current,
-                orientation: .up,
-                options: [:]
+            let scaleFraction = homographicScaleMeasurement(
+                reference: patch.image,
+                current: current
             )
-            try handler.perform([request])
 
-            guard let observation = request.results?.first else { continue }
-            let transform = observation.alignmentTransform
-            let dx = Double(transform.tx)
-            let dy = Double(transform.ty)
-            guard dx.isFinite, dy.isFinite else { continue }
-
-            let maxX = patch.rect.width * Self.maximumPatchShiftFraction
-            let maxY = patch.rect.height * Self.maximumPatchShiftFraction
-            guard abs(dx) <= maxX, abs(dy) <= maxY else { continue }
-
-            shifts.append(.init(
-                dxPixels: dx,
-                dyPixels: dy,
-                centerXFraction: patch.rect.midX / reference.imageSize.width,
-                centerYFraction: patch.rect.midY / reference.imageSize.height
-            ))
+            if translation != nil || scaleFraction != nil {
+                motions.append(.init(
+                    dxPixels: translation?.dx,
+                    dyPixels: translation?.dy,
+                    scaleFraction: scaleFraction
+                ))
+            }
         }
 
-        return shifts
+        return motions
+    }
+
+    private func translationMeasurement(
+        reference: CGImage,
+        current: CGImage,
+        patchRect: CGRect
+    ) -> (dx: Double, dy: Double)? {
+        let request = VNTranslationalImageRegistrationRequest(
+            targetedCGImage: reference,
+            orientation: .up,
+            options: [:]
+        )
+        let handler = VNImageRequestHandler(
+            cgImage: current,
+            orientation: .up,
+            options: [:]
+        )
+        do {
+            try handler.perform([request])
+        } catch {
+            return nil
+        }
+
+        guard let observation = request.results?.first else { return nil }
+        let transform = observation.alignmentTransform
+        let dx = Double(transform.tx)
+        let dy = Double(transform.ty)
+        guard dx.isFinite, dy.isFinite else { return nil }
+
+        let maxX = patchRect.width * Self.maximumPatchShiftFraction
+        let maxY = patchRect.height * Self.maximumPatchShiftFraction
+        guard abs(dx) <= maxX, abs(dy) <= maxY else { return nil }
+        return (dx, dy)
+    }
+
+    private func homographicScaleMeasurement(
+        reference: CGImage,
+        current: CGImage
+    ) -> Double? {
+        let request = VNHomographicImageRegistrationRequest(
+            targetedCGImage: reference,
+            orientation: .up,
+            options: [:]
+        )
+        let handler = VNImageRequestHandler(
+            cgImage: current,
+            orientation: .up,
+            options: [:]
+        )
+        do {
+            try handler.perform([request])
+        } catch {
+            return nil
+        }
+
+        guard let observation = request.results?.first else { return nil }
+        let matrix = observation.warpTransform
+
+        // Homographies are scale-equivalent, so normalize by h22 before
+        // interpreting the local 2x2 area transform. The square root of the
+        // absolute determinant is the isotropic area-equivalent local scale.
+        let h22 = Double(matrix.columns.2.z)
+        guard h22.isFinite, abs(h22) > 1e-9 else { return nil }
+
+        let a = Double(matrix.columns.0.x) / h22
+        let b = Double(matrix.columns.0.y) / h22
+        let c = Double(matrix.columns.1.x) / h22
+        let d = Double(matrix.columns.1.y) / h22
+        let determinant = abs(a * d - b * c)
+        guard determinant.isFinite, determinant > 0 else { return nil }
+
+        let scale = sqrt(determinant)
+        guard scale.isFinite,
+              scale >= Self.minimumPlausibleHomographicScale,
+              scale <= Self.maximumPlausibleHomographicScale
+        else { return nil }
+
+        let fraction = abs(scale - 1)
+        return fraction.isFinite ? fraction : nil
     }
 
     private static func cornerPatchRects(
