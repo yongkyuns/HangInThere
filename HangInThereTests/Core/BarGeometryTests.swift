@@ -122,8 +122,8 @@ import Testing
     }
     @Test func singleEdgeFitterDoesNotBridgeLargeUnobservedGap() throws {
         let contours = [
-            [Point2D(x:80,y:100),Point2D(x:200,y:100)],
-            [Point2D(x:360,y:100),Point2D(x:540,y:100)]
+            [Point2D(x:80,y:100),Point2D(x:250,y:100)],
+            [Point2D(x:350,y:100),Point2D(x:540,y:100)]
         ]
         let candidates = try BarLineFitter.candidates(contours:contours,region:region,size:size)
         #expect(candidates.count == 2)
