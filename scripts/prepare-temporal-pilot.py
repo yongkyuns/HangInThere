@@ -18,7 +18,7 @@ import urllib.request
 import evaluation as ev
 
 SPEC = ev.ROOT / 'Evaluation/fixtures/temporal-pilot.json'
-ALLOWED_HOSTS = {'upload.wikimedia.org', 'd34w7g4gy10iej.cloudfront.net'}
+ALLOWED_HOSTS = {'upload.wikimedia.org', 'd34w7g4gy10iej.cloudfront.net', 'www.pexels.com'}
 
 
 def command(args):
@@ -48,7 +48,9 @@ def source_file(row, cache, fetch):
         ev.require(fetch, 'Missing pinned original; enable --fetch')
         cache.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(dir=cache) as tmp:
-            req = urllib.request.Request(row['url'], headers={'User-Agent': 'HangInThere/0.1 test-only temporal evaluation'})
+            headers = {'User-Agent': 'Mozilla/5.0 HangInThere/0.1 test-only temporal evaluation'}
+            if url.hostname == 'www.pexels.com': headers['Referer'] = row['page']
+            req = urllib.request.Request(row['url'], headers=headers)
             with urllib.request.urlopen(req, timeout=120) as response:
                 total = 0
                 while block := response.read(1024 * 1024):
@@ -87,7 +89,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC):
                  f'trim=start_frame={first}:end_frame={end},setpts=PTS-STARTPTS,scale=960:-2:flags=lanczos',
                  '-an', '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast',
                  '-fps_mode', 'passthrough', '-enc_time_base', row['encoder_time_base'], '-video_track_timescale', '90000', str(video)])
-        derived, _ = probe(video)
+        derived, derived_size = probe(video)
         ev.require(len(derived) == len(selected) and all(abs(a - (b - selected[0])) <= .0005 for a, b in zip(derived, selected)),
                    'Transcode changed frame count or timing')
         ev.require(ev.digest(source) == row['source_sha256'], 'Original changed during preparation')
@@ -110,7 +112,13 @@ def prepare(cache, output, fetch=False, spec_path=SPEC):
                      'max_pts_quantization_seconds': max(abs(a - (b - selected[0])) for a, b in zip(derived, selected)),
                      'span_seconds': [derived[0], row['end_source_seconds'] - offset],
                      'events': [[a - offset, b - offset] for a, b in row['events_source_seconds']],
-                     'bar_reference_edge': row.get('bar_reference_edge'),
+                     'bar_reference_edge': (
+                         [row['bar_reference_edge_source'][0] * derived_size[0] / size[0],
+                          row['bar_reference_edge_source'][1] * derived_size[1] / size[1],
+                          row['bar_reference_edge_source'][2] * derived_size[0] / size[0],
+                          row['bar_reference_edge_source'][3] * derived_size[1] / size[1]]
+                         if row.get('bar_reference_edge_source') is not None else row.get('bar_reference_edge')
+                     ),
                      'bar_reference_provenance': row.get('bar_reference_provenance'),
                      'ungradable_intervals': [{'seconds': [x - offset for x in u['seconds']], 'reason': u['reason']}
                                               for u in row['ungradable_source_intervals']],
