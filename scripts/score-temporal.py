@@ -51,6 +51,13 @@ def reference_check(ref, clip):
                and abs(span[0] - pts[0]) < 1e-5 and pts[-1] < span[1] <= pts[-1] + 1, "Invalid full observation span")
     windows = intervals(ref.get("events"), span)
     excluded = intervals(ref.get("ungradable_intervals"), span, reason=True)
+    edge = ref.get("bar_reference_edge")
+    if edge is not None:
+        ev.require(isinstance(edge, list) and len(edge) == 4 and all(ev.number(x) for x in edge),
+                   "Invalid fixed apparatus reference")
+        ev.require(math.hypot(edge[2]-edge[0], edge[3]-edge[1]) >= 2, "Degenerate apparatus reference")
+        ev.require(isinstance(ref.get("bar_reference_provenance"), str) and ref["bar_reference_provenance"].strip(),
+                   "Apparatus reference needs provenance")
     tolerance = ref.get("tolerance_seconds")
     ev.require(ev.number(tolerance) and 0 <= tolerance <= .5, "Invalid predeclared timing tolerance")
     for a, b in windows:
@@ -109,6 +116,17 @@ def validate_run(ref, clip, pose_report, counter, observations, completion):
     ev.require(counter["summary"]["phase"] == "finished" and counter["summary"]["formVerification"] == "unverified", "Unfinished or unsupported count verdict")
     ev.require(counter["summary"]["exercise"] == ref["exercise"] and counter["summary"]["side"] == ref["side"], "Counter policy selection differs")
     ev.require(counter["summary"]["policyVersion"] == ref["counter_policy_version"], "Counter policy changed")
+    expected_edge = ref.get("bar_reference_edge")
+    actual_edge = counter.get("referenceEdge")
+    if expected_edge is None:
+        ev.require(actual_edge is None, "Counter used an unreviewed apparatus reference")
+    else:
+        ev.require(isinstance(actual_edge, dict), "Counter omitted the reviewed apparatus reference")
+        actual_values = [actual_edge.get("a", {}).get("x"), actual_edge.get("a", {}).get("y"),
+                         actual_edge.get("b", {}).get("x"), actual_edge.get("b", {}).get("y")]
+        ev.require(all(ev.number(x) for x in actual_values) and
+                   all(abs(a-b) < 1e-9 for a,b in zip(actual_values, expected_edge)),
+                   "Counter apparatus reference differs from frozen review")
     ev.require(counter["frames"] == completion["frames"] == pose_report["frames"] == len(observations) == len(ref["frame_pts_seconds"]), "Partial/truncated temporal stream")
     pts = []
     for row in observations:
@@ -153,7 +171,11 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
         completion_hash = ev.digest(completion_path)
         observations = list(ev.observations(observation_path, "video"))
         count_path = output / (clip["id"] + "-counter.json")
-        subprocess.run([str(ev.ROOT / "scripts/count-replay.sh"), str(observation_path), ref["exercise"], ref["side"], str(count_path)], check=True)
+        count_command = [str(ev.ROOT / "scripts/count-replay.sh"), str(observation_path),
+                         ref["exercise"], ref["side"], str(count_path)]
+        if ref.get("bar_reference_edge") is not None:
+            count_command.extend(str(x) for x in ref["bar_reference_edge"])
+        subprocess.run(count_command, check=True)
         counter = ev.read_json(count_path)
         ev.require(counter["input_sha256"] == observation_hash and counter["source_revision"] == pose["source_commit"], "Counter/pose provenance differs")
         for path, sha in counter["source_sha256"].items():

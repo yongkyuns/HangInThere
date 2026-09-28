@@ -2,8 +2,8 @@
 
 Target: one athlete, fixed phone and straight gripping sections. No multi-person
 identity tracker, moving-camera reconstruction, new model or iOS package. This
-implements **setup proposals and confirmation**. It does not yet replace the
-counter's wrist/arm assumptions or establish reliable automatic bar detection.
+implements **setup proposals and confirmation** and supplies the fixed reference used
+by counter policy v2. It does not establish reliable autonomous whole-scene bar detection.
 
 ## In the replay app
 
@@ -23,10 +23,11 @@ This slice stores one selected bar/rail; switching hand requires new setup.
 A confirmed reference is bound to its source session, timestamp, role and upright
 image dimensions. Stale confirmations after restart/reimport are rejected even
 when the new video has the same timestamp. Pause preserves setup. Restart,
-reimport, close, hand/exercise change or changed dimensions clears it. It is
-**retained but not revalidated** during replay, and labelled accordingly. Move the
-phone, change framing or zoom: clear and repeat setup. Automatic movement detection,
-partial-occlusion validation and lost-bar states are not implemented yet.
+reimport, close, hand/exercise change or changed dimensions clears it. A normal
+restart of the same source preserves it. Confirming a reference rewinds the video so
+bar-relative counting begins from source time zero. The edge is **retained but not
+revalidated** during replay. Move the phone, change framing or zoom: clear and repeat
+setup. Automatic partial-occlusion validation and lost-bar states are not implemented yet.
 
 ## Native geometric proposal
 
@@ -71,10 +72,11 @@ uses the best candidate as if the system had chosen it: errors describe the firs
 ranked proposal. No candidate means unavailable, not zero error. No thresholds or
 reference points should be retuned to pass this tiny audit.
 
-The existing 0/17 temporal result remains unchanged. Next: inspect actual proposals,
-validate fixed-reference visibility on controlled footage, then replace the
-counter's unsupported projection/contact assumptions with bar-relative evidence.
-Chin localization, physical contact and 3D clearance remain separate requirements.
+The counter now consumes this confirmed edge under policy v2; see `COUNTING.md`.
+The original policy-v1 0/17 temporal result remains historical evidence. A fixed-
+camera pull-up replay now reproduces its one reviewed movement after replacing the
+unsupported wrist/projected-arm continuity guards. Controlled dip qualification,
+chin localization, physical contact and 3D clearance remain separate requirements.
 
 Primary API references:
 - https://developer.apple.com/documentation/vision/vndetectcontoursrequest

@@ -16,6 +16,14 @@ struct BarSegment: Codable, Equatable, Sendable {
         let t = max(0, min(1, ((p.x-a.x)*(b.x-a.x) + (p.y-a.y)*(b.y-a.y)) / (length*length)))
         return hypot(p.x - a.x - t*(b.x-a.x), p.y - a.y - t*(b.y-a.y))
     }
+    // Distance to the infinite image line defined by this observed edge. The
+    // finite endpoints establish the line; exercise motion may project beyond
+    // their span, so movement analysis must not clamp the body point to an end.
+    func perpendicularDistance(to p: Point2D) -> Double {
+        guard isValid, p.isFinite else { return .infinity }
+        let cross = (b.x-a.x)*(p.y-a.y) - (b.y-a.y)*(p.x-a.x)
+        return abs(cross) / length
+    }
 }
 
 struct BarRegion: Equatable, Sendable {
@@ -106,10 +114,7 @@ enum BarLineFitter {
         var groups: [Group] = []
         for edge in segments.sorted(by: { $0.length > $1.length }) {
             guard let unit = canonicalUnit(edge) else { continue }
-            let nx = -unit.1, ny = unit.0
             let points = [edge.a, edge.b]
-            let offset = points.reduce(0.0) { $0 + $1.x * nx + $1.y * ny } / 2
-            let ts = points.map { $0.x * unit.0 + $0.y * unit.1 }
             var placed = false
             for index in groups.indices {
                 let dot = max(-1.0, min(1.0, unit.0 * groups[index].ux + unit.1 * groups[index].uy))

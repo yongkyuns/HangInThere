@@ -5,6 +5,13 @@
   "scope": "Three continuously decoded clips containing observable movement cycles, not full uncensored workouts. Model-independent approximate single-reviewer temporal labels; all sources unassigned, no expert or held-out qualification.",
   "sources": [
     {
+      "bar_reference_edge": [
+        401.9179,
+        113.4035,
+        489.4577,
+        99.9114
+      ],
+      "bar_reference_provenance": "Development fixed-edge review on the 960x540 prepared clip after policy-v1 failure analysis; selected from image line evidence only, with no pose joints or counter-v2 output. Not an independent held-out bar label.",
       "bytes": 358754,
       "credit": "FitnessScape; source YouTube 0I6q9NqK9tM",
       "encoder_time_base": "1:30",

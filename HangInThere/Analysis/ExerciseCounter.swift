@@ -1,7 +1,8 @@
 import Foundation
 
 // Provisional movement counting, NOT exercise/form acceptance. One user-selected
-// anatomical arm, fixed camera, source PTS only. No smoothing or inferred samples.
+// anatomical arm, one confirmed fixed apparatus edge, and source PTS only.
+// No temporal smoothing, inferred samples, or pose-derived bar geometry.
 struct ExerciseCounter: Sendable {
     enum Exercise: String, CaseIterable, Codable, Sendable {
         case pullUp, dip
@@ -37,15 +38,17 @@ struct ExerciseCounter: Sendable {
         let formVerification: String
     }
 
-    // Fixed initial engineering thresholds. Never calibrated on benchmark labels.
-    static let policyVersion = 1
+    // Policy v2 replaces wrist-drift/projected-arm-length continuity with one
+    // independently confirmed fixed bar/rail edge. Thresholds are generic
+    // engineering gates, not calibrated exercise-validity criteria.
+    static let policyVersion = 2
     static let extendedDegrees = 155.0
     static let departureDegrees = 140.0
     static let bentDegrees = 100.0
     static let endpointDwellSeconds = 0.12
     static let maximumGapSeconds = 0.35
-    static let minimumTravelArmLengths = 0.20
-    static let maximumWristDriftArmLengths = 0.25
+    static let minimumBarDistanceReductionFraction = 0.20
+    static let minimumTravelImageFraction = 0.04
 
     let exercise: Exercise
     let side: ArmMeasurement.Side
@@ -64,10 +67,8 @@ struct ExerciseCounter: Sendable {
 
     private struct Sample: Sendable {
         let degrees: Double
-        let wrist: Point2D
-        let shoulderY: Double
-        let armLength: Double
-        let size: ImageSize
+        let shoulderToBarPixels: Double
+        let imageShortSide: Double
     }
 
     init(exercise: Exercise = .pullUp, side: ArmMeasurement.Side = .left) {
@@ -84,13 +85,19 @@ struct ExerciseCounter: Sendable {
 
     mutating func reset() { self = Self(exercise: exercise, side: side) }
 
+    // Kept for saved-pose diagnostics that intentionally have no apparatus
+    // reference. Such streams cannot count under policy v2.
     @discardableResult
     mutating func consume(_ pose: PoseResult) -> Event? {
+        consume(pose, referenceEdge: nil)
+    }
+
+    @discardableResult
+    mutating func consume(_ pose: PoseResult, referenceEdge: BarSegment?) -> Event? {
         guard phase != .finished else { return nil }
         let time = pose.timestamp.seconds
         guard time.isFinite else { return interrupt(reason: "invalidTimestamp") }
         if let lastTime, time <= lastTime {
-            // Do not rewind the clock or count repeated delivery of one frame.
             return interrupt(reason: "nonIncreasingTimestamp")
         }
         let previousTime = lastTime
@@ -99,28 +106,36 @@ struct ExerciseCounter: Sendable {
         if let previousTime, time - previousTime > Self.maximumGapSeconds {
             event = interrupt(reason: "sourceTimeGap")
         }
+
+        guard let referenceEdge, referenceEdge.isValid,
+              pose.imageSize.isValid,
+              (0...pose.imageSize.width).contains(referenceEdge.a.x),
+              (0...pose.imageSize.height).contains(referenceEdge.a.y),
+              (0...pose.imageSize.width).contains(referenceEdge.b.x),
+              (0...pose.imageSize.height).contains(referenceEdge.b.y) else {
+            return interrupt(reason: "barReferenceUnavailable") ?? event
+        }
+
         let measurement = ArmMeasurement(pose: pose, side: side)
         guard let estimate = measurement.estimate else {
             return interrupt(reason: measurement.unavailableReason?.rawValue ?? "unusableArm") ?? event
         }
-        // ArmMeasurement established uniqueness, visibility, image bounds and
-        // segment lengths. Never take the other arm when the selected one fails.
-        let joints = side.joints
-        let shoulder = pose.people[0].landmark(joints[0])!.position
-        let wrist = pose.people[0].landmark(joints[2])!.position
-        let sample = Sample(degrees: estimate.elbowDegrees, wrist: wrist,
-                            shoulderY: shoulder.y,
-                            armLength: estimate.upperArmPixels + estimate.forearmPixels,
-                            size: pose.imageSize)
-        trackingIssue = nil
-        if let anchor, phase == .outbound || phase == .returning || phase == .ready {
-            let ratio = sample.armLength / anchor.armLength
-            let drift = hypot(wrist.x - anchor.wrist.x, wrist.y - anchor.wrist.y) / anchor.armLength
-            guard sample.size == anchor.size, (0.65...1.5).contains(ratio),
-                  drift <= Self.maximumWristDriftArmLengths else {
-                return interrupt(reason: "geometryOrContactDiscontinuity") ?? event
-            }
+        // ArmMeasurement established unique, visible, bounded shoulder/elbow/wrist
+        // evidence. The bar reference is independent of those joints.
+        let shoulderJoint = side.joints[0]
+        guard let shoulder = pose.people.first?.landmark(shoulderJoint)?.position else {
+            return interrupt(reason: "missingJoint") ?? event
         }
+        let distance = referenceEdge.perpendicularDistance(to: shoulder)
+        let shortSide = min(pose.imageSize.width, pose.imageSize.height)
+        guard distance.isFinite, shortSide.isFinite, shortSide > 0 else {
+            return interrupt(reason: "invalidBarGeometry") ?? event
+        }
+        let sample = Sample(degrees: estimate.elbowDegrees,
+                            shoulderToBarPixels: distance,
+                            imageShortSide: shortSide)
+        trackingIssue = nil
+
         switch phase {
         case .seekingStart:
             if sustained(sample.degrees >= Self.extendedDegrees ? .extended : nil, at: time) {
@@ -133,8 +148,6 @@ struct ExerciseCounter: Sendable {
                 activeAttempt = true
                 phase = .outbound
                 endpointSince = nil
-                // The first bent observation starts the dwell; never completes
-                // a transition by itself, regardless of how large the jump is.
                 _ = sustained(reachedBentEndpoint(sample) ? .bent : nil, at: time)
             }
         case .outbound:
@@ -147,14 +160,14 @@ struct ExerciseCounter: Sendable {
                 phase = .returning
                 endpointSince = nil
                 if exercise == .pullUp {
-                    event = record(.movement, at: time, reason: "chinAndBarNotMeasured")
+                    event = record(.movement, at: time, reason: "barReferencedTop;chinClearanceNotMeasured")
                     activeAttempt = false
                 }
             }
         case .returning:
             if sustained(sample.degrees >= Self.extendedDegrees ? .extended : nil, at: time) {
                 if exercise == .dip {
-                    event = record(.movement, at: time, reason: "dipDepthAndFormNotQualified")
+                    event = record(.movement, at: time, reason: "barReferencedCycle;dipDepthAndFormNotQualified")
                 }
                 arm(sample)
             }
@@ -165,10 +178,14 @@ struct ExerciseCounter: Sendable {
 
     private func reachedBentEndpoint(_ sample: Sample) -> Bool {
         guard let anchor else { return false }
-        let start = anchor.shoulderY - anchor.wrist.y
-        let current = sample.shoulderY - sample.wrist.y
-        let travel = (exercise == .pullUp ? start - current : current - start) / anchor.armLength
-        return sample.degrees <= Self.bentDegrees && travel >= Self.minimumTravelArmLengths
+        // For supported views, both pull-up ascent and dip descent bring the
+        // selected shoulder closer to the fixed gripping bar/rail image line.
+        // The image-size floor prevents an almost-zero starting distance from
+        // creating a trivial endpoint threshold.
+        let required = max(Self.minimumBarDistanceReductionFraction * anchor.shoulderToBarPixels,
+                           Self.minimumTravelImageFraction * anchor.imageShortSide)
+        let travelTowardBar = anchor.shoulderToBarPixels - sample.shoulderToBarPixels
+        return sample.degrees <= Self.bentDegrees && travelTowardBar >= required
     }
 
     private mutating func sustained(_ next: Endpoint?, at time: Double) -> Bool {

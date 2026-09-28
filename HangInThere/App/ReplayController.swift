@@ -61,9 +61,15 @@ final class ReplayController {
               bar.sourceTime == frame?.pose.timestamp,
               bar.sourceTime == setup.frame.pose.timestamp else { return false }
         self.bar = bar
+        // Re-run the set from source time zero so every counted frame uses the
+        // same independently confirmed fixed apparatus reference.
+        restart(preserveBar: true)
         return true
     }
-    func clearBar() { bar = nil }
+    func clearBar() {
+        bar = nil
+        counter.reset()
+    }
 
     // Switching exercise/arm replays from the beginning instead of mixing two
     // policies in one set. Only displayed source frames advance the counter.
@@ -71,7 +77,8 @@ final class ReplayController {
         guard phase != .loading, counter.exercise != exercise || counter.side != side else { return }
         pause()
         counter = ExerciseCounter(exercise: exercise, side: side)
-        if canRestart { restart() }
+        bar = nil
+        if canRestart { restart(preserveBar: false) }
     }
 
     var canPlay: Bool { phase == .paused }
@@ -95,7 +102,7 @@ final class ReplayController {
         pending = nil
         displayedFrames = 0
         counter.reset()
-        clearBar()
+        bar = nil
         durationSeconds = 0
         errorMessage = nil
         failureReport = nil
@@ -132,7 +139,7 @@ final class ReplayController {
         failureReport = nil
         displayedFrames = 0
         counter.reset()
-        clearBar()
+        bar = nil
         durationSeconds = 0
         phase = .idle
         operation = Task {
@@ -142,7 +149,7 @@ final class ReplayController {
         }
     }
 
-    func restart() {
+    func restart(preserveBar: Bool = true) {
         guard canRestart else { return }
         let previous = operation
         previous?.cancel()
@@ -155,7 +162,7 @@ final class ReplayController {
         failureReport = nil
         phase = .loading
         counter.reset()
-        clearBar()
+        if !preserveBar { bar = nil }
         operation = Task {
             await previous?.value
             guard session == token, !Task.isCancelled else { return }
@@ -173,7 +180,7 @@ final class ReplayController {
     private func showFirst(_ first: ProcessedFrame?, info: VideoInfo) throws {
         guard let first else { throw ReplayError.noFrames }
         frame = first
-        counter.consume(first.pose)
+        counter.consume(first.pose, referenceEdge: currentBar?.referenceEdge)
         firstSourceTime = first.pose.timestamp.seconds
         displayedFrames = 1
         durationSeconds = info.durationSeconds
@@ -225,9 +232,12 @@ final class ReplayController {
                                                    wallDelta: wall)
                     if delay > 0 { try await clock.sleep(for: .seconds(delay)) }
                     guard isCurrent(token, playToken) else { return }
-                    if let bar, bar.imageSize != next.pose.imageSize { clearBar() }
+                    if let bar, bar.imageSize != next.pose.imageSize {
+                        self.bar = nil
+                        counter.reset()
+                    }
                     self.frame = next
-                    counter.consume(next.pose)
+                    counter.consume(next.pose, referenceEdge: currentBar?.referenceEdge)
                     pending = nil
                     displayedFrames += 1
                     lastPTS = next.pose.timestamp.seconds

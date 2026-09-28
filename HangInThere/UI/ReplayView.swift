@@ -55,7 +55,7 @@ struct ReplayView: View {
                     }
                     Text("Import an MP4 or MOV from Files. Image and pose come from the same decoded frame; replay may slow down to keep them aligned. Audio is not played.")
                         .font(.footnote).foregroundStyle(.secondary)
-                    Text("Movement counting is provisional. Chin-over-bar, dip depth and form are not verified. Keep the camera fixed and the selected arm visible. Live capture is not implemented.")
+                    Text("Movement counting is provisional and uses the confirmed fixed bar/rail reference. Chin clearance, strict dip depth and form are not verified. Keep the camera fixed and the selected arm visible. Live capture is not implemented.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 .padding()
@@ -94,9 +94,9 @@ struct ReplayView: View {
             }
             if let bar = model.currentBar {
                 Text("\(bar.role.title): \(bar.method == .guidedContours ? "guided edge proposal confirmed" : "manual reference edge")")
-                Text("Fixed reference from source \(bar.sourceTime.seconds, specifier: "%.2f") s. Not revalidated during replay; not yet used for counting.")
+                Text("Fixed reference from source \(bar.sourceTime.seconds, specifier: "%.2f") s. Used for bar-relative movement counting; not revalidated during replay.")
             } else {
-                Text("Pause on a clear bar view to set up a reference. For dips, set the rail used by the selected hand. Switching hands clears this reference.")
+                Text("Set up a bar reference before counting. For dips, set the rail used by the selected hand. Switching hands clears this reference.")
             }
         }.font(.caption)
     }
@@ -134,8 +134,11 @@ struct ReplayView: View {
             Text(model.counter.phase.title).font(.subheadline)
             Text("Partial attempts: \(model.counter.partialAttempts) · Interrupted: \(model.counter.interruptedAttempts)")
                 .font(.caption).monospacedDigit()
-            if let issue = model.counter.trackingIssue {
-                Text("Tracking unavailable (\(issue)). Re-establish the extended starting position.")
+            if model.currentBar == nil {
+                Text("Bar reference required before movement counting.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else if let issue = model.counter.trackingIssue {
+                Text("Measurement unavailable (\(issue)). Re-establish the extended starting position.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }.accessibilityElement(children: .contain)

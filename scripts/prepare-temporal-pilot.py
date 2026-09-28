@@ -102,7 +102,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC):
         offset = selected[0]
         refs.append({'schema_version': 1, 'id': row['id'], 'exercise': row['exercise'], 'side': row['side'],
                      'event_definition': {'pullUp': 'observed_start_to_top', 'dip': 'observed_top_bottom_top'}[row['exercise']],
-                     'counter_policy_version': 1, 'reviewed_without_counter_output': True,
+                     'counter_policy_version': 2, 'reviewed_without_counter_output': True,
                      'provenance': spec['annotation_provenance'], 'form_verification': 'unverified',
                      'source_sha256': row['source_sha256'], 'recipe_sha256': ev.digest(spec_path),
                      'media_sha256': clip['media']['files'][0]['sha256'], 'source_frame_range': [first, end],
@@ -110,6 +110,8 @@ def prepare(cache, output, fetch=False, spec_path=SPEC):
                      'max_pts_quantization_seconds': max(abs(a - (b - selected[0])) for a, b in zip(derived, selected)),
                      'span_seconds': [derived[0], row['end_source_seconds'] - offset],
                      'events': [[a - offset, b - offset] for a, b in row['events_source_seconds']],
+                     'bar_reference_edge': row.get('bar_reference_edge'),
+                     'bar_reference_provenance': row.get('bar_reference_provenance'),
                      'ungradable_intervals': [{'seconds': [x - offset for x in u['seconds']], 'reason': u['reason']}
                                               for u in row['ungradable_source_intervals']],
                      'tolerance_seconds': spec['tolerance_seconds'], 'review_notes': row['review_notes']})

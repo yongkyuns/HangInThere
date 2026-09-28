@@ -169,6 +169,7 @@ struct ReplayControllerTests {
         try await wait { model.phase == .paused || model.phase == .failed }
         try #require(model.phase == .paused)
         #expect(model.counter.observedMovements == 0)
+        try await confirmCountingBar(model)
         model.play()
         try await wait { model.counter.observedMovements == 1 || model.phase == .failed }
         try #require(model.phase != .failed)
@@ -189,10 +190,12 @@ struct ReplayControllerTests {
         #expect(model.counter.observedMovements == 0)
         #expect(model.counter.lastEvent == nil)
         #expect(model.frame?.pose.timestamp.seconds == 0)
+        #expect(model.currentBar != nil, "Restart of the same fixed-camera source preserves the confirmed reference.")
         model.configureCounting(exercise: .dip, side: .right)
         try await wait { model.phase == .paused || model.phase == .failed }
         #expect(model.counter.exercise == .dip)
         #expect(model.counter.side == .right)
+        #expect(model.currentBar == nil, "Exercise/arm policy changes invalidate the apparatus role.")
         #expect(model.counter.observedMovements == 0)
         model.close()
         #expect(model.counter.phase == .seekingStart)
@@ -207,6 +210,7 @@ struct ReplayControllerTests {
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
         model.play()
         try await wait { model.phase == .finished || model.phase == .failed }
         #expect(model.phase == .failed)
@@ -218,6 +222,20 @@ struct ReplayControllerTests {
         try await wait { model.phase == .paused || model.phase == .failed }
         #expect(model.counter.interruptedAttempts == 0)
         #expect(model.counter.lastEvent == nil)
+    }
+
+    private func confirmCountingBar(_ model: ReplayController) async throws {
+        let setup = try #require(model.beginBarSetup())
+        let size = setup.frame.pose.imageSize
+        let y = size.height / 2
+        let bar = ConfirmedBar(role: model.barRole, method: .manualEdge,
+            referenceEdge: BarSegment(a: Point2D(x: size.width * 0.1, y: y),
+                                      b: Point2D(x: size.width * 0.9, y: y)),
+            oppositeEdge: nil, imageSize: size, sourceTime: setup.frame.pose.timestamp)
+        #expect(model.confirmBar(bar, for: setup))
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try #require(model.phase == .paused)
+        #expect(model.currentBar != nil)
     }
 
     private func wait(until predicate: () -> Bool) async throws {
