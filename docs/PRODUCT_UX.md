@@ -192,11 +192,19 @@ setup slice now exists as a separate reusable screen. It:
    and keeping the phone stationary;
 6. handles denied permission and missing rear-camera states without breaking replay.
 
-This first slice deliberately stops before claiming automatic readiness. It does not
-yet inspect live frames for athlete/apparatus visibility, freeze a bar-calibration
-frame, run Vision on live input, count movements, or start a set. The screen is not
-yet linked from the customer entry flow; it is a capture/setup foundation for the
-next live-analysis slice.
+The next live-analysis slice now runs Apple Vision directly on the camera stream with
+one serial inference queue and AVFoundation late-frame discard enabled. It reports a
+narrow automatic framing state:
+
+- exactly one athlete is visible;
+- the user-selected shoulder, elbow, and wrist are measurable;
+- no opposite-arm substitution is allowed.
+
+This is intentionally **framing readiness**, not workout readiness. The app still does
+not infer apparatus visibility from the body skeleton, freeze/confirm the bar reference,
+detect phone motion, count a live set, or claim form validity. The screen remains
+unlinked from the customer entry flow until bar calibration and a usable start-set
+transition exist.
 
 The intended complete live flow remains:
 
@@ -221,7 +229,8 @@ The app should eventually provide:
 
 - an example silhouette/framing guide;
 - "move farther back" / "keep selected arm visible" guidance;
-- confirmation that the bar/rail is visible;
+- confirmation that the selected athlete/arm is measurable (implemented for live setup);
+- confirmation that the bar/rail is visible (not yet automatic);
 - warning if the phone moves after calibration;
 - exercise-specific camera recommendations.
 
