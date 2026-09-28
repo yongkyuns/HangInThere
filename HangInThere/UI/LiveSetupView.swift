@@ -558,7 +558,9 @@ struct LiveSetupView: View {
         case .phoneMoved:
             return "The set ended because the phone rotated after bar calibration. Re-check framing and set the bar again."
         case .sceneShifted:
-            return "The set ended because static background structure shifted relative to the bar-calibration frame. Re-check framing and set the bar again."
+            return "The set ended because static background structure translated relative to the bar-calibration frame. Re-check framing and set the bar again."
+        case .sceneScaled:
+            return "The set ended because the static background expanded or contracted relative to calibration, consistent with camera distance/zoom change."
         case .manual:
             return nil
         }
@@ -684,7 +686,7 @@ struct LiveSetupView: View {
 
     private var scopeNote: some View {
         Label(
-            "Live sets use the same bar-relative movement counter as recorded review. Sustained phone rotation or consensus background shift after bar calibration invalidates the set. These checks do not constitute full camera-pose estimation; chin/depth verification and form scoring remain separate qualification steps.",
+            "Live sets use the same bar-relative movement counter as recorded review. Sustained phone rotation, background translation, or radial background scale change after calibration invalidates the set. These checks still do not constitute full camera-pose estimation.",
             systemImage: "info.circle"
         )
         .font(.footnote)
@@ -728,15 +730,18 @@ struct LiveSetupView: View {
             }
             return "Waiting for at least two peripheral background patches to agree."
         case .stable:
-            if let fraction = camera.sceneTranslation.latestShiftFraction {
-                return String(
-                    format: "Background aligned · %.2f%% of image short side.",
-                    fraction * 100
-                )
-            }
-            return "Background alignment is being monitored."
+            let shift = (camera.sceneTranslation.latestShiftFraction ?? 0) * 100
+            let scale = (camera.sceneTranslation.latestScaleFraction ?? 0) * 100
+            return String(
+                format: "Background aligned · shift %.2f%% · radial scale %.2f%%.",
+                shift,
+                scale
+            )
         case .moved:
-            return "Static background shifted after calibration. Set the bar again."
+            if camera.sceneTranslation.movementKind == .scale {
+                return "Background expanded/contracted after calibration. Set the bar again."
+            }
+            return "Static background translated after calibration. Set the bar again."
         }
     }
 
