@@ -139,12 +139,41 @@ struct RealVideoCorpusTests {
 
             var session = LiveSetSession()
             session.start(exercise: .pullUp, side: side)
+            var diagnosticCounter = ExerciseCounter(exercise: .pullUp, side: side)
 
             while let frame = try await reader.nextFrame() {
+                let measurement = ArmMeasurement(pose: frame.pose, side: side)
+                let shoulder = frame.pose.people.first?
+                    .landmark(side.joints[0], minimumConfidence: 0.0)?
+                    .position
+                let distance = shoulder.map { reference.perpendicularDistance(to: $0) }
+                let phaseBefore = diagnosticCounter.phase
+                let event = diagnosticCounter.consume(
+                    frame.pose,
+                    referenceEdge: reference
+                )
+                let phaseAfter = diagnosticCounter.phase
+
+                if testCase.id == "fitnessscape-standard-indoor" {
+                    print(
+                        "[Corpus counter trace] t=\(frame.pose.timestamp.seconds); " +
+                        "angle=\(measurement.estimate?.elbowDegrees ?? -1); " +
+                        "barDistance=\(distance ?? -1); " +
+                        "phase=\(phaseBefore.rawValue)->\(phaseAfter.rawValue); " +
+                        "event=\(event?.outcome.rawValue ?? "-"):\(event?.reason ?? "-")"
+                    )
+                }
+
                 session.consume(frame.pose, referenceEdge: reference)
             }
             await reader.close()
+            diagnosticCounter.finish()
             session.finish()
+
+            #expect(
+                diagnosticCounter.observedMovements == session.observedMovements,
+                Comment(rawValue: "\(testCase.id): diagnostic and live-session counters diverged.")
+            )
 
             #expect(
                 session.observedMovements == count.expectedObservedMovements,
