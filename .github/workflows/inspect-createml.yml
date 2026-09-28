@@ -1,0 +1,35 @@
+name: Inspect Create ML object detector API
+on:
+  push:
+    branches: [ops/review-createml-pullup-source-20260927]
+    paths: ['.github/workflows/inspect-createml.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Verify transfer-learning API
+        run: |
+          cat > /tmp/probe.swift <<'SWIFT'
+          import CoreGraphics
+          import CreateML
+          let parameters = MLObjectDetector.ModelParameters(
+              validation: .none,
+              batchSize: 8,
+              maxIterations: 1,
+              gridSize: CGSize(width: 13, height: 13),
+              algorithm: .transferLearning(.objectPrint(revision: 1))
+          )
+          print(parameters)
+          SWIFT
+          xcrun swift /tmp/probe.swift
+      - name: Show relevant SDK declarations
+        if: always()
+        run: |
+          SDK="$(xcrun --sdk macosx --show-sdk-path)"
+          FILE="$(find "$SDK" -path '*CreateML.framework*CreateML.swiftinterface' | head -1)"
+          echo "$FILE"
+          grep -n -A25 -B5 'enum ModelAlgorithmType' "$FILE" | head -120 || true
+          grep -n -A15 -B5 'case transferLearning' "$FILE" | head -120 || true
