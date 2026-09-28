@@ -38,8 +38,8 @@ jobs:
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
           python3 scripts/prepare-fixtures.py
-      - name: Discover real-video corpus source pins (temporary)
-        run: python3 scripts/prepare-video-corpus.py --discover
+      - name: Prepare pinned real-video corpus
+        run: python3 scripts/prepare-video-corpus.py
       - name: Native macOS real-model and replay integration
         run: ./scripts/test-apple-host.sh
       - name: Retain native test results and provenance
@@ -66,6 +66,18 @@ jobs:
             HangInThereTests/Fixtures/generated/prepared.json
             HangInThereTests/Fixtures/generated/pullup-smoke.png
             HangInThereTests/Fixtures/generated/pullup-smoke.mp4
+      - name: Retain approved real-video corpus for review
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-real-video-corpus
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            HangInThereTests/Fixtures/corpus.json
+            HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
+            HangInThereTests/Fixtures/generated/corpus/*-contact.jpg
+            HangInThereTests/Fixtures/generated/corpus/*.mp4
 
   simulator:
     name: iOS simulator ${{ matrix.suite }}
