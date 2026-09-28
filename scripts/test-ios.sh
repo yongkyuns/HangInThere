@@ -26,6 +26,7 @@ fi
 # Decoder/controller tests generate their own video and never need model media.
 if [[ "$SUITE" != mechanics ]]; then
   python3 scripts/prepare-fixtures.py --verify-only
+  python3 scripts/prepare-video-corpus.py --verify-only
 fi
 xcrun simctl list devices available --json > build/simulators.json
 SDK_VERSION="$(xcrun --sdk iphonesimulator --show-sdk-version)"
@@ -58,7 +59,10 @@ test_command=(xcodebuild test
   -parallel-testing-enabled NO)
 case "$SUITE" in
   mechanics) test_command+=(-skip-testing:HangInThereTests/VisionSmokeTests) ;;
-  vision) test_command+=(-only-testing:HangInThereTests/VisionSmokeTests) ;;
+  vision) test_command+=(
+    -only-testing:HangInThereTests/VisionSmokeTests
+    -only-testing:HangInThereTests/RealVideoCorpusTests
+  ) ;;
 esac
 "${test_command[@]}" 2>&1 | tee "$TEST_LOG"
 # xcodebuild can succeed with an unmatched filter. Zero selected tests is not
