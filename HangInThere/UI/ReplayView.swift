@@ -19,8 +19,13 @@ struct ReplayView: View {
                         sessionHeader
                         preview
                         playbackControls
-                        movementCard
-                        setupCard
+                        if model.currentBar == nil {
+                            setupCard
+                            movementCard
+                        } else {
+                            movementCard
+                            setupCard
+                        }
                         if let message = model.errorMessage {
                             errorCard(message)
                         }
