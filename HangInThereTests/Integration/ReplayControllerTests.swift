@@ -206,6 +206,23 @@ struct ReplayControllerTests {
         #expect(model.counter.lastEvent == nil)
     }
 
+    @Test func trackingCoverageExcludesUnusableAnalyzedFrames() async throws {
+        let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let model = ReplayController(estimator: CountingTestEstimator(lowConfidenceAt: 0.45))
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        #expect(model.phase == .finished)
+        #expect(model.countingFrames == times.count)
+        #expect(model.analyzableFrames == times.count - 1)
+        #expect(abs((model.trackingCoverage ?? -1) - (5.0 / 6.0)) < 1e-9)
+    }
+
     @Test func inferenceFailureInterruptsAnActiveAttemptAndReimportClearsIt() async throws {
         let times = [0,15,30,45,60].map { CMTime(value: $0, timescale: 100) }
         let url = try await VideoTestSupport.makeVideo(timestamps: times)
@@ -255,10 +272,17 @@ struct ReplayControllerTests {
 // These tests qualify controller/counter wiring, not a pose model or rep accuracy.
 private struct CountingTestEstimator: PoseEstimator {
     var failAt: Double? = nil
+    var lowConfidenceAt: Double? = nil
+
     func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
         let time = timestamp.seconds
         if let failAt, time >= failAt { throw FixtureError.failed("Counting test inference failure") }
-        let base = ExerciseCounterTests.pose(time, degrees: time >= 0.3 && time < 0.6 ? 80 : 170)
+        let confidence = lowConfidenceAt.map { abs(time - $0) < 1e-9 } == true ? 0.1 : 1
+        let base = ExerciseCounterTests.pose(
+            time,
+            degrees: time >= 0.3 && time < 0.6 ? 80 : 170,
+            confidence: confidence
+        )
         let scale = min(Double(image.width), Double(image.height)) / 1000
         return PoseResult(timestamp: timestamp,
             imageSize: ImageSize(width: Double(image.width), height: Double(image.height)),
