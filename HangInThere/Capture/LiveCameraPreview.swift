@@ -163,6 +163,7 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var startRequested = false
     @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
     @ObservationIgnored private var analyzer: LiveFrameAnalyzer?
+    @ObservationIgnored private var analysisEventTask: Task<Void, Never>?
     @ObservationIgnored private var exercise: ExerciseCounter.Exercise = .pullUp
     @ObservationIgnored private var trackingSide: ArmMeasurement.Side = .left
     @ObservationIgnored private var latestFrame: ProcessedFrame?
@@ -378,8 +379,19 @@ final class LiveCameraPreviewController {
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
         ]
 
-        let analyzer = LiveFrameAnalyzer { [weak self] event in
-            Task { @MainActor [weak self] in
+        let eventStream = AsyncStream<LiveAnalyzerEvent>(
+            bufferingPolicy: .bufferingNewest(1)
+        ) { continuation in
+            let analyzer = LiveFrameAnalyzer { event in
+                continuation.yield(event)
+            }
+            self.analyzer = analyzer
+            output.setSampleBufferDelegate(analyzer, queue: analysisQueue)
+        }
+
+        analysisEventTask = Task { @MainActor [weak self] in
+            for await event in eventStream {
+                guard !Task.isCancelled else { return }
                 self?.accept(event)
             }
         }
@@ -410,9 +422,7 @@ final class LiveCameraPreviewController {
         }
         connection.videoRotationAngle = 90
 
-        output.setSampleBufferDelegate(analyzer, queue: analysisQueue)
         videoOutput = output
-        self.analyzer = analyzer
         configured = true
     }
 
