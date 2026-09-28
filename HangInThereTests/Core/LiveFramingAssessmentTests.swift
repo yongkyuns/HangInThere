@@ -60,28 +60,40 @@ struct LiveFramingAssessmentTests {
             LiveSetupReadiness(
                 cameraReady: false,
                 framing: .ready,
-                barConfirmed: true
+                barConfirmed: true,
+                phoneStable: true
             ).state == .cameraUnavailable
         )
         #expect(
             LiveSetupReadiness(
                 cameraReady: true,
                 framing: .selectedArmHidden,
-                barConfirmed: true
+                barConfirmed: true,
+                phoneStable: true
             ).state == .framingIncomplete
         )
         #expect(
             LiveSetupReadiness(
                 cameraReady: true,
                 framing: .ready,
-                barConfirmed: false
+                barConfirmed: false,
+                phoneStable: true
             ).state == .barReferenceNeeded
         )
         #expect(
             LiveSetupReadiness(
                 cameraReady: true,
                 framing: .ready,
-                barConfirmed: true
+                barConfirmed: true,
+                phoneStable: false
+            ).state == .phoneStabilityNeeded
+        )
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: true,
+                framing: .ready,
+                barConfirmed: true,
+                phoneStable: true
             ).state == .ready
         )
     }
