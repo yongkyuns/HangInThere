@@ -185,8 +185,12 @@ final class LiveCameraPreviewController {
 
     var latestImageSize: ImageSize? { latestFrame?.pose.imageSize }
 
-    var isReadyToStart: Bool {
-        isCameraReady && framing.state.isReady && currentBar != nil
+    var setupReadiness: LiveSetupReadiness {
+        LiveSetupReadiness(
+            cameraReady: isCameraReady,
+            framing: framing.state,
+            barConfirmed: currentBar != nil
+        )
     }
 
     func configureWorkout(
