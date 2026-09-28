@@ -277,9 +277,9 @@ struct LiveSetupView: View {
             )
             setupRow("Body position", detail: guide.bodyText, symbol: "viewfinder")
             setupRow(
-                "Phone",
-                detail: "Visual check only. Keep it stationary after bar calibration.",
-                symbol: "iphone.gen3"
+                "Phone orientation",
+                detail: phoneStabilityDetail,
+                symbol: phoneStabilitySymbol
             )
         }
         .padding(16)
@@ -316,7 +316,11 @@ struct LiveSetupView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(!camera.isCameraReady || !camera.framing.state.isReady)
+            .disabled(
+                !camera.isCameraReady
+                    || !camera.framing.state.isReady
+                    || !camera.motionSampleAvailable
+            )
             .accessibilityIdentifier("liveSetupBar")
 
             if camera.currentBar != nil {
@@ -546,6 +550,8 @@ struct LiveSetupView: View {
             return "The set ended because the camera session stopped unexpectedly."
         case .setupInvalidated:
             return "The set ended because the fixed bar reference became incompatible with the camera frames."
+        case .phoneMoved:
+            return "The set ended because the phone rotated after bar calibration. Re-check framing and set the bar again."
         case .manual:
             return nil
         }
@@ -645,10 +651,13 @@ struct LiveSetupView: View {
 
     private var barCalibrationDetail: String {
         if camera.currentBar != nil {
-            return "\(camera.barRole.title) confirmed from a frozen analyzed frame."
+            return "\(camera.barRole.title) confirmed from a frozen analyzed frame. Phone orientation is monitored from the same calibration instant."
         }
         if !camera.framing.state.isReady {
             return "Make the selected arm measurable, then freeze a frame and mark the gripping edge."
+        }
+        if !camera.motionSampleAvailable {
+            return "Waiting for device-motion data before the bar can be calibrated."
         }
         return "Freeze the current analyzed frame and confirm the gripping bar or selected dip rail."
     }
@@ -657,16 +666,46 @@ struct LiveSetupView: View {
         if !camera.isCameraReady { return "Start the rear camera." }
         if !camera.framing.state.isReady { return camera.framing.detail }
         if camera.currentBar == nil { return "Confirm the fixed bar reference." }
+        if !camera.phoneOrientation.state.allowsLiveSet {
+            return "Phone orientation is not stable against the calibration baseline."
+        }
         return "Complete the remaining setup checks."
     }
 
     private var scopeNote: some View {
         Label(
-            "Live sets use the same bar-relative movement counter as recorded review. Automatic apparatus identity, phone-motion detection, chin/depth verification, and form scoring remain separate qualification steps.",
+            "Live sets use the same bar-relative movement counter as recorded review. Sustained phone rotation after bar calibration invalidates the set. Pure phone translation is not detected yet; chin/depth verification and form scoring remain separate qualification steps.",
             systemImage: "info.circle"
         )
         .font(.footnote)
         .foregroundStyle(.secondary)
+    }
+
+    private var phoneStabilityDetail: String {
+        switch camera.phoneOrientation.state {
+        case .unavailable:
+            return "Device-motion monitoring is unavailable. Live set start is blocked."
+        case .uncalibrated:
+            return camera.motionSampleAvailable
+                ? "Ready to lock orientation when the bar is calibrated."
+                : "Waiting for device-motion data."
+        case .stable:
+            if let delta = camera.phoneOrientation.latestDeltaDegrees {
+                return String(format: "Orientation monitored · %.1f° from calibration.", delta)
+            }
+            return "Orientation monitored from bar calibration."
+        case .moved:
+            return "Phone rotated after calibration. Set the bar again."
+        }
+    }
+
+    private var phoneStabilitySymbol: String {
+        switch camera.phoneOrientation.state {
+        case .stable: "checkmark.circle.fill"
+        case .moved: "exclamationmark.triangle.fill"
+        case .unavailable: "xmark.circle.fill"
+        case .uncalibrated: camera.motionSampleAvailable ? "iphone.gen3" : "hourglass"
+        }
     }
 
     private var framingStatusSymbol: String {
