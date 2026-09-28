@@ -30,6 +30,7 @@ struct LiveSetupGuide: Equatable, Sendable {
 @MainActor
 struct LiveSetupView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var camera = LiveCameraPreviewController()
     @State private var exercise: ExerciseCounter.Exercise = .pullUp
     @State private var side: ArmMeasurement.Side = .left
@@ -87,6 +88,20 @@ struct LiveSetupView: View {
             .onChange(of: side) { _, newSide in
                 camera.configureWorkout(exercise: exercise, side: newSide)
                 barSetup = nil
+            }
+            .onChange(of: scenePhase) { _, phase in
+                switch phase {
+                case .active:
+                    if camera.isSuspended {
+                        Task { await camera.resumeAfterInterruption() }
+                    }
+                case .inactive, .background:
+                    barSetup = nil
+                    camera.suspendForSceneLoss()
+                @unknown default:
+                    barSetup = nil
+                    camera.suspendForSceneLoss()
+                }
             }
             .onDisappear { camera.stop() }
         }
@@ -187,7 +202,7 @@ struct LiveSetupView: View {
                 ProgressView()
                     .tint(.white)
             } else {
-                Image(systemName: camera.state == .denied ? "video.slash.fill" : "video.fill")
+                Image(systemName: cameraStatusIcon)
                     .font(.system(size: 32, weight: .semibold))
                     .foregroundStyle(.white)
             }
@@ -204,6 +219,13 @@ struct LiveSetupView: View {
             if camera.state == .denied {
                 Button("Open Settings") { camera.openSettings() }
                     .buttonStyle(.borderedProminent)
+            } else if camera.isSuspended {
+                Button {
+                    Task { await camera.resumeAfterInterruption() }
+                } label: {
+                    Label("Resume camera", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.borderedProminent)
             }
         }
         .frame(maxWidth: 420)
@@ -389,9 +411,9 @@ struct LiveSetupView: View {
     private var liveResultsCard: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
-                Label("Set complete", systemImage: "checkmark.circle.fill")
+                Label(liveResultTitle, systemImage: liveResultIcon)
                     .font(.headline)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(liveResultColor)
 
                 Spacer()
 
@@ -421,6 +443,12 @@ struct LiveSetupView: View {
                     liveResultMetric("Duration", formattedLiveDuration)
                     liveResultMetric("Tracking", formattedLiveCoverage)
                 }
+            }
+
+            if let message = liveResultInterruptionMessage {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
             }
 
             if !camera.liveSet.movementTimes.isEmpty {
@@ -475,6 +503,52 @@ struct LiveSetupView: View {
                 .monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var cameraStatusIcon: String {
+        switch camera.state {
+        case .denied, .interrupted, .failed:
+            return "video.slash.fill"
+        case .unavailable:
+            return "camera.fill"
+        default:
+            return "video.fill"
+        }
+    }
+
+    private var liveResultTitle: String {
+        if camera.liveSet.endReason?.isInterruption == true {
+            return "Set interrupted"
+        }
+        return "Set complete"
+    }
+
+    private var liveResultIcon: String {
+        camera.liveSet.endReason?.isInterruption == true
+            ? "exclamationmark.triangle.fill"
+            : "checkmark.circle.fill"
+    }
+
+    private var liveResultColor: Color {
+        camera.liveSet.endReason?.isInterruption == true ? .orange : .green
+    }
+
+    private var liveResultInterruptionMessage: String? {
+        guard let reason = camera.liveSet.endReason, reason.isInterruption else {
+            return nil
+        }
+        switch reason {
+        case .appInactive:
+            return "The set ended when the app left the foreground. Camera framing and the bar reference must be checked again."
+        case .cameraInterrupted:
+            return "The set ended because the camera was interrupted. Re-check framing and the bar reference before another set."
+        case .cameraFailure:
+            return "The set ended because the camera session stopped unexpectedly."
+        case .setupInvalidated:
+            return "The set ended because the fixed bar reference became incompatible with the camera frames."
+        case .manual:
+            return nil
+        }
     }
 
     private var navigationTitle: String {
