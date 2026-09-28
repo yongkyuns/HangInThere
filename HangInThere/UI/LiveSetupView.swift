@@ -290,7 +290,7 @@ struct LiveSetupView: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: camera.setupReadiness.state.isReady ? "checkmark.circle.fill" : "circle.dashed")
                 .font(.title2)
-                .foregroundStyle(camera.setupReadiness.state.isReady ? .green : .secondary)
+                .foregroundStyle(readyStatusColor)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -310,6 +310,10 @@ struct LiveSetupView: View {
         .padding(16)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
         .accessibilityIdentifier("liveSetupReadiness")
+    }
+
+    private var readyStatusColor: Color {
+        camera.setupReadiness.state.isReady ? .green : .secondary
     }
 
     private var barCalibrationDetail: String {
