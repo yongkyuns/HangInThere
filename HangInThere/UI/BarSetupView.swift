@@ -90,7 +90,7 @@ struct BarSetupView: View {
                         else { message = "This frame is no longer current. Close setup and select the bar again." }
                     }
                     .buttonStyle(.borderedProminent).disabled(selection == nil || busy)
-                    Text("One athlete and a fixed phone. Saved geometry is a reference from this frame, not ongoing tracking. It does not yet change the movement counter or verify chin clearance, dip depth or physical contact.")
+                    Text("One athlete and a fixed phone. Saved geometry is a reference from this frame, not ongoing tracking. The confirmed edge is used as a fixed movement/contact reference. It still does not verify chin clearance, dip depth or physical contact.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }.padding()
             }
