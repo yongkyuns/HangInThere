@@ -60,6 +60,7 @@ struct LiveSetupView: View {
                     }
 
                     scopeNote
+                    qualificationDisclosure
                 }
                 .padding()
             }
@@ -691,6 +692,105 @@ struct LiveSetupView: View {
         )
         .font(.footnote)
         .foregroundStyle(.secondary)
+    }
+
+    private var qualificationDisclosure: some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: 14) {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 20) {
+                        qualificationMetric("Vision", formattedVisionLatency)
+                        qualificationMetric("Scene reg", formattedSceneRegistrationLatency)
+                        qualificationMetric("Analysis", formattedAnalysisRate)
+                        qualificationMetric("Thermal", camera.qualificationThermalLevel.rawValue.capitalized)
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        qualificationMetric("Vision", formattedVisionLatency)
+                        qualificationMetric("Scene registration", formattedSceneRegistrationLatency)
+                        qualificationMetric("Analysis", formattedAnalysisRate)
+                        qualificationMetric("Thermal", camera.qualificationThermalLevel.rawValue.capitalized)
+                    }
+                }
+
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 20) {
+                        qualificationMetric("Dropped", "\(camera.droppedFrames)")
+                        qualificationMetric("Pose fail", "\(camera.analysisFailures)")
+                        qualificationMetric("Scene fail", "\(camera.sceneRegistrationFailures)")
+                        qualificationMetric("Samples", "\(camera.qualification.samples.count)")
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        qualificationMetric("Dropped frames", "\(camera.droppedFrames)")
+                        qualificationMetric("Analysis failures", "\(camera.analysisFailures)")
+                        qualificationMetric("Scene registration failures", "\(camera.sceneRegistrationFailures)")
+                        qualificationMetric("Stored samples", "\(camera.qualification.samples.count)")
+                    }
+                }
+
+                if let delta = camera.phoneOrientation.latestDeltaDegrees {
+                    qualificationMetric("Orientation delta", String(format: "%.2f°", delta))
+                }
+                if let shift = camera.sceneTranslation.latestShiftFraction {
+                    qualificationMetric("Background shift", String(format: "%.3f%%", shift * 100))
+                }
+                if let scale = camera.sceneTranslation.latestScaleFraction {
+                    qualificationMetric("Global homography scale", String(format: "%.3f%%", scale * 100))
+                }
+
+                qualificationMetric(
+                    "Scale measurement",
+                    camera.sceneTranslation.latestScaleMeasurementAvailable ? "Available" : "Unavailable"
+                )
+
+                ShareLink(item: camera.qualificationReportJSON()) {
+                    Label("Share JSON qualification report", systemImage: "square.and.arrow.up")
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("shareLiveQualificationReport")
+
+                Text("The report is local engineering evidence only. It contains timing, counters, thermal state, and camera-stability metrics—no video, images, landmarks, filenames, location, or device identifiers.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.top, 10)
+        } label: {
+            Label("Device qualification", systemImage: "gauge.with.dots.needle.50percent")
+                .font(.subheadline.weight(.semibold))
+        }
+        .padding(16)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    @ViewBuilder
+    private func qualificationMetric(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var formattedVisionLatency: String {
+        guard let milliseconds = camera.lastProcessingMilliseconds else { return "—" }
+        return String(format: "%.1f ms", milliseconds)
+    }
+
+    private var formattedSceneRegistrationLatency: String {
+        guard let milliseconds = camera.lastSceneRegistrationMilliseconds else { return "—" }
+        return String(format: "%.1f ms", milliseconds)
+    }
+
+    private var formattedAnalysisRate: String {
+        guard let start = camera.qualification.startedUptimeSeconds else { return "—" }
+        let duration = max(0, ProcessInfo.processInfo.systemUptime - start)
+        guard duration > 0 else { return "—" }
+        return String(format: "%.1f fps", Double(camera.analyzedFrames) / duration)
     }
 
     private var phoneStabilityDetail: String {
