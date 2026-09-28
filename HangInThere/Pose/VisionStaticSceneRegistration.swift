@@ -10,12 +10,18 @@ struct StaticSceneRegistrationReference: Sendable {
     }
 
     let imageSize: ImageSize
+    let image: CGImage
     let patches: [Patch]
 }
 
-// Peripheral patches keep the moving athlete from dominating scene stability.
-// Translation and local homographic scale are measured independently, then a
-// framework-free policy decides whether enough patches agree.
+struct StaticSceneRegistrationMeasurement: Sendable {
+    let translations: [StaticSceneStability.PatchTranslation]
+    let globalScaleFraction: Double?
+}
+
+// Peripheral patches keep the moving athlete from dominating lateral translation.
+// A separate full-frame homography supplies the scale signal because local corner
+// homographies proved too fragile in synthetic qualification.
 actor VisionStaticSceneRegistrationWorker {
     enum RegistrationError: LocalizedError {
         case invalidGeometry
@@ -52,6 +58,7 @@ actor VisionStaticSceneRegistrationWorker {
         guard patches.count == 4 else { return nil }
         return StaticSceneRegistrationReference(
             imageSize: ImageSize(width: Double(width), height: Double(height)),
+            image: image,
             patches: patches
         )
     }
@@ -59,7 +66,7 @@ actor VisionStaticSceneRegistrationWorker {
     func measure(
         reference: StaticSceneRegistrationReference,
         image: CGImage
-    ) throws -> [StaticSceneStability.PatchMotion] {
+    ) throws -> StaticSceneRegistrationMeasurement {
         guard reference.imageSize.isValid, reference.patches.count >= 2 else {
             throw RegistrationError.invalidGeometry
         }
@@ -69,32 +76,33 @@ actor VisionStaticSceneRegistrationWorker {
             throw RegistrationError.incompatibleGeometry
         }
 
-        var motions: [StaticSceneStability.PatchMotion] = []
-        motions.reserveCapacity(reference.patches.count)
+        var translations: [StaticSceneStability.PatchTranslation] = []
+        translations.reserveCapacity(reference.patches.count)
 
         for patch in reference.patches {
-            guard let current = image.cropping(to: patch.rect) else { continue }
+            guard let current = image.cropping(to: patch.rect),
+                  let translation = translationMeasurement(
+                    reference: patch.image,
+                    current: current,
+                    patchRect: patch.rect
+                  )
+            else { continue }
 
-            let translation = translationMeasurement(
-                reference: patch.image,
-                current: current,
-                patchRect: patch.rect
-            )
-            let scaleFraction = homographicScaleMeasurement(
-                reference: patch.image,
-                current: current
-            )
-
-            if translation != nil || scaleFraction != nil {
-                motions.append(.init(
-                    dxPixels: translation?.dx,
-                    dyPixels: translation?.dy,
-                    scaleFraction: scaleFraction
-                ))
-            }
+            translations.append(.init(
+                dxPixels: translation.dx,
+                dyPixels: translation.dy
+            ))
         }
 
-        return motions
+        let globalScale = homographicScaleMeasurement(
+            reference: reference.image,
+            current: image
+        )
+
+        return StaticSceneRegistrationMeasurement(
+            translations: translations,
+            globalScaleFraction: globalScale
+        )
     }
 
     private func translationMeasurement(
@@ -153,9 +161,6 @@ actor VisionStaticSceneRegistrationWorker {
         guard let observation = request.results?.first else { return nil }
         let matrix = observation.warpTransform
 
-        // Homographies are scale-equivalent, so normalize by h22 before
-        // interpreting the local 2x2 area transform. The square root of the
-        // absolute determinant is the isotropic area-equivalent local scale.
         let h22 = Double(matrix.columns.2.z)
         guard h22.isFinite, abs(h22) > 1e-9 else { return nil }
 
