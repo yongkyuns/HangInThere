@@ -43,9 +43,19 @@ counting threshold or a claimed anatomical error bound.
 Each `[Pose sample]` log line exports the model's actual frame index, timestamp,
 image dimensions, joints/confidence and derivative SHA-256 for visual auditing.
 Only the pinned public fixture is logged, never the app's private imports. These
-**model predictions are not ground-truth labels**. The smoke suite does not
-implement a counter or establish rep precision/recall, form quality, or 3D angles.
-Dip footage and independently labelled held-out evaluation remain P1+ work.
+**model predictions are not ground-truth labels**.
+
+The same fixture also has one explicitly reviewed **demo expectation** in
+`source.json`: pull-up, left-arm tracking, and a fixed visible gripping-bar edge
+from frame 0. `realWorkoutFixtureRunsThroughVisionCountingAndResults` sends the
+video through the default `ReplayController`, real Apple Vision estimator, normal
+bar-confirmation lifecycle, production movement counter, and completed-session
+result data. It must finish with one observed movement and no synthetic pose or
+counter substitution. The expected event remains **movement only**: it does not
+establish chin clearance, rep validity, form quality, or population-level accuracy.
+
+Dip footage and independently labelled held-out evaluation remain separate
+qualification work.
 
 Separate tests create four-quadrant videos with AVAssetWriter. Their synthetic
 pixels test actual decoding, orientation, irregular timestamps and lifecycle;
