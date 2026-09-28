@@ -13,7 +13,7 @@ import math
 import pathlib
 import statistics
 import sys
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Optional, Sequence
 
 THERMAL_SEVERITY = {
     "unknown": -1,
@@ -52,14 +52,14 @@ class ReportError(ValueError):
     pass
 
 
-def _finite_number(value: Any) -> float | None:
+def _finite_number(value: Any) -> Optional[float]:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     value = float(value)
     return value if math.isfinite(value) else None
 
 
-def _percentile(values: Iterable[float], fraction: float) -> float | None:
+def _percentile(values: Iterable[float], fraction: float) -> Optional[float]:
     sorted_values = sorted(v for v in values if math.isfinite(v))
     if not sorted_values:
         return None
@@ -68,7 +68,7 @@ def _percentile(values: Iterable[float], fraction: float) -> float | None:
     return sorted_values[index]
 
 
-def _median(values: Iterable[float]) -> float | None:
+def _median(values: Iterable[float]) -> Optional[float]:
     finite = [v for v in values if math.isfinite(v)]
     return statistics.median(finite) if finite else None
 
@@ -165,13 +165,13 @@ def _sample_values(samples: Sequence[dict[str, Any]], key: str) -> list[float]:
     return values
 
 
-def _format_number(value: float | None, digits: int = 3) -> str:
+def _format_number(value: Optional[float], digits: int = 3) -> str:
     if value is None:
         return "—"
     return f"{value:.{digits}f}"
 
 
-def _format_fraction_percent(value: float | None, digits: int = 2) -> str:
+def _format_fraction_percent(value: Optional[float], digits: int = 2) -> str:
     if value is None:
         return "—"
     return f"{value * 100:.{digits}f}%"
@@ -325,7 +325,7 @@ def thermal_analysis(report: dict[str, Any]) -> dict[str, Any]:
     early = _window_metrics(samples[:window_size])
     late = _window_metrics(samples[-window_size:])
 
-    def relative_change(before: Any, after: Any) -> float | None:
+    def relative_change(before: Any, after: Any) -> Optional[float]:
         before_value = _finite_number(before)
         after_value = _finite_number(after)
         if before_value is None or after_value is None or abs(before_value) < 1e-12:
@@ -422,7 +422,7 @@ def _render_stationary(analysis: dict[str, Any]) -> str:
 
 
 def _render_thermal(name: str, analysis: dict[str, Any]) -> str:
-    def percent(value: float | None) -> str:
+    def percent(value: Optional[float]) -> str:
         return "—" if value is None else f"{value * 100:+.1f}%"
 
     early, late = analysis["early"], analysis["late"]
@@ -492,7 +492,7 @@ def render_markdown(result: dict[str, Any]) -> str:
     raise AssertionError(profile)
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Analyze HangInThere physical-iPhone qualification JSON reports."
     )
