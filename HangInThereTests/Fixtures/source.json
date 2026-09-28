@@ -10,7 +10,7 @@
   "rights_basis": "Wikimedia Commons records PD-US-Marines: official-duty U.S. federal government work, public domain in the United States.",
   "credit": "U.S. Marine Corps / AFN Iwakuni; original video credited to Andrew Knight and Saul Hernandez.",
   "reviewed_metadata_date": "2026-09-26",
-  "use": "Test-only decoder and pose-backend smoke fixture. No endorsement, no medical or form ground truth, no commercial marketing use.",
+  "use": "Test-only decoder/pose smoke fixture and end-to-end movement-only workout demo regression. No endorsement, no medical or form ground truth, no commercial marketing use.",
   "recipe": {
     "source_start_seconds": 29,
     "duration_seconds": 4,
