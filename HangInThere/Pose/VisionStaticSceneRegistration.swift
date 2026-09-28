@@ -15,7 +15,7 @@ struct StaticSceneRegistrationReference: Sendable {
 
 // Vision's translational registration aligns a floating image to a fixed
 // reference. We use four peripheral patches and leave robustness/thresholds to
-// StaticSceneTranslationStability so one athlete-contaminated patch is an outlier.
+// StaticSceneStability so one athlete-contaminated patch is an outlier.
 actor VisionStaticSceneRegistrationWorker {
     enum RegistrationError: LocalizedError {
         case invalidGeometry
@@ -57,7 +57,7 @@ actor VisionStaticSceneRegistrationWorker {
     func measure(
         reference: StaticSceneRegistrationReference,
         image: CGImage
-    ) throws -> [StaticSceneTranslationStability.PatchShift] {
+    ) throws -> [StaticSceneStability.PatchShift] {
         guard reference.imageSize.isValid, reference.patches.count >= 2 else {
             throw RegistrationError.invalidGeometry
         }
@@ -67,7 +67,7 @@ actor VisionStaticSceneRegistrationWorker {
             throw RegistrationError.incompatibleGeometry
         }
 
-        var shifts: [StaticSceneTranslationStability.PatchShift] = []
+        var shifts: [StaticSceneStability.PatchShift] = []
         shifts.reserveCapacity(reference.patches.count)
 
         for patch in reference.patches {
