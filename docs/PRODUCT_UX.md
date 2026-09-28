@@ -278,10 +278,12 @@ the fixed bar reference; a running set ends as **Set interrupted** with a
 scene-shift reason. Brief or mutually inconsistent patch shifts do not invalidate
 setup.
 
-This closes the obvious pure-translation blind spot but is still not a full
-camera-pose estimator. Low-texture backgrounds, depth-dependent parallax, zoom/lens
-changes, and scene motion can make translational registration unavailable or
-ambiguous. The UI therefore uses **Camera position / background alignment**
+This substantially reduces the **lateral/image-plane translation** blind spot but
+is still not a full camera-pose estimator. Translation along the optical axis may
+appear primarily as scale/parallax rather than one common image translation.
+Low-texture backgrounds, depth-dependent parallax, zoom/lens changes, and scene
+motion can also make translational registration unavailable or ambiguous. The UI
+therefore uses **Camera position / background alignment**
 language rather than claiming 6-DoF camera localization. Both the Core Motion and
 image-registration thresholds remain engineering defaults pending physical iPhone
 qualification.
