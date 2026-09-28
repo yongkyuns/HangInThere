@@ -147,6 +147,14 @@ import Testing
         #expect(candidates[0].edge.midpoint.y == 85)
         #expect(candidates[1].edge.midpoint.y == 175)
     }
+    @Test func signedBarDistanceIsStableUnderEndpointReversalAndAlongEdgeMotion() {
+        let edge = line(100,200,500,200)
+        let reversed = line(500,200,100,200)
+        #expect(abs(edge.signedImageNormalDistance(to: Point2D(x:150,y:230)) - 30) < 1e-9)
+        #expect(abs(edge.signedImageNormalDistance(to: Point2D(x:450,y:230)) - 30) < 1e-9)
+        #expect(abs(reversed.signedImageNormalDistance(to: Point2D(x:150,y:230)) - 30) < 1e-9)
+        #expect(edge.signedImageNormalDistance(to: Point2D(x:150,y:170)) < 0)
+    }
     @Test func screenGuideMapsBackToUnmirroredPixels() throws {
         let fit = try #require(AspectFit(image:size,viewport:ImageSize(width:320,height:400)))
         #expect(fit.imagePoint(fit.displayPoint(Point2D(x:50,y:100))) == Point2D(x:50,y:100))
