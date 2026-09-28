@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "scope": "Small real-video diversity corpus for decoder/Apple-Vision/tracking robustness. Count expectations exist only where explicitly reviewed. This is not a population accuracy benchmark or form-validity dataset.",
+  "generated_root": "HangInThereTests/Fixtures/generated/corpus",
+  "cases": [
+    {
+      "id": "iwakuni-standard-rear-oblique",
+      "tier": "count-qualified",
+      "exercise": "pullUp",
+      "source_kind": "existing_fixture",
+      "prepared_video": "../pullup-smoke.mp4",
+      "environment_tags": ["military-fitness", "landscape", "rear-oblique", "standard-two-arm"],
+      "review_scope": "Existing fully reviewed 40-frame fixture and one-movement regression in source.json.",
+      "expectation": {
+        "minimum_people_fraction": 0.95,
+        "minimum_any_arm_fraction": 0.80
+      }
+    },
+    {
+      "id": "fitnessscape-standard-indoor",
+      "tier": "tracking-qualified",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Pull-ups_-_exercise_demonstration_video.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Pull-ups_-_exercise_demonstration_video.webm",
+      "source_bytes": null,
+      "source_sha256": null,
+      "license": "CC BY 3.0",
+      "credit": "FitnessScape",
+      "environment_tags": ["indoor-gym", "landscape", "standard-two-arm"],
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 6,
+        "frames_per_second": 8,
+        "max_long_edge": 640
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.90,
+        "minimum_any_arm_fraction": 0.75
+      }
+    },
+    {
+      "id": "solodkyi-one-arm-portrait",
+      "tier": "stress-coverage",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:One-arm_pull-up_-_Solodkyi_Serhii_3194821.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/One-arm_pull-up_-_Solodkyi_Serhii_3194821.webm",
+      "source_bytes": null,
+      "source_sha256": null,
+      "license": "CC BY-SA 4.0",
+      "credit": "Fenix1000 / Solodkyi Serhii",
+      "environment_tags": ["portrait", "one-arm", "nonstandard-exercise-view"],
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 32,
+        "frames_per_second": 4,
+        "max_long_edge": 640
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.65,
+        "minimum_any_arm_fraction": 0.45
+      }
+    },
+    {
+      "id": "solodkyi-tree-branch-outdoor",
+      "tier": "stress-coverage",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:A_one-arm_pull-up_from_a_tree_branch_-_Solodkyi_Serhii_6469.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/d/de/A_one-arm_pull-up_from_a_tree_branch_-_Solodkyi_Serhii_6469.webm",
+      "source_bytes": null,
+      "source_sha256": null,
+      "license": "CC BY-SA 4.0",
+      "credit": "Fenix1000 / Solodkyi Serhii",
+      "environment_tags": ["outdoor", "landscape", "tree-branch", "one-arm", "nonstandard-apparatus"],
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 23,
+        "frames_per_second": 4,
+        "max_long_edge": 640
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.60,
+        "minimum_any_arm_fraction": 0.40
+      }
+    }
+  ],
+  "known_gap": {
+    "exercise": "dip",
+    "status": "No reproducibly downloadable, clearly licensed real parallel-bar dip source is pinned yet. Do not fabricate one or relabel chair-dip footage."
+  }
+}
