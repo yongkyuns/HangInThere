@@ -264,6 +264,62 @@ def prepare_download_case(case, work):
     }
 
 
+def prepare_existing_source_case(case, work):
+    path = (ROOT / case["source_path"]).resolve()
+    root = ROOT.resolve()
+    if root not in path.parents:
+        raise ValueError("{} existing source escapes repository root.".format(case["id"]))
+    if not path.exists():
+        raise ValueError(
+            "{} requires the already-verified Iwakuni source. Run python3 scripts/prepare-fixtures.py first.".format(
+                case["id"]
+            )
+        )
+    if path.stat().st_size != case["source_bytes"] or digest(path) != case["source_sha256"]:
+        raise ValueError("{} existing source integrity mismatch.".format(case["id"]))
+
+    recipe = case["recipe"]
+    video = work / "{}.mp4".format(case["id"])
+    contact = work / "{}-contact.jpg".format(case["id"])
+    run(
+        [
+            "ffmpeg", "-v", "error", "-y",
+            "-ss", str(recipe["source_start_seconds"]),
+            "-i", str(path),
+            "-t", str(recipe["duration_seconds"]),
+            "-map", "0:v:0",
+            "-vf",
+            "fps={},scale={m}:{m}:force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1".format(
+                recipe["frames_per_second"], m=recipe["max_long_edge"]
+            ),
+            "-an", "-c:v", "libx264", "-preset", "fast", "-crf", "18",
+            "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(video),
+        ]
+    )
+    timestamps = frame_timestamps(video)
+    expected_count = int(recipe["duration_seconds"] * recipe["frames_per_second"])
+    if len(timestamps) != expected_count:
+        raise ValueError(
+            "{} prepared frame count {} != expected {}".format(
+                case["id"], len(timestamps), expected_count
+            )
+        )
+    create_contact_sheet(video, contact)
+    return {
+        "id": case["id"],
+        "tier": case["tier"],
+        "exercise": case["exercise"],
+        "source_sha256": case["source_sha256"],
+        "source_bytes": case["source_bytes"],
+        "video_sha256": digest(video),
+        "contact_sha256": digest(contact),
+        "frame_count": len(timestamps),
+        "frame_pts_seconds": timestamps,
+        "geometry": video_geometry(video),
+        "recipe": recipe,
+    }
+
+
 def prepare_existing_case(case, work):
     source = (EXISTING_FIXTURE_ROOT / case["prepared_video"]).resolve()
     root = EXISTING_FIXTURE_ROOT.resolve()
@@ -304,6 +360,8 @@ def prepare(spec):
                 prepared.append(prepare_download_case(case, work))
             elif case["source_kind"] == "existing_fixture":
                 prepared.append(prepare_existing_case(case, work))
+            elif case["source_kind"] == "existing_source":
+                prepared.append(prepare_existing_source_case(case, work))
             else:
                 raise ValueError("Unknown source_kind for {}".format(case["id"]))
 
@@ -331,6 +389,11 @@ def verify_prepared(spec):
             raise ValueError("Prepared corpus is missing {}.".format(case["id"]))
         if case["source_kind"] == "download":
             verify_source(case, source_path(case))
+            video = DESTINATION / "{}.mp4".format(case["id"])
+        elif case["source_kind"] == "existing_source":
+            source = (ROOT / case["source_path"]).resolve()
+            if source.stat().st_size != case["source_bytes"] or digest(source) != case["source_sha256"]:
+                raise ValueError("{} existing source integrity mismatch.".format(case["id"]))
             video = DESTINATION / "{}.mp4".format(case["id"])
         else:
             video = (EXISTING_FIXTURE_ROOT / case["prepared_video"]).resolve()
