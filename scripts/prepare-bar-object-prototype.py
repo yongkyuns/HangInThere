@@ -21,7 +21,10 @@ from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SPEC = ROOT / "Evaluation/fixtures/bar-object-prototype.json"
-ALLOWED_HOSTS = {"d34w7g4gy10iej.cloudfront.net"}
+ALLOWED_HOSTS = {
+    "d34w7g4gy10iej.cloudfront.net",
+    "d1ldvf68ux039x.cloudfront.net",
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -42,15 +45,15 @@ def read_json(path: Path):
         return json.load(stream)
 
 
-def fetch_pinned(row: dict, cache: Path, fetch: bool) -> Path:
+def fetch_pinned(row: dict, cache: Path, fetch: bool, suffix: str, limit: int) -> Path:
     parsed = urllib.parse.urlparse(row["url"])
     require(parsed.scheme == "https" and parsed.hostname in ALLOWED_HOSTS and not parsed.query,
-            "Unapproved pull-up source URL")
+            "Unapproved research source URL")
     expected_bytes = int(row["bytes"])
-    require(0 < expected_bytes <= 250_000_000, "Pull-up source exceeds bound")
-    path = cache / f'{row["sha256"]}.mp4'
+    require(0 < expected_bytes <= limit, "Research source exceeds bound")
+    path = cache / f'{row["sha256"]}{suffix}'
     if not path.exists():
-        require(fetch, "Missing pinned pull-up source; enable --fetch")
+        require(fetch, "Missing pinned research source; enable --fetch")
         cache.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(dir=cache, delete=False) as tmp:
             temp_path = Path(tmp.name)
@@ -62,16 +65,24 @@ def fetch_pinned(row: dict, cache: Path, fetch: bool) -> Path:
             with urllib.request.urlopen(req, timeout=120) as response, temp_path.open("wb") as out:
                 while block := response.read(1024 * 1024):
                     total += len(block)
-                    require(total <= expected_bytes, "Pull-up source grew beyond pin")
+                    require(total <= expected_bytes, "Research source grew beyond pin")
                     out.write(block)
-            require(total == expected_bytes, "Pull-up source byte count changed")
-            require(digest(temp_path) == row["sha256"], "Pull-up source checksum changed")
+            require(total == expected_bytes, "Research source byte count changed")
+            require(digest(temp_path) == row["sha256"], "Research source checksum changed")
             temp_path.replace(path)
         finally:
             temp_path.unlink(missing_ok=True)
     require(path.stat().st_size == expected_bytes and digest(path) == row["sha256"],
-            "Cached pull-up source does not match pin")
+            "Cached research source does not match pin")
     return path
+
+
+def fetch_video(row: dict, cache: Path, fetch: bool) -> Path:
+    return fetch_pinned(row, cache, fetch, ".mp4", 250_000_000)
+
+
+def fetch_image(row: dict, cache: Path, fetch: bool) -> Path:
+    return fetch_pinned(row, cache, fetch, ".jpg", 10_000_000)
 
 
 def probe_video(path: Path) -> tuple[int, int]:
@@ -84,7 +95,7 @@ def probe_video(path: Path) -> tuple[int, int]:
     return int(streams[0]["width"]), int(streams[0]["height"])
 
 
-def sample_video(path: Path, destination: Path, fps: int, width: int) -> list[Path]:
+def sample_video(path: Path, destination: Path, fps: int | str, width: int) -> list[Path]:
     destination.mkdir(parents=True, exist_ok=False)
     subprocess.run([
         "ffmpeg", "-v", "error", "-i", str(path),
@@ -156,10 +167,30 @@ def copy_training_frames(label: str, source_id: str, frames: list[Path],
     return count
 
 
+def copy_selected_training_frames(label: str, source_id: str, frames: list[Path],
+                                  selections: list[dict], train: Path,
+                                  records: list[dict]) -> int:
+    indices = [int(row["index"]) for row in selections]
+    require(len(indices) == len(set(indices)), f"Duplicate selected frame for {source_id}")
+    for index in indices:
+        require(0 <= index < len(frames), f"Selected frame outside sampled source: {source_id}:{index}")
+
+    for row in selections:
+        index = int(row["index"])
+        frame = frames[index]
+        with Image.open(frame) as image:
+            width, height = image.size
+        boxes = [[float(v) for v in box] for box in row["boxes"]]
+        out = train / f"{source_id}_{frame.stem}.jpg"
+        shutil.copyfile(frame, out)
+        add_record(records, label, out, boxes, width, height)
+    return len(selections)
+
+
 def prepare(spec_path: Path, temporal_root: Path, source_root: Path,
             cache: Path, output: Path, fetch: bool = False) -> dict:
     spec = read_json(spec_path)
-    require(spec.get("schema_version") == 1, "Unsupported object prototype schema")
+    require(spec.get("schema_version") == 2, "Unsupported object prototype schema")
     label = spec["label"]
     target_width = int(spec["image_width"])
     require(label == "grip_bar" and target_width == 640, "Unexpected prototype policy")
@@ -172,17 +203,19 @@ def prepare(spec_path: Path, temporal_root: Path, source_root: Path,
     train_records: list[dict] = []
     test_records: list[dict] = []
     groups: dict[str, int] = {}
+    source_hashes: dict[str, str] = {}
 
-    # Separate public-domain DVIDS pull-up source, pinned by bytes and SHA-256.
+    # Initial public-domain DVIDS pull-up source.
     pullup_row = spec["training"]["pullup_dvids"]
-    pullup_source = fetch_pinned(pullup_row, cache, fetch)
+    pullup_source = fetch_video(pullup_row, cache, fetch)
     require(probe_video(pullup_source) == (1920, 1080), "DVIDS pull-up geometry changed")
     sampled = sample_video(pullup_source, output / "_pullup_samples",
-                           int(pullup_row["sample_fps"]), target_width)
+                           pullup_row["sample_fps"], target_width)
     require(tuple(pullup_row["output_size"]) == (640, 360), "Unexpected pull-up sample geometry")
     groups["pullup_dvids"] = copy_training_frames(
         label, "pullup_dvids", sampled,
         [[float(v) for v in box] for box in pullup_row["boxes"]], train, train_records)
+    source_hashes["pullup_dvids"] = pullup_row["sha256"]
 
     # Two continuous dip shots already byte-pinned by the temporal fixture.
     for source_id in ("dip_rear", "dip_side"):
@@ -192,13 +225,43 @@ def prepare(spec_path: Path, temporal_root: Path, source_root: Path,
         input_size = tuple(row["input_size"])
         require(probe_video(video) == input_size, f"{source_id} geometry changed")
         samples = sample_video(video, output / f"_{source_id}_samples",
-                               int(row["sample_fps"]), target_width)
+                               row["sample_fps"], target_width)
         with Image.open(samples[0]) as image:
             out_width, out_height = image.size
         sx, sy = out_width / input_size[0], out_height / input_size[1]
         boxes = [scale_box(box, sx, sy) for box in row["boxes"]]
         groups[source_id] = copy_training_frames(
             label, source_id, samples, boxes, train, train_records)
+        source_hashes[source_id] = digest(video)
+
+    # Additional independent DVIDS videos: only explicitly reviewed sampled frames enter training.
+    for source_id, row in spec["diversity_videos"].items():
+        video = fetch_video(row, cache, fetch)
+        require(probe_video(video) == tuple(row["input_size"]),
+                f"{source_id} geometry changed")
+        samples = sample_video(video, output / f"_{source_id}_samples",
+                               row["sample_fps"], int(row["output_size"][0]))
+        with Image.open(samples[0]) as image:
+            sampled_size = image.size
+        require(sampled_size == tuple(row["output_size"]),
+                f"{source_id} sampled geometry changed: {sampled_size}")
+        groups[source_id] = copy_selected_training_frames(
+            label, source_id, samples, row["frames"], train, train_records)
+        source_hashes[source_id] = row["sha256"]
+
+    # Additional DVIDS stills, including an explicitly reviewed no-bar negative.
+    for row in spec["diversity_photos"]:
+        source_id = row["id"]
+        image_path = fetch_image(row, cache, fetch)
+        with Image.open(image_path) as raw:
+            actual = ImageOps.exif_transpose(raw).size
+        require(actual == tuple(row["input_size"]), f"{source_id} geometry changed")
+        out = train / f"{source_id}.jpg"
+        out_width, out_height, scale = clean_resize(image_path, out, target_width)
+        boxes = [scale_box(box, scale, scale) for box in row["boxes"]]
+        add_record(train_records, label, out, boxes, out_width, out_height)
+        groups[source_id] = 1
+        source_hashes[source_id] = row["sha256"]
 
     # Independent source groups are held out from all Create ML training/validation.
     for row in spec["testing"]:
@@ -206,38 +269,46 @@ def prepare(spec_path: Path, temporal_root: Path, source_root: Path,
         require(source.is_file(), f"Missing held-out source: {source}")
         with Image.open(source) as raw:
             actual = ImageOps.exif_transpose(raw).size
-        require(tuple(row["input_size"]) == actual, f'Held-out source geometry changed: {row["id"]}')
+        require(tuple(row["input_size"]) == actual,
+                f'Held-out source geometry changed: {row["id"]}')
         out = test / f'{row["id"]}.jpg'
         out_width, out_height, scale = clean_resize(source, out, target_width)
         boxes = [scale_box(box, scale, scale) for box in row["boxes"]]
         add_record(test_records, label, out, boxes, out_width, out_height)
 
-    # Exactly one JSON annotation file lives in each Create ML data-source directory.
-    (train / "annotations.json").write_text(json.dumps(train_records, indent=2, sort_keys=True) + "\n")
-    (test / "annotations.json").write_text(json.dumps(test_records, indent=2, sort_keys=True) + "\n")
+    (train / "annotations.json").write_text(
+        json.dumps(train_records, indent=2, sort_keys=True) + "\n")
+    (test / "annotations.json").write_text(
+        json.dumps(test_records, indent=2, sort_keys=True) + "\n")
 
-    # Temporary sampled directories are not part of the Create ML inputs/artifacts.
     for path in output.glob("_*_samples"):
         shutil.rmtree(path)
 
+    negative_images = sum(1 for row in train_records if not row["annotation"])
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "label": label,
         "training_images": len(train_records),
+        "training_positive_images": len(train_records) - negative_images,
+        "training_negative_images": negative_images,
         "training_objects": sum(len(r["annotation"]) for r in train_records),
         "training_source_groups": groups,
+        "training_source_sha256": source_hashes,
         "test_images": len(test_records),
         "test_objects": sum(len(r["annotation"]) for r in test_records),
         "test_source_groups": [r["source_group"] for r in spec["testing"]],
         "pose_inputs": False,
-        "annotation_policy": "coarse apparatus boxes frozen before model training; no pose-derived geometry",
-        "pullup_source_sha256": pullup_row["sha256"],
+        "annotation_policy": (
+            "coarse apparatus boxes and explicit no-bar negatives frozen before model "
+            "training; no pose-derived geometry"
+        ),
         "images": {
             "train": {p.name: digest(p) for p in sorted(train.glob("*.jpg"))},
             "test": {p.name: digest(p) for p in sorted(test.glob("*.jpg"))},
         },
     }
-    (output / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    (output / "manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     return manifest
 
 
