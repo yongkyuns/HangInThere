@@ -14,8 +14,10 @@ an exercise is a user input, not classifier evidence.
 ## State and counting convention
 
 - Acquire a sustained extended-arm start before attempting any count.
-- Observe departure, then a sustained bent-arm endpoint with body travel relative
-  to the same wrist in the exercise's expected direction.
+- Observe departure, then a sustained bent-arm endpoint with shoulder travel in
+  the expected image-vertical direction. A confirmed fixed bar supplies an
+  independent hand/bar compatibility reference; the moving wrist is not the
+  body-motion origin.
 - Pull-up: increment on the sustained bent endpoint, then require extension before
   another count. A final hold at the top keeps its movement count without requiring
   a descent. Chin clearance remains unverified.
@@ -34,7 +36,7 @@ no source frames elapsed; resuming cannot count a pending frame twice. Restart,
 source replacement, close, or changing exercise/arm clears counting state. Changing
 exercise/arm also rewinds the video rather than mixing policies in one set.
 
-## Fixed provisional policy v1
+## Fixed provisional policy v2
 
 These engineering constants were set before running the new counter on retained
 real model predictions. They are not learned from annotations or validated exercise
@@ -47,15 +49,25 @@ acceptance criteria, and are not exposed as per-video tuning controls.
 | Bent interior elbow angle | <=100 degrees |
 | Continuous endpoint evidence | >=0.12 source seconds, >=2 distinct samples |
 | Largest source-time gap | 0.35 seconds |
-| Required signed shoulder-to-wrist travel | 0.20 starting arm lengths |
-| Maximum wrist drift from starting contact | 0.25 starting arm lengths |
-| Current/start projected arm-length ratio | 0.65–1.50 |
+| Required signed shoulder travel | 0.20 starting arm lengths |
+| Maximum change in wrist-to-bar normal offset (when a bar is confirmed) | 0.25 starting arm lengths |
 
-An arm length is the sum of its projected shoulder–elbow and elbow–wrist lengths.
-The start length is frozen for the attempt; shoulder travel is measured relative
-to the wrist, not from raw screen motion. Existing `ArmMeasurement` availability
-checks remain in force (0.3 joint scores, visible unique joints, bounded coordinates,
-minimum segment lengths). Scores are not calibrated reliability probabilities.
+An arm length is the sum of its projected shoulder–elbow and elbow–wrist lengths
+at the extended start and is used only as a scale. Policy v2 **does not require
+the current projected arm length to remain close to that starting value**.
+That removes the foreshortening failure found in the real pull-up diagnostic.
+
+With a confirmed bar, the wrist's signed perpendicular offset from the fixed
+observed bar line is compared with its start offset. Motion along the bar is
+allowed; a large normal-offset change interrupts the attempt. This is 2D
+compatibility evidence, not proof that the hand physically grips the bar.
+Shoulder travel uses the fixed camera/bar reference rather than wrist displacement.
+Without a confirmed bar, the diagnostic falls back to fixed-camera shoulder Y and
+reports `referenceMode: fixedCameraOnly`.
+
+Existing `ArmMeasurement` availability checks remain in force (0.3 joint scores,
+visible unique joints, bounded coordinates, minimum segment lengths). Scores are
+not calibrated reliability probabilities.
 
 This assumes one person, a fixed camera, steady hand contacts and a suitable view
 of the selected arm. No automatic athlete identity or arm switching is performed.
@@ -118,5 +130,7 @@ production counter and its provisional thresholds are unchanged by that tooling.
 The user's target is **one athlete and a fixed phone**. Spectator-heavy or moving-camera
 clips above remain stress diagnostics, not requirements for adding identity tracking.
 [Guided bar setup](BAR_SETUP.md) now provides confirmed apparatus references in the
-replay UI. It is not yet consumed by this counter: the failed policy-v1 results and
-its projected-limb-length limitation remain unchanged until bar validation is qualified.
+replay UI. Policy v2 consumes that reference for wrist/bar compatibility and resets
+the counter whenever the reference is confirmed or cleared so evidence modes are
+never mixed. Bar setup still does **not** establish chin clearance, dip depth, lockout
+or valid form.
