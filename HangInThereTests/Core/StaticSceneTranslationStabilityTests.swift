@@ -7,6 +7,7 @@ struct StaticSceneTranslationStabilityTests {
         var monitor = StaticSceneTranslationStability()
         let calibrated = monitor.calibrate(imageShortSide: 1000)
         #expect(calibrated)
+        #expect(monitor.state == .calibrating)
 
         monitor.observe([
             .init(dxPixels: 2, dyPixels: 1),
@@ -23,6 +24,11 @@ struct StaticSceneTranslationStabilityTests {
     @Test func movingAthleteOutlierDoesNotLookLikeCameraTranslation() {
         var monitor = StaticSceneTranslationStability()
         _ = monitor.calibrate(imageShortSide: 1000)
+        monitor.observe([
+            .init(dxPixels: 1, dyPixels: 0),
+            .init(dxPixels: 2, dyPixels: 1)
+        ], timestamp: 0.05)
+        #expect(monitor.state == .stable)
 
         monitor.observe([
             .init(dxPixels: 1, dyPixels: 0),
@@ -38,6 +44,11 @@ struct StaticSceneTranslationStabilityTests {
     @Test func sustainedConsensusTranslationInvalidatesCalibration() {
         var monitor = StaticSceneTranslationStability()
         _ = monitor.calibrate(imageShortSide: 1000)
+        monitor.observe([
+            .init(dxPixels: 1, dyPixels: 0),
+            .init(dxPixels: 2, dyPixels: 1)
+        ], timestamp: 0.05)
+        #expect(monitor.state == .stable)
 
         let shifts = [
             StaticSceneTranslationStability.PatchShift(dxPixels: 12, dyPixels: 2),
@@ -58,6 +69,11 @@ struct StaticSceneTranslationStabilityTests {
     @Test func briefTranslationRecoversBeforeDwell() {
         var monitor = StaticSceneTranslationStability()
         _ = monitor.calibrate(imageShortSide: 1000)
+        monitor.observe([
+            .init(dxPixels: 1, dyPixels: 0),
+            .init(dxPixels: 2, dyPixels: 1)
+        ], timestamp: 0.05)
+        #expect(monitor.state == .stable)
 
         monitor.observe([
             .init(dxPixels: 12, dyPixels: 0),
@@ -86,13 +102,18 @@ struct StaticSceneTranslationStabilityTests {
             .init(dxPixels: 0, dyPixels: -20)
         ], timestamp: 0.1)
 
-        #expect(monitor.state == .stable)
+        #expect(monitor.state == .calibrating)
         #expect(monitor.latestConsensusPatches < StaticSceneTranslationStability.minimumConsensusPatches)
     }
 
     @Test func staleTimestampCannotAdvanceMovementDwell() {
         var monitor = StaticSceneTranslationStability()
         _ = monitor.calibrate(imageShortSide: 1000)
+        monitor.observe([
+            .init(dxPixels: 1, dyPixels: 0),
+            .init(dxPixels: 2, dyPixels: 1)
+        ], timestamp: 10.05)
+        #expect(monitor.state == .stable)
         let shifts = [
             StaticSceneTranslationStability.PatchShift(dxPixels: 12, dyPixels: 0),
             .init(dxPixels: 12, dyPixels: 1)
