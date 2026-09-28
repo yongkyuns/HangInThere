@@ -379,23 +379,6 @@ final class LiveCameraPreviewController {
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
         ]
 
-        let eventStream = AsyncStream<LiveAnalyzerEvent>(
-            bufferingPolicy: .bufferingNewest(1)
-        ) { continuation in
-            let analyzer = LiveFrameAnalyzer { event in
-                continuation.yield(event)
-            }
-            self.analyzer = analyzer
-            output.setSampleBufferDelegate(analyzer, queue: analysisQueue)
-        }
-
-        analysisEventTask = Task { @MainActor [weak self] in
-            for await event in eventStream {
-                guard !Task.isCancelled else { return }
-                self?.accept(event)
-            }
-        }
-
         session.beginConfiguration()
         defer { session.commitConfiguration() }
 
@@ -421,6 +404,23 @@ final class LiveCameraPreviewController {
             throw LiveCameraSetupError.unsupportedPortraitRotation
         }
         connection.videoRotationAngle = 90
+
+        let eventStream = AsyncStream<LiveAnalyzerEvent>(
+            bufferingPolicy: .bufferingNewest(1)
+        ) { continuation in
+            let analyzer = LiveFrameAnalyzer { event in
+                continuation.yield(event)
+            }
+            self.analyzer = analyzer
+            output.setSampleBufferDelegate(analyzer, queue: analysisQueue)
+        }
+
+        analysisEventTask = Task { @MainActor [weak self] in
+            for await event in eventStream {
+                guard !Task.isCancelled else { return }
+                self?.accept(event)
+            }
+        }
 
         videoOutput = output
         configured = true
