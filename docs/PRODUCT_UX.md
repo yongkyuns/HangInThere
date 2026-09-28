@@ -200,19 +200,33 @@ narrow automatic framing state:
 - the user-selected shoulder, elbow, and wrist are measurable;
 - no opposite-arm substitution is allowed.
 
-This is intentionally **framing readiness**, not workout readiness. The app still does
-not infer apparatus visibility from the body skeleton, freeze/confirm the bar reference,
-detect phone motion, count a live set, or claim form validity. The screen remains
-unlinked from the customer entry flow until bar calibration and a usable start-set
-transition exist.
+Framing readiness remains narrower than workout readiness, but live setup can now
+freeze the latest analyzed camera frame and reuse the same guided/manual
+`BarSetupView` used by recorded replay. The user explicitly confirms the gripping
+bar or selected dip rail; the confirmed fixed line is then overlaid on the live
+preview.
+
+The live controller binds that calibration to the current exercise/arm setup.
+Changing exercise or anatomical side invalidates the reference, as does an
+incompatible analyzed image geometry. Setup reaches **Ready to start** only when:
+
+- the rear camera is active;
+- exactly one athlete and the selected arm are measurable;
+- the matching fixed bar/rail reference has been confirmed.
+
+This is still not a claim of automatic apparatus recognition: guided detection
+proposes observed image edges inside the user-selected region, and the user chooses
+the intended one. Phone-motion detection, live counting, start/stop set lifecycle,
+and form validity remain unimplemented. The screen remains unlinked from the normal
+customer entry flow until the start-set transition is functional.
 
 The intended complete live flow remains:
 
 1. choose exercise;
 2. place the phone;
 3. show a framing guide;
-4. confirm that athlete + apparatus are visible;
-5. acquire the bar reference;
+4. confirm that the athlete/selected arm is measurable and visually check the apparatus;
+5. acquire and explicitly confirm the fixed bar reference;
 6. start set;
 7. provide restrained live feedback;
 8. end set automatically or manually;
