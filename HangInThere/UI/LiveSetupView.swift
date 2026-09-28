@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct LiveSetupGuide: Equatable, Sendable {
     let exercise: ExerciseCounter.Exercise
@@ -35,6 +36,11 @@ struct LiveSetupView: View {
     @State private var exercise: ExerciseCounter.Exercise = .pullUp
     @State private var side: ArmMeasurement.Side = .left
     @State private var barSetup: BarSetupFrame?
+    @State private var qualificationDocument: QualificationReportDocument?
+    @State private var qualificationExportFilename = "HangInThere-live-qualification"
+    @State private var showingQualificationExporter = false
+    @State private var showingQualificationExportError = false
+    @State private var qualificationExportErrorMessage = ""
 
     private var guide: LiveSetupGuide {
         LiveSetupGuide(exercise: exercise, side: side)
@@ -77,6 +83,28 @@ struct LiveSetupView: View {
                 }
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+            }
+            .fileExporter(
+                isPresented: $showingQualificationExporter,
+                document: qualificationDocument,
+                contentType: .json,
+                defaultFilename: qualificationExportFilename
+            ) { result in
+                switch result {
+                case .success:
+                    qualificationDocument = nil
+                case .failure(let error):
+                    qualificationExportErrorMessage = error.localizedDescription
+                    showingQualificationExportError = true
+                }
+            }
+            .alert(
+                "Couldn't export qualification report",
+                isPresented: $showingQualificationExportError
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(qualificationExportErrorMessage)
             }
             .task {
                 camera.configureWorkout(exercise: exercise, side: side)
@@ -744,11 +772,17 @@ struct LiveSetupView: View {
                     camera.sceneTranslation.latestScaleMeasurementAvailable ? "Available" : "Unavailable"
                 )
 
-                ShareLink(item: camera.qualificationReportJSON()) {
-                    Label("Share JSON qualification report", systemImage: "square.and.arrow.up")
+                Button {
+                    qualificationDocument = QualificationReportDocument(
+                        text: camera.qualificationReportJSON()
+                    )
+                    qualificationExportFilename = makeQualificationFilename()
+                    showingQualificationExporter = true
+                } label: {
+                    Label("Save JSON qualification report", systemImage: "doc.badge.arrow.up")
                 }
                 .buttonStyle(.bordered)
-                .accessibilityIdentifier("shareLiveQualificationReport")
+                .accessibilityIdentifier("saveLiveQualificationReport")
 
                 Text("The report is local engineering evidence only. It contains timing, counters, thermal state, and camera-stability metrics—no video, images, landmarks, filenames, location, or device identifiers.")
                     .font(.caption)
@@ -791,6 +825,14 @@ struct LiveSetupView: View {
         let duration = max(0, ProcessInfo.processInfo.systemUptime - start)
         guard duration > 0 else { return "—" }
         return String(format: "%.1f fps", Double(camera.analyzedFrames) / duration)
+    }
+
+    private func makeQualificationFilename() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        return "HangInThere-live-qualification-\(formatter.string(from: Date()))"
     }
 
     private var phoneStabilityDetail: String {
