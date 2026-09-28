@@ -1,0 +1,119 @@
+name: Review CreateML pull-up source
+on:
+  push:
+    branches: [ops/review-createml-pullup-source-20260927]
+permissions:
+  contents: read
+jobs:
+  acquire:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare media tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Acquire and sample public-domain pull-up source
+        run: |
+          python3 - <<'PY'
+          import hashlib, html, json, re, subprocess, urllib.parse, urllib.request
+          from pathlib import Path
+
+          page = "https://www.dvidshub.net/video/639937/dead-hang-pullup"
+          root = Path("build/pullup-source-review")
+          root.mkdir(parents=True, exist_ok=True)
+
+          def request(url):
+              return urllib.request.urlopen(
+                  urllib.request.Request(
+                      url,
+                      headers={"User-Agent": "HangInThere/0.1 bar-detector source review"},
+                  ),
+                  timeout=90,
+              )
+
+          with request(page) as response:
+              text = response.read(2_000_000).decode("utf-8", "replace")
+          text = html.unescape(text.replace("\\/", "/"))
+          urls = sorted(set(re.findall(r"https://[^\\s\\\"'<>]+\\.mp4(?:\\?[^\\s\\\"'<>]*)?", text)))
+          urls = [
+              u for u in urls
+              if urllib.parse.urlparse(u).hostname
+              and urllib.parse.urlparse(u).hostname.endswith(("dvidshub.net", "cloudfront.net"))
+          ]
+          if not urls:
+              raise SystemExit("No public MP4 source found")
+
+          # Prefer the canonical DOD filename if several renditions are present.
+          preferred = [u for u in urls if "DOD_106211182" in u]
+          url = preferred[0] if preferred else urls[0]
+          source = root / "source.mp4"
+          limit = 250_000_000
+          h = hashlib.sha256()
+          total = 0
+          with request(url) as response, source.open("wb") as out:
+              while True:
+                  block = response.read(1024 * 1024)
+                  if not block:
+                      break
+                  total += len(block)
+                  if total > limit:
+                      raise SystemExit("Source exceeds bounded review limit")
+                  h.update(block)
+                  out.write(block)
+
+          probe = json.loads(subprocess.check_output([
+              "ffprobe", "-v", "error",
+              "-show_streams", "-show_format", "-of", "json", str(source)
+          ]))
+          metadata = {
+              "page": page,
+              "stream_url": url,
+              "sha256": h.hexdigest(),
+              "bytes": total,
+              "probe": probe,
+              "license": "PUBLIC DOMAIN as listed by DVIDS; DVIDS copyright restrictions still apply",
+              "credit": "U.S. Marine Corps Training and Education Command; video by Capt. Matthew Holfinger",
+              "video_id": 639937,
+              "virin": "181113-M-JT909-013",
+              "filename": "DOD_106211182",
+          }
+          (root / "source.json").write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
+
+          samples = root / "samples"
+          samples.mkdir()
+          subprocess.run([
+              "ffmpeg", "-v", "error", "-i", str(source),
+              "-vf", "fps=1,scale=640:-2:flags=lanczos",
+              "-q:v", "3", "-start_number", "0", str(samples / "%04d.jpg")
+          ], check=True)
+          if not list(samples.glob("*.jpg")):
+              raise SystemExit("No review samples generated")
+
+          (root / "ATTRIBUTION.txt").write_text(
+              "Dead Hang Pullup. DVIDS Video ID 639937, VIRIN 181113-M-JT909-013, "
+              "2018-08-08. Video by Capt. Matthew Holfinger, U.S. Marine Corps Training "
+              "and Education Command. " + page + "\n"
+              "DVIDS lists this work as PUBLIC DOMAIN. Use remains subject to DVIDS "
+              "copyright/reuse restrictions; no endorsement is implied.\n"
+              "This artifact contains one-second resized review samples only. No pose "
+              "inference, identity analysis, or training occurs in this workflow.\n"
+          )
+          source.unlink()
+          print(json.dumps({
+              "sample_count": len(list(samples.glob("*.jpg"))),
+              "source_sha256": metadata["sha256"],
+              "source_bytes": total,
+              "url": url,
+          }, indent=2))
+          PY
+      - name: Retain review-only samples
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: createml-pullup-source-review
+          retention-days: 3
+          path: build/pullup-source-review
+          if-no-files-found: error
