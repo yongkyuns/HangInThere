@@ -13,6 +13,7 @@ struct StaticSceneTranslationStability: Sendable {
 
     enum State: String, Equatable, Sendable {
         case uncalibrated
+        case calibrating
         case stable
         case moved
 
@@ -44,7 +45,7 @@ struct StaticSceneTranslationStability: Sendable {
         latestShiftFraction = 0
         latestConsensusPatches = 0
         maximumShiftFraction = 0
-        state = .stable
+        state = .calibrating
         return true
     }
 
@@ -54,7 +55,7 @@ struct StaticSceneTranslationStability: Sendable {
 
     @discardableResult
     mutating func observe(_ shifts: [PatchShift], timestamp: Double) -> State {
-        guard state == .stable,
+        guard state == .calibrating || state == .stable,
               let imageShortSide,
               timestamp.isFinite,
               lastTimestamp == nil || timestamp > lastTimestamp!
@@ -86,6 +87,9 @@ struct StaticSceneTranslationStability: Sendable {
 
         latestConsensusPatches = inliers.count
         latestShiftFraction = shift
+        if state == .calibrating, shift < Self.movementThresholdFraction {
+            state = .stable
+        }
         maximumShiftFraction = max(maximumShiftFraction, shift)
 
         if shift >= Self.movementThresholdFraction {
