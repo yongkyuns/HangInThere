@@ -7,6 +7,9 @@ on:
       - 'Evaluation/fixtures/bar-research.json'
       - 'Evaluation/research_tests/bar_method_benchmark_test.py'
       - 'Evaluation/BAR_DETECTION_RESEARCH.md'
+      - 'Evaluation/VisionContourDump.swift'
+      - 'Evaluation/research_tests/vision_contour_benchmark_test.py'
+      - 'scripts/vision-contour-benchmark.py'
       - '.github/workflows/bar-research.yml'
   workflow_dispatch:
 permissions:
@@ -58,4 +61,39 @@ jobs:
           path: |
             build/bar-method-report.json
             build/bar-method-summary.txt
+          if-no-files-found: error
+
+  native-contours:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare exact reviewed source pixels
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 -m venv /tmp/vision-bar-research
+          /tmp/vision-bar-research/bin/pip install --only-binary=:all: numpy==2.3.5 Pillow==12.3.0
+          PYTHONPATH=scripts /tmp/vision-bar-research/bin/python scripts/prepare-source-pilot.py --cache build/source-cache --output build/source-pilot --fetch
+      - name: Run native Vision contour extraction
+        run: |
+          mkdir -p build/bar-native-research
+          xcrun swiftc Evaluation/VisionContourDump.swift -o build/bar-native-research/vision-contour-dump
+          build/bar-native-research/vision-contour-dump build/source-pilot Evaluation/fixtures/bar-research.json build/bar-native-research/contours.json
+      - name: Test and score contour-to-line refinement
+        run: |
+          /tmp/vision-bar-research/bin/python Evaluation/research_tests/vision_contour_benchmark_test.py -v
+          /tmp/vision-bar-research/bin/python scripts/vision-contour-benchmark.py \
+            --contours build/bar-native-research/contours.json \
+            --spec Evaluation/fixtures/bar-research.json \
+            --output build/bar-native-research/report.json | tee build/bar-native-research/summary.txt
+      - name: Retain native contour report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bar-native-contour-research
+          retention-days: 7
+          path: |
+            build/bar-native-research/report.json
+            build/bar-native-research/summary.txt
           if-no-files-found: error

@@ -77,3 +77,32 @@ line quality is adequate.
 
 Pose-model accuracy, repetition counting, and the simulator's missing Vision body
 weights are separate gates.
+
+## Completed first method screen
+
+The first host run processed the exact same fixed images with no pose input:
+
+| Method | Pull-up video visible | Opening graphic FP | Video mean / p95 | Rear still mean / max | Wrapped dip |
+| --- | ---: | ---: | ---: | ---: | --- |
+| OpenCV LSD | 44/44 | 0/1 | 5.23 / 16.66 px | 0.50 / 1.25 px | unavailable |
+| HoughLinesP | 44/44 | 0/1 | 3.23 / 13.61 px | 28.37 / 84.38 px | candidate, unlabelled |
+| M-LSD tiny 512 | 44/44 | 0/1 | 7.53 / 16.89 px | 32.04 / 79.20 px | candidate, unlabelled |
+
+M-LSD did not improve this development evidence, so adding a learned line model to
+shipping iOS is not justified yet. Hough had the lowest average disagreement on the
+fixed video but selected a poor partial/wrong pair on the rear still. LSD was the
+most consistent of the three on the labelled pull-up examples.
+
+These comparisons still use a **paired-edge interpretation**. The next experiment
+asks a different and smaller question: does Apple's existing raw contour request
+already contain a sufficiently accurate *single relevant bar edge*? A pull-up
+clear-frame probe showed that it does: standard RDP contour simplification plus
+collinear fragment merging recovered the labelled edge at about 1 px mean error.
+On the rear still, allowing internal gaps between collinear observed fragments
+recovered the full labelled upper edge at about 1.3 px mean error. That ranking uses
+only contour geometry and the guided ROI; labels are used only afterward for score.
+
+The `native-contours` research job repeats that experiment across all 44 visible
+fixed-camera pull-up frames plus the opening no-bar graphic and the two stills.
+Only if that full run remains stable should the production fitter change. This is
+still guided line refinement, not semantic free-scene bar recognition.
