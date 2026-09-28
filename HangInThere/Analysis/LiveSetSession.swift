@@ -14,6 +14,7 @@ struct LiveSetSession: Sendable {
         case cameraFailure
         case setupInvalidated
         case phoneMoved
+        case sceneShifted
 
         var isInterruption: Bool { self != .manual }
     }
