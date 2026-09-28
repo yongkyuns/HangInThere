@@ -148,6 +148,21 @@ class TemporalPreparationTests(unittest.TestCase):
                   'streams': [{'width': 640, 'height': 480, 'sample_aspect_ratio': '1:1'}]}
         with patch.object(self.prep, 'command', return_value=json.dumps(output)):
             self.assertEqual(self.prep.probe('not-read'), ([0, .033, .077], [640, 480]))
+    def test_probe_accepts_omitted_square_pixel_metadata(self):
+        from unittest.mock import patch
+        import json
+        output = {'frames': [{'best_effort_timestamp_time': x} for x in ['0', '.04']],
+                  'streams': [{'width': 1080, 'height': 1920}]}
+        with patch.object(self.prep, 'command', return_value=json.dumps(output)):
+            self.assertEqual(self.prep.probe('not-read'), ([0, .04], [1080, 1920]))
+
+    def test_probe_rejects_explicit_non_square_pixels(self):
+        from unittest.mock import patch
+        import json
+        output = {'frames': [{'best_effort_timestamp_time': x} for x in ['0', '.04']],
+                  'streams': [{'width': 720, 'height': 480, 'sample_aspect_ratio': '8:9'}]}
+        with patch.object(self.prep, 'command', return_value=json.dumps(output)), self.assertRaises(ValueError):
+            self.prep.probe('not-read')
 
 
 if __name__ == '__main__': unittest.main()
