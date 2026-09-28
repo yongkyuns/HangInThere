@@ -57,7 +57,13 @@ struct LiveSetupView: View {
                     Button("Close") { dismiss() }
                 }
             }
-            .task { await camera.start() }
+            .task {
+                camera.setTrackingSide(side)
+                await camera.start()
+            }
+            .onChange(of: side) { _, newSide in
+                camera.setTrackingSide(newSide)
+            }
             .onDisappear { camera.stop() }
         }
     }
@@ -77,7 +83,7 @@ struct LiveSetupView: View {
             RoundedRectangle(cornerRadius: 20)
                 .fill(.black)
 
-            if camera.isReady {
+            if camera.isCameraReady {
                 LiveCameraPreviewSurface(session: camera.session)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
 
@@ -121,7 +127,7 @@ struct LiveSetupView: View {
 
                 Spacer()
 
-                Text("Keep athlete + apparatus inside the guide")
+                Label(camera.framing.title, systemImage: framingStatusSymbol)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
@@ -190,8 +196,16 @@ struct LiveSetupView: View {
             Text("Framing")
                 .font(.headline)
 
-            setupRow("Rear camera active", detail: camera.isReady ? "Ready" : camera.state.title,
-                     symbol: camera.isReady ? "checkmark.circle.fill" : "circle")
+            setupRow(
+                "Rear camera active",
+                detail: camera.isCameraReady ? "Ready" : camera.state.title,
+                symbol: camera.isCameraReady ? "checkmark.circle.fill" : "circle"
+            )
+            setupRow(
+                "Athlete + selected arm",
+                detail: camera.framing.detail,
+                symbol: framingStatusSymbol
+            )
             setupRow("Selected arm", detail: guide.selectedArmText, symbol: "figure.arms.open")
             setupRow("Apparatus", detail: guide.apparatusText, symbol: "line.diagonal")
             setupRow("Body position", detail: guide.bodyText, symbol: "viewfinder")
@@ -203,11 +217,22 @@ struct LiveSetupView: View {
 
     private var scopeNote: some View {
         Label(
-            "This setup stage verifies camera availability and gives the framing target. Automatic athlete/apparatus readiness, bar calibration, and live counting are separate qualification steps.",
+            "Athlete and selected-arm visibility are checked from live Apple Vision frames. Apparatus visibility, bar calibration, phone-motion detection, and live counting are separate qualification steps.",
             systemImage: "info.circle"
         )
         .font(.footnote)
         .foregroundStyle(.secondary)
+    }
+
+    private var framingStatusSymbol: String {
+        switch camera.framing.state {
+        case .ready: "checkmark.circle.fill"
+        case .waitingForFrame: "hourglass"
+        case .noPerson: "person.crop.circle.badge.questionmark"
+        case .multiplePeople: "person.2.fill"
+        case .selectedArmHidden, .selectedArmUnclear: "figure.arms.open"
+        case .analysisUnavailable: "exclamationmark.triangle.fill"
+        }
     }
 
     private func setupRow(_ title: String, detail: String, symbol: String) -> some View {
