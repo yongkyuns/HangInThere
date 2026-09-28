@@ -269,7 +269,7 @@ struct ReplayView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Movement count")
+                    Text(model.phase == .finished ? "Session complete" : "Movement count")
                         .font(.headline)
                     Text(model.currentBar == nil ? "Set the bar reference to enable counting." : model.counter.phase.title)
                         .font(.subheadline)
@@ -285,10 +285,16 @@ struct ReplayView: View {
 
             Divider()
 
-            HStack(spacing: 16) {
-                metric("Partial", value: model.counter.partialAttempts)
-                metric("Interrupted", value: model.counter.interruptedAttempts)
+            HStack(spacing: 10) {
+                Label(
+                    model.currentBar == nil ? "Counting off" : "Bar-relative counting",
+                    systemImage: model.currentBar == nil ? "pause.circle" : "checkmark.circle"
+                )
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
                 Spacer()
+
                 Text("MOVEMENT ONLY")
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 9)
@@ -398,6 +404,11 @@ struct ReplayView: View {
                         .font(.caption)
                 }
 
+                LabeledContent("Partial attempts", value: "\(model.counter.partialAttempts)")
+                    .font(.caption)
+                LabeledContent("Tracking interruptions", value: "\(model.counter.interruptedAttempts)")
+                    .font(.caption)
+
                 if let frame = model.frame {
                     elbowMeasurements(frame.pose)
                     diagnostics(frame)
@@ -442,17 +453,6 @@ struct ReplayView: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
-    }
-
-    private func metric(_ title: String, value: Int) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("\(value)")
-                .font(.title3.bold())
-                .monospacedDigit()
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
     }
 
     private func elbowMeasurements(_ pose: PoseResult) -> some View {
