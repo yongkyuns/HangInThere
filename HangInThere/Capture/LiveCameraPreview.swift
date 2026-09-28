@@ -289,10 +289,7 @@ final class LiveCameraPreviewController {
                 timestamp: pending.sample.timestamp
               ),
               sceneTranslation.calibrate(
-                imageShortSide: min(
-                    pendingScene.reference.imageSize.width,
-                    pendingScene.reference.imageSize.height
-                )
+                imageSize: pendingScene.reference.imageSize
               )
         else { return false }
 
@@ -746,18 +743,21 @@ final class LiveCameraPreviewController {
             let state = self.sceneTranslation.observe(shifts, timestamp: seconds)
             self.sceneRegistrationTask = nil
             if state == .moved {
-                self.invalidateForSceneShift()
+                self.invalidateForSceneMovement()
             }
         }
     }
 
-    private func invalidateForSceneShift() {
+    private func invalidateForSceneMovement() {
         guard bar != nil else { return }
 
+        let kind = sceneTranslation.movementKind
         if liveSet.phase == .running {
+            let reason = kind == .scale ? "sceneScaled" : "sceneShifted"
+            let endReason: LiveSetSession.EndReason = kind == .scale ? .sceneScaled : .sceneShifted
             liveSet.interruptAndFinish(
-                reason: "sceneShifted",
-                endReason: .sceneShifted
+                reason: reason,
+                endReason: endReason
             )
         }
 
