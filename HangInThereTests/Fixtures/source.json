@@ -21,7 +21,10 @@
   "visual_review": {
     "date": "2026-09-26",
     "method": "Complete-source contact sheet and all 40 selected frames inspected before model inference. Single-reviewer observation, not adjudicated ground truth.",
-    "selected_interval_seconds": [29, 33],
+    "selected_interval_seconds": [
+      29,
+      33
+    ],
     "observed_content": "One athlete in a continuous rear/oblique view: hang, ascent, peak, descent and return to hang. One visually observed movement cycle.",
     "limitations": [
       "Head/chin cropped around the peak; strict top criterion is ungradable.",
@@ -29,5 +32,27 @@
       "No anatomical joint labels or qualified rep-validity labels."
     ],
     "replaces": "Original 0-4 second interval showed two people introducing the exercise, not repetitions."
+  },
+  "demo_expectation": {
+    "scope": "Production video reader + Apple Vision + reviewed fixed bar reference + production movement counter + completed result data. This is a regression/demo expectation, not rep-validity or form ground truth.",
+    "reviewed_date": "2026-09-28",
+    "reviewed_frame_index": 0,
+    "exercise": "pullUp",
+    "side": "left",
+    "bar_reference_edge": [
+      280,
+      4,
+      395,
+      8
+    ],
+    "bar_reference_note": "Manually reviewed visible gripping-bar edge in the 640x360 prepared frame. Fixed camera; reference is reused for the full clip.",
+    "expected_observed_movements": 1,
+    "expected_movement_time_seconds": 2.2,
+    "expected_tracking_coverage": 1,
+    "limitations": [
+      "Movement-only expectation under the current bar-relative policy; chin clearance is not measured.",
+      "The fixture is one athlete/view and is not an accuracy benchmark.",
+      "The reference edge is fixture-specific reviewed test data, not automatic semantic bar recognition."
+    ]
   }
 }
