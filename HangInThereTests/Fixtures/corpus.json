@@ -94,11 +94,12 @@
       },
       "side": "left",
       "visual_review": {
-        "method": "All 48 prepared frames inspected in temporal order at 8 FPS before Apple Vision corpus inference.",
-        "observed_content": "One athlete, fixed rear/oblique indoor-gym view, standard straight pull-up bar. Two complete visually observed hang/ascent/peak/descent cycles.",
+        "method": "All 48 prepared frames re-inspected in indexed temporal order at 8 FPS; the initial broad contact sheet had obscured that frame 0 begins mid-attempt.",
+        "observed_content": "One athlete, fixed rear/oblique indoor-gym view, standard straight pull-up bar. The clip begins mid-ascent, descends to full extension, then contains one countable extension-to-top pull-up movement.",
         "limitations": [
+          "Leading mid-attempt motion must not be counted because the clip does not show its extended start.",
           "On-screen PULL-UPS title partially covers the lower-right image but does not cover the selected arm/bar.",
-          "Movement-cycle ground truth only; no chin-clearance or form-validity label."
+          "Movement-only ground truth; no chin-clearance or form-validity label."
         ]
       },
       "count_expectation": {
@@ -109,7 +110,7 @@
           58
         ],
         "bar_reference_note": "Manually reviewed visible bar centerline in the 640x360 prepared image; fixed camera, reused for all frames.",
-        "expected_observed_movements": 2
+        "expected_observed_movements": 1
       }
     },
     {
@@ -196,5 +197,5 @@
     "status": "No reproducibly downloadable, clearly licensed real parallel-bar dip source is pinned yet. Do not fabricate one or relabel chair-dip footage."
   },
   "reviewed_date": "2026-09-28",
-  "review_policy": "Visual expectations and thresholds were recorded before running Apple Vision over the new corpus. Model output must not be used to retroactively invent ground-truth movement labels."
+  "review_policy": "Visual expectations were recorded before corpus inference. The FitnessScape count label was later corrected from 2 to 1 after indexed-frame visual re-review showed frame 0 already mid-ascent; the counter output was not used to redefine endpoint thresholds."
 }
