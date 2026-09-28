@@ -58,7 +58,10 @@ test_command=(xcodebuild test
   -derivedDataPath build/DerivedData -resultBundlePath "$RESULT_BUNDLE"
   -parallel-testing-enabled NO)
 case "$SUITE" in
-  mechanics) test_command+=(-skip-testing:HangInThereTests/VisionSmokeTests) ;;
+  mechanics) test_command+=(
+    -skip-testing:HangInThereTests/VisionSmokeTests
+    -skip-testing:HangInThereTests/RealVideoCorpusTests
+  ) ;;
   vision) test_command+=(
     -only-testing:HangInThereTests/VisionSmokeTests
     -only-testing:HangInThereTests/RealVideoCorpusTests
