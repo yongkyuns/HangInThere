@@ -14,9 +14,8 @@ import Testing
         let region = BarRegion(Point2D(x:40,y:60),Point2D(x:600,y:160))
         let candidates = try await VisionBarDetector().detect(image:image,region:region)
         let candidate = try #require(candidates.first)
-        #expect(abs(candidate.centerline.midpoint.y-101) < 4)
-        #expect(candidate.centerline.length > 440)
-        #expect(abs(try #require(candidate.upperImageEdge).midpoint.y-95) < 4)
+        #expect(abs(candidate.edge.midpoint.y-95) < 4)
+        #expect(candidate.edge.length > 440)
     }
     @Test func actualContoursPreserveObliqueImageGeometry() async throws {
         let image = try makeImage(width:640,height:360) { x,y in
@@ -25,16 +24,27 @@ import Testing
         let candidates = try await VisionBarDetector().detect(image:image,
             region:BarRegion(Point2D(x:50,y:50),Point2D(x:600,y:230)))
         let candidate = try #require(candidates.first)
-        #expect(abs(candidate.centerline.midpoint.y - (71+0.2*candidate.centerline.midpoint.x)) < 4)
-        #expect(candidate.centerline.length > 420)
+        #expect(abs(candidate.edge.midpoint.y - (65+0.2*candidate.edge.midpoint.x)) < 4)
+        #expect(candidate.edge.length > 420)
     }
     @Test func barCanContinueThroughBothCropBorders() async throws {
         let image = try makeImage(width:640,height:360) { _,y in y >= 95 && y <= 107 }
         let candidates = try await VisionBarDetector().detect(image:image,
             region:BarRegion(Point2D(x:70,y:60),Point2D(x:230,y:150)))
         let candidate = try #require(candidates.first)
-        #expect(abs(candidate.centerline.midpoint.y-101) < 4)
-        #expect(candidate.centerline.length > 150)
+        #expect(abs(candidate.edge.midpoint.y-95) < 4)
+        #expect(candidate.edge.length > 150)
+    }
+    @Test func actualContoursMergeShortOcclusionWithoutExtendingPastObservedSupport() async throws {
+        let image = try makeImage(width:640,height:360) { x,y in
+            x >= 80 && x <= 550 && !(x >= 300 && x <= 325) && y >= 95 && y <= 107
+        }
+        let candidates = try await VisionBarDetector().detect(image:image,
+            region:BarRegion(Point2D(x:40,y:60),Point2D(x:600,y:160)))
+        let edge = try #require(candidates.first?.edge)
+        #expect(edge.a.x >= 75 && edge.a.x <= 85)
+        #expect(edge.b.x >= 545 && edge.b.x <= 555)
+        #expect(abs(edge.midpoint.y-95) < 4)
     }
     @Test func blankImageDoesNotProduceBar() async throws {
         let image = try makeImage(width:160,height:100) { _,_ in false }
