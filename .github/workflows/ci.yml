@@ -38,6 +38,8 @@ jobs:
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
           python3 scripts/prepare-fixtures.py
+      - name: Discover real-video corpus source pins (temporary)
+        run: python3 scripts/prepare-video-corpus.py --discover
       - name: Native macOS real-model and replay integration
         run: ./scripts/test-apple-host.sh
       - name: Retain native test results and provenance
