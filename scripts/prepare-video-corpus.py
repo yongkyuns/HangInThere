@@ -234,7 +234,12 @@ def prepare_download_case(case, work):
     )
 
     timestamps = frame_timestamps(video)
-    expected_count = int(recipe["duration_seconds"] * recipe["frames_per_second"])
+    expected_count = int(
+        recipe.get(
+            "expected_frame_count",
+            recipe["duration_seconds"] * recipe["frames_per_second"],
+        )
+    )
     if len(timestamps) != expected_count:
         raise ValueError(
             "{} prepared frame count {} != expected {}".format(
@@ -297,7 +302,12 @@ def prepare_existing_source_case(case, work):
         ]
     )
     timestamps = frame_timestamps(video)
-    expected_count = int(recipe["duration_seconds"] * recipe["frames_per_second"])
+    expected_count = int(
+        recipe.get(
+            "expected_frame_count",
+            recipe["duration_seconds"] * recipe["frames_per_second"],
+        )
+    )
     if len(timestamps) != expected_count:
         raise ValueError(
             "{} prepared frame count {} != expected {}".format(
