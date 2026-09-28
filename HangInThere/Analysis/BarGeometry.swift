@@ -16,6 +16,18 @@ struct BarSegment: Codable, Equatable, Sendable {
         let t = max(0, min(1, ((p.x-a.x)*(b.x-a.x) + (p.y-a.y)*(b.y-a.y)) / (length*length)))
         return hypot(p.x - a.x - t*(b.x-a.x), p.y - a.y - t*(b.y-a.y))
     }
+    // Signed perpendicular distance to the infinite observed line. The normal is
+    // canonicalized toward image-down so endpoint ordering cannot flip the sign.
+    // This is useful for fixed-camera hand/bar compatibility, not physical 3D contact.
+    func signedImageNormalDistance(to p: Point2D) -> Double {
+        guard isValid, p.isFinite else { return .infinity }
+        let edge = ordered
+        let ux = (edge.b.x - edge.a.x) / edge.length
+        let uy = (edge.b.y - edge.a.y) / edge.length
+        var nx = -uy, ny = ux
+        if ny < 0 { nx = -nx; ny = -ny }
+        return (p.x - edge.a.x) * nx + (p.y - edge.a.y) * ny
+    }
 }
 
 struct BarRegion: Equatable, Sendable {
