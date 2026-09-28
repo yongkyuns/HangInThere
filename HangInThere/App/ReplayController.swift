@@ -61,9 +61,15 @@ final class ReplayController {
               bar.sourceTime == frame?.pose.timestamp,
               bar.sourceTime == setup.frame.pose.timestamp else { return false }
         self.bar = bar
+        // Do not mix pre-setup wrist-relative history with confirmed-bar evidence.
+        counter.reset()
+        if let frame { counter.consume(frame.pose, bar: bar) }
         return true
     }
-    func clearBar() { bar = nil }
+    func clearBar() {
+        bar = nil
+        counter.reset()
+    }
 
     // Switching exercise/arm replays from the beginning instead of mixing two
     // policies in one set. Only displayed source frames advance the counter.
@@ -173,7 +179,7 @@ final class ReplayController {
     private func showFirst(_ first: ProcessedFrame?, info: VideoInfo) throws {
         guard let first else { throw ReplayError.noFrames }
         frame = first
-        counter.consume(first.pose)
+        counter.consume(first.pose, bar: currentBar)
         firstSourceTime = first.pose.timestamp.seconds
         displayedFrames = 1
         durationSeconds = info.durationSeconds
@@ -227,7 +233,7 @@ final class ReplayController {
                     guard isCurrent(token, playToken) else { return }
                     if let bar, bar.imageSize != next.pose.imageSize { clearBar() }
                     self.frame = next
-                    counter.consume(next.pose)
+                    counter.consume(next.pose, bar: currentBar)
                     pending = nil
                     displayedFrames += 1
                     lastPTS = next.pose.timestamp.seconds
