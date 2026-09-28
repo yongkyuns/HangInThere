@@ -52,7 +52,7 @@ jobs:
             build/bar-object-data/train \
             build/bar-object-data/test \
             build/bar-object-results \
-            30 | tee build/bar-object-results/console.txt
+            300 | tee build/bar-object-results/console.txt
       - name: Validate report integrity without asserting prototype accuracy
         run: |
           /tmp/bar-object-env/bin/python - <<'PY'
