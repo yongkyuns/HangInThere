@@ -181,8 +181,24 @@ not a single opaque "form score."
 
 ## Live workout mode
 
-Recorded-video review is the current POC. A customer workout app ultimately needs a
-live mode with a short camera-positioning flow:
+Recorded-video review remains the qualified workout path, but the first live-camera
+setup slice now exists as a separate reusable screen. It:
+
+1. requests camera permission only when setup opens;
+2. starts the rear wide-angle camera preview;
+3. lets the athlete choose exercise and anatomical tracking side;
+4. overlays a simple framing guide;
+5. gives exercise-specific reminders for the selected arm, apparatus, body position,
+   and keeping the phone stationary;
+6. handles denied permission and missing rear-camera states without breaking replay.
+
+This first slice deliberately stops before claiming automatic readiness. It does not
+yet inspect live frames for athlete/apparatus visibility, freeze a bar-calibration
+frame, run Vision on live input, count movements, or start a set. The screen is not
+yet linked from the customer entry flow; it is a capture/setup foundation for the
+next live-analysis slice.
+
+The intended complete live flow remains:
 
 1. choose exercise;
 2. place the phone;
@@ -194,8 +210,8 @@ live mode with a short camera-positioning flow:
 8. end set automatically or manually;
 9. show results.
 
-The live screen should be substantially simpler than the review/debug screen: large
-count, clear tracking state, and minimal controls.
+The live workout screen should stay substantially simpler than the review/debug
+screen: large count, clear tracking state, and minimal controls.
 
 ## Camera guidance
 
