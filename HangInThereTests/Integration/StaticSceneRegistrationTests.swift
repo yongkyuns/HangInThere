@@ -24,7 +24,8 @@ struct StaticSceneRegistrationTests {
         #expect((measurement.globalScaleFraction ?? 1) < 0.01)
 
         var policy = StaticSceneStability()
-        #expect(policy.calibrate(imageShortSide: 400))
+        let calibrated = policy.calibrate(imageShortSide: 400)
+        #expect(calibrated)
         policy.observe(
             translations: measurement.translations,
             globalScaleFraction: measurement.globalScaleFraction,
@@ -60,7 +61,8 @@ struct StaticSceneRegistrationTests {
         #expect(scale < 0.005)
 
         var policy = StaticSceneStability()
-        #expect(policy.calibrate(imageShortSide: 400))
+        let calibrated = policy.calibrate(imageShortSide: 400)
+        #expect(calibrated)
         policy.observe(
             translations: measurement.translations,
             globalScaleFraction: scale,
@@ -90,7 +92,8 @@ struct StaticSceneRegistrationTests {
         #expect(scale <= 0.08)
 
         var policy = StaticSceneStability()
-        #expect(policy.calibrate(imageSize: .init(width: 400, height: 400)))
+        let calibrated = policy.calibrate(imageSize: .init(width: 400, height: 400))
+        #expect(calibrated)
         policy.observe(
             translations: measurement.translations,
             globalScaleFraction: scale,
