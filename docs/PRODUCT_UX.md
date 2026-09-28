@@ -119,21 +119,21 @@ The current setup consists of:
 Selecting exercise or arm resets incompatible state. Confirming a bar rewinds the
 source so every counted frame uses the same reference.
 
-The next setup refinement should turn bar selection into a short guided flow:
+Bar selection is a short guided flow:
 
-1. "Pause where the bar is clear."
-2. Draw around one gripping edge.
-3. Show the proposed edge.
-4. "Use this bar" as the primary action.
-5. Manual marking appears only as a fallback.
+1. pause where the bar is clear;
+2. drag a tight region over one gripping edge;
+3. inspect the proposed observed edge;
+4. use **Use this bar** as the primary action;
+5. fall back to manual edge marking only when guided detection is unsuitable.
 
 ### Movement summary
 
 The main summary shows the count prominently and keeps partial/interrupted attempts
 secondary. These are diagnostic categories today, not coaching judgements.
 
-At completion, the screen should transition naturally into a results state rather
-than merely displaying "Sequence finished".
+At completion, a bar-calibrated analysis transitions into the dedicated results
+state instead of exposing the counter's internal "Sequence finished" phase.
 
 ## Joint overlay policy
 
