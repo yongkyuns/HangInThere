@@ -48,7 +48,7 @@ struct VisionSmokeTests {
 
     @MainActor @Test func realWorkoutFixtureRunsThroughVisionCountingAndResults() async throws {
         let videoURL = try VideoTestSupport.resource("pullup-smoke.mp4")
-        let specificationURL = try VideoTestSupport.resource("source.json")
+        let specificationURL = try VideoTestSupport.fixtureResource("source.json")
         let specification = try JSONDecoder().decode(
             WorkoutDemoSpecification.self,
             from: Data(contentsOf: specificationURL)
