@@ -58,6 +58,7 @@ struct ExerciseCounter: Sendable {
     private(set) var interruptedAttempts = 0
     private(set) var trackingIssue: String?
     private(set) var lastEvent: Event?
+    private(set) var events: [Event] = []
     private var lastTime: Double?
     private var anchor: Sample?
     private enum Endpoint { case extended, bent }
@@ -234,6 +235,7 @@ struct ExerciseCounter: Sendable {
         }
         let event = Event(outcome: outcome, sourceSeconds: time, reason: reason)
         lastEvent = event
+        events.append(event)
         return event
     }
 }
