@@ -207,9 +207,17 @@ struct LiveSetupView: View {
                 symbol: framingStatusSymbol
             )
             setupRow("Selected arm", detail: guide.selectedArmText, symbol: "figure.arms.open")
-            setupRow("Apparatus", detail: guide.apparatusText, symbol: "line.diagonal")
+            setupRow(
+                "Apparatus",
+                detail: "Visual check only. " + guide.apparatusText,
+                symbol: "line.diagonal"
+            )
             setupRow("Body position", detail: guide.bodyText, symbol: "viewfinder")
-            setupRow("Phone", detail: "Keep it stationary after bar calibration.", symbol: "iphone.gen3")
+            setupRow(
+                "Phone",
+                detail: "Visual check only. Keep it stationary after bar calibration.",
+                symbol: "iphone.gen3"
+            )
         }
         .padding(16)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
