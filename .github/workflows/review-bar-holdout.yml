@@ -12,39 +12,48 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Fetch pinned public-domain review images
+      - name: Fetch public-domain review images from publisher pages
         run: |
           python3 - <<'PY'
-          import hashlib, json, urllib.request
+          import hashlib, html, json, re, urllib.parse, urllib.request
           from pathlib import Path
           root=Path('build/holdout-review'); root.mkdir(parents=True)
           rows=[
             {
               'id':'pullup_warhill_8805036',
+              'photo_id':'8805036',
               'page':'https://www.dvidshub.net/image/8805036/warhill-high-school-pull-up-bar-challenge',
-              'url':'https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/2412/8805036/1000w_q95.jpg',
               'credit':'U.S. Marine Corps photo by Cpl. Trion D. Jenkins',
               'kind':'pullup'
             },
             {
               'id':'parallelbars_mike_9549475',
+              'photo_id':'9549475',
               'page':'https://www.dvidshub.net/image/9549475/mike-company-confidence-course',
-              'url':'https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/2602/9549475/1000w_q95.jpg',
               'credit':'U.S. Marine Corps photo by Lance Cpl. Yosemily Carrero Baez',
               'kind':'parallel_bars'
             }
           ]
+          def get(url):
+              req=urllib.request.Request(url,headers={'User-Agent':'HangInThere/0.1 bar holdout review'})
+              return urllib.request.urlopen(req,timeout=60)
           out=[]
           for row in rows:
-              p=root/(row['id']+'.jpg')
-              req=urllib.request.Request(row['url'],headers={'User-Agent':'HangInThere/0.1 bar holdout review'})
-              with urllib.request.urlopen(req,timeout=60) as r:
+              with get(row['page']) as r:
+                  page=r.read(3_000_000).decode('utf-8','replace')
+              page=html.unescape(page.replace('\\/','/'))
+              urls=sorted(set(re.findall(r'https://[^\\s\\"\'<>]+\\.(?:jpg|jpeg)(?:\\?[^\\s\\"\'<>]*)?',page,re.I)))
+              urls=[u for u in urls if row['photo_id'] in u and (urllib.parse.urlparse(u).hostname or '').endswith('cloudfront.net')]
+              if not urls:
+                  raise SystemExit('no publisher image URL for '+row['id'])
+              preferred=[u for u in urls if '1000w_q95' in u]
+              url=preferred[0] if preferred else max(urls,key=len)
+              with get(url) as r:
                   data=r.read(10_000_001)
               if not data or len(data)>10_000_000:
                   raise SystemExit('invalid bounded image '+row['id'])
-              p.write_bytes(data)
-              rec=dict(row)
-              rec['bytes']=len(data); rec['sha256']=hashlib.sha256(data).hexdigest()
+              p=root/(row['id']+'.jpg'); p.write_bytes(data)
+              rec=dict(row); rec['url']=url; rec['bytes']=len(data); rec['sha256']=hashlib.sha256(data).hexdigest()
               out.append(rec)
           (root/'sources.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
           (root/'ATTRIBUTION.txt').write_text(
