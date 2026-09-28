@@ -19,6 +19,11 @@ struct BarSetupControllerTests {
         #expect(model.confirmBar(bar,for:setup))
         #expect(model.currentBar == bar)
         #expect(model.counter.observedMovements == 0)
+        #expect(model.counter.summary.referenceMode == "confirmedBar")
+        model.clearBar()
+        #expect(model.currentBar == nil)
+        #expect(model.counter.summary.referenceMode == "fixedCameraOnly")
+        #expect(model.confirmBar(bar,for:setup))
         model.restart()
         #expect(model.currentBar == nil)
         try await wait { model.phase == .paused || model.phase == .failed }
