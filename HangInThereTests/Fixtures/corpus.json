@@ -18,7 +18,15 @@
       "review_scope": "Existing fully reviewed 40-frame fixture and one-movement regression in source.json.",
       "expectation": {
         "minimum_people_fraction": 0.95,
-        "minimum_any_arm_fraction": 0.8
+        "minimum_any_arm_fraction": 0.85,
+        "minimum_root_motion_fraction": 0.1
+      },
+      "visual_review": {
+        "method": "Existing source.json review plus generated corpus contact sheet.",
+        "observed_content": "One athlete, fixed landscape rear/oblique camera, standard pull-up apparatus and one reviewed movement cycle.",
+        "limitations": [
+          "Head/chin crop prevents strict top-form grading."
+        ]
       }
     },
     {
@@ -45,13 +53,20 @@
         "expected_frame_count": 32
       },
       "expectation": {
-        "minimum_people_fraction": 0.75,
-        "minimum_any_arm_fraction": 0.55
+        "minimum_people_fraction": 0.95,
+        "minimum_any_arm_fraction": 0.7
+      },
+      "visual_review": {
+        "method": "Reviewed generated derivative/contact sheet; this is the previously rejected 0-4 s smoke interval.",
+        "observed_content": "Two people stand in front of the pull-up station introducing the exercise; zero pull-up cycles.",
+        "limitations": [
+          "Stress case for additional people/background, not a movement-count fixture."
+        ]
       }
     },
     {
       "id": "fitnessscape-standard-indoor",
-      "tier": "tracking-qualified",
+      "tier": "count-qualified",
       "exercise": "pullUp",
       "source_kind": "download",
       "source_page": "https://commons.wikimedia.org/wiki/File:Pull-ups_-_exercise_demonstration_video.webm",
@@ -73,8 +88,28 @@
         "expected_frame_count": 48
       },
       "expectation": {
-        "minimum_people_fraction": 0.9,
-        "minimum_any_arm_fraction": 0.75
+        "minimum_people_fraction": 0.95,
+        "minimum_any_arm_fraction": 0.8,
+        "minimum_root_motion_fraction": 0.1
+      },
+      "side": "left",
+      "visual_review": {
+        "method": "All 48 prepared frames inspected in temporal order at 8 FPS before Apple Vision corpus inference.",
+        "observed_content": "One athlete, fixed rear/oblique indoor-gym view, standard straight pull-up bar. Two complete visually observed hang/ascent/peak/descent cycles.",
+        "limitations": [
+          "On-screen PULL-UPS title partially covers the lower-right image but does not cover the selected arm/bar.",
+          "Movement-cycle ground truth only; no chin-clearance or form-validity label."
+        ]
+      },
+      "count_expectation": {
+        "bar_reference_edge": [
+          202,
+          84,
+          374,
+          58
+        ],
+        "bar_reference_note": "Manually reviewed visible bar centerline in the 640x360 prepared image; fixed camera, reused for all frames.",
+        "expected_observed_movements": 2
       }
     },
     {
@@ -101,8 +136,18 @@
         "expected_frame_count": 128
       },
       "expectation": {
-        "minimum_people_fraction": 0.65,
-        "minimum_any_arm_fraction": 0.45
+        "minimum_people_fraction": 0.7,
+        "minimum_any_arm_fraction": 0.45,
+        "minimum_root_motion_fraction": 0.18,
+        "expected_orientation": "portrait"
+      },
+      "visual_review": {
+        "method": "Generated 2-second contact sheet inspected before Apple Vision corpus inference.",
+        "observed_content": "Single athlete outdoors in portrait framing performing highly nonstandard one-arm hanging/pull movement with large swing/inversion and changing body orientation.",
+        "limitations": [
+          "Stress/coverage only; no rep-count or form label.",
+          "Motion blur/defocus appears near the end."
+        ]
       }
     },
     {
@@ -132,12 +177,24 @@
       },
       "expectation": {
         "minimum_people_fraction": 0.6,
-        "minimum_any_arm_fraction": 0.4
+        "minimum_any_arm_fraction": 0.35,
+        "minimum_root_motion_fraction": 0.15,
+        "expected_orientation": "landscape"
+      },
+      "visual_review": {
+        "method": "Generated 2-second contact sheet inspected before Apple Vision corpus inference.",
+        "observed_content": "Single athlete outdoors using a tree branch as nonstandard apparatus, with substantial swing/inversion and foliage/high-contrast background.",
+        "limitations": [
+          "Stress/coverage only; no rep-count or form label.",
+          "Tree/foliage can occlude limbs near the top of motion."
+        ]
       }
     }
   ],
   "known_gap": {
     "exercise": "dip",
     "status": "No reproducibly downloadable, clearly licensed real parallel-bar dip source is pinned yet. Do not fabricate one or relabel chair-dip footage."
-  }
+  },
+  "reviewed_date": "2026-09-28",
+  "review_policy": "Visual expectations and thresholds were recorded before running Apple Vision over the new corpus. Model output must not be used to retroactively invent ground-truth movement labels."
 }
