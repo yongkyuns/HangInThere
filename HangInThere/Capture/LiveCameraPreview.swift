@@ -12,6 +12,7 @@ enum LiveCameraState: Equatable, Sendable {
     case ready
     case denied
     case unavailable
+    case interrupted(String)
     case failed(String)
 
     var title: String {
@@ -22,6 +23,7 @@ enum LiveCameraState: Equatable, Sendable {
         case .ready: "Camera ready"
         case .denied: "Camera access is off"
         case .unavailable: "Rear camera unavailable"
+        case .interrupted: "Camera interrupted"
         case .failed: "Camera unavailable"
         }
     }
@@ -40,6 +42,8 @@ enum LiveCameraState: Equatable, Sendable {
             "Enable camera access in Settings. Recorded-video review remains available."
         case .unavailable:
             "A rear wide-angle camera is required for the first live-workout profile."
+        case .interrupted(let message):
+            message
         case .failed(let message):
             message
         }
@@ -164,13 +168,16 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
     @ObservationIgnored private var analyzer: LiveFrameAnalyzer?
     @ObservationIgnored private var analysisEventTask: Task<Void, Never>?
+    @ObservationIgnored private var captureWatchdogTask: Task<Void, Never>?
     @ObservationIgnored private var exercise: ExerciseCounter.Exercise = .pullUp
     @ObservationIgnored private var trackingSide: ArmMeasurement.Side = .left
     @ObservationIgnored private var latestFrame: ProcessedFrame?
     @ObservationIgnored private var setupGeneration: UInt64 = 0
     @ObservationIgnored private var discardNextSetFrame = false
+    @ObservationIgnored private var suspended = false
 
     var isCameraReady: Bool { state == .ready }
+    var isSuspended: Bool { suspended }
 
     var barRole: ConfirmedBar.Role {
         exercise == .pullUp
@@ -276,6 +283,40 @@ final class LiveCameraPreviewController {
         liveSet.prepareNextSet()
     }
 
+    func suspendForSceneLoss() {
+        suspend(
+            counterReason: "appInactive",
+            endReason: .appInactive,
+            message: "Live setup was cleared because the app left the foreground. Re-check framing and set the bar again.",
+            stopCapture: true
+        )
+    }
+
+    func resumeAfterInterruption() async {
+        guard startRequested, suspended else { return }
+
+        state = .starting
+        let session = session
+        sessionQueue.async {
+            if !session.isRunning {
+                session.startRunning()
+            }
+        }
+
+        let deadline = ContinuousClock.now.advanced(by: .seconds(8))
+        while !session.isRunning || session.isInterrupted {
+            guard startRequested else { return }
+            guard ContinuousClock.now < deadline else {
+                state = .failed("The camera could not resume. Close Live Workout and try again.")
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+
+        suspended = false
+        state = .ready
+    }
+
     func start() async {
         guard !startRequested else { return }
         startRequested = true
@@ -299,6 +340,7 @@ final class LiveCameraPreviewController {
             return
         }
 
+        suspended = false
         analyzedFrames = 0
         droppedFrames = 0
         analysisFailures = 0
@@ -343,6 +385,7 @@ final class LiveCameraPreviewController {
         }
         guard startRequested else { return }
         state = .ready
+        startCaptureWatchdogIfNeeded()
     }
 
     func stop() {
@@ -350,6 +393,7 @@ final class LiveCameraPreviewController {
             liveSet.finish()
         }
         discardNextSetFrame = false
+        suspended = false
         startRequested = false
         if state == .ready || state == .starting || state == .requestingPermission {
             state = .idle
@@ -358,6 +402,10 @@ final class LiveCameraPreviewController {
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
+        captureWatchdogTask?.cancel()
+        captureWatchdogTask = nil
+        analysisEventTask?.cancel()
+        analysisEventTask = nil
         let session = session
         sessionQueue.async {
             if session.isRunning {
@@ -435,14 +483,83 @@ final class LiveCameraPreviewController {
         configured = true
     }
 
+    private func suspend(
+        counterReason: String,
+        endReason: LiveSetSession.EndReason,
+        message: String,
+        stopCapture: Bool
+    ) {
+        guard startRequested, !suspended else { return }
+
+        if liveSet.phase == .running {
+            liveSet.interruptAndFinish(
+                reason: counterReason,
+                endReason: endReason
+            )
+        }
+
+        discardNextSetFrame = false
+        suspended = true
+        state = .interrupted(message)
+        framing = LiveFramingAssessment()
+        latestFrame = nil
+        setupGeneration &+= 1
+        bar = nil
+
+        if stopCapture {
+            let session = session
+            sessionQueue.async {
+                if session.isRunning {
+                    session.stopRunning()
+                }
+            }
+        }
+    }
+
+    private func startCaptureWatchdogIfNeeded() {
+        guard captureWatchdogTask == nil else { return }
+
+        captureWatchdogTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(500))
+                guard let self else { return }
+                guard self.startRequested,
+                      !self.suspended,
+                      self.state == .ready else { continue }
+
+                if self.session.isInterrupted {
+                    self.suspend(
+                        counterReason: "cameraInterrupted",
+                        endReason: .cameraInterrupted,
+                        message: "The camera was interrupted. Re-check framing and set the bar again before another set.",
+                        stopCapture: false
+                    )
+                } else if !self.session.isRunning {
+                    self.suspend(
+                        counterReason: "cameraFailure",
+                        endReason: .cameraFailure,
+                        message: "The camera session stopped unexpectedly. Resume the camera and repeat setup before another set.",
+                        stopCapture: false
+                    )
+                }
+            }
+        }
+    }
+
     private func accept(_ event: LiveAnalyzerEvent) {
-        guard startRequested else { return }
+        guard startRequested, !suspended else { return }
 
         switch event {
         case .frame(let frame):
             if let bar, bar.imageSize != frame.pose.imageSize {
                 self.bar = nil
                 setupGeneration &+= 1
+                if liveSet.phase == .running {
+                    liveSet.interruptAndFinish(
+                        reason: "barReferenceUnavailable",
+                        endReason: .setupInvalidated
+                    )
+                }
             }
             latestFrame = frame
             analyzedFrames += 1
@@ -452,8 +569,13 @@ final class LiveCameraPreviewController {
             if liveSet.phase == .running {
                 if discardNextSetFrame {
                     discardNextSetFrame = false
+                } else if let referenceEdge = currentBar?.referenceEdge {
+                    liveSet.consume(frame.pose, referenceEdge: referenceEdge)
                 } else {
-                    liveSet.consume(frame.pose, referenceEdge: currentBar?.referenceEdge)
+                    liveSet.interruptAndFinish(
+                        reason: "barReferenceUnavailable",
+                        endReason: .setupInvalidated
+                    )
                 }
             }
 
