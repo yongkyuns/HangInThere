@@ -45,9 +45,31 @@ struct StaticSceneRegistrationTests {
         #expect(policy.state == .stable)
     }
 
+    @Test func peripheralRegistrationProducesRadialScaleSignal() async throws {
+        let referenceImage = try #require(makePatternImage(shiftX: 0, shiftY: 0))
+        let scaledImage = try #require(makePatternImage(shiftX: 0, shiftY: 0, scale: 1.05))
+        let reference = try #require(
+            VisionStaticSceneRegistrationWorker.makeReference(image: referenceImage)
+        )
+
+        let worker = VisionStaticSceneRegistrationWorker()
+        let shifts = try await worker.measure(reference: reference, image: scaledImage)
+
+        #expect(shifts.count >= 3)
+        var policy = StaticSceneTranslationStability()
+        _ = policy.calibrate(imageSize: .init(width: 400, height: 400))
+        policy.observe(shifts, timestamp: 0.10)
+        policy.observe(shifts, timestamp: 0.40)
+
+        #expect(policy.state == .moved)
+        #expect(policy.movementKind == .scale)
+        #expect((policy.latestScaleFraction ?? 0) >= StaticSceneTranslationStability.scaleThresholdFraction)
+    }
+
     private func makePatternImage(
         shiftX: CGFloat,
-        shiftY: CGFloat
+        shiftY: CGFloat,
+        scale: CGFloat = 1
     ) -> CGImage? {
         let width = 400
         let height = 400
@@ -65,7 +87,9 @@ struct StaticSceneRegistrationTests {
         context.setFillColor(CGColor(gray: 0.08, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         context.saveGState()
-        context.translateBy(x: shiftX, y: shiftY)
+        context.translateBy(x: CGFloat(width) / 2 + shiftX, y: CGFloat(height) / 2 + shiftY)
+        context.scaleBy(x: scale, y: scale)
+        context.translateBy(x: -CGFloat(width) / 2, y: -CGFloat(height) / 2)
 
         for row in 0..<10 {
             for column in 0..<10 {
