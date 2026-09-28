@@ -6,7 +6,7 @@ the evidence needed to understand tracking failures.
 
 ## Product promise for the current POC
 
-HangInThere analyzes a recorded pull-up or parallel-bar-dip video on device.
+HangInThere supports live pull-up / parallel-bar-dip movement counting and recorded-video review on device.
 
 The current customer-facing promise is deliberately narrow:
 
@@ -67,8 +67,8 @@ the required evidence is unavailable.
 
 The primary action changes with session state:
 
-- no video -> **Choose workout video**
-- video without bar -> **Preview**
+- home -> **Live workout**, with **Review recorded video** as the secondary path
+- recorded video without bar -> **Preview**
 - bar confirmed -> **Analyze**
 - while running -> **Pause**
 
@@ -87,10 +87,18 @@ continuing with stale geometry.
 
 ## Current screen structure
 
-### Empty state
+### Home / empty state
 
-A single primary call to action imports a workout video. The screen explains the
-supported exercises and that video analysis stays on device.
+The main entry now presents the two actual product workflows instead of treating
+recorded replay as the whole app:
+
+1. **Live workout** — primary action; opens the camera-based setup/workout flow.
+2. **Review recorded video** — secondary action; imports an existing local video.
+
+Camera permission is still contextual: simply opening the app does not request it.
+The permission request occurs only after the athlete explicitly enters Live Workout.
+The home screen states once that live and recorded analysis stays on device and that
+the current result is movement-only rather than form scoring.
 
 ### Workout review
 
@@ -229,8 +237,9 @@ movement-only results with duration, tracking coverage, and a movement timeline.
 **New set** clears the previous result while preserving the current exercise/arm
 selection and confirmed bar when it is still geometrically compatible.
 
-The screen remains unlinked from the normal customer entry flow for this slice so
-the live workflow can qualify as one unit before becoming a primary app action.
+The qualified live workflow is now exposed from the main customer entry screen as
+the primary action. It is presented full-screen so setup, the running set, and
+results form one focused task; closing it returns to the home/recorded-review flow.
 
 The intended complete live flow remains:
 
