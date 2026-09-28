@@ -300,6 +300,7 @@ final class LiveCameraPreviewController {
         session.addInput(input)
 
         guard session.canAddOutput(output) else {
+            session.removeInput(input)
             throw LiveCameraSetupError.cannotAddVideoOutput
         }
         session.addOutput(output)
@@ -307,6 +308,8 @@ final class LiveCameraPreviewController {
         guard let connection = output.connection(with: .video),
               connection.isVideoRotationAngleSupported(90)
         else {
+            session.removeOutput(output)
+            session.removeInput(input)
             throw LiveCameraSetupError.unsupportedPortraitRotation
         }
         connection.videoRotationAngle = 90
