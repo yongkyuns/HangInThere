@@ -261,12 +261,30 @@ polls the latest fused device attitude and invalidates calibration after a
 calibration. Brief threshold crossings reset if orientation returns before the dwell
 time so sensor noise or a very short vibration does not immediately destroy setup.
 
-This is rotational stability only. Core Motion cannot establish that the phone did
-not translate while returning to the same attitude, so the UI says
-**Phone orientation monitored**, not “phone position verified.” Optical/background
-registration or another image-space check is still required before claiming full
-camera-pose stability. The threshold is an engineering default pending physical
-iPhone qualification, not a release-quality accuracy bound.
+Core Motion still cannot establish that the phone did not translate while returning
+to the same attitude. Live setup now supplements it with a **static-background
+image-registration guard** tied to the same frozen bar-calibration frame.
+
+The calibration frame contributes four peripheral corner patches. During live
+capture, Apple Vision translational image registration compares the current
+peripheral patches against those references at a throttled rate. The framework-free
+policy requires at least two patch translations to agree, so one corner contaminated
+by a moving athlete can be rejected as an outlier. **Start set stays blocked until a
+valid background consensus has been observed after calibration.**
+
+A provisional image-space gate invalidates calibration when consensus translation
+exceeds **0.8% of the image short side for at least 0.25 s**. The app then clears
+the fixed bar reference; a running set ends as **Set interrupted** with a
+scene-shift reason. Brief or mutually inconsistent patch shifts do not invalidate
+setup.
+
+This closes the obvious pure-translation blind spot but is still not a full
+camera-pose estimator. Low-texture backgrounds, depth-dependent parallax, zoom/lens
+changes, and scene motion can make translational registration unavailable or
+ambiguous. The UI therefore uses **Camera position / background alignment**
+language rather than claiming 6-DoF camera localization. Both the Core Motion and
+image-registration thresholds remain engineering defaults pending physical iPhone
+qualification.
 
 The qualified live workflow is now exposed from the main customer entry screen as
 the primary action. It is presented full-screen so setup, the running set, and
@@ -297,7 +315,7 @@ The app should eventually provide:
 - "move farther back" / "keep selected arm visible" guidance;
 - confirmation that the selected athlete/arm is measurable (implemented for live setup);
 - confirmation that the bar/rail is visible (not yet automatic);
-- warning/invalidation for sustained phone orientation change after calibration (implemented; pure translation remains unverified);
+- warning/invalidation for sustained phone orientation change plus multi-patch background translation after calibration (implemented; full 6-DoF stability remains unverified);
 - exercise-specific camera recommendations.
 
 Do not expose arbitrary CV thresholds to customers.
