@@ -717,9 +717,9 @@ final class LiveCameraPreviewController {
         let image = frame.image
         sceneRegistrationTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            let shifts: [StaticSceneStability.PatchMotion]
+            let measurement: StaticSceneRegistrationMeasurement
             do {
-                shifts = try await sceneRegistrationWorker.measure(
+                measurement = try await sceneRegistrationWorker.measure(
                     reference: reference,
                     image: image
                 )
@@ -740,7 +740,11 @@ final class LiveCameraPreviewController {
                 return
             }
 
-            let state = self.sceneTranslation.observe(shifts, timestamp: seconds)
+            let state = self.sceneTranslation.observe(
+                translations: measurement.translations,
+                globalScaleFraction: measurement.globalScaleFraction,
+                timestamp: seconds
+            )
             self.sceneRegistrationTask = nil
             if state == .moved {
                 self.invalidateForSceneMovement()
