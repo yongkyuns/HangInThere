@@ -45,15 +45,24 @@ struct LiveSetupView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     intro
                     cameraSurface
-                    workoutSelection
-                    framingChecklist
-                    barCalibrationCard
-                    readyStateCard
+
+                    switch camera.liveSet.phase {
+                    case .idle:
+                        workoutSelection
+                        framingChecklist
+                        barCalibrationCard
+                        readyStateCard
+                    case .running:
+                        liveSetCard
+                    case .finished:
+                        liveResultsCard
+                    }
+
                     scopeNote
                 }
                 .padding()
             }
-            .navigationTitle("Camera setup")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -134,10 +143,20 @@ struct LiveSetupView: View {
                 .padding(.vertical, 26)
 
             VStack {
-                HStack {
+                HStack(alignment: .top) {
                     Label(exercise.title, systemImage: "figure.strengthtraining.traditional")
                     Spacer()
-                    Text(side.rawValue.capitalized + " arm")
+                    if camera.liveSet.phase == .running {
+                        VStack(alignment: .trailing, spacing: 0) {
+                            Text("\(camera.liveSet.observedMovements)")
+                                .font(.system(size: 42, weight: .bold, design: .rounded))
+                                .monospacedDigit()
+                            Text("movements")
+                                .font(.caption2.weight(.semibold))
+                        }
+                    } else {
+                        Text(side.rawValue.capitalized + " arm")
+                    }
                 }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.white)
@@ -146,7 +165,10 @@ struct LiveSetupView: View {
 
                 Spacer()
 
-                Label(camera.framing.title, systemImage: framingStatusSymbol)
+                Label(
+                    camera.liveSet.phase == .running ? liveTrackingTitle : camera.framing.title,
+                    systemImage: camera.liveSet.phase == .running ? liveTrackingSymbol : framingStatusSymbol
+                )
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
@@ -287,29 +309,256 @@ struct LiveSetupView: View {
     }
 
     private var readyStateCard: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: camera.setupReadiness.state.isReady ? "checkmark.circle.fill" : "circle.dashed")
-                .font(.title2)
-                .foregroundStyle(readyStatusColor)
-                .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: camera.setupReadiness.state.isReady ? "checkmark.circle.fill" : "circle.dashed")
+                    .font(.title2)
+                    .foregroundStyle(readyStatusColor)
+                    .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(camera.setupReadiness.state.isReady ? "Ready to start" : "Setup not complete")
-                    .font(.headline)
-                Text(
-                    camera.setupReadiness.state.isReady
-                        ? "Camera, selected arm, and fixed bar reference are ready. Live set counting is the next implementation step."
-                        : readyStateHelp
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(camera.setupReadiness.state.isReady ? "Ready to start" : "Setup not complete")
+                        .font(.headline)
+                    Text(
+                        camera.setupReadiness.state.isReady
+                            ? "Camera, selected arm, and fixed bar reference are ready."
+                            : readyStateHelp
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 0)
             }
 
-            Spacer(minLength: 0)
+            if camera.setupReadiness.state.isReady {
+                Button {
+                    _ = camera.startSet()
+                } label: {
+                    Label("Start set", systemImage: "play.fill")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("startLiveSet")
+            }
         }
         .padding(16)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
         .accessibilityIdentifier("liveSetupReadiness")
+    }
+
+    private var liveSetCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Live set")
+                        .font(.headline)
+                    Text(liveTrackingTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Text("\(camera.liveSet.observedMovements)")
+                    .font(.system(size: 52, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .accessibilityIdentifier("liveMovementCount")
+            }
+
+            Label(liveTrackingDetail, systemImage: liveTrackingSymbol)
+                .font(.caption)
+                .foregroundStyle(camera.liveSet.trackingIssue == nil ? .secondary : .orange)
+
+            Button(role: .destructive) {
+                camera.stopSet()
+            } label: {
+                Label("Stop set", systemImage: "stop.fill")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .accessibilityIdentifier("stopLiveSet")
+        }
+        .padding(18)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
+    }
+
+    private var liveResultsCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack {
+                Label("Set complete", systemImage: "checkmark.circle.fill")
+                    .font(.headline)
+                    .foregroundStyle(.green)
+
+                Spacer()
+
+                Text("MOVEMENT ONLY")
+                    .font(.caption2.weight(.bold))
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 6)
+                    .background(.thinMaterial, in: Capsule())
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(camera.liveSet.observedMovements)")
+                    .font(.system(size: 64, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                Text(camera.liveSet.observedMovements == 1 ? "observed movement" : "observed movements")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 24) {
+                    liveResultMetric("Duration", formattedLiveDuration)
+                    liveResultMetric("Tracking", formattedLiveCoverage)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    liveResultMetric("Duration", formattedLiveDuration)
+                    liveResultMetric("Tracking", formattedLiveCoverage)
+                }
+            }
+
+            if !camera.liveSet.movementTimes.isEmpty {
+                DisclosureGroup {
+                    VStack(spacing: 0) {
+                        ForEach(camera.liveSet.movementTimes.indices, id: \.self) { index in
+                            HStack {
+                                Text("Movement \(index + 1)")
+                                Spacer()
+                                Text(formatLiveTime(camera.liveSet.movementTimes[index]))
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                            }
+                            .font(.subheadline)
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    .padding(.top, 6)
+                } label: {
+                    Label("Movement timeline", systemImage: "list.bullet.rectangle")
+                        .font(.subheadline.weight(.semibold))
+                }
+            }
+
+            Text("Chin clearance, strict dip depth, and form quality are not verified.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Button {
+                camera.prepareNextSet()
+            } label: {
+                Label("New set", systemImage: "arrow.counterclockwise")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .accessibilityIdentifier("newLiveSet")
+        }
+        .padding(18)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        .accessibilityIdentifier("liveSetResults")
+    }
+
+    @ViewBuilder
+    private func liveResultMetric(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline)
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var navigationTitle: String {
+        switch camera.liveSet.phase {
+        case .idle: "Camera setup"
+        case .running: "Live workout"
+        case .finished: "Set results"
+        }
+    }
+
+    private var liveTrackingTitle: String {
+        if let issue = camera.liveSet.trackingIssue {
+            return liveIssueTitle(issue)
+        }
+        return camera.liveSet.counter.phase.title
+    }
+
+    private var liveTrackingDetail: String {
+        if let issue = camera.liveSet.trackingIssue {
+            return liveIssueDetail(issue)
+        }
+        switch camera.liveSet.counter.phase {
+        case .seekingStart:
+            return "Hold the extended starting position until tracking is ready."
+        case .ready:
+            return "Starting position acquired."
+        case .outbound:
+            return "Movement in progress."
+        case .returning:
+            return "Return to the extended position."
+        case .finished:
+            return "Set finished."
+        }
+    }
+
+    private var liveTrackingSymbol: String {
+        camera.liveSet.trackingIssue == nil ? "figure.strengthtraining.traditional" : "exclamationmark.triangle.fill"
+    }
+
+    private func liveIssueTitle(_ issue: String) -> String {
+        switch issue {
+        case "barReferenceUnavailable": "Bar reference lost"
+        case "lowConfidence": "Selected arm unclear"
+        case "missingJoint": "Selected arm hidden"
+        case "multiplePeople": "Keep one athlete in frame"
+        case "sourceTimeGap": "Tracking interrupted"
+        default: "Tracking paused"
+        }
+    }
+
+    private func liveIssueDetail(_ issue: String) -> String {
+        switch issue {
+        case "barReferenceUnavailable":
+            return "Stop the set and set the bar reference again."
+        case "lowConfidence":
+            return "Keep the selected arm clear and well lit."
+        case "missingJoint":
+            return "Reposition so the selected shoulder, elbow, and wrist are visible."
+        case "multiplePeople":
+            return "The current live profile supports one athlete."
+        case "sourceTimeGap":
+            return "A camera timing gap interrupted the active attempt; re-establish the starting position."
+        default:
+            return "Re-establish the starting position before continuing."
+        }
+    }
+
+    private var formattedLiveDuration: String {
+        let seconds = max(0, camera.liveSet.durationSeconds)
+        let minutes = Int(seconds) / 60
+        let remainder = seconds - Double(minutes * 60)
+        return minutes > 0 ? String(format: "%d:%04.1f", minutes, remainder) : String(format: "%.1fs", remainder)
+    }
+
+    private var formattedLiveCoverage: String {
+        guard let coverage = camera.liveSet.trackingCoverage else { return "—" }
+        return "\(Int((coverage * 100).rounded()))%"
+    }
+
+    private func formatLiveTime(_ seconds: Double) -> String {
+        let safe = max(0, seconds)
+        let minutes = Int(safe) / 60
+        let remainder = safe - Double(minutes * 60)
+        return minutes > 0 ? String(format: "%d:%04.1f", minutes, remainder) : String(format: "%.1fs", remainder)
     }
 
     private var readyStatusColor: Color {
@@ -335,7 +584,7 @@ struct LiveSetupView: View {
 
     private var scopeNote: some View {
         Label(
-            "Athlete and selected-arm visibility are checked from live Apple Vision frames. Bar calibration uses one frozen analyzed frame and explicit user confirmation. Automatic apparatus identity, phone-motion detection, and live counting remain separate qualification steps.",
+            "Live sets use the same bar-relative movement counter as recorded review. Automatic apparatus identity, phone-motion detection, chin/depth verification, and form scoring remain separate qualification steps.",
             systemImage: "info.circle"
         )
         .font(.footnote)
