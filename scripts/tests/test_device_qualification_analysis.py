@@ -170,7 +170,7 @@ class DeviceQualificationAnalysisTests(unittest.TestCase):
             self.assertEqual(result["stationary"]["reportCount"], 1)
 
     def test_markdown_summary_does_not_claim_pass_fail(self):
-        result = analysis.analyze_reports_for_test(
+        result = analysis._analyze_loaded_reports(
             [("run.json", sample_report())],
             "summary",
         )
