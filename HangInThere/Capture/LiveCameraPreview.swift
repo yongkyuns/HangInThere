@@ -296,21 +296,12 @@ final class LiveCameraPreviewController {
         guard startRequested, suspended else { return }
 
         state = .starting
-        let session = session
-        sessionQueue.async {
-            if !session.isRunning {
-                session.startRunning()
-            }
-        }
+        await setCaptureRunning(true)
+        guard startRequested else { return }
 
-        let deadline = ContinuousClock.now.advanced(by: .seconds(8))
-        while !session.isRunning || session.isInterrupted {
-            guard startRequested else { return }
-            guard ContinuousClock.now < deadline else {
-                state = .failed("The camera could not resume. Close Live Workout and try again.")
-                return
-            }
-            try? await Task.sleep(for: .milliseconds(50))
+        guard session.isRunning, !session.isInterrupted else {
+            state = .interrupted("The camera is still unavailable. Try Resume camera again when the interruption ends.")
+            return
         }
 
         suspended = false
@@ -366,24 +357,15 @@ final class LiveCameraPreviewController {
 
         framing = LiveFramingAssessment()
         state = .starting
-        let session = session
-        sessionQueue.async {
-            if !session.isRunning {
-                session.startRunning()
-            }
+        await setCaptureRunning(true)
+        guard startRequested else { return }
+
+        guard session.isRunning, !session.isInterrupted else {
+            state = .failed("The camera did not start. Close Live Workout and try again.")
+            startRequested = false
+            return
         }
 
-        let deadline = ContinuousClock.now.advanced(by: .seconds(8))
-        while !session.isRunning {
-            guard startRequested else { return }
-            guard ContinuousClock.now < deadline else {
-                state = .failed("The camera did not start. Close setup and try again.")
-                startRequested = false
-                return
-            }
-            try? await Task.sleep(for: .milliseconds(50))
-        }
-        guard startRequested else { return }
         state = .ready
         startCaptureWatchdogIfNeeded()
     }
@@ -481,6 +463,22 @@ final class LiveCameraPreviewController {
 
         videoOutput = output
         configured = true
+    }
+
+    private func setCaptureRunning(_ running: Bool) async {
+        let session = session
+        await withCheckedContinuation { continuation in
+            sessionQueue.async {
+                if running {
+                    if !session.isRunning {
+                        session.startRunning()
+                    }
+                } else if session.isRunning {
+                    session.stopRunning()
+                }
+                continuation.resume()
+            }
+        }
     }
 
     private func suspend(
