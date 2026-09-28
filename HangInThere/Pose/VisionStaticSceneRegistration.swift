@@ -34,7 +34,7 @@ actor VisionStaticSceneRegistrationWorker {
     static let patchFraction = 0.25
     static let maximumPatchShiftFraction = 0.45
 
-    nonisolated static func makeReference(
+    static func makeReference(
         image: CGImage
     ) -> StaticSceneRegistrationReference? {
         let width = image.width
@@ -101,7 +101,7 @@ actor VisionStaticSceneRegistrationWorker {
         return shifts
     }
 
-    private nonisolated static func cornerPatchRects(
+    private static func cornerPatchRects(
         width: Int,
         height: Int
     ) -> [CGRect] {
