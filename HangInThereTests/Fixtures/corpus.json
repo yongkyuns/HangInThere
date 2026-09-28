@@ -55,8 +55,8 @@
       "source_kind": "download",
       "source_page": "https://commons.wikimedia.org/wiki/File:Pull-ups_-_exercise_demonstration_video.webm",
       "download_url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Pull-ups_-_exercise_demonstration_video.webm",
-      "source_bytes": null,
-      "source_sha256": null,
+      "source_bytes": 358754,
+      "source_sha256": "1ddf02c690c6da9d27c9ca50453d2df212d777bb402203af116b70bf27a2227d",
       "license": "CC BY 3.0",
       "credit": "FitnessScape",
       "environment_tags": [
@@ -82,8 +82,8 @@
       "source_kind": "download",
       "source_page": "https://commons.wikimedia.org/wiki/File:One-arm_pull-up_-_Solodkyi_Serhii_3194821.webm",
       "download_url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/One-arm_pull-up_-_Solodkyi_Serhii_3194821.webm",
-      "source_bytes": null,
-      "source_sha256": null,
+      "source_bytes": 11296179,
+      "source_sha256": "073c588f1c6af0cf2ba8e24e0e42495b35855d78b0e76df17cee947c9c8a1fb3",
       "license": "CC BY-SA 4.0",
       "credit": "Fenix1000 / Solodkyi Serhii",
       "environment_tags": [
@@ -109,8 +109,8 @@
       "source_kind": "download",
       "source_page": "https://commons.wikimedia.org/wiki/File:A_one-arm_pull-up_from_a_tree_branch_-_Solodkyi_Serhii_6469.webm",
       "download_url": "https://upload.wikimedia.org/wikipedia/commons/d/de/A_one-arm_pull-up_from_a_tree_branch_-_Solodkyi_Serhii_6469.webm",
-      "source_bytes": null,
-      "source_sha256": null,
+      "source_bytes": 8435045,
+      "source_sha256": "c14e66665c989f1bedb532b35c6b66c89aafa93cef73ff0f8bd4f7df22971aab",
       "license": "CC BY-SA 4.0",
       "credit": "Fenix1000 / Solodkyi Serhii",
       "environment_tags": [
