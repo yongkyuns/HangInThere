@@ -7,11 +7,11 @@ counter's wrist/arm assumptions or establish reliable automatic bar detection.
 
 ## In the replay app
 
-Pause on a clear apparatus frame and tap **Set up bar**. Drag a box around one
-straight section including both visible edges, then **Find edges**. Inspect the
-ranked proposals and explicitly confirm the correct gripping segment. Yellow
-marks the reference silhouette edge; cyan marks its opposite edge. The guided
-region is manual input: this is not autonomous whole-scene semantic detection.
+Pause on a clear apparatus frame and tap **Set up bar**. Drag a box tightly around
+one visible straight reference edge, then **Find edge**. Inspect the ranked
+observed-line proposals and explicitly confirm the correct gripping edge. Yellow
+marks the confirmed reference edge; no opposite silhouette edge is invented. The
+guided region is manual input: this is not autonomous whole-scene semantic detection.
 
 When no proposal is suitable, **Mark edge manually** lets the user drag a visible
 reference edge. It is recorded as `manualEdge`, not successful automatic detection;
@@ -35,28 +35,30 @@ pixel-space guided region, runs Apple contours in both contrast polarities, and
 maps normalized points into upright pixels using the actual crop offsets. Pixel
 space is essential for non-square inputs.
 
-`BarFitter` simplifies contours with 1.5-pixel Ramer–Douglas–Peucker tolerance,
-extracts sufficiently long observed segments and pairs noncrossing compatible
-edges. It retains only their shared support, without extrapolating through hidden
-hands or inventing the whole rack. Mild perspective taper is allowed. The image
-upper edge is undefined for near-vertical rails. Candidate rank uses shared support
-length and directional agreement, not a calibrated semantic confidence score.
-Crop-border edges are excluded. Opposite-polarity duplicates are collapsed;
-adjacent rack bars remain separate candidates requiring confirmation.
+`BarLineFitter` follows the bar-only research result rather than requiring a
+complete two-edge silhouette. It simplifies contours with a 1-pixel
+Ramer–Douglas–Peucker tolerance, extracts observed line fragments, and merges
+fragments that remain collinear (<=8 degrees, <=5 pixels normal offset) across a
+short internal gap. The gap is bounded by min(45 px, 20% of the guide's longest
+side). The merged line never extends beyond the outermost observed endpoints.
+Crop-border artifacts are rejected; opposite-polarity duplicate evidence is
+collapsed; distinct rack lines remain separate proposals requiring confirmation.
+Candidate score is observed finite line support, not semantic bar probability.
 
-Initial engineering limits: overlap >=24 pixels and >=30% of the guide's longest
-side; direction difference <=5 degrees; edge separation 2–40 pixels; overlap >=1
-bar width; taper minimum width >=40% of maximum width. These are **not validated
-accuracy targets**. Thick, highly foreshortened, curved, heavily wrapped/occluded
-bars and confusing rack edges can fail. Input points, segments and simplification
-work are bounded; excess complexity fails rather than silently accepting a guess.
+A retained edge must cover at least 25% of the guide's longest side. These are
+**development geometry limits**, not exercise accuracy targets. Curved bars,
+severe foreshortening, wrapped/texture-dominated rails and a guide containing a
+longer competing rack edge can still fail. Input points, segments and
+simplification work remain bounded; excess complexity fails rather than silently
+accepting a guess.
 
 ## Evidence boundaries
 
-Core tests cover coordinate geometry, partial overlap, reversal, taper, vertical
-rails, invalid inputs, crop edges, duplicate contours and manual provenance.
-Independent Apple integration tests run actual contour detection on original
-analytic pixels of dark/bright/oblique bars and blank images. These tests remain
+Core tests cover the legacy paired-edge geometry plus single-edge fragment
+merging, large-gap separation, crop-edge rejection, duplicate evidence, distinct
+rack lines and confirmation provenance. Independent Apple integration tests run
+actual contour detection on original analytic pixels of dark/bright/oblique bars,
+short occlusion and blank images. These tests remain
 fatal on native macOS and the iOS simulator mechanics suite; they do not depend on
 the separately failing human-pose model test.
 
@@ -80,7 +82,7 @@ Primary API references:
 
 ## Initial photograph audit and bounded repair
 
-The first native run (`2272782`) produced no candidate in any of the three images.
+The original paired-edge native run (`2272782`) produced no candidate in any of the three images.
 An isolated raw-contour probe found normalized Float samples a few ULPs beyond the
 crop border, which made the fitter discard entire otherwise usable contours.
 The adapter now corrects only boundary rounding within four Float ULPs; truly
@@ -94,3 +96,10 @@ a development revision prompted by observed failure, not held-out validation.
 References and guides are unchanged. Missing/fragmented edges remain a real failure,
 not evidence that an entire bar was localized. New native audit results must be
 reported separately from the original zero-candidate run.
+
+
+## Single-edge promotion
+
+The bar-only method screen showed that raw Apple contour evidence already contains accurate local bar edges even when the paired-silhouette fitter rejects the image. The research single-edge reconstruction detected the bar on all 44 visible frames of the fixed pull-up sequence with zero proposal on its opening no-bar graphic, and recovered the labelled rear-view pull-up edge at roughly 1.3 px mean disagreement. OpenCV LSD remains a strong host-only reference, but adding OpenCV to the iOS app is not justified merely to perform this one-time guided setup.
+
+The production guided path now follows that single-edge reconstruction and records a confirmed guidedContours reference with oppositeEdge absent. Manual marking stays separately identified as manualEdge. A successful proposal is still **not semantic whole-scene bar recognition**: the user-supplied guide and confirmation are part of the supported controlled-setting workflow.
