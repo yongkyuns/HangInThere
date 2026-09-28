@@ -8,11 +8,11 @@ struct BarSetupView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var region: BarRegion?
     @State private var manual: BarSegment?
-    @State private var candidates: [BarCandidate] = []
+    @State private var candidates: [BarLineCandidate] = []
     @State private var selectedIndex = 0
     @State private var manualMode = false
     @State private var busy = false
-    @State private var message = "Drag a box around one visible straight gripping section, including both edges."
+    @State private var message = "Drag a box around one clear straight gripping edge."
     @State private var operation: Task<Void, Never>?
     @State private var requestID = 0
     private let detector = VisionBarDetector()
@@ -25,10 +25,9 @@ struct BarSetupView: View {
         }
         guard candidates.indices.contains(selectedIndex) else { return nil }
         let proposal = candidates[selectedIndex]
-        let edge = proposal.upperImageEdge ?? proposal.firstEdge
-        return ConfirmedBar(role: setup.role, method: .guidedContours, referenceEdge: edge,
-                            oppositeEdge: edge == proposal.firstEdge ? proposal.secondEdge : proposal.firstEdge,
-                            imageSize: setup.frame.pose.imageSize, sourceTime: setup.frame.pose.timestamp)
+        return ConfirmedBar(role: setup.role, method: .guidedContours, referenceEdge: proposal.edge,
+                            oppositeEdge: nil, imageSize: setup.frame.pose.imageSize,
+                            sourceTime: setup.frame.pose.timestamp)
     }
 
     var body: some View {
@@ -62,7 +61,7 @@ struct BarSetupView: View {
                                 message = "Manual reference edge. This is not an automatic detection; bar thickness is unknown."
                             } else {
                                 region = BarRegion(a, b)
-                                message = "Tap Find edges. Include a clear section with both silhouette edges, avoiding the rack supports."
+                                message = "Tap Find edge. Keep the guide tight around one straight gripping edge and avoid rack supports."
                             }
                         })
                     }
@@ -75,13 +74,13 @@ struct BarSetupView: View {
                                 : "Drag a box around a clear straight section of the gripping bar."
                         }
                     if !manualMode {
-                        Button(busy ? "Finding edges…" : "Find edges") { detect() }
+                        Button(busy ? "Finding edge…" : "Find edge") { detect() }
                             .buttonStyle(.bordered)
                             .disabled(busy || region?.isValid(in: setup.frame.pose.imageSize) != true)
                         if !candidates.isEmpty {
                             Stepper("Proposal \(selectedIndex + 1) of \(candidates.count)", value: $selectedIndex,
                                     in: 0...(candidates.count-1))
-                            Text("Check the highlighted edges belong to the gripping bar, not a rack beam. Ranking is geometric, not semantic recognition.")
+                            Text("Check the highlighted edge belongs to the gripping bar, not a rack beam. Ranking is observed line support, not semantic recognition.")
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
@@ -117,8 +116,8 @@ struct BarSetupView: View {
                 let results = try await detector.detect(image: setup.frame.image, region: region)
                 guard !Task.isCancelled, ticket == requestID else { return }
                 candidates = results
-                message = results.isEmpty ? "No supported edge pair. Try a clearer bar section, or mark the reference edge manually."
-                    : "Confirm the correct gripping segment. Yellow is the reference edge; cyan is its opposite edge."
+                message = results.isEmpty ? "No supported edge. Try a smaller, clearer bar section, or mark the reference edge manually."
+                    : "Confirm the correct gripping edge. Yellow is the observed reference edge."
             } catch {
                 guard !Task.isCancelled, ticket == requestID else { return }
                 message = "Could not propose a bar in this region. Use a smaller, clearer region or mark the edge manually."
