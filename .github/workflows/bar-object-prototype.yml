@@ -64,6 +64,10 @@ jobs:
           assert report['schemaVersion'] == 1 and report['poseInputs'] is False
           assert report['testImageCount'] == 3 and len(predictions) == 3
           assert manifest['pose_inputs'] is False and manifest['test_images'] == 3
+          assert manifest['schema_version'] == 2
+          assert manifest['training_negative_images'] >= 10
+          assert manifest['training_positive_images'] > manifest['training_negative_images']
+          assert len(manifest['training_source_groups']) >= 10
           assert report['modelBytes'] > 0 and report['trainingSeconds'] > 0
           for split in ('training', 'test'):
               for key in ('variedIoU', 'iou50'):
@@ -72,6 +76,9 @@ jobs:
           print(json.dumps({
               'training_images': manifest['training_images'],
               'training_objects': manifest['training_objects'],
+              'training_positive_images': manifest['training_positive_images'],
+              'training_negative_images': manifest['training_negative_images'],
+              'training_source_groups': manifest['training_source_groups'],
               'test_mAP_50_95': report['test']['variedIoU'],
               'test_mAP_50': report['test']['iou50'],
               'model_bytes': report['modelBytes'],
