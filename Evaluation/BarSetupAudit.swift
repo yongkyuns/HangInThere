@@ -13,7 +13,7 @@ import CryptoKit
     }
     struct Row: Encodable {
         let id: String, imageSHA256: String
-        let candidates: [BarCandidate]
+        let candidates: [BarLineCandidate]
         let referenceCount: Int
         let firstProposalErrorsPixels: [Double]?
         let status: String
@@ -50,7 +50,7 @@ import CryptoKit
             guard (props?[kCGImagePropertyOrientation] as? Int ?? 1) == 1 else { throw NSError(domain:"BarAuditNonUpright",code:1) }
             let r = reference.region
             let candidates = try await detector.detect(image:image,region:BarRegion(Point2D(x:r[0],y:r[1]),Point2D(x:r[2],y:r[3])))
-            let errors = candidates.first?.upperImageEdge.map { edge in reference.upperEdgePoints.map { edge.distance(to:$0) } }
+            let errors = candidates.first.map { candidate in reference.upperEdgePoints.map { candidate.edge.distance(to:$0) } }
             rows.append(Row(id:reference.id,imageSHA256:hash,candidates:candidates,
                 referenceCount:reference.upperEdgePoints.count,firstProposalErrorsPixels:errors,
                 status:candidates.isEmpty ? "no_candidate" : "proposals_require_confirmation"))
