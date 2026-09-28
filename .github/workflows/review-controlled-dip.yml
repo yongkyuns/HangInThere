@@ -1,0 +1,46 @@
+name: Review controlled dip clip
+on:
+  push:
+    branches: [ops/review-controlled-dip-pexels]
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Install media tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Download and inspect Pexels dip source
+        run: |
+          set -euo pipefail
+          mkdir -p build/controlled-dip-review/samples
+          curl --fail --location --retry 2             --user-agent 'Mozilla/5.0 HangInThere controlled dip evaluation'             --referer 'https://www.pexels.com/video/dynamic-workout-man-exercising-on-parallel-bars-34568748/'             --output build/controlled-dip-review/source.mp4             'https://www.pexels.com/download/video/34568748/'
+          test -s build/controlled-dip-review/source.mp4
+          bytes=$(stat -c%s build/controlled-dip-review/source.mp4)
+          test "$bytes" -gt 10000
+          test "$bytes" -lt 250000000
+          sha256sum build/controlled-dip-review/source.mp4 | tee build/controlled-dip-review/source.sha256
+          ffprobe -v error -show_streams -show_format -of json             build/controlled-dip-review/source.mp4 > build/controlled-dip-review/probe.json
+          ffmpeg -v error -i build/controlled-dip-review/source.mp4             -vf 'fps=2,scale=360:-2:flags=lanczos' -q:v 3 -start_number 0             build/controlled-dip-review/samples/%03d.jpg
+          test "$(find build/controlled-dip-review/samples -name '*.jpg' | wc -l)" -ge 10
+          cat > build/controlled-dip-review/SOURCE.txt <<'EOF'
+          Source: https://www.pexels.com/video/dynamic-workout-man-exercising-on-parallel-bars-34568748/
+          Creator: JULLIAN PRODUCTION
+          Pexels page description: Man performs tricep dips on parallel bars in a focused workout session.
+          Pexels page metadata at review time: 1080x1920, 25 fps, 12 seconds.
+          License: Pexels License. Free use and modification permitted; no endorsement implied.
+          Review-only artifact. No body identity analysis or training in this workflow.
+          EOF
+      - name: Retain review evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: controlled-dip-pexels-review
+          retention-days: 3
+          path: build/controlled-dip-review
+          if-no-files-found: error
