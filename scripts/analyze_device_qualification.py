@@ -42,9 +42,7 @@ REQUIRED_TOP_LEVEL_KEYS = {
     "stability",
     "thresholds",
     "observedMovements",
-    "trackingCoverage",
     "setPhase",
-    "setEndReason",
     "omittedSamples",
     "samples",
 }
