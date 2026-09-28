@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "label": "grip_bar",
+  "image_width": 640,
+  "training": {
+    "pullup_dvids": {
+      "page": "https://www.dvidshub.net/video/639937/dead-hang-pullup",
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/1811/DOD_106211182/DOD_106211182.mp4",
+      "sha256": "70955f740e6e6f80be473180075f675e28b7cc57c44441c0a283487238433853",
+      "bytes": 100144793,
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "Video by Capt. Matthew Holfinger, U.S. Marine Corps Training and Education Command",
+      "sample_fps": 1,
+      "output_size": [640, 360],
+      "boxes": [
+        [300, 8, 420, 42],
+        [290, 180, 425, 215]
+      ]
+    },
+    "dip_rear": {
+      "input_size": [960, 540],
+      "sample_fps": 1,
+      "boxes": [
+        [0, 380, 420, 540],
+        [620, 380, 960, 540]
+      ]
+    },
+    "dip_side": {
+      "input_size": [960, 540],
+      "sample_fps": 1,
+      "boxes": [
+        [20, 250, 960, 460]
+      ]
+    }
+  },
+  "testing": [
+    {
+      "id": "pullup_back",
+      "relative_path": "pullup_back/0000.png",
+      "input_size": [960, 640],
+      "boxes": [[0, 60, 960, 175]],
+      "source_group": "PTPioneer pull-up still"
+    },
+    {
+      "id": "dip_front",
+      "relative_path": "dip_front/0000.png",
+      "input_size": [557, 960],
+      "boxes": [
+        [0, 130, 190, 520],
+        [365, 130, 557, 520]
+      ],
+      "source_group": "USMC parallel-bar dip still"
+    },
+    {
+      "id": "bench_control",
+      "relative_path": "bench_control/0000.png",
+      "input_size": [960, 640],
+      "boxes": [],
+      "source_group": "PTPioneer bench-dip negative"
+    }
+  ],
+  "notes": [
+    "Boxes are coarse apparatus regions frozen before Create ML training, not precision bar-edge references.",
+    "No body landmarks or pose outputs are used to create, rank, train, or evaluate the object detector.",
+    "The held-out test sources are distinct from the training videos; the test set is intentionally tiny and diagnostic only."
+  ]
+}
