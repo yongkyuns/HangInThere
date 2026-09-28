@@ -717,7 +717,7 @@ final class LiveCameraPreviewController {
         let image = frame.image
         sceneRegistrationTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            let shifts: [StaticSceneStability.PatchShift]
+            let shifts: [StaticSceneStability.PatchMotion]
             do {
                 shifts = try await sceneRegistrationWorker.measure(
                     reference: reference,
