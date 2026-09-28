@@ -12,19 +12,27 @@ struct StaticSceneRegistrationTests {
         )
 
         let worker = VisionStaticSceneRegistrationWorker()
-        let shifts = try await worker.measure(reference: reference, image: movedImage)
+        let motions = try await worker.measure(reference: reference, image: movedImage)
 
-        #expect(shifts.count >= 2)
-        let magnitudes = shifts.map { hypot($0.dxPixels, $0.dyPixels) }
+        let magnitudes = motions.compactMap { motion -> Double? in
+            guard let dx = motion.dxPixels, let dy = motion.dyPixels else { return nil }
+            return hypot(dx, dy)
+        }
         let plausible = magnitudes.filter { $0 >= 5 && $0 <= 11 }
         #expect(plausible.count >= 2)
+
+        let stableScales = motions.compactMap(\.scaleFraction).filter {
+            $0 < StaticSceneStability.scaleThresholdFraction
+        }
+        #expect(stableScales.count >= 3)
 
         var policy = StaticSceneStability()
         let calibrated = policy.calibrate(imageShortSide: 400)
         #expect(calibrated)
-        policy.observe(shifts, timestamp: 0.10)
-        policy.observe(shifts, timestamp: 0.40)
+        policy.observe(motions, timestamp: 0.10)
+        policy.observe(motions, timestamp: 0.40)
         #expect(policy.state == .moved)
+        #expect(policy.movementKind == .translation)
     }
 
     @Test func identicalStaticSceneProducesNearZeroConsensus() async throws {
@@ -34,18 +42,24 @@ struct StaticSceneRegistrationTests {
         )
 
         let worker = VisionStaticSceneRegistrationWorker()
-        let shifts = try await worker.measure(reference: reference, image: image)
+        let motions = try await worker.measure(reference: reference, image: image)
 
-        #expect(shifts.count >= 2)
-        #expect(shifts.filter { hypot($0.dxPixels, $0.dyPixels) < 1 }.count >= 2)
+        let nearZeroTranslations = motions.filter { motion in
+            guard let dx = motion.dxPixels, let dy = motion.dyPixels else { return false }
+            return hypot(dx, dy) < 1
+        }
+        #expect(nearZeroTranslations.count >= 2)
+
+        let nearZeroScales = motions.compactMap(\.scaleFraction).filter { $0 < 0.005 }
+        #expect(nearZeroScales.count >= 3)
 
         var policy = StaticSceneStability()
         _ = policy.calibrate(imageShortSide: 400)
-        policy.observe(shifts, timestamp: 0.1)
+        policy.observe(motions, timestamp: 0.1)
         #expect(policy.state == .stable)
     }
 
-    @Test func peripheralRegistrationProducesRadialScaleSignal() async throws {
+    @Test func peripheralHomographyRecoversSyntheticScaleSignal() async throws {
         let referenceImage = try #require(makePatternImage(shiftX: 0, shiftY: 0))
         let scaledImage = try #require(makePatternImage(shiftX: 0, shiftY: 0, scale: 1.05))
         let reference = try #require(
@@ -53,13 +67,20 @@ struct StaticSceneRegistrationTests {
         )
 
         let worker = VisionStaticSceneRegistrationWorker()
-        let shifts = try await worker.measure(reference: reference, image: scaledImage)
+        let motions = try await worker.measure(reference: reference, image: scaledImage)
 
-        #expect(shifts.count >= 3)
+        let scaleMeasurements = motions.compactMap(\.scaleFraction)
+        #expect(scaleMeasurements.count >= 3)
+        #expect(
+            scaleMeasurements.filter {
+                $0 >= StaticSceneStability.scaleThresholdFraction
+            }.count >= 3
+        )
+
         var policy = StaticSceneStability()
         _ = policy.calibrate(imageSize: .init(width: 400, height: 400))
-        policy.observe(shifts, timestamp: 0.10)
-        policy.observe(shifts, timestamp: 0.40)
+        policy.observe(motions, timestamp: 0.10)
+        policy.observe(motions, timestamp: 0.40)
 
         #expect(policy.state == .moved)
         #expect(policy.movementKind == .scale)
