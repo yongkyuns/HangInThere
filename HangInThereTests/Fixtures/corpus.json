@@ -41,7 +41,8 @@
         "source_start_seconds": 0,
         "duration_seconds": 4,
         "frames_per_second": 8,
-        "max_long_edge": 640
+        "max_long_edge": 640,
+        "expected_frame_count": 32
       },
       "expectation": {
         "minimum_people_fraction": 0.75,
@@ -68,7 +69,8 @@
         "source_start_seconds": 0,
         "duration_seconds": 6,
         "frames_per_second": 8,
-        "max_long_edge": 640
+        "max_long_edge": 640,
+        "expected_frame_count": 48
       },
       "expectation": {
         "minimum_people_fraction": 0.9,
@@ -95,7 +97,8 @@
         "source_start_seconds": 0,
         "duration_seconds": 32,
         "frames_per_second": 4,
-        "max_long_edge": 640
+        "max_long_edge": 640,
+        "expected_frame_count": 128
       },
       "expectation": {
         "minimum_people_fraction": 0.65,
@@ -124,7 +127,8 @@
         "source_start_seconds": 0,
         "duration_seconds": 23,
         "frames_per_second": 4,
-        "max_long_edge": 640
+        "max_long_edge": 640,
+        "expected_frame_count": 91
       },
       "expectation": {
         "minimum_people_fraction": 0.6,
