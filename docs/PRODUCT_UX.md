@@ -272,12 +272,16 @@ policy requires at least two patch translations to agree, so one corner contamin
 by a moving athlete can be rejected as an outlier. **Start set stays blocked until a
 valid background consensus has been observed after calibration.**
 
-The static-scene policy now separates two patterns from the same four patch
-registrations:
+The static-scene policy now separates two signals from the same four peripheral
+reference patches:
 
-- a **common translation** component, used for lateral/image-plane movement;
-- a **radial expansion/contraction** component, estimated from each patch's known
-  position relative to the image center after removing common translation.
+- a **translational registration** component, used for lateral/image-plane movement;
+- a **local homographic scale** component, used for toward/away or zoom-like change.
+
+Each patch is registered independently. Translation remains the cheaper affine
+measurement already used by the lateral guard. Scale comes from a homographic
+registration of the same current/reference patch and therefore does not depend on
+translation registration succeeding for that patch.
 
 A provisional image-space gate invalidates calibration when common translation
 exceeds **0.8% of the image short side for at least 0.25 s**. A separate provisional
@@ -286,11 +290,11 @@ at least 0.25 s**. Radial scale requires at least three agreeing peripheral patc
 which lets one athlete-contaminated corner remain an outlier. Brief threshold
 crossings reset instead of immediately destroying setup.
 
-The radial term reduces the most obvious toward/away or zoom-like blind spot without
-adding another Vision request: the same patch translations encode opposite-direction
-corner motion when the scene expands or contracts. A running set records
-**scene shifted** versus **scene scaled** separately so physical-device tuning can
-distinguish which guard fired.
+The homographic scale term reduces the most obvious toward/away or zoom-like blind
+spot. It does add homographic registration work, so the device-qualification path
+must measure its latency and thermal cost separately from body-pose inference.
+A running set records **scene shifted** versus **scene scaled** separately so
+physical-device tuning can distinguish which guard fired.
 
 This is still not a full camera-pose estimator. Depth-dependent parallax, lens
 switches, nonuniform perspective changes, low-texture backgrounds, and independently
