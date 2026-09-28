@@ -5,7 +5,7 @@ import Vision
 // Setup only. No trained bar model, wrist-derived geometry or person association.
 // The caller supplies a guided region; the result always requires confirmation.
 actor VisionBarDetector {
-    func detect(image: CGImage, region: BarRegion) throws -> [BarCandidate] {
+    func detect(image: CGImage, region: BarRegion) throws -> [BarLineCandidate] {
         try Task.checkCancellation()
         let size = ImageSize(width: Double(image.width), height: Double(image.height))
         guard region.isValid(in: size) else { throw BarFitError.invalidRegion }
@@ -42,7 +42,7 @@ actor VisionBarDetector {
                 }
             }
             try Task.checkCancellation()
-            return try BarFitter.candidates(contours: contours, region: cropRegion, size: size)
+            return try BarLineFitter.candidates(contours: contours, region: cropRegion, size: size)
         }
     }
 }
