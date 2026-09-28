@@ -70,6 +70,24 @@ struct LiveDeviceQualificationRecorderTests {
         #expect(report.observedMovements == 7)
     }
 
+    @Test func recorderCapsStoredSamplesWithoutGrowingUnbounded() {
+        var recorder = LiveDeviceQualificationRecorder()
+        recorder.reset(startUptimeSeconds: 0)
+
+        for second in 0..<(LiveDeviceQualificationRecorder.maximumSamples + 5) {
+            record(
+                &recorder,
+                uptime: Double(second),
+                vision: 20,
+                scene: 10,
+                analyzed: second + 1
+            )
+        }
+
+        #expect(recorder.samples.count == LiveDeviceQualificationRecorder.maximumSamples)
+        #expect(recorder.omittedSamples == 5)
+    }
+
     @Test func reportContainsCurrentThresholds() {
         var recorder = LiveDeviceQualificationRecorder()
         recorder.reset(startUptimeSeconds: 0)
