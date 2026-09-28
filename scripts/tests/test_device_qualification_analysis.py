@@ -91,6 +91,12 @@ class DeviceQualificationAnalysisTests(unittest.TestCase):
     def test_valid_report_passes_schema_and_privacy_validation(self):
         analysis.validate_report(sample_report())
 
+    def test_nil_optional_top_level_fields_may_be_omitted(self):
+        report = sample_report()
+        report.pop("trackingCoverage")
+        report.pop("setEndReason")
+        analysis.validate_report(report)
+
     def test_forbidden_content_key_is_rejected(self):
         report = sample_report()
         report["location"] = "Oakville"
