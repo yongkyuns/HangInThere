@@ -95,7 +95,12 @@ actor VisionStaticSceneRegistrationWorker {
             let maxY = patch.rect.height * Self.maximumPatchShiftFraction
             guard abs(dx) <= maxX, abs(dy) <= maxY else { continue }
 
-            shifts.append(.init(dxPixels: dx, dyPixels: dy))
+            shifts.append(.init(
+                dxPixels: dx,
+                dyPixels: dy,
+                centerXFraction: patch.rect.midX / reference.imageSize.width,
+                centerYFraction: patch.rect.midY / reference.imageSize.height
+            ))
         }
 
         return shifts
