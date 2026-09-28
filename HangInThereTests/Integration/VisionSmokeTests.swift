@@ -61,7 +61,7 @@ struct VisionSmokeTests {
         #expect(demo.side == .left)
 
         model.open(videoURL)
-        try await waitForController(model, phases: [.paused, .failed])
+        try await waitUntilNotLoading(model)
         try #require(
             model.phase == .paused,
             "Real workout demo could not start Apple Vision: \(model.errorMessage ?? "unknown error")"
@@ -87,12 +87,12 @@ struct VisionSmokeTests {
         )
         #expect(bar.isValid)
         #expect(model.confirmBar(bar, for: setup))
-        try await waitForController(model, phases: [.paused, .failed])
+        try await waitUntilNotLoading(model)
         try #require(model.phase == .paused)
         #expect(model.currentBar == bar)
 
         model.play()
-        try await waitForController(model, phases: [.finished, .failed])
+        try await waitUntilFinishedOrFailed(model)
         try #require(
             model.phase == .finished,
             "Real workout demo failed during analysis: \(model.errorMessage ?? "unknown error")"
@@ -182,11 +182,22 @@ struct VisionSmokeTests {
     }
 
     @MainActor
-    private func waitForController(_ model: ReplayController, phases: [ReplayPhase]) async throws {
+    private func waitUntilNotLoading(_ model: ReplayController) async throws {
         let deadline = ContinuousClock.now.advanced(by: .seconds(60))
-        while !phases.contains(model.phase) {
+        while model.phase == .loading {
             guard ContinuousClock.now < deadline else {
-                throw FixtureError.failed("Real workout demo controller transition timed out.")
+                throw FixtureError.failed("Real workout demo startup timed out.")
+            }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
+    @MainActor
+    private func waitUntilFinishedOrFailed(_ model: ReplayController) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(60))
+        while model.phase != .finished && model.phase != .failed {
+            guard ContinuousClock.now < deadline else {
+                throw FixtureError.failed("Real workout demo analysis timed out.")
             }
             try await Task.sleep(for: .milliseconds(10))
         }
