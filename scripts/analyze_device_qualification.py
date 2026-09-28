@@ -173,6 +173,12 @@ def _format_number(value: float | None, digits: int = 3) -> str:
     return f"{value:.{digits}f}"
 
 
+def _format_fraction_percent(value: float | None, digits: int = 2) -> str:
+    if value is None:
+        return "—"
+    return f"{value * 100:.{digits}f}%"
+
+
 def summarize_report(report: dict[str, Any], name: str) -> dict[str, Any]:
     runtime = report["runtime"]
     stability = report["stability"]
@@ -431,7 +437,7 @@ def _render_thermal(name: str, analysis: dict[str, Any]) -> str:
             f"| Pose median latency | {_format_number(early['visionMedianMilliseconds'], 1)} ms | {_format_number(late['visionMedianMilliseconds'], 1)} ms | {percent(analysis['visionMedianChangeFraction'])} |",
             f"| Scene median latency | {_format_number(early['sceneMedianMilliseconds'], 1)} ms | {_format_number(late['sceneMedianMilliseconds'], 1)} ms | {percent(analysis['sceneMedianChangeFraction'])} |",
             f"| Analysis FPS | {_format_number(early['effectiveAnalyzedFPS'], 2)} | {_format_number(late['effectiveAnalyzedFPS'], 2)} | {percent(analysis['analysisFPSChangeFraction'])} |",
-            f"| Drop fraction | {'—' if early['dropFraction'] is None else f'{early['dropFraction'] * 100:.2f}%'} | {'—' if late['dropFraction'] is None else f'{late['dropFraction'] * 100:.2f}%'} | {percent(analysis['dropFractionChange'])} |",
+            f"| Drop fraction | {_format_fraction_percent(early['dropFraction'])} | {_format_fraction_percent(late['dropFraction'])} | {percent(analysis['dropFractionChange'])} |",
             "",
             f"Maximum thermal state: {analysis['maximumThermalLevel']}",
             "",
