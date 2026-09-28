@@ -1,5 +1,6 @@
 #if os(iOS)
 import AVFoundation
+import CoreImage
 import Observation
 import SwiftUI
 import UIKit
@@ -48,6 +49,8 @@ enum LiveCameraState: Equatable, Sendable {
 private enum LiveCameraSetupError: LocalizedError {
     case noRearCamera
     case cannotAddInput
+    case cannotAddVideoOutput
+    case unsupportedPortraitRotation
 
     var errorDescription: String? {
         switch self {
@@ -55,7 +58,86 @@ private enum LiveCameraSetupError: LocalizedError {
             "No supported rear camera is available."
         case .cannotAddInput:
             "The rear camera could not be added to the capture session."
+        case .cannotAddVideoOutput:
+            "Live camera frames could not be connected for analysis."
+        case .unsupportedPortraitRotation:
+            "This camera cannot provide the portrait frame orientation required by live setup."
         }
+    }
+}
+
+private struct LivePoseFrame: Sendable {
+    let pose: PoseResult
+    let processingMilliseconds: Double
+}
+
+private enum LiveAnalyzerEvent: Sendable {
+    case frame(LivePoseFrame)
+    case dropped
+    case failed
+}
+
+// AVCaptureVideoDataOutput invokes this object only on the serial analysis queue.
+// Inference is synchronous on that queue and alwaysDiscardsLateVideoFrames is
+// enabled, so the app never creates an unbounded Task/frame backlog.
+private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    private let context = CIContext(options: [.cacheIntermediates: false])
+    private let estimator: any PoseEstimator
+    private let publish: @Sendable (LiveAnalyzerEvent) -> Void
+
+    init(
+        estimator: any PoseEstimator = VisionPoseEstimator(),
+        publish: @escaping @Sendable (LiveAnalyzerEvent) -> Void
+    ) {
+        self.estimator = estimator
+        self.publish = publish
+    }
+
+    func captureOutput(
+        _ output: AVCaptureOutput,
+        didOutput sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        autoreleasepool {
+            let started = ContinuousClock.now
+            let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+            guard pts.isNumeric, pts.epoch == 0,
+                  let buffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+            else {
+                publish(.failed)
+                return
+            }
+
+            let pixels = CIImage(cvPixelBuffer: buffer)
+            guard let image = context.createCGImage(pixels, from: pixels.extent) else {
+                publish(.failed)
+                return
+            }
+
+            do {
+                let pose = try estimator.estimate(
+                    image: image,
+                    timestamp: PresentationTime(value: pts.value, timescale: pts.timescale)
+                )
+                let duration = started.duration(to: .now).components
+                let milliseconds = Double(duration.seconds) * 1_000
+                    + Double(duration.attoseconds) / 1e15
+                publish(.frame(LivePoseFrame(
+                    pose: pose,
+                    processingMilliseconds: milliseconds
+                )))
+            } catch {
+                publish(.failed)
+            }
+        }
+    }
+
+    func captureOutput(
+        _ output: AVCaptureOutput,
+        didDrop sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        publish(.dropped)
     }
 }
 
@@ -63,6 +145,11 @@ private enum LiveCameraSetupError: LocalizedError {
 @Observable
 final class LiveCameraPreviewController {
     private(set) var state: LiveCameraState = .idle
+    private(set) var framing = LiveFramingAssessment()
+    private(set) var analyzedFrames = 0
+    private(set) var droppedFrames = 0
+    private(set) var analysisFailures = 0
+    private(set) var lastProcessingMilliseconds: Double?
 
     let session = AVCaptureSession()
 
@@ -70,10 +157,28 @@ final class LiveCameraPreviewController {
         label: "dev.yongkyuns.HangInThere.camera-session",
         qos: .userInitiated
     )
+    @ObservationIgnored private let analysisQueue = DispatchQueue(
+        label: "dev.yongkyuns.HangInThere.camera-analysis",
+        qos: .userInitiated
+    )
     @ObservationIgnored private var configured = false
     @ObservationIgnored private var startRequested = false
+    @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
+    @ObservationIgnored private var analyzer: LiveFrameAnalyzer?
+    @ObservationIgnored private var trackingSide: ArmMeasurement.Side = .left
+    @ObservationIgnored private var latestPose: PoseResult?
 
-    var isReady: Bool { state == .ready }
+    var isCameraReady: Bool { state == .ready }
+
+    func setTrackingSide(_ side: ArmMeasurement.Side) {
+        guard trackingSide != side else { return }
+        trackingSide = side
+        if let latestPose {
+            framing = LiveFramingAssessment(pose: latestPose, side: side)
+        } else {
+            framing = LiveFramingAssessment()
+        }
+    }
 
     func start() async {
         guard !startRequested else { return }
@@ -110,6 +215,7 @@ final class LiveCameraPreviewController {
             return
         }
 
+        framing = LiveFramingAssessment()
         state = .starting
         let session = session
         sessionQueue.async {
@@ -137,6 +243,8 @@ final class LiveCameraPreviewController {
         if state == .ready || state == .starting || state == .requestingPermission {
             state = .idle
         }
+        framing = LiveFramingAssessment()
+        latestPose = nil
         let session = session
         sessionQueue.async {
             if session.isRunning {
@@ -161,6 +269,17 @@ final class LiveCameraPreviewController {
         }
 
         let input = try AVCaptureDeviceInput(device: device)
+        let output = AVCaptureVideoDataOutput()
+        output.alwaysDiscardsLateVideoFrames = true
+        output.videoSettings = [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+        ]
+
+        let analyzer = LiveFrameAnalyzer { [weak self] event in
+            Task { @MainActor [weak self] in
+                self?.accept(event)
+            }
+        }
 
         session.beginConfiguration()
         defer { session.commitConfiguration() }
@@ -172,7 +291,44 @@ final class LiveCameraPreviewController {
             throw LiveCameraSetupError.cannotAddInput
         }
         session.addInput(input)
+
+        guard session.canAddOutput(output) else {
+            throw LiveCameraSetupError.cannotAddVideoOutput
+        }
+        session.addOutput(output)
+
+        guard let connection = output.connection(with: .video),
+              connection.isVideoRotationAngleSupported(90)
+        else {
+            throw LiveCameraSetupError.unsupportedPortraitRotation
+        }
+        connection.videoRotationAngle = 90
+
+        output.setSampleBufferDelegate(analyzer, queue: analysisQueue)
+        videoOutput = output
+        self.analyzer = analyzer
         configured = true
+    }
+
+    private func accept(_ event: LiveAnalyzerEvent) {
+        guard startRequested else { return }
+
+        switch event {
+        case .frame(let frame):
+            latestPose = frame.pose
+            analyzedFrames += 1
+            lastProcessingMilliseconds = frame.processingMilliseconds
+            framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide)
+
+        case .dropped:
+            droppedFrames += 1
+
+        case .failed:
+            analysisFailures += 1
+            latestPose = nil
+            lastProcessingMilliseconds = nil
+            framing = LiveFramingAssessment(state: .analysisUnavailable)
+        }
     }
 }
 
@@ -190,6 +346,7 @@ struct LiveCameraPreviewSurface: UIViewRepresentable {
         if view.previewLayer.session !== session {
             view.previewLayer.session = session
         }
+        view.updateRotation()
     }
 }
 
@@ -199,6 +356,16 @@ final class CameraPreviewView: UIView {
     var previewLayer: AVCaptureVideoPreviewLayer {
         layer as! AVCaptureVideoPreviewLayer
     }
-}
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateRotation()
+    }
+
+    func updateRotation() {
+        guard let connection = previewLayer.connection,
+              connection.isVideoRotationAngleSupported(90) else { return }
+        connection.videoRotationAngle = 90
+    }
+}
 #endif
