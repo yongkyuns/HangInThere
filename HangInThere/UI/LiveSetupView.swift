@@ -288,16 +288,16 @@ struct LiveSetupView: View {
 
     private var readyStateCard: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: camera.isReadyToStart ? "checkmark.circle.fill" : "circle.dashed")
+            Image(systemName: camera.setupReadiness.state.isReady ? "checkmark.circle.fill" : "circle.dashed")
                 .font(.title2)
-                .foregroundStyle(camera.isReadyToStart ? .green : .secondary)
+                .foregroundStyle(camera.setupReadiness.state.isReady ? .green : .secondary)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(camera.isReadyToStart ? "Ready to start" : "Setup not complete")
+                Text(camera.setupReadiness.state.isReady ? "Ready to start" : "Setup not complete")
                     .font(.headline)
                 Text(
-                    camera.isReadyToStart
+                    camera.setupReadiness.state.isReady
                         ? "Camera, selected arm, and fixed bar reference are ready. Live set counting is the next implementation step."
                         : readyStateHelp
                 )
