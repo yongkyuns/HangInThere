@@ -16,6 +16,7 @@ struct LiveSetSessionTests {
 
         session.finish()
         #expect(session.phase == .finished)
+        #expect(session.endReason == .manual)
         #expect(abs(session.durationSeconds - 0.45) < 1e-9)
         #expect(session.counter.phase == .finished)
     }
@@ -62,6 +63,40 @@ struct LiveSetSessionTests {
         #expect(session.counter.lastEvent?.reason == "endOfInput")
     }
 
+    @Test func interruptionEndsSetWithoutDiscardingValidMovements() {
+        var session = LiveSetSession()
+        session.start(exercise: .pullUp, side: .left)
+        feed(&session, [(0.0, 170), (0.15, 170), (0.30, 80), (0.45, 80)])
+        #expect(session.observedMovements == 1)
+
+        session.interruptAndFinish(
+            reason: "appInactive",
+            endReason: .appInactive
+        )
+
+        #expect(session.phase == .finished)
+        #expect(session.endReason == .appInactive)
+        #expect(session.observedMovements == 1)
+        #expect(session.counter.phase == .finished)
+    }
+
+    @Test func interruptionDuringAttemptRecordsInterruptedAttempt() {
+        var session = LiveSetSession()
+        session.start(exercise: .pullUp, side: .left)
+        feed(&session, [(0.0, 170), (0.15, 170), (0.30, 120)])
+
+        session.interruptAndFinish(
+            reason: "cameraInterrupted",
+            endReason: .cameraInterrupted
+        )
+
+        #expect(session.phase == .finished)
+        #expect(session.endReason == .cameraInterrupted)
+        #expect(session.observedMovements == 0)
+        #expect(session.counter.interruptedAttempts == 1)
+        #expect(session.counter.lastEvent?.reason == "cameraInterrupted")
+    }
+
     @Test func nextSetPreservesSelectionButClearsResults() {
         var session = LiveSetSession()
         session.start(exercise: .dip, side: .right)
@@ -79,6 +114,7 @@ struct LiveSetSessionTests {
         #expect(session.observedMovements == 0)
         #expect(session.movementTimes.isEmpty)
         #expect(session.trackingCoverage == nil)
+        #expect(session.endReason == nil)
     }
 
     private func feed(_ session: inout LiveSetSession, _ samples: [(Double, Double)]) {
