@@ -66,13 +66,8 @@ private enum LiveCameraSetupError: LocalizedError {
     }
 }
 
-private struct LivePoseFrame: Sendable {
-    let pose: PoseResult
-    let processingMilliseconds: Double
-}
-
 private enum LiveAnalyzerEvent: Sendable {
-    case frame(LivePoseFrame)
+    case frame(ProcessedFrame)
     case dropped
     case failed
 }
@@ -122,7 +117,8 @@ private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleB
                 let duration = started.duration(to: .now).components
                 let milliseconds = Double(duration.seconds) * 1_000
                     + Double(duration.attoseconds) / 1e15
-                publish(.frame(LivePoseFrame(
+                publish(.frame(ProcessedFrame(
+                    image: image,
                     pose: pose,
                     processingMilliseconds: milliseconds
                 )))
@@ -150,6 +146,7 @@ final class LiveCameraPreviewController {
     private(set) var droppedFrames = 0
     private(set) var analysisFailures = 0
     private(set) var lastProcessingMilliseconds: Double?
+    private(set) var bar: ConfirmedBar?
 
     let session = AVCaptureSession()
 
@@ -165,19 +162,82 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var startRequested = false
     @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
     @ObservationIgnored private var analyzer: LiveFrameAnalyzer?
+    @ObservationIgnored private var exercise: ExerciseCounter.Exercise = .pullUp
     @ObservationIgnored private var trackingSide: ArmMeasurement.Side = .left
-    @ObservationIgnored private var latestPose: PoseResult?
+    @ObservationIgnored private var latestFrame: ProcessedFrame?
+    @ObservationIgnored private var setupGeneration: UInt64 = 0
 
     var isCameraReady: Bool { state == .ready }
 
-    func setTrackingSide(_ side: ArmMeasurement.Side) {
-        guard trackingSide != side else { return }
+    var barRole: ConfirmedBar.Role {
+        exercise == .pullUp
+            ? .pullUpGrip
+            : (trackingSide == .left ? .leftDipRail : .rightDipRail)
+    }
+
+    var currentBar: ConfirmedBar? {
+        guard let bar,
+              bar.role == barRole,
+              bar.imageSize == latestFrame?.pose.imageSize
+        else { return nil }
+        return bar
+    }
+
+    var latestImageSize: ImageSize? { latestFrame?.pose.imageSize }
+
+    var isReadyToStart: Bool {
+        isCameraReady && framing.state.isReady && currentBar != nil
+    }
+
+    func configureWorkout(
+        exercise: ExerciseCounter.Exercise,
+        side: ArmMeasurement.Side
+    ) {
+        let changed = self.exercise != exercise || trackingSide != side
+        self.exercise = exercise
         trackingSide = side
-        if let latestPose {
-            framing = LiveFramingAssessment(pose: latestPose, side: side)
+        if changed {
+            setupGeneration &+= 1
+            bar = nil
+        }
+        if let latestFrame {
+            framing = LiveFramingAssessment(pose: latestFrame.pose, side: side)
         } else {
             framing = LiveFramingAssessment()
         }
+    }
+
+    func beginBarSetup() -> BarSetupFrame? {
+        guard isCameraReady,
+              framing.state.isReady,
+              let latestFrame
+        else { return nil }
+
+        return BarSetupFrame(
+            frame: latestFrame,
+            role: barRole,
+            generation: setupGeneration
+        )
+    }
+
+    @discardableResult
+    func confirmBar(_ bar: ConfirmedBar, for setup: BarSetupFrame) -> Bool {
+        guard isCameraReady,
+              setup.generation == setupGeneration,
+              setup.role == barRole,
+              bar.role == barRole,
+              bar.isValid,
+              bar.imageSize == setup.frame.pose.imageSize,
+              bar.sourceTime == setup.frame.pose.timestamp
+        else { return false }
+
+        self.bar = bar
+        return true
+    }
+
+    func clearBar() {
+        setupGeneration &+= 1
+        bar = nil
     }
 
     func start() async {
@@ -207,7 +267,9 @@ final class LiveCameraPreviewController {
         droppedFrames = 0
         analysisFailures = 0
         lastProcessingMilliseconds = nil
-        latestPose = nil
+        latestFrame = nil
+        setupGeneration &+= 1
+        bar = nil
         framing = LiveFramingAssessment()
 
         do {
@@ -251,7 +313,9 @@ final class LiveCameraPreviewController {
             state = .idle
         }
         framing = LiveFramingAssessment()
-        latestPose = nil
+        latestFrame = nil
+        setupGeneration &+= 1
+        bar = nil
         let session = session
         sessionQueue.async {
             if session.isRunning {
@@ -325,7 +389,11 @@ final class LiveCameraPreviewController {
 
         switch event {
         case .frame(let frame):
-            latestPose = frame.pose
+            if let bar, bar.imageSize != frame.pose.imageSize {
+                self.bar = nil
+                setupGeneration &+= 1
+            }
+            latestFrame = frame
             analyzedFrames += 1
             lastProcessingMilliseconds = frame.processingMilliseconds
             framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide)
@@ -335,7 +403,7 @@ final class LiveCameraPreviewController {
 
         case .failed:
             analysisFailures += 1
-            latestPose = nil
+            latestFrame = nil
             lastProcessingMilliseconds = nil
             framing = LiveFramingAssessment(state: .analysisUnavailable)
         }
