@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "label": "grip_bar",
   "image_width": 640,
   "training": {
@@ -11,50 +11,649 @@
       "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
       "credit": "Video by Capt. Matthew Holfinger, U.S. Marine Corps Training and Education Command",
       "sample_fps": 1,
-      "output_size": [640, 360],
+      "output_size": [
+        640,
+        360
+      ],
       "boxes": [
-        [300, 8, 420, 42],
-        [290, 180, 425, 215]
+        [
+          300,
+          8,
+          420,
+          42
+        ],
+        [
+          290,
+          180,
+          425,
+          215
+        ]
       ]
     },
     "dip_rear": {
-      "input_size": [960, 540],
+      "input_size": [
+        960,
+        540
+      ],
       "sample_fps": 1,
       "boxes": [
-        [0, 380, 420, 540],
-        [620, 380, 960, 540]
+        [
+          0,
+          380,
+          420,
+          540
+        ],
+        [
+          620,
+          380,
+          960,
+          540
+        ]
       ]
     },
     "dip_side": {
-      "input_size": [960, 540],
+      "input_size": [
+        960,
+        540
+      ],
       "sample_fps": 1,
       "boxes": [
-        [20, 250, 960, 460]
+        [
+          20,
+          250,
+          960,
+          460
+        ]
       ]
     }
   },
+  "diversity_videos": {
+    "how_to_pullup": {
+      "page": "https://www.dvidshub.net/video/465137/do-pull-up",
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/1605/DOD_103327454/DOD_103327454.mp4",
+      "sha256": "a37f1e07811f342b5b038b112d7b22ec3f69c99fd74a26c711f861154b717560",
+      "bytes": 12667860,
+      "input_size": [
+        1280,
+        720
+      ],
+      "sample_fps": "1/4",
+      "output_size": [
+        480,
+        270
+      ],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. Marine Corps video by Cpl. Carson Gramley / 1st Marine Logistics Group",
+      "frames": [
+        {
+          "index": 2,
+          "boxes": [
+            [
+              0,
+              0,
+              480,
+              55
+            ]
+          ]
+        },
+        {
+          "index": 3,
+          "boxes": [
+            [
+              0,
+              0,
+              480,
+              55
+            ]
+          ]
+        },
+        {
+          "index": 4,
+          "boxes": [
+            [
+              0,
+              55,
+              480,
+              105
+            ]
+          ]
+        },
+        {
+          "index": 5,
+          "boxes": [
+            [
+              100,
+              35,
+              455,
+              90
+            ]
+          ]
+        },
+        {
+          "index": 6,
+          "boxes": [
+            [
+              0,
+              165,
+              480,
+              230
+            ]
+          ]
+        },
+        {
+          "index": 8,
+          "boxes": [
+            [
+              95,
+              30,
+              455,
+              80
+            ]
+          ]
+        },
+        {
+          "index": 0,
+          "boxes": []
+        },
+        {
+          "index": 1,
+          "boxes": []
+        },
+        {
+          "index": 9,
+          "boxes": []
+        },
+        {
+          "index": 11,
+          "boxes": []
+        }
+      ]
+    },
+    "pft_perfect_pullups": {
+      "page": "https://www.dvidshub.net/video/877400/pft-prep-perfect-pull-ups",
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/2303/DOD_109529938/DOD_109529938.mp4",
+      "sha256": "0da720144cbc4f0a30a076255f6da895aaaed4974287cf641050db3881f49438",
+      "bytes": 60767500,
+      "input_size": [
+        1440,
+        1080
+      ],
+      "sample_fps": "1/4",
+      "output_size": [
+        480,
+        360
+      ],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. Marine Corps video by Cpl. Symira Bostic / MCAS Cherry Point",
+      "frames": [
+        {
+          "index": 2,
+          "boxes": [
+            [
+              100,
+              50,
+              440,
+              100
+            ]
+          ]
+        },
+        {
+          "index": 3,
+          "boxes": [
+            [
+              75,
+              45,
+              455,
+              100
+            ]
+          ]
+        },
+        {
+          "index": 6,
+          "boxes": [
+            [
+              0,
+              40,
+              480,
+              110
+            ]
+          ]
+        },
+        {
+          "index": 7,
+          "boxes": [
+            [
+              0,
+              40,
+              480,
+              105
+            ]
+          ]
+        },
+        {
+          "index": 10,
+          "boxes": [
+            [
+              80,
+              20,
+              480,
+              90
+            ]
+          ]
+        },
+        {
+          "index": 11,
+          "boxes": [
+            [
+              80,
+              20,
+              480,
+              90
+            ]
+          ]
+        },
+        {
+          "index": 12,
+          "boxes": [
+            [
+              55,
+              25,
+              455,
+              95
+            ]
+          ]
+        },
+        {
+          "index": 13,
+          "boxes": [
+            [
+              55,
+              25,
+              455,
+              95
+            ]
+          ]
+        },
+        {
+          "index": 15,
+          "boxes": [
+            [
+              65,
+              25,
+              455,
+              100
+            ]
+          ]
+        },
+        {
+          "index": 16,
+          "boxes": [
+            [
+              65,
+              25,
+              455,
+              100
+            ]
+          ]
+        },
+        {
+          "index": 4,
+          "boxes": []
+        },
+        {
+          "index": 5,
+          "boxes": []
+        },
+        {
+          "index": 9,
+          "boxes": []
+        },
+        {
+          "index": 14,
+          "boxes": []
+        },
+        {
+          "index": 17,
+          "boxes": []
+        },
+        {
+          "index": 18,
+          "boxes": []
+        }
+      ]
+    },
+    "pullup_challenge": {
+      "page": "https://www.dvidshub.net/video/725284/pull-up-challenge",
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/1911/DOD_107480339/DOD_107480339.mp4",
+      "sha256": "d482419e9d9410da924c7d22903446939e63a555aef02e7d1baa42a18acc049b",
+      "bytes": 77235338,
+      "input_size": [
+        1920,
+        1080
+      ],
+      "sample_fps": "1/4",
+      "output_size": [
+        480,
+        270
+      ],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. Navy video by Chief Petty Officer RJ Stratchko / USS Gerald R. Ford",
+      "frames": [
+        {
+          "index": 0,
+          "boxes": [
+            [
+              0,
+              40,
+              330,
+              110
+            ]
+          ]
+        },
+        {
+          "index": 3,
+          "boxes": [
+            [
+              75,
+              45,
+              440,
+              110
+            ]
+          ]
+        },
+        {
+          "index": 4,
+          "boxes": [
+            [
+              75,
+              45,
+              440,
+              110
+            ]
+          ]
+        },
+        {
+          "index": 5,
+          "boxes": [
+            [
+              105,
+              25,
+              415,
+              105
+            ]
+          ]
+        },
+        {
+          "index": 6,
+          "boxes": [
+            [
+              0,
+              15,
+              480,
+              95
+            ]
+          ]
+        },
+        {
+          "index": 7,
+          "boxes": [
+            [
+              0,
+              15,
+              480,
+              95
+            ]
+          ]
+        },
+        {
+          "index": 9,
+          "boxes": [
+            [
+              0,
+              0,
+              480,
+              115
+            ]
+          ]
+        },
+        {
+          "index": 10,
+          "boxes": [
+            [
+              0,
+              0,
+              480,
+              115
+            ]
+          ]
+        },
+        {
+          "index": 12,
+          "boxes": [
+            [
+              0,
+              25,
+              390,
+              110
+            ]
+          ]
+        },
+        {
+          "index": 13,
+          "boxes": [
+            [
+              0,
+              25,
+              390,
+              110
+            ]
+          ]
+        },
+        {
+          "index": 14,
+          "boxes": [
+            [
+              95,
+              45,
+              395,
+              115
+            ]
+          ]
+        },
+        {
+          "index": 15,
+          "boxes": [
+            [
+              95,
+              45,
+              395,
+              115
+            ]
+          ]
+        },
+        {
+          "index": 1,
+          "boxes": []
+        },
+        {
+          "index": 2,
+          "boxes": []
+        }
+      ]
+    }
+  },
+  "diversity_photos": [
+    {
+      "id": "dip_368468",
+      "page": "https://www.dvidshub.net/image/368468/staying-fit-through-deployment",
+      "url": "https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1102/368468/1000w_q95.jpg",
+      "sha256": "fb2bcafb557a9f48c7d54a3f5c7564dc19c77c09388e7a562726b4ac91e93e29",
+      "bytes": 433605,
+      "input_size": [
+        1000,
+        1506
+      ],
+      "boxes": [
+        [
+          175,
+          500,
+          345,
+          940
+        ],
+        [
+          710,
+          500,
+          875,
+          955
+        ]
+      ],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. Army photo by Staff Sgt. Mark Albright / 3d Cavalry Regiment PAO"
+    },
+    {
+      "id": "dip_449403",
+      "page": "https://www.dvidshub.net/image/449403/barbells-dumbbells-kettlebells-oh-my",
+      "url": "https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1108/449403/1000w_q95.jpg",
+      "sha256": "ff8db75a7da1fb74b6b53df5736a1703dc473c0a65c55bb587847c8e5f261dae",
+      "bytes": 243265,
+      "input_size": [
+        1000,
+        666
+      ],
+      "boxes": [
+        [
+          0,
+          370,
+          270,
+          545
+        ],
+        [
+          535,
+          365,
+          865,
+          660
+        ]
+      ],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. Marine Corps photo by Cpl. Colby Brown / I MEF"
+    },
+    {
+      "id": "dip_449400",
+      "page": "https://www.dvidshub.net/image/449400/barbells-dumbbells-kettlebells-oh-my",
+      "url": "https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1108/449400/1000w_q95.jpg",
+      "sha256": "4f7c50088629428f585edf0b6af4448f049acb3d858cf61ca2295c7a8afd692d",
+      "bytes": 522390,
+      "input_size": [
+        1000,
+        1724
+      ],
+      "boxes": [
+        [
+          25,
+          380,
+          300,
+          820
+        ],
+        [
+          635,
+          380,
+          950,
+          820
+        ]
+      ],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. Marine Corps photo by Cpl. Colby Brown / I MEF"
+    },
+    {
+      "id": "dip_3604903_negative",
+      "page": "https://www.dvidshub.net/image/3604903/170722-n-fv405-230",
+      "url": "https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1707/3604903/1000w_q95.jpg",
+      "sha256": "5ec280f24d5639460e476b29f37cda5b02fda72557b0f85d946e75dad1b1e16f",
+      "bytes": 157415,
+      "input_size": [
+        1000,
+        667
+      ],
+      "boxes": [],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. Navy photo by Mass Communication Specialist 2nd Class K.R. Jackson-Smith"
+    },
+    {
+      "id": "pullup_180667",
+      "page": "https://www.dvidshub.net/image/180667/face-defense-soldier-pushes-self-inspires-others",
+      "url": "https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/0906/180667/1000w_q95.jpg",
+      "sha256": "9314fde9b4f3c1a4cdae5f8e715db3dca4a95ab8b27589a1388da6f9ccae0e49",
+      "bytes": 147657,
+      "input_size": [
+        1000,
+        580
+      ],
+      "boxes": [
+        [
+          0,
+          80,
+          535,
+          245
+        ],
+        [
+          545,
+          70,
+          1000,
+          250
+        ]
+      ],
+      "license": "DVIDS-listed PUBLIC DOMAIN; DVIDS reuse restrictions still apply",
+      "credit": "U.S. DoD photo by Roger Teel / Office of the Secretary of War Public Affairs"
+    }
+  ],
   "testing": [
     {
       "id": "pullup_back",
       "relative_path": "pullup_back/0000.png",
-      "input_size": [960, 640],
-      "boxes": [[0, 60, 960, 175]],
+      "input_size": [
+        960,
+        640
+      ],
+      "boxes": [
+        [
+          0,
+          60,
+          960,
+          175
+        ]
+      ],
       "source_group": "PTPioneer pull-up still"
     },
     {
       "id": "dip_front",
       "relative_path": "dip_front/0000.png",
-      "input_size": [557, 960],
+      "input_size": [
+        557,
+        960
+      ],
       "boxes": [
-        [0, 130, 190, 520],
-        [365, 130, 557, 520]
+        [
+          0,
+          130,
+          190,
+          520
+        ],
+        [
+          365,
+          130,
+          557,
+          520
+        ]
       ],
       "source_group": "USMC parallel-bar dip still"
     },
     {
       "id": "bench_control",
       "relative_path": "bench_control/0000.png",
-      "input_size": [960, 640],
+      "input_size": [
+        960,
+        640
+      ],
       "boxes": [],
       "source_group": "PTPioneer bench-dip negative"
     }
@@ -62,6 +661,8 @@
   "notes": [
     "Boxes are coarse apparatus regions frozen before Create ML training, not precision bar-edge references.",
     "No body landmarks or pose outputs are used to create, rank, train, or evaluate the object detector.",
-    "The held-out test sources are distinct from the training videos; the test set is intentionally tiny and diagnostic only."
+    "The held-out test sources are distinct from all training videos/photos; the test set is intentionally tiny and diagnostic only.",
+    "Diversity frames and photos were visually reviewed before their boxes or no-bar labels were frozen.",
+    "Training includes explicit no-bar negatives; high-confidence detections on those negatives are model errors, not ignored examples."
   ]
 }
