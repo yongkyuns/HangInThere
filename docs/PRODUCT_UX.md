@@ -272,27 +272,29 @@ policy requires at least two patch translations to agree, so one corner contamin
 by a moving athlete can be rejected as an outlier. **Start set stays blocked until a
 valid background consensus has been observed after calibration.**
 
-The static-scene policy now separates two signals from the same four peripheral
-reference patches:
+The static-scene policy now separates two registration signals:
 
-- a **translational registration** component, used for lateral/image-plane movement;
-- a **local homographic scale** component, used for toward/away or zoom-like change.
+- **four peripheral translational registrations**, used for robust lateral/image-plane
+  movement with corner consensus;
+- **one full-frame homographic registration**, used for toward/away or zoom-like
+  scale change.
 
-Each patch is registered independently. Translation remains the cheaper affine
-measurement already used by the lateral guard. Scale comes from a homographic
-registration of the same current/reference patch and therefore does not depend on
-translation registration succeeding for that patch.
+The first scale implementation tried to infer radial scale from corner translations,
+then tried local homographies on each corner. Synthetic qualification showed both
+approaches could leave only two usable scale witnesses. The current design keeps
+corner translations for robust lateral movement but uses one globally constrained
+homography for scale.
 
 A provisional image-space gate invalidates calibration when common translation
 exceeds **0.8% of the image short side for at least 0.25 s**. A separate provisional
-gate invalidates calibration when the consensus radial scale term exceeds **1.2% for
-at least 0.25 s**. Radial scale requires at least three agreeing peripheral patches,
-which lets one athlete-contaminated corner remain an outlier. Brief threshold
-crossings reset instead of immediately destroying setup.
+gate invalidates calibration when the global homographic scale term exceeds **1.2%
+for at least 0.25 s**. Start remains blocked until both a valid corner-translation
+consensus and a valid low-scale homography have been observed after calibration.
+Brief threshold crossings reset instead of immediately destroying setup.
 
-The homographic scale term reduces the most obvious toward/away or zoom-like blind
-spot. It does add homographic registration work, so the device-qualification path
-must measure its latency and thermal cost separately from body-pose inference.
+The global homographic scale term reduces the most obvious toward/away or zoom-like
+blind spot. It does add homographic registration work, so the device-qualification
+path must measure its latency and thermal cost separately from body-pose inference.
 A running set records **scene shifted** versus **scene scaled** separately so
 physical-device tuning can distinguish which guard fired.
 
