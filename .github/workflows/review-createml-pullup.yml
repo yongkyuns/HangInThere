@@ -19,10 +19,11 @@ jobs:
       - name: Acquire and sample public-domain pull-up source
         run: |
           python3 - <<'PY'
-          import hashlib, html, json, re, subprocess, urllib.parse, urllib.request
+          import hashlib, html, json, re, subprocess, urllib.error, urllib.parse, urllib.request
           from pathlib import Path
 
           page = "https://www.dvidshub.net/video/639937/dead-hang-pullup"
+          embed = "https://www.dvidshub.net/video/embed/639937"
           root = Path("build/pullup-source-review")
           root.mkdir(parents=True, exist_ok=True)
 
@@ -35,45 +36,79 @@ jobs:
                   timeout=90,
               )
 
-          with request(page) as response:
-              text = response.read(2_000_000).decode("utf-8", "replace")
-          text = html.unescape(text.replace("\\/", "/"))
-          urls = sorted(set(re.findall(r"https://[^\\s\\\"'<>]+\\.mp4(?:\\?[^\\s\\\"'<>]*)?", text)))
-          urls = [
-              u for u in urls
-              if urllib.parse.urlparse(u).hostname
-              and urllib.parse.urlparse(u).hostname.endswith(("dvidshub.net", "cloudfront.net"))
+          candidates = [
+              # DVIDS canonical CDN path derived from the published DOD filename and
+              # posting month. The bytes are validated with ffprobe before use.
+              "https://d34w7g4gy10iej.cloudfront.net/video/1811/DOD_106211182/DOD_106211182.mp4",
           ]
-          if not urls:
-              raise SystemExit("No public MP4 source found")
+          for html_url in (page, embed):
+              try:
+                  with request(html_url) as response:
+                      text = response.read(3_000_000).decode("utf-8", "replace")
+              except Exception:
+                  continue
+              text = html.unescape(text.replace("\\/", "/"))
+              candidates.extend(re.findall(r"https://[^\\s\\\"'<>]+\\.mp4(?:\\?[^\\s\\\"'<>]*)?", text))
 
-          # Prefer the canonical DOD filename if several renditions are present.
-          preferred = [u for u in urls if "DOD_106211182" in u]
-          url = preferred[0] if preferred else urls[0]
+          deduped = []
+          for url in candidates:
+              host = urllib.parse.urlparse(url).hostname or ""
+              if not host.endswith(("dvidshub.net", "cloudfront.net")):
+                  continue
+              if url not in deduped:
+                  deduped.append(url)
+
           source = root / "source.mp4"
           limit = 250_000_000
-          h = hashlib.sha256()
-          total = 0
-          with request(url) as response, source.open("wb") as out:
-              while True:
-                  block = response.read(1024 * 1024)
-                  if not block:
-                      break
-                  total += len(block)
-                  if total > limit:
-                      raise SystemExit("Source exceeds bounded review limit")
-                  h.update(block)
-                  out.write(block)
+          selected = None
+          source_sha256 = None
+          source_bytes = None
+          probe = None
+          failures = []
 
-          probe = json.loads(subprocess.check_output([
-              "ffprobe", "-v", "error",
-              "-show_streams", "-show_format", "-of", "json", str(source)
-          ]))
+          for url in deduped:
+              tmp = root / "candidate.mp4"
+              tmp.unlink(missing_ok=True)
+              h = hashlib.sha256()
+              total = 0
+              try:
+                  with request(url) as response, tmp.open("wb") as out:
+                      while True:
+                          block = response.read(1024 * 1024)
+                          if not block:
+                              break
+                          total += len(block)
+                          if total > limit:
+                              raise ValueError("source exceeds bounded review limit")
+                          h.update(block)
+                          out.write(block)
+                  candidate_probe = json.loads(subprocess.check_output([
+                      "ffprobe", "-v", "error",
+                      "-show_streams", "-show_format", "-of", "json", str(tmp)
+                  ]))
+                  video_streams = [s for s in candidate_probe.get("streams", []) if s.get("codec_type") == "video"]
+                  if not video_streams:
+                      raise ValueError("download has no video stream")
+              except Exception as exc:
+                  failures.append({"url": url, "error": str(exc)})
+                  tmp.unlink(missing_ok=True)
+                  continue
+
+              tmp.replace(source)
+              selected = url
+              source_sha256 = h.hexdigest()
+              source_bytes = total
+              probe = candidate_probe
+              break
+
+          if selected is None:
+              raise SystemExit("No verified public MP4 source. " + json.dumps(failures))
+
           metadata = {
               "page": page,
-              "stream_url": url,
-              "sha256": h.hexdigest(),
-              "bytes": total,
+              "stream_url": selected,
+              "sha256": source_sha256,
+              "bytes": source_bytes,
               "probe": probe,
               "license": "PUBLIC DOMAIN as listed by DVIDS; DVIDS copyright restrictions still apply",
               "credit": "U.S. Marine Corps Training and Education Command; video by Capt. Matthew Holfinger",
@@ -105,9 +140,9 @@ jobs:
           source.unlink()
           print(json.dumps({
               "sample_count": len(list(samples.glob("*.jpg"))),
-              "source_sha256": metadata["sha256"],
-              "source_bytes": total,
-              "url": url,
+              "source_sha256": source_sha256,
+              "source_bytes": source_bytes,
+              "url": selected,
           }, indent=2))
           PY
       - name: Retain review-only samples
