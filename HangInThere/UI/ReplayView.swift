@@ -55,6 +55,8 @@ struct ReplayView: View {
                 BarSetupView(setup: setup) { bar in
                     model.confirmBar(bar, for: setup)
                 }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { model.pause() }
