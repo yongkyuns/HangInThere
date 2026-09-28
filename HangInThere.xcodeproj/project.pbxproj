@@ -137,10 +137,13 @@
 			isa = PBXBuildFile;
 			fileRef = B798D0952C0283EE3BA0F9A9;
 		};
+		A1C4E501D4B748E0A35F0101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCameraPreview.swift; sourceTree = "<group>";};
+		A1C4E501D4B748E0A35F0102 = {isa = PBXBuildFile; fileRef = A1C4E501D4B748E0A35F0101;};
 		18E1CB92F764A905D90209F5 = {
 			isa = PBXGroup;
 			children = (
 				B798D0952C0283EE3BA0F9A9,
+				A1C4E501D4B748E0A35F0101,
 			);
 			path = Capture;
 			sourceTree = "<group>";
@@ -184,12 +187,15 @@
 			isa = PBXBuildFile;
 			fileRef = 4D67D56A1AC5DE6556E876BF;
 		};
+		A1C4E501D4B748E0A35F0201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetupView.swift; sourceTree = "<group>";};
+		A1C4E501D4B748E0A35F0202 = {isa = PBXBuildFile; fileRef = A1C4E501D4B748E0A35F0201;};
 		26246615A4936E3BFAA5AF3A = {
 			isa = PBXGroup;
 			children = (
 				6758D022E8F77CCCED9D45C3,
 				4D67D56A1AC5DE6556E876BF,
 				0E5AF088BD7AE9E54F6DD437,
+				A1C4E501D4B748E0A35F0201,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -405,6 +411,7 @@
 				MARKETING_VERSION = 0.1.0;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -429,6 +436,7 @@
 				MARKETING_VERSION = 0.1.0;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -530,9 +538,11 @@
 				6701F93B4C431819319367FA,
 				416A0916046EB339EA9673D8,
 				F9B57C2A9301AC3E37D4D15E,
+				A1C4E501D4B748E0A35F0102,
 				CDD19EB39340058AFAD45F5A,
 				3AF7243FFF763D7F730B1474,
 				3A7A75359E86E2A3E8712F61,
+				A1C4E501D4B748E0A35F0202,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
