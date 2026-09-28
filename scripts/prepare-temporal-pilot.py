@@ -64,12 +64,18 @@ def source_file(row, cache, fetch):
     return path
 
 
-def prepare(cache, output, fetch=False, spec_path=SPEC):
+def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
     spec = ev.read_json(spec_path)
     ev.require(spec['schema_version'] == 1 and spec['sources'], 'Missing temporal recipe')
+    rows = spec['sources']
+    if only:
+        requested = set(only)
+        ev.require(len(requested) == len(only), 'Duplicate temporal --only ID')
+        rows = [row for row in rows if row['id'] in requested]
+        ev.require({row['id'] for row in rows} == requested, 'Unknown temporal --only ID')
     output.mkdir(parents=True, exist_ok=False)
     clips, refs, credits = [], [], []
-    for row in spec['sources']:
+    for row in rows:
         source = source_file(row, cache, fetch)
         pts, size = probe(source)
         ev.require(len(pts) == row['source_frames'] and size == row['source_size'], 'Native source geometry/count changed')
@@ -141,7 +147,8 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--cache', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
     p.add_argument('--fetch', action='store_true')
+    p.add_argument('--only', action='append', default=[], help='Prepare only this frozen clip ID; repeatable')
     a = p.parse_args()
-    try: prepare(a.cache.resolve(), a.output.resolve(), a.fetch)
+    try: prepare(a.cache.resolve(), a.output.resolve(), a.fetch, only=a.only or None)
     except (ValueError, KeyError, OSError, subprocess.CalledProcessError) as error:
         print(f'Temporal preparation incomplete: {error}', file=sys.stderr); raise SystemExit(2)
