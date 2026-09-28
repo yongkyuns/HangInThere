@@ -168,6 +168,7 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var trackingSide: ArmMeasurement.Side = .left
     @ObservationIgnored private var latestFrame: ProcessedFrame?
     @ObservationIgnored private var setupGeneration: UInt64 = 0
+    @ObservationIgnored private var discardNextSetFrame = false
 
     var isCameraReady: Bool { state == .ready }
 
@@ -258,14 +259,20 @@ final class LiveCameraPreviewController {
         else { return false }
 
         liveSet.start(exercise: exercise, side: trackingSide)
+        // The bounded analysis stream may already contain one pre-tap event.
+        // Drop exactly the next delivered frame so a new set cannot begin from
+        // pixels captured before the user pressed Start.
+        discardNextSetFrame = true
         return true
     }
 
     func stopSet() {
+        discardNextSetFrame = false
         liveSet.finish()
     }
 
     func prepareNextSet() {
+        discardNextSetFrame = false
         liveSet.prepareNextSet()
     }
 
@@ -299,6 +306,7 @@ final class LiveCameraPreviewController {
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
+        discardNextSetFrame = false
         liveSet.reset(exercise: exercise, side: trackingSide)
         framing = LiveFramingAssessment()
 
@@ -341,6 +349,7 @@ final class LiveCameraPreviewController {
         if liveSet.phase == .running {
             liveSet.finish()
         }
+        discardNextSetFrame = false
         startRequested = false
         if state == .ready || state == .starting || state == .requestingPermission {
             state = .idle
@@ -441,7 +450,11 @@ final class LiveCameraPreviewController {
             framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide)
 
             if liveSet.phase == .running {
-                liveSet.consume(frame.pose, referenceEdge: currentBar?.referenceEdge)
+                if discardNextSetFrame {
+                    discardNextSetFrame = false
+                } else {
+                    liveSet.consume(frame.pose, referenceEdge: currentBar?.referenceEdge)
+                }
             }
 
         case .dropped:
