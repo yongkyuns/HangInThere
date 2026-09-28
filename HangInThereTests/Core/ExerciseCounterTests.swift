@@ -9,25 +9,42 @@ struct ExerciseCounterTests {
                      exercise: ExerciseCounter.Exercise = .pullUp,
                      side: ArmMeasurement.Side = .left,
                      confidence: Double = 1, wristX: Double = 500,
+                     wristY: Double = 500, segmentLength: Double = 120,
                      shoulderOverride: Double? = nil) -> PoseResult {
         let half = degrees * .pi / 360
         let direction = exercise == .pullUp ? 1.0 : -1.0
-        let y = 120 * sin(half) * direction
-        let points = [Point2D(x: wristX, y: shoulderOverride ?? 500 + 2 * y),
-                      Point2D(x: wristX + 120 * cos(half), y: 500 + y),
-                      Point2D(x: wristX, y: 500)]
+        let y = segmentLength * sin(half) * direction
+        let points = [Point2D(x: wristX, y: shoulderOverride ?? wristY + 2 * y),
+                      Point2D(x: wristX + segmentLength * cos(half), y: wristY + y),
+                      Point2D(x: wristX, y: wristY)]
         return PoseResult(timestamp: PresentationTime(value: Int64((time * 1000).rounded()), timescale: 1000),
                           imageSize: ImageSize(width: 1000, height: 1000),
                           people: [PoseObservation(landmarks: zip(side.joints, points).map {
                               Landmark(joint: $0.0, position: $0.1, confidence: confidence)
                           })], backend: "analytic test arm", requestRevision: 0)
     }
-    private func feed(_ counter: inout ExerciseCounter, _ samples: [(Double, Double)]) {
+    static func bar(exercise: ExerciseCounter.Exercise = .pullUp,
+                    side: ArmMeasurement.Side = .left) -> ConfirmedBar {
+        let role: ConfirmedBar.Role = exercise == .pullUp
+            ? .pullUpGrip : (side == .left ? .leftDipRail : .rightDipRail)
+        return ConfirmedBar(
+            role: role, method: .manualEdge,
+            referenceEdge: BarSegment(a: Point2D(x: 100, y: 500),
+                                      b: Point2D(x: 900, y: 500)),
+            oppositeEdge: nil, imageSize: ImageSize(width: 1000, height: 1000),
+            sourceTime: PresentationTime(value: 0, timescale: 1000)
+        )
+    }
+    private func feed(_ counter: inout ExerciseCounter, _ samples: [(Double, Double)],
+                      bar: ConfirmedBar? = nil) {
         for (time, angle) in samples {
-            counter.consume(Self.pose(time, degrees: angle, exercise: counter.exercise, side: counter.side))
+            counter.consume(Self.pose(time, degrees: angle, exercise: counter.exercise, side: counter.side),
+                            bar: bar)
         }
     }
-    private func arm(_ counter: inout ExerciseCounter) { feed(&counter, [(0,170),(0.15,170)]) }
+    private func arm(_ counter: inout ExerciseCounter, bar: ConfirmedBar? = nil) {
+        feed(&counter, [(0,170),(0.15,170)], bar: bar)
+    }
 
     @Test func pullUpCountsAtTopAndRequiresReturnBeforeNext() {
         var c = ExerciseCounter()
@@ -146,11 +163,56 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 1)
         _ = try JSONEncoder().encode(c.summary)
     }
-    @Test func contactJumpIsNotBodyTravel() {
-        var c = ExerciseCounter(); arm(&c)
-        c.consume(Self.pose(0.3, degrees: 80, wristX: 650))
-        #expect(c.trackingIssue == "geometryOrContactDiscontinuity")
+    @Test func confirmedBarRejectsPerpendicularGripSlip() {
+        var c = ExerciseCounter()
+        let bar = Self.bar()
+        arm(&c, bar: bar)
+        c.consume(Self.pose(0.3, degrees: 80, wristY: 650), bar: bar)
+        #expect(c.trackingIssue == "barContactDiscontinuity")
         #expect(c.observedMovements == 0)
+    }
+    @Test func confirmedBarAllowsAlongBarGripMotion() {
+        var c = ExerciseCounter()
+        let bar = Self.bar()
+        arm(&c, bar: bar)
+        c.consume(Self.pose(0.3, degrees: 80, wristX: 650), bar: bar)
+        c.consume(Self.pose(0.45, degrees: 80, wristX: 650), bar: bar)
+        #expect(c.observedMovements == 1)
+        #expect(c.trackingIssue == nil)
+        #expect(c.summary.referenceMode == "confirmedBar")
+        #expect(c.lastEvent?.reason == "chinClearanceNotMeasured")
+    }
+    @Test func apparentArmLengthChangeDoesNotBreakConfirmedBarAttempt() {
+        var c = ExerciseCounter()
+        let bar = Self.bar()
+        arm(&c, bar: bar)
+        // 140 px projected arm length versus 240 px at the start: policy v1
+        // rejected this ratio (<0.65). The fixed bar/wrist offset remains stable.
+        c.consume(Self.pose(0.3, degrees: 80, segmentLength: 70), bar: bar)
+        c.consume(Self.pose(0.45, degrees: 80, segmentLength: 70), bar: bar)
+        #expect(c.observedMovements == 1)
+        #expect(c.trackingIssue == nil)
+    }
+    @Test func changingOrMismatchingBarReferenceCannotBridgeAnAttempt() {
+        var c = ExerciseCounter()
+        let bar = Self.bar()
+        arm(&c, bar: bar)
+        c.consume(Self.pose(0.3, degrees: 120), bar: bar)
+        let changed = ConfirmedBar(
+            role: .pullUpGrip, method: .manualEdge,
+            referenceEdge: BarSegment(a: Point2D(x: 100, y: 520), b: Point2D(x: 900, y: 520)),
+            oppositeEdge: nil, imageSize: bar.imageSize, sourceTime: bar.sourceTime)
+        c.consume(Self.pose(0.45, degrees: 80), bar: changed)
+        #expect(c.trackingIssue == "barReferenceChanged")
+        #expect(c.interruptedAttempts == 1)
+
+        c.reset()
+        let wrongRole = ConfirmedBar(
+            role: .leftDipRail, method: .manualEdge, referenceEdge: bar.referenceEdge,
+            oppositeEdge: nil, imageSize: bar.imageSize, sourceTime: bar.sourceTime)
+        c.consume(Self.pose(1.0), bar: wrongRole)
+        #expect(c.trackingIssue == "barReferenceMismatch")
+        #expect(c.phase == .seekingStart)
     }
     @Test func wrongTravelDirectionDoesNotReachEndpoint() {
         var c = ExerciseCounter(exercise: .dip)
