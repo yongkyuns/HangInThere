@@ -70,6 +70,10 @@ struct VisionSmokeTests {
         #expect(initialFrame.pose.backend == "Apple Vision 2D")
         #expect(initialFrame.pose.requestRevision == 1)
         #expect(ArmMeasurement(pose: initialFrame.pose, side: demo.side).estimate != nil)
+        #expect(
+            LiveFramingAssessment(pose: initialFrame.pose, side: demo.side).state == .ready,
+            "The reviewed real workout frame should satisfy the same live selected-arm readiness policy."
+        )
 
         let setup = try #require(model.beginBarSetup())
         try #require(demo.barReferenceEdge.count == 4, "Demo bar edge must contain x1, y1, x2, y2.")
