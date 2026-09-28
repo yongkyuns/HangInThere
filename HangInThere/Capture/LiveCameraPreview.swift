@@ -203,6 +203,13 @@ final class LiveCameraPreviewController {
             return
         }
 
+        analyzedFrames = 0
+        droppedFrames = 0
+        analysisFailures = 0
+        lastProcessingMilliseconds = nil
+        latestPose = nil
+        framing = LiveFramingAssessment()
+
         do {
             try configureIfNeeded()
         } catch LiveCameraSetupError.noRearCamera {
