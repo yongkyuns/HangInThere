@@ -151,25 +151,33 @@ video into a computer-vision debug display.
 
 ## Results experience
 
-Once movement counting is qualified on multiple subjects/views, the completed session
-should have a dedicated summary containing:
+A completed bar-calibrated analysis now transitions into a dedicated result state.
+The result surface contains:
 
 - total observed movements;
 - exercise;
-- duration;
-- tracking coverage;
-- incomplete/interrupted attempts when useful;
-- a timeline of observed movements;
-- optional replay of individual movement cycles.
+- source duration;
+- tracking coverage, defined as analyzed frames with a usable selected-arm measurement
+  and confirmed bar reference divided by all analyzed frames while the reference exists;
+- a disclosure timeline containing the source-relative timestamp of each counted movement;
+- **Analyze again** and **Another video** actions;
+- workout setup behind secondary disclosure.
+
+This result remains explicitly **movement only**. Incomplete/interrupted attempts stay
+under tracking diagnostics rather than being presented as coaching outcomes.
+
+The movement timeline is evidence from the existing deterministic counter; it does not
+add seeking, clip extraction, or a new acceptance rule. Individual movement replay can
+be added later once seeking is introduced without compromising source-timestamp semantics.
 
 Form-specific results should appear only after their corresponding measurement is
 qualified.
 
-A useful eventual hierarchy is:
+The intended hierarchy remains:
 
 **Count -> range/endpoint evidence -> consistency -> technique insights**
 
-not a single opaque "form score".
+not a single opaque "form score."
 
 ## Live workout mode
 
