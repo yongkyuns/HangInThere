@@ -42,6 +42,7 @@ struct ExerciseCounterTests {
         #expect(c.lastEvent?.reason == "barReferencedTop;chinClearanceNotMeasured")
         feed(&c, [(0.6,80),(0.75,80),(0.9,170),(1.05,170),(1.2,80),(1.35,80)])
         #expect(c.observedMovements == 2)
+        #expect(c.events.filter { $0.outcome == .movement }.map(\.sourceSeconds) == [0.45, 1.35])
         #expect(c.summary.formVerification == "unverified")
     }
     @Test func dipCountsOnlyAfterReturnToTop() {
@@ -195,6 +196,7 @@ struct ExerciseCounterTests {
         c.reset()
         #expect(c.observedMovements == 0)
         #expect(c.lastEvent == nil)
+        #expect(c.events.isEmpty)
         #expect(c.phase == .seekingStart)
         #expect(c.exercise == .dip && c.side == .right)
         arm(&c)
