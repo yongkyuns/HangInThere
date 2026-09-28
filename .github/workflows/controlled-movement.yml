@@ -1,0 +1,77 @@
+name: Controlled movement qualification
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: controlled-movement-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  controlled-dip:
+    name: Fixed-camera single-athlete dip
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare frozen controlled dip
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-temporal-pilot.py \
+            --cache Data/external/controlled-movement \
+            --output Data/local/controlled-movement \
+            --only dip_controlled_pexels \
+            --fetch
+      - name: Run exact production Apple Vision pipeline
+        run: |
+          ./scripts/evaluate.sh Data/local/controlled-movement/manifest.json \
+            --root Data/local/controlled-movement \
+            --output Evaluation/output/controlled-dip-poses \
+            --public-output
+      - name: Run exact production bar-relative counter
+        run: |
+          python3 scripts/score-temporal.py Data/local/controlled-movement/reference.json \
+            --manifest Data/local/controlled-movement/manifest.json \
+            --root Data/local/controlled-movement \
+            --pose-output Evaluation/output/controlled-dip-poses \
+            --output Evaluation/output/controlled-dip-counts \
+            --public-output
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          r=json.loads(Path('Evaluation/output/controlled-dip-counts/report.json').read_text())
+          assert len(r['clips']) == 1
+          c=r['clips'][0]
+          assert c['id'] == 'dip_controlled_pexels'
+          assert c['frames'] == 300
+          assert c['event_metrics']['reference_events'] == 7
+          assert c['status'] == 'scored' and c['form_verification'] == 'unverified'
+          m=c['event_metrics']
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('## Controlled fixed-camera dip diagnostic\n\n')
+              out.write(f"TP={m['true_positives']} · FP={m['false_positives']} · FN={m['false_negatives']} · exact_count={m['exact_count']}\n")
+          if m['false_positives'] or m['false_negatives']:
+              print('::warning::Controlled dip has missed/extra movement events; execution success is not accuracy qualification')
+          PY
+      - name: Retain controlled evidence without redistributing source video
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: controlled-dip-results
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            Data/local/controlled-movement/ATTRIBUTION.txt
+            Data/local/controlled-movement/prepared.json
+            Data/local/controlled-movement/manifest.json
+            Data/local/controlled-movement/reference.json
+            Evaluation/output/controlled-dip-poses/report.json
+            Evaluation/output/controlled-dip-poses/*/completion.json
+            Evaluation/output/controlled-dip-poses/*/observations.jsonl
+            Evaluation/output/controlled-dip-counts/*.json
