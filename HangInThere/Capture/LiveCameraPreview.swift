@@ -1,6 +1,7 @@
 #if os(iOS)
 import AVFoundation
 import CoreImage
+import CoreMotion
 import Observation
 import SwiftUI
 import UIKit
@@ -68,6 +69,11 @@ private enum LiveCameraSetupError: LocalizedError {
             "This camera cannot provide the portrait frame orientation required by live setup."
         }
     }
+}
+
+private struct PhoneMotionSample: Sendable {
+    let attitude: PhoneOrientationStability.Quaternion
+    let timestamp: Double
 }
 
 private enum LiveAnalyzerEvent: Sendable {
@@ -152,6 +158,8 @@ final class LiveCameraPreviewController {
     private(set) var lastProcessingMilliseconds: Double?
     private(set) var bar: ConfirmedBar?
     private(set) var liveSet = LiveSetSession()
+    private(set) var phoneOrientation = PhoneOrientationStability()
+    private(set) var motionSampleAvailable = false
 
     let session = AVCaptureSession()
 
@@ -163,6 +171,7 @@ final class LiveCameraPreviewController {
         label: "dev.yongkyuns.HangInThere.camera-analysis",
         qos: .userInitiated
     )
+    @ObservationIgnored private let motionManager = CMMotionManager()
     @ObservationIgnored private var configured = false
     @ObservationIgnored private var startRequested = false
     @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
@@ -175,6 +184,7 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var setupGeneration: UInt64 = 0
     @ObservationIgnored private var discardNextSetFrame = false
     @ObservationIgnored private var suspended = false
+    @ObservationIgnored private var pendingBarMotionSample: (id: UUID, sample: PhoneMotionSample)?
 
     var isCameraReady: Bool { state == .ready }
     var isSuspended: Bool { suspended }
@@ -199,7 +209,8 @@ final class LiveCameraPreviewController {
         LiveSetupReadiness(
             cameraReady: isCameraReady,
             framing: framing.state,
-            barConfirmed: currentBar != nil
+            barConfirmed: currentBar != nil,
+            phoneStable: phoneOrientation.state.allowsLiveSet
         )
     }
 
@@ -214,6 +225,8 @@ final class LiveCameraPreviewController {
         if changed {
             setupGeneration &+= 1
             bar = nil
+            pendingBarMotionSample = nil
+            phoneOrientation.reset()
             liveSet.reset(exercise: exercise, side: side)
         }
         if let latestFrame {
@@ -227,14 +240,17 @@ final class LiveCameraPreviewController {
         guard liveSet.phase != .running,
               isCameraReady,
               framing.state.isReady,
-              let latestFrame
+              let latestFrame,
+              let motionSample = currentPhoneMotionSample()
         else { return nil }
 
-        return BarSetupFrame(
+        let setup = BarSetupFrame(
             frame: latestFrame,
             role: barRole,
             generation: setupGeneration
         )
+        pendingBarMotionSample = (setup.id, motionSample)
+        return setup
     }
 
     @discardableResult
@@ -246,9 +262,16 @@ final class LiveCameraPreviewController {
               bar.role == barRole,
               bar.isValid,
               bar.imageSize == setup.frame.pose.imageSize,
-              bar.sourceTime == setup.frame.pose.timestamp
+              bar.sourceTime == setup.frame.pose.timestamp,
+              let pending = pendingBarMotionSample,
+              pending.id == setup.id,
+              phoneOrientation.calibrate(
+                pending.sample.attitude,
+                timestamp: pending.sample.timestamp
+              )
         else { return false }
 
+        pendingBarMotionSample = nil
         self.bar = bar
         return true
     }
@@ -257,6 +280,8 @@ final class LiveCameraPreviewController {
         guard liveSet.phase != .running else { return }
         setupGeneration &+= 1
         bar = nil
+        pendingBarMotionSample = nil
+        phoneOrientation.reset()
     }
 
     @discardableResult
@@ -332,6 +357,7 @@ final class LiveCameraPreviewController {
         }
 
         suspended = false
+        startMotionMonitoring()
         analyzedFrames = 0
         droppedFrames = 0
         analysisFailures = 0
@@ -339,6 +365,8 @@ final class LiveCameraPreviewController {
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
+        pendingBarMotionSample = nil
+        phoneOrientation.reset()
         discardNextSetFrame = false
         liveSet.reset(exercise: exercise, side: trackingSide)
         framing = LiveFramingAssessment()
@@ -384,8 +412,12 @@ final class LiveCameraPreviewController {
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
+        pendingBarMotionSample = nil
+        phoneOrientation.reset()
         captureWatchdogTask?.cancel()
         captureWatchdogTask = nil
+        motionManager.stopDeviceMotionUpdates()
+        motionSampleAvailable = false
         analysisEventTask?.cancel()
         analysisEventTask = nil
         let session = session
@@ -503,6 +535,8 @@ final class LiveCameraPreviewController {
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
+        pendingBarMotionSample = nil
+        phoneOrientation.reset()
 
         if stopCapture {
             let session = session
@@ -514,16 +548,97 @@ final class LiveCameraPreviewController {
         }
     }
 
+    private func startMotionMonitoring() {
+        guard motionManager.isDeviceMotionAvailable else {
+            motionSampleAvailable = false
+            phoneOrientation.markUnavailable()
+            return
+        }
+        motionManager.deviceMotionUpdateInterval = 0.05
+        if !motionManager.isDeviceMotionActive {
+            motionManager.startDeviceMotionUpdates()
+        }
+        motionSampleAvailable = currentPhoneMotionSample() != nil
+        if phoneOrientation.state == .unavailable {
+            phoneOrientation.reset()
+        }
+    }
+
+    private func currentPhoneMotionSample() -> PhoneMotionSample? {
+        guard motionManager.isDeviceMotionActive,
+              let motion = motionManager.deviceMotion,
+              motion.timestamp.isFinite,
+              let attitude = PhoneOrientationStability.Quaternion(
+                x: motion.attitude.quaternion.x,
+                y: motion.attitude.quaternion.y,
+                z: motion.attitude.quaternion.z,
+                w: motion.attitude.quaternion.w
+              )
+        else { return nil }
+
+        return PhoneMotionSample(attitude: attitude, timestamp: motion.timestamp)
+    }
+
+    private func pollPhoneOrientation() {
+        let sample = currentPhoneMotionSample()
+        motionSampleAvailable = sample != nil
+
+        guard bar != nil else { return }
+        guard let sample else {
+            if !motionManager.isDeviceMotionActive {
+                phoneOrientation.markUnavailable()
+                invalidateForPhoneOrientationLoss()
+            }
+            return
+        }
+
+        if phoneOrientation.observe(sample.attitude, timestamp: sample.timestamp) == .moved {
+            invalidateForPhoneMovement()
+        }
+    }
+
+    private func invalidateForPhoneMovement() {
+        guard bar != nil else { return }
+
+        if liveSet.phase == .running {
+            liveSet.interruptAndFinish(
+                reason: "phoneMoved",
+                endReason: .phoneMoved
+            )
+        }
+
+        setupGeneration &+= 1
+        bar = nil
+        pendingBarMotionSample = nil
+    }
+
+    private func invalidateForPhoneOrientationLoss() {
+        guard bar != nil else { return }
+
+        if liveSet.phase == .running {
+            liveSet.interruptAndFinish(
+                reason: "phoneOrientationUnavailable",
+                endReason: .setupInvalidated
+            )
+        }
+
+        setupGeneration &+= 1
+        bar = nil
+        pendingBarMotionSample = nil
+    }
+
     private func startCaptureWatchdogIfNeeded() {
         guard captureWatchdogTask == nil else { return }
 
         captureWatchdogTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(500))
+                try? await Task.sleep(for: .milliseconds(100))
                 guard let self else { return }
                 guard self.startRequested,
                       !self.suspended,
                       self.state == .ready else { continue }
+
+                self.pollPhoneOrientation()
 
                 if self.session.isInterrupted {
                     self.suspend(
