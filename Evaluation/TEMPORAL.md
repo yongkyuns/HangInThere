@@ -3,7 +3,9 @@
 `prepare-temporal-pilot.py` and `score-temporal.py` extend the existing native
 video evaluator; they do not introduce another app backend or counting model.
 The counter is compiled from the **same production Swift sources** and runs on
-fresh AVFoundation/Vision observations. Its policy and thresholds are unchanged.
+fresh AVFoundation/Vision observations. PR #7 intentionally changes the counter to
+policy v2; the frozen event labels remain unchanged and the generated reference
+records bind themselves to policy version 2.
 
 ## Frozen reference set
 
@@ -82,3 +84,14 @@ counter is accurate. CI prints actual TP/FP/FN and a warning for mismatches.
 `--require-exact-events` returns 3 on any missed/extra event; invalid or incomplete
 evidence returns 2. This diagnostic is not the POC's population accuracy gate,
 and a successful execution does not qualify the known failing iOS Vision runtime.
+
+
+## Policy-v2 interpretation
+
+The retained temporal clips do not contain a confirmed bar reference, so this
+benchmark exercises policy v2 in `fixedCameraOnly` mode. That is intentional:
+it isolates the removal of projected-arm-length constancy and moving-wrist body
+travel from the separate guided-bar setup. App replay with a confirmed bar adds
+wrist/bar normal-offset continuity and reports `referenceMode: confirmedBar`.
+Neither mode changes these frozen event windows or promotes movement events to
+valid-form repetitions.
