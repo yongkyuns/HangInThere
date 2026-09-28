@@ -237,6 +237,22 @@ movement-only results with duration, tracking coverage, and a movement timeline.
 **New set** clears the previous result while preserving the current exercise/arm
 selection and confirmed bar when it is still geometrically compatible.
 
+Live lifecycle interruptions are handled conservatively because the fixed apparatus
+reference assumes a stationary, continuous camera:
+
+- leaving the foreground ends a running set, preserves already observed movements,
+  and labels the result **Set interrupted**;
+- foreground loss invalidates the frozen bar calibration and current framing;
+- returning to the app may resume the camera, but never silently restores the old
+  bar reference;
+- a camera-session interruption or unexpected stop is detected by the live capture
+  watchdog and ends a running set with an explicit interruption reason;
+- incompatible incoming image geometry ends the set rather than continuing with a
+  stale bar line.
+
+These rules prefer an incomplete/interrupted result over a plausible but geometrically
+invalid count.
+
 The qualified live workflow is now exposed from the main customer entry screen as
 the primary action. It is presented full-screen so setup, the running set, and
 results form one focused task; closing it returns to the home/recorded-review flow.
@@ -338,7 +354,7 @@ Experience gates:
 - portrait/landscape checks;
 - light/dark appearance;
 - long filenames and localization;
-- interruption/background/resume behavior;
+- interruption/background/resume behavior (implemented conservatively; physical-device review pending);
 - video import/cancel/error flows;
 - bar setup usability with real users.
 
