@@ -61,7 +61,8 @@ struct LiveFramingAssessmentTests {
                 cameraReady: false,
                 framing: .ready,
                 barConfirmed: true,
-                phoneStable: true
+                phoneStable: true,
+                sceneStable: true
             ).state == .cameraUnavailable
         )
         #expect(
@@ -69,7 +70,8 @@ struct LiveFramingAssessmentTests {
                 cameraReady: true,
                 framing: .selectedArmHidden,
                 barConfirmed: true,
-                phoneStable: true
+                phoneStable: true,
+                sceneStable: true
             ).state == .framingIncomplete
         )
         #expect(
@@ -77,7 +79,8 @@ struct LiveFramingAssessmentTests {
                 cameraReady: true,
                 framing: .ready,
                 barConfirmed: false,
-                phoneStable: true
+                phoneStable: true,
+                sceneStable: true
             ).state == .barReferenceNeeded
         )
         #expect(
@@ -85,7 +88,8 @@ struct LiveFramingAssessmentTests {
                 cameraReady: true,
                 framing: .ready,
                 barConfirmed: true,
-                phoneStable: false
+                phoneStable: false,
+                sceneStable: true
             ).state == .phoneStabilityNeeded
         )
         #expect(
@@ -93,7 +97,17 @@ struct LiveFramingAssessmentTests {
                 cameraReady: true,
                 framing: .ready,
                 barConfirmed: true,
-                phoneStable: true
+                phoneStable: true,
+                sceneStable: false
+            ).state == .sceneStabilityNeeded
+        )
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: true,
+                framing: .ready,
+                barConfirmed: true,
+                phoneStable: true,
+                sceneStable: true
             ).state == .ready
         )
     }
