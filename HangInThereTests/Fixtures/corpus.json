@@ -9,11 +9,43 @@
       "exercise": "pullUp",
       "source_kind": "existing_fixture",
       "prepared_video": "../pullup-smoke.mp4",
-      "environment_tags": ["military-fitness", "landscape", "rear-oblique", "standard-two-arm"],
+      "environment_tags": [
+        "military-fitness",
+        "landscape",
+        "rear-oblique",
+        "standard-two-arm"
+      ],
       "review_scope": "Existing fully reviewed 40-frame fixture and one-movement regression in source.json.",
       "expectation": {
         "minimum_people_fraction": 0.95,
-        "minimum_any_arm_fraction": 0.80
+        "minimum_any_arm_fraction": 0.8
+      }
+    },
+    {
+      "id": "iwakuni-multi-person-intro",
+      "tier": "stress-coverage",
+      "exercise": "none",
+      "source_kind": "existing_source",
+      "source_path": "Data/external/p0-pullup-source.webm",
+      "source_bytes": 32946819,
+      "source_sha256": "d278e8f61fbc1cfbedc8a38ddcdfa5b9b44d1429a209c198b59172d7fb6443a7",
+      "environment_tags": [
+        "military-fitness",
+        "landscape",
+        "multi-person",
+        "introduction",
+        "zero-reps"
+      ],
+      "review_scope": "Previously reviewed 0-4 second interval: two people introducing the exercise, zero pull-ups.",
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 4,
+        "frames_per_second": 8,
+        "max_long_edge": 640
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.75,
+        "minimum_any_arm_fraction": 0.55
       }
     },
     {
@@ -27,7 +59,11 @@
       "source_sha256": null,
       "license": "CC BY 3.0",
       "credit": "FitnessScape",
-      "environment_tags": ["indoor-gym", "landscape", "standard-two-arm"],
+      "environment_tags": [
+        "indoor-gym",
+        "landscape",
+        "standard-two-arm"
+      ],
       "recipe": {
         "source_start_seconds": 0,
         "duration_seconds": 6,
@@ -35,7 +71,7 @@
         "max_long_edge": 640
       },
       "expectation": {
-        "minimum_people_fraction": 0.90,
+        "minimum_people_fraction": 0.9,
         "minimum_any_arm_fraction": 0.75
       }
     },
@@ -50,7 +86,11 @@
       "source_sha256": null,
       "license": "CC BY-SA 4.0",
       "credit": "Fenix1000 / Solodkyi Serhii",
-      "environment_tags": ["portrait", "one-arm", "nonstandard-exercise-view"],
+      "environment_tags": [
+        "portrait",
+        "one-arm",
+        "nonstandard-exercise-view"
+      ],
       "recipe": {
         "source_start_seconds": 0,
         "duration_seconds": 32,
@@ -73,7 +113,13 @@
       "source_sha256": null,
       "license": "CC BY-SA 4.0",
       "credit": "Fenix1000 / Solodkyi Serhii",
-      "environment_tags": ["outdoor", "landscape", "tree-branch", "one-arm", "nonstandard-apparatus"],
+      "environment_tags": [
+        "outdoor",
+        "landscape",
+        "tree-branch",
+        "one-arm",
+        "nonstandard-apparatus"
+      ],
       "recipe": {
         "source_start_seconds": 0,
         "duration_seconds": 23,
@@ -81,8 +127,8 @@
         "max_long_edge": 640
       },
       "expectation": {
-        "minimum_people_fraction": 0.60,
-        "minimum_any_arm_fraction": 0.40
+        "minimum_people_fraction": 0.6,
+        "minimum_any_arm_fraction": 0.4
       }
     }
   ],
