@@ -70,9 +70,10 @@ import Testing
             oppositeEdge:nil,imageSize:size,sourceTime:PresentationTime(value:0,timescale:30))
         #expect(value.isValid)
         #expect(value.oppositeEdge == nil)
-        let invalid = ConfirmedBar(role:.pullUpGrip,method:.guidedContours,referenceEdge:value.referenceEdge,
+        let guided = ConfirmedBar(role:.pullUpGrip,method:.guidedContours,referenceEdge:value.referenceEdge,
             oppositeEdge:nil,imageSize:size,sourceTime:value.sourceTime)
-        #expect(!invalid.isValid)
+        #expect(guided.isValid)
+        #expect(guided.oppositeEdge == nil)
     }
     @Test func referencesValidateBothEdgesAndCoordinates() {
         for edge in [line(0,0,0,0),line(-1,10,200,10),line(10,.nan,100,10)] {
@@ -106,6 +107,45 @@ import Testing
             #expect(value.centerline.length == length)
         }
         #expect(BarFitter.pair(line(50,100,75,100),line(50,130,75,130),minimumLength:24) == nil)
+    }
+    @Test func singleEdgeFitterMergesObservedCollinearFragmentsAcrossSmallGaps() throws {
+        let contours = [
+            [Point2D(x:80,y:100),Point2D(x:220,y:100)],
+            [Point2D(x:245,y:101),Point2D(x:420,y:101)],
+            [Point2D(x:440,y:100),Point2D(x:540,y:100)]
+        ]
+        let candidates = try BarLineFitter.candidates(contours:contours,region:region,size:size)
+        let edge = try #require(candidates.first?.edge)
+        #expect(edge.a.x >= 79 && edge.a.x <= 82)
+        #expect(edge.b.x >= 538 && edge.b.x <= 541)
+        #expect(abs(edge.midpoint.y - 100.4) < 2)
+    }
+    @Test func singleEdgeFitterDoesNotBridgeLargeUnobservedGap() throws {
+        let contours = [
+            [Point2D(x:80,y:100),Point2D(x:200,y:100)],
+            [Point2D(x:360,y:100),Point2D(x:540,y:100)]
+        ]
+        let candidates = try BarLineFitter.candidates(contours:contours,region:region,size:size)
+        #expect(candidates.count == 2)
+        #expect(candidates.allSatisfy { $0.edge.length < 200 })
+    }
+    @Test func singleEdgeFitterRejectsCropBorderAndCollapsesDuplicateEvidence() throws {
+        let border = [Point2D(x:20,y:40),Point2D(x:620,y:40)]
+        let edge = [Point2D(x:80,y:100),Point2D(x:540,y:100)]
+        let candidates = try BarLineFitter.candidates(
+            contours:[border,edge,edge.reversed()],region:region,size:size)
+        #expect(candidates.count == 1)
+        #expect(abs(candidates[0].edge.midpoint.y - 100) < 1)
+    }
+    @Test func singleEdgeFitterKeepsDistinctRackLinesAsSeparateProposals() throws {
+        let candidates = try BarLineFitter.candidates(
+            contours:[
+                [Point2D(x:80,y:85),Point2D(x:540,y:85)],
+                [Point2D(x:80,y:175),Point2D(x:540,y:175)]
+            ],region:region,size:size)
+        #expect(candidates.count == 2)
+        #expect(candidates[0].edge.midpoint.y == 85)
+        #expect(candidates[1].edge.midpoint.y == 175)
     }
     @Test func screenGuideMapsBackToUnmirroredPixels() throws {
         let fit = try #require(AspectFit(image:size,viewport:ImageSize(width:320,height:400)))
