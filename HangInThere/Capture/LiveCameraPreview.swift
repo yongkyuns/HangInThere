@@ -1,3 +1,4 @@
+#if os(iOS)
 import AVFoundation
 import Observation
 import SwiftUI
@@ -199,3 +200,5 @@ final class CameraPreviewView: UIView {
         layer as! AVCaptureVideoPreviewLayer
     }
 }
+
+#endif
