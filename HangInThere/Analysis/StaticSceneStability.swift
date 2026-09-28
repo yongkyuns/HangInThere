@@ -1,33 +1,14 @@
 import Foundation
 
-// Robustly interprets multiple image-registration patches around the frame.
-// Registration itself is platform-specific; this policy remains deterministic
-// and framework-free so thresholds/consensus behavior are directly testable.
+// Robustly interprets static-scene image registration.
+// Corner translations protect lateral image alignment; one full-frame homography
+// supplies an independent scale signal for toward/away or zoom-like change.
 struct StaticSceneStability: Sendable {
-    struct PatchMotion: Equatable, Sendable {
-        let dxPixels: Double?
-        let dyPixels: Double?
-        let scaleFraction: Double?
+    struct PatchTranslation: Equatable, Sendable {
+        let dxPixels: Double
+        let dyPixels: Double
 
-        init(
-            dxPixels: Double? = nil,
-            dyPixels: Double? = nil,
-            scaleFraction: Double? = nil
-        ) {
-            self.dxPixels = dxPixels
-            self.dyPixels = dyPixels
-            self.scaleFraction = scaleFraction
-        }
-
-        var hasTranslation: Bool {
-            guard let dxPixels, let dyPixels else { return false }
-            return dxPixels.isFinite && dyPixels.isFinite
-        }
-
-        var hasScale: Bool {
-            guard let scaleFraction else { return false }
-            return scaleFraction.isFinite && scaleFraction >= 0
-        }
+        var isFinite: Bool { dxPixels.isFinite && dyPixels.isFinite }
     }
 
     enum State: String, Equatable, Sendable {
@@ -47,17 +28,15 @@ struct StaticSceneStability: Sendable {
     static let movementThresholdFraction = 0.008
     static let consensusToleranceFraction = 0.006
     static let scaleThresholdFraction = 0.012
-    static let scaleConsensusToleranceFraction = 0.008
     static let movementDwellSeconds = 0.25
     static let minimumConsensusPatches = 2
-    static let minimumScaleConsensusPatches = 3
 
     private(set) var state: State = .uncalibrated
     private(set) var movementKind: MovementKind?
     private(set) var latestShiftFraction: Double?
     private(set) var latestScaleFraction: Double?
     private(set) var latestConsensusPatches = 0
-    private(set) var latestScaleConsensusPatches = 0
+    private(set) var latestScaleMeasurementAvailable = false
     private(set) var maximumShiftFraction = 0.0
     private(set) var maximumScaleFraction = 0.0
 
@@ -75,10 +54,10 @@ struct StaticSceneStability: Sendable {
         translationOverThresholdSince = nil
         scaleOverThresholdSince = nil
         lastTimestamp = nil
-        latestShiftFraction = 0
-        latestScaleFraction = 0
+        latestShiftFraction = nil
+        latestScaleFraction = nil
         latestConsensusPatches = 0
-        latestScaleConsensusPatches = 0
+        latestScaleMeasurementAvailable = false
         maximumShiftFraction = 0
         maximumScaleFraction = 0
         movementKind = nil
@@ -86,7 +65,6 @@ struct StaticSceneStability: Sendable {
         return true
     }
 
-    // Retained for focused square-geometry tests.
     mutating func calibrate(imageShortSide: Double) -> Bool {
         calibrate(imageSize: ImageSize(width: imageShortSide, height: imageShortSide))
     }
@@ -96,7 +74,11 @@ struct StaticSceneStability: Sendable {
     }
 
     @discardableResult
-    mutating func observe(_ motions: [PatchMotion], timestamp: Double) -> State {
+    mutating func observe(
+        translations: [PatchTranslation],
+        globalScaleFraction: Double?,
+        timestamp: Double
+    ) -> State {
         guard state == .calibrating || state == .stable,
               let imageShortSide,
               timestamp.isFinite,
@@ -106,7 +88,7 @@ struct StaticSceneStability: Sendable {
         lastTimestamp = timestamp
 
         let translation = translationConsensus(
-            motions.filter(\.hasTranslation),
+            translations.filter(\.isFinite),
             imageShortSide: imageShortSide
         )
         latestConsensusPatches = translation.count
@@ -115,17 +97,16 @@ struct StaticSceneStability: Sendable {
             maximumShiftFraction = max(maximumShiftFraction, fraction)
         }
 
-        let scale = scaleConsensus(motions.filter(\.hasScale))
-        latestScaleConsensusPatches = scale.count
-        if let fraction = scale.fraction {
-            latestScaleFraction = fraction
-            maximumScaleFraction = max(maximumScaleFraction, fraction)
+        let scale = sanitizedScale(globalScaleFraction)
+        latestScaleMeasurementAvailable = scale != nil
+        if let scale {
+            latestScaleFraction = scale
+            maximumScaleFraction = max(maximumScaleFraction, scale)
         }
 
         let translationStable = translation.count >= Self.minimumConsensusPatches
             && (translation.fraction ?? .infinity) < Self.movementThresholdFraction
-        let scaleStable = scale.count >= Self.minimumScaleConsensusPatches
-            && (scale.fraction ?? .infinity) < Self.scaleThresholdFraction
+        let scaleStable = scale.map { $0 < Self.scaleThresholdFraction } ?? false
 
         if state == .calibrating, translationStable, scaleStable {
             state = .stable
@@ -137,11 +118,7 @@ struct StaticSceneStability: Sendable {
             timestamp: timestamp
         )
         if state != .moved {
-            updateScaleThreshold(
-                scale.fraction,
-                consensusCount: scale.count,
-                timestamp: timestamp
-            )
+            updateScaleThreshold(scale, timestamp: timestamp)
         }
 
         return state
@@ -175,12 +152,9 @@ struct StaticSceneStability: Sendable {
 
     private mutating func updateScaleThreshold(
         _ fraction: Double?,
-        consensusCount: Int,
         timestamp: Double
     ) {
-        guard consensusCount >= Self.minimumScaleConsensusPatches,
-              let fraction
-        else {
+        guard let fraction else {
             scaleOverThresholdSince = nil
             return
         }
@@ -200,53 +174,33 @@ struct StaticSceneStability: Sendable {
     }
 
     private func translationConsensus(
-        _ motions: [PatchMotion],
+        _ translations: [PatchTranslation],
         imageShortSide: Double
     ) -> (fraction: Double?, count: Int) {
-        let dx = motions.compactMap(\.dxPixels)
-        let dy = motions.compactMap(\.dyPixels)
-        guard dx.count == motions.count, dy.count == motions.count,
-              motions.count >= Self.minimumConsensusPatches
-        else {
-            return (nil, motions.count)
+        guard translations.count >= Self.minimumConsensusPatches else {
+            return (nil, translations.count)
         }
 
-        let medianX = median(dx)
-        let medianY = median(dy)
+        let medianX = median(translations.map(\.dxPixels))
+        let medianY = median(translations.map(\.dyPixels))
         let tolerance = Self.consensusToleranceFraction * imageShortSide
-        let inliers = motions.filter { motion in
-            guard let x = motion.dxPixels, let y = motion.dyPixels else { return false }
-            return hypot(x - medianX, y - medianY) <= tolerance
+        let inliers = translations.filter {
+            hypot($0.dxPixels - medianX, $0.dyPixels - medianY) <= tolerance
         }
         guard inliers.count >= Self.minimumConsensusPatches else {
             return (nil, inliers.count)
         }
 
-        let consensusX = median(inliers.compactMap(\.dxPixels))
-        let consensusY = median(inliers.compactMap(\.dyPixels))
-        let shift = hypot(consensusX, consensusY) / imageShortSide
-        guard shift.isFinite else { return (nil, inliers.count) }
-        return (shift, inliers.count)
+        let consensusX = median(inliers.map(\.dxPixels))
+        let consensusY = median(inliers.map(\.dyPixels))
+        let fraction = hypot(consensusX, consensusY) / imageShortSide
+        guard fraction.isFinite else { return (nil, inliers.count) }
+        return (fraction, inliers.count)
     }
 
-    private func scaleConsensus(
-        _ motions: [PatchMotion]
-    ) -> (fraction: Double?, count: Int) {
-        let values = motions.compactMap(\.scaleFraction)
-        guard values.count >= Self.minimumScaleConsensusPatches else {
-            return (nil, values.count)
-        }
-
-        let center = median(values)
-        let inliers = values.filter {
-            abs($0 - center) <= Self.scaleConsensusToleranceFraction
-        }
-        guard inliers.count >= Self.minimumScaleConsensusPatches else {
-            return (nil, inliers.count)
-        }
-
-        let fraction = median(inliers)
-        return (fraction.isFinite ? fraction : nil, inliers.count)
+    private func sanitizedScale(_ value: Double?) -> Double? {
+        guard let value, value.isFinite, value >= 0 else { return nil }
+        return value
     }
 
     private func median(_ values: [Double]) -> Double {
