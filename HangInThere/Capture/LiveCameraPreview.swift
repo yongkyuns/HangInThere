@@ -160,7 +160,7 @@ final class LiveCameraPreviewController {
     private(set) var liveSet = LiveSetSession()
     private(set) var phoneOrientation = PhoneOrientationStability()
     private(set) var motionSampleAvailable = false
-    private(set) var sceneTranslation = StaticSceneTranslationStability()
+    private(set) var sceneTranslation = StaticSceneStability()
 
     let session = AVCaptureSession()
 
@@ -717,7 +717,7 @@ final class LiveCameraPreviewController {
         let image = frame.image
         sceneRegistrationTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            let shifts: [StaticSceneTranslationStability.PatchShift]
+            let shifts: [StaticSceneStability.PatchShift]
             do {
                 shifts = try await sceneRegistrationWorker.measure(
                     reference: reference,
