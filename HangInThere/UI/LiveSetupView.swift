@@ -281,6 +281,11 @@ struct LiveSetupView: View {
                 detail: phoneStabilityDetail,
                 symbol: phoneStabilitySymbol
             )
+            setupRow(
+                "Camera position",
+                detail: sceneStabilityDetail,
+                symbol: sceneStabilitySymbol
+            )
         }
         .padding(16)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
@@ -552,6 +557,8 @@ struct LiveSetupView: View {
             return "The set ended because the fixed bar reference became incompatible with the camera frames."
         case .phoneMoved:
             return "The set ended because the phone rotated after bar calibration. Re-check framing and set the bar again."
+        case .sceneShifted:
+            return "The set ended because static background structure shifted relative to the bar-calibration frame. Re-check framing and set the bar again."
         case .manual:
             return nil
         }
@@ -651,7 +658,7 @@ struct LiveSetupView: View {
 
     private var barCalibrationDetail: String {
         if camera.currentBar != nil {
-            return "\(camera.barRole.title) confirmed from a frozen analyzed frame. Phone orientation is monitored from the same calibration instant."
+            return "\(camera.barRole.title) confirmed from a frozen analyzed frame. Phone orientation and static background are monitored from that same calibration."
         }
         if !camera.framing.state.isReady {
             return "Make the selected arm measurable, then freeze a frame and mark the gripping edge."
@@ -669,12 +676,15 @@ struct LiveSetupView: View {
         if !camera.phoneOrientation.state.allowsLiveSet {
             return "Phone orientation is not stable against the calibration baseline."
         }
+        if !camera.sceneTranslation.state.allowsLiveSet {
+            return sceneStabilityDetail
+        }
         return "Complete the remaining setup checks."
     }
 
     private var scopeNote: some View {
         Label(
-            "Live sets use the same bar-relative movement counter as recorded review. Sustained phone rotation after bar calibration invalidates the set. Pure phone translation is not detected yet; chin/depth verification and form scoring remain separate qualification steps.",
+            "Live sets use the same bar-relative movement counter as recorded review. Sustained phone rotation or consensus background shift after bar calibration invalidates the set. These checks do not constitute full camera-pose estimation; chin/depth verification and form scoring remain separate qualification steps.",
             systemImage: "info.circle"
         )
         .font(.footnote)
@@ -705,6 +715,37 @@ struct LiveSetupView: View {
         case .moved: "exclamationmark.triangle.fill"
         case .unavailable: "xmark.circle.fill"
         case .uncalibrated: camera.motionSampleAvailable ? "iphone.gen3" : "hourglass"
+        }
+    }
+
+    private var sceneStabilityDetail: String {
+        switch camera.sceneTranslation.state {
+        case .uncalibrated:
+            return "Set the bar to capture a static-background reference."
+        case .calibrating:
+            if camera.sceneTranslation.latestConsensusPatches > 0 {
+                return "Checking background alignment before Start."
+            }
+            return "Waiting for at least two peripheral background patches to agree."
+        case .stable:
+            if let fraction = camera.sceneTranslation.latestShiftFraction {
+                return String(
+                    format: "Background aligned · %.2f%% of image short side.",
+                    fraction * 100
+                )
+            }
+            return "Background alignment is being monitored."
+        case .moved:
+            return "Static background shifted after calibration. Set the bar again."
+        }
+    }
+
+    private var sceneStabilitySymbol: String {
+        switch camera.sceneTranslation.state {
+        case .stable: "checkmark.circle.fill"
+        case .moved: "exclamationmark.triangle.fill"
+        case .calibrating: "viewfinder"
+        case .uncalibrated: "camera.metering.center.weighted"
         }
     }
 
