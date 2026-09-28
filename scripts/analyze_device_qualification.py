@@ -446,9 +446,18 @@ def _render_thermal(name: str, analysis: dict[str, Any]) -> str:
     )
 
 
-def analyze(paths: Sequence[pathlib.Path], profile: str) -> dict[str, Any]:
-    reports = [load_report(path) for path in paths]
-    summaries = [summarize_report(report, path.name) for path, report in zip(paths, reports)]
+def _analyze_loaded_reports(
+    named_reports: Sequence[tuple[str, dict[str, Any]]],
+    profile: str,
+) -> dict[str, Any]:
+    for _, report in named_reports:
+        validate_report(report)
+
+    reports = [report for _, report in named_reports]
+    summaries = [
+        summarize_report(report, name)
+        for name, report in named_reports
+    ]
 
     result: dict[str, Any] = {
         "profile": profile,
@@ -458,10 +467,18 @@ def analyze(paths: Sequence[pathlib.Path], profile: str) -> dict[str, Any]:
         result["stationary"] = stationary_analysis(reports)
     elif profile == "thermal":
         result["thermal"] = [
-            {"name": path.name, **thermal_analysis(report)}
-            for path, report in zip(paths, reports)
+            {"name": name, **thermal_analysis(report)}
+            for name, report in named_reports
         ]
     return result
+
+
+def analyze(paths: Sequence[pathlib.Path], profile: str) -> dict[str, Any]:
+    named_reports = [
+        (path.name, load_report(path))
+        for path in paths
+    ]
+    return _analyze_loaded_reports(named_reports, profile)
 
 
 def render_markdown(result: dict[str, Any]) -> str:
