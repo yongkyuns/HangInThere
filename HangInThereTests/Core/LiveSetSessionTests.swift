@@ -113,6 +113,22 @@ struct LiveSetSessionTests {
         #expect(session.observedMovements == 1)
     }
 
+    @Test func sceneShiftIsAnExplicitInterruptionReason() {
+        var session = LiveSetSession()
+        session.start(exercise: .pullUp, side: .left)
+        feed(&session, [(0.0, 170), (0.15, 170), (0.30, 80), (0.45, 80)])
+        #expect(session.observedMovements == 1)
+
+        session.interruptAndFinish(
+            reason: "sceneShifted",
+            endReason: .sceneShifted
+        )
+
+        #expect(session.phase == .finished)
+        #expect(session.endReason == .sceneShifted)
+        #expect(session.observedMovements == 1)
+    }
+
     @Test func nextSetPreservesSelectionButClearsResults() {
         var session = LiveSetSession()
         session.start(exercise: .dip, side: .right)
