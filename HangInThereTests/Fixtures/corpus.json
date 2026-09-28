@@ -8,7 +8,7 @@
       "tier": "count-qualified",
       "exercise": "pullUp",
       "source_kind": "existing_fixture",
-      "prepared_video": "../pullup-smoke.mp4",
+      "prepared_video": "pullup-smoke.mp4",
       "environment_tags": [
         "military-fitness",
         "landscape",
