@@ -139,7 +139,6 @@ struct VisionSmokeTests {
         )
         let reader = VideoReplayReader()
         _ = try await reader.open(videoURL)
-        defer { Task { await reader.close() } }
 
         var liveSet = LiveSetSession()
         liveSet.start(exercise: demo.exercise, side: demo.side)
