@@ -1,6 +1,6 @@
 import Foundation
 
-struct LiveSetSession: Equatable, Sendable {
+struct LiveSetSession: Sendable {
     enum Phase: String, Equatable, Sendable {
         case idle
         case running
