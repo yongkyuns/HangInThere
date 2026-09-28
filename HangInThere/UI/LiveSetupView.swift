@@ -370,7 +370,7 @@ struct LiveSetupView: View {
 
             Label(liveTrackingDetail, systemImage: liveTrackingSymbol)
                 .font(.caption)
-                .foregroundStyle(camera.liveSet.trackingIssue == nil ? .secondary : .orange)
+                .foregroundStyle(liveTrackingColor)
 
             Button(role: .destructive) {
                 camera.stopSet()
@@ -508,6 +508,10 @@ struct LiveSetupView: View {
         case .finished:
             return "Set finished."
         }
+    }
+
+    private var liveTrackingColor: Color {
+        camera.liveSet.trackingIssue == nil ? .secondary : .orange
     }
 
     private var liveTrackingSymbol: String {
