@@ -81,8 +81,9 @@ Current reviewed scenarios:
 
 - **Iwakuni standard rear/oblique** — existing count-qualified outdoor/military fixture;
 - **Iwakuni multi-person introduction** — two-person, zero-rep stress case;
-- **FitnessScape standard indoor** — second count-qualified standard pull-up view,
-  visually reviewed as two complete movement cycles across all 48 prepared frames;
+- **FitnessScape standard indoor** — second count-qualified standard pull-up view;
+  indexed-frame review shows the file starts mid-attempt, reaches full extension,
+  then contains one countable extension-to-top movement;
 - **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
 - **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
   background, swing/inversion stress.
@@ -94,9 +95,11 @@ The new clips are not all rep ground truth. `tier` is deliberate:
 - `stress-coverage`: difficult real footage must decode and produce sufficient
   real-Vision tracking/motion evidence, but no rep/form label is implied.
 
-All coverage floors and the indoor two-movement label were recorded from visual
-review **before** Apple Vision corpus inference. CI must not relax them merely to
-match model output.
+Coverage floors were recorded from visual review before Apple Vision corpus
+inference. The initial indoor count label of two was corrected after indexed-frame
+visual re-review showed that frame 0 is already mid-ascent; only the later
+extension-to-top movement is countable. CI must not relax endpoint thresholds merely
+to match model output.
 
 Preparation also emits review contact sheets and exact frame timestamps. CI retains
 the approved derived corpus temporarily for inspection; source media remains ignored
