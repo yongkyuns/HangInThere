@@ -72,6 +72,7 @@ struct VisionSmokeTests {
         #expect(ArmMeasurement(pose: initialFrame.pose, side: demo.side).estimate != nil)
 
         let setup = try #require(model.beginBarSetup())
+        try #require(demo.barReferenceEdge.count == 4, "Demo bar edge must contain x1, y1, x2, y2.")
         let edge = BarSegment(
             a: Point2D(x: demo.barReferenceEdge[0], y: demo.barReferenceEdge[1]),
             b: Point2D(x: demo.barReferenceEdge[2], y: demo.barReferenceEdge[3])
@@ -104,7 +105,11 @@ struct VisionSmokeTests {
         if let movementTime = model.movementTimes.first {
             #expect(abs(movementTime - demo.expectedMovementTimeSeconds) <= 0.2)
         }
-        #expect(model.trackingCoverage == 1)
+        if let coverage = model.trackingCoverage {
+            #expect(abs(coverage - demo.expectedTrackingCoverage) < 1e-9)
+        } else {
+            Issue.record("Real workout demo produced no tracking-coverage denominator.")
+        }
         #expect(model.progress == 1)
 
         print(
@@ -177,7 +182,7 @@ struct VisionSmokeTests {
     }
 
     @MainActor
-    private func waitForController(_ model: ReplayController, phases: Set<ReplayPhase>) async throws {
+    private func waitForController(_ model: ReplayController, phases: [ReplayPhase]) async throws {
         let deadline = ContinuousClock.now.advanced(by: .seconds(60))
         while !phases.contains(model.phase) {
             guard ContinuousClock.now < deadline else {
@@ -205,12 +210,14 @@ private struct WorkoutDemoSpecification: Decodable {
         let barReferenceEdge: [Double]
         let expectedObservedMovements: Int
         let expectedMovementTimeSeconds: Double
+        let expectedTrackingCoverage: Double
 
         enum CodingKeys: String, CodingKey {
             case exercise, side
             case barReferenceEdge = "bar_reference_edge"
             case expectedObservedMovements = "expected_observed_movements"
             case expectedMovementTimeSeconds = "expected_movement_time_seconds"
+            case expectedTrackingCoverage = "expected_tracking_coverage"
         }
     }
 
