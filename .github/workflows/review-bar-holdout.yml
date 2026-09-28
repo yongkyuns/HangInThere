@@ -1,0 +1,61 @@
+name: Review new bar holdout
+on:
+  push:
+    branches: [ops/review-bar-holdout-20260927]
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Fetch pinned public-domain review images
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, urllib.request
+          from pathlib import Path
+          root=Path('build/holdout-review'); root.mkdir(parents=True)
+          rows=[
+            {
+              'id':'pullup_warhill_8805036',
+              'page':'https://www.dvidshub.net/image/8805036/warhill-high-school-pull-up-bar-challenge',
+              'url':'https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/2412/8805036/1000w_q95.jpg',
+              'credit':'U.S. Marine Corps photo by Cpl. Trion D. Jenkins',
+              'kind':'pullup'
+            },
+            {
+              'id':'parallelbars_mike_9549475',
+              'page':'https://www.dvidshub.net/image/9549475/mike-company-confidence-course',
+              'url':'https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/2602/9549475/1000w_q95.jpg',
+              'credit':'U.S. Marine Corps photo by Lance Cpl. Yosemily Carrero Baez',
+              'kind':'parallel_bars'
+            }
+          ]
+          out=[]
+          for row in rows:
+              p=root/(row['id']+'.jpg')
+              req=urllib.request.Request(row['url'],headers={'User-Agent':'HangInThere/0.1 bar holdout review'})
+              with urllib.request.urlopen(req,timeout=60) as r:
+                  data=r.read(10_000_001)
+              if not data or len(data)>10_000_000:
+                  raise SystemExit('invalid bounded image '+row['id'])
+              p.write_bytes(data)
+              rec=dict(row)
+              rec['bytes']=len(data); rec['sha256']=hashlib.sha256(data).hexdigest()
+              out.append(rec)
+          (root/'sources.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n')
+          (root/'ATTRIBUTION.txt').write_text(
+            'Both review images are listed PUBLIC DOMAIN by DVIDS and remain subject to DVIDS reuse restrictions. '
+            'No endorsement is implied. Review-only artifact; no training occurs in this workflow.\n'
+          )
+          print(json.dumps(out,indent=2))
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: new-bar-holdout-review
+          retention-days: 3
+          path: build/holdout-review
+          if-no-files-found: error
