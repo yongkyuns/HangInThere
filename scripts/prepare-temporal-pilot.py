@@ -34,7 +34,7 @@ def probe(path):
     ev.require(pts and all(ev.number(t) and t >= 0 for t in pts)
                and all(a < b for a, b in zip(pts, pts[1:])), 'Source needs monotonic presentation timestamps')
     stream = result['streams'][0]
-    ev.require(stream.get('sample_aspect_ratio') in ('1:1', 'N/A'), 'Unsupported pixel aspect ratio')
+    ev.require(stream.get('sample_aspect_ratio') in (None, '0:1', '1:1', 'N/A'), 'Unsupported pixel aspect ratio')
     return pts, [stream['width'], stream['height']]
 
 
