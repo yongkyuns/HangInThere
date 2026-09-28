@@ -320,6 +320,8 @@ final class LiveCameraPreviewController {
     func resumeAfterInterruption() async {
         guard startRequested, suspended else { return }
 
+        phoneOrientation.reset()
+        startMotionMonitoring()
         state = .starting
         await setCaptureRunning(true)
         guard startRequested else { return }
@@ -357,7 +359,6 @@ final class LiveCameraPreviewController {
         }
 
         suspended = false
-        startMotionMonitoring()
         analyzedFrames = 0
         droppedFrames = 0
         analysisFailures = 0
@@ -367,6 +368,8 @@ final class LiveCameraPreviewController {
         bar = nil
         pendingBarMotionSample = nil
         phoneOrientation.reset()
+        motionSampleAvailable = false
+        startMotionMonitoring()
         discardNextSetFrame = false
         liveSet.reset(exercise: exercise, side: trackingSide)
         framing = LiveFramingAssessment()
@@ -539,6 +542,8 @@ final class LiveCameraPreviewController {
         phoneOrientation.reset()
 
         if stopCapture {
+            motionManager.stopDeviceMotionUpdates()
+            motionSampleAvailable = false
             let session = session
             sessionQueue.async {
                 if session.isRunning {
