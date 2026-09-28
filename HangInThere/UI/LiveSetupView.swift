@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -94,6 +95,11 @@ struct LiveSetupView: View {
                 case .success:
                     qualificationDocument = nil
                 case .failure(let error):
+                    qualificationDocument = nil
+                    if let cocoaError = error as? CocoaError,
+                       cocoaError.code == .userCancelled {
+                        break
+                    }
                     qualificationExportErrorMessage = error.localizedDescription
                     showingQualificationExportError = true
                 }
