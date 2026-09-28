@@ -327,6 +327,8 @@ final class LiveCameraPreviewController {
         guard startRequested else { return }
 
         guard session.isRunning, !session.isInterrupted else {
+            motionManager.stopDeviceMotionUpdates()
+            motionSampleAvailable = false
             state = .interrupted("The camera is still unavailable. Try Resume camera again when the interruption ends.")
             return
         }
@@ -369,7 +371,6 @@ final class LiveCameraPreviewController {
         pendingBarMotionSample = nil
         phoneOrientation.reset()
         motionSampleAvailable = false
-        startMotionMonitoring()
         discardNextSetFrame = false
         liveSet.reset(exercise: exercise, side: trackingSide)
         framing = LiveFramingAssessment()
@@ -386,12 +387,15 @@ final class LiveCameraPreviewController {
             return
         }
 
+        startMotionMonitoring()
         framing = LiveFramingAssessment()
         state = .starting
         await setCaptureRunning(true)
         guard startRequested else { return }
 
         guard session.isRunning, !session.isInterrupted else {
+            motionManager.stopDeviceMotionUpdates()
+            motionSampleAvailable = false
             state = .failed("The camera did not start. Close Live Workout and try again.")
             startRequested = false
             return
