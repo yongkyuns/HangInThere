@@ -103,6 +103,24 @@ results/provenance and a separately named, approved smoke clip/still for review;
 private app imports are never collected. Unsigned compilation does not produce
 an installable phone app. Normal local signing is not disabled in the project.
 
+## Physical-device qualification reports
+
+Live Workout can export a content-free JSON engineering report for physical-iPhone
+runtime qualification. Analyze one or more exported reports locally with:
+
+```sh
+python3 scripts/analyze_device_qualification.py report.json
+python3 scripts/analyze_device_qualification.py \
+  --profile stationary stationary-*.json
+python3 scripts/analyze_device_qualification.py \
+  --profile thermal thermal-soak.json
+```
+
+The analyzer uses only the Python standard library. It validates the report schema
+and privacy boundary, reports stationary threshold usage/headroom, and compares
+early-vs-late runtime/thermal behavior. It does not auto-tune thresholds or emit an
+automatic release verdict. See [the physical-device protocol](docs/DEVICE_QUALIFICATION.md).
+
 ## Scope and next steps
 
 Read [the POC implementation and validation plan](docs/POC.md). First clear the
