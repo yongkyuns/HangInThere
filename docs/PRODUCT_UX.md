@@ -253,6 +253,21 @@ reference assumes a stationary, continuous camera:
 These rules prefer an incomplete/interrupted result over a plausible but geometrically
 invalid count.
 
+Live bar calibration now also records a Core Motion attitude baseline from the same
+instant as the frozen calibration frame. While the bar reference exists, the app
+polls the latest fused device attitude and invalidates calibration after a
+**provisional 1.5° orientation change sustained for 0.25 s**. A running set ends as
+**Set interrupted** with a phone-moved reason; setup then requires a new bar
+calibration. Brief threshold crossings reset if orientation returns before the dwell
+time so sensor noise or a very short vibration does not immediately destroy setup.
+
+This is rotational stability only. Core Motion cannot establish that the phone did
+not translate while returning to the same attitude, so the UI says
+**Phone orientation monitored**, not “phone position verified.” Optical/background
+registration or another image-space check is still required before claiming full
+camera-pose stability. The threshold is an engineering default pending physical
+iPhone qualification, not a release-quality accuracy bound.
+
 The qualified live workflow is now exposed from the main customer entry screen as
 the primary action. It is presented full-screen so setup, the running set, and
 results form one focused task; closing it returns to the home/recorded-review flow.
@@ -282,7 +297,7 @@ The app should eventually provide:
 - "move farther back" / "keep selected arm visible" guidance;
 - confirmation that the selected athlete/arm is measurable (implemented for live setup);
 - confirmation that the bar/rail is visible (not yet automatic);
-- warning if the phone moves after calibration;
+- warning/invalidation for sustained phone orientation change after calibration (implemented; pure translation remains unverified);
 - exercise-specific camera recommendations.
 
 Do not expose arbitrary CV thresholds to customers.
