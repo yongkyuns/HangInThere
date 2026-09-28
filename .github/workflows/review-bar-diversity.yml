@@ -1,0 +1,188 @@
+name: Review bar detector diversity sources
+on:
+  push:
+    branches: [ops/review-bar-diversity-20260927]
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare media tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          python3 -m venv /tmp/bar-diversity
+          /tmp/bar-diversity/bin/pip install --only-binary=:all: Pillow==12.3.0
+      - name: Acquire public-domain review media
+        run: |
+          /tmp/bar-diversity/bin/python - <<'PY'
+          import hashlib, json, subprocess, urllib.request
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+
+          root=Path("build/bar-diversity"); root.mkdir(parents=True)
+          ua={"User-Agent":"HangInThere/0.1 bar detector research"}
+
+          videos=[
+            {
+              "id":"how_to_pullup",
+              "page":"https://www.dvidshub.net/video/465137/do-pull-up",
+              "credit":"U.S. Marine Corps video by Cpl. Carson Gramley / 1st Marine Logistics Group",
+              "candidates":[
+                "https://d34w7g4gy10iej.cloudfront.net/video/1605/DOD_103327454/DOD_103327454.mp4"
+              ]
+            },
+            {
+              "id":"pft_perfect_pullups",
+              "page":"https://www.dvidshub.net/video/877400/pft-prep-perfect-pull-ups",
+              "credit":"U.S. Marine Corps video by Cpl. Symira Bostic / MCAS Cherry Point",
+              "candidates":[
+                "https://d34w7g4gy10iej.cloudfront.net/video/2303/DOD_109529938/DOD_109529938.mp4",
+                "https://d34w7g4gy10iej.cloudfront.net/video/2302/DOD_109529938/DOD_109529938.mp4"
+              ]
+            },
+            {
+              "id":"pullup_challenge",
+              "page":"https://www.dvidshub.net/video/725284/pull-up-challenge",
+              "credit":"U.S. Navy video by Chief Petty Officer RJ Stratchko / USS Gerald R. Ford",
+              "candidates":[
+                "https://d34w7g4gy10iej.cloudfront.net/video/1911/DOD_107480339/DOD_107480339.mp4"
+              ]
+            }
+          ]
+          photos=[
+            {
+              "id":"dip_368468",
+              "page":"https://www.dvidshub.net/image/368468/staying-fit-through-deployment",
+              "credit":"U.S. Army photo by Staff Sgt. Mark Albright / 3d Cavalry Regiment PAO",
+              "url":"https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1102/368468/1000w_q95.jpg"
+            },
+            {
+              "id":"dip_449403",
+              "page":"https://www.dvidshub.net/image/449403/barbells-dumbbells-kettlebells-oh-my",
+              "credit":"U.S. Marine Corps photo by Cpl. Colby Brown / I MEF",
+              "url":"https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1108/449403/1000w_q95.jpg"
+            },
+            {
+              "id":"dip_449400",
+              "page":"https://www.dvidshub.net/image/449400/barbells-dumbbells-kettlebells-oh-my",
+              "credit":"U.S. Marine Corps photo by Cpl. Colby Brown / I MEF",
+              "url":"https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1108/449400/1000w_q95.jpg"
+            },
+            {
+              "id":"dip_3604903",
+              "page":"https://www.dvidshub.net/image/3604903/170722-n-fv405-230",
+              "credit":"U.S. Navy photo by Mass Communication Specialist 2nd Class K.R. Jackson-Smith",
+              "url":"https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/1707/3604903/1000w_q95.jpg"
+            },
+            {
+              "id":"pullup_180667",
+              "page":"https://www.dvidshub.net/image/180667/face-defense-soldier-pushes-self-inspires-others",
+              "credit":"U.S. DoD photo by Roger Teel / Office of the Secretary of War Public Affairs",
+              "url":"https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/0906/180667/1000w_q95.jpg"
+            }
+          ]
+
+          def get(url, limit):
+              req=urllib.request.Request(url,headers=ua)
+              h=hashlib.sha256(); total=0; chunks=[]
+              with urllib.request.urlopen(req,timeout=90) as r:
+                  while True:
+                      b=r.read(1024*1024)
+                      if not b: break
+                      total+=len(b)
+                      if total>limit: raise ValueError("download exceeds review bound")
+                      h.update(b); chunks.append(b)
+              return b"".join(chunks), h.hexdigest()
+
+          records=[]
+          video_thumbs=[]
+          for row in videos:
+              selected=None
+              for url in row["candidates"]:
+                  try:
+                      data,sha=get(url,250_000_000)
+                      tmp=root/(row["id"]+".mp4"); tmp.write_bytes(data)
+                      probe=json.loads(subprocess.check_output([
+                        "ffprobe","-v","error","-select_streams","v:0",
+                        "-show_entries","stream=width,height,duration","-of","json",str(tmp)
+                      ],text=True))
+                      if not probe.get("streams"): raise ValueError("no video stream")
+                      selected=(url,sha,len(data),probe,tmp); break
+                  except Exception as e:
+                      print(row["id"],url,"failed",repr(e))
+              if not selected:
+                  records.append({**row,"available":False}); continue
+              url,sha,n,probe,tmp=selected
+              outdir=root/(row["id"]+"_samples"); outdir.mkdir()
+              subprocess.run([
+                "ffmpeg","-v","error","-i",str(tmp),
+                "-vf","fps=1/4,scale=480:-2:flags=lanczos",
+                "-q:v","3","-start_number","0",str(outdir/"%03d.jpg")
+              ],check=True)
+              tmp.unlink()
+              imgs=sorted(outdir.glob("*.jpg"))
+              records.append({
+                "id":row["id"],"page":row["page"],"credit":row["credit"],
+                "available":True,"url":url,"sha256":sha,"bytes":n,
+                "sample_count":len(imgs),"probe":probe
+              })
+              video_thumbs.extend([(row["id"],p) for p in imgs[:12]])
+
+          photo_thumbs=[]
+          for row in photos:
+              try:
+                  data,sha=get(row["url"],10_000_000)
+                  p=root/(row["id"]+".jpg"); p.write_bytes(data)
+                  with Image.open(p) as im:
+                      im.verify()
+                  records.append({**row,"available":True,"sha256":sha,"bytes":len(data)})
+                  photo_thumbs.append((row["id"],p))
+              except Exception as e:
+                  print(row["id"],"failed",repr(e))
+                  records.append({**row,"available":False,"error":str(e)})
+
+          def sheet(items,path,cols=4,cellw=320):
+              if not items: return
+              prepared=[]
+              for label,p in items:
+                  im=Image.open(p).convert("RGB")
+                  scale=cellw/im.width
+                  im=im.resize((cellw,round(im.height*scale)),Image.Resampling.LANCZOS)
+                  prepared.append((label,im))
+              cellh=max(im.height for _,im in prepared)+28
+              canvas=Image.new("RGB",(cellw*cols,cellh*((len(prepared)+cols-1)//cols)),"white")
+              d=ImageDraw.Draw(canvas)
+              for i,(label,im) in enumerate(prepared):
+                  x=(i%cols)*cellw; y=(i//cols)*cellh
+                  canvas.paste(im,(x,y)); d.text((x+4,y+im.height+4),label,fill="black")
+              canvas.save(path,quality=90)
+
+          sheet(video_thumbs,root/"video-sheet.jpg")
+          sheet(photo_thumbs,root/"photo-sheet.jpg",cols=3)
+          (root/"sources.json").write_text(json.dumps(records,indent=2,sort_keys=True)+"\n")
+          (root/"ATTRIBUTION.txt").write_text(
+            "Research review only. Every retained source is a DVIDS item whose page "
+            "is listed as PUBLIC DOMAIN and remains subject to DVIDS copyright/reuse "
+            "restrictions. No DoD endorsement is implied. Exact page URLs and credits "
+            "are recorded in sources.json. No pose inference, identity analysis, or "
+            "model training occurs in this workflow.\n"
+          )
+          available=sum(1 for r in records if r.get("available"))
+          if available < 4:
+              raise SystemExit(f"Too few review sources available: {available}")
+          print(json.dumps({"available":available,"records":records},indent=2))
+          PY
+      - name: Retain review evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: bar-diversity-review
+          retention-days: 3
+          path: build/bar-diversity
+          if-no-files-found: error
