@@ -33,6 +33,7 @@ struct LiveSetupView: View {
     @State private var camera = LiveCameraPreviewController()
     @State private var exercise: ExerciseCounter.Exercise = .pullUp
     @State private var side: ArmMeasurement.Side = .left
+    @State private var barSetup: BarSetupFrame?
 
     private var guide: LiveSetupGuide {
         LiveSetupGuide(exercise: exercise, side: side)
@@ -46,6 +47,8 @@ struct LiveSetupView: View {
                     cameraSurface
                     workoutSelection
                     framingChecklist
+                    barCalibrationCard
+                    readyStateCard
                     scopeNote
                 }
                 .padding()
@@ -57,12 +60,24 @@ struct LiveSetupView: View {
                     Button("Close") { dismiss() }
                 }
             }
+            .sheet(item: $barSetup) { setup in
+                BarSetupView(setup: setup) { bar in
+                    camera.confirmBar(bar, for: setup)
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+            }
             .task {
-                camera.setTrackingSide(side)
+                camera.configureWorkout(exercise: exercise, side: side)
                 await camera.start()
             }
+            .onChange(of: exercise) { _, newExercise in
+                camera.configureWorkout(exercise: newExercise, side: side)
+                barSetup = nil
+            }
             .onChange(of: side) { _, newSide in
-                camera.setTrackingSide(newSide)
+                camera.configureWorkout(exercise: exercise, side: newSide)
+                barSetup = nil
             }
             .onDisappear { camera.stop() }
         }
@@ -86,6 +101,10 @@ struct LiveSetupView: View {
             if camera.isCameraReady {
                 LiveCameraPreviewSurface(session: camera.session)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
+
+                if let imageSize = camera.latestImageSize {
+                    BarOverlay(imageSize: imageSize, bar: camera.currentBar)
+                }
 
                 framingGuide
             } else {
@@ -223,9 +242,96 @@ struct LiveSetupView: View {
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
     }
 
+    private var barCalibrationCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Bar reference")
+                        .font(.headline)
+                    Text(barCalibrationDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: camera.currentBar == nil ? "line.diagonal" : "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(camera.currentBar == nil ? .orange : .green)
+                    .accessibilityHidden(true)
+            }
+
+            Button {
+                barSetup = camera.beginBarSetup()
+            } label: {
+                Label(
+                    camera.currentBar == nil ? "Set bar" : "Adjust bar",
+                    systemImage: camera.currentBar == nil ? "viewfinder" : "slider.horizontal.3"
+                )
+                .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!camera.isCameraReady || !camera.framing.state.isReady)
+            .accessibilityIdentifier("liveSetupBar")
+
+            if camera.currentBar != nil {
+                Button("Clear bar reference", role: .destructive) {
+                    camera.clearBar()
+                }
+                .font(.caption)
+            }
+        }
+        .padding(16)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var readyStateCard: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: camera.isReadyToStart ? "checkmark.circle.fill" : "circle.dashed")
+                .font(.title2)
+                .foregroundStyle(camera.isReadyToStart ? .green : .secondary)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(camera.isReadyToStart ? "Ready to start" : "Setup not complete")
+                    .font(.headline)
+                Text(
+                    camera.isReadyToStart
+                        ? "Camera, selected arm, and fixed bar reference are ready. Live set counting is the next implementation step."
+                        : readyStateHelp
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .accessibilityIdentifier("liveSetupReadiness")
+    }
+
+    private var barCalibrationDetail: String {
+        if camera.currentBar != nil {
+            return "\(camera.barRole.title) confirmed from a frozen analyzed frame."
+        }
+        if !camera.framing.state.isReady {
+            return "Make the selected arm measurable, then freeze a frame and mark the gripping edge."
+        }
+        return "Freeze the current analyzed frame and confirm the gripping bar or selected dip rail."
+    }
+
+    private var readyStateHelp: String {
+        if !camera.isCameraReady { return "Start the rear camera." }
+        if !camera.framing.state.isReady { return camera.framing.detail }
+        if camera.currentBar == nil { return "Confirm the fixed bar reference." }
+        return "Complete the remaining setup checks."
+    }
+
     private var scopeNote: some View {
         Label(
-            "Athlete and selected-arm visibility are checked from live Apple Vision frames. Apparatus visibility, bar calibration, phone-motion detection, and live counting are separate qualification steps.",
+            "Athlete and selected-arm visibility are checked from live Apple Vision frames. Bar calibration uses one frozen analyzed frame and explicit user confirmation. Automatic apparatus identity, phone-motion detection, and live counting remain separate qualification steps.",
             systemImage: "info.circle"
         )
         .font(.footnote)
