@@ -545,7 +545,7 @@ struct ReplayView: View {
 
     private var barSetupHelp: String {
         if let bar = model.currentBar {
-            return "Fixed from source \(bar.sourceTime.seconds, specifier: "%.2f") s. Replay restarts so every counted frame uses this reference."
+            return String(format: "Fixed from source %.2f s. Replay restarts so every counted frame uses this reference.", bar.sourceTime.seconds)
         }
         return "Preview to a clear frame, pause, then mark the gripping bar or selected dip rail."
     }
