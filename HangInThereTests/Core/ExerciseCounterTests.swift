@@ -50,6 +50,23 @@ struct ExerciseCounterTests {
                           backend: base.backend, requestRevision: base.requestRevision)
     }
 
+    static func poseWithLowConfidenceShoulder(
+        _ time: Double,
+        degrees: Double,
+        exercise: ExerciseCounter.Exercise,
+        side: ArmMeasurement.Side
+    ) -> PoseResult {
+        let base = pose(time, degrees: degrees, exercise: exercise, side: side)
+        let shoulder = side.joints[0]
+        let landmarks = base.people[0].landmarks.map { landmark in
+            Landmark(joint: landmark.joint, position: landmark.position,
+                     confidence: landmark.joint == shoulder ? 0.1 : landmark.confidence)
+        }
+        return PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+                          people: [PoseObservation(landmarks: landmarks)],
+                          backend: base.backend, requestRevision: base.requestRevision)
+    }
+
     static func noPersonPose(_ time: Double) -> PoseResult {
         PoseResult(timestamp: PresentationTime(value: Int64((time * 1000).rounded()), timescale: 1000),
                    imageSize: ImageSize(width: 1000, height: 1000), people: [],
@@ -138,6 +155,33 @@ struct ExerciseCounterTests {
             referenceEdge: Self.referenceEdge
         )
         #expect(c.observedMovements == 2)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipReturnEndpointCanFinishWithGeometryOnlyLowConfidenceShoulder() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110)])
+        c.consume(
+            Self.poseWithLowConfidenceShoulder(0.75, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 1)
+        #expect(c.partialAttempts == 0)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func lowConfidenceShoulderCannotAcquireDipStart() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        c.consume(
+            Self.poseWithLowConfidenceShoulder(0, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        c.consume(
+            Self.poseWithLowConfidenceShoulder(0.15, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.phase == .seekingStart)
+        #expect(c.observedMovements == 0)
         #expect(c.interruptedAttempts == 0)
     }
 
