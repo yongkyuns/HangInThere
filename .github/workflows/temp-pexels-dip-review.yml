@@ -1,4 +1,4 @@
-name: TEMP Pexels dip review
+name: TEMP Pexels dip review candidate 2
 
 on:
   pull_request:
@@ -23,17 +23,17 @@ jobs:
       - name: Download, pin and prepare Pexels dip review media
         run: |
           set -euo pipefail
-          URL='https://videos.pexels.com/video-files/4804769/4804769-uhd_3840_2160_25fps.mp4'
-          mkdir -p build/pexels-dip-review
-          curl -L --fail --retry 3 --retry-all-errors "$URL" -o build/pexels-dip-review/source.mp4
-          wc -c build/pexels-dip-review/source.mp4
-          sha256sum build/pexels-dip-review/source.mp4
-          ffprobe -v error -show_entries format=duration -show_entries stream=width,height,avg_frame_rate -of json build/pexels-dip-review/source.mp4
-          ffmpeg -v error -y -i build/pexels-dip-review/source.mp4             -vf 'fps=4,scale=320:-2:flags=lanczos,tile=5x4:padding=2:margin=2'             -frames:v 1 build/pexels-dip-review/contact.jpg
-          ffmpeg -v error -y -i build/pexels-dip-review/source.mp4             -vf 'fps=8,scale=640:640:force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1'             -an -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p             build/pexels-dip-review/review.mp4
+          URL='https://videos.pexels.com/video-files/34543951/14637011_1080_1920_25fps.mp4'
+          mkdir -p build/pexels-dip-review-2
+          curl -L --fail --retry 3 --retry-all-errors "$URL" -o build/pexels-dip-review-2/source.mp4
+          wc -c build/pexels-dip-review-2/source.mp4
+          sha256sum build/pexels-dip-review-2/source.mp4
+          ffprobe -v error -show_entries format=duration -show_entries stream=width,height,avg_frame_rate -of json build/pexels-dip-review-2/source.mp4
+          ffmpeg -v error -y -i build/pexels-dip-review-2/source.mp4             -vf 'fps=4,scale=320:-2:flags=lanczos,tile=5x4:padding=2:margin=2'             -frames:v 1 build/pexels-dip-review-2/contact.jpg
+          ffmpeg -v error -y -i build/pexels-dip-review-2/source.mp4             -vf 'fps=8,scale=640:640:force_original_aspect_ratio=decrease:force_divisible_by=2,setsar=1'             -an -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p             build/pexels-dip-review-2/review.mp4
       - name: Upload Pexels dip visual-review media
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: temp-pexels-dip-review
+          name: temp-pexels-dip-review-2-2
           retention-days: 1
-          path: build/pexels-dip-review/
+          path: build/pexels-dip-review-2/
