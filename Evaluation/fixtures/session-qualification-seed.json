@@ -29,7 +29,8 @@
         "fixed-camera",
         "offline",
         "side-oblique"
-      ]
+      ],
+      "reviewed_without_runtime_output": false
     },
     {
       "id": "romina_consumed_development_v6",
@@ -58,7 +59,8 @@
         "fixed-camera",
         "offline",
         "side-view"
-      ]
+      ],
+      "reviewed_without_runtime_output": true
     },
     {
       "id": "pavel_consumed_holdout_v2",
@@ -88,7 +90,8 @@
         "offline",
         "side-oblique",
         "heldout-count-pass"
-      ]
+      ],
+      "reviewed_without_runtime_output": true
     }
   ]
 }
