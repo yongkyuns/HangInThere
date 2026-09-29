@@ -409,8 +409,10 @@ local JSON report containing:
 - set phase/count/tracking outcome;
 - the exact compiled stability thresholds.
 
-It does **not** export video, images, pose landmarks, filenames, location, account
-data, or device identifiers.
+It does **not** export video, images, pose landmarks, imported filenames, location,
+account data, or device identifiers. The engineering disclosure exports the report
+as an actual timestamped JSON file through the system file exporter so the result
+can be saved to Files/AirDrop and passed directly to the offline analyzer.
 
 The repeatable physical-iPhone procedure is documented in
 `docs/DEVICE_QUALIFICATION.md`. Until those runs are collected, the current

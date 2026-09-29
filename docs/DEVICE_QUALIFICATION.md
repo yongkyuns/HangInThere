@@ -22,6 +22,46 @@ It contains **no video, images, pose landmarks, filenames, location, account dat
 
 Snapshots are stored at most once per second and capped at 900 samples (15 minutes). Runtime counters remain current after the snapshot cap.
 
+## Offline analysis
+
+Use **Save JSON qualification report** in the in-app **Device qualification**
+disclosure. iOS exports a timestamped `.json` file that can be saved to Files,
+AirDropped, or shared to another local destination. Then analyze one or more files
+with the stdlib-only helper:
+
+```sh
+# One or more ordinary runs
+python3 scripts/analyze_device_qualification.py report-a.json report-b.json
+
+# Combine multiple stationary runs that used the exact same compiled thresholds
+python3 scripts/analyze_device_qualification.py \
+  --profile stationary \
+  stationary-01.json stationary-02.json stationary-03.json
+
+# Compare the early and late windows of a thermal-soak report
+python3 scripts/analyze_device_qualification.py \
+  --profile thermal \
+  thermal-soak-01.json
+
+# Machine-readable analysis for spreadsheets/notebooks
+python3 scripts/analyze_device_qualification.py \
+  --profile stationary --json --output stationary-analysis.json \
+  stationary-*.json
+```
+
+The analyzer validates schema version, monotonic counters, and the report privacy
+boundary before processing. Stationary analysis reports p95/max observed
+orientation, translation, and scale together with **how much of the compiled
+runtime threshold was used** and the remaining headroom. It refuses to combine
+reports built with different threshold values.
+
+Thermal analysis compares the first and last quarter of the stored snapshots for
+pose latency, scene-registration latency, effective analyzed FPS, and drop fraction.
+
+These outputs are descriptive evidence only. The analyzer deliberately does not
+produce a pass/fail release verdict or automatically recommend replacement
+thresholds.
+
 ## Q1 — stationary baseline (5 minutes)
 
 Use a tripod or rigid mount. Complete live setup/bar calibration, then do not touch the phone for five minutes. Normal athlete motion is allowed.

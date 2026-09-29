@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "status": "failed-heldout-qualification",
+  "input_manifest": "HangInThereTests/Fixtures/dip-heldout.json",
+  "source_id": "romina-heldout-parallel-bar-dips",
+  "source_sha256": "599f5169931e0893c8d7864e57859ca6c999a47e8f4ea3a7171229ac33bc1ba7",
+  "tested_commit": "c8b5f9068804839fed13e922c96f8090abc389c8",
+  "counter_policy_version": 4,
+  "workflow": {
+    "run_id": 36510080026,
+    "job_id": 109220039390,
+    "artifact_id": 11008618290,
+    "artifact_sha256": "72e922fbf51154dadcf958a33a43de0b1c2b94e39672082e1aec6c0beef26076"
+  },
+  "prepared_derivative": {
+    "frame_count": 27,
+    "geometry": {
+      "width": 640,
+      "height": 360
+    },
+    "video_sha256": "b81902d0c62615e352fbea638e6b9b0c8b4c616ec98611830a9dea5b5629e802",
+    "contact_sha256": "868fcef6b6ed10c18449dde8d9383414877dd2e0faa978ecae87ce6e7733a8c7"
+  },
+  "locked_expectation": {
+    "minimum_people_fraction": 0.95,
+    "minimum_any_arm_fraction": 0.85,
+    "expected_observed_movements": 3,
+    "expected_partial_attempts": 0,
+    "expected_interrupted_attempts": 0
+  },
+  "observed": {
+    "people_fraction": 0.9259259259259259,
+    "any_arm_fraction": 0.7777777777777778,
+    "multiple_people_frames": 0,
+    "root_motion_fraction": 0.5853381539804635,
+    "observed_movements": 0,
+    "partial_attempts": 0,
+    "interrupted_attempts": 1,
+    "tracking_coverage": 0.7777777777777778
+  },
+  "verdict": "failed",
+  "policy": "This is a consumed held-out result. Do not change counter policy v4, source labels, coverage floors, or expected movement count to make this fixture pass. Any subsequent redesign must use separate development evidence and a new untouched held-out fixture."
+}
