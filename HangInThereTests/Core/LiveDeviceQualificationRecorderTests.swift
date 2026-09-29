@@ -46,6 +46,10 @@ struct LiveDeviceQualificationRecorderTests {
             analysisFailures: 1,
             sceneRegistrationFailures: 1,
             observedMovements: 7,
+            partialAttempts: 2,
+            interruptedAttempts: 1,
+            setAnalyzedFrames: 25,
+            setUsableTrackingFrames: 23,
             trackingCoverage: 0.92,
             setPhase: "finished",
             setEndReason: "manual"
@@ -68,6 +72,10 @@ struct LiveDeviceQualificationRecorderTests {
         #expect(report.stability.sceneScaleMeasurementSamples == 4)
         #expect(report.stability.maximumThermalLevel == .serious)
         #expect(report.observedMovements == 7)
+        #expect(report.partialAttempts == 2)
+        #expect(report.interruptedAttempts == 1)
+        #expect(report.setAnalyzedFrames == 25)
+        #expect(report.setUsableTrackingFrames == 23)
     }
 
     @Test func recorderCapsStoredSamplesWithoutGrowingUnbounded() {
@@ -98,6 +106,10 @@ struct LiveDeviceQualificationRecorderTests {
             analysisFailures: 0,
             sceneRegistrationFailures: 0,
             observedMovements: 0,
+            partialAttempts: 0,
+            interruptedAttempts: 0,
+            setAnalyzedFrames: 0,
+            setUsableTrackingFrames: 0,
             trackingCoverage: nil,
             setPhase: "idle",
             setEndReason: nil
