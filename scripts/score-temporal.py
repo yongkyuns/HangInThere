@@ -221,7 +221,7 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
         ev.require(ev.digest(observation_path) == observation_hash and ev.digest(completion_path) == completion_hash
                    and ev.preflight(clip, root, public) == "ready", "Input changed while counting")
     ev.require(all(ev.digest(p) == h for p, h in before.items()), "Temporal labels/report changed during evaluation")
-    report = {"schema_version": 1, "scope": "model-independent single-reviewer temporal diagnostic; not held-out or strict-form qualification",
+    report = {"schema_version": 1, "scope": "source-reviewed temporal diagnostic with disclosed development exposure; not held-out or strict-form qualification",
               "reference_sha256": before[reference_path], "manifest_sha256": before[manifest_path],
               "pose_report_sha256": before[pose_output / "report.json"], "scorer_sha256": ev.digest(Path(__file__)),
               "source_commit": pose["source_commit"], "clips": records}
