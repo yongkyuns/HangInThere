@@ -125,6 +125,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
                           row['bar_reference_edge_source'][3] * derived_size[1] / size[1]]
                          if row.get('bar_reference_edge_source') is not None else row.get('bar_reference_edge')
                      ),
+                     'bar_reference_image_size': (derived_size if (row.get('bar_reference_edge_source') is not None or row.get('bar_reference_edge') is not None) else None),
                      'bar_reference_provenance': row.get('bar_reference_provenance'),
                      'ungradable_intervals': [{'seconds': [x - offset for x in u['seconds']], 'reason': u['reason']}
                                               for u in row['ungradable_source_intervals']],
