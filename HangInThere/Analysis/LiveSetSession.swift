@@ -37,6 +37,9 @@ struct LiveSetSession: Sendable {
     var usableTrackingFrameCount: Int { usableFrames }
     var trackingIssue: String? { counter.trackingIssue }
 
+    var firstSourceTimestampSeconds: Double? { firstSourceSeconds }
+    var lastSourceTimestampSeconds: Double? { lastSourceSeconds }
+
     var durationSeconds: Double {
         guard let firstSourceSeconds, let lastSourceSeconds else { return 0 }
         return max(0, lastSourceSeconds - firstSourceSeconds)
