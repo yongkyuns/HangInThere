@@ -407,10 +407,7 @@ struct ExerciseCounter: Sendable {
     }
 
     private mutating func dipReturnToAnchorEvidence(_ sample: DipSample, to anchor: DipSample) -> Bool {
-        let required = requiredTravel(
-            anchorDistance: anchor.shoulderToBarPixels,
-            imageShortSide: anchor.imageShortSide
-        )
+        let required = requiredDipTravel(anchor)
         let recovered = anchor.shoulderToBarPixels - sample.shoulderToBarPixels <=
             Self.dipReturnTravelFraction * required
         guard recovered else {
