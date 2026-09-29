@@ -1,5 +1,5 @@
 {
-  "annotation_provenance": "Single assistant visual temporal review on raw pull-up frames and frame-correspondent dip review proxy acquired by source-only run 36347094316. Timing windows frozen before any counter run on these sequences. Prior pose-only exposure to pull-up source disclosed; no counter output used. Dips annotated from 0.2-second overview and cut-boundary images, allowing interval uncertainty plus fixed 0.35-second matching tolerance. No model-based event/threshold selection. Controlled Pexels dip source reviewed from 2 fps source-only samples in run 36421762207; seven top-return windows, anatomical left arm, and source-space rail edge frozen before any Vision/counter execution on that clip.",
+  "annotation_provenance": "Single-assistant visual temporal review on raw/source-only media. Pull-up and DVIDS dip windows were frozen before their counter runs; prior pose-only pull-up exposure is disclosed. The controlled Pexels dip was initially reviewed at 2 FPS before Vision/counter execution, then re-reviewed from the pinned source-only 8 FPS artifact after earlier counter failures exposed insufficient temporal review resolution. That development-only re-review corrected the controlled clip from seven to nine complete top-return cycles; no model-derived timestamps were used for the corrected windows. The separate held-out dip fixture remains outside this development corpus.",
   "review_artifact_sha256": "3a85ad57dc18da66189f733caf4dd94d54753fe363c12fbd9cfaec7f0772234f",
   "schema_version": 1,
   "scope": "Four continuously decoded clips: one controlled fixed-camera pull-up, one controlled fixed-camera parallel-bar dip, and two crowded/moving-camera dip stress diagnostics. Model-independent approximate single-reviewer temporal labels; no strict-form verdict.",
@@ -224,32 +224,40 @@
       "license_url": "https://www.pexels.com/license/",
       "events_source_seconds": [
         [
-          1.45,
+          1.65,
           1.85
         ],
         [
           2.95,
-          3.35
+          3.2
         ],
         [
-          4.45,
-          4.85
+          4.15,
+          4.4
         ],
         [
-          5.95,
-          6.35
+          5.45,
+          5.7
         ],
         [
-          7.45,
-          7.85
+          6.7,
+          6.95
         ],
         [
-          8.95,
-          9.35
+          8.05,
+          8.3
         ],
         [
-          10.45,
+          9.35,
+          9.6
+        ],
+        [
+          10.6,
           10.85
+        ],
+        [
+          11.8,
+          12
         ]
       ],
       "bar_reference_edge_source": [
@@ -260,9 +268,11 @@
       ],
       "bar_reference_provenance": "Single-assistant visual review of the source-resolution near-hand rail on a clear fixed-camera frame at ~3 s, frozen before Apple Vision pose inference or policy-v2 counter execution. The line is an observed image reference, not proof of physical contact.",
       "ungradable_source_intervals": [],
-      "review_notes": "One athlete, fixed camera, stable parallel bars, seven complete top-bottom-top cycles from a visible extended start. Final descent begins after the seventh event but does not return to top before EOF. No dip-depth/lockout/form validity label."
+      "review_notes": "One athlete, fixed camera, stable parallel bars. Source-only 8 FPS re-review confirms nine complete top-bottom-top cycles from the visible initial support through a final return by EOF. The earlier 2 FPS development review missed two cycles and placed several top-return windows late. This corrected clip is explicitly development-exposed, not held-out. No dip-depth/lockout/form validity label.",
+      "development_after_prior_counter_exposure": true
     }
   ],
   "tolerance_seconds": 0.35,
-  "controlled_dip_review_artifact_sha256": "a1a2e11f01c7f58a5ba790b219f836c34b6a868a0311a7a72b21b112d8aaef38"
+  "controlled_dip_review_artifact_sha256": "a1a2e11f01c7f58a5ba790b219f836c34b6a868a0311a7a72b21b112d8aaef38",
+  "controlled_dip_high_rate_review_artifact_sha256": "23d7dda91f39b4dc4578fb507737ee9390125833ba63e94a8d2885e495b46ac2"
 }

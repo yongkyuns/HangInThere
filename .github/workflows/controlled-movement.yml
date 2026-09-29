@@ -50,7 +50,7 @@ jobs:
           c=r['clips'][0]
           assert c['id'] == 'dip_controlled_pexels'
           assert c['frames'] == 300
-          assert c['event_metrics']['reference_events'] == 7
+          assert c['event_metrics']['reference_events'] == 9
           assert c['status'] == 'scored' and c['form_verification'] == 'unverified'
           m=c['event_metrics']
           with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
