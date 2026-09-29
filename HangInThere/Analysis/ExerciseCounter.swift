@@ -39,7 +39,7 @@ struct ExerciseCounter: Sendable {
         let formVerification: String
     }
 
-    // Policy v3 keeps the independently confirmed fixed bar/rail reference.
+    // Policy v4 keeps the independently confirmed fixed bar/rail reference.
     // Pull-ups retain policy-v2 absolute arm gates. Dips use a relative cycle
     // anchored at a visually supported top position: shoulder-to-rail travel is
     // the primary phase signal, while elbow angle only establishes that the arm
