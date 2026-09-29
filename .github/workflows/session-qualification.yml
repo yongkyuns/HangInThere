@@ -4,16 +4,22 @@ on:
   pull_request:
     paths:
       - 'scripts/session_qualification.py'
+      - 'scripts/session_intake.py'
       - 'scripts/tests/test_session_qualification.py'
+      - 'scripts/tests/test_session_intake.py'
       - 'Evaluation/fixtures/session-qualification-seed.json'
+      - 'Evaluation/fixtures/session-review-example.json'
       - 'Evaluation/SESSION_QUALIFICATION.md'
       - '.github/workflows/session-qualification.yml'
   push:
     branches: [main]
     paths:
       - 'scripts/session_qualification.py'
+      - 'scripts/session_intake.py'
       - 'scripts/tests/test_session_qualification.py'
+      - 'scripts/tests/test_session_intake.py'
       - 'Evaluation/fixtures/session-qualification-seed.json'
+      - 'Evaluation/fixtures/session-review-example.json'
       - 'Evaluation/SESSION_QUALIFICATION.md'
       - '.github/workflows/session-qualification.yml'
   workflow_dispatch:
@@ -31,7 +37,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Run session qualification tests
-        run: python3 -m unittest scripts/tests/test_session_qualification.py -v
+        run: |
+          python3 -m unittest scripts/tests/test_session_qualification.py -v
+          python3 -m unittest scripts/tests/test_session_intake.py -v
       - name: Build seed report
         run: |
           mkdir -p build/session-qualification
