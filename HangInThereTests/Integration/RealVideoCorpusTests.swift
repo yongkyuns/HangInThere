@@ -142,7 +142,7 @@ struct RealVideoCorpusTests {
         )
 
         let cases = manifest.cases.filter { $0.tier == "count-qualified" }
-        #expect(cases.count >= 2, "The diversity corpus must retain at least two reviewed count-qualified views.")
+        #expect(cases.count >= 3, "The diversity corpus must retain reviewed pull-up and dip count-qualified views.")
 
         for testCase in cases {
             guard let count = testCase.countExpectation else {
@@ -152,6 +152,7 @@ struct RealVideoCorpusTests {
                 continue
             }
             let side = try #require(testCase.side)
+            let exercise = try #require(ExerciseCounter.Exercise(rawValue: testCase.exercise))
             let edgeValues = count.barReferenceEdge
             try #require(edgeValues.count == 4)
 
@@ -163,7 +164,7 @@ struct RealVideoCorpusTests {
             _ = try await reader.open(try videoURL(for: testCase))
 
             var session = LiveSetSession()
-            session.start(exercise: .pullUp, side: side)
+            session.start(exercise: exercise, side: side)
 
             while let frame = try await reader.nextFrame() {
                 session.consume(frame.pose, referenceEdge: reference)
@@ -183,10 +184,14 @@ struct RealVideoCorpusTests {
                 session.counter.interruptedAttempts == 0,
                 Comment(rawValue: "\(testCase.id): count-qualified clip had an interrupted attempt.")
             )
-            if testCase.id == "fitnessscape-standard-indoor" {
+            if let expectedPartialAttempts = count.expectedPartialAttempts {
                 #expect(
-                    session.counter.partialAttempts == 0,
-                    "The leading mid-rep footage must be ignored while seeking a valid extended start."
+                    session.counter.partialAttempts == expectedPartialAttempts,
+                    Comment(
+                        rawValue:
+                            "\(testCase.id): partial attempts \(session.counter.partialAttempts) != " +
+                            "reviewed \(expectedPartialAttempts)."
+                    )
                 )
             }
             print(
@@ -273,15 +278,18 @@ private struct CorpusCase: Decodable {
     struct CountExpectation: Decodable {
         let barReferenceEdge: [Double]
         let expectedObservedMovements: Int
+        let expectedPartialAttempts: Int?
 
         enum CodingKeys: String, CodingKey {
             case barReferenceEdge = "bar_reference_edge"
             case expectedObservedMovements = "expected_observed_movements"
+            case expectedPartialAttempts = "expected_partial_attempts"
         }
     }
 
     let id: String
     let tier: String
+    let exercise: String
     let sourceKind: String
     let side: ArmMeasurement.Side?
     let recipe: Recipe?

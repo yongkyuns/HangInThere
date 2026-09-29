@@ -88,6 +88,11 @@ Current reviewed scenarios:
   occluder plus the athlete and surrounding gym activity. This is a stress case:
   real Vision must expose at least one multi-person frame, and production arm
   measurement must reject that frame instead of silently selecting a person;
+- **JULLIAN W parallel-bar dips** — 96 reviewed portrait frames from a Pexels
+  clip. The file starts at the bent/low endpoint, returns to extension, then
+  contains five complete extension-to-bent-to-extension cycles. The leading
+  partial return is intentionally ignored. This is movement-count ground truth,
+  not dip-depth or form qualification;
 - **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
 - **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
   background, swing/inversion stress.
@@ -112,7 +117,9 @@ thumbnails. CI retains
 the approved derived corpus temporarily for inspection; source media remains ignored
 under `Data/external/`.
 
-A real parallel-bar dip video remains an explicit gap. DVIDS has a public-domain
-Army competition video containing a 10-dip station, but its binary download requires
-authenticated DVIDS access, so it is not yet a reproducible CI source. Chair dips
-and still photographs are intentionally not substituted.
+The real parallel-bar footage gap is now closed by the pinned JULLIAN W/Pexels
+fixture. Its source is covered by the Pexels License and the prepared file is
+byte/SHA-256 pinned before inference. Five movement cycles are visually reviewed,
+but **dip depth, lockout validity, body alignment, 3D joint accuracy and population-
+level accuracy remain unqualified**. Chair dips and still photographs were not
+substituted for real parallel-bar motion.
