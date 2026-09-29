@@ -39,13 +39,13 @@ struct ExerciseCounter: Sendable {
         let formVerification: String
     }
 
-    // Policy v5 keeps the independently confirmed fixed bar/rail reference.
+    // Policy v6 keeps the independently confirmed fixed bar/rail reference.
     // Pull-ups retain policy-v2 absolute arm gates. Dips use a relative cycle
     // anchored at a visually supported top position: shoulder-to-rail travel is
     // the primary phase signal, while elbow angle only establishes that the arm
     // is support-like and that a real bend occurred. This is movement counting,
     // not lockout/depth/form grading.
-    static let policyVersion = 5
+    static let policyVersion = 6
     static let extendedDegrees = 155.0
     static let departureDegrees = 140.0
     static let bentDegrees = 100.0
@@ -221,9 +221,27 @@ struct ExerciseCounter: Sendable {
         guard let person = pose.people.first else {
             return dipObservationUnavailable(reason: "noPerson", at: time)
         }
+        let measurement = ArmMeasurement(pose: pose, side: side)
         let shoulderJoint = side.joints[0]
-        guard let shoulder = person.landmark(shoulderJoint)?.position else {
-            return dipObservationUnavailable(reason: "missingJoint", at: time)
+        let shoulder: Point2D
+        if let visible = person.landmark(shoulderJoint)?.position {
+            shoulder = visible
+        } else if phase == .returning,
+                  dipTopCandidate != nil,
+                  endpoint == .extended,
+                  measurement.unavailableReason == .lowConfidence,
+                  let raw = rawDipShoulderForEndpointContinuation(
+                    person, joint: shoulderJoint, imageSize: pose.imageSize
+                  ) {
+            // Geometry-only continuation of an endpoint that already has valid
+            // arm-recovery evidence. The low-confidence shoulder cannot acquire
+            // support, initiate a cycle, or establish a bottom.
+            shoulder = raw
+        } else {
+            return dipObservationUnavailable(
+                reason: measurement.unavailableReason?.rawValue ?? "missingJoint",
+                at: time
+            )
         }
 
         let distance = referenceEdge.perpendicularDistance(to: shoulder)
@@ -232,7 +250,6 @@ struct ExerciseCounter: Sendable {
             return interrupt(reason: "invalidBarGeometry")
         }
 
-        let measurement = ArmMeasurement(pose: pose, side: side)
         let sample = DipSample(
             degrees: measurement.estimate?.elbowDegrees,
             shoulderToBarPixels: distance,
@@ -382,6 +399,22 @@ struct ExerciseCounter: Sendable {
             shoulderToBarPixels: max(current.shoulderToBarPixels, sample.shoulderToBarPixels),
             imageShortSide: sample.imageShortSide
         )
+    }
+
+    private func rawDipShoulderForEndpointContinuation(
+        _ person: PoseObservation,
+        joint: PoseJoint,
+        imageSize: ImageSize
+    ) -> Point2D? {
+        let matches = person.landmarks.filter { $0.joint == joint }
+        guard matches.count == 1, let landmark = matches.first,
+              landmark.position.isFinite,
+              landmark.confidence.isFinite,
+              landmark.confidence > 0, landmark.confidence <= 1,
+              (0...imageSize.width).contains(landmark.position.x),
+              (0...imageSize.height).contains(landmark.position.y)
+        else { return nil }
+        return landmark.position
     }
 
     private func isDipSupportLike(_ sample: DipSample) -> Bool {
