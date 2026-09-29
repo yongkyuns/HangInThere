@@ -13,6 +13,12 @@ debug_session = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(debug_session)
 
+EVALUATION_PATH = ROOT / "scripts" / "evaluation.py"
+EVALUATION_SPEC = importlib.util.spec_from_file_location("evaluation", EVALUATION_PATH)
+evaluation = importlib.util.module_from_spec(EVALUATION_SPEC)
+assert EVALUATION_SPEC.loader is not None
+EVALUATION_SPEC.loader.exec_module(evaluation)
+
 
 class DebugSessionTests(unittest.TestCase):
     def make_package(self, root: Path) -> Path:
@@ -95,6 +101,23 @@ class DebugSessionTests(unittest.TestCase):
             self.assertEqual(
                 clip["media"]["files"][0]["sha256"],
                 report["files"]["video.mov"]["sha256"],
+            )
+
+    def test_generated_manifest_passes_production_evaluator_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            report = debug_session.verify(package)
+            manifest = debug_session.evaluation_manifest(
+                package,
+                report,
+                "Private local qualification capture.",
+            )
+            clips = evaluation.validate_manifest(manifest, package)
+            self.assertEqual(len(clips), 1)
+            self.assertEqual(clips[0]["exercise"], "parallel_bar_dip")
+            self.assertEqual(
+                evaluation.preflight(clips[0], package, public_output=False),
+                "ready",
             )
 
     def test_manifest_requires_explicit_rights_evidence(self):
