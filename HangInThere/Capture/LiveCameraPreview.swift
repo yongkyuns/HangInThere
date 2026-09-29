@@ -1298,6 +1298,21 @@ extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
                 return
             }
 
+            guard self.debugCaptureFirstAnalyzedSourceSeconds != nil,
+                  self.debugCaptureFirstAnalyzedMovieSeconds != nil,
+                  self.debugCaptureLastAnalyzedSourceSeconds != nil,
+                  self.debugCaptureLastAnalyzedMovieSeconds != nil
+            else {
+                try? FileManager.default.removeItem(at: outputFileURL)
+                self.debugCaptureURL = nil
+                self.debugCaptureSessionJSON = nil
+                self.debugCaptureQualificationJSON = nil
+                self.debugCaptureState = .failed(
+                    "Debug recording ended before a source/movie clock anchor was captured."
+                )
+                return
+            }
+
             self.debugCaptureURL = outputFileURL
             if self.debugCaptureSessionJSON == nil
                 || self.debugCaptureQualificationJSON == nil {
