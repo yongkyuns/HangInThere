@@ -183,8 +183,21 @@ def summarize(sessions: Sequence[dict[str, Any]]) -> dict[str, Any]:
     deliberate = sum(int(s["camera_stability"]["deliberate_events"]) for s in sessions)
     deliberate_detected = sum(int(s["camera_stability"]["detected_deliberate_events"]) for s in sessions)
 
+    participants = {
+        s["participant_group"]
+        for s in sessions
+        if isinstance(s.get("participant_group"), str) and s["participant_group"].strip()
+    }
+    sources = {
+        s["source_group"]
+        for s in sessions
+        if isinstance(s.get("source_group"), str) and s["source_group"].strip()
+    }
+
     return {
         "session_count": len(sessions),
+        "participant_group_count": len(participants),
+        "source_group_count": len(sources),
         "count_labeled_sessions": len(count_labeled),
         "exact_count_sessions": len(exact),
         "exact_count_fraction": fraction(len(exact), len(count_labeled)),
