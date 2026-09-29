@@ -82,6 +82,7 @@ struct LiveSetupView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
+                        .disabled(preparingDebugSessionExport)
                 }
             }
             .sheet(item: $barSetup) { setup in
@@ -941,6 +942,7 @@ struct LiveSetupView: View {
                     camera.discardCompletedDebugCapture()
                 }
                 .font(.caption)
+                .disabled(preparingDebugSessionExport)
 
             case .failed(let message):
                 Label(message, systemImage: "exclamationmark.triangle.fill")
