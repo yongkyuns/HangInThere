@@ -18,6 +18,7 @@ from typing import Any, Iterable, Optional, Sequence
 
 EVIDENCE_CLASSES = {"development", "heldout_consumed", "field"}
 EXERCISES = {"pull_up", "dip"}
+TRACKING_SIDES = {"left", "right"}
 END_REASONS = {
     "offline",
     "manual",
@@ -117,6 +118,14 @@ def validate(manifest: dict[str, Any]) -> list[dict[str, Any]]:
         seen.add(identifier)
 
         require(session.get("exercise") in EXERCISES, f"{identifier}: invalid exercise")
+        require(
+            integer(session.get("counter_policy_version"), 1),
+            f"{identifier}: invalid counter_policy_version",
+        )
+        require(
+            session.get("tracking_side") in TRACKING_SIDES,
+            f"{identifier}: invalid tracking_side",
+        )
         evidence = session.get("evidence_class")
         require(evidence in EVIDENCE_CLASSES, f"{identifier}: invalid evidence_class")
         population_eligible = session.get("population_eligible")
@@ -236,6 +245,9 @@ def summarize(sessions: Sequence[dict[str, Any]]) -> dict[str, Any]:
     deliberate = sum(int(s["camera_stability"]["deliberate_events"]) for s in sessions)
     deliberate_detected = sum(int(s["camera_stability"]["detected_deliberate_events"]) for s in sessions)
 
+    policy_versions = Counter(str(s["counter_policy_version"]) for s in sessions)
+    tracking_sides = Counter(s["tracking_side"] for s in sessions)
+
     participants = {
         s["participant_group"]
         for s in sessions
@@ -249,6 +261,8 @@ def summarize(sessions: Sequence[dict[str, Any]]) -> dict[str, Any]:
 
     return {
         "session_count": len(sessions),
+        "counter_policy_version_counts": dict(policy_versions),
+        "tracking_side_counts": dict(tracking_sides),
         "participant_group_count": len(participants),
         "source_group_count": len(sources),
         "count_labeled_sessions": len(count_labeled),
