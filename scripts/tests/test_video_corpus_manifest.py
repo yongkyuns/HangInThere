@@ -15,7 +15,7 @@ class VideoCorpusManifestTests(unittest.TestCase):
     def test_every_case_has_unique_id_and_reviewed_expectations(self):
         ids = [case["id"] for case in self.cases]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertGreaterEqual(len(ids), 6)
+        self.assertGreaterEqual(len(ids), 7)
         for case in self.cases:
             self.assertIn(case["tier"], {"count-qualified", "tracking-qualified", "stress-coverage"})
             self.assertIn("visual_review", case)
@@ -50,9 +50,9 @@ class VideoCorpusManifestTests(unittest.TestCase):
                 self.assertGreater(recipe["frames_per_second"], 0)
                 self.assertGreater(recipe["duration_seconds"], 0)
 
-    def test_count_qualified_corpus_retains_independent_pullup_views(self):
+    def test_count_qualified_corpus_includes_locked_heldout_dip(self):
         count_cases = [case for case in self.cases if case["tier"] == "count-qualified"]
-        self.assertGreaterEqual(len(count_cases), 2)
+        self.assertGreaterEqual(len(count_cases), 3)
         ids = {case["id"] for case in count_cases}
         self.assertIn("iwakuni-standard-rear-oblique", ids)
         self.assertIn("fitnessscape-standard-indoor", ids)
@@ -62,10 +62,15 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.assertEqual(indoor["count_expectation"]["expected_partial_attempts"], 0)
         self.assertEqual(len(indoor["count_expectation"]["bar_reference_edge"]), 4)
 
-        self.assertFalse(
-            any(case["exercise"] == "dip" and case["tier"] == "count-qualified" for case in self.cases),
-            "Dip footage must not be promoted into the qualifying corpus before held-out validation.",
-        )
+        dip = next(case for case in count_cases if case["id"] == "romina-heldout-parallel-bar-dips")
+        self.assertEqual(dip["exercise"], "dip")
+        self.assertEqual(dip["qualification_role"], "held-out")
+        self.assertEqual(dip["source_sha256"], "599f5169931e0893c8d7864e57859ca6c999a47e8f4ea3a7171229ac33bc1ba7")
+        self.assertEqual(dip["recipe"]["expected_frame_count"], 27)
+        self.assertEqual(dip["count_expectation"]["expected_observed_movements"], 3)
+        self.assertEqual(dip["count_expectation"]["expected_partial_attempts"], 0)
+        self.assertEqual(dip["count_expectation"]["expected_interrupted_attempts"], 0)
+        self.assertEqual(len(dip["count_expectation"]["bar_reference_edge"]), 4)
 
     def test_crowded_pullup_exercises_real_multi_person_safety(self):
         case = next(case for case in self.cases if case["id"] == "yokota-crowded-pullup")
@@ -76,15 +81,17 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.assertIn("foreground-occlusion", case["environment_tags"])
         self.assertNotIn("count_expectation", case)
 
-    def test_dip_footage_is_real_but_counting_gap_remains_explicit(self):
+    def test_dip_heldout_status_is_explicit(self):
         gap = self.manifest["known_gap"]
         self.assertEqual(gap["exercise"], "dip")
         status = gap["status"].lower()
-        self.assertIn("not yet qualified", status)
-        self.assertIn("0/5", status)
-        self.assertIn("155-degree", status)
-        self.assertIn("dropout", status)
-        self.assertNotIn("no reproducibly downloadable", status)
+        self.assertIn("policy v4", status)
+        self.assertIn("9/9", status)
+        self.assertIn("held-out", status)
+        self.assertIn("pending", status)
+        self.assertIn("do not alter", status)
+        self.assertNotIn("0/5", status)
+        self.assertNotIn("155-degree", status)
         self.assertNotIn("chair", " ".join(case["id"] for case in self.cases).lower())
 
 
