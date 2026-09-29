@@ -73,3 +73,32 @@ correlated video frames as independent samples.
 
 Physical-iPhone qualification remains a later gate; this framework is ready to
 ingest those reports when the phone campaign begins.
+
+## Intake from live device reports
+
+Future physical-device exports should not be hand-transcribed into aggregate
+metrics. New device reports include set-specific analyzed/usable frame counts and
+partial/interrupted attempt totals in addition to the existing movement count and
+tracking coverage.
+
+Keep ground truth separate from runtime output. Copy
+`Evaluation/fixtures/session-review-example.json` for each field session, review
+the video/session independently, and fill in expected count, setup attempts,
+camera-motion truth and grouping metadata **without looking at the app result**.
+Population-eligible sessions require `reviewed_without_runtime_output=true`.
+
+Then build a sanitized session manifest:
+
+```sh
+python3 scripts/session_intake.py \\
+  --session review-001.json HangInThere-live-qualification-001.json \\
+  --session review-002.json HangInThere-live-qualification-002.json \\
+  --output build/field-sessions.json
+
+python3 scripts/session_qualification.py build/field-sessions.json \\
+  --output build/session-report.json \\
+  --markdown build/session-summary.md
+```
+
+The intake output contains no device-report samples, media, filenames, landmarks,
+location, or device identifiers. Those remain in their original evidence files.
