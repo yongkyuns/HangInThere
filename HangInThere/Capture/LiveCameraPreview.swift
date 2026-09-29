@@ -284,6 +284,7 @@ final class LiveCameraPreviewController: NSObject {
     @discardableResult
     func startDebugCapture() -> Bool {
         guard isCameraReady,
+              liveSet.phase == .idle,
               let movieOutput,
               !movieOutput.isRecording,
               !debugCaptureState.isActive
