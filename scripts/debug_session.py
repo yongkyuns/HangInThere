@@ -89,6 +89,59 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
         "session counterPolicyVersion is invalid",
     )
     require(session.get("side") in {"left", "right"}, "session side is invalid")
+    set_report = session.get("set")
+    require(isinstance(set_report, dict), "session set must be an object")
+
+    consistency_checks = (
+        (
+            "counterPolicyVersion",
+            qualification.get("counterPolicyVersion"),
+            session["counterPolicyVersion"],
+        ),
+        ("exercise", qualification.get("exercise"), exercise),
+        ("side", qualification.get("side"), session["side"]),
+        (
+            "observedMovements",
+            qualification.get("observedMovements"),
+            set_report.get("observedMovements"),
+        ),
+        (
+            "partialAttempts",
+            qualification.get("partialAttempts"),
+            set_report.get("partialAttempts"),
+        ),
+        (
+            "interruptedAttempts",
+            qualification.get("interruptedAttempts"),
+            set_report.get("interruptedAttempts"),
+        ),
+        (
+            "setAnalyzedFrames",
+            qualification.get("setAnalyzedFrames"),
+            set_report.get("analyzedFrames"),
+        ),
+        (
+            "setUsableTrackingFrames",
+            qualification.get("setUsableTrackingFrames"),
+            set_report.get("usableTrackingFrames"),
+        ),
+        (
+            "trackingCoverage",
+            qualification.get("trackingCoverage"),
+            set_report.get("trackingCoverage"),
+        ),
+        ("setPhase", qualification.get("setPhase"), set_report.get("phase")),
+        (
+            "setEndReason",
+            qualification.get("setEndReason"),
+            set_report.get("endReason"),
+        ),
+    )
+    for field, qualification_value, session_value in consistency_checks:
+        require(
+            qualification_value == session_value,
+            f"qualification {field} disagrees with session.json",
+        )
 
     return {
         "schema_version": 1,
@@ -99,7 +152,7 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
             "exercise": exercise,
             "side": session["side"],
             "bar_reference_present": isinstance(session.get("barReference"), dict),
-            "set": session.get("set"),
+            "set": set_report,
             "capture": session.get("capture"),
         },
         "qualification": {
@@ -143,6 +196,15 @@ def evaluation_manifest(
                             "sha256": video["sha256"],
                         }
                     ],
+                },
+                "debug_session": {
+                    "package": report["package"],
+                    "counter_policy_version": report["session"]["counter_policy_version"],
+                    "capture_exercise": exercise,
+                    "tracking_side": report["session"]["side"],
+                    "bar_reference_present": report["session"]["bar_reference_present"],
+                    "capture": report["session"]["capture"],
+                    "set": report["session"]["set"],
                 },
             }
         ],
