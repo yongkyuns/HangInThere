@@ -5,6 +5,12 @@
 	};
 	objectVersion = 56;
 	objects = {
+		A9D70101D06B4B10A9D70101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDebugSession.swift; sourceTree = "<group>";};
+		A9D70102D06B4B10A9D70102 = {isa = PBXBuildFile; fileRef = A9D70101D06B4B10A9D70101;};
+		A9D70103D06B4B10A9D70103 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDebugVideoRecorder.swift; sourceTree = "<group>";};
+		A9D70104D06B4B10A9D70104 = {isa = PBXBuildFile; fileRef = A9D70103D06B4B10A9D70103;};
+		A9D70105D06B4B10A9D70105 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDebugSessionTests.swift; sourceTree = "<group>";};
+		A9D70106D06B4B10A9D70106 = {isa = PBXBuildFile; fileRef = A9D70105D06B4B10A9D70105;};
 		6FAA384EC7A5412D562FC46C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupControllerTests.swift; sourceTree = "<group>";};
 		C476E88F0B62A3B7D2B8E034 = {isa = PBXBuildFile; fileRef = 6FAA384EC7A5412D562FC46C;};
 		E5A8C901DBE46CA1D4510401 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneRegistrationTests.swift; sourceTree = "<group>";};
@@ -114,6 +120,7 @@
 		F299B545EFBEFE12C9D250A1 = {
 			isa = PBXGroup;
 			children = (
+				A9D70101D06B4B10A9D70101,
 				2E31FD41B30F85CE6B12E1E9,
 				10D6300E99E681584D06FA5B,
 				B2D5F601A8C14F78A12E0101,
@@ -173,6 +180,7 @@
 		18E1CB92F764A905D90209F5 = {
 			isa = PBXGroup;
 			children = (
+				A9D70103D06B4B10A9D70103,
 				B798D0952C0283EE3BA0F9A9,
 				A1C4E501D4B748E0A35F0101,
 			);
@@ -280,6 +288,7 @@
 		03FBF5F3317ABD701B6FBCEA = {
 			isa = PBXGroup;
 			children = (
+				A9D70105D06B4B10A9D70105,
 				C8E44086FBEE2C6809322FFE,
 				0C5C97BB01A5DFA5E5B6704D,
 				B2D5F601A8C14F78A12E0201,
@@ -571,6 +580,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9D70102D06B4B10A9D70102,
+				A9D70104D06B4B10A9D70104,
 				FE333C4A500F8EE29434119C,
 				791BB657D4527DA9E1EC61DE,
 				7AFD4C2AA908445A9FA9C75C,
@@ -628,6 +639,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9D70106D06B4B10A9D70106,
 				C476E88F0B62A3B7D2B8E034,
 				E907D117346B40511577EFAB,
 				AE9049A619C3D801DBA2F172,
