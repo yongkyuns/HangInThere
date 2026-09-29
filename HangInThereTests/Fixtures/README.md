@@ -103,6 +103,16 @@ Current reviewed scenarios:
   and 0/3 movements with one interrupted attempt under policy v4. The exact
   pre-inference labels remain unchanged in `dip-heldout.json`; the result is
   preserved in `dip-heldout-result.json` and the clip is not part of the passing corpus;
+- **Pavel Danilyuk parallel-bar dips (untouched holdout v2)** — a new 14.0 s,
+  112-frame Pexels side/oblique clip is frozen in `dip-heldout-v2.json` with
+  source bytes/SHA-256, three source-reviewed cycles, fixed rail geometry,
+  anatomical side, and 95%/85% person/arm floors. It has had **no Apple Vision
+  or production-counter exposure** and must remain untouched until the next dip
+  redesign is frozen from development evidence;
+- **Ketut Subiyanto frontal parallel-bar clip (source-only rejected candidate)** —
+  reviewed alongside Pavel with no model inference, then rejected as a count
+  holdout because frontal arm/torso overlap and small visible endpoint excursion
+  made top/bottom cycle labels ambiguous;
 - **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
 - **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
   background, swing/inversion stress.
@@ -130,7 +140,8 @@ under `Data/external/`.
 Real parallel-bar footage is reproducibly pinned, but dip counting is **not
 held-out-qualified**. Policy v4 matched the development-exposed controlled JULLIAN
 PRODUCTION clip at 9/9 cycles, then failed the untouched Romina check at 0/3 while
-also missing its predeclared tracking floors. Romina is now a consumed holdout and
-must not be used to tune v4. Any further redesign needs separate development
-evidence and a new untouched held-out fixture. Dip depth, lockout validity, body
-alignment, 3D joint accuracy and population-level accuracy remain unqualified.
+also missing its predeclared tracking floors. Romina is now consumed development
+evidence. A second independent Pavel Danilyuk holdout is frozen in
+`dip-heldout-v2.json` before any model exposure; it must not be run until the next
+counter redesign is frozen. Dip depth, lockout validity, body alignment, 3D joint
+accuracy and population-level accuracy remain unqualified.
