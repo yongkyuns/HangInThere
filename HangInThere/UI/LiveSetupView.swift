@@ -42,6 +42,12 @@ struct LiveSetupView: View {
     @State private var showingQualificationExporter = false
     @State private var showingQualificationExportError = false
     @State private var qualificationExportErrorMessage = ""
+    @State private var debugSessionDocument: DebugSessionPackageDocument?
+    @State private var debugSessionExportFilename = "HangInThere-debug-session"
+    @State private var showingDebugSessionExporter = false
+    @State private var showingDebugSessionExportError = false
+    @State private var debugSessionExportErrorMessage = ""
+    @State private var preparingDebugSessionExport = false
 
     private var guide: LiveSetupGuide {
         LiveSetupGuide(exercise: exercise, side: side)
@@ -111,6 +117,30 @@ struct LiveSetupView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(qualificationExportErrorMessage)
+            }
+            .fileExporter(
+                isPresented: $showingDebugSessionExporter,
+                document: debugSessionDocument,
+                contentType: .hangInThereDebugSession,
+                defaultFilename: debugSessionExportFilename
+            ) { result in
+                debugSessionDocument = nil
+                if case .failure(let error) = result {
+                    if let cocoaError = error as? CocoaError,
+                       cocoaError.code == .userCancelled {
+                        return
+                    }
+                    debugSessionExportErrorMessage = error.localizedDescription
+                    showingDebugSessionExportError = true
+                }
+            }
+            .alert(
+                "Couldn't export debug session",
+                isPresented: $showingDebugSessionExportError
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(debugSessionExportErrorMessage)
             }
             .task {
                 camera.configureWorkout(exercise: exercise, side: side)
@@ -790,7 +820,11 @@ struct LiveSetupView: View {
                 .buttonStyle(.bordered)
                 .accessibilityIdentifier("saveLiveQualificationReport")
 
-                Text("The report is local engineering evidence only. It contains timing, counters, thermal state, and camera-stability metrics—no video, images, landmarks, filenames, location, or device identifiers.")
+                Divider()
+
+                debugCaptureControls
+
+                Text("The JSON report is content-free engineering evidence. Debug capture is separately opt-in and local-only; its exported package intentionally contains the recorded workout video for reproducible offline evaluation. No microphone audio is recorded.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -801,6 +835,113 @@ struct LiveSetupView: View {
         }
         .padding(16)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    @ViewBuilder
+    private var debugCaptureControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Debug session capture")
+                .font(.subheadline.weight(.semibold))
+
+            switch camera.debugCaptureState {
+            case .unavailable:
+                Text("Debug movie capture is unavailable for this camera configuration.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+            case .idle:
+                Button {
+                    _ = camera.startDebugCapture()
+                } label: {
+                    Label("Start local debug capture", systemImage: "record.circle")
+                }
+                .buttonStyle(.bordered)
+                .disabled(!camera.isCameraReady || camera.liveSet.phase != .idle)
+                .accessibilityIdentifier("startDebugSessionCapture")
+
+                Text("Start before bar calibration to preserve setup plus the full set. The capture stays on this device until you explicitly export it.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+            case .starting:
+                Label("Starting debug recording…", systemImage: "record.circle")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                Button("Stop capture") { camera.stopDebugCapture() }
+                    .buttonStyle(.bordered)
+
+            case .recording:
+                Label("Recording debug session", systemImage: "record.circle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.red)
+                Button("Stop capture") { camera.stopDebugCapture() }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("stopDebugSessionCapture")
+
+            case .stopping:
+                ProgressView("Finalizing debug movie…")
+                    .font(.caption)
+
+            case .ready:
+                Button {
+                    prepareDebugSessionExport()
+                } label: {
+                    if preparingDebugSessionExport {
+                        ProgressView()
+                    } else {
+                        Label("Export debug session", systemImage: "archivebox")
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(preparingDebugSessionExport)
+                .accessibilityIdentifier("exportDebugSession")
+
+                Button("Discard local capture", role: .destructive) {
+                    camera.discardCompletedDebugCapture()
+                }
+                .font(.caption)
+
+            case .failed(let message):
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                Button("Discard and retry") {
+                    camera.discardCompletedDebugCapture()
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+    }
+
+    private func prepareDebugSessionExport() {
+        guard let capture = camera.completedDebugCapture,
+              !preparingDebugSessionExport
+        else { return }
+
+        preparingDebugSessionExport = true
+        let videoURL = capture.videoURL
+        let sessionJSON = capture.sessionJSON
+        let qualificationJSON = capture.qualificationJSON
+
+        Task {
+            do {
+                let document = try await Task.detached(priority: .utility) {
+                    try DebugSessionPackageDocument(
+                        videoURL: videoURL,
+                        sessionJSON: sessionJSON,
+                        qualificationJSON: qualificationJSON
+                    )
+                }.value
+                debugSessionDocument = document
+                debugSessionExportFilename = makeDebugSessionFilename()
+                preparingDebugSessionExport = false
+                showingDebugSessionExporter = true
+            } catch {
+                preparingDebugSessionExport = false
+                debugSessionExportErrorMessage = error.localizedDescription
+                showingDebugSessionExportError = true
+            }
+        }
     }
 
     @ViewBuilder
@@ -834,11 +975,19 @@ struct LiveSetupView: View {
     }
 
     private func makeQualificationFilename() -> String {
+        "HangInThere-live-qualification-\(exportTimestamp())"
+    }
+
+    private func makeDebugSessionFilename() -> String {
+        "HangInThere-debug-session-\(exportTimestamp())"
+    }
+
+    private func exportTimestamp() -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyyMMdd-HHmmss"
-        return "HangInThere-live-qualification-\(formatter.string(from: Date()))"
+        return formatter.string(from: Date())
     }
 
     private var phoneStabilityDetail: String {
