@@ -156,10 +156,14 @@ final class LiveCameraPreviewController {
     private(set) var droppedFrames = 0
     private(set) var analysisFailures = 0
     private(set) var lastProcessingMilliseconds: Double?
+    private(set) var lastSceneRegistrationMilliseconds: Double?
+    private(set) var sceneRegistrationFailures = 0
     private(set) var bar: ConfirmedBar?
     private(set) var liveSet = LiveSetSession()
     private(set) var phoneOrientation = PhoneOrientationStability()
     private(set) var motionSampleAvailable = false
+    private(set) var sceneTranslation = StaticSceneStability()
+    private(set) var qualification = LiveDeviceQualificationRecorder()
 
     let session = AVCaptureSession()
 
@@ -172,6 +176,7 @@ final class LiveCameraPreviewController {
         qos: .userInitiated
     )
     @ObservationIgnored private let motionManager = CMMotionManager()
+    @ObservationIgnored private let sceneRegistrationWorker = VisionStaticSceneRegistrationWorker()
     @ObservationIgnored private var configured = false
     @ObservationIgnored private var startRequested = false
     @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
@@ -185,6 +190,10 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var discardNextSetFrame = false
     @ObservationIgnored private var suspended = false
     @ObservationIgnored private var pendingBarMotionSample: (id: UUID, sample: PhoneMotionSample)?
+    @ObservationIgnored private var pendingBarSceneReference: (id: UUID, reference: StaticSceneRegistrationReference)?
+    @ObservationIgnored private var sceneReference: StaticSceneRegistrationReference?
+    @ObservationIgnored private var sceneRegistrationTask: Task<Void, Never>?
+    @ObservationIgnored private var lastSceneRegistrationSeconds: Double?
 
     var isCameraReady: Bool { state == .ready }
     var isSuspended: Bool { suspended }
@@ -205,12 +214,39 @@ final class LiveCameraPreviewController {
 
     var latestImageSize: ImageSize? { latestFrame?.pose.imageSize }
 
+    var qualificationThermalLevel: LiveDeviceQualificationRecorder.ThermalLevel {
+        currentThermalLevel()
+    }
+
+    func qualificationReportJSON() -> String {
+        let report = qualification.makeReport(
+            uptimeSeconds: ProcessInfo.processInfo.systemUptime,
+            analyzedFrames: analyzedFrames,
+            droppedFrames: droppedFrames,
+            analysisFailures: analysisFailures,
+            sceneRegistrationFailures: sceneRegistrationFailures,
+            observedMovements: liveSet.observedMovements,
+            trackingCoverage: liveSet.trackingCoverage,
+            setPhase: liveSet.phase.rawValue,
+            setEndReason: liveSet.endReason?.rawValue
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(report),
+              let text = String(data: data, encoding: .utf8)
+        else {
+            return "{\"schemaVersion\":1,\"error\":\"reportEncodingFailed\"}"
+        }
+        return text
+    }
+
     var setupReadiness: LiveSetupReadiness {
         LiveSetupReadiness(
             cameraReady: isCameraReady,
             framing: framing.state,
             barConfirmed: currentBar != nil,
-            phoneStable: phoneOrientation.state.allowsLiveSet
+            phoneStable: phoneOrientation.state.allowsLiveSet,
+            sceneStable: sceneTranslation.state.allowsLiveSet
         )
     }
 
@@ -226,7 +262,13 @@ final class LiveCameraPreviewController {
             setupGeneration &+= 1
             bar = nil
             pendingBarMotionSample = nil
+            pendingBarSceneReference = nil
+            sceneReference = nil
             phoneOrientation.reset()
+            sceneTranslation.reset()
+            sceneRegistrationTask?.cancel()
+            sceneRegistrationTask = nil
+            lastSceneRegistrationSeconds = nil
             liveSet.reset(exercise: exercise, side: side)
         }
         if let latestFrame {
@@ -241,7 +283,10 @@ final class LiveCameraPreviewController {
               isCameraReady,
               framing.state.isReady,
               let latestFrame,
-              let motionSample = currentPhoneMotionSample()
+              let motionSample = currentPhoneMotionSample(),
+              let sceneReference = VisionStaticSceneRegistrationWorker.makeReference(
+                image: latestFrame.image
+              )
         else { return nil }
 
         let setup = BarSetupFrame(
@@ -250,6 +295,7 @@ final class LiveCameraPreviewController {
             generation: setupGeneration
         )
         pendingBarMotionSample = (setup.id, motionSample)
+        pendingBarSceneReference = (setup.id, sceneReference)
         return setup
     }
 
@@ -265,13 +311,23 @@ final class LiveCameraPreviewController {
               bar.sourceTime == setup.frame.pose.timestamp,
               let pending = pendingBarMotionSample,
               pending.id == setup.id,
+              let pendingScene = pendingBarSceneReference,
+              pendingScene.id == setup.id,
               phoneOrientation.calibrate(
                 pending.sample.attitude,
                 timestamp: pending.sample.timestamp
+              ),
+              sceneTranslation.calibrate(
+                imageSize: pendingScene.reference.imageSize
               )
         else { return false }
 
         pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = pendingScene.reference
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
         self.bar = bar
         return true
     }
@@ -281,7 +337,13 @@ final class LiveCameraPreviewController {
         setupGeneration &+= 1
         bar = nil
         pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = nil
         phoneOrientation.reset()
+        sceneTranslation.reset()
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
     }
 
     @discardableResult
@@ -361,15 +423,24 @@ final class LiveCameraPreviewController {
         }
 
         suspended = false
+        qualification.reset(startUptimeSeconds: ProcessInfo.processInfo.systemUptime)
         analyzedFrames = 0
         droppedFrames = 0
         analysisFailures = 0
         lastProcessingMilliseconds = nil
+        lastSceneRegistrationMilliseconds = nil
+        sceneRegistrationFailures = 0
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
         pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = nil
         phoneOrientation.reset()
+        sceneTranslation.reset()
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
         motionSampleAvailable = false
         discardNextSetFrame = false
         liveSet.reset(exercise: exercise, side: trackingSide)
@@ -420,7 +491,13 @@ final class LiveCameraPreviewController {
         setupGeneration &+= 1
         bar = nil
         pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = nil
         phoneOrientation.reset()
+        sceneTranslation.reset()
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
         captureWatchdogTask?.cancel()
         captureWatchdogTask = nil
         motionManager.stopDeviceMotionUpdates()
@@ -543,7 +620,13 @@ final class LiveCameraPreviewController {
         setupGeneration &+= 1
         bar = nil
         pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = nil
         phoneOrientation.reset()
+        sceneTranslation.reset()
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
 
         if stopCapture {
             motionManager.stopDeviceMotionUpdates()
@@ -619,6 +702,12 @@ final class LiveCameraPreviewController {
         setupGeneration &+= 1
         bar = nil
         pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = nil
+        sceneTranslation.reset()
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
     }
 
     private func invalidateForPhoneOrientationLoss() {
@@ -634,6 +723,127 @@ final class LiveCameraPreviewController {
         setupGeneration &+= 1
         bar = nil
         pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = nil
+        sceneTranslation.reset()
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
+    }
+
+    private func maybeCheckSceneTranslation(_ frame: ProcessedFrame) {
+        guard bar != nil,
+              let reference = sceneReference,
+              sceneRegistrationTask == nil
+        else { return }
+
+        let seconds = frame.pose.timestamp.seconds
+        guard seconds.isFinite else { return }
+        if let lastSceneRegistrationSeconds,
+           seconds - lastSceneRegistrationSeconds < 0.33 {
+            return
+        }
+
+        lastSceneRegistrationSeconds = seconds
+        let token = setupGeneration
+        let image = frame.image
+        sceneRegistrationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let measurement: StaticSceneRegistrationMeasurement
+            let started = ContinuousClock.now
+            do {
+                measurement = try await sceneRegistrationWorker.measure(
+                    reference: reference,
+                    image: image
+                )
+            } catch {
+                if self.setupGeneration == token {
+                    self.sceneRegistrationFailures += 1
+                    self.lastSceneRegistrationMilliseconds = nil
+                    self.sceneRegistrationTask = nil
+                }
+                return
+            }
+
+            let duration = started.duration(to: .now).components
+            let registrationMilliseconds = Double(duration.seconds) * 1_000
+                + Double(duration.attoseconds) / 1e15
+
+            guard !Task.isCancelled,
+                  self.setupGeneration == token,
+                  self.bar != nil
+            else {
+                if self.setupGeneration == token {
+                    self.sceneRegistrationTask = nil
+                }
+                return
+            }
+
+            self.lastSceneRegistrationMilliseconds = registrationMilliseconds
+            let state = self.sceneTranslation.observe(
+                translations: measurement.translations,
+                globalScaleFraction: measurement.globalScaleFraction,
+                timestamp: seconds
+            )
+            self.sceneRegistrationTask = nil
+            if state == .moved {
+                self.invalidateForSceneMovement()
+            }
+        }
+    }
+
+    private func invalidateForSceneMovement() {
+        guard bar != nil else { return }
+
+        let kind = sceneTranslation.movementKind
+        if liveSet.phase == .running {
+            let reason = kind == .scale ? "sceneScaled" : "sceneShifted"
+            let endReason: LiveSetSession.EndReason = kind == .scale ? .sceneScaled : .sceneShifted
+            liveSet.interruptAndFinish(
+                reason: reason,
+                endReason: endReason
+            )
+        }
+
+        setupGeneration &+= 1
+        bar = nil
+        pendingBarMotionSample = nil
+        pendingBarSceneReference = nil
+        sceneReference = nil
+        phoneOrientation.reset()
+        sceneTranslation.reset()
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        lastSceneRegistrationSeconds = nil
+    }
+
+    private func recordQualificationSample() {
+        qualification.record(
+            uptimeSeconds: ProcessInfo.processInfo.systemUptime,
+            visionProcessingMilliseconds: lastProcessingMilliseconds,
+            sceneRegistrationMilliseconds: lastSceneRegistrationMilliseconds,
+            analyzedFrames: analyzedFrames,
+            droppedFrames: droppedFrames,
+            analysisFailures: analysisFailures,
+            sceneRegistrationFailures: sceneRegistrationFailures,
+            orientationDeltaDegrees: phoneOrientation.latestDeltaDegrees,
+            sceneShiftFraction: sceneTranslation.latestShiftFraction,
+            sceneScaleFraction: sceneTranslation.latestScaleFraction,
+            sceneTranslationConsensusPatches: sceneTranslation.latestConsensusPatches,
+            sceneScaleMeasurementAvailable: sceneTranslation.latestScaleMeasurementAvailable,
+            thermalLevel: currentThermalLevel(),
+            setPhase: liveSet.phase.rawValue
+        )
+    }
+
+    private func currentThermalLevel() -> LiveDeviceQualificationRecorder.ThermalLevel {
+        switch ProcessInfo.processInfo.thermalState {
+        case .nominal: .nominal
+        case .fair: .fair
+        case .serious: .serious
+        case .critical: .critical
+        @unknown default: .unknown
+        }
     }
 
     private func startCaptureWatchdogIfNeeded() {
@@ -648,6 +858,7 @@ final class LiveCameraPreviewController {
                       self.state == .ready else { continue }
 
                 self.pollPhoneOrientation()
+                self.recordQualificationSample()
 
                 if self.session.isInterrupted {
                     self.suspend(
@@ -676,6 +887,14 @@ final class LiveCameraPreviewController {
             if let bar, bar.imageSize != frame.pose.imageSize {
                 self.bar = nil
                 setupGeneration &+= 1
+                pendingBarMotionSample = nil
+                pendingBarSceneReference = nil
+                sceneReference = nil
+                phoneOrientation.reset()
+                sceneTranslation.reset()
+                sceneRegistrationTask?.cancel()
+                sceneRegistrationTask = nil
+                lastSceneRegistrationSeconds = nil
                 if liveSet.phase == .running {
                     liveSet.interruptAndFinish(
                         reason: "barReferenceUnavailable",
@@ -687,6 +906,8 @@ final class LiveCameraPreviewController {
             analyzedFrames += 1
             lastProcessingMilliseconds = frame.processingMilliseconds
             framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide)
+            maybeCheckSceneTranslation(frame)
+            recordQualificationSample()
 
             if liveSet.phase == .running {
                 if discardNextSetFrame {

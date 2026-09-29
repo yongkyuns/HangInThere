@@ -69,3 +69,81 @@ hashes may differ with the recorded encoder version. Consult the exact CI run
 for model results on this interval; passing on the old introduction is not
 qualification of the new motion fixture. Missing media or expected landmarks
 must remain real test failures.
+
+
+## Real-video diversity corpus
+
+`corpus.json` extends the single smoke clip into a tiered real-world corpus.
+Every downloaded source is HTTPS-addressed, byte-counted, SHA-256 pinned, licensed,
+credited, and transformed reproducibly by `scripts/prepare-video-corpus.py`.
+
+Current reviewed scenarios:
+
+- **Iwakuni standard rear/oblique** — existing count-qualified outdoor/military fixture;
+- **Iwakuni multi-person introduction** — two-person, zero-rep stress case;
+- **FitnessScape standard indoor** — second count-qualified standard pull-up view;
+  indexed-frame review shows the file starts mid-attempt, reaches full extension,
+  then contains one countable extension-to-top movement;
+- **Yokota crowded indoor pull-up** — 20 reviewed frames with a foreground
+  occluder plus the athlete and surrounding gym activity. This is a stress case:
+  real Vision must expose at least one multi-person frame, and production arm
+  measurement must reject that frame instead of silently selecting a person;
+- **JULLIAN W portrait dips (early development probe)** — the earlier 96-frame
+  Pexels candidate exposed low pose coverage and a 0/5 result under the pre-v4
+  counter. It remains diagnostic evidence, not a qualifying corpus case;
+- **JULLIAN PRODUCTION controlled dips (development)** — a separate 300-frame,
+  fixed-camera Pexels clip. A pinned source-only 8 FPS re-review corrected the
+  coarse seven-cycle annotation to nine complete cycles. Counter policy v6,
+  with reviewed rail coordinates transformed into the production pose raster,
+  scored **TP=9 / FP=0 / FN=0**, with zero partial/interrupted attempts. This
+  clip is explicitly development-exposed, not held out;
+- **Romina Martinez parallel-bar dips (consumed held out)** — the independently
+  locked 27-frame, three-cycle Pexels interval failed its first native qualification:
+  25/27 person frames (92.6% vs 95% floor), 21/27 any-arm frames (77.8% vs 85%),
+  and 0/3 movements with one interrupted attempt under policy v4. The exact
+  pre-inference labels remain unchanged in `dip-heldout.json`; the result is
+  preserved in `dip-heldout-result.json` and the clip is not part of the passing corpus;
+- **Pavel Danilyuk parallel-bar dips (consumed holdout v2)** — a 14.0 s,
+  112-frame Pexels side/oblique clip was frozen in `dip-heldout-v2.json`
+  before inference, after policy v6 was frozen in `dip-policy-v6-freeze.json`.
+  On its first eligible Apple-Vision run, tracking passed (109/112 person,
+  101/112 any-arm) and v6 produced **3/3 movements with zero partial/interrupted
+  attempts**. The stricter frozen event windows failed because detections were
+  early at 3.25, 7.875, and 12.625 s. `dip-heldout-v2-result.json` preserves
+  this count-pass / timing-fail result;
+- **Ketut Subiyanto frontal parallel-bar clip (source-only rejected candidate)** —
+  reviewed alongside Pavel with no model inference, then rejected as a count
+  holdout because frontal arm/torso overlap and small visible endpoint excursion
+  made top/bottom cycle labels ambiguous;
+- **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
+- **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
+  background, swing/inversion stress.
+
+The new clips are not all rep ground truth. `tier` is deliberate:
+
+- `count-qualified`: reviewed movement-cycle expectation and fixed bar reference;
+- `tracking-qualified`: reviewed person/arm visibility floors;
+- `stress-coverage`: difficult real footage must decode and produce sufficient
+  real-Vision scene evidence, but no rep/form label is implied. Multi-person
+  scene-level arm coverage is not athlete identity continuity.
+
+Coverage floors were recorded from visual review before Apple Vision corpus
+inference. The initial indoor count label of two was corrected after indexed-frame
+visual re-review showed that frame 0 is already mid-ascent; only the later
+extension-to-top movement is countable. CI must not relax endpoint thresholds merely
+to match model output.
+
+Preparation also emits contact sheets sampled across the full decoded clip plus exact
+frame timestamps. Short clips are no longer represented by only one or two early
+thumbnails. CI retains
+the approved derived corpus temporarily for inspection; source media remains ignored
+under `Data/external/`.
+
+Real parallel-bar footage is reproducibly pinned. Policy v6 is
+development-qualified on JULLIAN (9/9) and consumed Romina (3/3), then achieved
+**held-out exact rep-count success** on the independent Pavel view (3/3, no
+partial/interrupted attempts, tracking floors passed). The separately frozen
+event-time windows did not pass: all three detections occurred 0.125–0.375 s
+before the reviewed return windows. Therefore rep counting has targeted held-out
+evidence, while precise endpoint timing, dip depth/lockout validity, body
+alignment, 3D joint accuracy and population-level accuracy remain unqualified.

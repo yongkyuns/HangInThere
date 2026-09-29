@@ -93,6 +93,7 @@ struct LiveSetupReadiness: Equatable, Sendable {
         case framingIncomplete
         case barReferenceNeeded
         case phoneStabilityNeeded
+        case sceneStabilityNeeded
         case ready
 
         var isReady: Bool { self == .ready }
@@ -104,7 +105,8 @@ struct LiveSetupReadiness: Equatable, Sendable {
         cameraReady: Bool,
         framing: LiveFramingAssessment.State,
         barConfirmed: Bool,
-        phoneStable: Bool
+        phoneStable: Bool,
+        sceneStable: Bool
     ) {
         if !cameraReady {
             state = .cameraUnavailable
@@ -114,6 +116,8 @@ struct LiveSetupReadiness: Equatable, Sendable {
             state = .barReferenceNeeded
         } else if !phoneStable {
             state = .phoneStabilityNeeded
+        } else if !sceneStable {
+            state = .sceneStabilityNeeded
         } else {
             state = .ready
         }

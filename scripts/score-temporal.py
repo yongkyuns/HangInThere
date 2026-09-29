@@ -36,7 +36,9 @@ def intervals(values, span, reason=False):
 
 def reference_check(ref, clip):
     ev.require(ref.get("schema_version") == 1 and ref.get("id") == clip["id"], "Reference identity mismatch")
-    ev.require(ref.get("reviewed_without_counter_output") is True and ref.get("provenance"), "Independent temporal review required")
+    development_exposed = ref.get("development_after_prior_counter_exposure") is True
+    ev.require((ref.get("reviewed_without_counter_output") is True or development_exposed) and ref.get("provenance"),
+               "Temporal label provenance required")
     ev.require(ref.get("form_verification") == "unverified", "Movement labels do not establish valid form")
     exercise = ref.get("exercise")
     ev.require(exercise in DEFINITION and EXERCISE[exercise] == clip["exercise"], "Exercise mismatch")
@@ -56,6 +58,10 @@ def reference_check(ref, clip):
         ev.require(isinstance(edge, list) and len(edge) == 4 and all(ev.number(x) for x in edge),
                    "Invalid fixed apparatus reference")
         ev.require(math.hypot(edge[2]-edge[0], edge[3]-edge[1]) >= 2, "Degenerate apparatus reference")
+        image_size = ref.get("bar_reference_image_size")
+        ev.require(isinstance(image_size, list) and len(image_size) == 2 and
+                   all(ev.number(x) and x > 0 for x in image_size),
+                   "Apparatus reference needs its reviewed image size")
         ev.require(isinstance(ref.get("bar_reference_provenance"), str) and ref["bar_reference_provenance"].strip(),
                    "Apparatus reference needs provenance")
     tolerance = ref.get("tolerance_seconds")
@@ -110,13 +116,34 @@ def score_events(ref, events):
             "matched_timing_error_seconds": ev.statistics(errors, len(windows))}
 
 
+def reference_edge_in_pose_space(ref, observations):
+    edge = ref.get("bar_reference_edge")
+    if edge is None:
+        return None
+    reviewed_size = ref.get("bar_reference_image_size")
+    ev.require(isinstance(reviewed_size, list) and len(reviewed_size) == 2 and
+               all(ev.number(x) and x > 0 for x in reviewed_size),
+               "Missing apparatus reference image size")
+    ev.require(observations, "No observations for apparatus coordinate transform")
+    first_size = observations[0].get("imageSize") or {}
+    width, height = first_size.get("width"), first_size.get("height")
+    ev.require(ev.number(width) and width > 0 and ev.number(height) and height > 0,
+               "Invalid pose image size")
+    for row in observations[1:]:
+        size = row.get("imageSize") or {}
+        ev.require(size.get("width") == width and size.get("height") == height,
+                   "Pose image geometry changed within clip")
+    sx, sy = width / reviewed_size[0], height / reviewed_size[1]
+    return [edge[0] * sx, edge[1] * sy, edge[2] * sx, edge[3] * sy]
+
+
 def validate_run(ref, clip, pose_report, counter, observations, completion):
     reference_check(ref, clip)
     ev.require(pose_report["status"] == "processed" and completion["status"] == "processed", "Incomplete pose run")
     ev.require(counter["summary"]["phase"] == "finished" and counter["summary"]["formVerification"] == "unverified", "Unfinished or unsupported count verdict")
     ev.require(counter["summary"]["exercise"] == ref["exercise"] and counter["summary"]["side"] == ref["side"], "Counter policy selection differs")
     ev.require(counter["summary"]["policyVersion"] == ref["counter_policy_version"], "Counter policy changed")
-    expected_edge = ref.get("bar_reference_edge")
+    expected_edge = reference_edge_in_pose_space(ref, observations)
     actual_edge = counter.get("referenceEdge")
     if expected_edge is None:
         ev.require(actual_edge is None, "Counter used an unreviewed apparatus reference")
@@ -155,7 +182,7 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
     ev.require([r["id"] for r in refs["clips"]] == [c["id"] for c in clips], "Temporal corpus is incomplete/reordered")
     pose = ev.read_json(pose_output / "report.json")
     ev.require(pose["manifest_sha256"] == ev.digest(manifest_path) and [r["id"] for r in pose["clips"]] == [c["id"] for c in clips], "Wrong pose report")
-    # Freeze all labels before executing the counter, not per-clip after results.
+    # Labels are fixed before the current counter run. Development-exposed clips are explicitly disclosed; held-out qualification is separate.
     for ref, clip in zip(refs["clips"], clips): reference_check(ref, clip)
     before = {reference_path: ev.digest(reference_path), manifest_path: ev.digest(manifest_path),
               pose_output / "report.json": ev.digest(pose_output / "report.json")}
@@ -173,8 +200,9 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
         count_path = output / (clip["id"] + "-counter.json")
         count_command = [str(ev.ROOT / "scripts/count-replay.sh"), str(observation_path),
                          ref["exercise"], ref["side"], str(count_path)]
-        if ref.get("bar_reference_edge") is not None:
-            count_command.extend(str(x) for x in ref["bar_reference_edge"])
+        pose_edge = reference_edge_in_pose_space(ref, observations)
+        if pose_edge is not None:
+            count_command.extend(str(x) for x in pose_edge)
         subprocess.run(count_command, check=True)
         counter = ev.read_json(count_path)
         ev.require(counter["input_sha256"] == observation_hash and counter["source_revision"] == pose["source_commit"], "Counter/pose provenance differs")
@@ -193,7 +221,7 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
         ev.require(ev.digest(observation_path) == observation_hash and ev.digest(completion_path) == completion_hash
                    and ev.preflight(clip, root, public) == "ready", "Input changed while counting")
     ev.require(all(ev.digest(p) == h for p, h in before.items()), "Temporal labels/report changed during evaluation")
-    report = {"schema_version": 1, "scope": "model-independent single-reviewer temporal diagnostic; not held-out or strict-form qualification",
+    report = {"schema_version": 1, "scope": "source-reviewed temporal diagnostic with disclosed development exposure; not held-out or strict-form qualification",
               "reference_sha256": before[reference_path], "manifest_sha256": before[manifest_path],
               "pose_report_sha256": before[pose_output / "report.json"], "scorer_sha256": ev.digest(Path(__file__)),
               "source_commit": pose["source_commit"], "clips": records}
