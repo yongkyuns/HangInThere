@@ -88,15 +88,20 @@ Current reviewed scenarios:
   occluder plus the athlete and surrounding gym activity. This is a stress case:
   real Vision must expose at least one multi-person frame, and production arm
   measurement must reject that frame instead of silently selecting a person;
-- **JULLIAN PRODUCTION parallel-bar dips (development probe)** — 96 visually
-  reviewed portrait frames from Pexels, labelled as five complete cycles after
-  one leading partial return. Real Apple Vision produced 80.2% person / 70.8%
-  arm coverage and the production counter counted 0/5, so this source is not in
-  the qualifying corpus; it is development evidence for the dip-counter redesign;
-- **Romina Martinez parallel-bar dips (held out)** — a separate 27-frame,
-  three-cycle Pexels interval is pinned in `dip-heldout.json`. Its labels were
-  locked before inference and it must remain untouched until the redesign is
-  completed on the JULLIAN development source;
+- **JULLIAN W portrait dips (early development probe)** — the earlier 96-frame
+  Pexels candidate exposed low pose coverage and a 0/5 result under the pre-v4
+  counter. It remains diagnostic evidence, not a qualifying corpus case;
+- **JULLIAN PRODUCTION controlled dips (development)** — a separate 300-frame,
+  fixed-camera Pexels clip. A pinned source-only 8 FPS re-review corrected the
+  coarse seven-cycle annotation to nine complete cycles. Counter policy v4,
+  with reviewed rail coordinates transformed into the production pose raster,
+  then scored **TP=9 / FP=0 / FN=0**, with zero partial/interrupted attempts.
+  This clip is explicitly development-exposed, not held out;
+- **Romina Martinez parallel-bar dips (held out)** — the independently locked
+  27-frame, three-cycle Pexels interval from `dip-heldout.json` is now copied
+  unchanged into the corpus for its one-time native Apple-Vision qualification.
+  Its result is intentionally unknown at this commit; the dip policy and labels
+  must not be changed in response to the held-out result;
 - **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
 - **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
   background, swing/inversion stress.
@@ -121,11 +126,10 @@ thumbnails. CI retains
 the approved derived corpus temporarily for inspection; source media remains ignored
 under `Data/external/`.
 
-Real parallel-bar footage is now reproducibly pinned, but **production dip
-movement counting is still unqualified**. The JULLIAN development clip exposed
-two concrete limitations without changing its labels or corpus floors: projected
-top-support elbow angles usually stay below the shared 155° gate, and short
-Vision dropouts currently reset the state machine. The separate Romina fixture
-remains held out so a redesign can be developed on JULLIAN and then checked once
-against untouched real footage. Dip depth, lockout validity, body alignment, 3D
-joint accuracy and population-level accuracy remain unqualified.
+Real parallel-bar footage is reproducibly pinned. Counter policy v4 is
+development-qualified on the controlled JULLIAN PRODUCTION clip at 9/9 source-
+reviewed cycles, after fixing the apparatus-coordinate contract and using a local
+bottom-to-next-top dip recovery. The independently locked Romina fixture is now
+the one-time held-out check. Until that exact native run completes, dip counting
+is **not yet held-out-qualified**. Dip depth, lockout validity, body alignment,
+3D joint accuracy and population-level accuracy remain unqualified.
