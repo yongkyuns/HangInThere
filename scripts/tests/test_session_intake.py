@@ -47,6 +47,9 @@ def report():
             "sceneTranslationFraction": 0.008,
             "sceneScaleFraction": 0.012,
         },
+        "counterPolicyVersion": 6,
+        "exercise": "dip",
+        "side": "right",
         "observedMovements": 10,
         "partialAttempts": 1,
         "interruptedAttempts": 0,
@@ -64,6 +67,8 @@ class SessionIntakeTests(unittest.TestCase):
     def test_builds_sanitized_session_from_independent_truth_and_runtime(self):
         session = session_intake.build_session(review(), report())
         self.assertEqual(session["expected_movements"], 10)
+        self.assertEqual(session["counter_policy_version"], 6)
+        self.assertEqual(session["tracking_side"], "right")
         self.assertEqual(session["observed_movements"], 10)
         self.assertEqual(session["partial_attempts"], 1)
         self.assertEqual(session["interrupted_attempts"], 0)
@@ -75,6 +80,12 @@ class SessionIntakeTests(unittest.TestCase):
         self.assertNotIn("samples", session)
         self.assertNotIn("runtime", session)
         self.assertNotIn("thresholds", session)
+
+    def test_review_exercise_must_match_runtime(self):
+        r = review()
+        r["exercise"] = "pull_up"
+        with self.assertRaises(session_intake.IntakeError):
+            session_intake.build_session(r, report())
 
     def test_population_evidence_requires_independent_review(self):
         r = review()
