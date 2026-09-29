@@ -125,7 +125,10 @@ struct LiveSetupView: View {
                 defaultFilename: debugSessionExportFilename
             ) { result in
                 debugSessionDocument = nil
-                if case .failure(let error) = result {
+                switch result {
+                case .success:
+                    camera.discardCompletedDebugCapture()
+                case .failure(let error):
                     if let cocoaError = error as? CocoaError,
                        cocoaError.code == .userCancelled {
                         return
@@ -979,7 +982,7 @@ struct LiveSetupView: View {
     }
 
     private func makeDebugSessionFilename() -> String {
-        "HangInThere-debug-session-\(exportTimestamp())"
+        "HangInThere-debug-session-\(exportTimestamp()).hangdebug"
     }
 
     private func exportTimestamp() -> String {
