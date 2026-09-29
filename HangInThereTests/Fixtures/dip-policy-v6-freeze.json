@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "frozen-before-heldout-v2-inference",
+  "counter_policy_version": 6,
+  "frozen_development_commit": "0d92458977fdd55ad0103973f3286eede18703e2",
+  "development_evidence": [
+    {
+      "id": "jullian-production-controlled-dips",
+      "workflow_run_id": 36515604604,
+      "job_id": 109237415463,
+      "artifact_id": 11011450474,
+      "artifact_sha256": "6d3755d0831b9cc1884f663ad3da19726d59d28085a6072f03173e452ef0d47f",
+      "frames": 300,
+      "observed_movements": 9,
+      "true_positives": 9,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0
+    },
+    {
+      "id": "romina-consumed-development",
+      "workflow_run_id": 36515604589,
+      "job_id": 109237056561,
+      "artifact_id": 11010792184,
+      "artifact_sha256": "ccc9326f7ce90905fa9c5c5dc40ee7a1f61cce797daf473c72f1152b9389e45d",
+      "frames": 27,
+      "observed_movements": 3,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0
+    }
+  ],
+  "untouched_holdout": "HangInThereTests/Fixtures/dip-heldout-v2.json",
+  "policy": "No counter, thresholds, holdout labels, arm choice, rail geometry, or coverage floors may change after this freeze and before the first Pavel holdout-v2 result.",
+  "counter_source_git_blob_sha": "bc636c535d8d6cccc060f224a368ba124026eb3f"
+}

@@ -55,6 +55,63 @@ struct LiveFramingAssessmentTests {
         #expect(LiveFramingAssessment(pose: pose, side: .left).state == .analysisUnavailable)
     }
 
+    @Test func setupReadinessRequiresCameraFramingAndBar() {
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: false,
+                framing: .ready,
+                barConfirmed: true,
+                phoneStable: true,
+                sceneStable: true
+            ).state == .cameraUnavailable
+        )
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: true,
+                framing: .selectedArmHidden,
+                barConfirmed: true,
+                phoneStable: true,
+                sceneStable: true
+            ).state == .framingIncomplete
+        )
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: true,
+                framing: .ready,
+                barConfirmed: false,
+                phoneStable: true,
+                sceneStable: true
+            ).state == .barReferenceNeeded
+        )
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: true,
+                framing: .ready,
+                barConfirmed: true,
+                phoneStable: false,
+                sceneStable: true
+            ).state == .phoneStabilityNeeded
+        )
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: true,
+                framing: .ready,
+                barConfirmed: true,
+                phoneStable: true,
+                sceneStable: false
+            ).state == .sceneStabilityNeeded
+        )
+        #expect(
+            LiveSetupReadiness(
+                cameraReady: true,
+                framing: .ready,
+                barConfirmed: true,
+                phoneStable: true,
+                sceneStable: true
+            ).state == .ready
+        )
+    }
+
     private func makePose(
         side: ArmMeasurement.Side,
         confidence: Double = 0.9

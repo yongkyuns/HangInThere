@@ -86,3 +86,40 @@ struct LiveFramingAssessment: Equatable, Sendable {
         }
     }
 }
+
+struct LiveSetupReadiness: Equatable, Sendable {
+    enum State: String, Equatable, Sendable {
+        case cameraUnavailable
+        case framingIncomplete
+        case barReferenceNeeded
+        case phoneStabilityNeeded
+        case sceneStabilityNeeded
+        case ready
+
+        var isReady: Bool { self == .ready }
+    }
+
+    let state: State
+
+    init(
+        cameraReady: Bool,
+        framing: LiveFramingAssessment.State,
+        barConfirmed: Bool,
+        phoneStable: Bool,
+        sceneStable: Bool
+    ) {
+        if !cameraReady {
+            state = .cameraUnavailable
+        } else if !framing.isReady {
+            state = .framingIncomplete
+        } else if !barConfirmed {
+            state = .barReferenceNeeded
+        } else if !phoneStable {
+            state = .phoneStabilityNeeded
+        } else if !sceneStable {
+            state = .sceneStabilityNeeded
+        } else {
+            state = .ready
+        }
+    }
+}

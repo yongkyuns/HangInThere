@@ -33,6 +33,46 @@ struct ExerciseCounterTests {
     }
     private func arm(_ counter: inout ExerciseCounter) { feed(&counter, [(0,170),(0.15,170)]) }
 
+    static func poseWithLowConfidenceElbow(
+        _ time: Double,
+        degrees: Double,
+        exercise: ExerciseCounter.Exercise,
+        side: ArmMeasurement.Side
+    ) -> PoseResult {
+        let base = pose(time, degrees: degrees, exercise: exercise, side: side)
+        let elbow = side.joints[1]
+        let landmarks = base.people[0].landmarks.map { landmark in
+            Landmark(joint: landmark.joint, position: landmark.position,
+                     confidence: landmark.joint == elbow ? 0.1 : landmark.confidence)
+        }
+        return PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+                          people: [PoseObservation(landmarks: landmarks)],
+                          backend: base.backend, requestRevision: base.requestRevision)
+    }
+
+    static func poseWithLowConfidenceShoulder(
+        _ time: Double,
+        degrees: Double,
+        exercise: ExerciseCounter.Exercise,
+        side: ArmMeasurement.Side
+    ) -> PoseResult {
+        let base = pose(time, degrees: degrees, exercise: exercise, side: side)
+        let shoulder = side.joints[0]
+        let landmarks = base.people[0].landmarks.map { landmark in
+            Landmark(joint: landmark.joint, position: landmark.position,
+                     confidence: landmark.joint == shoulder ? 0.1 : landmark.confidence)
+        }
+        return PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+                          people: [PoseObservation(landmarks: landmarks)],
+                          backend: base.backend, requestRevision: base.requestRevision)
+    }
+
+    static func noPersonPose(_ time: Double) -> PoseResult {
+        PoseResult(timestamp: PresentationTime(value: Int64((time * 1000).rounded()), timescale: 1000),
+                   imageSize: ImageSize(width: 1000, height: 1000), people: [],
+                   backend: "analytic test arm", requestRevision: 0)
+    }
+
     @Test func pullUpCountsAtTopAndRequiresReturnBeforeNext() {
         var c = ExerciseCounter()
         arm(&c)
@@ -54,6 +94,154 @@ struct ExerciseCounterTests {
         feed(&c, [(0.6,170),(0.75,170)])
         #expect(c.observedMovements == 1)
         #expect(c.lastEvent?.reason == "barReferencedCycle;dipDepthAndFormNotQualified")
+    }
+    @Test func dipProjectedTopDoesNotNeedPullUpLockoutAngle() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,140),(0.75,140)])
+        #expect(c.observedMovements == 1)
+        #expect(c.interruptedAttempts == 0)
+        #expect(c.lastEvent?.reason == "barReferencedCycle;dipDepthAndFormNotQualified")
+    }
+    @Test func dipCanAcquireSupportAcrossShortPersonDropout() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        c.consume(
+            Self.pose(0, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        c.consume(Self.noPersonPose(0.125), referenceEdge: Self.referenceEdge)
+        c.consume(
+            Self.pose(0.25, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.phase == .ready)
+        #expect(c.observedMovements == 0)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipReturnUsesRelativeRecoveryBelowSupportAngleGate() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110),(0.75,110)])
+        #expect(c.observedMovements == 1)
+        #expect(c.partialAttempts == 0)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipTravelUsesImageScaleRatherThanRailBaselineDistance() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        for (time, angle) in [(0.0,140.0),(0.15,140.0),(0.3,80.0),
+                              (0.45,80.0),(0.6,140.0),(0.75,140.0)] {
+            c.consume(
+                Self.pose(time, degrees: angle, exercise: .dip, side: .right,
+                          verticalOffset: -250),
+                referenceEdge: Self.referenceEdge
+            )
+        }
+        #expect(c.observedMovements == 1)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipTopRailGeometryCanAdvanceAcrossElbowConfidenceDrop() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110)])
+        c.consume(
+            Self.poseWithLowConfidenceElbow(0.75, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 1)
+
+        feed(&c, [(0.9,90),(1.05,90),(1.2,110)])
+        c.consume(
+            Self.poseWithLowConfidenceElbow(1.35, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 2)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipReturnEndpointCanFinishWithGeometryOnlyLowConfidenceShoulder() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110)])
+        c.consume(
+            Self.poseWithLowConfidenceShoulder(0.75, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 1)
+        #expect(c.partialAttempts == 0)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func lowConfidenceShoulderCannotAcquireDipStart() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        c.consume(
+            Self.poseWithLowConfidenceShoulder(0, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        c.consume(
+            Self.poseWithLowConfidenceShoulder(0.15, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.phase == .seekingStart)
+        #expect(c.observedMovements == 0)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipReturnUsesLocalBottomWhenTopBaselineDrifts() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140)])
+        c.consume(
+            Self.pose(0.3, degrees: 70, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        c.consume(
+            Self.pose(0.45, degrees: 70, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        // The next top is shifted toward the rail relative to the original
+        // anchor. A complete local bottom-to-top recovery must still count.
+        c.consume(
+            Self.pose(0.6, degrees: 140, exercise: .dip, side: .right, verticalOffset: 40),
+            referenceEdge: Self.referenceEdge
+        )
+        c.consume(
+            Self.pose(0.75, degrees: 140, exercise: .dip, side: .right, verticalOffset: 40),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 1)
+        #expect(c.interruptedAttempts == 0)
+    }
+    @Test func dipBentHoldCannotArmAsAStart() {
+        var c = ExerciseCounter(exercise: .dip)
+        feed(&c, [(0,70),(0.15,70),(0.3,75),(0.45,70)])
+        #expect(c.phase == .seekingStart)
+        #expect(c.observedMovements == 0)
+    }
+    @Test func shortDipPersonDropoutPausesWithoutResettingAttempt() {
+        var c = ExerciseCounter(exercise: .dip)
+        feed(&c, [(0,140),(0.15,140),(0.3,70)])
+        c.consume(Self.noPersonPose(0.425), referenceEdge: Self.referenceEdge)
+        feed(&c, [(0.55,70),(0.7,70),(0.85,140),(1.0,140)])
+        #expect(c.observedMovements == 1)
+        #expect(c.interruptedAttempts == 0)
+    }
+    @Test func longDipPersonDropoutInterruptsActiveAttempt() {
+        var c = ExerciseCounter(exercise: .dip)
+        feed(&c, [(0,140),(0.15,140),(0.3,70)])
+        c.consume(Self.noPersonPose(0.45), referenceEdge: Self.referenceEdge)
+        c.consume(Self.noPersonPose(0.8), referenceEdge: Self.referenceEdge)
+        c.consume(Self.noPersonPose(1.1), referenceEdge: Self.referenceEdge)
+        #expect(c.observedMovements == 0)
+        #expect(c.interruptedAttempts == 1)
+        #expect(c.phase == .seekingStart)
+    }
+    @Test func dipRailReturnCanSustainAcrossElbowConfidenceDrop() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,140)])
+        c.consume(
+            Self.poseWithLowConfidenceElbow(0.75, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 1)
+        #expect(c.interruptedAttempts == 0)
     }
     @Test func initialMidRepOrBentHoldCannotCount() {
         var c = ExerciseCounter()
