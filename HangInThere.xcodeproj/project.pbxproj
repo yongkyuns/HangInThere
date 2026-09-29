@@ -455,6 +455,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 0.1.0;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HangInThere/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
@@ -481,6 +482,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 0.1.0;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HangInThere/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
