@@ -418,8 +418,15 @@ struct LiveSetupView: View {
                 !camera.isCameraReady
                     || !camera.framing.state.isReady
                     || !camera.motionSampleAvailable
+                    || !camera.debugCaptureAllowsBarSetup
             )
             .accessibilityIdentifier("liveSetupBar")
+
+            if !camera.debugCaptureAllowsBarSetup {
+                Text("Waiting for the debug movie recorder and its first analyzed source frame before bar calibration.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             if camera.currentBar != nil {
                 Button("Clear bar reference", role: .destructive) {
