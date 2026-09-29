@@ -312,9 +312,11 @@ final class LiveCameraPreviewController: NSObject {
     func stopDebugCapture() {
         guard let movieOutput else { return }
         if movieOutput.isRecording {
+            snapshotDebugCaptureMetadataIfNeeded()
             debugCaptureState = .stopping
             movieOutput.stopRecording()
         } else if debugCaptureState == .starting {
+            snapshotDebugCaptureMetadataIfNeeded()
             debugCaptureState = .stopping
         }
     }
@@ -344,9 +346,18 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func finishDebugCaptureIfNeeded() {
-        if movieOutput?.isRecording == true {
+        if debugCaptureState == .starting || movieOutput?.isRecording == true {
             stopDebugCapture()
         }
+    }
+
+    private func snapshotDebugCaptureMetadataIfNeeded() {
+        guard debugCaptureSessionJSON == nil || debugCaptureQualificationJSON == nil else {
+            return
+        }
+        debugCaptureFinishedUptimeSeconds = ProcessInfo.processInfo.systemUptime
+        debugCaptureSessionJSON = makeDebugSessionMetadataJSON()
+        debugCaptureQualificationJSON = qualificationReportJSON()
     }
 
     private func makeDebugSessionMetadataJSON() -> String {
@@ -545,7 +556,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     func prepareNextSet() {
-        discardDebugCaptureOnExit()
+        finishDebugCaptureIfNeeded()
         discardNextSetFrame = false
         liveSet.prepareNextSet()
     }
@@ -660,7 +671,7 @@ final class LiveCameraPreviewController: NSObject {
         if liveSet.phase == .running {
             liveSet.finish()
         }
-        finishDebugCaptureIfNeeded()
+        discardDebugCaptureOnExit()
         discardNextSetFrame = false
         suspended = false
         startRequested = false
@@ -1102,6 +1113,7 @@ final class LiveCameraPreviewController: NSObject {
                         endReason: .setupInvalidated
                     )
                     finishDebugCaptureIfNeeded()
+                    finishDebugCaptureIfNeeded()
                 }
             }
             latestFrame = frame
@@ -1121,6 +1133,7 @@ final class LiveCameraPreviewController: NSObject {
                         reason: "barReferenceUnavailable",
                         endReason: .setupInvalidated
                     )
+                    finishDebugCaptureIfNeeded()
                 }
             }
 
@@ -1195,8 +1208,10 @@ extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
             }
 
             self.debugCaptureURL = outputFileURL
-            self.debugCaptureSessionJSON = self.makeDebugSessionMetadataJSON()
-            self.debugCaptureQualificationJSON = self.qualificationReportJSON()
+            if self.debugCaptureSessionJSON == nil
+                || self.debugCaptureQualificationJSON == nil {
+                self.snapshotDebugCaptureMetadataIfNeeded()
+            }
             self.debugCaptureState = .ready
         }
     }
