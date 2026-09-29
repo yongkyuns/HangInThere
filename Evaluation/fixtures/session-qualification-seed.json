@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "scope": "Seed evidence only; validates whole-session aggregation. Not a population benchmark.",
+  "sessions": [
+    {
+      "id": "jullian_controlled_dip_v6",
+      "exercise": "dip",
+      "evidence_class": "development",
+      "population_eligible": false,
+      "source_group": "Pexels-34568748",
+      "participant_group": null,
+      "expected_movements": 9,
+      "observed_movements": 9,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0,
+      "analyzed_frames": 300,
+      "usable_tracking_frames": 300,
+      "bar_setup": {
+        "required": false,
+        "succeeded": false,
+        "attempts": 0
+      },
+      "camera_stability": {
+        "false_interruptions": 0,
+        "deliberate_events": 0,
+        "detected_deliberate_events": 0
+      },
+      "tags": [
+        "fixed-camera",
+        "offline",
+        "side-oblique"
+      ],
+      "reviewed_without_runtime_output": false,
+      "end_reason": "offline",
+      "counter_policy_version": 6,
+      "tracking_side": "left"
+    },
+    {
+      "id": "romina_consumed_development_v6",
+      "exercise": "dip",
+      "evidence_class": "development",
+      "population_eligible": false,
+      "source_group": "Pexels-5046452",
+      "participant_group": "Romina-Martinez-Pexels-5046452",
+      "expected_movements": 3,
+      "observed_movements": 3,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0,
+      "analyzed_frames": 27,
+      "usable_tracking_frames": 21,
+      "bar_setup": {
+        "required": false,
+        "succeeded": false,
+        "attempts": 0
+      },
+      "camera_stability": {
+        "false_interruptions": 0,
+        "deliberate_events": 0,
+        "detected_deliberate_events": 0
+      },
+      "tags": [
+        "fixed-camera",
+        "offline",
+        "side-view"
+      ],
+      "reviewed_without_runtime_output": true,
+      "end_reason": "offline",
+      "counter_policy_version": 6,
+      "tracking_side": "left"
+    },
+    {
+      "id": "pavel_consumed_holdout_v2",
+      "exercise": "dip",
+      "evidence_class": "heldout_consumed",
+      "population_eligible": false,
+      "source_group": "Pexels-4065479",
+      "participant_group": "Pavel-Danilyuk-Pexels-4065479",
+      "expected_movements": 3,
+      "observed_movements": 3,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0,
+      "analyzed_frames": 112,
+      "usable_tracking_frames": 101,
+      "bar_setup": {
+        "required": false,
+        "succeeded": false,
+        "attempts": 0
+      },
+      "camera_stability": {
+        "false_interruptions": 0,
+        "deliberate_events": 0,
+        "detected_deliberate_events": 0
+      },
+      "tags": [
+        "fixed-camera",
+        "offline",
+        "side-oblique",
+        "heldout-count-pass"
+      ],
+      "reviewed_without_runtime_output": true,
+      "end_reason": "offline",
+      "counter_policy_version": 6,
+      "tracking_side": "right"
+    }
+  ]
+}

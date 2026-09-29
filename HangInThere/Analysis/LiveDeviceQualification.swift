@@ -74,7 +74,14 @@ struct LiveDeviceQualificationRecorder: Sendable {
         let sceneRegistrationLatency: LatencySummary
         let stability: StabilitySummary
         let thresholds: Thresholds
+        let counterPolicyVersion: Int
+        let exercise: String
+        let side: String
         let observedMovements: Int
+        let partialAttempts: Int
+        let interruptedAttempts: Int
+        let setAnalyzedFrames: Int
+        let setUsableTrackingFrames: Int
         let trackingCoverage: Double?
         let setPhase: String
         let setEndReason: String?
@@ -159,7 +166,14 @@ struct LiveDeviceQualificationRecorder: Sendable {
         droppedFrames: Int,
         analysisFailures: Int,
         sceneRegistrationFailures: Int,
+        counterPolicyVersion: Int,
+        exercise: String,
+        side: String,
         observedMovements: Int,
+        partialAttempts: Int,
+        interruptedAttempts: Int,
+        setAnalyzedFrames: Int,
+        setUsableTrackingFrames: Int,
         trackingCoverage: Double?,
         setPhase: String,
         setEndReason: String?
@@ -219,7 +233,14 @@ struct LiveDeviceQualificationRecorder: Sendable {
                 sceneMovementDwellSeconds: StaticSceneStability.movementDwellSeconds,
                 minimumTranslationConsensusPatches: StaticSceneStability.minimumConsensusPatches
             ),
+            counterPolicyVersion: max(0, counterPolicyVersion),
+            exercise: exercise,
+            side: side,
             observedMovements: max(0, observedMovements),
+            partialAttempts: max(0, partialAttempts),
+            interruptedAttempts: max(0, interruptedAttempts),
+            setAnalyzedFrames: max(0, setAnalyzedFrames),
+            setUsableTrackingFrames: min(max(0, setUsableTrackingFrames), max(0, setAnalyzedFrames)),
             trackingCoverage: trackingCoverage.flatMap(sanitizedUnitInterval),
             setPhase: setPhase,
             setEndReason: setEndReason,

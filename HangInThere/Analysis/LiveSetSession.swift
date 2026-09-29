@@ -31,6 +31,10 @@ struct LiveSetSession: Sendable {
     var exercise: ExerciseCounter.Exercise { counter.exercise }
     var side: ArmMeasurement.Side { counter.side }
     var observedMovements: Int { counter.observedMovements }
+    var partialAttempts: Int { counter.partialAttempts }
+    var interruptedAttempts: Int { counter.interruptedAttempts }
+    var analyzedFrameCount: Int { analyzedFrames }
+    var usableTrackingFrameCount: Int { usableFrames }
     var trackingIssue: String? { counter.trackingIssue }
 
     var durationSeconds: Double {

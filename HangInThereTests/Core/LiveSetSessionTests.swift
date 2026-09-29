@@ -33,8 +33,12 @@ struct LiveSetSessionTests {
 
         #expect(session.analyzedFrames == 4)
         #expect(session.usableFrames == 3)
+        #expect(session.analyzedFrameCount == 4)
+        #expect(session.usableTrackingFrameCount == 3)
         #expect(abs((session.trackingCoverage ?? -1) - 0.75) < 1e-9)
         #expect(session.counter.interruptedAttempts == 1)
+        #expect(session.interruptedAttempts == 1)
+        #expect(session.partialAttempts == 0)
         #expect(session.trackingIssue == "lowConfidence")
     }
 
