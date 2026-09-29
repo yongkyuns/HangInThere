@@ -251,6 +251,15 @@ final class LiveCameraPreviewController: NSObject {
         return (videoURL, sessionJSON, qualificationJSON)
     }
 
+    var canStartDebugCapture: Bool {
+        guard isCameraReady,
+              liveSet.phase == .idle,
+              currentBar == nil,
+              let movieOutput
+        else { return false }
+        return !movieOutput.isRecording && !debugCaptureState.isActive
+    }
+
     var qualificationThermalLevel: LiveDeviceQualificationRecorder.ThermalLevel {
         currentThermalLevel()
     }
@@ -286,11 +295,8 @@ final class LiveCameraPreviewController: NSObject {
 
     @discardableResult
     func startDebugCapture() -> Bool {
-        guard isCameraReady,
-              liveSet.phase == .idle,
-              let movieOutput,
-              !movieOutput.isRecording,
-              !debugCaptureState.isActive
+        guard canStartDebugCapture,
+              let movieOutput
         else { return false }
 
         discardCompletedDebugCapture()
@@ -454,7 +460,9 @@ final class LiveCameraPreviewController: NSObject {
         exercise: ExerciseCounter.Exercise,
         side: ArmMeasurement.Side
     ) {
-        guard liveSet.phase != .running else { return }
+        guard liveSet.phase != .running,
+              !debugCaptureState.isActive
+        else { return }
         let changed = self.exercise != exercise || trackingSide != side
         self.exercise = exercise
         trackingSide = side
