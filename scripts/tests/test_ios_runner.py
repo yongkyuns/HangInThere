@@ -20,6 +20,9 @@ class IOSRunnerTests(unittest.TestCase):
         (self.root / "scripts/prepare-fixtures.py").write_text(
             "from pathlib import Path\nPath('fixture-verified').touch()\n"
         )
+        (self.root / "scripts/prepare-video-corpus.py").write_text(
+            "from pathlib import Path\nPath('corpus-verified').touch()\n"
+        )
         self.tools = self.root / "tools"
         self.tools.mkdir()
         self.log = self.root / "commands.jsonl"
@@ -71,22 +74,27 @@ else:
         self.assertFalse(any('only-testing:' in a or 'skip-testing:' in a for a in commands[-1]))
         self.assertIn('build/Simulator-all.xcresult', commands[-1])
         self.assertTrue((self.root / 'fixture-verified').exists())
+        self.assertTrue((self.root / 'corpus-verified').exists())
 
     def test_mechanics_needs_no_model_media_and_retains_device_build(self):
         result, commands = self.run_script('mechanics')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual([c[0] for c in commands], ['-version', 'build', 'test'])
         self.assertIn('-skip-testing:HangInThereTests/VisionSmokeTests', commands[-1])
+        self.assertIn('-skip-testing:HangInThereTests/RealVideoCorpusTests', commands[-1])
         self.assertIn('build/Simulator-mechanics.xcresult', commands[-1])
         self.assertFalse((self.root / 'fixture-verified').exists())
+        self.assertFalse((self.root / 'corpus-verified').exists())
 
     def test_vision_is_explicit_and_retains_separate_evidence(self):
         result, commands = self.run_script('vision')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual([c[0] for c in commands], ['-version', 'test'])
         self.assertIn('-only-testing:HangInThereTests/VisionSmokeTests', commands[-1])
+        self.assertIn('-only-testing:HangInThereTests/RealVideoCorpusTests', commands[-1])
         self.assertIn('build/Simulator-vision.xcresult', commands[-1])
         self.assertTrue((self.root / 'fixture-verified').exists())
+        self.assertTrue((self.root / 'corpus-verified').exists())
 
     def test_vision_failure_is_not_swallowed_by_tee(self):
         result, _ = self.run_script('vision', TEST_EXIT='65')
