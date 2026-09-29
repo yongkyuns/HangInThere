@@ -272,21 +272,38 @@ policy requires at least two patch translations to agree, so one corner contamin
 by a moving athlete can be rejected as an outlier. **Start set stays blocked until a
 valid background consensus has been observed after calibration.**
 
-A provisional image-space gate invalidates calibration when consensus translation
-exceeds **0.8% of the image short side for at least 0.25 s**. The app then clears
-the fixed bar reference; a running set ends as **Set interrupted** with a
-scene-shift reason. Brief or mutually inconsistent patch shifts do not invalidate
-setup.
+The static-scene policy now separates two registration signals:
 
-This substantially reduces the **lateral/image-plane translation** blind spot but
-is still not a full camera-pose estimator. Translation along the optical axis may
-appear primarily as scale/parallax rather than one common image translation.
-Low-texture backgrounds, depth-dependent parallax, zoom/lens changes, and scene
-motion can also make translational registration unavailable or ambiguous. The UI
-therefore uses **Camera position / background alignment**
-language rather than claiming 6-DoF camera localization. Both the Core Motion and
-image-registration thresholds remain engineering defaults pending physical iPhone
-qualification.
+- **four peripheral translational registrations**, used for robust lateral/image-plane
+  movement with corner consensus;
+- **one full-frame homographic registration**, used for toward/away or zoom-like
+  scale change.
+
+The first scale implementation tried to infer radial scale from corner translations,
+then tried local homographies on each corner. Synthetic qualification showed both
+approaches could leave only two usable scale witnesses. The current design keeps
+corner translations for robust lateral movement but uses one globally constrained
+homography for scale.
+
+A provisional image-space gate invalidates calibration when common translation
+exceeds **0.8% of the image short side for at least 0.25 s**. A separate provisional
+gate invalidates calibration when the global homographic scale term exceeds **1.2%
+for at least 0.25 s**. Start remains blocked until both a valid corner-translation
+consensus and a valid low-scale homography have been observed after calibration.
+Brief threshold crossings reset instead of immediately destroying setup.
+
+The global homographic scale term reduces the most obvious toward/away or zoom-like
+blind spot. It does add homographic registration work, so the device-qualification
+path must measure its latency and thermal cost separately from body-pose inference.
+A running set records **scene shifted** versus **scene scaled** separately so
+physical-device tuning can distinguish which guard fired.
+
+This is still not a full camera-pose estimator. Depth-dependent parallax, lens
+switches, nonuniform perspective changes, low-texture backgrounds, and independently
+moving scene content can make the simple translation + radial-scale model ambiguous.
+The UI therefore uses **Camera position / background alignment** language rather
+than claiming 6-DoF camera localization. All Core Motion and image-registration
+thresholds remain engineering defaults pending physical iPhone qualification.
 
 The qualified live workflow is now exposed from the main customer entry screen as
 the primary action. It is presented full-screen so setup, the running set, and
@@ -317,7 +334,7 @@ The app should eventually provide:
 - "move farther back" / "keep selected arm visible" guidance;
 - confirmation that the selected athlete/arm is measurable (implemented for live setup);
 - confirmation that the bar/rail is visible (not yet automatic);
-- warning/invalidation for sustained phone orientation change plus multi-patch background translation after calibration (implemented; full 6-DoF stability remains unverified);
+- warning/invalidation for sustained phone orientation change plus multi-patch background translation/radial scale after calibration (implemented; full 6-DoF stability remains unverified);
 - exercise-specific camera recommendations.
 
 Do not expose arbitrary CV thresholds to customers.
@@ -376,6 +393,31 @@ The visual identity should feel athletic and precise rather than clinical:
 - no dashboard grid of low-value diagnostics.
 
 A custom brand palette/icon can come later without changing information architecture.
+
+## Physical-device qualification evidence
+
+Live Workout exposes a collapsed **Device qualification** disclosure for engineering
+use. It records at most one bounded metrics snapshot per second and can share a
+local JSON report containing:
+
+- body-pose Vision latency;
+- full static-scene registration latency/failures;
+- analyzed and dropped frame counters;
+- Core Motion orientation delta;
+- peripheral background translation plus global homographic-scale metrics;
+- thermal state;
+- set phase/count/tracking outcome;
+- the exact compiled stability thresholds.
+
+It does **not** export video, images, pose landmarks, imported filenames, location,
+account data, or device identifiers. The engineering disclosure exports the report
+as an actual timestamped JSON file through the system file exporter so the result
+can be saved to Files/AirDrop and passed directly to the offline analyzer.
+
+The repeatable physical-iPhone procedure is documented in
+`docs/DEVICE_QUALIFICATION.md`. Until those runs are collected, the current
+1.5° orientation, 0.8% translation, and 1.2% global homographic-scale thresholds
+remain engineering defaults rather than validated limits.
 
 ## Product-quality gates before customer release
 

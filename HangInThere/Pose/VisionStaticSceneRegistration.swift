@@ -10,12 +10,18 @@ struct StaticSceneRegistrationReference: Sendable {
     }
 
     let imageSize: ImageSize
+    let image: CGImage
     let patches: [Patch]
 }
 
-// Vision's translational registration aligns a floating image to a fixed
-// reference. We use four peripheral patches and leave robustness/thresholds to
-// StaticSceneTranslationStability so one athlete-contaminated patch is an outlier.
+struct StaticSceneRegistrationMeasurement: Sendable {
+    let translations: [StaticSceneStability.PatchTranslation]
+    let globalScaleFraction: Double?
+}
+
+// Peripheral patches keep the moving athlete from dominating lateral translation.
+// A separate full-frame homography supplies the scale signal because local corner
+// homographies proved too fragile in synthetic qualification.
 actor VisionStaticSceneRegistrationWorker {
     enum RegistrationError: LocalizedError {
         case invalidGeometry
@@ -33,6 +39,8 @@ actor VisionStaticSceneRegistrationWorker {
 
     static let patchFraction = 0.25
     static let maximumPatchShiftFraction = 0.45
+    static let minimumPlausibleHomographicScale = 0.5
+    static let maximumPlausibleHomographicScale = 2.0
 
     static func makeReference(
         image: CGImage
@@ -50,6 +58,7 @@ actor VisionStaticSceneRegistrationWorker {
         guard patches.count == 4 else { return nil }
         return StaticSceneRegistrationReference(
             imageSize: ImageSize(width: Double(width), height: Double(height)),
+            image: image,
             patches: patches
         )
     }
@@ -57,7 +66,7 @@ actor VisionStaticSceneRegistrationWorker {
     func measure(
         reference: StaticSceneRegistrationReference,
         image: CGImage
-    ) throws -> [StaticSceneTranslationStability.PatchShift] {
+    ) throws -> StaticSceneRegistrationMeasurement {
         guard reference.imageSize.isValid, reference.patches.count >= 2 else {
             throw RegistrationError.invalidGeometry
         }
@@ -67,38 +76,109 @@ actor VisionStaticSceneRegistrationWorker {
             throw RegistrationError.incompatibleGeometry
         }
 
-        var shifts: [StaticSceneTranslationStability.PatchShift] = []
-        shifts.reserveCapacity(reference.patches.count)
+        var translations: [StaticSceneStability.PatchTranslation] = []
+        translations.reserveCapacity(reference.patches.count)
 
         for patch in reference.patches {
-            guard let current = image.cropping(to: patch.rect) else { continue }
+            guard let current = image.cropping(to: patch.rect),
+                  let translation = translationMeasurement(
+                    reference: patch.image,
+                    current: current,
+                    patchRect: patch.rect
+                  )
+            else { continue }
 
-            let request = VNTranslationalImageRegistrationRequest(
-                targetedCGImage: patch.image,
-                orientation: .up,
-                options: [:]
-            )
-            let handler = VNImageRequestHandler(
-                cgImage: current,
-                orientation: .up,
-                options: [:]
-            )
-            try handler.perform([request])
-
-            guard let observation = request.results?.first else { continue }
-            let transform = observation.alignmentTransform
-            let dx = Double(transform.tx)
-            let dy = Double(transform.ty)
-            guard dx.isFinite, dy.isFinite else { continue }
-
-            let maxX = patch.rect.width * Self.maximumPatchShiftFraction
-            let maxY = patch.rect.height * Self.maximumPatchShiftFraction
-            guard abs(dx) <= maxX, abs(dy) <= maxY else { continue }
-
-            shifts.append(.init(dxPixels: dx, dyPixels: dy))
+            translations.append(.init(
+                dxPixels: translation.dx,
+                dyPixels: translation.dy
+            ))
         }
 
-        return shifts
+        let globalScale = homographicScaleMeasurement(
+            reference: reference.image,
+            current: image
+        )
+
+        return StaticSceneRegistrationMeasurement(
+            translations: translations,
+            globalScaleFraction: globalScale
+        )
+    }
+
+    private func translationMeasurement(
+        reference: CGImage,
+        current: CGImage,
+        patchRect: CGRect
+    ) -> (dx: Double, dy: Double)? {
+        let request = VNTranslationalImageRegistrationRequest(
+            targetedCGImage: reference,
+            orientation: .up,
+            options: [:]
+        )
+        let handler = VNImageRequestHandler(
+            cgImage: current,
+            orientation: .up,
+            options: [:]
+        )
+        do {
+            try handler.perform([request])
+        } catch {
+            return nil
+        }
+
+        guard let observation = request.results?.first else { return nil }
+        let transform = observation.alignmentTransform
+        let dx = Double(transform.tx)
+        let dy = Double(transform.ty)
+        guard dx.isFinite, dy.isFinite else { return nil }
+
+        let maxX = patchRect.width * Self.maximumPatchShiftFraction
+        let maxY = patchRect.height * Self.maximumPatchShiftFraction
+        guard abs(dx) <= maxX, abs(dy) <= maxY else { return nil }
+        return (dx, dy)
+    }
+
+    private func homographicScaleMeasurement(
+        reference: CGImage,
+        current: CGImage
+    ) -> Double? {
+        let request = VNHomographicImageRegistrationRequest(
+            targetedCGImage: reference,
+            orientation: .up,
+            options: [:]
+        )
+        let handler = VNImageRequestHandler(
+            cgImage: current,
+            orientation: .up,
+            options: [:]
+        )
+        do {
+            try handler.perform([request])
+        } catch {
+            return nil
+        }
+
+        guard let observation = request.results?.first else { return nil }
+        let matrix = observation.warpTransform
+
+        let h22 = Double(matrix.columns.2.z)
+        guard h22.isFinite, abs(h22) > 1e-9 else { return nil }
+
+        let a = Double(matrix.columns.0.x) / h22
+        let b = Double(matrix.columns.0.y) / h22
+        let c = Double(matrix.columns.1.x) / h22
+        let d = Double(matrix.columns.1.y) / h22
+        let determinant = abs(a * d - b * c)
+        guard determinant.isFinite, determinant > 0 else { return nil }
+
+        let scale = sqrt(determinant)
+        guard scale.isFinite,
+              scale >= Self.minimumPlausibleHomographicScale,
+              scale <= Self.maximumPlausibleHomographicScale
+        else { return nil }
+
+        let fraction = abs(scale - 1)
+        return fraction.isFinite ? fraction : nil
     }
 
     private static func cornerPatchRects(

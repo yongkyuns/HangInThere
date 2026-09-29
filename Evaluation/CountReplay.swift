@@ -1,5 +1,5 @@
 // Re-run the exact framework-free production counter on recorded observations.
-// This does not perform new inference. Policy v2 requires an independent bar edge.
+// This does not perform new inference. Counting requires an independent bar edge.
 import Foundation
 
 private struct Row: Decodable {
