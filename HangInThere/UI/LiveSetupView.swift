@@ -335,7 +335,14 @@ struct LiveSetupView: View {
                 }
             }
             .pickerStyle(.segmented)
+
+            if camera.debugCaptureState.isActive {
+                Text("Exercise and tracking side are locked while debug capture is active so the exported session has one unambiguous configuration.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
+        .disabled(camera.debugCaptureState.isActive)
         .padding(16)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
     }
@@ -877,10 +884,16 @@ struct LiveSetupView: View {
                     Label("Start local debug capture", systemImage: "record.circle")
                 }
                 .buttonStyle(.bordered)
-                .disabled(!camera.isCameraReady || camera.liveSet.phase != .idle)
+                .disabled(!camera.canStartDebugCapture)
                 .accessibilityIdentifier("startDebugSessionCapture")
 
-                Text("Start before bar calibration to preserve setup plus the full set. The capture stays on this device until you explicitly export it.")
+                if camera.currentBar != nil {
+                    Text("Clear the bar reference before starting debug capture. This guarantees the recording includes bar calibration as well as the set.")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+
+                Text("Start before bar calibration to preserve setup plus the full set. Exercise and tracking side stay fixed until recording stops. The capture stays on this device until you explicitly export it.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
