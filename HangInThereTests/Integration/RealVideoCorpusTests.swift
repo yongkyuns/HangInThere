@@ -167,7 +167,28 @@ struct RealVideoCorpusTests {
             session.start(exercise: exercise, side: side)
 
             while let frame = try await reader.nextFrame() {
-                session.consume(frame.pose, referenceEdge: reference)
+                if testCase.id == "jullianw-parallel-bar-dips" {
+                    let measurement = ArmMeasurement(pose: frame.pose, side: side)
+                    let shoulder = frame.pose.people.count == 1
+                        ? frame.pose.people[0].landmark(side.joints[0])?.position
+                        : nil
+                    let distance = shoulder.map { reference.perpendicularDistance(to: $0) }
+                    let before = session.counter.summary
+                    session.consume(frame.pose, referenceEdge: reference)
+                    let after = session.counter.summary
+                    let elbow = measurement.estimate?.elbowDegrees
+                    print(
+                        "[Dip trace] t=\(frame.pose.timestamp.seconds); people=\(frame.pose.people.count); " +
+                        "elbow=\(elbow.map(String.init(describing:)) ?? "nil"); " +
+                        "reason=\(measurement.unavailableReason?.rawValue ?? "ok"); " +
+                        "railDistance=\(distance.map(String.init(describing:)) ?? "nil"); " +
+                        "phase=\(before.phase.rawValue)->\(after.phase.rawValue); " +
+                        "movements=\(after.observedMovements); partial=\(after.partialAttempts); " +
+                        "interrupted=\(after.interruptedAttempts); issue=\(after.trackingIssue ?? "none")"
+                    )
+                } else {
+                    session.consume(frame.pose, referenceEdge: reference)
+                }
             }
             await reader.close()
             session.finish()
