@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
+import UIKit
 
 struct LiveSetupGuide: Equatable, Sendable {
     let exercise: ExerciseCounter.Exercise
@@ -42,6 +43,9 @@ struct LiveSetupView: View {
     @State private var showingQualificationExporter = false
     @State private var showingQualificationExportError = false
     @State private var qualificationExportErrorMessage = ""
+    #if DEBUG
+    @State private var showingDebugShare = false
+    #endif
 
     private var guide: LiveSetupGuide {
         LiveSetupGuide(exercise: exercise, side: side)
@@ -68,6 +72,9 @@ struct LiveSetupView: View {
 
                     scopeNote
                     qualificationDisclosure
+                    #if DEBUG
+                    debugCaptureCard
+                    #endif
                 }
                 .padding()
             }
@@ -104,6 +111,11 @@ struct LiveSetupView: View {
                     showingQualificationExportError = true
                 }
             }
+            #if DEBUG
+            .sheet(isPresented: $showingDebugShare) {
+                DebugSessionShareSheet(urls: camera.debugCaptureShareURLs)
+            }
+            #endif
             .alert(
                 "Couldn't export qualification report",
                 isPresented: $showingQualificationExportError
@@ -728,6 +740,120 @@ struct LiveSetupView: View {
         .foregroundStyle(.secondary)
     }
 
+    #if DEBUG
+    private var debugCaptureCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Debug capture", systemImage: "ladybug")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                switch camera.debugCaptureState {
+                case .recording:
+                    Text("RECORDING")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.red)
+                case .finalizing:
+                    Text("FINALIZING")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.orange)
+                case .ready:
+                    Text("READY")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.green)
+                case .failed:
+                    Text("FAILED")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.red)
+                case .idle:
+                    EmptyView()
+                }
+            }
+
+            Text(
+                "Qualification-only. Records the raw camera stream locally for offline replay. "
+                + "Nothing is uploaded automatically."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            switch camera.debugCaptureState {
+            case .idle:
+                Button {
+                    _ = camera.startDebugCapture()
+                } label: {
+                    Label("Start debug capture", systemImage: "record.circle")
+                }
+                .buttonStyle(.bordered)
+                .disabled(!camera.canStartDebugCapture)
+
+                if camera.currentBar != nil {
+                    Text("Clear the bar first so the capture includes calibration.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+            case .recording:
+                Label(
+                    "Continue setup and run one set. Capture finalizes automatically when the set ends.",
+                    systemImage: "video.fill"
+                )
+                .font(.caption)
+                .foregroundStyle(.red)
+
+                Button("Discard capture", role: .destructive) {
+                    camera.discardDebugCapture()
+                }
+                .font(.caption)
+
+            case .finalizing:
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Finishing video and hashing evidence…")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+            case .ready:
+                if let summary = camera.debugCaptureSummary {
+                    Text(
+                        "\(summary.appendedSamples) video samples · "
+                        + "\(summary.droppedQueueSamples) queue drops · "
+                        + "\(summary.droppedWriterSamples) writer drops"
+                    )
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                }
+
+                Button {
+                    showingDebugShare = true
+                } label: {
+                    Label("Export debug session", systemImage: "square.and.arrow.up")
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(camera.debugCaptureShareURLs.count != 3)
+
+                Button("Delete local debug files", role: .destructive) {
+                    camera.discardDebugCapture()
+                }
+                .font(.caption)
+
+            case .failed(let message):
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                Button("Clear failed capture", role: .destructive) {
+                    camera.discardDebugCapture()
+                }
+                .font(.caption)
+            }
+        }
+        .padding(16)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .accessibilityIdentifier("liveDebugCapture")
+    }
+    #endif
+
     private var qualificationDisclosure: some View {
         DisclosureGroup {
             VStack(alignment: .leading, spacing: 14) {
@@ -932,3 +1058,19 @@ struct LiveSetupView: View {
         .accessibilityElement(children: .combine)
     }
 }
+
+
+#if DEBUG
+private struct DebugSessionShareSheet: UIViewControllerRepresentable {
+    let urls: [URL]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: urls, applicationActivities: nil)
+    }
+
+    func updateUIViewController(
+        _ uiViewController: UIActivityViewController,
+        context: Context
+    ) {}
+}
+#endif
