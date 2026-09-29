@@ -394,6 +394,31 @@ The visual identity should feel athletic and precise rather than clinical:
 
 A custom brand palette/icon can come later without changing information architecture.
 
+## Physical-device qualification evidence
+
+Live Workout exposes a collapsed **Device qualification** disclosure for engineering
+use. It records at most one bounded metrics snapshot per second and can share a
+local JSON report containing:
+
+- body-pose Vision latency;
+- full static-scene registration latency/failures;
+- analyzed and dropped frame counters;
+- Core Motion orientation delta;
+- peripheral background translation plus global homographic-scale metrics;
+- thermal state;
+- set phase/count/tracking outcome;
+- the exact compiled stability thresholds.
+
+It does **not** export video, images, pose landmarks, imported filenames, location,
+account data, or device identifiers. The engineering disclosure exports the report
+as an actual timestamped JSON file through the system file exporter so the result
+can be saved to Files/AirDrop and passed directly to the offline analyzer.
+
+The repeatable physical-iPhone procedure is documented in
+`docs/DEVICE_QUALIFICATION.md`. Until those runs are collected, the current
+1.5° orientation, 0.8% translation, and 1.2% global homographic-scale thresholds
+remain engineering defaults rather than validated limits.
+
 ## Product-quality gates before customer release
 
 The UI can look polished before the underlying measurement is release-ready. Treat

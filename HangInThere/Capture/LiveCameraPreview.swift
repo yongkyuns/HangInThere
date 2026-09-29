@@ -156,11 +156,14 @@ final class LiveCameraPreviewController {
     private(set) var droppedFrames = 0
     private(set) var analysisFailures = 0
     private(set) var lastProcessingMilliseconds: Double?
+    private(set) var lastSceneRegistrationMilliseconds: Double?
+    private(set) var sceneRegistrationFailures = 0
     private(set) var bar: ConfirmedBar?
     private(set) var liveSet = LiveSetSession()
     private(set) var phoneOrientation = PhoneOrientationStability()
     private(set) var motionSampleAvailable = false
     private(set) var sceneTranslation = StaticSceneStability()
+    private(set) var qualification = LiveDeviceQualificationRecorder()
 
     let session = AVCaptureSession()
 
@@ -210,6 +213,32 @@ final class LiveCameraPreviewController {
     }
 
     var latestImageSize: ImageSize? { latestFrame?.pose.imageSize }
+
+    var qualificationThermalLevel: LiveDeviceQualificationRecorder.ThermalLevel {
+        currentThermalLevel()
+    }
+
+    func qualificationReportJSON() -> String {
+        let report = qualification.makeReport(
+            uptimeSeconds: ProcessInfo.processInfo.systemUptime,
+            analyzedFrames: analyzedFrames,
+            droppedFrames: droppedFrames,
+            analysisFailures: analysisFailures,
+            sceneRegistrationFailures: sceneRegistrationFailures,
+            observedMovements: liveSet.observedMovements,
+            trackingCoverage: liveSet.trackingCoverage,
+            setPhase: liveSet.phase.rawValue,
+            setEndReason: liveSet.endReason?.rawValue
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(report),
+              let text = String(data: data, encoding: .utf8)
+        else {
+            return "{\"schemaVersion\":1,\"error\":\"reportEncodingFailed\"}"
+        }
+        return text
+    }
 
     var setupReadiness: LiveSetupReadiness {
         LiveSetupReadiness(
@@ -394,10 +423,13 @@ final class LiveCameraPreviewController {
         }
 
         suspended = false
+        qualification.reset(startUptimeSeconds: ProcessInfo.processInfo.systemUptime)
         analyzedFrames = 0
         droppedFrames = 0
         analysisFailures = 0
         lastProcessingMilliseconds = nil
+        lastSceneRegistrationMilliseconds = nil
+        sceneRegistrationFailures = 0
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
@@ -718,6 +750,7 @@ final class LiveCameraPreviewController {
         sceneRegistrationTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let measurement: StaticSceneRegistrationMeasurement
+            let started = ContinuousClock.now
             do {
                 measurement = try await sceneRegistrationWorker.measure(
                     reference: reference,
@@ -725,10 +758,16 @@ final class LiveCameraPreviewController {
                 )
             } catch {
                 if self.setupGeneration == token {
+                    self.sceneRegistrationFailures += 1
+                    self.lastSceneRegistrationMilliseconds = nil
                     self.sceneRegistrationTask = nil
                 }
                 return
             }
+
+            let duration = started.duration(to: .now).components
+            let registrationMilliseconds = Double(duration.seconds) * 1_000
+                + Double(duration.attoseconds) / 1e15
 
             guard !Task.isCancelled,
                   self.setupGeneration == token,
@@ -740,6 +779,7 @@ final class LiveCameraPreviewController {
                 return
             }
 
+            self.lastSceneRegistrationMilliseconds = registrationMilliseconds
             let state = self.sceneTranslation.observe(
                 translations: measurement.translations,
                 globalScaleFraction: measurement.globalScaleFraction,
@@ -777,6 +817,35 @@ final class LiveCameraPreviewController {
         lastSceneRegistrationSeconds = nil
     }
 
+    private func recordQualificationSample() {
+        qualification.record(
+            uptimeSeconds: ProcessInfo.processInfo.systemUptime,
+            visionProcessingMilliseconds: lastProcessingMilliseconds,
+            sceneRegistrationMilliseconds: lastSceneRegistrationMilliseconds,
+            analyzedFrames: analyzedFrames,
+            droppedFrames: droppedFrames,
+            analysisFailures: analysisFailures,
+            sceneRegistrationFailures: sceneRegistrationFailures,
+            orientationDeltaDegrees: phoneOrientation.latestDeltaDegrees,
+            sceneShiftFraction: sceneTranslation.latestShiftFraction,
+            sceneScaleFraction: sceneTranslation.latestScaleFraction,
+            sceneTranslationConsensusPatches: sceneTranslation.latestConsensusPatches,
+            sceneScaleMeasurementAvailable: sceneTranslation.latestScaleMeasurementAvailable,
+            thermalLevel: currentThermalLevel(),
+            setPhase: liveSet.phase.rawValue
+        )
+    }
+
+    private func currentThermalLevel() -> LiveDeviceQualificationRecorder.ThermalLevel {
+        switch ProcessInfo.processInfo.thermalState {
+        case .nominal: .nominal
+        case .fair: .fair
+        case .serious: .serious
+        case .critical: .critical
+        @unknown default: .unknown
+        }
+    }
+
     private func startCaptureWatchdogIfNeeded() {
         guard captureWatchdogTask == nil else { return }
 
@@ -789,6 +858,7 @@ final class LiveCameraPreviewController {
                       self.state == .ready else { continue }
 
                 self.pollPhoneOrientation()
+                self.recordQualificationSample()
 
                 if self.session.isInterrupted {
                     self.suspend(
@@ -837,6 +907,7 @@ final class LiveCameraPreviewController {
             lastProcessingMilliseconds = frame.processingMilliseconds
             framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide)
             maybeCheckSceneTranslation(frame)
+            recordQualificationSample()
 
             if liveSet.phase == .running {
                 if discardNextSetFrame {
