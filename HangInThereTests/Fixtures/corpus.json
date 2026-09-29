@@ -114,6 +114,48 @@
       }
     },
     {
+      "id": "yokota-crowded-pullup",
+      "tier": "stress-coverage",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:PACUP_-_Yokota_February_Samurai_Fitness_Challenge_%28998462%29.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/PACUP_-_Yokota_February_Samurai_Fitness_Challenge_%28998462%29.webm",
+      "source_bytes": 10075812,
+      "source_sha256": "d303e07423a3c083dca3f7019d0847d12bc3a4651ea37a8080c6d25893bd3e64",
+      "license": "Public domain in the United States (official U.S. Air Force work)",
+      "credit": "U.S. Air Force video by Staff Sgt. James Kennedy",
+      "environment_tags": [
+        "indoor-gym",
+        "landscape",
+        "multi-person",
+        "foreground-occlusion",
+        "crowded",
+        "standard-two-arm"
+      ],
+      "recipe": {
+        "source_start_seconds": 23.625,
+        "duration_seconds": 2.5,
+        "frames_per_second": 8,
+        "max_long_edge": 640,
+        "expected_frame_count": 20
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.8,
+        "minimum_any_arm_fraction": 0.5,
+        "minimum_multiple_people_frames": 1,
+        "expected_orientation": "landscape"
+      },
+      "visual_review": {
+        "method": "Temporary full-source review artifact was inspected first; all 20 frames of the selected 23.625-26.125 s derivative were then reviewed at 8 FPS before Apple Vision corpus inference.",
+        "observed_content": "A real pull-up in a crowded indoor gym. A foreground observer substantially occludes the athlete while additional people and equipment remain visible in the background.",
+        "limitations": [
+          "Stress/coverage only; no rep-count or form label.",
+          "Scene-level person/arm coverage does not establish athlete identity continuity.",
+          "At least one real-Vision multi-person frame is required so production's explicit multi-person rejection path is exercised instead of silently selecting a person."
+        ]
+      }
+    },
+    {
       "id": "solodkyi-one-arm-portrait",
       "tier": "stress-coverage",
       "exercise": "pullUp",
@@ -197,5 +239,5 @@
     "status": "No reproducibly downloadable, clearly licensed real parallel-bar dip source is pinned yet. Do not fabricate one or relabel chair-dip footage."
   },
   "reviewed_date": "2026-09-28",
-  "review_policy": "Visual expectations were recorded before corpus inference. The FitnessScape count label was later corrected from 2 to 1 after indexed-frame visual re-review showed frame 0 already mid-ascent; the counter output was not used to redefine endpoint thresholds."
+  "review_policy": "Visual expectations were recorded before corpus inference. The FitnessScape count label was later corrected from 2 to 1 after indexed-frame visual re-review showed frame 0 already mid-ascent; the counter output was not used to redefine endpoint thresholds. The Yokota crowded-pull-up interval and its multi-person requirement were committed from visual review before running Apple Vision on that interval."
 }

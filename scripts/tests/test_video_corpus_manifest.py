@@ -15,7 +15,7 @@ class VideoCorpusManifestTests(unittest.TestCase):
     def test_every_case_has_unique_id_and_reviewed_expectations(self):
         ids = [case["id"] for case in self.cases]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertGreaterEqual(len(ids), 5)
+        self.assertGreaterEqual(len(ids), 6)
         for case in self.cases:
             self.assertIn(case["tier"], {"count-qualified", "tracking-qualified", "stress-coverage"})
             self.assertIn("visual_review", case)
@@ -24,6 +24,9 @@ class VideoCorpusManifestTests(unittest.TestCase):
             self.assertLessEqual(expectation["minimum_people_fraction"], 1)
             self.assertGreater(expectation["minimum_any_arm_fraction"], 0)
             self.assertLessEqual(expectation["minimum_any_arm_fraction"], 1)
+            if "minimum_multiple_people_frames" in expectation:
+                self.assertIsInstance(expectation["minimum_multiple_people_frames"], int)
+                self.assertGreater(expectation["minimum_multiple_people_frames"], 0)
 
     def test_downloaded_sources_are_integrity_pinned(self):
         for case in self.cases:
@@ -55,6 +58,15 @@ class VideoCorpusManifestTests(unittest.TestCase):
         indoor = next(case for case in count_cases if case["id"] == "fitnessscape-standard-indoor")
         self.assertEqual(indoor["count_expectation"]["expected_observed_movements"], 1)
         self.assertEqual(len(indoor["count_expectation"]["bar_reference_edge"]), 4)
+
+    def test_crowded_pullup_exercises_real_multi_person_safety(self):
+        case = next(case for case in self.cases if case["id"] == "yokota-crowded-pullup")
+        self.assertEqual(case["tier"], "stress-coverage")
+        self.assertEqual(case["recipe"]["expected_frame_count"], 20)
+        self.assertGreaterEqual(case["expectation"]["minimum_multiple_people_frames"], 1)
+        self.assertIn("multi-person", case["environment_tags"])
+        self.assertIn("foreground-occlusion", case["environment_tags"])
+        self.assertNotIn("count_expectation", case)
 
     def test_dip_gap_is_explicit_not_silently_substituted(self):
         gap = self.manifest["known_gap"]

@@ -174,7 +174,11 @@ def video_geometry(video):
     return {"width": int(stream["width"]), "height": int(stream["height"])}
 
 
-def create_contact_sheet(video, output):
+def create_contact_sheet(video, output, frame_count):
+    # Review the whole prepared interval. A fixed 0.5 FPS sheet under-sampled
+    # short clips and can hide start-state details, as the indoor label review
+    # demonstrated. Keep at most 16 approximately even samples.
+    stride = max(1, math.ceil(frame_count / 16))
     run(
         [
             "ffmpeg",
@@ -184,7 +188,9 @@ def create_contact_sheet(video, output):
             "-i",
             str(video),
             "-vf",
-            "fps=0.5,scale=240:-2:flags=lanczos,tile=4x4:padding=2:margin=2",
+            "select=not(mod(n\\,{})),scale=240:-2:flags=lanczos,tile=4x4:padding=2:margin=2".format(
+                stride
+            ),
             "-frames:v",
             "1",
             str(output),
@@ -253,7 +259,7 @@ def prepare_download_case(case, work):
     if any(b <= a for a, b in zip(timestamps, timestamps[1:])):
         raise ValueError("{} prepared timeline is not strictly increasing.".format(case["id"]))
 
-    create_contact_sheet(video, contact)
+    create_contact_sheet(video, contact, len(timestamps))
     return {
         "id": case["id"],
         "tier": case["tier"],
@@ -314,7 +320,7 @@ def prepare_existing_source_case(case, work):
                 case["id"], len(timestamps), expected_count
             )
         )
-    create_contact_sheet(video, contact)
+    create_contact_sheet(video, contact, len(timestamps))
     return {
         "id": case["id"],
         "tier": case["tier"],
@@ -342,8 +348,8 @@ def prepare_existing_case(case, work):
             )
         )
     contact = work / "{}-contact.jpg".format(case["id"])
-    create_contact_sheet(source, contact)
     timestamps = frame_timestamps(source)
+    create_contact_sheet(source, contact, len(timestamps))
     return {
         "id": case["id"],
         "tier": case["tier"],

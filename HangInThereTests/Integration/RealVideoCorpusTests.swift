@@ -19,6 +19,7 @@ struct RealVideoCorpusTests {
             var frames = 0
             var personFrames = 0
             var armFrames = 0
+            var multiplePeopleFrames = 0
             var rootPoints: [Point2D] = []
 
             while let frame = try await reader.nextFrame() {
@@ -34,6 +35,19 @@ struct RealVideoCorpusTests {
                 frames += 1
                 if !frame.pose.people.isEmpty {
                     personFrames += 1
+                }
+                if frame.pose.people.count > 1 {
+                    multiplePeopleFrames += 1
+                    #expect(
+                        ArmMeasurement(pose: frame.pose, side: .left).unavailableReason?.rawValue ==
+                            "multiplePeople",
+                        Comment(rawValue: "\(testCase.id): left arm unexpectedly selected a person.")
+                    )
+                    #expect(
+                        ArmMeasurement(pose: frame.pose, side: .right).unavailableReason?.rawValue ==
+                            "multiplePeople",
+                        Comment(rawValue: "\(testCase.id): right arm unexpectedly selected a person.")
+                    )
                 }
                 if VideoTestSupport.hasVisibleArm(frame.pose) {
                     armFrames += 1
@@ -89,6 +103,17 @@ struct RealVideoCorpusTests {
                 )
             )
 
+            if let minimumMultiplePeopleFrames = testCase.expectation.minimumMultiplePeopleFrames {
+                #expect(
+                    multiplePeopleFrames >= minimumMultiplePeopleFrames,
+                    Comment(
+                        rawValue:
+                            "\(testCase.id): only \(multiplePeopleFrames) multi-person frames < " +
+                            "pre-reviewed minimum \(minimumMultiplePeopleFrames)."
+                    )
+                )
+            }
+
             if let minimumMotion = testCase.expectation.minimumRootMotionFraction {
                 let motion = rootMotionSpan(rootPoints)
                 #expect(
@@ -104,7 +129,7 @@ struct RealVideoCorpusTests {
             print(
                 "[Corpus] id=\(testCase.id); tier=\(testCase.tier); frames=\(frames); " +
                 "peopleFraction=\(peopleFraction); armFraction=\(armFraction); " +
-                "rootMotion=\(rootMotionSpan(rootPoints))"
+                "multiPersonFrames=\(multiplePeopleFrames); rootMotion=\(rootMotionSpan(rootPoints))"
             )
         }
     }
@@ -233,12 +258,14 @@ private struct CorpusCase: Decodable {
         let minimumPeopleFraction: Double
         let minimumAnyArmFraction: Double
         let minimumRootMotionFraction: Double?
+        let minimumMultiplePeopleFrames: Int?
         let expectedOrientation: String?
 
         enum CodingKeys: String, CodingKey {
             case minimumPeopleFraction = "minimum_people_fraction"
             case minimumAnyArmFraction = "minimum_any_arm_fraction"
             case minimumRootMotionFraction = "minimum_root_motion_fraction"
+            case minimumMultiplePeopleFrames = "minimum_multiple_people_frames"
             case expectedOrientation = "expected_orientation"
         }
     }

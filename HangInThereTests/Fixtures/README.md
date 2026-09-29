@@ -84,6 +84,10 @@ Current reviewed scenarios:
 - **FitnessScape standard indoor** — second count-qualified standard pull-up view;
   indexed-frame review shows the file starts mid-attempt, reaches full extension,
   then contains one countable extension-to-top movement;
+- **Yokota crowded indoor pull-up** — 20 reviewed frames with a foreground
+  occluder plus the athlete and surrounding gym activity. This is a stress case:
+  real Vision must expose at least one multi-person frame, and production arm
+  measurement must reject that frame instead of silently selecting a person;
 - **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
 - **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
   background, swing/inversion stress.
@@ -93,7 +97,8 @@ The new clips are not all rep ground truth. `tier` is deliberate:
 - `count-qualified`: reviewed movement-cycle expectation and fixed bar reference;
 - `tracking-qualified`: reviewed person/arm visibility floors;
 - `stress-coverage`: difficult real footage must decode and produce sufficient
-  real-Vision tracking/motion evidence, but no rep/form label is implied.
+  real-Vision scene evidence, but no rep/form label is implied. Multi-person
+  scene-level arm coverage is not athlete identity continuity.
 
 Coverage floors were recorded from visual review before Apple Vision corpus
 inference. The initial indoor count label of two was corrected after indexed-frame
@@ -101,7 +106,9 @@ visual re-review showed that frame 0 is already mid-ascent; only the later
 extension-to-top movement is countable. CI must not relax endpoint thresholds merely
 to match model output.
 
-Preparation also emits review contact sheets and exact frame timestamps. CI retains
+Preparation also emits contact sheets sampled across the full decoded clip plus exact
+frame timestamps. Short clips are no longer represented by only one or two early
+thumbnails. CI retains
 the approved derived corpus temporarily for inspection; source media remains ignored
 under `Data/external/`.
 
