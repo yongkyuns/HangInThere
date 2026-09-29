@@ -260,6 +260,17 @@ final class LiveCameraPreviewController: NSObject {
         return !movieOutput.isRecording && !debugCaptureState.isActive
     }
 
+    var debugCaptureAllowsBarSetup: Bool {
+        switch debugCaptureState {
+        case .starting, .stopping:
+            return false
+        case .recording:
+            return debugCaptureFirstAnalyzedSourceSeconds != nil
+        default:
+            return true
+        }
+    }
+
     var qualificationThermalLevel: LiveDeviceQualificationRecorder.ThermalLevel {
         currentThermalLevel()
     }
@@ -490,12 +501,21 @@ final class LiveCameraPreviewController: NSObject {
         guard liveSet.phase != .running,
               isCameraReady,
               framing.state.isReady,
+              debugCaptureAllowsBarSetup,
               let latestFrame,
               let motionSample = currentPhoneMotionSample(),
               let sceneReference = VisionStaticSceneRegistrationWorker.makeReference(
                 image: latestFrame.image
               )
         else { return nil }
+
+        if debugCaptureState == .recording {
+            let latestSourceSeconds = latestFrame.pose.timestamp.seconds
+            guard latestSourceSeconds.isFinite,
+                  let firstCapturedSourceSeconds = debugCaptureFirstAnalyzedSourceSeconds,
+                  latestSourceSeconds >= firstCapturedSourceSeconds
+            else { return nil }
+        }
 
         let setup = BarSetupFrame(
             frame: latestFrame,
