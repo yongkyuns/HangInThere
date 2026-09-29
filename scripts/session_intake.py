@@ -179,6 +179,7 @@ def build_session(review: dict[str, Any], report: dict[str, Any]) -> dict[str, A
         "observed_movements": report["observedMovements"],
         "partial_attempts": report["partialAttempts"],
         "interrupted_attempts": report["interruptedAttempts"],
+        "end_reason": report.get("setEndReason") or "manual",
         "analyzed_frames": report["setAnalyzedFrames"],
         "usable_tracking_frames": report["setUsableTrackingFrames"],
         "bar_setup": review["bar_setup"],
