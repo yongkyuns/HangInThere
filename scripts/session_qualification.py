@@ -79,12 +79,32 @@ def validate(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             not population_eligible or evidence == "field",
             f"{identifier}: only field sessions may be population_eligible",
         )
+        independent = session.get("reviewed_without_runtime_output")
+        require(
+            type(independent) is bool,
+            f"{identifier}: reviewed_without_runtime_output must be boolean",
+        )
+        if population_eligible:
+            require(
+                independent,
+                f"{identifier}: population ground truth must be independent of runtime output",
+            )
 
         for key in ("source_group", "participant_group"):
             value = session.get(key)
             require(
                 value is None or isinstance(value, str) and value.strip(),
                 f"{identifier}: invalid {key}",
+            )
+        if population_eligible:
+            require(
+                isinstance(session.get("source_group"), str) and session["source_group"].strip(),
+                f"{identifier}: population session requires source_group",
+            )
+            require(
+                isinstance(session.get("participant_group"), str)
+                and session["participant_group"].strip(),
+                f"{identifier}: population session requires participant_group",
             )
 
         expected = session.get("expected_movements")
