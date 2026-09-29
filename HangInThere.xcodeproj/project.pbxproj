@@ -5,6 +5,8 @@
 	};
 	objectVersion = 56;
 	objects = {
+		D8B6A101D4B748E0A35F0501 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSessionPackageTests.swift; sourceTree = "<group>";};
+		D8B6A101D4B748E0A35F0502 = {isa = PBXBuildFile; fileRef = D8B6A101D4B748E0A35F0501;};
 		6FAA384EC7A5412D562FC46C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupControllerTests.swift; sourceTree = "<group>";};
 		C476E88F0B62A3B7D2B8E034 = {isa = PBXBuildFile; fileRef = 6FAA384EC7A5412D562FC46C;};
 		E5A8C901DBE46CA1D4510401 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneRegistrationTests.swift; sourceTree = "<group>";};
@@ -352,6 +354,7 @@
 				F8DBFC01AE179FD407840101,
 				3B9FA338709B9E10B4C03079,
 				6FAA384EC7A5412D562FC46C,
+				D8B6A101D4B748E0A35F0501,
 			);
 			path = Integration;
 			sourceTree = "<group>";
@@ -647,6 +650,7 @@
 				CFE480A6C0D45218FB415ADC,
 				E5A8C901DBE46CA1D4510402,
 				F8DBFC01AE179FD407840102,
+				D8B6A101D4B748E0A35F0502,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
