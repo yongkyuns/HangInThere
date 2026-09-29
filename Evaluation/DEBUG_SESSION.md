@@ -22,7 +22,8 @@ creates a `.hangdebug` package containing:
 
 - `video.mov` — recorded live camera stream;
 - `session.json` — counter policy, exercise/side, bar geometry, camera-source
-  PTS anchors, movement timeline, tracking/count results, app version/build;
+  PTS plus paired movie-elapsed anchors, movement timeline, tracking/count
+  results, app version/build;
 - `qualification.json` — snapshot of the existing device qualification report;
 - `hashes.json` — SHA-256 and byte pins for the other three files.
 
@@ -47,7 +48,10 @@ Verification recalculates every SHA-256/byte pin before trusting metadata, then
 cross-checks the duplicated counter policy, exercise/side, count, tracking, and
 set-termination fields between `session.json` and `qualification.json`. It
 also verifies that bar-calibration and live-set source timestamps lie inside the
-recorded capture anchors and that calibration precedes the set.
+recorded capture anchors and that calibration precedes the set. Schema-v2
+packages additionally require paired camera-source/movie-elapsed anchors. Older
+schema-v1 packages remain verifiable but do not have enough timing provenance for
+automatic set-window replay.
 
 ## Run the production offline pose pipeline
 
@@ -75,6 +79,36 @@ live result.
 The app can also import `video.mov` directly through its existing Workout Review
 file importer to replay the same recorded session interactively.
 
+## Compare the live set with the current production replay
+
+Schema-v2 packages can run the full workflow with one command on macOS:
+
+```sh
+python3 scripts/debug_session.py compare \
+  /path/to/session.hangdebug \
+  --rights-evidence "Participant consented to private local evaluation." \
+  --output /tmp/debug-replay
+```
+
+The command verifies the package, runs the current production Apple Vision
+pipeline on the pinned movie, maps the captured live-set source-time window into
+movie time using the paired clock anchors, extracts only that set window,
+renumbers frames without inventing FPS, scales the captured bar edge into the
+offline image geometry, and feeds those observations through the exact Swift
+movement counter.
+
+`comparison.json` retains both the captured and replay policy versions and
+reports live/replay movement counts, partial/interrupted attempts, tracking
+coverage, chronological movement-event timing deltas, the selected movie window,
+clock-rate mapping, endpoint alignment errors, source revision, and content
+hashes. A policy change is reported explicitly rather than treated as a
+failure. The result is a movement/debug diagnostic, not strict-form
+qualification.
+
+The output directory also retains the generated private manifest, full pose
+output, set-window observations, and counter report so a discrepancy can be
+inspected without re-running the pipeline.
+
 ## Limits
 
 This first version does not export a live per-frame pose trace. Re-running the
@@ -84,4 +118,6 @@ from the original live pose output. A bounded/streamed observation trace can be
 added later if that distinction becomes important.
 
 Physical-iPhone recording overhead, long-session storage, and exact movie-vs-live
-frame alignment remain device qualification gates.
+frame alignment remain device qualification gates. The paired anchors make
+offline alignment explicit and measurable, but they do not substitute for that
+future on-device qualification.
