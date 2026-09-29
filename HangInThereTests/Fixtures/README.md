@@ -93,22 +93,24 @@ Current reviewed scenarios:
   counter. It remains diagnostic evidence, not a qualifying corpus case;
 - **JULLIAN PRODUCTION controlled dips (development)** — a separate 300-frame,
   fixed-camera Pexels clip. A pinned source-only 8 FPS re-review corrected the
-  coarse seven-cycle annotation to nine complete cycles. Counter policy v4,
+  coarse seven-cycle annotation to nine complete cycles. Counter policy v6,
   with reviewed rail coordinates transformed into the production pose raster,
-  then scored **TP=9 / FP=0 / FN=0**, with zero partial/interrupted attempts.
-  This clip is explicitly development-exposed, not held out;
+  scored **TP=9 / FP=0 / FN=0**, with zero partial/interrupted attempts. This
+  clip is explicitly development-exposed, not held out;
 - **Romina Martinez parallel-bar dips (consumed held out)** — the independently
   locked 27-frame, three-cycle Pexels interval failed its first native qualification:
   25/27 person frames (92.6% vs 95% floor), 21/27 any-arm frames (77.8% vs 85%),
   and 0/3 movements with one interrupted attempt under policy v4. The exact
   pre-inference labels remain unchanged in `dip-heldout.json`; the result is
   preserved in `dip-heldout-result.json` and the clip is not part of the passing corpus;
-- **Pavel Danilyuk parallel-bar dips (untouched holdout v2)** — a new 14.0 s,
-  112-frame Pexels side/oblique clip is frozen in `dip-heldout-v2.json` with
-  source bytes/SHA-256, three source-reviewed cycles, fixed rail geometry,
-  anatomical side, and 95%/85% person/arm floors. It has had **no Apple Vision
-  or production-counter exposure** and must remain untouched until the next dip
-  redesign is frozen from development evidence;
+- **Pavel Danilyuk parallel-bar dips (consumed holdout v2)** — a 14.0 s,
+  112-frame Pexels side/oblique clip was frozen in `dip-heldout-v2.json`
+  before inference, after policy v6 was frozen in `dip-policy-v6-freeze.json`.
+  On its first eligible Apple-Vision run, tracking passed (109/112 person,
+  101/112 any-arm) and v6 produced **3/3 movements with zero partial/interrupted
+  attempts**. The stricter frozen event windows failed because detections were
+  early at 3.25, 7.875, and 12.625 s. `dip-heldout-v2-result.json` preserves
+  this count-pass / timing-fail result;
 - **Ketut Subiyanto frontal parallel-bar clip (source-only rejected candidate)** —
   reviewed alongside Pavel with no model inference, then rejected as a count
   holdout because frontal arm/torso overlap and small visible endpoint excursion
@@ -137,11 +139,11 @@ thumbnails. CI retains
 the approved derived corpus temporarily for inspection; source media remains ignored
 under `Data/external/`.
 
-Real parallel-bar footage is reproducibly pinned, but dip counting is **not
-held-out-qualified**. Policy v4 matched the development-exposed controlled JULLIAN
-PRODUCTION clip at 9/9 cycles, then failed the untouched Romina check at 0/3 while
-also missing its predeclared tracking floors. Romina is now consumed development
-evidence. A second independent Pavel Danilyuk holdout is frozen in
-`dip-heldout-v2.json` before any model exposure; it must not be run until the next
-counter redesign is frozen. Dip depth, lockout validity, body alignment, 3D joint
-accuracy and population-level accuracy remain unqualified.
+Real parallel-bar footage is reproducibly pinned. Policy v6 is
+development-qualified on JULLIAN (9/9) and consumed Romina (3/3), then achieved
+**held-out exact rep-count success** on the independent Pavel view (3/3, no
+partial/interrupted attempts, tracking floors passed). The separately frozen
+event-time windows did not pass: all three detections occurred 0.125–0.375 s
+before the reviewed return windows. Therefore rep counting has targeted held-out
+evidence, while precise endpoint timing, dip depth/lockout validity, body
+alignment, 3D joint accuracy and population-level accuracy remain unqualified.
