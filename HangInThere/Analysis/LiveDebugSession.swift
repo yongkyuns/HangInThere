@@ -1,5 +1,13 @@
 import Foundation
 
+enum LiveDebugCaptureState: Equatable, Sendable {
+    case idle
+    case recording
+    case finalizing
+    case ready
+    case failed(String)
+}
+
 struct LiveDebugCaptureSummary: Equatable, Sendable {
     let videoFileName: String
     let videoSHA256: String
