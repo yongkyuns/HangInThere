@@ -1,0 +1,57 @@
+name: Native Penn intake
+
+# An intentional large public download, never an ordinary pull-request job.
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'First N native pull-up sequence IDs (0 explicitly selects all)'
+        type: string
+        default: '6'
+        required: true
+      archive_sha256:
+        description: 'Optional previously recorded or independently established archive SHA-256'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-penn-intake-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  intake:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install existing host-only importer dependencies
+        run: |
+          python3 -m venv /tmp/hit-native-env
+          /tmp/hit-native-env/bin/python -m pip install --only-binary=:all: -r Evaluation/import-requirements.txt
+          echo '/tmp/hit-native-env/bin' >> "$GITHUB_PATH"
+      - name: Test native intake and conversion contracts
+        run: python3 -m unittest discover -s Evaluation/tests -v
+      - name: Acquire and stage original pull-up sequences for review
+        env:
+          NATIVE_LIMIT: ${{ inputs.limit }}
+          ARCHIVE_SHA256: ${{ inputs.archive_sha256 }}
+        run: |
+          args=(--archive Data/external/Penn_Action.tar.gz --fetch
+                --output Data/local/penn-intake --limit "$NATIVE_LIMIT")
+          if [ -n "$ARCHIVE_SHA256" ]; then args+=(--sha256 "$ARCHIVE_SHA256"); fi
+          python3 scripts/stage_penn.py "${args[@]}"
+      - name: Retain metadata only; no images, native labels, or accuracy claims
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-penn-intake-metadata
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            Data/local/penn-intake/intake-report.json
+            Data/local/penn-intake/acquisition.json

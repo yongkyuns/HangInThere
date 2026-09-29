@@ -1,0 +1,123 @@
+name: iOS P0
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+jobs:
+  apple-host:
+    name: Native macOS real-Vision and replay integration
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify selected toolchain
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+      - name: Test CI selection and failure propagation
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Core geometry and timeline tests
+        run: ./scripts/test-core.sh
+      - name: Prepare pinned real-human smoke media
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-fixtures.py
+      - name: Prepare pinned real-video corpus
+        run: python3 scripts/prepare-video-corpus.py
+      - name: Native macOS real-model and replay integration
+        run: ./scripts/test-apple-host.sh
+      - name: Retain native test results and provenance
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-native-results
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build/*.txt
+            HangInThereTests/Fixtures/generated/prepared.json
+            HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
+      # Only the pinned public-source test derivative is exported. Never glob
+      # user recordings or the app's Documents/temporary import directories.
+      - name: Retain approved smoke fixture for visual review
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-smoke-fixture
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            HangInThereTests/Fixtures/source.json
+            HangInThereTests/Fixtures/generated/prepared.json
+            HangInThereTests/Fixtures/generated/pullup-smoke.png
+            HangInThereTests/Fixtures/generated/pullup-smoke.mp4
+      - name: Retain approved real-video corpus for review
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-real-video-corpus
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            HangInThereTests/Fixtures/corpus.json
+            HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
+            HangInThereTests/Fixtures/generated/corpus/*-contact.jpg
+            HangInThereTests/Fixtures/generated/corpus/*.mp4
+
+  simulator:
+    name: iOS simulator ${{ matrix.suite }}
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      # A backend failure must not cancel independent decoder/controller tests.
+      fail-fast: false
+      matrix:
+        suite: [mechanics, vision]
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify selected toolchain
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+      - name: Prepare pinned real-human smoke media
+        if: matrix.suite == 'vision'
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-fixtures.py
+          python3 scripts/prepare-video-corpus.py
+      - name: Run simulator ${{ matrix.suite }} tests
+        # Model availability remains a real failing check, not continue-on-error
+        # or a fallback. Native host success never substitutes for iOS Vision.
+        if: ${{ !cancelled() }}
+        run: ./scripts/test-ios.sh "${{ matrix.suite }}"
+      - name: Retain simulator results and provenance
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-${{ matrix.suite }}-results
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build/Simulator-${{ matrix.suite }}.xcresult
+            build/*.txt
+            build/simulators.json
+            HangInThereTests/Fixtures/generated/prepared.json

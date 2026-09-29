@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "source_catalog_not_evaluated_corpus",
+  "datasets": [
+    {
+      "name": "Penn Action",
+      "source": "https://dreamdragon.github.io/PennAction/",
+      "use": "images and 13 2D joints; pull_ups",
+      "remaining": "review media/annotation permissions and coordinate conventions; MAT converter pending"
+    },
+    {
+      "name": "HAA4D",
+      "source": "https://cse.hkust.edu.hk/haa4d/dataset.html",
+      "use": "metadata inventory implemented; pull_ups and bench_dip kept separate",
+      "remaining": "metadata only acquired by inventory; review 2D annotation provenance; lifted 3D is not motion-capture truth"
+    },
+    {
+      "name": "RepCount-A",
+      "source": "https://svip-lab.github.io/dataset/RepCount_dataset.html",
+      "use": "video counts and period boundaries; pull-ups",
+      "remaining": "rights/media acquisition and annotation converter pending; Part B original videos not available"
+    },
+    {
+      "name": "Countix",
+      "source": "https://sites.google.com/view/repnet",
+      "use": "official metadata archive inventory implemented",
+      "remaining": "metadata does not establish video accessibility or usage permission; counts not strict form labels"
+    },
+    {
+      "name": "HAA500",
+      "source": "https://www.cse.ust.hk/haa/",
+      "use": "action-labelled pull_ups/dips/bench_dip footage candidates",
+      "remaining": "apparatus and rights review plus joint/endpoint annotation needed"
+    },
+    {
+      "name": "OVR",
+      "source": "https://arxiv.org/abs/2407.17085",
+      "use": "optional counting expansion",
+      "remaining": "target subset inventory and source-video rights pending; deduplicate Kinetics sources against Countix"
+    }
+  ]
+}

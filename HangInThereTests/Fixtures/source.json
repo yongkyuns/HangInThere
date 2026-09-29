@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "source_id": "DVIDS-1017606 / 260731-M-RK873-1003",
+  "description": "Get Fit: Proper Pull-Up Technique, MCAS Iwakuni, 2026, B-roll",
+  "source_page": "https://www.dvidshub.net/video/1017606",
+  "mirror_page": "https://commons.wikimedia.org/wiki/File:Get_Fit-_Proper_Pull-Up_Technique,_Marine_Corps_Air_Station,_Iwakuni,_Japan_2026_(B-ROLL)_(1017606).webm",
+  "download_url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Get_Fit-_Proper_Pull-Up_Technique%2C_Marine_Corps_Air_Station%2C_Iwakuni%2C_Japan_2026_%28B-ROLL%29_%281017606%29.webm",
+  "source_sha1": "9c455b575ce8f3df74ab2a8d7f30bbb85f4c227a",
+  "source_bytes": 32946819,
+  "rights_basis": "Wikimedia Commons records PD-US-Marines: official-duty U.S. federal government work, public domain in the United States.",
+  "credit": "U.S. Marine Corps / AFN Iwakuni; original video credited to Andrew Knight and Saul Hernandez.",
+  "reviewed_metadata_date": "2026-09-26",
+  "use": "Test-only decoder/pose smoke fixture and end-to-end movement-only workout demo regression. No endorsement, no medical or form ground truth, no commercial marketing use.",
+  "recipe": {
+    "source_start_seconds": 29,
+    "duration_seconds": 4,
+    "frames_per_second": 10,
+    "width": 640,
+    "still_seconds": 1.9
+  },
+  "visual_review": {
+    "date": "2026-09-26",
+    "method": "Complete-source contact sheet and all 40 selected frames inspected before model inference. Single-reviewer observation, not adjudicated ground truth.",
+    "selected_interval_seconds": [
+      29,
+      33
+    ],
+    "observed_content": "One athlete in a continuous rear/oblique view: hang, ascent, peak, descent and return to hang. One visually observed movement cycle.",
+    "limitations": [
+      "Head/chin cropped around the peak; strict top criterion is ungradable.",
+      "Hands and apparatus are close to the top image boundary.",
+      "No anatomical joint labels or qualified rep-validity labels."
+    ],
+    "replaces": "Original 0-4 second interval showed two people introducing the exercise, not repetitions."
+  },
+  "demo_expectation": {
+    "scope": "Production video reader + Apple Vision + reviewed fixed bar reference + production movement counter + completed result data. This is a regression/demo expectation, not rep-validity or form ground truth.",
+    "reviewed_date": "2026-09-28",
+    "reviewed_frame_index": 0,
+    "exercise": "pullUp",
+    "side": "left",
+    "bar_reference_edge": [
+      280,
+      4,
+      395,
+      8
+    ],
+    "bar_reference_note": "Manually reviewed visible gripping-bar edge in the 640x360 prepared frame. Fixed camera; reference is reused for the full clip.",
+    "expected_observed_movements": 1,
+    "expected_movement_time_seconds": 2.2,
+    "expected_tracking_coverage": 1,
+    "limitations": [
+      "Movement-only expectation under the current bar-relative policy; chin clearance is not measured.",
+      "The fixture is one athlete/view and is not an accuracy benchmark.",
+      "The reference edge is fixture-specific reviewed test data, not automatic semantic bar recognition."
+    ]
+  }
+}
