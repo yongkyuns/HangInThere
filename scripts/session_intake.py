@@ -172,6 +172,7 @@ def build_session(review: dict[str, Any], report: dict[str, Any]) -> dict[str, A
         "exercise": review["exercise"],
         "evidence_class": review["evidence_class"],
         "population_eligible": review["population_eligible"],
+        "reviewed_without_runtime_output": review["reviewed_without_runtime_output"],
         "source_group": review.get("source_group"),
         "participant_group": review.get("participant_group"),
         "expected_movements": review["expected_movements"],
