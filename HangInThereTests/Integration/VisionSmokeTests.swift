@@ -123,6 +123,57 @@ struct VisionSmokeTests {
         )
     }
 
+    @Test func realVisionFixtureMatchesLiveSetSession() async throws {
+        let videoURL = try VideoTestSupport.resource("pullup-smoke.mp4")
+        let specificationURL = try VideoTestSupport.fixtureResource("source.json")
+        let specification = try JSONDecoder().decode(
+            WorkoutDemoSpecification.self,
+            from: Data(contentsOf: specificationURL)
+        )
+        let demo = specification.demoExpectation
+        try #require(demo.barReferenceEdge.count == 4)
+
+        let edge = BarSegment(
+            a: Point2D(x: demo.barReferenceEdge[0], y: demo.barReferenceEdge[1]),
+            b: Point2D(x: demo.barReferenceEdge[2], y: demo.barReferenceEdge[3])
+        )
+        let reader = VideoReplayReader()
+        _ = try await reader.open(videoURL)
+
+        var liveSet = LiveSetSession()
+        liveSet.start(exercise: demo.exercise, side: demo.side)
+
+        var frames = 0
+        while let frame = try await reader.nextFrame() {
+            #expect(frame.pose.backend == "Apple Vision 2D")
+            liveSet.consume(frame.pose, referenceEdge: edge)
+            frames += 1
+        }
+        await reader.close()
+        liveSet.finish()
+
+        #expect(frames == 40)
+        #expect(liveSet.phase == .finished)
+        #expect(liveSet.observedMovements == demo.expectedObservedMovements)
+        #expect(liveSet.counter.partialAttempts == 0)
+        #expect(liveSet.counter.interruptedAttempts == 0)
+        #expect(liveSet.movementTimes.count == demo.expectedObservedMovements)
+        if let movementTime = liveSet.movementTimes.first {
+            #expect(abs(movementTime - demo.expectedMovementTimeSeconds) <= 0.2)
+        }
+        if let coverage = liveSet.trackingCoverage {
+            #expect(abs(coverage - demo.expectedTrackingCoverage) < 1e-9)
+        } else {
+            Issue.record("Live-set wrapper produced no tracking coverage.")
+        }
+
+        print(
+            "[Live set fixture] movements=\(liveSet.observedMovements); " +
+            "movementTimes=\(liveSet.movementTimes); coverage=\(liveSet.trackingCoverage ?? -1); " +
+            "same production counter, movement-only"
+        )
+    }
+
     @Test func realHumanImageProducesAnArmChain() throws {
         let url = try VideoTestSupport.resource("pullup-smoke.png")
         let source = try #require(CGImageSourceCreateWithURL(url as CFURL, nil))
