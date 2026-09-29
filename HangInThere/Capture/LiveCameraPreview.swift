@@ -307,9 +307,13 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     func stopDebugCapture() {
-        guard let movieOutput, movieOutput.isRecording else { return }
-        debugCaptureState = .stopping
-        movieOutput.stopRecording()
+        guard let movieOutput else { return }
+        if movieOutput.isRecording {
+            debugCaptureState = .stopping
+            movieOutput.stopRecording()
+        } else if debugCaptureState == .starting {
+            debugCaptureState = .stopping
+        }
     }
 
     func discardCompletedDebugCapture() {
@@ -351,13 +355,13 @@ final class LiveCameraPreviewController: NSObject {
             "side": liveSet.side.rawValue,
             "set": [
                 "phase": liveSet.phase.rawValue,
-                "endReason": liveSet.endReason?.rawValue as Any,
+                "endReason": (liveSet.endReason?.rawValue as Any?) ?? NSNull(),
                 "observedMovements": liveSet.observedMovements,
                 "partialAttempts": liveSet.partialAttempts,
                 "interruptedAttempts": liveSet.interruptedAttempts,
                 "analyzedFrames": liveSet.analyzedFrameCount,
                 "usableTrackingFrames": liveSet.usableTrackingFrameCount,
-                "trackingCoverage": liveSet.trackingCoverage as Any,
+                "trackingCoverage": (liveSet.trackingCoverage as Any?) ?? NSNull(),
                 "durationSeconds": liveSet.durationSeconds,
                 "movementTimes": liveSet.movementTimes
             ],
@@ -878,6 +882,7 @@ final class LiveCameraPreviewController: NSObject {
                 reason: "phoneMoved",
                 endReason: .phoneMoved
             )
+            finishDebugCaptureIfNeeded()
         }
 
         setupGeneration &+= 1
@@ -899,6 +904,7 @@ final class LiveCameraPreviewController: NSObject {
                 reason: "phoneOrientationUnavailable",
                 endReason: .setupInvalidated
             )
+            finishDebugCaptureIfNeeded()
         }
 
         setupGeneration &+= 1
@@ -984,6 +990,7 @@ final class LiveCameraPreviewController: NSObject {
                 reason: reason,
                 endReason: endReason
             )
+            finishDebugCaptureIfNeeded()
         }
 
         setupGeneration &+= 1
@@ -1081,6 +1088,7 @@ final class LiveCameraPreviewController: NSObject {
                         reason: "barReferenceUnavailable",
                         endReason: .setupInvalidated
                     )
+                    finishDebugCaptureIfNeeded()
                 }
             }
             latestFrame = frame
@@ -1112,6 +1120,58 @@ final class LiveCameraPreviewController: NSObject {
             lastProcessingMilliseconds = nil
             framing = LiveFramingAssessment(state: .analysisUnavailable)
             liveSet.interrupt(reason: "inferenceFailure")
+        }
+    }
+}
+
+extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
+    nonisolated func fileOutput(
+        _ output: AVCaptureFileOutput,
+        didStartRecordingTo fileURL: URL,
+        from connections: [AVCaptureConnection]
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self, self.debugCaptureURL == fileURL else { return }
+            self.debugCaptureStartedUptimeSeconds = ProcessInfo.processInfo.systemUptime
+            if self.debugCaptureState == .stopping {
+                self.movieOutput?.stopRecording()
+            } else {
+                self.debugCaptureState = .recording
+            }
+        }
+    }
+
+    nonisolated func fileOutput(
+        _ output: AVCaptureFileOutput,
+        didFinishRecordingTo outputFileURL: URL,
+        from connections: [AVCaptureConnection],
+        error: Error?
+    ) {
+        let error = error as NSError?
+        let explicitlyFinished = error?.userInfo[
+            AVErrorRecordingSuccessfullyFinishedKey
+        ] as? Bool
+        let succeeded = error == nil || explicitlyFinished == true
+        let message = error?.localizedDescription
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.debugCaptureFinishedUptimeSeconds = ProcessInfo.processInfo.systemUptime
+
+            guard succeeded,
+                  FileManager.default.fileExists(atPath: outputFileURL.path)
+            else {
+                try? FileManager.default.removeItem(at: outputFileURL)
+                self.debugCaptureState = .failed(
+                    message ?? "The debug movie could not be finalized."
+                )
+                return
+            }
+
+            self.debugCaptureURL = outputFileURL
+            self.debugCaptureSessionJSON = self.makeDebugSessionMetadataJSON()
+            self.debugCaptureQualificationJSON = self.qualificationReportJSON()
+            self.debugCaptureState = .ready
         }
     }
 }
