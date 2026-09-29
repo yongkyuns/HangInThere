@@ -219,6 +219,7 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var debugCaptureFinishedUptimeSeconds: Double?
     @ObservationIgnored private var debugCaptureSessionJSON: String?
     @ObservationIgnored private var debugCaptureQualificationJSON: String?
+    @ObservationIgnored private var discardDebugCaptureWhenFinished = false
 
     var isCameraReady: Bool { state == .ready }
     var isSuspended: Bool { suspended }
@@ -302,6 +303,7 @@ final class LiveCameraPreviewController: NSObject {
         debugCaptureFinishedUptimeSeconds = nil
         debugCaptureSessionJSON = nil
         debugCaptureQualificationJSON = nil
+        discardDebugCaptureWhenFinished = false
         debugCaptureState = .starting
         movieOutput.startRecording(to: url, recordingDelegate: self)
         return true
@@ -328,7 +330,17 @@ final class LiveCameraPreviewController: NSObject {
         debugCaptureFinishedUptimeSeconds = nil
         debugCaptureSessionJSON = nil
         debugCaptureQualificationJSON = nil
+        discardDebugCaptureWhenFinished = false
         debugCaptureState = movieOutput == nil ? .unavailable : .idle
+    }
+
+    private func discardDebugCaptureOnExit() {
+        if debugCaptureState.isActive {
+            discardDebugCaptureWhenFinished = true
+            stopDebugCapture()
+        } else {
+            discardCompletedDebugCapture()
+        }
     }
 
     private func finishDebugCaptureIfNeeded() {
@@ -533,7 +545,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     func prepareNextSet() {
-        finishDebugCaptureIfNeeded()
+        discardDebugCaptureOnExit()
         discardNextSetFrame = false
         liveSet.prepareNextSet()
     }
@@ -1158,6 +1170,19 @@ extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
         Task { @MainActor [weak self] in
             guard let self else { return }
             self.debugCaptureFinishedUptimeSeconds = ProcessInfo.processInfo.systemUptime
+
+            if self.discardDebugCaptureWhenFinished {
+                try? FileManager.default.removeItem(at: outputFileURL)
+                self.debugCaptureURL = nil
+                self.debugCaptureBarSnapshot = nil
+                self.debugCaptureStartedUptimeSeconds = nil
+                self.debugCaptureFinishedUptimeSeconds = nil
+                self.debugCaptureSessionJSON = nil
+                self.debugCaptureQualificationJSON = nil
+                self.discardDebugCaptureWhenFinished = false
+                self.debugCaptureState = self.movieOutput == nil ? .unavailable : .idle
+                return
+            }
 
             guard succeeded,
                   FileManager.default.fileExists(atPath: outputFileURL.path)
