@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "locked-before-inference-for-policy-v6",
+  "status": "locked-before-inference",
   "purpose": "Second held-out real parallel-bar dip qualification after the Romina holdout was consumed. All source choices, visual labels, coverage floors, apparatus geometry, anatomical side, and expected movement count are frozen before any Apple Vision inference. This file is bound to counter policy v6 and may be executed once without changing v6 in response.",
   "selection_provenance": {
     "source_only_workflow_run_id": 36512648695,
