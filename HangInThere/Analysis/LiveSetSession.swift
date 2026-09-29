@@ -47,12 +47,19 @@ struct LiveSetSession: Sendable {
         return Double(usableFrames) / Double(analyzedFrames)
     }
 
+    var firstSourceTimestampSeconds: Double? { firstSourceSeconds }
+    var lastSourceTimestampSeconds: Double? { lastSourceSeconds }
+
+    var movementSourceSeconds: [Double] {
+        counter.events.compactMap { event in
+            guard event.outcome == .movement else { return nil }
+            return event.sourceSeconds
+        }
+    }
+
     var movementTimes: [Double] {
         guard let firstSourceSeconds else { return [] }
-        return counter.events.compactMap { event in
-            guard event.outcome == .movement else { return nil }
-            return max(0, event.sourceSeconds - firstSourceSeconds)
-        }
+        return movementSourceSeconds.map { max(0, $0 - firstSourceSeconds) }
     }
 
     mutating func start(
