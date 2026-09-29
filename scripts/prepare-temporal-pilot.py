@@ -110,7 +110,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
         offset = selected[0]
         refs.append({'schema_version': 1, 'id': row['id'], 'exercise': row['exercise'], 'side': row['side'],
                      'event_definition': {'pullUp': 'observed_start_to_top', 'dip': 'observed_top_bottom_top'}[row['exercise']],
-                     'counter_policy_version': 2, 'reviewed_without_counter_output': True,
+                     'counter_policy_version': 3, 'reviewed_without_counter_output': True,
                      'provenance': spec['annotation_provenance'], 'form_verification': 'unverified',
                      'source_sha256': row['source_sha256'], 'recipe_sha256': ev.digest(spec_path),
                      'media_sha256': clip['media']['files'][0]['sha256'], 'source_frame_range': [first, end],
