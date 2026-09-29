@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import pathlib
 import re
 import sys
@@ -143,6 +144,56 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
             f"qualification {field} disagrees with session.json",
         )
 
+    capture = session.get("capture")
+    require(isinstance(capture, dict), "session capture must be an object")
+    capture_first = capture.get("firstAnalyzedSourceSeconds")
+    capture_last = capture.get("lastAnalyzedSourceSeconds")
+    if capture_first is not None or capture_last is not None:
+        require(
+            type(capture_first) in (int, float)
+            and math.isfinite(capture_first)
+            and type(capture_last) in (int, float)
+            and math.isfinite(capture_last)
+            and capture_first <= capture_last,
+            "capture source timestamp bounds are invalid",
+        )
+
+    set_first = set_report.get("firstSourceSeconds")
+    set_last = set_report.get("lastSourceSeconds")
+    if set_first is not None or set_last is not None:
+        require(
+            type(set_first) in (int, float)
+            and math.isfinite(set_first)
+            and type(set_last) in (int, float)
+            and math.isfinite(set_last)
+            and set_first <= set_last,
+            "set source timestamp bounds are invalid",
+        )
+        require(
+            type(capture_first) in (int, float)
+            and type(capture_last) in (int, float)
+            and capture_first <= set_first <= set_last <= capture_last,
+            "set source timestamps fall outside recorded capture anchors",
+        )
+
+    bar_reference = session.get("barReference")
+    if isinstance(bar_reference, dict):
+        bar_source = bar_reference.get("sourceSeconds")
+        require(
+            type(bar_source) in (int, float) and math.isfinite(bar_source),
+            "bar reference source timestamp is invalid",
+        )
+        if capture_first is not None or capture_last is not None:
+            require(
+                capture_first <= bar_source <= capture_last,
+                "bar reference falls outside recorded capture anchors",
+            )
+        if set_first is not None:
+            require(
+                bar_source <= set_first,
+                "bar reference must precede the live set source window",
+            )
+
     return {
         "schema_version": 1,
         "package": package.name,
@@ -153,7 +204,7 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
             "side": session["side"],
             "bar_reference_present": isinstance(session.get("barReference"), dict),
             "set": set_report,
-            "capture": session.get("capture"),
+            "capture": capture,
         },
         "qualification": {
             "set_phase": qualification.get("setPhase"),
