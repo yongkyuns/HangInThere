@@ -35,7 +35,7 @@ struct QualificationReportDocument: FileDocument {
 }
 
 
-struct DebugSessionPackageDocument: FileDocument {
+struct DebugSessionPackageDocument: FileDocument, Sendable {
     static var readableContentTypes: [UTType] { [.hangInThereDebugSession] }
 
     let videoURL: URL
@@ -80,7 +80,11 @@ struct DebugSessionPackageDocument: FileDocument {
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let video = try FileWrapper(url: videoURL, options: .immediate)
+        try makeFileWrapper()
+    }
+
+    func makeFileWrapper() throws -> FileWrapper {
+        let video = try FileWrapper(url: videoURL, options: [])
         video.preferredFilename = "video.mov"
 
         let session = FileWrapper(regularFileWithContents: Data(sessionJSON.utf8))
