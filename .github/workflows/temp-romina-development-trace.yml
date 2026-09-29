@@ -94,7 +94,7 @@ jobs:
           r=json.loads(Path('Evaluation/output/romina-development-counter.json').read_text())
           s=r['summary']
           assert r['frames'] == 27
-          assert s['policyVersion'] == 5
+          assert s['policyVersion'] == 6
           assert s['observedMovements'] == 3
           assert s['partialAttempts'] == 0
           assert s['interruptedAttempts'] == 0
