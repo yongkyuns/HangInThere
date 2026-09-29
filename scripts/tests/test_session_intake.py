@@ -94,9 +94,15 @@ class SessionIntakeTests(unittest.TestCase):
         with self.assertRaises(session_intake.IntakeError):
             session_intake.build_session(review(), runtime)
 
-    def test_population_session_must_be_finished(self):
+    def test_session_intake_requires_finished_runtime(self):
         runtime = report()
         runtime["setPhase"] = "running"
+        with self.assertRaises(session_intake.IntakeError):
+            session_intake.build_session(review(), runtime)
+
+    def test_finished_runtime_requires_explicit_end_reason(self):
+        runtime = report()
+        runtime["setEndReason"] = None
         with self.assertRaises(session_intake.IntakeError):
             session_intake.build_session(review(), runtime)
 
