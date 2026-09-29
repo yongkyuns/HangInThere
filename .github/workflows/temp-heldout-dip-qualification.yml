@@ -1,0 +1,40 @@
+name: TEMP held-out dip qualification
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+jobs:
+  heldout:
+    name: Native Apple Vision held-out dip
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare pinned real-video fixtures
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-fixtures.py
+          python3 scripts/prepare-video-corpus.py
+      - name: Run exact native Apple host suite
+        run: ./scripts/test-apple-host.sh
+      - name: Retain held-out evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: temp-heldout-dip-qualification
+          retention-days: 1
+          if-no-files-found: warn
+          path: |
+            build/apple-host-tests.txt
+            HangInThereTests/Fixtures/dip-heldout.json
+            HangInThereTests/Fixtures/corpus.json
+            HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
