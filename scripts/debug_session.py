@@ -14,10 +14,12 @@ import json
 import math
 import pathlib
 import re
+import subprocess
 import sys
 from typing import Any, Optional, Sequence
 
 REQUIRED_FILES = ("video.mov", "session.json", "qualification.json", "hashes.json")
+ROOT = pathlib.Path(__file__).resolve().parents[1]
 EXERCISE_MAP = {
     "pullUp": "pull_up",
     "dip": "parallel_bar_dip",
@@ -77,7 +79,8 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
 
     session = read_json(package / "session.json")
     qualification = read_json(package / "qualification.json")
-    require(session.get("schemaVersion") == 1, "unsupported session schemaVersion")
+    session_schema = session.get("schemaVersion")
+    require(session_schema in {1, 2}, "unsupported session schemaVersion")
     require(
         qualification.get("schemaVersion") == 1,
         "unsupported qualification schemaVersion",
@@ -169,6 +172,24 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
             "capture source timestamp bounds are invalid",
         )
 
+    capture_movie_first = capture.get("firstAnalyzedMovieSeconds")
+    capture_movie_last = capture.get("lastAnalyzedMovieSeconds")
+    if session_schema >= 2:
+        require(
+            type(capture_movie_first) in (int, float)
+            and math.isfinite(capture_movie_first)
+            and capture_movie_first >= 0
+            and type(capture_movie_last) in (int, float)
+            and math.isfinite(capture_movie_last)
+            and capture_movie_first <= capture_movie_last,
+            "capture movie timestamp anchors are invalid",
+        )
+        require(
+            type(capture_first) in (int, float)
+            and type(capture_last) in (int, float),
+            "schema v2 requires paired source/movie anchors",
+        )
+
     set_first = set_report.get("firstSourceSeconds")
     set_last = set_report.get("lastSourceSeconds")
     if set_first is not None or set_last is not None:
@@ -210,6 +231,7 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
         "package": package.name,
         "files": verified,
         "session": {
+            "schema_version": session_schema,
             "counter_policy_version": session["counterPolicyVersion"],
             "exercise": exercise,
             "side": session["side"],
@@ -261,6 +283,7 @@ def evaluation_manifest(
                 },
                 "debug_session": {
                     "package": report["package"],
+                    "session_schema_version": report["session"]["schema_version"],
                     "counter_policy_version": report["session"]["counter_policy_version"],
                     "capture_exercise": exercise,
                     "tracking_side": report["session"]["side"],
