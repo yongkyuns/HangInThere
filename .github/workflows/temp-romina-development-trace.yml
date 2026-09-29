@@ -88,6 +88,18 @@ jobs:
             dip left Evaluation/output/romina-development-counter.json \
             410 202 600 202
           cat Evaluation/output/romina-development-counter.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('Evaluation/output/romina-development-counter.json').read_text())
+          s=r['summary']
+          assert r['frames'] == 27
+          assert s['policyVersion'] == 5
+          assert s['observedMovements'] == 3
+          assert s['partialAttempts'] == 0
+          assert s['interruptedAttempts'] == 0
+          assert s['phase'] == 'finished'
+          PY
       - name: Retain development evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
