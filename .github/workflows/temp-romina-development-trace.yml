@@ -1,0 +1,103 @@
+name: TEMP consumed Romina development trace
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    name: Consumed Romina Apple Vision trace
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare consumed held-out clip as development input
+        run: |
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          mkdir -p Data/local/romina-development
+          python3 - <<'PY'
+          import hashlib, json, pathlib, urllib.request
+          root=pathlib.Path('.')
+          h=json.loads((root/'HangInThereTests/Fixtures/dip-heldout.json').read_text())
+          c=h['case']
+          out=root/'Data/local/romina-development/source.mp4'
+          req=urllib.request.Request(c['download_url'], headers={
+              'User-Agent':'Mozilla/5.0 HangInThere/0.1 consumed-holdout-development',
+              'Referer':c['source_page'],
+          })
+          with urllib.request.urlopen(req, timeout=120) as r, out.open('wb') as f:
+              while True:
+                  b=r.read(1024*1024)
+                  if not b: break
+                  f.write(b)
+          data=out.read_bytes()
+          assert len(data)==c['source_bytes']
+          assert hashlib.sha256(data).hexdigest()==c['source_sha256']
+          PY
+          ffmpeg -v error -y -i Data/local/romina-development/source.mp4 \
+            -t 3.375 -vf 'fps=8,scale=640:-2:flags=lanczos' -an \
+            -c:v libx264 -crf 18 -preset veryfast \
+            Data/local/romina-development/romina.mp4
+          test "$(ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 Data/local/romina-development/romina.mp4)" = "27"
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p=Path('Data/local/romina-development/romina.mp4')
+          sha=hashlib.sha256(p.read_bytes()).hexdigest()
+          manifest={
+            'schema_version':1,
+            'clips':[{
+              'id':'romina_consumed_development',
+              'dataset':'consumed-holdout-development-v1',
+              'exercise':'parallel_bar_dip',
+              'split':'development',
+              'source_group':'Pexels-5046452',
+              'subject_group':None,
+              'rights':{
+                'status':'approved',
+                'evidence':'Romina Martinez / Pexels; Pexels License; consumed held-out development analysis only.',
+                'public_outputs':True
+              },
+              'media':{
+                'kind':'video',
+                'files':[{'path':'romina.mp4','sha256':sha}],
+                'expected_frames':27
+              }
+            }]
+          }
+          Path('Data/local/romina-development/manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          PY
+          rm Data/local/romina-development/source.mp4
+      - name: Run exact production Apple Vision pipeline
+        run: |
+          ./scripts/evaluate.sh Data/local/romina-development/manifest.json \
+            --root Data/local/romina-development \
+            --output Evaluation/output/romina-development-poses \
+            --public-output
+      - name: Replay exact production counter
+        run: |
+          ./scripts/count-replay.sh \
+            Evaluation/output/romina-development-poses/romina_consumed_development/observations.jsonl \
+            dip left Evaluation/output/romina-development-counter.json \
+            410 202 600 202
+          cat Evaluation/output/romina-development-counter.json
+      - name: Retain development evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: temp-romina-development-trace
+          retention-days: 1
+          if-no-files-found: warn
+          path: |
+            Data/local/romina-development/manifest.json
+            Evaluation/output/romina-development-poses/report.json
+            Evaluation/output/romina-development-poses/romina_consumed_development/completion.json
+            Evaluation/output/romina-development-poses/romina_consumed_development/observations.jsonl
+            Evaluation/output/romina-development-counter.json
