@@ -18,10 +18,38 @@ from typing import Any, Iterable, Optional, Sequence
 
 EVIDENCE_CLASSES = {"development", "heldout_consumed", "field"}
 EXERCISES = {"pull_up", "dip"}
+FORBIDDEN_KEY_FRAGMENTS = (
+    "video",
+    "image",
+    "landmark",
+    "filename",
+    "location",
+    "deviceidentifier",
+    "deviceid",
+    "account",
+)
 
 
 class SessionError(ValueError):
     pass
+
+
+def _normalize_key(key: str) -> str:
+    return "".join(ch for ch in key.lower() if ch.isalnum())
+
+
+def _find_forbidden_keys(value: Any, path: str = "$") -> list[str]:
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            normalized = _normalize_key(str(key))
+            if any(fragment in normalized for fragment in FORBIDDEN_KEY_FRAGMENTS):
+                found.append(f"{path}.{key}")
+            found.extend(_find_forbidden_keys(child, f"{path}.{key}"))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            found.extend(_find_forbidden_keys(child, f"{path}[{index}]"))
+    return found
 
 
 def require(condition: bool, message: str) -> None:
@@ -55,6 +83,12 @@ def load(path: pathlib.Path) -> dict[str, Any]:
 
 def validate(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     require(manifest.get("schema_version") == 1, "unsupported schema_version")
+    forbidden = _find_forbidden_keys(manifest)
+    require(
+        not forbidden,
+        "session manifest violates the content-free privacy schema: "
+        + ", ".join(forbidden[:8]),
+    )
     sessions = manifest.get("sessions")
     require(isinstance(sessions, list) and sessions, "sessions must be a nonempty array")
 
