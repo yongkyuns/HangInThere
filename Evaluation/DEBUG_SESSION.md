@@ -26,7 +26,8 @@ export also discards the temporary capture. Nothing is uploaded automatically.
 The movie is an independent camera-session recording rather than a dump of only
 frames that happened to finish Vision inference. This is deliberate: offline
 evaluation should be able to re-run the full source even when live analysis
-dropped frames.
+dropped frames. Video stabilization is explicitly disabled on both the analysis
+and movie connections so the two paths do not use different geometric warps.
 
 ## Verify on a Mac
 
