@@ -52,6 +52,7 @@ class SessionQualificationTests(unittest.TestCase):
             "observed_movements": 9,
             "partial_attempts": 1,
             "interrupted_attempts": 1,
+            "end_reason": "phoneMoved",
             "analyzed_frames": 200,
             "usable_tracking_frames": 180,
             "bar_setup": {"required": True, "succeeded": True, "attempts": 2},
@@ -73,6 +74,8 @@ class SessionQualificationTests(unittest.TestCase):
         self.assertEqual(metrics["rep_recall"], 0.9)
         self.assertEqual(metrics["tracking_coverage_weighted"], 0.9)
         self.assertEqual(metrics["sets_with_interruptions"], 1)
+        self.assertEqual(metrics["set_end_interruptions"], 1)
+        self.assertEqual(metrics["end_reason_counts"], {"phoneMoved": 1})
         self.assertEqual(metrics["bar_setup_success_fraction"], 1.0)
         self.assertEqual(metrics["bar_setup_mean_attempts"], 2)
         self.assertEqual(metrics["false_camera_interruptions"], 1)
