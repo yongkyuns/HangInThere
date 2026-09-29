@@ -31,7 +31,7 @@ struct LiveDebugVideoRecorderTests {
         }
 
         let destination = FileManager.default.temporaryDirectory
-            .appendingPathComponent("debug-recorder-(UUID().uuidString).mov")
+            .appendingPathComponent("debug-recorder-\(UUID().uuidString).mov")
         let recorder = try LiveDebugVideoRecorder(outputURL: destination)
         var offered = 0
         while let sample = output.copyNextSampleBuffer() {
@@ -46,7 +46,7 @@ struct LiveDebugVideoRecorderTests {
         case .success(let value):
             recording = value
         case .failure(let failure):
-            throw FixtureError.failed("Debug recorder failed: (failure)")
+            throw FixtureError.failed("Debug recorder failed: \(failure)")
         }
         defer { try? FileManager.default.removeItem(at: recording.fileURL) }
 
@@ -89,7 +89,7 @@ struct LiveDebugVideoRecorderTests {
         #expect(reader.startReading())
 
         let destination = FileManager.default.temporaryDirectory
-            .appendingPathComponent("debug-router-(UUID().uuidString).mov")
+            .appendingPathComponent("debug-router-\(UUID().uuidString).mov")
         let recorder = try LiveDebugVideoRecorder(outputURL: destination)
         let router = LiveDebugCaptureRouter()
         router.attach(recorder)
@@ -109,7 +109,7 @@ struct LiveDebugVideoRecorderTests {
             defer { try? FileManager.default.removeItem(at: recording.fileURL) }
             #expect(recording.summary.appendedSamples == 1)
         case .failure(let failure):
-            throw FixtureError.failed("Detached recorder failed: (failure)")
+            throw FixtureError.failed("Detached recorder failed: \(failure)")
         }
     }
 }
