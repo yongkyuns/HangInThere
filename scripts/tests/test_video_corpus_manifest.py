@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "HangInThereTests" / "Fixtures" / "corpus.json"
 RESULT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-result.json"
 NEXT_HELDOUT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-v2.json"
+HELDOUT_V2_RESULT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-v2-result.json"
 
 
 class VideoCorpusManifestTests(unittest.TestCase):
@@ -15,6 +16,7 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.cases = self.manifest["cases"]
         self.dip_result = json.loads(RESULT.read_text(encoding="utf-8"))
         self.next_holdout = json.loads(NEXT_HELDOUT.read_text(encoding="utf-8"))
+        self.holdout_v2_result = json.loads(HELDOUT_V2_RESULT.read_text(encoding="utf-8"))
 
     def test_every_case_has_unique_id_and_reviewed_expectations(self):
         ids = [case["id"] for case in self.cases]
@@ -84,11 +86,11 @@ class VideoCorpusManifestTests(unittest.TestCase):
         gap = self.manifest["known_gap"]
         self.assertEqual(gap["exercise"], "dip")
         status = gap["status"].lower()
-        self.assertIn("not held-out-qualified", status)
-        self.assertIn("9/9", status)
-        self.assertIn("0/3", status)
+        self.assertIn("policy v6", status)
+        self.assertIn("held-out rep-count success", status)
+        self.assertIn("3/3", status)
+        self.assertIn("temporal-window gate failed", status)
         self.assertIn("consumed", status)
-        self.assertIn("new untouched held-out", status)
         self.assertNotIn("chair", " ".join(case["id"] for case in self.cases).lower())
 
         r = self.dip_result
@@ -104,7 +106,7 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.assertLess(r["observed"]["any_arm_fraction"], r["locked_expectation"]["minimum_any_arm_fraction"])
         self.assertIn("Do not change counter policy v4", r["policy"])
 
-    def test_second_dip_holdout_is_locked_before_inference(self):
+    def test_second_dip_holdout_preserves_preinference_record_and_result(self):
         h = self.next_holdout
         self.assertEqual(h["status"], "locked-before-inference")
         self.assertTrue(h["selection_provenance"]["reviewed_without_model_output"])
@@ -124,7 +126,22 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.assertEqual(c["expectation"]["minimum_people_fraction"], 0.95)
         self.assertEqual(c["expectation"]["minimum_any_arm_fraction"], 0.85)
         self.assertFalse(any(case["id"] == c["id"] for case in self.cases),
-                         "Untouched holdout must not enter the passing corpus before the next redesign is frozen.")
+                         "Consumed holdout remains separate from the reproducible passing corpus derivative.")
+
+        r = self.holdout_v2_result
+        self.assertEqual(r["status"], "heldout-count-pass-temporal-window-fail")
+        self.assertEqual(r["counter_policy_version"], 6)
+        self.assertEqual(r["prepared_derivative"]["frame_count"], 112)
+        self.assertGreaterEqual(r["observed"]["people_fraction"], c["expectation"]["minimum_people_fraction"])
+        self.assertGreaterEqual(r["observed"]["any_arm_fraction"], c["expectation"]["minimum_any_arm_fraction"])
+        self.assertEqual(r["observed"]["observed_movements"], 3)
+        self.assertEqual(r["observed"]["partial_attempts"], 0)
+        self.assertEqual(r["observed"]["interrupted_attempts"], 0)
+        self.assertEqual(r["verdict"]["tracking_floors"], "passed")
+        self.assertEqual(r["verdict"]["exact_movement_count"], "passed")
+        self.assertEqual(r["verdict"]["temporal_event_windows"], "failed")
+        self.assertEqual(r["verdict"]["strict_heldout_qualification"], "failed")
+        self.assertEqual(r["observed"]["event_source_seconds"], [3.25, 7.875, 12.625])
 
 
 
