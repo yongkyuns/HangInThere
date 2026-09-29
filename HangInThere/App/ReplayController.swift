@@ -28,6 +28,8 @@ final class ReplayController {
     private(set) var failureReport: String?
     private(set) var displayedFrames = 0
     private(set) var durationSeconds = 0.0
+    private(set) var countingFrames = 0
+    private(set) var analyzableFrames = 0
     @ObservationIgnored private var firstSourceTime = 0.0
     @ObservationIgnored private let estimator: any PoseEstimator
     @ObservationIgnored private var reader: VideoReplayReader
@@ -69,6 +71,7 @@ final class ReplayController {
     func clearBar() {
         bar = nil
         counter.reset()
+        resetAnalysisMetrics()
     }
 
     // Switching exercise/arm replays from the beginning instead of mixing two
@@ -78,6 +81,7 @@ final class ReplayController {
         pause()
         counter = ExerciseCounter(exercise: exercise, side: side)
         bar = nil
+        resetAnalysisMetrics()
         if canRestart { restart(preserveBar: false) }
     }
 
@@ -87,6 +91,16 @@ final class ReplayController {
     var progress: Double {
         if phase == .finished { return 1 }
         return durationSeconds > 0 ? min(1, max(0, elapsed / durationSeconds)) : 0
+    }
+    var trackingCoverage: Double? {
+        guard countingFrames > 0 else { return nil }
+        return Double(analyzableFrames) / Double(countingFrames)
+    }
+    var movementTimes: [Double] {
+        counter.events.compactMap { event in
+            guard event.outcome == .movement else { return nil }
+            return max(0, event.sourceSeconds - firstSourceTime)
+        }
     }
 
     func open(_ url: URL) {
@@ -104,6 +118,7 @@ final class ReplayController {
         counter.reset()
         bar = nil
         durationSeconds = 0
+        resetAnalysisMetrics()
         errorMessage = nil
         failureReport = nil
         sourceName = url.lastPathComponent
@@ -141,6 +156,7 @@ final class ReplayController {
         counter.reset()
         bar = nil
         durationSeconds = 0
+        resetAnalysisMetrics()
         phase = .idle
         operation = Task {
             await previous?.value
@@ -162,6 +178,7 @@ final class ReplayController {
         failureReport = nil
         phase = .loading
         counter.reset()
+        resetAnalysisMetrics()
         if !preserveBar { bar = nil }
         operation = Task {
             await previous?.value
@@ -180,8 +197,8 @@ final class ReplayController {
     private func showFirst(_ first: ProcessedFrame?, info: VideoInfo) throws {
         guard let first else { throw ReplayError.noFrames }
         frame = first
-        counter.consume(first.pose, referenceEdge: currentBar?.referenceEdge)
         firstSourceTime = first.pose.timestamp.seconds
+        consumeForCounting(first.pose)
         displayedFrames = 1
         durationSeconds = info.durationSeconds
         phase = .paused
@@ -235,9 +252,10 @@ final class ReplayController {
                     if let bar, bar.imageSize != next.pose.imageSize {
                         self.bar = nil
                         counter.reset()
+                        resetAnalysisMetrics()
                     }
                     self.frame = next
-                    counter.consume(next.pose, referenceEdge: currentBar?.referenceEdge)
+                    consumeForCounting(next.pose)
                     pending = nil
                     displayedFrames += 1
                     lastPTS = next.pose.timestamp.seconds
@@ -249,6 +267,18 @@ final class ReplayController {
                 if isCurrent(token, playToken) { fail(error) }
             }
         }
+    }
+
+    private func consumeForCounting(_ pose: PoseResult) {
+        let referenceEdge = currentBar?.referenceEdge
+        if referenceEdge != nil { countingFrames += 1 }
+        counter.consume(pose, referenceEdge: referenceEdge)
+        if referenceEdge != nil, counter.trackingIssue == nil { analyzableFrames += 1 }
+    }
+
+    private func resetAnalysisMetrics() {
+        countingFrames = 0
+        analyzableFrames = 0
     }
 
     func reportImportFailure(_ error: Error) {

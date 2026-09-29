@@ -6,7 +6,7 @@ the evidence needed to understand tracking failures.
 
 ## Product promise for the current POC
 
-HangInThere analyzes a recorded pull-up or parallel-bar-dip video on device.
+HangInThere supports live pull-up / parallel-bar-dip movement counting and recorded-video review on device.
 
 The current customer-facing promise is deliberately narrow:
 
@@ -67,8 +67,8 @@ the required evidence is unavailable.
 
 The primary action changes with session state:
 
-- no video -> **Choose workout video**
-- video without bar -> **Preview**
+- home -> **Live workout**, with **Review recorded video** as the secondary path
+- recorded video without bar -> **Preview**
 - bar confirmed -> **Analyze**
 - while running -> **Pause**
 
@@ -87,10 +87,18 @@ continuing with stale geometry.
 
 ## Current screen structure
 
-### Empty state
+### Home / empty state
 
-A single primary call to action imports a workout video. The screen explains the
-supported exercises and that video analysis stays on device.
+The main entry now presents the two actual product workflows instead of treating
+recorded replay as the whole app:
+
+1. **Live workout** — primary action; opens the camera-based setup/workout flow.
+2. **Review recorded video** — secondary action; imports an existing local video.
+
+Camera permission is still contextual: simply opening the app does not request it.
+The permission request occurs only after the athlete explicitly enters Live Workout.
+The home screen states once that live and recorded analysis stays on device and that
+the current result is movement-only rather than form scoring.
 
 ### Workout review
 
@@ -119,21 +127,21 @@ The current setup consists of:
 Selecting exercise or arm resets incompatible state. Confirming a bar rewinds the
 source so every counted frame uses the same reference.
 
-The next setup refinement should turn bar selection into a short guided flow:
+Bar selection is a short guided flow:
 
-1. "Pause where the bar is clear."
-2. Draw around one gripping edge.
-3. Show the proposed edge.
-4. "Use this bar" as the primary action.
-5. Manual marking appears only as a fallback.
+1. pause where the bar is clear;
+2. drag a tight region over one gripping edge;
+3. inspect the proposed observed edge;
+4. use **Use this bar** as the primary action;
+5. fall back to manual edge marking only when guided detection is unsuitable.
 
 ### Movement summary
 
 The main summary shows the count prominently and keeps partial/interrupted attempts
 secondary. These are diagnostic categories today, not coaching judgements.
 
-At completion, the screen should transition naturally into a results state rather
-than merely displaying "Sequence finished".
+At completion, a bar-calibrated analysis transitions into the dedicated results
+state instead of exposing the counter's internal "Sequence finished" phase.
 
 ## Joint overlay policy
 
@@ -151,43 +159,170 @@ video into a computer-vision debug display.
 
 ## Results experience
 
-Once movement counting is qualified on multiple subjects/views, the completed session
-should have a dedicated summary containing:
+A completed bar-calibrated analysis now transitions into a dedicated result state.
+The result surface contains:
 
 - total observed movements;
 - exercise;
-- duration;
-- tracking coverage;
-- incomplete/interrupted attempts when useful;
-- a timeline of observed movements;
-- optional replay of individual movement cycles.
+- source duration;
+- tracking coverage, defined as analyzed frames with a usable selected-arm measurement
+  and confirmed bar reference divided by all analyzed frames while the reference exists;
+- a disclosure timeline containing the source-relative timestamp of each counted movement;
+- **Analyze again** and **Another video** actions;
+- workout setup behind secondary disclosure.
+
+This result remains explicitly **movement only**. Incomplete/interrupted attempts stay
+under tracking diagnostics rather than being presented as coaching outcomes.
+
+The movement timeline is evidence from the existing deterministic counter; it does not
+add seeking, clip extraction, or a new acceptance rule. Individual movement replay can
+be added later once seeking is introduced without compromising source-timestamp semantics.
 
 Form-specific results should appear only after their corresponding measurement is
 qualified.
 
-A useful eventual hierarchy is:
+The intended hierarchy remains:
 
 **Count -> range/endpoint evidence -> consistency -> technique insights**
 
-not a single opaque "form score".
+not a single opaque "form score."
 
 ## Live workout mode
 
-Recorded-video review is the current POC. A customer workout app ultimately needs a
-live mode with a short camera-positioning flow:
+Recorded-video review remains the qualified workout path, but the first live-camera
+setup slice now exists as a separate reusable screen. It:
+
+1. requests camera permission only when setup opens;
+2. starts the rear wide-angle camera preview;
+3. lets the athlete choose exercise and anatomical tracking side;
+4. overlays a simple framing guide;
+5. gives exercise-specific reminders for the selected arm, apparatus, body position,
+   and keeping the phone stationary;
+6. handles denied permission and missing rear-camera states without breaking replay.
+
+The next live-analysis slice now runs Apple Vision directly on the camera stream with
+one serial inference queue and AVFoundation late-frame discard enabled. It reports a
+narrow automatic framing state:
+
+- exactly one athlete is visible;
+- the user-selected shoulder, elbow, and wrist are measurable;
+- no opposite-arm substitution is allowed.
+
+Framing readiness remains narrower than workout readiness, but live setup can now
+freeze the latest analyzed camera frame and reuse the same guided/manual
+`BarSetupView` used by recorded replay. The user explicitly confirms the gripping
+bar or selected dip rail; the confirmed fixed line is then overlaid on the live
+preview.
+
+The live controller binds that calibration to the current exercise/arm setup.
+Changing exercise or anatomical side invalidates the reference, as does an
+incompatible analyzed image geometry. Setup reaches **Ready to start** only when:
+
+- the rear camera is active;
+- exactly one athlete and the selected arm are measurable;
+- the matching fixed bar/rail reference has been confirmed.
+
+This is still not a claim of automatic apparatus recognition: guided detection
+proposes observed image edges inside the user-selected region, and the user chooses
+the intended one. Phone-motion detection and form validity remain unimplemented, but the live
+set lifecycle is now functional. Once setup is ready, **Start set** creates a fresh
+source-timestamped `LiveSetSession` using the same production `ExerciseCounter`
+as recorded review. Each analyzed live pose is consumed with the confirmed fixed
+bar edge; inference failures interrupt the active attempt and late camera frames
+are never fabricated or interpolated.
+
+During a running set the camera remains the primary surface with a large movement
+count and human-readable tracking state. **Stop set** freezes the counter and shows
+movement-only results with duration, tracking coverage, and a movement timeline.
+**New set** clears the previous result while preserving the current exercise/arm
+selection and confirmed bar when it is still geometrically compatible.
+
+Live lifecycle interruptions are handled conservatively because the fixed apparatus
+reference assumes a stationary, continuous camera:
+
+- leaving the foreground ends a running set, preserves already observed movements,
+  and labels the result **Set interrupted**;
+- foreground loss invalidates the frozen bar calibration and current framing;
+- returning to the app may resume the camera, but never silently restores the old
+  bar reference;
+- a camera-session interruption or unexpected stop is detected by the live capture
+  watchdog and ends a running set with an explicit interruption reason;
+- incompatible incoming image geometry ends the set rather than continuing with a
+  stale bar line.
+
+These rules prefer an incomplete/interrupted result over a plausible but geometrically
+invalid count.
+
+Live bar calibration now also records a Core Motion attitude baseline from the same
+instant as the frozen calibration frame. While the bar reference exists, the app
+polls the latest fused device attitude and invalidates calibration after a
+**provisional 1.5° orientation change sustained for 0.25 s**. A running set ends as
+**Set interrupted** with a phone-moved reason; setup then requires a new bar
+calibration. Brief threshold crossings reset if orientation returns before the dwell
+time so sensor noise or a very short vibration does not immediately destroy setup.
+
+Core Motion still cannot establish that the phone did not translate while returning
+to the same attitude. Live setup now supplements it with a **static-background
+image-registration guard** tied to the same frozen bar-calibration frame.
+
+The calibration frame contributes four peripheral corner patches. During live
+capture, Apple Vision translational image registration compares the current
+peripheral patches against those references at a throttled rate. The framework-free
+policy requires at least two patch translations to agree, so one corner contaminated
+by a moving athlete can be rejected as an outlier. **Start set stays blocked until a
+valid background consensus has been observed after calibration.**
+
+The static-scene policy now separates two registration signals:
+
+- **four peripheral translational registrations**, used for robust lateral/image-plane
+  movement with corner consensus;
+- **one full-frame homographic registration**, used for toward/away or zoom-like
+  scale change.
+
+The first scale implementation tried to infer radial scale from corner translations,
+then tried local homographies on each corner. Synthetic qualification showed both
+approaches could leave only two usable scale witnesses. The current design keeps
+corner translations for robust lateral movement but uses one globally constrained
+homography for scale.
+
+A provisional image-space gate invalidates calibration when common translation
+exceeds **0.8% of the image short side for at least 0.25 s**. A separate provisional
+gate invalidates calibration when the global homographic scale term exceeds **1.2%
+for at least 0.25 s**. Start remains blocked until both a valid corner-translation
+consensus and a valid low-scale homography have been observed after calibration.
+Brief threshold crossings reset instead of immediately destroying setup.
+
+The global homographic scale term reduces the most obvious toward/away or zoom-like
+blind spot. It does add homographic registration work, so the device-qualification
+path must measure its latency and thermal cost separately from body-pose inference.
+A running set records **scene shifted** versus **scene scaled** separately so
+physical-device tuning can distinguish which guard fired.
+
+This is still not a full camera-pose estimator. Depth-dependent parallax, lens
+switches, nonuniform perspective changes, low-texture backgrounds, and independently
+moving scene content can make the simple translation + radial-scale model ambiguous.
+The UI therefore uses **Camera position / background alignment** language rather
+than claiming 6-DoF camera localization. All Core Motion and image-registration
+thresholds remain engineering defaults pending physical iPhone qualification.
+
+The qualified live workflow is now exposed from the main customer entry screen as
+the primary action. It is presented full-screen so setup, the running set, and
+results form one focused task; closing it returns to the home/recorded-review flow.
+
+The intended complete live flow remains:
 
 1. choose exercise;
 2. place the phone;
 3. show a framing guide;
-4. confirm that athlete + apparatus are visible;
-5. acquire the bar reference;
-6. start set;
-7. provide restrained live feedback;
-8. end set automatically or manually;
-9. show results.
+4. confirm that the athlete/selected arm is measurable and visually check the apparatus;
+5. acquire and explicitly confirm the fixed bar reference;
+6. start set (implemented);
+7. provide restrained live movement count/tracking feedback (implemented);
+8. end set manually; automatic stop remains future work;
+9. show movement-only results (implemented).
 
-The live screen should be substantially simpler than the review/debug screen: large
-count, clear tracking state, and minimal controls.
+The live workout screen should stay substantially simpler than the review/debug
+screen: large count, clear tracking state, and minimal controls.
 
 ## Camera guidance
 
@@ -197,8 +332,9 @@ The app should eventually provide:
 
 - an example silhouette/framing guide;
 - "move farther back" / "keep selected arm visible" guidance;
-- confirmation that the bar/rail is visible;
-- warning if the phone moves after calibration;
+- confirmation that the selected athlete/arm is measurable (implemented for live setup);
+- confirmation that the bar/rail is visible (not yet automatic);
+- warning/invalidation for sustained phone orientation change plus multi-patch background translation/radial scale after calibration (implemented; full 6-DoF stability remains unverified);
 - exercise-specific camera recommendations.
 
 Do not expose arbitrary CV thresholds to customers.
@@ -258,6 +394,31 @@ The visual identity should feel athletic and precise rather than clinical:
 
 A custom brand palette/icon can come later without changing information architecture.
 
+## Physical-device qualification evidence
+
+Live Workout exposes a collapsed **Device qualification** disclosure for engineering
+use. It records at most one bounded metrics snapshot per second and can share a
+local JSON report containing:
+
+- body-pose Vision latency;
+- full static-scene registration latency/failures;
+- analyzed and dropped frame counters;
+- Core Motion orientation delta;
+- peripheral background translation plus global homographic-scale metrics;
+- thermal state;
+- set phase/count/tracking outcome;
+- the exact compiled stability thresholds.
+
+It does **not** export video, images, pose landmarks, imported filenames, location,
+account data, or device identifiers. The engineering disclosure exports the report
+as an actual timestamped JSON file through the system file exporter so the result
+can be saved to Files/AirDrop and passed directly to the offline analyzer.
+
+The repeatable physical-iPhone procedure is documented in
+`docs/DEVICE_QUALIFICATION.md`. Until those runs are collected, the current
+1.5° orientation, 0.8% translation, and 1.2% global homographic-scale thresholds
+remain engineering defaults rather than validated limits.
+
 ## Product-quality gates before customer release
 
 The UI can look polished before the underlying measurement is release-ready. Treat
@@ -270,7 +431,7 @@ Experience gates:
 - portrait/landscape checks;
 - light/dark appearance;
 - long filenames and localization;
-- interruption/background/resume behavior;
+- interruption/background/resume behavior (implemented conservatively; physical-device review pending);
 - video import/cancel/error flows;
 - bar setup usability with real users.
 

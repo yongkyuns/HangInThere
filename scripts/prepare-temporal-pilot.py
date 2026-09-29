@@ -110,7 +110,9 @@ def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
         offset = selected[0]
         refs.append({'schema_version': 1, 'id': row['id'], 'exercise': row['exercise'], 'side': row['side'],
                      'event_definition': {'pullUp': 'observed_start_to_top', 'dip': 'observed_top_bottom_top'}[row['exercise']],
-                     'counter_policy_version': 2, 'reviewed_without_counter_output': True,
+                     'counter_policy_version': 6,
+                     'reviewed_without_counter_output': not bool(row.get('development_after_prior_counter_exposure', False)),
+                     'development_after_prior_counter_exposure': bool(row.get('development_after_prior_counter_exposure', False)),
                      'provenance': spec['annotation_provenance'], 'form_verification': 'unverified',
                      'source_sha256': row['source_sha256'], 'recipe_sha256': ev.digest(spec_path),
                      'media_sha256': clip['media']['files'][0]['sha256'], 'source_frame_range': [first, end],
@@ -125,6 +127,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
                           row['bar_reference_edge_source'][3] * derived_size[1] / size[1]]
                          if row.get('bar_reference_edge_source') is not None else row.get('bar_reference_edge')
                      ),
+                     'bar_reference_image_size': (derived_size if (row.get('bar_reference_edge_source') is not None or row.get('bar_reference_edge') is not None) else None),
                      'bar_reference_provenance': row.get('bar_reference_provenance'),
                      'ungradable_intervals': [{'seconds': [x - offset for x in u['seconds']], 'reason': u['reason']}
                                               for u in row['ungradable_source_intervals']],

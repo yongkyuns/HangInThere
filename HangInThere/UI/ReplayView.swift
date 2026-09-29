@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct ReplayView: View {
     @State private var model = ReplayController()
     @State private var importing = false
+    @State private var showingLiveWorkout = false
     @State private var barSetup: BarSetupFrame?
     @State private var showPoseOverlay = true
     @Environment(\.scenePhase) private var scenePhase
@@ -17,14 +18,20 @@ struct ReplayView: View {
                         emptyState
                     } else {
                         sessionHeader
-                        preview
-                        playbackControls
-                        if model.currentBar == nil {
-                            setupCard
-                            movementCard
+                        if completedAnalysis {
+                            resultsCard
+                            preview
+                            completedSessionActions
                         } else {
-                            movementCard
-                            setupCard
+                            preview
+                            playbackControls
+                            if model.currentBar == nil {
+                                setupCard
+                                movementCard
+                            } else {
+                                movementCard
+                                setupCard
+                            }
                         }
                         if let message = model.errorMessage {
                             errorCard(message)
@@ -43,6 +50,9 @@ struct ReplayView: View {
                             .accessibilityIdentifier("closeVideo")
                     }
                 }
+            }
+            .fullScreenCover(isPresented: $showingLiveWorkout) {
+                LiveSetupView()
             }
             .fileImporter(
                 isPresented: $importing,
@@ -69,9 +79,13 @@ struct ReplayView: View {
         }
     }
 
+    private var completedAnalysis: Bool {
+        model.phase == .finished && model.currentBar != nil
+    }
+
     private var emptyState: some View {
-        VStack(spacing: 22) {
-            Spacer(minLength: 32)
+        VStack(spacing: 24) {
+            Spacer(minLength: 28)
 
             ZStack {
                 Circle()
@@ -83,31 +97,50 @@ struct ReplayView: View {
             }
 
             VStack(spacing: 8) {
-                Text("Review your workout")
+                Text("Start your workout")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
-                Text("Import a pull-up or parallel-bar dip video to see joint tracking, set the bar reference, and count movement cycles.")
+                Text("Count pull-up or parallel-bar dip movement cycles live, or review a workout video you already recorded.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 520)
             }
 
-            Button {
-                importing = true
-            } label: {
-                Label("Choose workout video", systemImage: "video.badge.plus")
-                    .frame(maxWidth: .infinity, minHeight: 44)
+            VStack(spacing: 12) {
+                Button {
+                    showingLiveWorkout = true
+                } label: {
+                    Label("Live workout", systemImage: "camera.fill")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("startLiveWorkout")
+
+                Button {
+                    importing = true
+                } label: {
+                    Label("Review recorded video", systemImage: "video.badge.plus")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .accessibilityIdentifier("importVideo")
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .accessibilityIdentifier("importVideo")
+            .frame(maxWidth: 520)
 
-            Label("Video analysis stays on this device.", systemImage: "lock.fill")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            VStack(spacing: 6) {
+                Label("Live and recorded analysis stays on this device.", systemImage: "lock.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
 
-            Spacer(minLength: 32)
+                Text("Movement count only · Form scoring is not enabled yet")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 28)
         }
         .frame(maxWidth: 620)
         .frame(maxWidth: .infinity)
@@ -270,11 +303,166 @@ struct ReplayView: View {
         }
     }
 
+    private var resultsCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .center) {
+                Label("Session complete", systemImage: "checkmark.circle.fill")
+                    .font(.headline)
+                    .foregroundStyle(.green)
+
+                Spacer()
+
+                Text("MOVEMENT ONLY")
+                    .font(.caption2.weight(.bold))
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 6)
+                    .background(.thinMaterial, in: Capsule())
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(model.counter.observedMovements)")
+                    .font(.system(size: 64, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .accessibilityIdentifier("completedMovementCount")
+                Text(model.counter.observedMovements == 1 ? "observed movement" : "observed movements")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+
+            Text("This is a bar-relative movement count. Chin clearance, strict dip depth, and form quality are not verified.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Divider()
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 24) {
+                    resultMetric("Exercise", model.counter.exercise.title)
+                    resultMetric("Duration", formattedDuration)
+                    resultMetric("Tracking", formattedTrackingCoverage)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    resultMetric("Exercise", model.counter.exercise.title)
+                    resultMetric("Duration", formattedDuration)
+                    resultMetric("Tracking", formattedTrackingCoverage)
+                }
+            }
+
+            Text("Tracking coverage is the share of analyzed frames with a usable selected-arm measurement and the confirmed bar reference.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if !model.movementTimes.isEmpty {
+                Divider()
+
+                DisclosureGroup {
+                    VStack(spacing: 0) {
+                        ForEach(model.movementTimes.indices, id: \.self) { index in
+                            let time = model.movementTimes[index]
+                            HStack {
+                                Label("Movement \(index + 1)", systemImage: "checkmark.circle")
+                                Spacer()
+                                Text(formatTimelineTime(time))
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                            }
+                            .font(.subheadline)
+                            .padding(.vertical, 9)
+
+                            if index < model.movementTimes.count - 1 {
+                                Divider()
+                            }
+                        }
+                    }
+                    .padding(.top, 6)
+                } label: {
+                    Label("Movement timeline", systemImage: "list.bullet.rectangle")
+                        .font(.subheadline.weight(.semibold))
+                }
+            } else {
+                Label("No complete movement cycles were observed.", systemImage: "minus.circle")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(18)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        .accessibilityIdentifier("sessionResults")
+    }
+
+    private var completedSessionActions: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Button {
+                    model.restart()
+                } label: {
+                    Label("Analyze again", systemImage: "arrow.counterclockwise")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!model.canRestart)
+                .accessibilityIdentifier("reanalyzeSession")
+
+                Button {
+                    importing = true
+                } label: {
+                    Label("Another video", systemImage: "video.badge.plus")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("importVideo")
+            }
+            .controlSize(.large)
+
+            DisclosureGroup {
+                setupCard
+                    .padding(.top, 10)
+            } label: {
+                Label("Adjust workout setup", systemImage: "slider.horizontal.3")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .padding(14)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    @ViewBuilder
+    private func resultMetric(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline)
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var formattedDuration: String {
+        let total = max(0, Int(model.durationSeconds.rounded()))
+        return total >= 60 ? String(format: "%d:%02d", total / 60, total % 60) : "\(total)s"
+    }
+
+    private var formattedTrackingCoverage: String {
+        guard let coverage = model.trackingCoverage else { return "—" }
+        return "\(Int((coverage * 100).rounded()))%"
+    }
+
+    private func formatTimelineTime(_ seconds: Double) -> String {
+        let safe = max(0, seconds)
+        let minutes = Int(safe) / 60
+        let remainder = safe - Double(minutes * 60)
+        return minutes > 0 ? String(format: "%d:%04.1f", minutes, remainder) : String(format: "%.1fs", remainder)
+    }
+
     private var movementCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(model.phase == .finished ? "Session complete" : "Movement count")
+                    Text(completedAnalysis ? "Session complete" : "Movement count")
                         .font(.headline)
                     Text(model.currentBar == nil ? "Set the bar reference to enable counting." : model.counter.phase.title)
                         .font(.subheadline)
@@ -413,6 +601,11 @@ struct ReplayView: View {
                     .font(.caption)
                 LabeledContent("Tracking interruptions", value: "\(model.counter.interruptedAttempts)")
                     .font(.caption)
+
+                if let coverage = model.trackingCoverage {
+                    LabeledContent("Tracking coverage", value: "\(Int((coverage * 100).rounded()))%")
+                        .font(.caption)
+                }
 
                 if let frame = model.frame {
                     elbowMeasurements(frame.pose)
@@ -558,22 +751,22 @@ struct ReplayView: View {
     }
 
     private var trackingStatusTitle: String {
-        if model.phase == .finished { return "Complete" }
         if model.currentBar == nil { return "Setup needed" }
+        if model.phase == .finished { return "Complete" }
         if model.counter.trackingIssue != nil { return "Tracking paused" }
         return "Ready"
     }
 
     private var trackingStatusIcon: String {
-        if model.phase == .finished { return "checkmark.circle.fill" }
         if model.currentBar == nil { return "wrench.and.screwdriver.fill" }
+        if model.phase == .finished { return "checkmark.circle.fill" }
         if model.counter.trackingIssue != nil { return "exclamationmark.triangle.fill" }
         return "checkmark.circle.fill"
     }
 
     private var trackingStatusColor: Color {
-        if model.phase == .finished { return .green }
         if model.currentBar == nil { return .orange }
+        if model.phase == .finished { return .green }
         if model.counter.trackingIssue != nil { return .orange }
         return .green
     }
