@@ -199,6 +199,24 @@ struct LiveSetupView: View {
                 }
 
                 framingGuide
+
+                if camera.debugCaptureState.isActive {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Label("Debug recording", systemImage: "record.circle.fill")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 7)
+                                .background(.red.opacity(0.88), in: Capsule())
+                                .accessibilityLabel("Debug video recording active")
+                        }
+                        Spacer()
+                    }
+                    .padding(12)
+                    .allowsHitTesting(false)
+                }
             } else {
                 cameraStatus
                     .padding(24)
