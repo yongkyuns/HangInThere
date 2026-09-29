@@ -39,13 +39,13 @@ struct ExerciseCounter: Sendable {
         let formVerification: String
     }
 
-    // Policy v6 keeps the independently confirmed fixed bar/rail reference.
+    // Policy v7 keeps the independently confirmed fixed bar/rail reference.
     // Pull-ups retain policy-v2 absolute arm gates. Dips use a relative cycle
     // anchored at a visually supported top position: shoulder-to-rail travel is
     // the primary phase signal, while elbow angle only establishes that the arm
     // is support-like and that a real bend occurred. This is movement counting,
     // not lockout/depth/form grading.
-    static let policyVersion = 6
+    static let policyVersion = 7
     static let extendedDegrees = 155.0
     static let departureDegrees = 140.0
     static let bentDegrees = 100.0
@@ -80,6 +80,7 @@ struct ExerciseCounter: Sendable {
     private var dipBottom: DipSample?
     private var dipLastGeometryTime: Double?
     private var dipSupportCandidateSince: Double?
+    private var dipReturnRecoverySince: Double?
     private enum Endpoint { case extended, bent }
     private var endpoint: Endpoint?
     private var endpointSince: Double?
@@ -228,7 +229,7 @@ struct ExerciseCounter: Sendable {
             shoulder = visible
         } else if phase == .returning,
                   dipTopCandidate != nil,
-                  endpoint == .extended,
+                  dipReturnRecoverySince != nil,
                   measurement.unavailableReason == .lowConfidence,
                   let raw = rawDipShoulderForEndpointContinuation(
                     person, joint: shoulderJoint, imageSize: pose.imageSize
@@ -317,6 +318,7 @@ struct ExerciseCounter: Sendable {
                 endpointSince = nil
                 dipTopCandidate = nil
                 dipBottom = nil
+                dipReturnRecoverySince = nil
                 _ = sustained(dipReachedBentEndpoint(sample, from: anchor) ? .bent : nil, at: time)
             }
 
@@ -336,6 +338,7 @@ struct ExerciseCounter: Sendable {
                 endpoint = nil
                 endpointSince = nil
                 dipTopCandidate = nil
+                dipReturnRecoverySince = nil
             }
 
         case .returning:
@@ -347,15 +350,25 @@ struct ExerciseCounter: Sendable {
                 dipBottom = sample
                 bottom = sample
             }
-            if dipReturnFromBottomEvidence(sample, from: bottom, cycleAnchor: anchor) {
+
+            switch dipReturnCompletionEvidence(
+                sample, from: bottom, cycleAnchor: anchor, at: time
+            ) {
+            case .none:
+                _ = sustained(nil, at: time)
+            case .supportLike:
                 if sustained(.extended, at: time) {
                     let event = record(.movement, at: time,
                                        reason: "barReferencedCycle;dipDepthAndFormNotQualified")
                     armDip(dipTopCandidate ?? sample)
                     return event
                 }
-            } else {
+            case .topGeometry:
                 _ = sustained(nil, at: time)
+                let event = record(.movement, at: time,
+                                   reason: "barReferencedCycle;dipDepthAndFormNotQualified")
+                armDip(dipTopCandidate ?? sample)
+                return event
             }
 
         case .finished:
@@ -463,33 +476,71 @@ struct ExerciseCounter: Sendable {
         return false
     }
 
-    private mutating func dipReturnFromBottomEvidence(
+    private enum DipReturnCompletionEvidence {
+        case none
+        case supportLike
+        case topGeometry
+    }
+
+    private mutating func dipReturnCompletionEvidence(
         _ sample: DipSample,
         from bottom: DipSample,
-        cycleAnchor: DipSample
-    ) -> Bool {
-        let required = requiredDipTravel(cycleAnchor)
-        let recovered = sample.shoulderToBarPixels - bottom.shoulderToBarPixels >=
-            Self.dipReturnTravelFraction * required
-        guard recovered else {
+        cycleAnchor: DipSample,
+        at time: Double
+    ) -> DipReturnCompletionEvidence {
+        guard let bottomDegrees = bottom.degrees else {
             dipTopCandidate = nil
-            return false
+            dipReturnRecoverySince = nil
+            return .none
         }
 
-        if let degrees = sample.degrees, let bottomDegrees = bottom.degrees,
-           degrees - bottomDegrees >= Self.minimumDipDepartureDegrees {
-            dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
-            return true
+        let required = requiredDipTravel(cycleAnchor)
+        let recoveredFromBottom = sample.shoulderToBarPixels - bottom.shoulderToBarPixels >=
+            Self.dipReturnTravelFraction * required
+        guard recoveredFromBottom else {
+            dipTopCandidate = nil
+            dipReturnRecoverySince = nil
+            return .none
         }
 
-        // The arm estimate may disappear near extension. Once the return has
-        // shown real elbow recovery, keep extending only its observed rail
-        // geometry so a confidence hole cannot move the top anchor backward.
-        if sample.degrees == nil, dipTopCandidate != nil {
+        if let degrees = sample.degrees {
+            guard degrees - bottomDegrees >= Self.minimumDipDepartureDegrees else {
+                dipTopCandidate = nil
+                dipReturnRecoverySince = nil
+                return .none
+            }
             dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
-            return true
+            if dipReturnRecoverySince == nil {
+                dipReturnRecoverySince = time
+            }
+        } else {
+            guard dipTopCandidate != nil, dipReturnRecoverySince != nil else {
+                return .none
+            }
+            dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
         }
-        return false
+
+        // A well-observed support-like return is intentionally conservative:
+        // it must persist for the normal endpoint dwell before the rep is
+        // published. This keeps the event near the visible top rather than at
+        // the first small recovery from the bottom.
+        if isDipSupportLike(sample) {
+            return .supportLike
+        }
+
+        // Some valid views lose elbow confidence or project the arm below the
+        // loose support-angle gate near the top. In that case the fixed rail
+        // provides an independent endpoint: after real arm recovery has already
+        // persisted for one dwell, returning to the previous top geometry can
+        // complete the cycle without inventing an angle.
+        let topTolerance = Self.dipReturnTravelFraction * required
+        let returnedToTopGeometry =
+            sample.shoulderToBarPixels >= cycleAnchor.shoulderToBarPixels - topTolerance
+        guard returnedToTopGeometry,
+              let recoverySince = dipReturnRecoverySince,
+              time - recoverySince >= Self.endpointDwellSeconds
+        else { return .none }
+        return .topGeometry
     }
 
 
@@ -505,6 +556,7 @@ struct ExerciseCounter: Sendable {
         guard time - lastGeometry > Self.maximumDipObservationOutageSeconds else { return nil }
         dipTopCandidate = nil
         dipSupportCandidateSince = nil
+        dipReturnRecoverySince = nil
         return interrupt(reason: reason)
     }
 
@@ -536,6 +588,7 @@ struct ExerciseCounter: Sendable {
         dipTopCandidate = nil
         dipBottom = nil
         dipSupportCandidateSince = nil
+        dipReturnRecoverySince = nil
         endpoint = nil
         endpointSince = nil
         activeAttempt = false
@@ -553,6 +606,7 @@ struct ExerciseCounter: Sendable {
         dipTopCandidate = nil
         dipBottom = nil
         dipSupportCandidateSince = nil
+        dipReturnRecoverySince = nil
         dipLastGeometryTime = nil
         endpoint = nil
         endpointSince = nil
