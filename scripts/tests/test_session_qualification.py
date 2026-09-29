@@ -43,6 +43,8 @@ class SessionQualificationTests(unittest.TestCase):
         manifest["sessions"].append({
             "id": "field_session_001",
             "exercise": "pull_up",
+            "counter_policy_version": 6,
+            "tracking_side": "left",
             "evidence_class": "field",
             "population_eligible": True,
             "reviewed_without_runtime_output": True,
@@ -66,6 +68,8 @@ class SessionQualificationTests(unittest.TestCase):
         report = session_qualification.analyze(manifest)
         metrics = report["population_eligible_sessions"]
         self.assertEqual(metrics["session_count"], 1)
+        self.assertEqual(metrics["counter_policy_version_counts"], {"6": 1})
+        self.assertEqual(metrics["tracking_side_counts"], {"left": 1})
         self.assertEqual(metrics["participant_group_count"], 1)
         self.assertEqual(metrics["source_group_count"], 1)
         self.assertEqual(metrics["exact_count_sessions"], 0)
