@@ -35,6 +35,7 @@ the changed policy on fresh sessions.
 `scripts/session_qualification.py` validates the portable JSON contract and
 computes:
 
+- unique participant/source-session counts;
 - exact-count set fraction;
 - movement recall;
 - extra movements per 100 expected movements;
