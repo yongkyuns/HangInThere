@@ -297,7 +297,7 @@ private struct CorpusCase: Decodable {
     let countExpectation: CountExpectation?
 
     enum CodingKeys: String, CodingKey {
-        case id, tier, side, recipe, expectation
+        case id, tier, exercise, side, recipe, expectation
         case sourceKind = "source_kind"
         case countExpectation = "count_expectation"
     }
