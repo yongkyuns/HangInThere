@@ -31,6 +31,9 @@ jobs:
           assert freeze['counter_policy_version']==6
           assert freeze['untouched_holdout']=='HangInThereTests/Fixtures/dip-heldout-v2.json'
           assert h['status']=='locked-before-inference'
+          assert h['counter_policy_version']==6
+          counter_path=root/'HangInThere/Analysis/ExerciseCounter.swift'
+          assert hashlib.sha256(counter_path.read_bytes()).hexdigest()==freeze['counter_source_sha256']
           d=root/'Data/local/pavel-heldout-v2'; d.mkdir(parents=True)
           source=d/'source.mp4'
           req=urllib.request.Request(c['download_url'], headers={
@@ -60,7 +63,7 @@ jobs:
             'id':'pavel_heldout_v2',
             'dataset':'dip-heldout-v2',
             'exercise':'parallel_bar_dip',
-            'split':'heldout',
+            'split':'test',
             'source_group':'Pexels-4065479',
             'subject_group':'Pavel-Danilyuk-Pexels-4065479',
             'rights':{'status':'approved','evidence':'Pavel Danilyuk / Pexels; Pexels License; one-time held-out qualification.','public_outputs':True},
@@ -109,6 +112,11 @@ jobs:
           assert s['partialAttempts']==0
           assert s['interruptedAttempts']==0
           assert s['phase']=='finished'
+          h=json.loads(Path('HangInThereTests/Fixtures/dip-heldout-v2.json').read_text())
+          windows=h['case']['event_windows_source_seconds']
+          events=[e['sourceSeconds'] for e in r['events'] if e['outcome']=='movement']
+          assert len(events)==len(windows)==3
+          assert all(a <= t <= b for t,(a,b) in zip(events,windows)), (events, windows)
           PY
       - name: Retain first held-out result
         if: always()
