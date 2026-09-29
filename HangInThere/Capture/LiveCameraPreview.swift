@@ -226,6 +226,10 @@ final class LiveCameraPreviewController {
             analysisFailures: analysisFailures,
             sceneRegistrationFailures: sceneRegistrationFailures,
             observedMovements: liveSet.observedMovements,
+            partialAttempts: liveSet.partialAttempts,
+            interruptedAttempts: liveSet.interruptedAttempts,
+            setAnalyzedFrames: liveSet.analyzedFrameCount,
+            setUsableTrackingFrames: liveSet.usableTrackingFrameCount,
             trackingCoverage: liveSet.trackingCoverage,
             setPhase: liveSet.phase.rawValue,
             setEndReason: liveSet.endReason?.rawValue
