@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "status": "locked-before-inference",
+  "purpose": "Held-out real parallel-bar dip qualification. Visual labels and model-coverage floors are committed before Apple Vision is run on this candidate.",
+  "case": {
+    "id": "romina-heldout-parallel-bar-dips",
+    "exercise": "dip",
+    "source_page": "https://www.pexels.com/video/video-of-man-lifting-himself-up-5046452/",
+    "download_url": "https://videos.pexels.com/video-files/5046452/5046452-hd_1920_1080_30fps.mp4",
+    "source_bytes": 2592798,
+    "source_sha256": "599f5169931e0893c8d7864e57859ca6c999a47e8f4ea3a7171229ac33bc1ba7",
+    "license": "Pexels License",
+    "credit": "Romina Martinez / Pexels",
+    "recipe": {
+      "source_start_seconds": 0,
+      "duration_seconds": 3.375,
+      "frames_per_second": 8,
+      "max_long_edge": 640,
+      "expected_frame_count": 27
+    },
+    "expectation": {
+      "minimum_people_fraction": 0.95,
+      "minimum_any_arm_fraction": 0.85,
+      "expected_orientation": "landscape"
+    },
+    "side": "left",
+    "count_expectation": {
+      "bar_reference_edge": [410, 202, 600, 202],
+      "bar_reference_note": "Manually reviewed centerline of the fixed near-side horizontal rail in the 640x360 prepared image, to the right of the selected hand; production uses the infinite line defined by this visible segment.",
+      "expected_observed_movements": 3,
+      "expected_partial_attempts": 0,
+      "expected_interrupted_attempts": 0
+    },
+    "visual_review": {
+      "method": "Full source reviewed at 8 FPS from the prepared review derivative before any Apple Vision inference. The held-out interval is intentionally shortened to end after the third completed return to extension.",
+      "observed_content": "One athlete performs parallel-bar dips in a fixed landscape side view. The clip begins at a stable extended support, shows three complete extension-to-bent-to-extension cycles by 3.25 s, and the held-out trim ends before the source begins a fourth incomplete cycle.",
+      "limitations": [
+        "Movement-cycle ground truth only; dip depth, lockout validity, body alignment and overall form are not qualified.",
+        "The image-plane elbow angle is an engineering signal, not a calibrated anatomical 3D angle.",
+        "This file must not be added to the Apple-Vision corpus until the dip counter redesign based on the separate JULLIAN W development clip is complete."
+      ]
+    }
+  },
+  "reviewed_date": "2026-09-28"
+}

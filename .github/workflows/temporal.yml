@@ -26,7 +26,7 @@ jobs:
           python3 scripts/prepare-temporal-pilot.py --cache Data/external/temporal --output Data/local/temporal --fetch
       - name: Run actual production video and pose pipeline
         run: ./scripts/evaluate.sh Data/local/temporal/manifest.json --root Data/local/temporal --output Evaluation/output/temporal-poses --public-output
-      - name: Count and score independently marked movements
+      - name: Count and score source-reviewed movements
         run: |
           python3 scripts/score-temporal.py Data/local/temporal/reference.json --manifest Data/local/temporal/manifest.json --root Data/local/temporal --pose-output Evaluation/output/temporal-poses --output Evaluation/output/temporal-counts --public-output
           python3 - <<'PY'
@@ -34,10 +34,10 @@ jobs:
           from pathlib import Path
           r = json.loads(Path('Evaluation/output/temporal-counts/report.json').read_text())
           assert [c['frames'] for c in r['clips']] == [180, 789, 597, 300]
-          assert [c['event_metrics']['reference_events'] for c in r['clips']] == [1, 10, 6, 7]
+          assert [c['event_metrics']['reference_events'] for c in r['clips']] == [1, 10, 6, 9]
           assert all(c['status'] == 'scored' and c['form_verification'] == 'unverified' for c in r['clips'])
           with Path(__import__('os').environ['GITHUB_STEP_SUMMARY']).open('a') as out:
-              out.write('## Diagnostic results, not accuracy qualification\n\n| Clip | Matched | Extra | Missed |\n|---|---:|---:|---:|\n')
+              out.write('## Temporal diagnostics, not held-out/form qualification\n\n| Clip | Matched | Extra | Missed |\n|---|---:|---:|---:|\n')
               for c in r['clips']:
                   m = c['event_metrics']
                   out.write(f"| {c['id']} | {m['true_positives']} | {m['false_positives']} | {m['false_negatives']} |\n")

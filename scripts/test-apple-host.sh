@@ -5,6 +5,7 @@ set -euo pipefail
 [[ "$(uname -s)" == Darwin ]] || { echo 'Apple host tests require macOS.' >&2; exit 1; }
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 python3 "$ROOT/scripts/prepare-fixtures.py" --verify-only
+python3 "$ROOT/scripts/prepare-video-corpus.py" --verify-only
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/Sources/HangInThere" "$WORK/Tests/HangInThereTests"
