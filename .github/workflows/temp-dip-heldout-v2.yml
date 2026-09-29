@@ -33,7 +33,9 @@ jobs:
           assert h['status']=='locked-before-inference'
           assert h['counter_policy_version']==6
           counter_path=root/'HangInThere/Analysis/ExerciseCounter.swift'
-          assert hashlib.sha256(counter_path.read_bytes()).hexdigest()==freeze['counter_source_sha256']
+          import subprocess
+          blob=subprocess.check_output(['git','hash-object',str(counter_path)], text=True).strip()
+          assert blob==freeze['counter_source_git_blob_sha']
           d=root/'Data/local/pavel-heldout-v2'; d.mkdir(parents=True)
           source=d/'source.mp4'
           req=urllib.request.Request(c['download_url'], headers={
