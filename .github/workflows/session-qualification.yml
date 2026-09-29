@@ -1,0 +1,59 @@
+name: Session qualification
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/session_qualification.py'
+      - 'scripts/tests/test_session_qualification.py'
+      - 'Evaluation/fixtures/session-qualification-seed.json'
+      - 'Evaluation/SESSION_QUALIFICATION.md'
+      - '.github/workflows/session-qualification.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/session_qualification.py'
+      - 'scripts/tests/test_session_qualification.py'
+      - 'Evaluation/fixtures/session-qualification-seed.json'
+      - 'Evaluation/SESSION_QUALIFICATION.md'
+      - '.github/workflows/session-qualification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Whole-session metrics contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run session qualification tests
+        run: python3 -m unittest scripts/tests/test_session_qualification.py -v
+      - name: Build seed report
+        run: |
+          mkdir -p build/session-qualification
+          python3 scripts/session_qualification.py \
+            Evaluation/fixtures/session-qualification-seed.json \
+            --output build/session-qualification/report.json \
+            --markdown build/session-qualification/summary.md
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('build/session-qualification/report.json').read_text())
+          assert r['all_sessions']['session_count'] == 3
+          assert r['all_sessions']['expected_movements'] == 15
+          assert r['all_sessions']['exact_count_fraction'] == 1.0
+          assert r['population_eligible_sessions']['session_count'] == 0
+          assert r['scope'].startswith('whole-session descriptive qualification')
+          PY
+          cat build/session-qualification/summary.md
+      - name: Retain seed aggregation
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: session-qualification-seed
+          retention-days: 7
+          path: build/session-qualification/
+          if-no-files-found: error
