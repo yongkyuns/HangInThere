@@ -47,7 +47,10 @@ class DebugSessionTests(unittest.TestCase):
                 "firstSourceSeconds": 12.5,
                 "lastSourceSeconds": 17.5,
             },
-            "barReference": {"role": "rightDipRail"},
+            "barReference": {
+                "role": "rightDipRail",
+                "sourceSeconds": 12.25,
+            },
         }
         qualification = {
             "schemaVersion": 1,
@@ -117,6 +120,21 @@ class DebugSessionTests(unittest.TestCase):
             with self.assertRaisesRegex(
                 debug_session.DebugSessionError,
                 "observedMovements disagrees",
+            ):
+                debug_session.verify(package)
+
+    def test_out_of_capture_set_timestamps_are_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            session_path = package / "session.json"
+            session = json.loads(session_path.read_text(encoding="utf-8"))
+            session["set"]["firstSourceSeconds"] = 11.5
+            session_path.write_text(json.dumps(session) + "\n", encoding="utf-8")
+            self.refresh_hashes(package)
+
+            with self.assertRaisesRegex(
+                debug_session.DebugSessionError,
+                "outside recorded capture anchors",
             ):
                 debug_session.verify(package)
 
