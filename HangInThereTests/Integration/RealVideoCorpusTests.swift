@@ -142,7 +142,7 @@ struct RealVideoCorpusTests {
         )
 
         let cases = manifest.cases.filter { $0.tier == "count-qualified" }
-        #expect(cases.count >= 2, "The diversity corpus must retain at least two reviewed count-qualified pull-up views.")
+        #expect(cases.count >= 3, "The diversity corpus must retain two pull-up views plus the locked held-out dip view.")
 
         for testCase in cases {
             guard let count = testCase.countExpectation else {
