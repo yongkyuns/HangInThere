@@ -1,0 +1,58 @@
+name: TEMP dip holdout v3 source review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: Source-only dip holdout candidates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Ensure ffmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+      - name: Download and render source-only review media
+        run: |
+          set -euo pipefail
+          mkdir -p build/dip-holdout-v3-review
+          fetch() {
+            id="$1"
+            page="$2"
+            dir="build/dip-holdout-v3-review/$id"
+            mkdir -p "$dir"
+            curl -L --fail --retry 3 --retry-all-errors \
+              -H 'User-Agent: Mozilla/5.0 HangInThere/0.1 source-only-holdout-v3-review' \
+              -H "Referer: $page" \
+              "https://www.pexels.com/download/video/$id/" -o "$dir/source.mp4"
+            bytes="$(wc -c < "$dir/source.mp4" | tr -d ' ')"
+            sha="$(sha256sum "$dir/source.mp4" | awk '{print $1}')"
+            ffprobe -v error -select_streams v:0 -count_frames \
+              -show_entries stream=width,height,avg_frame_rate,nb_read_frames:format=duration \
+              -of json "$dir/source.mp4" > "$dir/probe.json"
+            printf 'bytes=%s\nsha256=%s\npage=%s\n' "$bytes" "$sha" "$page" > "$dir/source.txt"
+            ffmpeg -v error -y -i "$dir/source.mp4" \
+              -vf 'fps=8,scale=240:-2:flags=lanczos,tile=6x4:padding=2:margin=2' \
+              "$dir/sheet-%02d.jpg"
+            ffmpeg -v error -y -i "$dir/source.mp4" \
+              -vf 'fps=8,scale=480:-2:flags=lanczos,setsar=1' -an \
+              -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p \
+              "$dir/review-8fps.mp4"
+          }
+          fetch 4804770 'https://www.pexels.com/video/video-of-man-doing-pull-ups-outdoors-4804770/'
+          fetch 6571898 'https://www.pexels.com/video/a-gymnast-doing-exhibition-on-a-parallel-bars-6571898/'
+      - name: Upload source-only review artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: temp-dip-holdout-v3-source-review
+          retention-days: 2
+          path: build/dip-holdout-v3-review/

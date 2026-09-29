@@ -118,12 +118,43 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 0)
     }
 
-    @Test func dipReturnUsesRelativeRecoveryBelowSupportAngleGate() {
+    @Test func dipSmallRecoveryAloneDoesNotCompleteCycle() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110),(0.75,110)])
+        #expect(c.observedMovements == 0)
+        #expect(c.phase == .returning)
+        #expect(c.partialAttempts == 0)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipProjectedTopCanCompleteFromPriorTopGeometryBelowSupportGate() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,90)])
+        c.consume(
+            Self.pose(0.75, degrees: 110, exercise: .dip, side: .right,
+                      verticalOffset: -30),
+            referenceEdge: Self.referenceEdge
+        )
         #expect(c.observedMovements == 1)
         #expect(c.partialAttempts == 0)
         #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func dipSupportLikeReturnUsesEndpointDwell() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,90)])
+        c.consume(
+            Self.pose(0.75, degrees: 130, exercise: .dip, side: .right,
+                      verticalOffset: 40),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 0)
+        c.consume(
+            Self.pose(0.9, degrees: 130, exercise: .dip, side: .right,
+                      verticalOffset: 40),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 1)
     }
 
     @Test func dipTravelUsesImageScaleRatherThanRailBaselineDistance() {

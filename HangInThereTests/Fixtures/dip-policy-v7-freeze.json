@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "status": "frozen-before-heldout-v3-inference",
+  "issue": 24,
+  "pull_request": 25,
+  "counter_policy_version": 7,
+  "counter_source_git_blob_sha": "203fec57213ad0903d588df769540ac34614a730",
+  "frozen_development_commit": "8e56d96b23ec58894fb62c867c8fb3cf7af8d3f2",
+  "development_evidence": [
+    {
+      "id": "jullian-production-controlled-dips",
+      "workflow_run_id": 36574369960,
+      "job_id": 109426064367,
+      "artifact_id": 11035049818,
+      "artifact_sha256": "eef74c27525c6ca7c857ee7731108f7cc5fe26aeba060b6ef83960a97ebbc203",
+      "frames": 300,
+      "observed_movements": 9,
+      "true_positives": 9,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0
+    },
+    {
+      "id": "romina-consumed-timing-development",
+      "workflow_run_id": 36574370251,
+      "job_id": 109426064811,
+      "artifact_id": 11036549053,
+      "artifact_sha256": "5bab1bd7c33488671ed132695ef718d4fd43c7988b681a0d98f9008efb470de7",
+      "frames": 27,
+      "observed_movements": 3,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0,
+      "event_source_seconds": [
+        1,
+        2.25,
+        3.25
+      ]
+    },
+    {
+      "id": "pavel-consumed-timing-development",
+      "workflow_run_id": 36574370251,
+      "job_id": 109426064811,
+      "artifact_id": 11036549053,
+      "artifact_sha256": "5bab1bd7c33488671ed132695ef718d4fd43c7988b681a0d98f9008efb470de7",
+      "frames": 112,
+      "observed_movements": 3,
+      "partial_attempts": 0,
+      "interrupted_attempts": 0,
+      "event_source_seconds": [
+        3.5,
+        8.25,
+        13
+      ],
+      "original_frozen_event_windows": [
+        [
+          3.5,
+          4.25
+        ],
+        [
+          8,
+          8.75
+        ],
+        [
+          13,
+          13.75
+        ]
+      ],
+      "original_windows_passed": true
+    }
+  ],
+  "policy": "No counter behavior, thresholds, next-holdout labels, arm choice, rail geometry, coverage floors, or event windows may change after this freeze and before the first eligible held-out-v3 result. Source-only candidate review may continue because it does not expose candidates to Apple Vision or the counter."
+}
