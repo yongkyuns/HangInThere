@@ -18,6 +18,18 @@ from typing import Any, Iterable, Optional, Sequence
 
 EVIDENCE_CLASSES = {"development", "heldout_consumed", "field"}
 EXERCISES = {"pull_up", "dip"}
+END_REASONS = {
+    "offline",
+    "manual",
+    "appInactive",
+    "cameraInterrupted",
+    "cameraFailure",
+    "setupInvalidated",
+    "phoneMoved",
+    "sceneShifted",
+    "sceneScaled",
+}
+INTERRUPTION_END_REASONS = END_REASONS - {"offline", "manual"}
 FORBIDDEN_KEY_FRAGMENTS = (
     "video",
     "image",
@@ -148,6 +160,8 @@ def validate(manifest: dict[str, Any]) -> list[dict[str, Any]]:
         )
         for key in ("observed_movements", "partial_attempts", "interrupted_attempts"):
             require(integer(session.get(key)), f"{identifier}: invalid {key}")
+        end_reason = session.get("end_reason")
+        require(end_reason in END_REASONS, f"{identifier}: invalid end_reason")
 
         analyzed = session.get("analyzed_frames")
         usable = session.get("usable_tracking_frames")
@@ -209,6 +223,11 @@ def summarize(sessions: Sequence[dict[str, Any]]) -> dict[str, Any]:
     tracking = [s["usable_tracking_frames"] / s["analyzed_frames"] for s in sessions]
 
     interrupted_sets = sum(int(s["interrupted_attempts"] > 0) for s in sessions)
+    end_reason_counts = dict(Counter(s["end_reason"] for s in sessions))
+    set_end_interruptions = sum(
+        count for reason, count in end_reason_counts.items()
+        if reason in INTERRUPTION_END_REASONS
+    )
     setup_required = [s for s in sessions if s["bar_setup"]["required"]]
     setup_success = sum(int(s["bar_setup"]["succeeded"]) for s in setup_required)
     setup_attempts = [int(s["bar_setup"]["attempts"]) for s in setup_required]
@@ -244,6 +263,9 @@ def summarize(sessions: Sequence[dict[str, Any]]) -> dict[str, Any]:
         "extra_movements_per_100_expected": (100 * extra / expected) if expected else None,
         "sets_with_interruptions": interrupted_sets,
         "interruption_set_fraction": fraction(interrupted_sets, len(sessions)),
+        "set_end_interruptions": set_end_interruptions,
+        "set_end_interruption_fraction": fraction(set_end_interruptions, len(sessions)),
+        "end_reason_counts": end_reason_counts,
         "partial_attempts": sum(int(s["partial_attempts"]) for s in sessions),
         "tracking_coverage_weighted": fraction(usable, analyzed),
         "tracking_coverage_median": statistics.median(tracking) if tracking else None,
