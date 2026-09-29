@@ -32,6 +32,9 @@ class DebugSessionTests(unittest.TestCase):
             "side": "right",
             "capture": {
                 "backend": "AVCaptureMovieFileOutput",
+                "includesSetup": True,
+                "audioRecorded": False,
+                "durationSeconds": 6.5,
                 "firstAnalyzedSourceSeconds": 12.0,
                 "lastAnalyzedSourceSeconds": 18.0,
             },
@@ -120,6 +123,21 @@ class DebugSessionTests(unittest.TestCase):
             with self.assertRaisesRegex(
                 debug_session.DebugSessionError,
                 "observedMovements disagrees",
+            ):
+                debug_session.verify(package)
+
+    def test_capture_contract_rejects_audio(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            session_path = package / "session.json"
+            session = json.loads(session_path.read_text(encoding="utf-8"))
+            session["capture"]["audioRecorded"] = True
+            session_path.write_text(json.dumps(session) + "\n", encoding="utf-8")
+            self.refresh_hashes(package)
+
+            with self.assertRaisesRegex(
+                debug_session.DebugSessionError,
+                "must not contain audio",
             ):
                 debug_session.verify(package)
 
