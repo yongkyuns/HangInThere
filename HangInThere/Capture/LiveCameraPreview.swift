@@ -1137,7 +1137,6 @@ final class LiveCameraPreviewController: NSObject {
                         endReason: .setupInvalidated
                     )
                     finishDebugCaptureIfNeeded()
-                    finishDebugCaptureIfNeeded()
                 }
             }
             latestFrame = frame
