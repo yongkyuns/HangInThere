@@ -39,13 +39,13 @@ struct ExerciseCounter: Sendable {
         let formVerification: String
     }
 
-    // Policy v4 keeps the independently confirmed fixed bar/rail reference.
+    // Policy v5 keeps the independently confirmed fixed bar/rail reference.
     // Pull-ups retain policy-v2 absolute arm gates. Dips use a relative cycle
     // anchored at a visually supported top position: shoulder-to-rail travel is
     // the primary phase signal, while elbow angle only establishes that the arm
     // is support-like and that a real bend occurred. This is movement counting,
     // not lockout/depth/form grading.
-    static let policyVersion = 4
+    static let policyVersion = 5
     static let extendedDegrees = 155.0
     static let departureDegrees = 140.0
     static let bentDegrees = 100.0
@@ -79,6 +79,7 @@ struct ExerciseCounter: Sendable {
     private var dipTopCandidate: DipSample?
     private var dipBottom: DipSample?
     private var dipLastGeometryTime: Double?
+    private var dipSupportCandidateSince: Double?
     private enum Endpoint { case extended, bent }
     private var endpoint: Endpoint?
     private var endpointSince: Double?
@@ -243,27 +244,52 @@ struct ExerciseCounter: Sendable {
         switch phase {
         case .seekingStart:
             guard isDipSupportLike(sample) else {
-                dipTopCandidate = nil
+                // A short confidence-only hole must not erase a previously
+                // observed support endpoint. A valid bent-arm observation does.
+                if sample.degrees != nil {
+                    dipTopCandidate = nil
+                    dipSupportCandidateSince = nil
+                }
                 _ = sustained(nil, at: time)
                 return nil
             }
-            if dipTopCandidate == nil ||
-                sample.shoulderToBarPixels > dipTopCandidate!.shoulderToBarPixels {
-                dipTopCandidate = sample
-            }
-            if sustained(.extended, at: time) {
+            dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
+            if dipSupportCandidateSince == nil {
+                dipSupportCandidateSince = time
+            } else if let since = dipSupportCandidateSince,
+                      time - since >= Self.endpointDwellSeconds,
+                      time - since <= Self.maximumDipObservationOutageSeconds {
                 armDip(dipTopCandidate ?? sample)
             }
 
         case .ready:
-            guard let anchor = dipAnchor else {
+            guard var anchor = dipAnchor else {
                 return interrupt(reason: "missingDipAnchor")
             }
+
+            // Shoulder/rail geometry often remains reliable at top support after
+            // elbow confidence drops. Let that geometry advance the local top
+            // anchor while preserving the most recent valid top-angle evidence.
+            if sample.shoulderToBarPixels > anchor.shoulderToBarPixels {
+                anchor = DipSample(
+                    degrees: maxDipDegrees(anchor.degrees, sample.degrees),
+                    shoulderToBarPixels: sample.shoulderToBarPixels,
+                    imageShortSide: sample.imageShortSide
+                )
+                dipAnchor = anchor
+            } else if isDipSupportLike(sample),
+                      let degrees = sample.degrees,
+                      let anchorDegrees = anchor.degrees,
+                      degrees > anchorDegrees {
+                anchor = DipSample(
+                    degrees: degrees,
+                    shoulderToBarPixels: anchor.shoulderToBarPixels,
+                    imageShortSide: anchor.imageShortSide
+                )
+                dipAnchor = anchor
+            }
+
             if isDipSupportLike(sample) {
-                if sample.shoulderToBarPixels > anchor.shoulderToBarPixels,
-                   sample.degrees != nil {
-                    dipAnchor = sample
-                }
                 _ = sustained(nil, at: time)
                 return nil
             }
@@ -323,10 +349,7 @@ struct ExerciseCounter: Sendable {
 
     private func reachedBentEndpoint(_ sample: Sample) -> Bool {
         guard let anchor else { return false }
-        let required = requiredTravel(
-            anchorDistance: anchor.shoulderToBarPixels,
-            imageShortSide: anchor.imageShortSide
-        )
+        let required = requiredDipTravel(anchor)
         let travelTowardBar = anchor.shoulderToBarPixels - sample.shoulderToBarPixels
         return sample.degrees <= Self.bentDegrees && travelTowardBar >= required
     }
@@ -336,6 +359,28 @@ struct ExerciseCounter: Sendable {
             Self.minimumTravelImageFraction * imageShortSide)
     }
 
+    private func requiredDipTravel(_ sample: DipSample) -> Double {
+        Self.minimumTravelImageFraction * sample.imageShortSide
+    }
+
+    private func maxDipDegrees(_ a: Double?, _ b: Double?) -> Double? {
+        switch (a, b) {
+        case let (a?, b?): max(a, b)
+        case let (a?, nil): a
+        case let (nil, b?): b
+        case (nil, nil): nil
+        }
+    }
+
+    private func mergedDipTopCandidate(_ current: DipSample?, with sample: DipSample) -> DipSample {
+        guard let current else { return sample }
+        return DipSample(
+            degrees: maxDipDegrees(current.degrees, sample.degrees),
+            shoulderToBarPixels: max(current.shoulderToBarPixels, sample.shoulderToBarPixels),
+            imageShortSide: sample.imageShortSide
+        )
+    }
+
     private func isDipSupportLike(_ sample: DipSample) -> Bool {
         guard let degrees = sample.degrees else { return false }
         return degrees >= Self.minimumDipSupportDegrees
@@ -343,10 +388,7 @@ struct ExerciseCounter: Sendable {
 
     private func dipHasDeparted(_ sample: DipSample, from anchor: DipSample) -> Bool {
         guard let degrees = sample.degrees, let anchorDegrees = anchor.degrees else { return false }
-        let required = requiredTravel(
-            anchorDistance: anchor.shoulderToBarPixels,
-            imageShortSide: anchor.imageShortSide
-        )
+        let required = requiredDipTravel(anchor)
         let travel = anchor.shoulderToBarPixels - sample.shoulderToBarPixels
         return travel >= Self.dipDepartureTravelFraction * required &&
             anchorDegrees - degrees >= Self.minimumDipDepartureDegrees
@@ -354,13 +396,11 @@ struct ExerciseCounter: Sendable {
 
     private func dipReachedBentEndpoint(_ sample: DipSample, from anchor: DipSample) -> Bool {
         guard let degrees = sample.degrees, let anchorDegrees = anchor.degrees else { return false }
-        let required = requiredTravel(
-            anchorDistance: anchor.shoulderToBarPixels,
-            imageShortSide: anchor.imageShortSide
-        )
+        let required = requiredDipTravel(anchor)
         let travel = anchor.shoulderToBarPixels - sample.shoulderToBarPixels
         return travel >= required &&
-            anchorDegrees - degrees >= Self.minimumDipBendExcursionDegrees
+            (degrees <= Self.bentDegrees ||
+             anchorDegrees - degrees >= Self.minimumDipBendExcursionDegrees)
     }
 
     private mutating func dipReturnToAnchorEvidence(_ sample: DipSample, to anchor: DipSample) -> Bool {
@@ -376,18 +416,18 @@ struct ExerciseCounter: Sendable {
         }
 
         if isDipSupportLike(sample) {
-            if dipTopCandidate == nil ||
-                sample.shoulderToBarPixels > dipTopCandidate!.shoulderToBarPixels {
-                dipTopCandidate = sample
-            }
+            dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
             return true
         }
 
-        // Once a valid support-like top sample has been seen, a following frame
-        // may sustain the rail endpoint even if elbow/wrist confidence drops.
-        // No arm sample is fabricated; only the independently observed shoulder-
-        // to-rail geometry is used to complete endpoint dwell.
-        return sample.degrees == nil && dipTopCandidate != nil
+        // Once valid top-arm evidence exists, a following frame may sustain the
+        // endpoint using independently observed shoulder/rail geometry while
+        // preserving—not fabricating—the last valid elbow evidence.
+        if sample.degrees == nil, dipTopCandidate != nil {
+            dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
+            return true
+        }
+        return false
     }
 
     private mutating func dipReturnFromBottomEvidence(
@@ -395,10 +435,7 @@ struct ExerciseCounter: Sendable {
         from bottom: DipSample,
         cycleAnchor: DipSample
     ) -> Bool {
-        let required = requiredTravel(
-            anchorDistance: cycleAnchor.shoulderToBarPixels,
-            imageShortSide: cycleAnchor.imageShortSide
-        )
+        let required = requiredDipTravel(cycleAnchor)
         let recovered = sample.shoulderToBarPixels - bottom.shoulderToBarPixels >=
             Self.dipReturnTravelFraction * required
         guard recovered else {
@@ -407,30 +444,34 @@ struct ExerciseCounter: Sendable {
         }
 
         if let degrees = sample.degrees, let bottomDegrees = bottom.degrees,
-           isDipSupportLike(sample),
            degrees - bottomDegrees >= Self.minimumDipDepartureDegrees {
-            if dipTopCandidate == nil ||
-                sample.shoulderToBarPixels > dipTopCandidate!.shoulderToBarPixels {
-                dipTopCandidate = sample
-            }
+            dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
             return true
         }
 
-        // As on acquisition, one following arm-confidence dropout may sustain
-        // a top endpoint after a valid support-like return sample. Shoulder/rail
-        // geometry is still observed; no missing elbow sample is fabricated.
-        return sample.degrees == nil && dipTopCandidate != nil
+        // The arm estimate may disappear near extension. Once the return has
+        // shown real elbow recovery, keep extending only its observed rail
+        // geometry so a confidence hole cannot move the top anchor backward.
+        if sample.degrees == nil, dipTopCandidate != nil {
+            dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
+            return true
+        }
+        return false
     }
 
 
     private mutating func dipObservationUnavailable(reason: String, at time: Double) -> Event? {
         trackingIssue = reason
+
+        // Missing frames never contribute dwell time, but a short outage should
+        // not erase already observed top geometry/arm evidence. Long outages
+        // still force a fresh start and record an active interruption.
         endpoint = nil
         endpointSince = nil
-        dipTopCandidate = nil
-
         guard let lastGeometry = dipLastGeometryTime else { return nil }
         guard time - lastGeometry > Self.maximumDipObservationOutageSeconds else { return nil }
+        dipTopCandidate = nil
+        dipSupportCandidateSince = nil
         return interrupt(reason: reason)
     }
 
@@ -461,6 +502,7 @@ struct ExerciseCounter: Sendable {
         dipAnchor = sample
         dipTopCandidate = nil
         dipBottom = nil
+        dipSupportCandidateSince = nil
         endpoint = nil
         endpointSince = nil
         activeAttempt = false
@@ -477,6 +519,7 @@ struct ExerciseCounter: Sendable {
         dipAnchor = nil
         dipTopCandidate = nil
         dipBottom = nil
+        dipSupportCandidateSince = nil
         dipLastGeometryTime = nil
         endpoint = nil
         endpointSince = nil
