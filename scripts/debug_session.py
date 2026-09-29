@@ -600,6 +600,7 @@ def run_replay_comparison(
 ) -> dict[str, Any]:
     package = package.resolve()
     output = output.resolve()
+    require(sys.platform == "darwin", "replay comparison requires macOS Apple Vision")
     require(not output.exists(), "replay comparison output already exists")
     report = verify(package)
     require(report["session"]["schema_version"] >= 2, "replay comparison requires a schema v2 package")
@@ -688,18 +689,42 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     manifest_parser.add_argument("--output", type=pathlib.Path, required=True)
     manifest_parser.add_argument("--rights-evidence", required=True)
 
+    compare_parser = commands.add_parser("compare")
+    compare_parser.add_argument("package", type=pathlib.Path)
+    compare_parser.add_argument("--output", type=pathlib.Path, required=True)
+    compare_parser.add_argument("--rights-evidence", required=True)
+
     args = parser.parse_args(argv)
     try:
         report = verify(args.package)
         if args.command == "verify":
             write_json(args.output, report)
-        else:
+        elif args.command == "manifest":
             write_json(
                 args.output,
                 evaluation_manifest(args.package, report, args.rights_evidence),
             )
+        else:
+            comparison = run_replay_comparison(
+                args.package,
+                args.output,
+                args.rights_evidence,
+            )
+            print(
+                "Replay comparison: "
+                f"live={comparison['live']['observed_movements']} "
+                f"replay={comparison['replay']['observed_movements']} "
+                f"policy={comparison['captured_policy_version']}->"
+                f"{comparison['replay_policy_version']}"
+            )
         return 0
-    except (DebugSessionError, OSError, ValueError, TypeError) as exc:
+    except (
+        DebugSessionError,
+        OSError,
+        ValueError,
+        TypeError,
+        subprocess.CalledProcessError,
+    ) as exc:
         print(f"Debug session rejected: {exc}", file=sys.stderr)
         return 2
 
