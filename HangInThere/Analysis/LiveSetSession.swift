@@ -7,7 +7,21 @@ struct LiveSetSession: Sendable {
         case finished
     }
 
+    enum EndReason: String, Equatable, Sendable {
+        case manual
+        case appInactive
+        case cameraInterrupted
+        case cameraFailure
+        case setupInvalidated
+        case phoneMoved
+        case sceneShifted
+        case sceneScaled
+
+        var isInterruption: Bool { self != .manual }
+    }
+
     private(set) var phase: Phase = .idle
+    private(set) var endReason: EndReason?
     private(set) var counter = ExerciseCounter()
     private(set) var analyzedFrames = 0
     private(set) var usableFrames = 0
@@ -46,6 +60,7 @@ struct LiveSetSession: Sendable {
         usableFrames = 0
         firstSourceSeconds = nil
         lastSourceSeconds = nil
+        endReason = nil
         phase = .running
     }
 
@@ -72,9 +87,18 @@ struct LiveSetSession: Sendable {
         counter.interrupt(reason: reason)
     }
 
-    mutating func finish() {
+    mutating func finish(reason: EndReason = .manual) {
         guard phase == .running else { return }
         counter.finish()
+        endReason = reason
+        phase = .finished
+    }
+
+    mutating func interruptAndFinish(reason: String, endReason: EndReason) {
+        guard phase == .running else { return }
+        counter.interrupt(reason: reason)
+        counter.finish()
+        self.endReason = endReason
         phase = .finished
     }
 

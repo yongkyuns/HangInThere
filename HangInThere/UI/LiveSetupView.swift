@@ -1,4 +1,6 @@
+import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct LiveSetupGuide: Equatable, Sendable {
     let exercise: ExerciseCounter.Exercise
@@ -30,10 +32,16 @@ struct LiveSetupGuide: Equatable, Sendable {
 @MainActor
 struct LiveSetupView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var camera = LiveCameraPreviewController()
     @State private var exercise: ExerciseCounter.Exercise = .pullUp
     @State private var side: ArmMeasurement.Side = .left
     @State private var barSetup: BarSetupFrame?
+    @State private var qualificationDocument: QualificationReportDocument?
+    @State private var qualificationExportFilename = "HangInThere-live-qualification"
+    @State private var showingQualificationExporter = false
+    @State private var showingQualificationExportError = false
+    @State private var qualificationExportErrorMessage = ""
 
     private var guide: LiveSetupGuide {
         LiveSetupGuide(exercise: exercise, side: side)
@@ -59,6 +67,7 @@ struct LiveSetupView: View {
                     }
 
                     scopeNote
+                    qualificationDisclosure
                 }
                 .padding()
             }
@@ -76,6 +85,33 @@ struct LiveSetupView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
+            .fileExporter(
+                isPresented: $showingQualificationExporter,
+                document: qualificationDocument,
+                contentType: .json,
+                defaultFilename: qualificationExportFilename
+            ) { result in
+                switch result {
+                case .success:
+                    qualificationDocument = nil
+                case .failure(let error):
+                    qualificationDocument = nil
+                    if let cocoaError = error as? CocoaError,
+                       cocoaError.code == .userCancelled {
+                        break
+                    }
+                    qualificationExportErrorMessage = error.localizedDescription
+                    showingQualificationExportError = true
+                }
+            }
+            .alert(
+                "Couldn't export qualification report",
+                isPresented: $showingQualificationExportError
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(qualificationExportErrorMessage)
+            }
             .task {
                 camera.configureWorkout(exercise: exercise, side: side)
                 await camera.start()
@@ -87,6 +123,20 @@ struct LiveSetupView: View {
             .onChange(of: side) { _, newSide in
                 camera.configureWorkout(exercise: exercise, side: newSide)
                 barSetup = nil
+            }
+            .onChange(of: scenePhase) { _, phase in
+                switch phase {
+                case .active:
+                    if camera.isSuspended {
+                        Task { await camera.resumeAfterInterruption() }
+                    }
+                case .inactive, .background:
+                    barSetup = nil
+                    camera.suspendForSceneLoss()
+                @unknown default:
+                    barSetup = nil
+                    camera.suspendForSceneLoss()
+                }
             }
             .onDisappear { camera.stop() }
         }
@@ -187,7 +237,7 @@ struct LiveSetupView: View {
                 ProgressView()
                     .tint(.white)
             } else {
-                Image(systemName: camera.state == .denied ? "video.slash.fill" : "video.fill")
+                Image(systemName: cameraStatusIcon)
                     .font(.system(size: 32, weight: .semibold))
                     .foregroundStyle(.white)
             }
@@ -204,6 +254,13 @@ struct LiveSetupView: View {
             if camera.state == .denied {
                 Button("Open Settings") { camera.openSettings() }
                     .buttonStyle(.borderedProminent)
+            } else if camera.isSuspended {
+                Button {
+                    Task { await camera.resumeAfterInterruption() }
+                } label: {
+                    Label("Resume camera", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.borderedProminent)
             }
         }
         .frame(maxWidth: 420)
@@ -255,9 +312,14 @@ struct LiveSetupView: View {
             )
             setupRow("Body position", detail: guide.bodyText, symbol: "viewfinder")
             setupRow(
-                "Phone",
-                detail: "Visual check only. Keep it stationary after bar calibration.",
-                symbol: "iphone.gen3"
+                "Phone orientation",
+                detail: phoneStabilityDetail,
+                symbol: phoneStabilitySymbol
+            )
+            setupRow(
+                "Camera position",
+                detail: sceneStabilityDetail,
+                symbol: sceneStabilitySymbol
             )
         }
         .padding(16)
@@ -294,7 +356,11 @@ struct LiveSetupView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(!camera.isCameraReady || !camera.framing.state.isReady)
+            .disabled(
+                !camera.isCameraReady
+                    || !camera.framing.state.isReady
+                    || !camera.motionSampleAvailable
+            )
             .accessibilityIdentifier("liveSetupBar")
 
             if camera.currentBar != nil {
@@ -389,9 +455,9 @@ struct LiveSetupView: View {
     private var liveResultsCard: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
-                Label("Set complete", systemImage: "checkmark.circle.fill")
+                Label(liveResultTitle, systemImage: liveResultIcon)
                     .font(.headline)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(liveResultColor)
 
                 Spacer()
 
@@ -421,6 +487,12 @@ struct LiveSetupView: View {
                     liveResultMetric("Duration", formattedLiveDuration)
                     liveResultMetric("Tracking", formattedLiveCoverage)
                 }
+            }
+
+            if let message = liveResultInterruptionMessage {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
             }
 
             if !camera.liveSet.movementTimes.isEmpty {
@@ -475,6 +547,58 @@ struct LiveSetupView: View {
                 .monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var cameraStatusIcon: String {
+        switch camera.state {
+        case .denied, .interrupted, .failed:
+            return "video.slash.fill"
+        case .unavailable:
+            return "camera.fill"
+        default:
+            return "video.fill"
+        }
+    }
+
+    private var liveResultTitle: String {
+        if camera.liveSet.endReason?.isInterruption == true {
+            return "Set interrupted"
+        }
+        return "Set complete"
+    }
+
+    private var liveResultIcon: String {
+        camera.liveSet.endReason?.isInterruption == true
+            ? "exclamationmark.triangle.fill"
+            : "checkmark.circle.fill"
+    }
+
+    private var liveResultColor: Color {
+        camera.liveSet.endReason?.isInterruption == true ? .orange : .green
+    }
+
+    private var liveResultInterruptionMessage: String? {
+        guard let reason = camera.liveSet.endReason, reason.isInterruption else {
+            return nil
+        }
+        switch reason {
+        case .appInactive:
+            return "The set ended when the app left the foreground. Camera framing and the bar reference must be checked again."
+        case .cameraInterrupted:
+            return "The set ended because the camera was interrupted. Re-check framing and the bar reference before another set."
+        case .cameraFailure:
+            return "The set ended because the camera session stopped unexpectedly."
+        case .setupInvalidated:
+            return "The set ended because the fixed bar reference became incompatible with the camera frames."
+        case .phoneMoved:
+            return "The set ended because the phone rotated after bar calibration. Re-check framing and set the bar again."
+        case .sceneShifted:
+            return "The set ended because static background structure translated relative to the bar-calibration frame. Re-check framing and set the bar again."
+        case .sceneScaled:
+            return "The set ended because the static background expanded or contracted relative to calibration, consistent with camera distance/zoom change."
+        case .manual:
+            return nil
+        }
     }
 
     private var navigationTitle: String {
@@ -571,10 +695,13 @@ struct LiveSetupView: View {
 
     private var barCalibrationDetail: String {
         if camera.currentBar != nil {
-            return "\(camera.barRole.title) confirmed from a frozen analyzed frame."
+            return "\(camera.barRole.title) confirmed from a frozen analyzed frame. Phone orientation and static background are monitored from that same calibration."
         }
         if !camera.framing.state.isReady {
             return "Make the selected arm measurable, then freeze a frame and mark the gripping edge."
+        }
+        if !camera.motionSampleAvailable {
+            return "Waiting for device-motion data before the bar can be calibrated."
         }
         return "Freeze the current analyzed frame and confirm the gripping bar or selected dip rail."
     }
@@ -583,16 +710,196 @@ struct LiveSetupView: View {
         if !camera.isCameraReady { return "Start the rear camera." }
         if !camera.framing.state.isReady { return camera.framing.detail }
         if camera.currentBar == nil { return "Confirm the fixed bar reference." }
+        if !camera.phoneOrientation.state.allowsLiveSet {
+            return "Phone orientation is not stable against the calibration baseline."
+        }
+        if !camera.sceneTranslation.state.allowsLiveSet {
+            return sceneStabilityDetail
+        }
         return "Complete the remaining setup checks."
     }
 
     private var scopeNote: some View {
         Label(
-            "Live sets use the same bar-relative movement counter as recorded review. Automatic apparatus identity, phone-motion detection, chin/depth verification, and form scoring remain separate qualification steps.",
+            "Live sets use the same bar-relative movement counter as recorded review. Sustained phone rotation, background translation, or radial background scale change after calibration invalidates the set. These checks still do not constitute full camera-pose estimation.",
             systemImage: "info.circle"
         )
         .font(.footnote)
         .foregroundStyle(.secondary)
+    }
+
+    private var qualificationDisclosure: some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: 14) {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 20) {
+                        qualificationMetric("Vision", formattedVisionLatency)
+                        qualificationMetric("Scene reg", formattedSceneRegistrationLatency)
+                        qualificationMetric("Analysis", formattedAnalysisRate)
+                        qualificationMetric("Thermal", camera.qualificationThermalLevel.rawValue.capitalized)
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        qualificationMetric("Vision", formattedVisionLatency)
+                        qualificationMetric("Scene registration", formattedSceneRegistrationLatency)
+                        qualificationMetric("Analysis", formattedAnalysisRate)
+                        qualificationMetric("Thermal", camera.qualificationThermalLevel.rawValue.capitalized)
+                    }
+                }
+
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 20) {
+                        qualificationMetric("Dropped", "\(camera.droppedFrames)")
+                        qualificationMetric("Pose fail", "\(camera.analysisFailures)")
+                        qualificationMetric("Scene fail", "\(camera.sceneRegistrationFailures)")
+                        qualificationMetric("Samples", "\(camera.qualification.samples.count)")
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        qualificationMetric("Dropped frames", "\(camera.droppedFrames)")
+                        qualificationMetric("Analysis failures", "\(camera.analysisFailures)")
+                        qualificationMetric("Scene registration failures", "\(camera.sceneRegistrationFailures)")
+                        qualificationMetric("Stored samples", "\(camera.qualification.samples.count)")
+                    }
+                }
+
+                if let delta = camera.phoneOrientation.latestDeltaDegrees {
+                    qualificationMetric("Orientation delta", String(format: "%.2f°", delta))
+                }
+                if let shift = camera.sceneTranslation.latestShiftFraction {
+                    qualificationMetric("Background shift", String(format: "%.3f%%", shift * 100))
+                }
+                if let scale = camera.sceneTranslation.latestScaleFraction {
+                    qualificationMetric("Global homography scale", String(format: "%.3f%%", scale * 100))
+                }
+
+                qualificationMetric(
+                    "Scale measurement",
+                    camera.sceneTranslation.latestScaleMeasurementAvailable ? "Available" : "Unavailable"
+                )
+
+                Button {
+                    qualificationDocument = QualificationReportDocument(
+                        text: camera.qualificationReportJSON()
+                    )
+                    qualificationExportFilename = makeQualificationFilename()
+                    showingQualificationExporter = true
+                } label: {
+                    Label("Save JSON qualification report", systemImage: "doc.badge.arrow.up")
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("saveLiveQualificationReport")
+
+                Text("The report is local engineering evidence only. It contains timing, counters, thermal state, and camera-stability metrics—no video, images, landmarks, filenames, location, or device identifiers.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.top, 10)
+        } label: {
+            Label("Device qualification", systemImage: "gauge.with.dots.needle.50percent")
+                .font(.subheadline.weight(.semibold))
+        }
+        .padding(16)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    @ViewBuilder
+    private func qualificationMetric(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var formattedVisionLatency: String {
+        guard let milliseconds = camera.lastProcessingMilliseconds else { return "—" }
+        return String(format: "%.1f ms", milliseconds)
+    }
+
+    private var formattedSceneRegistrationLatency: String {
+        guard let milliseconds = camera.lastSceneRegistrationMilliseconds else { return "—" }
+        return String(format: "%.1f ms", milliseconds)
+    }
+
+    private var formattedAnalysisRate: String {
+        guard let start = camera.qualification.startedUptimeSeconds else { return "—" }
+        let duration = max(0, ProcessInfo.processInfo.systemUptime - start)
+        guard duration > 0 else { return "—" }
+        return String(format: "%.1f fps", Double(camera.analyzedFrames) / duration)
+    }
+
+    private func makeQualificationFilename() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        return "HangInThere-live-qualification-\(formatter.string(from: Date()))"
+    }
+
+    private var phoneStabilityDetail: String {
+        switch camera.phoneOrientation.state {
+        case .unavailable:
+            return "Device-motion monitoring is unavailable. Live set start is blocked."
+        case .uncalibrated:
+            return camera.motionSampleAvailable
+                ? "Ready to lock orientation when the bar is calibrated."
+                : "Waiting for device-motion data."
+        case .stable:
+            if let delta = camera.phoneOrientation.latestDeltaDegrees {
+                return String(format: "Orientation monitored · %.1f° from calibration.", delta)
+            }
+            return "Orientation monitored from bar calibration."
+        case .moved:
+            return "Phone rotated after calibration. Set the bar again."
+        }
+    }
+
+    private var phoneStabilitySymbol: String {
+        switch camera.phoneOrientation.state {
+        case .stable: "checkmark.circle.fill"
+        case .moved: "exclamationmark.triangle.fill"
+        case .unavailable: "xmark.circle.fill"
+        case .uncalibrated: camera.motionSampleAvailable ? "iphone.gen3" : "hourglass"
+        }
+    }
+
+    private var sceneStabilityDetail: String {
+        switch camera.sceneTranslation.state {
+        case .uncalibrated:
+            return "Set the bar to capture a static-background reference."
+        case .calibrating:
+            if camera.sceneTranslation.latestConsensusPatches > 0 {
+                return "Checking background alignment before Start."
+            }
+            return "Waiting for at least two peripheral background patches to agree."
+        case .stable:
+            let shift = (camera.sceneTranslation.latestShiftFraction ?? 0) * 100
+            let scale = (camera.sceneTranslation.latestScaleFraction ?? 0) * 100
+            return String(
+                format: "Background aligned · shift %.2f%% · radial scale %.2f%%.",
+                shift,
+                scale
+            )
+        case .moved:
+            if camera.sceneTranslation.movementKind == .scale {
+                return "Background expanded/contracted after calibration. Set the bar again."
+            }
+            return "Static background translated after calibration. Set the bar again."
+        }
+    }
+
+    private var sceneStabilitySymbol: String {
+        switch camera.sceneTranslation.state {
+        case .stable: "checkmark.circle.fill"
+        case .moved: "exclamationmark.triangle.fill"
+        case .calibrating: "viewfinder"
+        case .uncalibrated: "camera.metering.center.weighted"
+        }
     }
 
     private var framingStatusSymbol: String {
