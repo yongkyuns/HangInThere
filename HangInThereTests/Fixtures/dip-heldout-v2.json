@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "status": "locked-before-inference",
+  "purpose": "Second held-out real parallel-bar dip qualification after the Romina holdout was consumed. This candidate is frozen before any Apple Vision inference or production-counter replay.",
+  "selection_provenance": {
+    "source_only_workflow_run_id": 36512648695,
+    "source_only_artifact_id": 11009646497,
+    "source_only_artifact_sha256": "6fdf2a6fbdaf18f916578235951261cc24f093a6873e823faae951c12d94926c",
+    "reviewed_without_model_output": true,
+    "selected_candidate": "pexels-4065479",
+    "rejected_candidate": {
+      "id": "pexels-4804769",
+      "source_page": "https://www.pexels.com/video/video-of-man-doing-pull-ups-in-both-arms-4804769/",
+      "source_bytes": 13093503,
+      "source_sha256": "4067b9d3593c5d106a0fcae226d5b06a6ef33609dfbe4fc19d5bf5960d4326de",
+      "credit": "Ketut Subiyanto / Pexels",
+      "reason": "Rejected from count holdout on source-only review: strongly frontal framing, heavy arm/torso overlap, and too little visually separable endpoint excursion to support unambiguous top-bottom-top labels. No Apple Vision or counter output was run."
+    }
+  },
+  "case": {
+    "id": "pavel-heldout-v2-parallel-bar-dips",
+    "exercise": "dip",
+    "source_page": "https://www.pexels.com/video/a-man-doing-dips-at-the-exercise-park-4065479/",
+    "download_url": "https://www.pexels.com/download/video/4065479/",
+    "source_bytes": 27403001,
+    "source_sha256": "f40f1a37b04ab0cc5e86ed71c3af9b6413fd8094c12531c967cd3d3eeaca7985",
+    "source_geometry": {
+      "width": 3840,
+      "height": 2160
+    },
+    "source_frames": 435,
+    "source_fps": "30000/1001",
+    "source_duration_seconds": 14.526667,
+    "license": "Pexels License",
+    "credit": "Pavel Danilyuk / Pexels",
+    "recipe": {
+      "source_start_seconds": 0,
+      "duration_seconds": 14,
+      "frames_per_second": 8,
+      "max_long_edge": 640,
+      "expected_frame_count": 112
+    },
+    "expectation": {
+      "minimum_people_fraction": 0.95,
+      "minimum_any_arm_fraction": 0.85,
+      "expected_orientation": "landscape"
+    },
+    "side": "right",
+    "event_definition": "observed_top_bottom_top",
+    "event_windows_source_seconds": [
+      [
+        3.5,
+        4.25
+      ],
+      [
+        8,
+        8.75
+      ],
+      [
+        13,
+        13.75
+      ]
+    ],
+    "count_expectation": {
+      "bar_reference_edge": [
+        20,
+        315,
+        620,
+        290
+      ],
+      "bar_reference_image_size": [
+        640,
+        360
+      ],
+      "bar_reference_note": "Source-only visual review of the centerline of the fixed near-side green parallel rail in the 640x360 prepared raster. The slight downward-to-right image slope is preserved. Production may use the infinite line defined by this visible segment.",
+      "expected_observed_movements": 3,
+      "expected_partial_attempts": 0,
+      "expected_interrupted_attempts": 0
+    },
+    "visual_review": {
+      "method": "Entire pinned source reviewed from source-only 8 FPS sheets/video, with an additional 4 FPS timestamped sequence and 640x360 rail review. No Apple Vision or counter output was available during selection or labelling.",
+      "observed_content": "One athlete in a fixed landscape side/oblique outdoor view. The sequence begins in stable support, shows three visually distinct support-to-bottom-to-support dip cycles, and returns to support after the third cycle before the 14.0 s holdout trim ends.",
+      "limitations": [
+        "Movement-cycle ground truth only; dip depth, lockout validity, body alignment and overall form are not qualified.",
+        "The selected anatomical side is frozen from source-only visual review; no model output was used to choose the arm.",
+        "This file must remain outside Apple-Vision inference until a subsequent dip redesign is frozen using only development-exposed evidence."
+      ]
+    }
+  },
+  "reviewed_date": "2026-09-28"
+}
