@@ -30,6 +30,20 @@ enum VideoTestSupport {
         return url
     }
 
+    static func fixtureResource(_ name: String) throws -> URL {
+        #if SWIFT_PACKAGE
+        let bundle = Bundle.module
+        #else
+        let bundle = Bundle(for: FixtureBundleToken.self)
+        #endif
+        let root = try #require(bundle.resourceURL)
+        let url = root.appendingPathComponent("Fixtures/\(name)")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw FixtureError.failed("Missing fixture metadata \(name). Test resources are incomplete.")
+        }
+        return url
+    }
+
     // Original synthetic pixels, not a human-pose accuracy fixture. Four coloured
     // quadrants make every rotation/reflection observable after actual decoding.
     static func makeVideo(transform: CGAffineTransform = .identity,

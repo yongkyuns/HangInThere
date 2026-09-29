@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "status": "heldout-count-pass-temporal-window-fail",
+  "input_manifest": "HangInThereTests/Fixtures/dip-heldout-v2.json",
+  "policy_freeze": "HangInThereTests/Fixtures/dip-policy-v6-freeze.json",
+  "source_id": "pavel-heldout-v2-parallel-bar-dips",
+  "source_sha256": "f40f1a37b04ab0cc5e86ed71c3af9b6413fd8094c12531c967cd3d3eeaca7985",
+  "counter_policy_version": 6,
+  "frozen_development_commit": "0d92458977fdd55ad0103973f3286eede18703e2",
+  "pr_head_at_first_eligible_inference": "ed99bb8ecb0fd4c8bda721b5c3fbbd4362a2923e",
+  "checkout_source_revision": "951187257b1075e5ecad88c31f04ecbd363fab16",
+  "workflow": {
+    "run_id": 36516185865,
+    "job_id": 109238861764,
+    "artifact_id": 11010818096,
+    "artifact_sha256": "a369de846f08bc510377547370add2e9ff4c2850b3cdc54d8208a39e07142818"
+  },
+  "prepared_derivative": {
+    "frame_count": 112,
+    "geometry": {
+      "width": 640,
+      "height": 360
+    },
+    "video_sha256": "83679efc2891cc9c04f534eb9ae4021819f9c130ebf4d187f463d8cd256ca0b5",
+    "observations_sha256": "7a8c444111cf6998d68bec1c7f230d6a303eac6df217713454c7dbbbd3cc0b63"
+  },
+  "locked_expectation": {
+    "minimum_people_fraction": 0.95,
+    "minimum_any_arm_fraction": 0.85,
+    "expected_observed_movements": 3,
+    "expected_partial_attempts": 0,
+    "expected_interrupted_attempts": 0,
+    "event_windows_source_seconds": [
+      [
+        3.5,
+        4.25
+      ],
+      [
+        8,
+        8.75
+      ],
+      [
+        13,
+        13.75
+      ]
+    ]
+  },
+  "observed": {
+    "people_frames": 109,
+    "people_fraction": 0.9732142857142857,
+    "any_arm_frames": 101,
+    "any_arm_fraction": 0.9017857142857143,
+    "observed_movements": 3,
+    "partial_attempts": 0,
+    "interrupted_attempts": 0,
+    "event_source_seconds": [
+      3.25,
+      7.875,
+      12.625
+    ],
+    "signed_seconds_before_window_start": [
+      -0.25,
+      -0.125,
+      -0.375
+    ]
+  },
+  "verdict": {
+    "tracking_floors": "passed",
+    "exact_movement_count": "passed",
+    "temporal_event_windows": "failed",
+    "strict_heldout_qualification": "failed"
+  },
+  "policy": "This is the first eligible Apple-Vision exposure after policy v6 was frozen. Do not change policy v6, the Pavel labels, event windows, arm choice, rail geometry, or tracking floors to make this result pass. The result supports held-out exact rep-count generalization but not the frozen temporal endpoint-alignment criterion."
+}

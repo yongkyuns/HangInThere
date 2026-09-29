@@ -18,6 +18,7 @@ def fixture():
            'reviewed_without_counter_output': True, 'provenance': 'original synthetic reference',
            'form_verification': 'unverified', 'counter_policy_version': 2,
            'bar_reference_edge': [10.0, 20.0, 100.0, 20.0],
+           'bar_reference_image_size': [200.0, 100.0],
            'bar_reference_provenance': 'synthetic fixed edge selected without pose',
            'frame_pts_seconds': [i / 10 for i in range(41)], 'span_seconds': [0, 4.1],
            'events': [[1., 1.1], [3., 3.1]], 'tolerance_seconds': .2, 'ungradable_intervals': []}
@@ -26,7 +27,8 @@ def fixture():
     counter = {'frames': 41, 'events': events, 'referenceEdge': {'a': {'x': 10.0, 'y': 20.0}, 'b': {'x': 100.0, 'y': 20.0}}, 'summary': {'phase': 'finished', 'formVerification': 'unverified',
                'exercise': 'pullUp', 'side': 'left', 'policyVersion': 2,
                'observedMovements': 2, 'partialAttempts': 0, 'interruptedAttempts': 0}}
-    obs = [{'frameIndex': i, 'timebase': 'source_pts', 'timestamp': {'value': i, 'timescale': 10}}
+    obs = [{'frameIndex': i, 'timebase': 'source_pts', 'timestamp': {'value': i, 'timescale': 10},
+            'imageSize': {'width': 200.0, 'height': 100.0}}
            for i in range(41)]
     status = {'status': 'processed', 'frames': 41}
     return ref, clip, status, counter, obs, copy.deepcopy(status)
@@ -93,6 +95,7 @@ class TemporalIntegrityTests(unittest.TestCase):
     def test_wrong_policy(self): self.reject(lambda r,c,p,k,o,f: k['summary'].update(policyVersion=1))
     def test_wrong_bar_reference(self): self.reject(lambda r,c,p,k,o,f: k['referenceEdge']['a'].update(x=11.0))
     def test_missing_bar_provenance(self): self.reject(lambda r,c,p,k,o,f: r.update(bar_reference_provenance=''))
+    def test_missing_bar_reference_image_size(self): self.reject(lambda r,c,p,k,o,f: r.pop('bar_reference_image_size'))
     def test_wrong_clock(self): self.reject(lambda r,c,p,k,o,f: o[3].update(timebase='frame_index'))
     def test_guessed_pts(self): self.reject(lambda r,c,p,k,o,f: o[3]['timestamp'].update(value=5))
     def test_summary_disagrees_with_events(self): self.reject(lambda r,c,p,k,o,f: k['summary'].update(observedMovements=3))
