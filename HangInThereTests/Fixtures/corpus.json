@@ -157,6 +157,60 @@
       }
     },
     {
+      "id": "romina-heldout-parallel-bar-dips",
+      "tier": "count-qualified",
+      "exercise": "dip",
+      "source_kind": "download",
+      "source_page": "https://www.pexels.com/video/video-of-man-lifting-himself-up-5046452/",
+      "download_url": "https://videos.pexels.com/video-files/5046452/5046452-hd_1920_1080_30fps.mp4",
+      "source_bytes": 2592798,
+      "source_sha256": "599f5169931e0893c8d7864e57859ca6c999a47e8f4ea3a7171229ac33bc1ba7",
+      "license": "Pexels License",
+      "credit": "Romina Martinez / Pexels",
+      "qualification_role": "held-out",
+      "environment_tags": [
+        "outdoor-gym",
+        "landscape",
+        "side-view",
+        "parallel-bars",
+        "standard-two-arm"
+      ],
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 3.375,
+        "frames_per_second": 8,
+        "max_long_edge": 640,
+        "expected_frame_count": 27
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.95,
+        "minimum_any_arm_fraction": 0.85,
+        "expected_orientation": "landscape"
+      },
+      "side": "left",
+      "visual_review": {
+        "method": "Full source reviewed at 8 FPS from the prepared review derivative before any Apple Vision inference. The held-out interval is intentionally shortened to end after the third completed return to extension.",
+        "observed_content": "One athlete performs parallel-bar dips in a fixed landscape side view. The clip begins at a stable extended support, shows three complete extension-to-bent-to-extension cycles by 3.25 s, and the held-out trim ends before the source begins a fourth incomplete cycle.",
+        "limitations": [
+          "Movement-cycle ground truth only; dip depth, lockout validity, body alignment and overall form are not qualified.",
+          "The image-plane elbow angle is an engineering signal, not a calibrated anatomical 3D angle.",
+          "This file must not be added to the Apple-Vision corpus until the dip counter redesign based on the separate JULLIAN W development clip is complete."
+        ]
+      },
+      "count_expectation": {
+        "bar_reference_edge": [
+          410,
+          202,
+          600,
+          202
+        ],
+        "bar_reference_note": "Manually reviewed centerline of the fixed near-side horizontal rail in the 640x360 prepared image, to the right of the selected hand; production uses the infinite line defined by this visible segment.",
+        "expected_observed_movements": 3,
+        "expected_partial_attempts": 0,
+        "expected_interrupted_attempts": 0
+      }
+    },
+    {
       "id": "solodkyi-one-arm-portrait",
       "tier": "stress-coverage",
       "exercise": "pullUp",
@@ -237,8 +291,8 @@
   ],
   "known_gap": {
     "exercise": "dip",
-    "status": "Real parallel-bar dip sources are reproducibly pinned and visually reviewed, but production dip movement counting is not yet qualified. The JULLIAN W development probe produced 80.2% person coverage, 70.8% arm coverage, and 0/5 counted movements on real Apple Vision: the image-plane elbow never sustained the current 155-degree extended gate, and short pose dropouts were treated as immediate resets. Do not lower corpus floors or relabel the footage to hide this gap."
+    "status": "Counter policy v4 is development-qualified on the fixed-camera JULLIAN PRODUCTION Pexels clip at 9/9 reviewed cycles (TP=9, FP=0, FN=0; 0 partial and 0 interrupted attempts). The independently locked Romina Martinez three-cycle fixture is now promoted for one-time held-out Apple-Vision qualification; its result is pending on this commit. Do not alter the dip policy, held-out labels, or floors in response to that result."
   },
   "reviewed_date": "2026-09-28",
-  "review_policy": "Visual expectations were recorded before corpus inference. The FitnessScape count label was later corrected from 2 to 1 after indexed-frame visual re-review showed frame 0 already mid-ascent; the counter output was not used to redefine endpoint thresholds. The Yokota crowded-pull-up interval and its multi-person requirement were committed from visual review before running Apple Vision on that interval. A real JULLIAN W parallel-bar dip candidate was also labelled before inference; its failed native qualification is recorded as a production counter limitation rather than being tuned into a passing corpus case."
+  "review_policy": "Visual expectations are source-reviewed rather than inferred from model output. FitnessScape was corrected after indexed-frame source review without counter-threshold tuning. Yokota multi-person requirements were committed before Apple Vision. The controlled JULLIAN PRODUCTION dip clip is explicitly development-exposed: a later pinned source-only 8 FPS review corrected its coarse seven-cycle annotation to nine cycles, and policy v4 then matched all nine. The Romina Martinez dip labels in dip-heldout.json were locked before any Apple Vision inference and are copied unchanged here for one-time held-out qualification."
 }
