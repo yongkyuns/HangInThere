@@ -24,8 +24,10 @@ Snapshots are stored at most once per second and capped at 900 samples (15 minut
 
 ## Offline analysis
 
-Export JSON reports from the in-app **Device qualification** disclosure, then analyze
-them locally with the stdlib-only helper:
+Use **Save JSON qualification report** in the in-app **Device qualification**
+disclosure. iOS exports a timestamped `.json` file that can be saved to Files,
+AirDropped, or shared to another local destination. Then analyze one or more files
+with the stdlib-only helper:
 
 ```sh
 # One or more ordinary runs

@@ -103,6 +103,24 @@ results/provenance and a separately named, approved smoke clip/still for review;
 private app imports are never collected. Unsigned compilation does not produce
 an installable phone app. Normal local signing is not disabled in the project.
 
+## Real-video diversity qualification
+
+The Apple Vision qualification path is no longer limited to one four-second clip.
+A pinned test-only corpus covers standard indoor/outdoor pull-ups, rear/oblique and
+portrait geometry, multiple people, one-arm movement, nonstandard tree-branch
+apparatus, large swing/inversion, foliage/high-contrast background, and blur.
+
+Two views carry reviewed movement-count expectations; the harder clips use explicit
+tracking/stress tiers rather than invented rep-validity labels. Run:
+
+```sh
+python3 scripts/prepare-fixtures.py
+python3 scripts/prepare-video-corpus.py
+./scripts/test-apple-host.sh
+```
+
+See [fixture provenance and corpus scope](HangInThereTests/Fixtures/README.md).
+
 ## Physical-device qualification reports
 
 Live Workout can export a content-free JSON engineering report for physical-iPhone
