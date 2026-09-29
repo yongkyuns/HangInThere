@@ -48,8 +48,8 @@ jobs:
               -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p \
               "$dir/review-8fps.mp4"
           }
-          fetch 17886673 'https://www.pexels.com/video/strong-muscular-model-workout-triceps-deeps-outdor-17886673/'
-          fetch 8401314 'https://www.pexels.com/video/man-doing-exercise-outdoors-8401314/'
+          fetch 856909 'https://www.pexels.com/video/man-exercising-856909/'
+          fetch 4804798 'https://www.pexels.com/video/man-doing-tricep-dip-exercise-4804798/'
       - name: Upload source-only review artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
