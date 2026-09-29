@@ -6,6 +6,23 @@ import Observation
 import SwiftUI
 import UIKit
 
+enum LiveDebugCaptureState: Equatable, Sendable {
+    case unavailable
+    case idle
+    case starting
+    case recording
+    case stopping
+    case ready
+    case failed(String)
+
+    var isActive: Bool {
+        switch self {
+        case .starting, .recording, .stopping: true
+        default: false
+        }
+    }
+}
+
 enum LiveCameraState: Equatable, Sendable {
     case idle
     case requestingPermission
@@ -149,7 +166,7 @@ private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleB
 
 @MainActor
 @Observable
-final class LiveCameraPreviewController {
+final class LiveCameraPreviewController: NSObject {
     private(set) var state: LiveCameraState = .idle
     private(set) var framing = LiveFramingAssessment()
     private(set) var analyzedFrames = 0
@@ -164,6 +181,7 @@ final class LiveCameraPreviewController {
     private(set) var motionSampleAvailable = false
     private(set) var sceneTranslation = StaticSceneStability()
     private(set) var qualification = LiveDeviceQualificationRecorder()
+    private(set) var debugCaptureState: LiveDebugCaptureState = .unavailable
 
     let session = AVCaptureSession()
 
@@ -180,6 +198,7 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var configured = false
     @ObservationIgnored private var startRequested = false
     @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
+    @ObservationIgnored private var movieOutput: AVCaptureMovieFileOutput?
     @ObservationIgnored private var analyzer: LiveFrameAnalyzer?
     @ObservationIgnored private var analysisEventTask: Task<Void, Never>?
     @ObservationIgnored private var captureWatchdogTask: Task<Void, Never>?
@@ -194,6 +213,12 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var sceneReference: StaticSceneRegistrationReference?
     @ObservationIgnored private var sceneRegistrationTask: Task<Void, Never>?
     @ObservationIgnored private var lastSceneRegistrationSeconds: Double?
+    @ObservationIgnored private var debugCaptureURL: URL?
+    @ObservationIgnored private var debugCaptureBarSnapshot: ConfirmedBar?
+    @ObservationIgnored private var debugCaptureStartedUptimeSeconds: Double?
+    @ObservationIgnored private var debugCaptureFinishedUptimeSeconds: Double?
+    @ObservationIgnored private var debugCaptureSessionJSON: String?
+    @ObservationIgnored private var debugCaptureQualificationJSON: String?
 
     var isCameraReady: Bool { state == .ready }
     var isSuspended: Bool { suspended }
@@ -213,6 +238,15 @@ final class LiveCameraPreviewController {
     }
 
     var latestImageSize: ImageSize? { latestFrame?.pose.imageSize }
+
+    var completedDebugCapture: (videoURL: URL, sessionJSON: String, qualificationJSON: String)? {
+        guard debugCaptureState == .ready,
+              let videoURL = debugCaptureURL,
+              let sessionJSON = debugCaptureSessionJSON,
+              let qualificationJSON = debugCaptureQualificationJSON
+        else { return nil }
+        return (videoURL, sessionJSON, qualificationJSON)
+    }
 
     var qualificationThermalLevel: LiveDeviceQualificationRecorder.ThermalLevel {
         currentThermalLevel()
@@ -245,6 +279,123 @@ final class LiveCameraPreviewController {
             return "{\"schemaVersion\":1,\"error\":\"reportEncodingFailed\"}"
         }
         return text
+    }
+
+    @discardableResult
+    func startDebugCapture() -> Bool {
+        guard isCameraReady,
+              let movieOutput,
+              !movieOutput.isRecording,
+              !debugCaptureState.isActive
+        else { return false }
+
+        discardCompletedDebugCapture()
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HangInThere-debug-\(UUID().uuidString)")
+            .appendingPathExtension("mov")
+        try? FileManager.default.removeItem(at: url)
+
+        debugCaptureURL = url
+        debugCaptureBarSnapshot = currentBar
+        debugCaptureStartedUptimeSeconds = nil
+        debugCaptureFinishedUptimeSeconds = nil
+        debugCaptureSessionJSON = nil
+        debugCaptureQualificationJSON = nil
+        debugCaptureState = .starting
+        movieOutput.startRecording(to: url, recordingDelegate: self)
+        return true
+    }
+
+    func stopDebugCapture() {
+        guard let movieOutput, movieOutput.isRecording else { return }
+        debugCaptureState = .stopping
+        movieOutput.stopRecording()
+    }
+
+    func discardCompletedDebugCapture() {
+        guard !debugCaptureState.isActive else { return }
+        if let debugCaptureURL {
+            try? FileManager.default.removeItem(at: debugCaptureURL)
+        }
+        debugCaptureURL = nil
+        debugCaptureBarSnapshot = nil
+        debugCaptureStartedUptimeSeconds = nil
+        debugCaptureFinishedUptimeSeconds = nil
+        debugCaptureSessionJSON = nil
+        debugCaptureQualificationJSON = nil
+        debugCaptureState = movieOutput == nil ? .unavailable : .idle
+    }
+
+    private func finishDebugCaptureIfNeeded() {
+        if movieOutput?.isRecording == true {
+            stopDebugCapture()
+        }
+    }
+
+    private func makeDebugSessionMetadataJSON() -> String {
+        var payload: [String: Any] = [
+            "schemaVersion": 1,
+            "scope": "local developer qualification capture; movement only, not form qualification",
+            "capture": [
+                "backend": "AVCaptureMovieFileOutput",
+                "includesSetup": true,
+                "audioRecorded": false,
+                "durationSeconds": max(
+                    0,
+                    (debugCaptureFinishedUptimeSeconds ?? ProcessInfo.processInfo.systemUptime)
+                        - (debugCaptureStartedUptimeSeconds ?? ProcessInfo.processInfo.systemUptime)
+                )
+            ],
+            "counterPolicyVersion": ExerciseCounter.policyVersion,
+            "exercise": liveSet.exercise.rawValue,
+            "side": liveSet.side.rawValue,
+            "set": [
+                "phase": liveSet.phase.rawValue,
+                "endReason": liveSet.endReason?.rawValue as Any,
+                "observedMovements": liveSet.observedMovements,
+                "partialAttempts": liveSet.partialAttempts,
+                "interruptedAttempts": liveSet.interruptedAttempts,
+                "analyzedFrames": liveSet.analyzedFrameCount,
+                "usableTrackingFrames": liveSet.usableTrackingFrameCount,
+                "trackingCoverage": liveSet.trackingCoverage as Any,
+                "durationSeconds": liveSet.durationSeconds,
+                "movementTimes": liveSet.movementTimes
+            ],
+            "app": [
+                "version": Bundle.main.object(
+                    forInfoDictionaryKey: "CFBundleShortVersionString"
+                ) as? String ?? "unknown",
+                "build": Bundle.main.object(
+                    forInfoDictionaryKey: "CFBundleVersion"
+                ) as? String ?? "unknown"
+            ]
+        ]
+
+        if let bar = debugCaptureBarSnapshot {
+            payload["barReference"] = [
+                "role": bar.role.rawValue,
+                "method": bar.method.rawValue,
+                "a": ["x": bar.referenceEdge.a.x, "y": bar.referenceEdge.a.y],
+                "b": ["x": bar.referenceEdge.b.x, "y": bar.referenceEdge.b.y],
+                "imageSize": [
+                    "width": bar.imageSize.width,
+                    "height": bar.imageSize.height
+                ],
+                "sourceSeconds": bar.sourceTime.seconds
+            ]
+        } else {
+            payload["barReference"] = NSNull()
+        }
+
+        guard JSONSerialization.isValidJSONObject(payload),
+              let data = try? JSONSerialization.data(
+                withJSONObject: payload,
+                options: [.prettyPrinted, .sortedKeys]
+              )
+        else {
+            return "{\"schemaVersion\":1,\"error\":\"debugMetadataEncodingFailed\"}"
+        }
+        return String(decoding: data, as: UTF8.self) + "\n"
     }
 
     var setupReadiness: LiveSetupReadiness {
@@ -336,6 +487,9 @@ final class LiveCameraPreviewController {
         sceneRegistrationTask = nil
         lastSceneRegistrationSeconds = nil
         self.bar = bar
+        if debugCaptureState.isActive {
+            debugCaptureBarSnapshot = bar
+        }
         return true
     }
 
@@ -370,9 +524,11 @@ final class LiveCameraPreviewController {
     func stopSet() {
         discardNextSetFrame = false
         liveSet.finish()
+        finishDebugCaptureIfNeeded()
     }
 
     func prepareNextSet() {
+        finishDebugCaptureIfNeeded()
         discardNextSetFrame = false
         liveSet.prepareNextSet()
     }
@@ -487,6 +643,7 @@ final class LiveCameraPreviewController {
         if liveSet.phase == .running {
             liveSet.finish()
         }
+        finishDebugCaptureIfNeeded()
         discardNextSetFrame = false
         suspended = false
         startRequested = false
@@ -558,6 +715,22 @@ final class LiveCameraPreviewController {
         }
         session.addOutput(output)
 
+        let movieOutput = AVCaptureMovieFileOutput()
+        if session.canAddOutput(movieOutput) {
+            session.addOutput(movieOutput)
+            if let movieConnection = movieOutput.connection(with: .video),
+               movieConnection.isVideoRotationAngleSupported(90) {
+                movieConnection.videoRotationAngle = 90
+                self.movieOutput = movieOutput
+                debugCaptureState = .idle
+            } else {
+                session.removeOutput(movieOutput)
+                debugCaptureState = .unavailable
+            }
+        } else {
+            debugCaptureState = .unavailable
+        }
+
         guard let connection = output.connection(with: .video),
               connection.isVideoRotationAngleSupported(90)
         else {
@@ -618,6 +791,7 @@ final class LiveCameraPreviewController {
                 endReason: endReason
             )
         }
+        finishDebugCaptureIfNeeded()
 
         discardNextSetFrame = false
         suspended = true
