@@ -218,7 +218,9 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var debugCaptureStartedUptimeSeconds: Double?
     @ObservationIgnored private var debugCaptureFinishedUptimeSeconds: Double?
     @ObservationIgnored private var debugCaptureFirstAnalyzedSourceSeconds: Double?
+    @ObservationIgnored private var debugCaptureFirstAnalyzedMovieSeconds: Double?
     @ObservationIgnored private var debugCaptureLastAnalyzedSourceSeconds: Double?
+    @ObservationIgnored private var debugCaptureLastAnalyzedMovieSeconds: Double?
     @ObservationIgnored private var debugCaptureSessionJSON: String?
     @ObservationIgnored private var debugCaptureQualificationJSON: String?
     @ObservationIgnored private var discardDebugCaptureWhenFinished = false
@@ -266,6 +268,7 @@ final class LiveCameraPreviewController: NSObject {
             return false
         case .recording:
             return debugCaptureFirstAnalyzedSourceSeconds != nil
+                && debugCaptureFirstAnalyzedMovieSeconds != nil
         default:
             return true
         }
@@ -321,7 +324,9 @@ final class LiveCameraPreviewController: NSObject {
         debugCaptureStartedUptimeSeconds = nil
         debugCaptureFinishedUptimeSeconds = nil
         debugCaptureFirstAnalyzedSourceSeconds = nil
+        debugCaptureFirstAnalyzedMovieSeconds = nil
         debugCaptureLastAnalyzedSourceSeconds = nil
+        debugCaptureLastAnalyzedMovieSeconds = nil
         debugCaptureSessionJSON = nil
         debugCaptureQualificationJSON = nil
         discardDebugCaptureWhenFinished = false
@@ -352,7 +357,9 @@ final class LiveCameraPreviewController: NSObject {
         debugCaptureStartedUptimeSeconds = nil
         debugCaptureFinishedUptimeSeconds = nil
         debugCaptureFirstAnalyzedSourceSeconds = nil
+        debugCaptureFirstAnalyzedMovieSeconds = nil
         debugCaptureLastAnalyzedSourceSeconds = nil
+        debugCaptureLastAnalyzedMovieSeconds = nil
         debugCaptureSessionJSON = nil
         debugCaptureQualificationJSON = nil
         discardDebugCaptureWhenFinished = false
@@ -385,7 +392,7 @@ final class LiveCameraPreviewController: NSObject {
 
     private func makeDebugSessionMetadataJSON() -> String {
         var payload: [String: Any] = [
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "scope": "local developer qualification capture; movement only, not form qualification",
             "capture": [
                 "backend": "AVCaptureMovieFileOutput",
@@ -398,8 +405,12 @@ final class LiveCameraPreviewController: NSObject {
                 ),
                 "firstAnalyzedSourceSeconds":
                     (debugCaptureFirstAnalyzedSourceSeconds as Any?) ?? NSNull(),
+                "firstAnalyzedMovieSeconds":
+                    (debugCaptureFirstAnalyzedMovieSeconds as Any?) ?? NSNull(),
                 "lastAnalyzedSourceSeconds":
-                    (debugCaptureLastAnalyzedSourceSeconds as Any?) ?? NSNull()
+                    (debugCaptureLastAnalyzedSourceSeconds as Any?) ?? NSNull(),
+                "lastAnalyzedMovieSeconds":
+                    (debugCaptureLastAnalyzedMovieSeconds as Any?) ?? NSNull()
             ],
             "counterPolicyVersion": ExerciseCounter.policyVersion,
             "exercise": liveSet.exercise.rawValue,
@@ -452,7 +463,7 @@ final class LiveCameraPreviewController: NSObject {
                 options: [.prettyPrinted, .sortedKeys]
               )
         else {
-            return "{\"schemaVersion\":1,\"error\":\"debugMetadataEncodingFailed\"}"
+            return "{\"schemaVersion\":2,\"error\":\"debugMetadataEncodingFailed\"}"
         }
         return String(decoding: data, as: UTF8.self) + "\n"
     }
@@ -1145,12 +1156,20 @@ final class LiveCameraPreviewController: NSObject {
         switch event {
         case .frame(let frame):
             if debugCaptureState == .recording || debugCaptureState == .stopping {
-                let seconds = frame.pose.timestamp.seconds
-                if seconds.isFinite {
+                let sourceSeconds = frame.pose.timestamp.seconds
+                let movieSeconds = movieOutput.map {
+                    CMTimeGetSeconds($0.recordedDuration)
+                }
+                if sourceSeconds.isFinite,
+                   let movieSeconds,
+                   movieSeconds.isFinite,
+                   movieSeconds >= 0 {
                     if debugCaptureFirstAnalyzedSourceSeconds == nil {
-                        debugCaptureFirstAnalyzedSourceSeconds = seconds
+                        debugCaptureFirstAnalyzedSourceSeconds = sourceSeconds
+                        debugCaptureFirstAnalyzedMovieSeconds = movieSeconds
                     }
-                    debugCaptureLastAnalyzedSourceSeconds = seconds
+                    debugCaptureLastAnalyzedSourceSeconds = sourceSeconds
+                    debugCaptureLastAnalyzedMovieSeconds = movieSeconds
                 }
             }
 
@@ -1248,7 +1267,9 @@ extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
                 self.debugCaptureStartedUptimeSeconds = nil
                 self.debugCaptureFinishedUptimeSeconds = nil
                 self.debugCaptureFirstAnalyzedSourceSeconds = nil
+                self.debugCaptureFirstAnalyzedMovieSeconds = nil
                 self.debugCaptureLastAnalyzedSourceSeconds = nil
+                self.debugCaptureLastAnalyzedMovieSeconds = nil
                 self.debugCaptureSessionJSON = nil
                 self.debugCaptureQualificationJSON = nil
                 self.discardDebugCaptureWhenFinished = false
