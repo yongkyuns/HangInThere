@@ -30,6 +30,8 @@ _SPEC.loader.exec_module(device_analysis)
 
 EVIDENCE_CLASSES = {"development", "heldout_consumed", "field"}
 EXERCISES = {"pull_up", "dip"}
+RUNTIME_EXERCISE_MAP = {"pullUp": "pull_up", "dip": "dip"}
+RUNTIME_SIDES = {"left", "right"}
 RUNTIME_END_REASONS = {
     "manual",
     "appInactive",
@@ -145,6 +147,7 @@ def validate_runtime_report(report: dict[str, Any]) -> None:
         "interruptedAttempts",
         "setAnalyzedFrames",
         "setUsableTrackingFrames",
+        "counterPolicyVersion",
     ):
         require(integer(report.get(key)), f"device report missing/invalid {key}")
 
@@ -152,6 +155,8 @@ def validate_runtime_report(report: dict[str, Any]) -> None:
     usable = report["setUsableTrackingFrames"]
     require(usable <= analyzed, "setUsableTrackingFrames exceeds setAnalyzedFrames")
     require(integer(report.get("observedMovements")), "device report observedMovements is invalid")
+    require(report.get("exercise") in RUNTIME_EXERCISE_MAP, "device report exercise is invalid")
+    require(report.get("side") in RUNTIME_SIDES, "device report side is invalid")
 
     coverage = report.get("trackingCoverage")
     if analyzed == 0:
@@ -180,9 +185,15 @@ def validate_runtime_report(report: dict[str, Any]) -> None:
 def build_session(review: dict[str, Any], report: dict[str, Any]) -> dict[str, Any]:
     validate_review(review)
     validate_runtime_report(report)
+    require(
+        RUNTIME_EXERCISE_MAP[report["exercise"]] == review["exercise"],
+        "review exercise disagrees with runtime exercise",
+    )
     return {
         "id": review["id"],
         "exercise": review["exercise"],
+        "counter_policy_version": report["counterPolicyVersion"],
+        "tracking_side": report["side"],
         "evidence_class": review["evidence_class"],
         "population_eligible": review["population_eligible"],
         "reviewed_without_runtime_output": review["reviewed_without_runtime_output"],
