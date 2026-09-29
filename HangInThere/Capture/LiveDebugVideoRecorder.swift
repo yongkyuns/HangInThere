@@ -94,9 +94,7 @@ final class LiveDebugVideoRecorder: @unchecked Sendable {
     }
 
     func finish() async -> Result<Recording, Failure> {
-        lock.lock()
-        accepting = false
-        lock.unlock()
+        stopAccepting()
 
         return await withCheckedContinuation { continuation in
             queue.async { [self] in
@@ -216,6 +214,9 @@ final class LiveDebugVideoRecorder: @unchecked Sendable {
             droppedWriterSamples += 1
             return
         }
+        if firstPTS == nil {
+            writer.startSession(atSourceTime: pts)
+        }
         guard input.append(sampleBuffer) else {
             terminalFailure = .writerFailed(
                 writer.error?.localizedDescription ?? "append returned false"
@@ -276,10 +277,14 @@ final class LiveDebugVideoRecorder: @unchecked Sendable {
                 writer.error?.localizedDescription ?? "startWriting returned false"
             )
         }
-        writer.startSession(atSourceTime: pts)
-
         self.writer = writer
         self.input = input
+    }
+
+    private func stopAccepting() {
+        lock.lock()
+        accepting = false
+        lock.unlock()
     }
 }
 
