@@ -39,7 +39,8 @@ computes:
 - exact-count set fraction;
 - movement recall;
 - extra movements per 100 expected movements;
-- sets with interruptions;
+- sets with interrupted movement attempts;
+- whole-set end reasons and interruption fraction;
 - weighted/median/minimum tracking coverage;
 - bar-calibration success and mean attempts;
 - false camera-stability interruptions;
