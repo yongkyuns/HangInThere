@@ -10,7 +10,10 @@ Open **Device qualification** and tap **Start local debug capture** before bar
 calibration. The app refuses to start a debug capture while a bar reference is
 already confirmed; clear the bar first. Exercise and tracking side are locked
 while recording so one package cannot silently change configuration mid-capture.
-The app records video from a separate `AVCaptureMovieFileOutput` while the
+Bar calibration is also held until the movie recorder has started and at least
+one analyzed source frame is anchored inside the recording, avoiding a
+start-recording/calibration race. The app records video from a separate
+`AVCaptureMovieFileOutput` while the
 existing `AVCaptureVideoDataOutput` continues real-time Vision analysis. No
 microphone input is added.
 
@@ -42,7 +45,9 @@ python3 scripts/debug_session.py verify \
 
 Verification recalculates every SHA-256/byte pin before trusting metadata, then
 cross-checks the duplicated counter policy, exercise/side, count, tracking, and
-set-termination fields between `session.json` and `qualification.json`.
+set-termination fields between `session.json` and `qualification.json`. It
+also verifies that bar-calibration and live-set source timestamps lie inside the
+recorded capture anchors and that calibration precedes the set.
 
 ## Run the production offline pose pipeline
 
