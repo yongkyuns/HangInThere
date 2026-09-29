@@ -97,11 +97,12 @@ Current reviewed scenarios:
   with reviewed rail coordinates transformed into the production pose raster,
   then scored **TP=9 / FP=0 / FN=0**, with zero partial/interrupted attempts.
   This clip is explicitly development-exposed, not held out;
-- **Romina Martinez parallel-bar dips (held out)** — the independently locked
-  27-frame, three-cycle Pexels interval from `dip-heldout.json` is now copied
-  unchanged into the corpus for its one-time native Apple-Vision qualification.
-  Its result is intentionally unknown at this commit; the dip policy and labels
-  must not be changed in response to the held-out result;
+- **Romina Martinez parallel-bar dips (consumed held out)** — the independently
+  locked 27-frame, three-cycle Pexels interval failed its first native qualification:
+  25/27 person frames (92.6% vs 95% floor), 21/27 any-arm frames (77.8% vs 85%),
+  and 0/3 movements with one interrupted attempt under policy v4. The exact
+  pre-inference labels remain unchanged in `dip-heldout.json`; the result is
+  preserved in `dip-heldout-result.json` and the clip is not part of the passing corpus;
 - **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
 - **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
   background, swing/inversion stress.
@@ -126,10 +127,10 @@ thumbnails. CI retains
 the approved derived corpus temporarily for inspection; source media remains ignored
 under `Data/external/`.
 
-Real parallel-bar footage is reproducibly pinned. Counter policy v4 is
-development-qualified on the controlled JULLIAN PRODUCTION clip at 9/9 source-
-reviewed cycles, after fixing the apparatus-coordinate contract and using a local
-bottom-to-next-top dip recovery. The independently locked Romina fixture is now
-the one-time held-out check. Until that exact native run completes, dip counting
-is **not yet held-out-qualified**. Dip depth, lockout validity, body alignment,
-3D joint accuracy and population-level accuracy remain unqualified.
+Real parallel-bar footage is reproducibly pinned, but dip counting is **not
+held-out-qualified**. Policy v4 matched the development-exposed controlled JULLIAN
+PRODUCTION clip at 9/9 cycles, then failed the untouched Romina check at 0/3 while
+also missing its predeclared tracking floors. Romina is now a consumed holdout and
+must not be used to tune v4. Any further redesign needs separate development
+evidence and a new untouched held-out fixture. Dip depth, lockout validity, body
+alignment, 3D joint accuracy and population-level accuracy remain unqualified.
