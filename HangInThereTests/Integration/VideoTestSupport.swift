@@ -30,9 +30,24 @@ enum VideoTestSupport {
         return url
     }
 
+    static func fixtureResource(_ name: String) throws -> URL {
+        #if SWIFT_PACKAGE
+        let bundle = Bundle.module
+        #else
+        let bundle = Bundle(for: FixtureBundleToken.self)
+        #endif
+        let root = try #require(bundle.resourceURL)
+        let url = root.appendingPathComponent("Fixtures/\(name)")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw FixtureError.failed("Missing fixture metadata \(name). Test resources are incomplete.")
+        }
+        return url
+    }
+
     // Original synthetic pixels, not a human-pose accuracy fixture. Four coloured
     // quadrants make every rotation/reflection observable after actual decoding.
-    static func makeVideo(transform: CGAffineTransform = .identity) async throws -> URL {
+    static func makeVideo(transform: CGAffineTransform = .identity,
+                          timestamps: [CMTime] = VideoTestSupport.timestamps) async throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("quadrants-\(UUID().uuidString).mp4")
         let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
         let width = 160, height = 96
@@ -94,7 +109,7 @@ enum VideoTestSupport {
                     throw FixtureError.failed(writer.error?.localizedDescription ?? "Could not append frame.")
                 }
             }
-            writer.endSession(atSourceTime: CMTime(value: 51, timescale: 100))
+            writer.endSession(atSourceTime: CMTimeAdd(timestamps.last ?? .zero, CMTime(value: 10, timescale: 100)))
             input.markAsFinished()
             await writer.finishWriting()
             guard writer.status == .completed else {

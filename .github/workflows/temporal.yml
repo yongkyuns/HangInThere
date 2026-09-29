@@ -1,0 +1,63 @@
+name: Temporal movement diagnostic
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: temporal-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  temporal:
+    name: Real video event counts (not form qualification)
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare the frozen temporal references
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-temporal-pilot.py --cache Data/external/temporal --output Data/local/temporal --fetch
+      - name: Run actual production video and pose pipeline
+        run: ./scripts/evaluate.sh Data/local/temporal/manifest.json --root Data/local/temporal --output Evaluation/output/temporal-poses --public-output
+      - name: Count and score source-reviewed movements
+        run: |
+          python3 scripts/score-temporal.py Data/local/temporal/reference.json --manifest Data/local/temporal/manifest.json --root Data/local/temporal --pose-output Evaluation/output/temporal-poses --output Evaluation/output/temporal-counts --public-output
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('Evaluation/output/temporal-counts/report.json').read_text())
+          assert [c['frames'] for c in r['clips']] == [180, 789, 597, 300]
+          assert [c['event_metrics']['reference_events'] for c in r['clips']] == [1, 10, 6, 9]
+          assert all(c['status'] == 'scored' and c['form_verification'] == 'unverified' for c in r['clips'])
+          with Path(__import__('os').environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('## Temporal diagnostics, not held-out/form qualification\n\n| Clip | Matched | Extra | Missed |\n|---|---:|---:|---:|\n')
+              for c in r['clips']:
+                  m = c['event_metrics']
+                  out.write(f"| {c['id']} | {m['true_positives']} | {m['false_positives']} | {m['false_negatives']} |\n")
+                  if m['false_positives'] or m['false_negatives']:
+                      print(f"::warning::{c['id']}: missed/extra movement events; completed scoring does not establish accuracy")
+          PY
+      - name: Retain only approved temporal evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: temporal-movement-results
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            Data/local/temporal/ATTRIBUTION.txt
+            Data/local/temporal/prepared.json
+            Data/local/temporal/manifest.json
+            Data/local/temporal/reference.json
+            Data/local/temporal/*.mp4
+            Evaluation/output/temporal-poses/report.json
+            Evaluation/output/temporal-poses/*/completion.json
+            Evaluation/output/temporal-poses/*/observations.jsonl
+            Evaluation/output/temporal-counts/*.json

@@ -1,0 +1,99 @@
+name: Bar detector research
+on:
+  push:
+    branches: [feat/bar-setup, research/bar-detector-benchmark]
+    paths:
+      - 'scripts/bar-method-benchmark.py'
+      - 'Evaluation/fixtures/bar-research.json'
+      - 'Evaluation/research_tests/bar_method_benchmark_test.py'
+      - 'Evaluation/BAR_DETECTION_RESEARCH.md'
+      - 'Evaluation/VisionContourDump.swift'
+      - 'Evaluation/research_tests/vision_contour_benchmark_test.py'
+      - 'scripts/vision-contour-benchmark.py'
+      - '.github/workflows/bar-research.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Install host-only benchmark tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          python3 -m venv /tmp/bar-research
+          /tmp/bar-research/bin/pip install --only-binary=:all: numpy==2.2.6 Pillow==12.3.0 opencv-python-headless==4.13.0.92
+          /tmp/bar-research/bin/pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+      - name: Run benchmark contract tests
+        run: /tmp/bar-research/bin/python Evaluation/research_tests/bar_method_benchmark_test.py -v
+      - name: Prepare exact reviewed source pixels
+        env:
+          PYTHONPATH: scripts
+        run: |
+          /tmp/bar-research/bin/python scripts/prepare-source-pilot.py --cache build/source-cache --output build/source-pilot --fetch
+      - name: Acquire pinned Apache-2.0 M-LSD research implementation
+        run: |
+          git init /tmp/mlsd
+          git -C /tmp/mlsd remote add origin https://github.com/lhwcv/mlsd_pytorch.git
+          git -C /tmp/mlsd fetch --depth=1 origin 2312205254e66911703decf775f626995d260f17
+          git -C /tmp/mlsd checkout --detach FETCH_HEAD
+          test "$(git -C /tmp/mlsd rev-parse HEAD)" = 2312205254e66911703decf775f626995d260f17
+          test "$(git -C /tmp/mlsd hash-object models/mlsd_tiny_512_fp32.pth)" = c024b60fc8ad80b9af3b948e66d0fe0627394fd0
+          test "$(git -C /tmp/mlsd hash-object models/mbv2_mlsd_tiny.py)" = e3ed633f2cc23ea1829a627fdb879ab39f641f83
+          test "$(git -C /tmp/mlsd hash-object LICENSE)" = 0729d998d521094259976a46e895bee92947d0d3
+      - name: Compare line methods without pose inputs
+        run: |
+          /tmp/bar-research/bin/python scripts/bar-method-benchmark.py \
+            --source-root build/source-pilot \
+            --spec Evaluation/fixtures/bar-research.json \
+            --mlsd-root /tmp/mlsd \
+            --output build/bar-method-report.json | tee build/bar-method-summary.txt
+      - name: Retain report only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bar-detector-research
+          retention-days: 7
+          path: |
+            build/bar-method-report.json
+            build/bar-method-summary.txt
+          if-no-files-found: error
+
+  native-contours:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare exact reviewed source pixels
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 -m venv /tmp/vision-bar-research
+          /tmp/vision-bar-research/bin/pip install --only-binary=:all: numpy==2.3.5 Pillow==12.3.0
+          PYTHONPATH=scripts /tmp/vision-bar-research/bin/python scripts/prepare-source-pilot.py --cache build/source-cache --output build/source-pilot --fetch
+      - name: Run native Vision contour extraction
+        run: |
+          mkdir -p build/bar-native-research
+          xcrun swiftc -parse-as-library Evaluation/VisionContourDump.swift -o build/bar-native-research/vision-contour-dump
+          build/bar-native-research/vision-contour-dump build/source-pilot Evaluation/fixtures/bar-research.json build/bar-native-research/contours.json
+      - name: Test and score contour-to-line refinement
+        run: |
+          /tmp/vision-bar-research/bin/python Evaluation/research_tests/vision_contour_benchmark_test.py -v
+          /tmp/vision-bar-research/bin/python scripts/vision-contour-benchmark.py \
+            --contours build/bar-native-research/contours.json \
+            --spec Evaluation/fixtures/bar-research.json \
+            --output build/bar-native-research/report.json | tee build/bar-native-research/summary.txt
+      - name: Retain native contour report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bar-native-contour-research
+          retention-days: 7
+          path: |
+            build/bar-native-research/report.json
+            build/bar-native-research/summary.txt
+          if-no-files-found: error

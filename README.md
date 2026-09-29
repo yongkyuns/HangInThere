@@ -20,8 +20,13 @@ when an arm cannot be measured. These are raw per-frame diagnostics, not checked
 reps or form scores. Inference may slow replay;
 frames are processed sequentially instead of silently skipped. Audio is not played.
 
-There is **no rep counting, form verdict, camera capture, or qualified accuracy
-claim yet**. These are subsequent milestones, not hidden behind placeholder UI.
+The replay screen now adds **bar-relative timestamp-based movement counting** for
+pull-ups and parallel-bar dips. The user confirms one fixed gripping bar/rail edge,
+selects an anatomical arm, and the counter combines that independent apparatus
+reference with Apple Vision body landmarks. Missing bar setup does not fall back to
+wrist-derived geometry. Partial/interrupted outcomes and explicit **Form unverified**
+status remain; chin clearance and strict dip depth are not yet acceptance criteria.
+See [the counter policy](docs/COUNTING.md) and [bar setup](docs/BAR_SETUP.md).
 
 The app uses SwiftUI, AVFoundation, Core Image, and Vision. There are no third-party
 runtime packages, backend services, accounts, model downloads, or analytics.
@@ -30,10 +35,10 @@ or replacement; recordings are never uploaded by the app.
 
 ## Open the app
 
-Until the implementation PRs merge, check out the evaluation/measurement branch:
+Until the implementation PRs merge, check out the current bar-setup branch:
 
 ```sh
-git clone --branch feat/p1-batch-evaluation https://github.com/yongkyuns/HangInThere.git
+git clone --branch feat/bar-setup https://github.com/yongkyuns/HangInThere.git
 cd HangInThere
 open HangInThere.xcodeproj
 ```
@@ -98,13 +103,48 @@ results/provenance and a separately named, approved smoke clip/still for review;
 private app imports are never collected. Unsigned compilation does not produce
 an installable phone app. Normal local signing is not disabled in the project.
 
+## Real-video diversity qualification
+
+The Apple Vision qualification path is no longer limited to one four-second clip.
+A pinned test-only corpus covers standard indoor/outdoor pull-ups, rear/oblique and
+portrait geometry, multiple people, one-arm movement, nonstandard tree-branch
+apparatus, large swing/inversion, foliage/high-contrast background, and blur.
+
+Two views carry reviewed movement-count expectations; the harder clips use explicit
+tracking/stress tiers rather than invented rep-validity labels. Run:
+
+```sh
+python3 scripts/prepare-fixtures.py
+python3 scripts/prepare-video-corpus.py
+./scripts/test-apple-host.sh
+```
+
+See [fixture provenance and corpus scope](HangInThereTests/Fixtures/README.md).
+
+## Physical-device qualification reports
+
+Live Workout can export a content-free JSON engineering report for physical-iPhone
+runtime qualification. Analyze one or more exported reports locally with:
+
+```sh
+python3 scripts/analyze_device_qualification.py report.json
+python3 scripts/analyze_device_qualification.py \
+  --profile stationary stationary-*.json
+python3 scripts/analyze_device_qualification.py \
+  --profile thermal thermal-soak.json
+```
+
+The analyzer uses only the Python standard library. It validates the report schema
+and privacy boundary, reports stationary threshold usage/headroom, and compares
+early-vs-late runtime/thermal behavior. It does not auto-tune thresholds or emit an
+automatic release verdict. See [the physical-device protocol](docs/DEVICE_QUALIFICATION.md).
+
 ## Scope and next steps
 
 Read [the POC implementation and validation plan](docs/POC.md). First clear the
-real build/backend/video gates. Then measure Vision against MediaPipe Heavy on
-independently reviewed pull-up **and dip** footage; implement deterministic
-counting and uncertain outcomes; add live capture; qualify endpoints and sustained
-phone performance. A skeleton alone does not establish chin-over-bar clearance
+real build/backend/video gates. Continue controlled fixed-camera pull-up **and dip** qualification with bar references
+frozen before counting, then add chin/depth endpoint evidence, live capture, and
+sustained physical-iPhone performance qualification. A skeleton alone does not establish chin-over-bar clearance
 or accurate 3D joint angles. Keep one app and small components, not services or a
 cross-platform architecture.
 
