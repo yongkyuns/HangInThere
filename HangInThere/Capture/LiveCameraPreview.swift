@@ -88,13 +88,16 @@ private enum LiveAnalyzerEvent: Sendable {
 private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let context = CIContext(options: [.cacheIntermediates: false])
     private let estimator: any PoseEstimator
+    private let debugCaptureRouter: LiveDebugCaptureRouter?
     private let publish: @Sendable (LiveAnalyzerEvent) -> Void
 
     init(
         estimator: any PoseEstimator = VisionPoseEstimator(),
+        debugCaptureRouter: LiveDebugCaptureRouter? = nil,
         publish: @escaping @Sendable (LiveAnalyzerEvent) -> Void
     ) {
         self.estimator = estimator
+        self.debugCaptureRouter = debugCaptureRouter
         self.publish = publish
     }
 
@@ -112,6 +115,10 @@ private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleB
                 publish(.failed)
                 return
             }
+
+            // Debug recording is a bounded side sink. It never waits on disk or
+            // the encoder and therefore cannot stall the Vision analysis queue.
+            debugCaptureRouter?.offer(sampleBuffer)
 
             let pixels = CIImage(cvPixelBuffer: buffer)
             guard let image = context.createCGImage(pixels, from: pixels.extent) else {
@@ -164,6 +171,9 @@ final class LiveCameraPreviewController {
     private(set) var motionSampleAvailable = false
     private(set) var sceneTranslation = StaticSceneStability()
     private(set) var qualification = LiveDeviceQualificationRecorder()
+    private(set) var debugCaptureState: LiveDebugCaptureState = .idle
+    private(set) var debugCaptureShareURLs: [URL] = []
+    private(set) var debugCaptureSummary: LiveDebugCaptureSummary?
 
     let session = AVCaptureSession()
 
@@ -177,6 +187,7 @@ final class LiveCameraPreviewController {
     )
     @ObservationIgnored private let motionManager = CMMotionManager()
     @ObservationIgnored private let sceneRegistrationWorker = VisionStaticSceneRegistrationWorker()
+    @ObservationIgnored private let debugCaptureRouter = LiveDebugCaptureRouter()
     @ObservationIgnored private var configured = false
     @ObservationIgnored private var startRequested = false
     @ObservationIgnored private var videoOutput: AVCaptureVideoDataOutput?
@@ -194,6 +205,10 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var sceneReference: StaticSceneRegistrationReference?
     @ObservationIgnored private var sceneRegistrationTask: Task<Void, Never>?
     @ObservationIgnored private var lastSceneRegistrationSeconds: Double?
+    @ObservationIgnored private var debugCaptureDirectory: URL?
+    @ObservationIgnored private var debugSessionID: UUID?
+    @ObservationIgnored private var debugConfirmedBar: ConfirmedBar?
+    @ObservationIgnored private var debugFinalizeTask: Task<Void, Never>?
 
     var isCameraReady: Bool { state == .ready }
     var isSuspended: Bool { suspended }
@@ -245,6 +260,63 @@ final class LiveCameraPreviewController {
             return "{\"schemaVersion\":1,\"error\":\"reportEncodingFailed\"}"
         }
         return text
+    }
+
+    var debugCaptureAvailable: Bool {
+        #if DEBUG
+        true
+        #else
+        false
+        #endif
+    }
+
+    var canStartDebugCapture: Bool {
+        debugCaptureAvailable
+            && isCameraReady
+            && liveSet.phase == .idle
+            && currentBar == nil
+            && debugCaptureState == .idle
+    }
+
+    @discardableResult
+    func startDebugCapture() -> Bool {
+        guard canStartDebugCapture else { return false }
+
+        let identifier = UUID()
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HangInThere-debug-" + identifier.uuidString, isDirectory: true)
+        let videoURL = directory.appendingPathComponent("video.mov")
+        do {
+            let recorder = try LiveDebugVideoRecorder(outputURL: videoURL)
+            debugCaptureDirectory = directory
+            debugSessionID = identifier
+            debugConfirmedBar = nil
+            debugCaptureShareURLs = []
+            debugCaptureSummary = nil
+            debugCaptureRouter.attach(recorder)
+            debugCaptureState = .recording
+            return true
+        } catch {
+            debugCaptureState = .failed(error.localizedDescription)
+            try? FileManager.default.removeItem(at: directory)
+            return false
+        }
+    }
+
+    func discardDebugCapture() {
+        guard debugCaptureState != .finalizing else { return }
+        debugCaptureRouter.detach()?.cancelAndDelete()
+        debugFinalizeTask?.cancel()
+        debugFinalizeTask = nil
+        if let debugCaptureDirectory {
+            try? FileManager.default.removeItem(at: debugCaptureDirectory)
+        }
+        debugCaptureDirectory = nil
+        debugSessionID = nil
+        debugConfirmedBar = nil
+        debugCaptureShareURLs = []
+        debugCaptureSummary = nil
+        debugCaptureState = .idle
     }
 
     var setupReadiness: LiveSetupReadiness {
@@ -336,6 +408,9 @@ final class LiveCameraPreviewController {
         sceneRegistrationTask = nil
         lastSceneRegistrationSeconds = nil
         self.bar = bar
+        if debugCaptureState == .recording {
+            debugConfirmedBar = bar
+        }
         return true
     }
 
@@ -370,6 +445,7 @@ final class LiveCameraPreviewController {
     func stopSet() {
         discardNextSetFrame = false
         liveSet.finish()
+        finalizeDebugCaptureIfNeeded()
     }
 
     func prepareNextSet() {
@@ -487,6 +563,9 @@ final class LiveCameraPreviewController {
         if liveSet.phase == .running {
             liveSet.finish()
         }
+        if debugCaptureState == .recording {
+            discardDebugCapture()
+        }
         discardNextSetFrame = false
         suspended = false
         startRequested = false
@@ -570,7 +649,9 @@ final class LiveCameraPreviewController {
         let eventStream = AsyncStream<LiveAnalyzerEvent>(
             bufferingPolicy: .bufferingNewest(1)
         ) { continuation in
-            let analyzer = LiveFrameAnalyzer { event in
+            let analyzer = LiveFrameAnalyzer(
+                debugCaptureRouter: debugCaptureRouter
+            ) { event in
                 continuation.yield(event)
             }
             self.analyzer = analyzer
@@ -612,11 +693,16 @@ final class LiveCameraPreviewController {
     ) {
         guard startRequested, !suspended else { return }
 
-        if liveSet.phase == .running {
+        let hadRunningSet = liveSet.phase == .running
+        if hadRunningSet {
             liveSet.interruptAndFinish(
                 reason: counterReason,
                 endReason: endReason
             )
+            finalizeDebugCaptureIfNeeded()
+        } else if debugCaptureState == .recording {
+            // A setup-only recording has no complete workout session to export.
+            discardDebugCapture()
         }
 
         discardNextSetFrame = false
@@ -644,6 +730,77 @@ final class LiveCameraPreviewController {
                     session.stopRunning()
                 }
             }
+        }
+    }
+
+    private func finalizeDebugCaptureIfNeeded() {
+        guard debugCaptureState == .recording,
+              let recorder = debugCaptureRouter.detach(),
+              let directory = debugCaptureDirectory,
+              let sessionID = debugSessionID
+        else { return }
+
+        debugCaptureState = .finalizing
+        let liveSetSnapshot = liveSet
+        let barSnapshot = debugConfirmedBar
+        let qualificationText = qualificationReportJSON()
+        let appVersion = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleShortVersionString"
+        ) as? String
+        let appBuild = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleVersion"
+        ) as? String
+
+        debugFinalizeTask?.cancel()
+        debugFinalizeTask = Task { @MainActor [weak self] in
+            let result = await recorder.finish()
+            guard !Task.isCancelled, let self else { return }
+
+            switch result {
+            case .failure(let failure):
+                debugCaptureState = .failed(String(describing: failure))
+            case .success(let recording):
+                do {
+                    let qualificationURL = directory.appendingPathComponent(
+                        "qualification.json"
+                    )
+                    guard let qualificationData = qualificationText.data(using: .utf8) else {
+                        throw CocoaError(.fileWriteInapplicableStringEncoding)
+                    }
+                    try qualificationData.write(to: qualificationURL, options: .atomic)
+                    let qualificationHash = LiveDebugDigest.sha256(
+                        data: qualificationData
+                    )
+
+                    let manifest = LiveDebugSessionManifest.make(
+                        sessionID: sessionID,
+                        capture: recording.summary,
+                        qualificationFileName: qualificationURL.lastPathComponent,
+                        qualificationSHA256: qualificationHash,
+                        qualificationBytes: Int64(qualificationData.count),
+                        liveSet: liveSetSnapshot,
+                        confirmedBar: barSnapshot,
+                        appVersion: appVersion,
+                        appBuild: appBuild
+                    )
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                    let manifestData = try encoder.encode(manifest)
+                    let manifestURL = directory.appendingPathComponent("session.json")
+                    try manifestData.write(to: manifestURL, options: .atomic)
+
+                    debugCaptureSummary = recording.summary
+                    debugCaptureShareURLs = [
+                        recording.fileURL,
+                        manifestURL,
+                        qualificationURL
+                    ]
+                    debugCaptureState = .ready
+                } catch {
+                    debugCaptureState = .failed(error.localizedDescription)
+                }
+            }
+            debugFinalizeTask = nil
         }
     }
 
