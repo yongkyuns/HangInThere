@@ -1,6 +1,7 @@
 import hashlib
 import importlib.util
 import json
+import plistlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -125,6 +126,26 @@ class DebugSessionTests(unittest.TestCase):
                 "observedMovements disagrees",
             ):
                 debug_session.verify(package)
+
+    def test_hangdebug_type_is_registered_as_package(self):
+        plist = plistlib.loads((ROOT / "HangInThere" / "Info.plist").read_bytes())
+        declarations = plist.get("UTExportedTypeDeclarations")
+        self.assertIsInstance(declarations, list)
+        declaration = next(
+            (
+                item
+                for item in declarations
+                if item.get("UTTypeIdentifier")
+                == "dev.yongkyuns.HangInThere.debug-session"
+            ),
+            None,
+        )
+        self.assertIsNotNone(declaration)
+        self.assertIn("com.apple.package", declaration["UTTypeConformsTo"])
+        self.assertIn(
+            "hangdebug",
+            declaration["UTTypeTagSpecification"]["public.filename-extension"],
+        )
 
     def test_capture_contract_rejects_audio(self):
         with tempfile.TemporaryDirectory() as directory:
