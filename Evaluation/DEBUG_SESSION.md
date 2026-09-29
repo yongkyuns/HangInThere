@@ -7,9 +7,12 @@ default.
 ## On iPhone
 
 Open **Device qualification** and tap **Start local debug capture** before bar
-calibration. The app records video from a separate `AVCaptureMovieFileOutput`
-while the existing `AVCaptureVideoDataOutput` continues real-time Vision
-analysis. No microphone input is added.
+calibration. The app refuses to start a debug capture while a bar reference is
+already confirmed; clear the bar first. Exercise and tracking side are locked
+while recording so one package cannot silently change configuration mid-capture.
+The app records video from a separate `AVCaptureMovieFileOutput` while the
+existing `AVCaptureVideoDataOutput` continues real-time Vision analysis. No
+microphone input is added.
 
 A capture stops automatically when the set finishes or is interrupted. Export
 creates a `.hangdebug` package containing:
@@ -37,7 +40,9 @@ python3 scripts/debug_session.py verify \
   --output /tmp/debug-report.json
 ```
 
-Verification recalculates every SHA-256/byte pin before trusting metadata.
+Verification recalculates every SHA-256/byte pin before trusting metadata, then
+cross-checks the duplicated counter policy, exercise/side, count, tracking, and
+set-termination fields between `session.json` and `qualification.json`.
 
 ## Run the production offline pose pipeline
 
@@ -55,8 +60,12 @@ python3 scripts/debug_session.py manifest \
   --output Evaluation/output/debug-run
 ```
 
-The generated manifest uses the exact pinned `video.mov` and does not authorize
-public outputs.
+The generated manifest uses the exact pinned `video.mov`, does not authorize
+public outputs, and carries the originating debug-session policy version,
+exercise/side, source-timing metadata, and set summary alongside the clip. The
+production evaluator ignores these extra provenance fields for inference, but
+they remain available to compare a replay against the policy that produced the
+live result.
 
 The app can also import `video.mov` directly through its existing Workout Review
 file importer to replay the same recorded session interactively.
