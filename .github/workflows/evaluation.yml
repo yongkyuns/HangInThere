@@ -113,6 +113,16 @@ jobs:
           assert [c['exercise'] for c in report['clips']] == ['parallel_bar_dip', 'parallel_bar_dip', 'bench_dip', 'pull_up', 'pull_up']
           print('49 new-source images / 38 approximate references; still dips are NOT temporal/form qualification.')
           PY_SOURCES
+      - name: Audit guided bar proposals on reviewed source images
+        run: |
+          xcrun swiftc -O -swift-version 6 -parse-as-library \
+            HangInThere/Analysis/*.swift HangInThere/Pose/VisionBarDetector.swift \
+            Evaluation/BarSetupAudit.swift -o build/bar-setup-audit
+          build/bar-setup-audit Evaluation/fixtures/bar-setup.json \
+            Data/local/source-pilot Evaluation/output/bar-setup/report.json
+          shasum -a 256 HangInThere/Analysis/BarGeometry.swift \
+            HangInThere/Pose/VisionBarDetector.swift Evaluation/BarSetupAudit.swift \
+            Evaluation/fixtures/bar-setup.json build/bar-setup-audit > build/bar-setup-provenance.txt
       - name: Inventory HAA4D public metadata
         if: ${{ !cancelled() }}
         run: python3 scripts/inventory.py haa4d --fetch --output Evaluation/output/inventory/haa4d.json
@@ -128,6 +138,8 @@ jobs:
           path: |
             build/pullup-movement-diagnostic.json
             build/batch-toolchain.txt
+            build/bar-setup-provenance.txt
+            Evaluation/output/bar-setup/report.json
             build/batch-smoke.json
             Evaluation/output/ci-smoke/report.json
             Evaluation/output/ci-smoke/pullup_smoke/observations.jsonl

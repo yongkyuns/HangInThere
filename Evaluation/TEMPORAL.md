@@ -3,7 +3,9 @@
 `prepare-temporal-pilot.py` and `score-temporal.py` extend the existing native
 video evaluator; they do not introduce another app backend or counting model.
 The counter is compiled from the **same production Swift sources** and runs on
-fresh AVFoundation/Vision observations. Its policy and thresholds are unchanged.
+fresh AVFoundation/Vision observations. Policy v2 requires a separately reviewed
+fixed apparatus edge; clips without one remain explicit unavailable/missed-event
+stress diagnostics rather than falling back to pose-derived bar geometry.
 
 ## Frozen reference set
 
@@ -82,3 +84,17 @@ counter is accurate. CI prints actual TP/FP/FN and a warning for mismatches.
 `--require-exact-events` returns 3 on any missed/extra event; invalid or incomplete
 evidence returns 2. This diagnostic is not the POC's population accuracy gate,
 and a successful execution does not qualify the known failing iOS Vision runtime.
+
+
+## Policy-v2 apparatus reference
+
+The fixed-camera pull-up clip now carries one development bar-edge reference in the
+prepared 960x540 pixel coordinates. It was selected from image-line evidence only,
+with no pose joints or policy-v2 output, after the earlier policy-v1 failure had
+already been investigated. Therefore the resulting one-event match is development
+evidence, **not an independent held-out result**. The two dip clips contain camera
+motion/spectators and intentionally have no fixed reference because that is outside
+the controlled one-athlete/fixed-phone POC scope.
+
+The scorer passes only the frozen edge to `count-replay.sh` and verifies the exact
+edge recorded in the counter report. Missing/unreviewed substitutions are rejected.

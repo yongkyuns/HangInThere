@@ -1,0 +1,64 @@
+[
+  {
+    "id": "pullup_video_clear",
+    "image": "pullup_video/0002.png",
+    "sha256": "ff66b93158fe6e376a8ed66a3bda93ac87da12b74a2d1f04904e33a0f2e4e480",
+    "region": [
+      365,
+      90,
+      480,
+      135
+    ],
+    "upperEdgePoints": [
+      {
+        "x": 380,
+        "y": 114
+      },
+      {
+        "x": 420,
+        "y": 108
+      },
+      {
+        "x": 465,
+        "y": 102
+      }
+    ]
+  },
+  {
+    "id": "pullup_back_clear",
+    "image": "pullup_back/0000.png",
+    "sha256": "4b25c2b1dd9c7430cc9692c713fc750bc58c4110f9caf48d26cabddb47789dde",
+    "region": [
+      675,
+      115,
+      910,
+      183
+    ],
+    "upperEdgePoints": [
+      {
+        "x": 700,
+        "y": 134
+      },
+      {
+        "x": 800,
+        "y": 142
+      },
+      {
+        "x": 890,
+        "y": 150
+      }
+    ]
+  },
+  {
+    "id": "dip_rail_wrapped",
+    "image": "dip_front/0000.png",
+    "sha256": "f34ad8f62ffbf5bbfe5d5954e47f759275de7ffa0face9b324adb35c78235ebe",
+    "region": [
+      385,
+      225,
+      505,
+      370
+    ],
+    "upperEdgePoints": []
+  }
+]

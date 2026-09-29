@@ -18,7 +18,7 @@ import urllib.request
 import evaluation as ev
 
 SPEC = ev.ROOT / 'Evaluation/fixtures/temporal-pilot.json'
-ALLOWED_HOSTS = {'upload.wikimedia.org', 'd34w7g4gy10iej.cloudfront.net'}
+ALLOWED_HOSTS = {'upload.wikimedia.org', 'd34w7g4gy10iej.cloudfront.net', 'www.pexels.com'}
 
 
 def command(args):
@@ -34,7 +34,7 @@ def probe(path):
     ev.require(pts and all(ev.number(t) and t >= 0 for t in pts)
                and all(a < b for a, b in zip(pts, pts[1:])), 'Source needs monotonic presentation timestamps')
     stream = result['streams'][0]
-    ev.require(stream.get('sample_aspect_ratio') in ('1:1', 'N/A'), 'Unsupported pixel aspect ratio')
+    ev.require(stream.get('sample_aspect_ratio') in (None, '0:1', '1:1', 'N/A'), 'Unsupported pixel aspect ratio')
     return pts, [stream['width'], stream['height']]
 
 
@@ -48,7 +48,9 @@ def source_file(row, cache, fetch):
         ev.require(fetch, 'Missing pinned original; enable --fetch')
         cache.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(dir=cache) as tmp:
-            req = urllib.request.Request(row['url'], headers={'User-Agent': 'HangInThere/0.1 test-only temporal evaluation'})
+            headers = {'User-Agent': 'Mozilla/5.0 HangInThere/0.1 test-only temporal evaluation'}
+            if url.hostname == 'www.pexels.com': headers['Referer'] = row['page']
+            req = urllib.request.Request(row['url'], headers=headers)
             with urllib.request.urlopen(req, timeout=120) as response:
                 total = 0
                 while block := response.read(1024 * 1024):
@@ -62,12 +64,18 @@ def source_file(row, cache, fetch):
     return path
 
 
-def prepare(cache, output, fetch=False, spec_path=SPEC):
+def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
     spec = ev.read_json(spec_path)
     ev.require(spec['schema_version'] == 1 and spec['sources'], 'Missing temporal recipe')
+    rows = spec['sources']
+    if only:
+        requested = set(only)
+        ev.require(len(requested) == len(only), 'Duplicate temporal --only ID')
+        rows = [row for row in rows if row['id'] in requested]
+        ev.require({row['id'] for row in rows} == requested, 'Unknown temporal --only ID')
     output.mkdir(parents=True, exist_ok=False)
     clips, refs, credits = [], [], []
-    for row in spec['sources']:
+    for row in rows:
         source = source_file(row, cache, fetch)
         pts, size = probe(source)
         ev.require(len(pts) == row['source_frames'] and size == row['source_size'], 'Native source geometry/count changed')
@@ -87,7 +95,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC):
                  f'trim=start_frame={first}:end_frame={end},setpts=PTS-STARTPTS,scale=960:-2:flags=lanczos',
                  '-an', '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast',
                  '-fps_mode', 'passthrough', '-enc_time_base', row['encoder_time_base'], '-video_track_timescale', '90000', str(video)])
-        derived, _ = probe(video)
+        derived, derived_size = probe(video)
         ev.require(len(derived) == len(selected) and all(abs(a - (b - selected[0])) <= .0005 for a, b in zip(derived, selected)),
                    'Transcode changed frame count or timing')
         ev.require(ev.digest(source) == row['source_sha256'], 'Original changed during preparation')
@@ -102,7 +110,9 @@ def prepare(cache, output, fetch=False, spec_path=SPEC):
         offset = selected[0]
         refs.append({'schema_version': 1, 'id': row['id'], 'exercise': row['exercise'], 'side': row['side'],
                      'event_definition': {'pullUp': 'observed_start_to_top', 'dip': 'observed_top_bottom_top'}[row['exercise']],
-                     'counter_policy_version': 1, 'reviewed_without_counter_output': True,
+                     'counter_policy_version': 6,
+                     'reviewed_without_counter_output': not bool(row.get('development_after_prior_counter_exposure', False)),
+                     'development_after_prior_counter_exposure': bool(row.get('development_after_prior_counter_exposure', False)),
                      'provenance': spec['annotation_provenance'], 'form_verification': 'unverified',
                      'source_sha256': row['source_sha256'], 'recipe_sha256': ev.digest(spec_path),
                      'media_sha256': clip['media']['files'][0]['sha256'], 'source_frame_range': [first, end],
@@ -110,6 +120,15 @@ def prepare(cache, output, fetch=False, spec_path=SPEC):
                      'max_pts_quantization_seconds': max(abs(a - (b - selected[0])) for a, b in zip(derived, selected)),
                      'span_seconds': [derived[0], row['end_source_seconds'] - offset],
                      'events': [[a - offset, b - offset] for a, b in row['events_source_seconds']],
+                     'bar_reference_edge': (
+                         [row['bar_reference_edge_source'][0] * derived_size[0] / size[0],
+                          row['bar_reference_edge_source'][1] * derived_size[1] / size[1],
+                          row['bar_reference_edge_source'][2] * derived_size[0] / size[0],
+                          row['bar_reference_edge_source'][3] * derived_size[1] / size[1]]
+                         if row.get('bar_reference_edge_source') is not None else row.get('bar_reference_edge')
+                     ),
+                     'bar_reference_image_size': (derived_size if (row.get('bar_reference_edge_source') is not None or row.get('bar_reference_edge') is not None) else None),
+                     'bar_reference_provenance': row.get('bar_reference_provenance'),
                      'ungradable_intervals': [{'seconds': [x - offset for x in u['seconds']], 'reason': u['reason']}
                                               for u in row['ungradable_source_intervals']],
                      'tolerance_seconds': spec['tolerance_seconds'], 'review_notes': row['review_notes']})
@@ -131,7 +150,8 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--cache', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
     p.add_argument('--fetch', action='store_true')
+    p.add_argument('--only', action='append', default=[], help='Prepare only this frozen clip ID; repeatable')
     a = p.parse_args()
-    try: prepare(a.cache.resolve(), a.output.resolve(), a.fetch)
+    try: prepare(a.cache.resolve(), a.output.resolve(), a.fetch, only=a.only or None)
     except (ValueError, KeyError, OSError, subprocess.CalledProcessError) as error:
         print(f'Temporal preparation incomplete: {error}', file=sys.stderr); raise SystemExit(2)

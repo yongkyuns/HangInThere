@@ -1,114 +1,109 @@
-# Timestamp-based movement counter (P2 prototype)
+# Bar-relative movement counter (policy v2)
 
-One framework-free `ExerciseCounter` value is used by the actual replay controller,
-core tests and saved-observation diagnostic. No extra package, model, background
-service or app target is added. Vision remains the provisional production backend.
+`ExerciseCounter` remains a small framework-free state machine shared by the app,
+core tests and saved-observation diagnostics. Apple Vision supplies body landmarks;
+a separately confirmed fixed bar/rail edge supplies apparatus geometry. Neither
+system derives the other.
 
-**This counts observed image-plane movement patterns, not valid exercise reps.**
-The UI explicitly displays **Form unverified**. There is no accepted-rep counter,
-chin/bar measurement, calibrated dip-depth check or exercise classifier yet.
-The user selects pull-up or parallel-bar dip and an anatomical left/right arm.
-Bench dips are not automatically identified or rejected by this counter: selecting
-an exercise is a user input, not classifier evidence.
+**Policy v2 does not count without an apparatus reference.** There is no fallback to
+wrist motion, projected arm length or an inferred bar. The UI continues to report
+**Form unverified**: chin clearance, strict dip depth, lockout and physical hand
+contact are separate measurements.
 
-## State and counting convention
+## Inputs and state
 
-- Acquire a sustained extended-arm start before attempting any count.
-- Observe departure, then a sustained bent-arm endpoint with body travel relative
-  to the same wrist in the exercise's expected direction.
-- Pull-up: increment on the sustained bent endpoint, then require extension before
-  another count. A final hold at the top keeps its movement count without requiring
-  a descent. Chin clearance remains unverified.
-- Dip: mark the bent endpoint, then increment only on sustained return to extension.
-  Depth and form remain unverified.
+For every displayed source frame the counter receives:
 
-Returning to extension before the bent endpoint produces one **partial attempt**
-under this provisional policy, not a medical/coaching verdict. Missing/ambiguous
-observations, discontinuous geometry, source-time gaps or inference failures
-interrupt an active attempt once. Re-establish the extended start to proceed.
-EOF interrupts an unfinished attempt; it never manufactures a completion.
+- actual source presentation time;
+- the selected anatomical arm's shoulder/elbow/wrist pose evidence;
+- one fixed `BarSegment` confirmed during bar setup.
 
-Only displayed source frames advance the controller's counter. An inference result
-waiting in the replay queue does not count early. Pausing preserves state because
-no source frames elapsed; resuming cannot count a pending frame twice. Restart,
-source replacement, close, or changing exercise/arm clears counting state. Changing
-exercise/arm also rewinds the video rather than mixing policies in one set.
+The bar edge and pose use the same upright top-left pixel coordinates. The counter
+uses the shoulder's perpendicular image distance to the infinite line defined by
+the observed finite bar edge. The finite endpoints establish the line only; body
+motion is not clamped to an edge endpoint.
 
-## Fixed provisional policy v1
+A sustained extended-arm observation arms the state machine. After departure, a
+bent endpoint requires both elbow flexion and meaningful reduction of
+shoulder-to-bar distance. For a supported view, pull-up ascent and dip descent both
+bring the selected shoulder closer to the gripping bar/rail line. Pull-ups count at
+the sustained bent endpoint; dips count only after returning to sustained extension.
+A final pull-up hold keeps its already-observed movement without requiring descent.
 
-These engineering constants were set before running the new counter on retained
-real model predictions. They are not learned from annotations or validated exercise
-acceptance criteria, and are not exposed as per-video tuning controls.
+Returning to extension before the bent endpoint is a `partial` attempt. Missing or
+ambiguous pose data, invalid timestamps, source-time gaps, or a missing/invalid bar
+reference interrupt an active attempt. EOF never manufactures a completion.
 
-| Parameter | Initial value |
+## Fixed provisional policy v2
+
+| Parameter | Value |
 | --- | ---: |
 | Extended interior elbow angle | >=155 degrees |
-| Departure angle (hysteresis) | <140 degrees |
+| Departure hysteresis | <140 degrees |
 | Bent interior elbow angle | <=100 degrees |
-| Continuous endpoint evidence | >=0.12 source seconds, >=2 distinct samples |
+| Continuous endpoint evidence | >=0.12 source seconds |
 | Largest source-time gap | 0.35 seconds |
-| Required signed shoulder-to-wrist travel | 0.20 starting arm lengths |
-| Maximum wrist drift from starting contact | 0.25 starting arm lengths |
-| Current/start projected arm-length ratio | 0.65–1.50 |
+| Required shoulder-to-bar distance reduction | >=20% of armed start distance |
+| Absolute movement floor | >=4% of image short side |
 
-An arm length is the sum of its projected shoulder–elbow and elbow–wrist lengths.
-The start length is frozen for the attempt; shoulder travel is measured relative
-to the wrist, not from raw screen motion. Existing `ArmMeasurement` availability
-checks remain in force (0.3 joint scores, visible unique joints, bounded coordinates,
-minimum segment lengths). Scores are not calibrated reliability probabilities.
+The movement gate is `max(20% of start shoulder-to-bar distance, 4% of image short
+side)`. These are engineering constants, not validated form criteria. Existing
+`ArmMeasurement` quality checks still require a unique usable shoulder/elbow/wrist
+chain. Multiple-person ambiguity can pause measurement; the controlled POC does not
+add an identity tracker.
 
-This assumes one person, a fixed camera, steady hand contacts and a suitable view
-of the selected arm. No automatic athlete identity or arm switching is performed.
-Anatomical identity errors, occlusion with confidently wrong landmarks, camera
-motion and foreshortening can still produce incorrect results. No temporal filter
-or plausible-angle clamp hides those errors. Do not infer 3D joint measurements.
+Policy v1 used shoulder motion relative to the wrist plus projected-arm-length and
+absolute wrist-drift guards. Real-video evaluation showed those assumptions were
+not physically reliable under foreshortening and camera/apparatus image motion.
+They are removed rather than relaxed.
 
-## Evidence and execution
+## Replay lifecycle
 
-Core tests use original analytical landmark sequences to cover both conventions,
-partial attempts, holds, jitter, separate endpoint dwell, duplicate/backward/invalid
-timestamps, source gaps, missing or low-confidence arms, ambiguous people, contact
-jumps, wrong movement direction, EOF and reset. These are logic tests, not model
-accuracy tests. Decoder/controller tests use real AVFoundation-generated video
-with a named test estimator; actual Vision tests remain separate and fatal.
+Bar confirmation rewinds the current fixed-camera source to the beginning and
+resets count state, ensuring every counted frame uses the same reference. A normal
+restart of the same source preserves the confirmed bar and resets the count.
+Changing exercise/arm, importing another source, closing the source, or changing
+image dimensions invalidates the bar. Clearing the bar also clears count state.
 
-The existing real-video integration test now feeds its actual Vision observations
-into the counter and logs the unverified summary. The dataset workflow also runs:
+Only displayed source frames advance the counter. Pause preserves state; a pending
+inference result cannot be counted twice.
+
+## Saved-observation diagnostic
+
+The exact production counter can be replayed over source-PTS pose observations:
 
 ```sh
-./scripts/count-replay.sh \
-  Evaluation/output/ci-smoke/pullup_smoke/observations.jsonl \
-  pullUp left build/pullup-movement-diagnostic.json
+./scripts/count-replay.sh observations.jsonl pullUp left output.json \
+  401.9179 113.4035 489.4577 99.9114
 ```
 
-This compiles the exact production analysis code on Linux or macOS. Inputs must
-have ordered frame indices and real `source_pts` timestamps. Still-image sequences
-are rejected: no assumed frame rate or invented timestamps. The diagnostic records
-input/source/executable hashes, source revision/dirty state and toolchain. It
-refuses to overwrite previous reports. Saved-prediction replay is not new inference.
-The pose-only evaluator retains `rep_metrics: not_implemented`; temporal scores
-now come from the separate, hash-bound evaluator linked below, not pose labels.
+The four optional coordinates are the frozen bar-edge endpoints. Omitting them is
+valid for a diagnostic, but policy v2 then emits no movement counts. Reports retain
+the exact reference edge, source/executable hashes, source revision and toolchain.
+Temporal scoring verifies that a supplied edge exactly matches the frozen reviewed
+reference; an unreviewed substitute is rejected.
 
-A preliminary run on 40 retained Vision predictions from the reviewed four-second
-pull-up smoke video produced **one unverified movement at source time 2.2 seconds**
-with the left arm. That is a single-source diagnostic, not held-out counting
-precision/recall. The recording crops the head at the top, so it cannot establish
-chin clearance. Thresholds were not changed after this run.
+## Development real-video result
 
-## Remaining qualification
+On the existing 180-frame fixed-camera pull-up sequence, a development bar edge was
+selected from image-line evidence only and frozen before running policy v2. Replaying
+the retained real Apple Vision observations produced **one movement at 4.50 source
+seconds**, inside the existing reviewed 4.433-4.633 second event window, with zero
+interrupted attempts.
 
-A freshly compiled Apple-platform run is required for every code revision. The
-known simulator missing-Vision-weights check remains in CI, without skipping,
-`continue-on-error`, runtime asset copying or test-only fallback in the app.
-Physical iPhone inference/performance is still untested.
+This is useful causal evidence that replacing the policy-v1 projection/contact
+guards fixes the identified single-person failure. It is **not held-out counting
+qualification**: the apparatus reference was added after policy-v1 failure analysis,
+and chin clearance is still unmeasured.
 
-Full parallel-bar-dip videos, independent temporal annotations, athlete/viewpoint
-coverage and endpoint measurements are required before claiming accurate counts
-or valid reps. Photographs and analytical trajectories cannot close those gates.
+The spectator/moving-camera dip clips remain stress diagnostics rather than the
+controlled fixed-phone acceptance set. They do not receive a frozen fixed apparatus
+reference under policy v2.
 
-## Continuous-video temporal diagnostic
+## Next qualification
 
-[Evaluation/TEMPORAL.md](../Evaluation/TEMPORAL.md) defines the first independently
-marked event comparison on complete decoded clips. Observed cycles, count errors
-and excluded initial portions are reported separately from form acceptance. The
-production counter and its provisional thresholds are unchanged by that tooling.
+The next accuracy gate is controlled fixed-camera pull-up and parallel-bar-dip
+video with bar references fixed before running the counter, source-separated
+movement-event labels, and supported-view coverage. Strict pull-up validity also
+needs chin-vs-bar evidence; strict dip validity needs an independently defined depth
+criterion. Physical iPhone performance remains a separate gate.

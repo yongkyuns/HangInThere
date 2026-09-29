@@ -16,15 +16,19 @@ def fixture():
     ref = {'schema_version': 1, 'id': 'sequence', 'exercise': 'pullUp', 'side': 'left',
            'event_definition': 'observed_start_to_top', 'media_sha256': 'a' * 64,
            'reviewed_without_counter_output': True, 'provenance': 'original synthetic reference',
-           'form_verification': 'unverified', 'counter_policy_version': 1,
+           'form_verification': 'unverified', 'counter_policy_version': 2,
+           'bar_reference_edge': [10.0, 20.0, 100.0, 20.0],
+           'bar_reference_image_size': [200.0, 100.0],
+           'bar_reference_provenance': 'synthetic fixed edge selected without pose',
            'frame_pts_seconds': [i / 10 for i in range(41)], 'span_seconds': [0, 4.1],
            'events': [[1., 1.1], [3., 3.1]], 'tolerance_seconds': .2, 'ungradable_intervals': []}
-    events = [{'outcome': 'movement', 'sourceSeconds': 1.1, 'reason': 'chinAndBarNotMeasured'},
-              {'outcome': 'movement', 'sourceSeconds': 3.1, 'reason': 'chinAndBarNotMeasured'}]
-    counter = {'frames': 41, 'events': events, 'summary': {'phase': 'finished', 'formVerification': 'unverified',
-               'exercise': 'pullUp', 'side': 'left', 'policyVersion': 1,
+    events = [{'outcome': 'movement', 'sourceSeconds': 1.1, 'reason': 'barReferencedTop;chinClearanceNotMeasured'},
+              {'outcome': 'movement', 'sourceSeconds': 3.1, 'reason': 'barReferencedTop;chinClearanceNotMeasured'}]
+    counter = {'frames': 41, 'events': events, 'referenceEdge': {'a': {'x': 10.0, 'y': 20.0}, 'b': {'x': 100.0, 'y': 20.0}}, 'summary': {'phase': 'finished', 'formVerification': 'unverified',
+               'exercise': 'pullUp', 'side': 'left', 'policyVersion': 2,
                'observedMovements': 2, 'partialAttempts': 0, 'interruptedAttempts': 0}}
-    obs = [{'frameIndex': i, 'timebase': 'source_pts', 'timestamp': {'value': i, 'timescale': 10}}
+    obs = [{'frameIndex': i, 'timebase': 'source_pts', 'timestamp': {'value': i, 'timescale': 10},
+            'imageSize': {'width': 200.0, 'height': 100.0}}
            for i in range(41)]
     status = {'status': 'processed', 'frames': 41}
     return ref, clip, status, counter, obs, copy.deepcopy(status)
@@ -88,7 +92,10 @@ class TemporalIntegrityTests(unittest.TestCase):
     def test_failed_completion(self): self.reject(lambda r,c,p,k,o,f: f.update(status='engine_failure'))
     def test_wrong_media(self): self.reject(lambda r,c,p,k,o,f: r.update(media_sha256='b'*64))
     def test_wrong_side(self): self.reject(lambda r,c,p,k,o,f: k['summary'].update(side='right'))
-    def test_wrong_policy(self): self.reject(lambda r,c,p,k,o,f: k['summary'].update(policyVersion=2))
+    def test_wrong_policy(self): self.reject(lambda r,c,p,k,o,f: k['summary'].update(policyVersion=1))
+    def test_wrong_bar_reference(self): self.reject(lambda r,c,p,k,o,f: k['referenceEdge']['a'].update(x=11.0))
+    def test_missing_bar_provenance(self): self.reject(lambda r,c,p,k,o,f: r.update(bar_reference_provenance=''))
+    def test_missing_bar_reference_image_size(self): self.reject(lambda r,c,p,k,o,f: r.pop('bar_reference_image_size'))
     def test_wrong_clock(self): self.reject(lambda r,c,p,k,o,f: o[3].update(timebase='frame_index'))
     def test_guessed_pts(self): self.reject(lambda r,c,p,k,o,f: o[3]['timestamp'].update(value=5))
     def test_summary_disagrees_with_events(self): self.reject(lambda r,c,p,k,o,f: k['summary'].update(observedMovements=3))
@@ -144,6 +151,21 @@ class TemporalPreparationTests(unittest.TestCase):
                   'streams': [{'width': 640, 'height': 480, 'sample_aspect_ratio': '1:1'}]}
         with patch.object(self.prep, 'command', return_value=json.dumps(output)):
             self.assertEqual(self.prep.probe('not-read'), ([0, .033, .077], [640, 480]))
+    def test_probe_accepts_omitted_square_pixel_metadata(self):
+        from unittest.mock import patch
+        import json
+        output = {'frames': [{'best_effort_timestamp_time': x} for x in ['0', '.04']],
+                  'streams': [{'width': 1080, 'height': 1920}]}
+        with patch.object(self.prep, 'command', return_value=json.dumps(output)):
+            self.assertEqual(self.prep.probe('not-read'), ([0, .04], [1080, 1920]))
+
+    def test_probe_rejects_explicit_non_square_pixels(self):
+        from unittest.mock import patch
+        import json
+        output = {'frames': [{'best_effort_timestamp_time': x} for x in ['0', '.04']],
+                  'streams': [{'width': 720, 'height': 480, 'sample_aspect_ratio': '8:9'}]}
+        with patch.object(self.prep, 'command', return_value=json.dumps(output)), self.assertRaises(ValueError):
+            self.prep.probe('not-read')
 
 
 if __name__ == '__main__': unittest.main()

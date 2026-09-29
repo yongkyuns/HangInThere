@@ -1,5 +1,5 @@
 // Re-run the exact framework-free production counter on recorded observations.
-// This does not perform new inference or evaluate counting accuracy.
+// This does not perform new inference. Counting requires an independent bar edge.
 import Foundation
 
 private struct Row: Decodable {
@@ -12,8 +12,9 @@ private struct Row: Decodable {
     let requestRevision: Int?
 }
 private struct Report: Encodable {
-    let scope = "saved-prediction movement diagnostic; no independent temporal labels"
+    let scope = "saved-prediction movement diagnostic; optional fixed apparatus reference; no strict-form verdict"
     let frames: Int
+    let referenceEdge: BarSegment?
     let summary: ExerciseCounter.Summary
     let events: [ExerciseCounter.Event]
 }
@@ -27,11 +28,23 @@ private struct Report: Encodable {
         }
     }
     private static func run() throws {
-        guard CommandLine.arguments.count == 3,
+        guard CommandLine.arguments.count == 3 || CommandLine.arguments.count == 7,
               let exercise = ExerciseCounter.Exercise(rawValue: CommandLine.arguments[1]),
               let side = ArmMeasurement.Side(rawValue: CommandLine.arguments[2]) else {
-            throw failure("Usage: count-replay pullUp|dip left|right < observations.jsonl")
+            throw failure("Usage: count-replay pullUp|dip left|right [barX1 barY1 barX2 barY2] < observations.jsonl")
         }
+        let referenceEdge: BarSegment?
+        if CommandLine.arguments.count == 7 {
+            let values = CommandLine.arguments[3...6].compactMap(Double.init)
+            guard values.count == 4 else { throw failure("Bar coordinates must be finite numbers.") }
+            let edge = BarSegment(a: Point2D(x: values[0], y: values[1]),
+                                  b: Point2D(x: values[2], y: values[3]))
+            guard edge.isValid else { throw failure("Bar reference must be a valid finite segment.") }
+            referenceEdge = edge
+        } else {
+            referenceEdge = nil
+        }
+
         var counter = ExerciseCounter(exercise: exercise, side: side)
         var frames = 0
         var events: [ExerciseCounter.Event] = []
@@ -44,14 +57,15 @@ private struct Report: Encodable {
             let pose = PoseResult(timestamp: timestamp, imageSize: row.imageSize,
                                   people: row.people, backend: row.backend,
                                   requestRevision: row.requestRevision ?? 0)
-            if let event = counter.consume(pose) { events.append(event) }
+            if let event = counter.consume(pose, referenceEdge: referenceEdge) { events.append(event) }
             frames += 1
         }
         guard frames > 0 else { throw failure("No observations supplied.") }
         if let event = counter.finish() { events.append(event) }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        print(String(decoding: try encoder.encode(Report(frames: frames, summary: counter.summary, events: events)), as: UTF8.self))
+        print(String(decoding: try encoder.encode(Report(frames: frames, referenceEdge: referenceEdge,
+                                                         summary: counter.summary, events: events)), as: UTF8.self))
     }
     private static func failure(_ message: String) -> NSError {
         NSError(domain: "CountReplay", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
