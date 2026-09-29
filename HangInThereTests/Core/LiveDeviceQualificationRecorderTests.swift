@@ -45,6 +45,9 @@ struct LiveDeviceQualificationRecorderTests {
             droppedFrames: 4,
             analysisFailures: 1,
             sceneRegistrationFailures: 1,
+            counterPolicyVersion: 6,
+            exercise: "dip",
+            side: "left",
             observedMovements: 7,
             partialAttempts: 2,
             interruptedAttempts: 1,
@@ -71,6 +74,9 @@ struct LiveDeviceQualificationRecorderTests {
         #expect(report.stability.minimumTranslationConsensusPatches == 3)
         #expect(report.stability.sceneScaleMeasurementSamples == 4)
         #expect(report.stability.maximumThermalLevel == .serious)
+        #expect(report.counterPolicyVersion == 6)
+        #expect(report.exercise == "dip")
+        #expect(report.side == "left")
         #expect(report.observedMovements == 7)
         #expect(report.partialAttempts == 2)
         #expect(report.interruptedAttempts == 1)
@@ -105,6 +111,9 @@ struct LiveDeviceQualificationRecorderTests {
             droppedFrames: 0,
             analysisFailures: 0,
             sceneRegistrationFailures: 0,
+            counterPolicyVersion: 6,
+            exercise: "pullUp",
+            side: "right",
             observedMovements: 0,
             partialAttempts: 0,
             interruptedAttempts: 0,
