@@ -67,6 +67,7 @@ class SessionIntakeTests(unittest.TestCase):
         self.assertEqual(session["observed_movements"], 10)
         self.assertEqual(session["partial_attempts"], 1)
         self.assertEqual(session["interrupted_attempts"], 0)
+        self.assertEqual(session["end_reason"], "manual")
         self.assertEqual(session["analyzed_frames"], 200)
         self.assertEqual(session["usable_tracking_frames"], 190)
         self.assertEqual(session["bar_setup"]["attempts"], 2)
