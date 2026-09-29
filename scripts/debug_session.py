@@ -146,6 +146,17 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
 
     capture = session.get("capture")
     require(isinstance(capture, dict), "session capture must be an object")
+    require(
+        capture.get("backend") == "AVCaptureMovieFileOutput",
+        "session capture backend is unsupported",
+    )
+    require(capture.get("includesSetup") is True, "debug capture must include setup")
+    require(capture.get("audioRecorded") is False, "debug capture must not contain audio")
+    duration = capture.get("durationSeconds")
+    require(
+        type(duration) in (int, float) and math.isfinite(duration) and duration >= 0,
+        "capture durationSeconds is invalid",
+    )
     capture_first = capture.get("firstAnalyzedSourceSeconds")
     capture_last = capture.get("lastAnalyzedSourceSeconds")
     if capture_first is not None or capture_last is not None:
