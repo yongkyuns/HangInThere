@@ -30,15 +30,38 @@ class DebugSessionTests(unittest.TestCase):
             "counterPolicyVersion": 6,
             "exercise": "dip",
             "side": "right",
-            "capture": {"backend": "AVCaptureMovieFileOutput"},
-            "set": {"observedMovements": 3},
+            "capture": {
+                "backend": "AVCaptureMovieFileOutput",
+                "firstAnalyzedSourceSeconds": 12.0,
+                "lastAnalyzedSourceSeconds": 18.0,
+            },
+            "set": {
+                "phase": "finished",
+                "endReason": "manual",
+                "observedMovements": 3,
+                "partialAttempts": 1,
+                "interruptedAttempts": 0,
+                "analyzedFrames": 180,
+                "usableTrackingFrames": 171,
+                "trackingCoverage": 0.95,
+                "firstSourceSeconds": 12.5,
+                "lastSourceSeconds": 17.5,
+            },
             "barReference": {"role": "rightDipRail"},
         }
         qualification = {
             "schemaVersion": 1,
+            "counterPolicyVersion": 6,
+            "exercise": "dip",
+            "side": "right",
             "setPhase": "finished",
             "setEndReason": "manual",
             "observedMovements": 3,
+            "partialAttempts": 1,
+            "interruptedAttempts": 0,
+            "setAnalyzedFrames": 180,
+            "setUsableTrackingFrames": 171,
+            "trackingCoverage": 0.95,
         }
         (package / "video.mov").write_bytes(video)
         (package / "session.json").write_text(
@@ -48,6 +71,10 @@ class DebugSessionTests(unittest.TestCase):
             json.dumps(qualification) + "\n", encoding="utf-8"
         )
 
+        self.refresh_hashes(package)
+        return package
+
+    def refresh_hashes(self, package: Path) -> None:
         def spec(path: Path):
             data = path.read_bytes()
             return {
@@ -65,7 +92,6 @@ class DebugSessionTests(unittest.TestCase):
         (package / "hashes.json").write_text(
             json.dumps(hashes) + "\n", encoding="utf-8"
         )
-        return package
 
     def test_verify_checks_hashes_and_exposes_session_provenance(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -76,6 +102,23 @@ class DebugSessionTests(unittest.TestCase):
             self.assertEqual(report["session"]["side"], "right")
             self.assertTrue(report["session"]["bar_reference_present"])
             self.assertEqual(report["qualification"]["observed_movements"], 3)
+
+    def test_semantically_inconsistent_metadata_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            qualification_path = package / "qualification.json"
+            qualification = json.loads(qualification_path.read_text(encoding="utf-8"))
+            qualification["observedMovements"] = 2
+            qualification_path.write_text(
+                json.dumps(qualification) + "\n", encoding="utf-8"
+            )
+            self.refresh_hashes(package)
+
+            with self.assertRaisesRegex(
+                debug_session.DebugSessionError,
+                "observedMovements disagrees",
+            ):
+                debug_session.verify(package)
 
     def test_tampered_video_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -101,6 +144,12 @@ class DebugSessionTests(unittest.TestCase):
             self.assertEqual(
                 clip["media"]["files"][0]["sha256"],
                 report["files"]["video.mov"]["sha256"],
+            )
+            self.assertEqual(clip["debug_session"]["counter_policy_version"], 6)
+            self.assertEqual(clip["debug_session"]["tracking_side"], "right")
+            self.assertEqual(
+                clip["debug_session"]["set"]["observedMovements"],
+                3,
             )
 
     def test_generated_manifest_passes_production_evaluator_contract(self):
