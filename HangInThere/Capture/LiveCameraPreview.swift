@@ -763,6 +763,9 @@ final class LiveCameraPreviewController: NSObject {
             if let movieConnection = movieOutput.connection(with: .video),
                movieConnection.isVideoRotationAngleSupported(90) {
                 movieConnection.videoRotationAngle = 90
+                if movieConnection.isVideoStabilizationSupported {
+                    movieConnection.preferredVideoStabilizationMode = .off
+                }
                 self.movieOutput = movieOutput
                 debugCaptureState = .idle
             } else {
@@ -781,6 +784,9 @@ final class LiveCameraPreviewController: NSObject {
             throw LiveCameraSetupError.unsupportedPortraitRotation
         }
         connection.videoRotationAngle = 90
+        if connection.isVideoStabilizationSupported {
+            connection.preferredVideoStabilizationMode = .off
+        }
 
         let eventStream = AsyncStream<LiveAnalyzerEvent>(
             bufferingPolicy: .bufferingNewest(1)
