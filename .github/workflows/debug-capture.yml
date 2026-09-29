@@ -1,0 +1,35 @@
+name: Debug capture contracts
+
+on:
+  pull_request:
+    paths:
+      - 'HangInThere/Analysis/LiveDebugSession.swift'
+      - 'HangInThere/Capture/LiveDebugVideoRecorder.swift'
+      - 'HangInThere/Capture/LiveCameraPreview.swift'
+      - 'HangInThere/UI/LiveSetupView.swift'
+      - 'scripts/debug_session.py'
+      - 'scripts/tests/test_debug_session.py'
+      - 'Evaluation/LIVE_DEBUG_CAPTURE.md'
+      - '.github/workflows/debug-capture.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/debug_session.py'
+      - 'scripts/tests/test_debug_session.py'
+      - '.github/workflows/debug-capture.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle-contract:
+    name: Local debug bundle contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate local-only debug bundle tooling
+        run: python3 -m unittest scripts/tests/test_debug_session.py -v
