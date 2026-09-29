@@ -31,7 +31,9 @@
         "side-oblique"
       ],
       "reviewed_without_runtime_output": false,
-      "end_reason": "offline"
+      "end_reason": "offline",
+      "counter_policy_version": 6,
+      "tracking_side": "left"
     },
     {
       "id": "romina_consumed_development_v6",
@@ -62,7 +64,9 @@
         "side-view"
       ],
       "reviewed_without_runtime_output": true,
-      "end_reason": "offline"
+      "end_reason": "offline",
+      "counter_policy_version": 6,
+      "tracking_side": "left"
     },
     {
       "id": "pavel_consumed_holdout_v2",
@@ -94,7 +98,9 @@
         "heldout-count-pass"
       ],
       "reviewed_without_runtime_output": true,
-      "end_reason": "offline"
+      "end_reason": "offline",
+      "counter_policy_version": 6,
+      "tracking_side": "right"
     }
   ]
 }
