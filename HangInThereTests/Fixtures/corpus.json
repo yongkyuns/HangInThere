@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "scope": "Small real-video diversity corpus for decoder/Apple-Vision/tracking robustness. Count expectations exist only where explicitly reviewed. This is not a population accuracy benchmark or form-validity dataset.",
+  "generated_root": "HangInThereTests/Fixtures/generated/corpus",
+  "cases": [
+    {
+      "id": "iwakuni-standard-rear-oblique",
+      "tier": "count-qualified",
+      "exercise": "pullUp",
+      "source_kind": "existing_fixture",
+      "prepared_video": "pullup-smoke.mp4",
+      "environment_tags": [
+        "military-fitness",
+        "landscape",
+        "rear-oblique",
+        "standard-two-arm"
+      ],
+      "review_scope": "Existing fully reviewed 40-frame fixture and one-movement regression in source.json.",
+      "expectation": {
+        "minimum_people_fraction": 0.95,
+        "minimum_any_arm_fraction": 0.85,
+        "minimum_root_motion_fraction": 0.1
+      },
+      "visual_review": {
+        "method": "Existing source.json review plus generated corpus contact sheet.",
+        "observed_content": "One athlete, fixed landscape rear/oblique camera, standard pull-up apparatus and one reviewed movement cycle.",
+        "limitations": [
+          "Head/chin crop prevents strict top-form grading."
+        ]
+      }
+    },
+    {
+      "id": "iwakuni-multi-person-intro",
+      "tier": "stress-coverage",
+      "exercise": "none",
+      "source_kind": "existing_source",
+      "source_path": "Data/external/p0-pullup-source.webm",
+      "source_bytes": 32946819,
+      "source_sha256": "d278e8f61fbc1cfbedc8a38ddcdfa5b9b44d1429a209c198b59172d7fb6443a7",
+      "environment_tags": [
+        "military-fitness",
+        "landscape",
+        "multi-person",
+        "introduction",
+        "zero-reps"
+      ],
+      "review_scope": "Previously reviewed 0-4 second interval: two people introducing the exercise, zero pull-ups.",
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 4,
+        "frames_per_second": 8,
+        "max_long_edge": 640,
+        "expected_frame_count": 32
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.95,
+        "minimum_any_arm_fraction": 0.7
+      },
+      "visual_review": {
+        "method": "Reviewed generated derivative/contact sheet; this is the previously rejected 0-4 s smoke interval.",
+        "observed_content": "Two people stand in front of the pull-up station introducing the exercise; zero pull-up cycles.",
+        "limitations": [
+          "Stress case for additional people/background, not a movement-count fixture."
+        ]
+      }
+    },
+    {
+      "id": "fitnessscape-standard-indoor",
+      "tier": "count-qualified",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Pull-ups_-_exercise_demonstration_video.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Pull-ups_-_exercise_demonstration_video.webm",
+      "source_bytes": 358754,
+      "source_sha256": "1ddf02c690c6da9d27c9ca50453d2df212d777bb402203af116b70bf27a2227d",
+      "license": "CC BY 3.0",
+      "credit": "FitnessScape",
+      "environment_tags": [
+        "indoor-gym",
+        "landscape",
+        "standard-two-arm"
+      ],
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 6,
+        "frames_per_second": 8,
+        "max_long_edge": 640,
+        "expected_frame_count": 48
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.95,
+        "minimum_any_arm_fraction": 0.8,
+        "minimum_root_motion_fraction": 0.1
+      },
+      "side": "left",
+      "visual_review": {
+        "method": "All 48 prepared frames re-inspected in indexed temporal order at 8 FPS; the initial broad contact sheet had obscured that frame 0 begins mid-attempt.",
+        "observed_content": "One athlete, fixed rear/oblique indoor-gym view, standard straight pull-up bar. The clip begins mid-ascent, descends to full extension, then contains one countable extension-to-top pull-up movement.",
+        "limitations": [
+          "Leading mid-attempt motion must not be counted because the clip does not show its extended start.",
+          "On-screen PULL-UPS title partially covers the lower-right image but does not cover the selected arm/bar.",
+          "Movement-only ground truth; no chin-clearance or form-validity label."
+        ]
+      },
+      "count_expectation": {
+        "bar_reference_edge": [
+          202,
+          84,
+          374,
+          58
+        ],
+        "bar_reference_note": "Manually reviewed visible bar centerline in the 640x360 prepared image; fixed camera, reused for all frames.",
+        "expected_observed_movements": 1,
+        "expected_partial_attempts": 0
+      }
+    },
+    {
+      "id": "yokota-crowded-pullup",
+      "tier": "stress-coverage",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:PACUP_-_Yokota_February_Samurai_Fitness_Challenge_%28998462%29.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/PACUP_-_Yokota_February_Samurai_Fitness_Challenge_%28998462%29.webm",
+      "source_bytes": 10075812,
+      "source_sha256": "d303e07423a3c083dca3f7019d0847d12bc3a4651ea37a8080c6d25893bd3e64",
+      "license": "Public domain in the United States (official U.S. Air Force work)",
+      "credit": "U.S. Air Force video by Staff Sgt. James Kennedy",
+      "environment_tags": [
+        "indoor-gym",
+        "landscape",
+        "multi-person",
+        "foreground-occlusion",
+        "crowded",
+        "standard-two-arm"
+      ],
+      "recipe": {
+        "source_start_seconds": 23.625,
+        "duration_seconds": 2.5,
+        "frames_per_second": 8,
+        "max_long_edge": 640,
+        "expected_frame_count": 20
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.8,
+        "minimum_any_arm_fraction": 0.5,
+        "minimum_multiple_people_frames": 1,
+        "expected_orientation": "landscape"
+      },
+      "visual_review": {
+        "method": "Temporary full-source review artifact was inspected first; all 20 frames of the selected 23.625-26.125 s derivative were then reviewed at 8 FPS before Apple Vision corpus inference.",
+        "observed_content": "A real pull-up in a crowded indoor gym. A foreground observer substantially occludes the athlete while additional people and equipment remain visible in the background.",
+        "limitations": [
+          "Stress/coverage only; no rep-count or form label.",
+          "Scene-level person/arm coverage does not establish athlete identity continuity.",
+          "At least one real-Vision multi-person frame is required so production's explicit multi-person rejection path is exercised instead of silently selecting a person."
+        ]
+      }
+    },
+    {
+      "id": "solodkyi-one-arm-portrait",
+      "tier": "stress-coverage",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:One-arm_pull-up_-_Solodkyi_Serhii_3194821.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/One-arm_pull-up_-_Solodkyi_Serhii_3194821.webm",
+      "source_bytes": 11296179,
+      "source_sha256": "073c588f1c6af0cf2ba8e24e0e42495b35855d78b0e76df17cee947c9c8a1fb3",
+      "license": "CC BY-SA 4.0",
+      "credit": "Fenix1000 / Solodkyi Serhii",
+      "environment_tags": [
+        "portrait",
+        "one-arm",
+        "nonstandard-exercise-view"
+      ],
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 32,
+        "frames_per_second": 4,
+        "max_long_edge": 640,
+        "expected_frame_count": 128
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.7,
+        "minimum_any_arm_fraction": 0.45,
+        "minimum_root_motion_fraction": 0.18,
+        "expected_orientation": "portrait"
+      },
+      "visual_review": {
+        "method": "Generated 2-second contact sheet inspected before Apple Vision corpus inference.",
+        "observed_content": "Single athlete outdoors in portrait framing performing highly nonstandard one-arm hanging/pull movement with large swing/inversion and changing body orientation.",
+        "limitations": [
+          "Stress/coverage only; no rep-count or form label.",
+          "Motion blur/defocus appears near the end."
+        ]
+      }
+    },
+    {
+      "id": "solodkyi-tree-branch-outdoor",
+      "tier": "stress-coverage",
+      "exercise": "pullUp",
+      "source_kind": "download",
+      "source_page": "https://commons.wikimedia.org/wiki/File:A_one-arm_pull-up_from_a_tree_branch_-_Solodkyi_Serhii_6469.webm",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/d/de/A_one-arm_pull-up_from_a_tree_branch_-_Solodkyi_Serhii_6469.webm",
+      "source_bytes": 8435045,
+      "source_sha256": "c14e66665c989f1bedb532b35c6b66c89aafa93cef73ff0f8bd4f7df22971aab",
+      "license": "CC BY-SA 4.0",
+      "credit": "Fenix1000 / Solodkyi Serhii",
+      "environment_tags": [
+        "outdoor",
+        "landscape",
+        "tree-branch",
+        "one-arm",
+        "nonstandard-apparatus"
+      ],
+      "recipe": {
+        "source_start_seconds": 0,
+        "duration_seconds": 23,
+        "frames_per_second": 4,
+        "max_long_edge": 640,
+        "expected_frame_count": 91
+      },
+      "expectation": {
+        "minimum_people_fraction": 0.6,
+        "minimum_any_arm_fraction": 0.35,
+        "minimum_root_motion_fraction": 0.15,
+        "expected_orientation": "landscape"
+      },
+      "visual_review": {
+        "method": "Generated 2-second contact sheet inspected before Apple Vision corpus inference.",
+        "observed_content": "Single athlete outdoors using a tree branch as nonstandard apparatus, with substantial swing/inversion and foliage/high-contrast background.",
+        "limitations": [
+          "Stress/coverage only; no rep-count or form label.",
+          "Tree/foliage can occlude limbs near the top of motion."
+        ]
+      }
+    }
+  ],
+  "known_gap": {
+    "exercise": "dip",
+    "status": "Frozen counter policy v6 achieved held-out rep-count success on the independent Pavel Danilyuk view: tracking floors passed (109/112 person frames, 101/112 any-arm frames), and the counter produced exactly 3/3 movements with 0 partial and 0 interrupted attempts. The stricter precommitted temporal-window gate failed because detections occurred at 3.25, 7.875, and 12.625 s, respectively 0.25, 0.125, and 0.375 s before the three frozen return windows. Pavel is consumed; do not tune v6 or the labels against it. Rep count is qualified only for this held-out view; precise endpoint timing, form validity, and population-level dip accuracy remain unqualified."
+  },
+  "reviewed_date": "2026-09-28",
+  "review_policy": "Visual expectations are source-reviewed rather than inferred from model output. FitnessScape was corrected after indexed-frame source review without counter-threshold tuning. Yokota multi-person requirements were committed before Apple Vision. The controlled JULLIAN PRODUCTION dip clip is explicitly development-exposed: a pinned source-only 8 FPS review corrected its coarse seven-cycle annotation to nine cycles, and policy v4 matched all nine. The Romina Martinez dip labels and floors in dip-heldout.json were locked before any Apple Vision inference; its failed one-time native result is recorded separately in dip-heldout-result.json and the case is not included in the passing corpus. After the Romina failure, two fresh Pexels candidates were reviewed source-only. Ketut Subiyanto 4804769 was rejected before inference because frontal arm/torso overlap and small visible endpoint excursion made count labels ambiguous. Pavel Danilyuk 4065479 was selected and frozen as dip-heldout-v2.json before any model run. Policy v6 was then frozen from JULLIAN plus consumed Romina development evidence before Pavel's first eligible inference. Pavel passed the locked tracking floors and exact 3-rep count with no partial/interrupted attempts, but failed the separately frozen event-time windows; dip-heldout-v2-result.json preserves that result without relabelling."
+}

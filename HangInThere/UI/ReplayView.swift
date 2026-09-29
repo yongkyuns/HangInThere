@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct ReplayView: View {
     @State private var model = ReplayController()
     @State private var importing = false
+    @State private var showingLiveWorkout = false
     @State private var barSetup: BarSetupFrame?
     @State private var showPoseOverlay = true
     @Environment(\.scenePhase) private var scenePhase
@@ -50,6 +51,9 @@ struct ReplayView: View {
                     }
                 }
             }
+            .fullScreenCover(isPresented: $showingLiveWorkout) {
+                LiveSetupView()
+            }
             .fileImporter(
                 isPresented: $importing,
                 allowedContentTypes: [.movie],
@@ -80,8 +84,8 @@ struct ReplayView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 22) {
-            Spacer(minLength: 32)
+        VStack(spacing: 24) {
+            Spacer(minLength: 28)
 
             ZStack {
                 Circle()
@@ -93,31 +97,50 @@ struct ReplayView: View {
             }
 
             VStack(spacing: 8) {
-                Text("Review your workout")
+                Text("Start your workout")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
-                Text("Import a pull-up or parallel-bar dip video to see joint tracking, set the bar reference, and count movement cycles.")
+                Text("Count pull-up or parallel-bar dip movement cycles live, or review a workout video you already recorded.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 520)
             }
 
-            Button {
-                importing = true
-            } label: {
-                Label("Choose workout video", systemImage: "video.badge.plus")
-                    .frame(maxWidth: .infinity, minHeight: 44)
+            VStack(spacing: 12) {
+                Button {
+                    showingLiveWorkout = true
+                } label: {
+                    Label("Live workout", systemImage: "camera.fill")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("startLiveWorkout")
+
+                Button {
+                    importing = true
+                } label: {
+                    Label("Review recorded video", systemImage: "video.badge.plus")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .accessibilityIdentifier("importVideo")
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .accessibilityIdentifier("importVideo")
+            .frame(maxWidth: 520)
 
-            Label("Video analysis stays on this device.", systemImage: "lock.fill")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            VStack(spacing: 6) {
+                Label("Live and recorded analysis stays on this device.", systemImage: "lock.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
 
-            Spacer(minLength: 32)
+                Text("Movement count only · Form scoring is not enabled yet")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 28)
         }
         .frame(maxWidth: 620)
         .frame(maxWidth: .infinity)
