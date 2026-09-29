@@ -14,6 +14,8 @@ private struct Row: Decodable {
 private struct Report: Encodable {
     let scope = "saved-prediction movement diagnostic; optional fixed apparatus reference; no strict-form verdict"
     let frames: Int
+    let usableTrackingFrames: Int
+    let trackingCoverage: Double?
     let referenceEdge: BarSegment?
     let summary: ExerciseCounter.Summary
     let events: [ExerciseCounter.Event]
@@ -47,6 +49,7 @@ private struct Report: Encodable {
 
         var counter = ExerciseCounter(exercise: exercise, side: side)
         var frames = 0
+        var usableTrackingFrames = 0
         var events: [ExerciseCounter.Event] = []
         while let line = readLine() {
             let row = try JSONDecoder().decode(Row.self, from: Data(line.utf8))
@@ -58,14 +61,26 @@ private struct Report: Encodable {
                                   people: row.people, backend: row.backend,
                                   requestRevision: row.requestRevision ?? 0)
             if let event = counter.consume(pose, referenceEdge: referenceEdge) { events.append(event) }
+            if referenceEdge != nil, counter.trackingIssue == nil {
+                usableTrackingFrames += 1
+            }
             frames += 1
         }
         guard frames > 0 else { throw failure("No observations supplied.") }
         if let event = counter.finish() { events.append(event) }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        print(String(decoding: try encoder.encode(Report(frames: frames, referenceEdge: referenceEdge,
-                                                         summary: counter.summary, events: events)), as: UTF8.self))
+        let trackingCoverage = frames > 0
+            ? Double(usableTrackingFrames) / Double(frames)
+            : nil
+        print(String(decoding: try encoder.encode(Report(
+            frames: frames,
+            usableTrackingFrames: usableTrackingFrames,
+            trackingCoverage: trackingCoverage,
+            referenceEdge: referenceEdge,
+            summary: counter.summary,
+            events: events
+        )), as: UTF8.self))
     }
     private static func failure(_ message: String) -> NSError {
         NSError(domain: "CountReplay", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
