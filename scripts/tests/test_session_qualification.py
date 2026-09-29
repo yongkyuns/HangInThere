@@ -78,6 +78,12 @@ class SessionQualificationTests(unittest.TestCase):
         self.assertEqual(metrics["false_camera_interruptions"], 1)
         self.assertEqual(metrics["camera_event_detection_fraction"], 1.0)
 
+    def test_private_content_keys_are_rejected(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest["sessions"][0]["location"] = "private place"
+        with self.assertRaises(session_qualification.SessionError):
+            session_qualification.analyze(manifest)
+
     def test_population_eligible_requires_independent_review(self):
         manifest = copy.deepcopy(self.manifest)
         session = copy.deepcopy(manifest["sessions"][0])
