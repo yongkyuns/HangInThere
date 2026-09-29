@@ -2,7 +2,6 @@
   "schema_version": 1,
   "status": "frozen-before-heldout-v2-inference",
   "counter_policy_version": 6,
-  "counter_source_sha256": "bc636c535d8d6cccc060f224a368ba124026eb3f",
   "frozen_development_commit": "0d92458977fdd55ad0103973f3286eede18703e2",
   "development_evidence": [
     {
@@ -32,5 +31,6 @@
     }
   ],
   "untouched_holdout": "HangInThereTests/Fixtures/dip-heldout-v2.json",
-  "policy": "No counter, thresholds, holdout labels, arm choice, rail geometry, or coverage floors may change after this freeze and before the first Pavel holdout-v2 result."
+  "policy": "No counter, thresholds, holdout labels, arm choice, rail geometry, or coverage floors may change after this freeze and before the first Pavel holdout-v2 result.",
+  "counter_source_git_blob_sha": "bc636c535d8d6cccc060f224a368ba124026eb3f"
 }
