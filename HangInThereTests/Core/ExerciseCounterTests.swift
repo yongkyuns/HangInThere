@@ -85,6 +85,30 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 0)
         #expect(c.lastEvent?.reason == "barReferencedCycle;dipDepthAndFormNotQualified")
     }
+    @Test func dipReturnUsesLocalBottomWhenTopBaselineDrifts() {
+        var c = ExerciseCounter(exercise: .dip, side: .right)
+        feed(&c, [(0,140),(0.15,140)])
+        c.consume(
+            Self.pose(0.3, degrees: 70, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        c.consume(
+            Self.pose(0.45, degrees: 70, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
+        // The next top is shifted toward the rail relative to the original
+        // anchor. A complete local bottom-to-top recovery must still count.
+        c.consume(
+            Self.pose(0.6, degrees: 140, exercise: .dip, side: .right, verticalOffset: 40),
+            referenceEdge: Self.referenceEdge
+        )
+        c.consume(
+            Self.pose(0.75, degrees: 140, exercise: .dip, side: .right, verticalOffset: 40),
+            referenceEdge: Self.referenceEdge
+        )
+        #expect(c.observedMovements == 1)
+        #expect(c.interruptedAttempts == 0)
+    }
     @Test func dipBentHoldCannotArmAsAStart() {
         var c = ExerciseCounter(exercise: .dip)
         feed(&c, [(0,70),(0.15,70),(0.3,75),(0.45,70)])
