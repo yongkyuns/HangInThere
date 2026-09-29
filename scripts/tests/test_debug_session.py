@@ -27,7 +27,7 @@ class DebugSessionTests(unittest.TestCase):
         package.mkdir()
         video = b"fake-movie-bytes"
         session = {
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "counterPolicyVersion": 6,
             "exercise": "dip",
             "side": "right",
@@ -37,7 +37,9 @@ class DebugSessionTests(unittest.TestCase):
                 "audioRecorded": False,
                 "durationSeconds": 6.5,
                 "firstAnalyzedSourceSeconds": 12.0,
+                "firstAnalyzedMovieSeconds": 0.5,
                 "lastAnalyzedSourceSeconds": 18.0,
+                "lastAnalyzedMovieSeconds": 6.5,
             },
             "set": {
                 "phase": "finished",
@@ -50,10 +52,15 @@ class DebugSessionTests(unittest.TestCase):
                 "trackingCoverage": 0.95,
                 "firstSourceSeconds": 12.5,
                 "lastSourceSeconds": 17.5,
+                "movementTimes": [0.5, 2.5, 4.5],
             },
             "barReference": {
                 "role": "rightDipRail",
+                "method": "manual",
                 "sourceSeconds": 12.25,
+                "a": {"x": 10.0, "y": 20.0},
+                "b": {"x": 90.0, "y": 20.0},
+                "imageSize": {"width": 100.0, "height": 100.0},
             },
         }
         qualification = {
@@ -104,11 +111,120 @@ class DebugSessionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             package = self.make_package(Path(directory))
             report = debug_session.verify(package)
+            self.assertEqual(report["session"]["schema_version"], 2)
             self.assertEqual(report["session"]["counter_policy_version"], 6)
             self.assertEqual(report["session"]["exercise"], "dip")
             self.assertEqual(report["session"]["side"], "right")
             self.assertTrue(report["session"]["bar_reference_present"])
             self.assertEqual(report["qualification"]["observed_movements"], 3)
+
+    def test_schema_v1_package_remains_verifiable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            session_path = package / "session.json"
+            session = json.loads(session_path.read_text(encoding="utf-8"))
+            session["schemaVersion"] = 1
+            session["capture"].pop("firstAnalyzedMovieSeconds")
+            session["capture"].pop("lastAnalyzedMovieSeconds")
+            session_path.write_text(json.dumps(session) + "\n", encoding="utf-8")
+            self.refresh_hashes(package)
+
+            report = debug_session.verify(package)
+            self.assertEqual(report["session"]["schema_version"], 1)
+            with self.assertRaisesRegex(
+                debug_session.DebugSessionError,
+                "schema v2",
+            ):
+                debug_session.replay_clock(report)
+
+    def test_clock_aligned_set_window_is_selected_and_renumbered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            report = debug_session.verify(package)
+            rows = []
+            for index in range(8):
+                rows.append(
+                    {
+                        "frameIndex": index,
+                        "timebase": "source_pts",
+                        "timestamp": {"value": index, "timescale": 1},
+                        "imageSize": {"width": 200.0, "height": 200.0},
+                        "people": [],
+                        "backend": "Apple Vision 2D",
+                        "requestRevision": 1,
+                    }
+                )
+            selected, window = debug_session.select_live_set_observations(
+                report,
+                rows,
+                [float(i) for i in range(8)],
+            )
+            self.assertEqual(window["first_frame_index"], 1)
+            self.assertEqual(window["last_frame_index"], 6)
+            self.assertEqual([row["frameIndex"] for row in selected], list(range(6)))
+            self.assertAlmostEqual(window["first_alignment_error_seconds"], 0.0)
+            self.assertAlmostEqual(window["last_alignment_error_seconds"], 0.0)
+
+            edge, mapping = debug_session.replay_bar_edge(report, selected)
+            self.assertEqual(edge, [20.0, 40.0, 180.0, 40.0])
+            self.assertEqual(mapping["scale_x"], 2.0)
+            self.assertEqual(mapping["scale_y"], 2.0)
+
+    def test_live_vs_replay_comparison_reports_policy_count_tracking_and_timing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            report = debug_session.verify(package)
+            rows = [
+                {
+                    "frameIndex": index,
+                    "timebase": "source_pts",
+                    "timestamp": {"value": index, "timescale": 1},
+                    "imageSize": {"width": 200.0, "height": 200.0},
+                    "people": [],
+                    "backend": "Apple Vision 2D",
+                    "requestRevision": 1,
+                }
+                for index in range(8)
+            ]
+            _, window = debug_session.select_live_set_observations(
+                report,
+                rows,
+                [float(i) for i in range(8)],
+            )
+            counter = {
+                "frames": 6,
+                "usableTrackingFrames": 6,
+                "trackingCoverage": 1.0,
+                "summary": {
+                    "policyVersion": 7,
+                    "observedMovements": 3,
+                    "partialAttempts": 0,
+                    "interruptedAttempts": 0,
+                },
+                "events": [
+                    {"outcome": "movement", "sourceSeconds": 1.6},
+                    {"outcome": "movement", "sourceSeconds": 3.5},
+                    {"outcome": "movement", "sourceSeconds": 5.7},
+                ],
+            }
+            comparison = debug_session.compare_live_and_replay(
+                report,
+                counter,
+                window,
+            )
+            self.assertTrue(comparison["policy_changed"])
+            self.assertEqual(comparison["captured_policy_version"], 6)
+            self.assertEqual(comparison["replay_policy_version"], 7)
+            self.assertEqual(comparison["deltas"]["observed_movements"], 0)
+            self.assertEqual(comparison["deltas"]["partial_attempts"], -1)
+            self.assertAlmostEqual(comparison["deltas"]["tracking_coverage"], 0.05)
+            deltas = [
+                pair["replay_minus_live_seconds"]
+                for pair in comparison["timing"]["pairs"]
+            ]
+            self.assertAlmostEqual(deltas[0], 0.1)
+            self.assertAlmostEqual(deltas[1], 0.0)
+            self.assertAlmostEqual(deltas[2], 0.2)
 
     def test_semantically_inconsistent_metadata_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
