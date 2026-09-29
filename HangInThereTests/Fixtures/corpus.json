@@ -157,59 +157,6 @@
       }
     },
     {
-      "id": "jullianw-parallel-bar-dips",
-      "tier": "count-qualified",
-      "exercise": "dip",
-      "source_kind": "download",
-      "source_page": "https://www.pexels.com/video/outdoor-dips-workout-for-fitness-motivation-34543951/",
-      "download_url": "https://videos.pexels.com/video-files/34543951/14637011_1080_1920_25fps.mp4",
-      "source_bytes": 4128761,
-      "source_sha256": "d1a06665c9deec0f061daf6548578b35bdcad74f3d3dec0810865f47ebaa44c8",
-      "license": "Pexels License",
-      "credit": "JULLIAN W / Pexels",
-      "environment_tags": [
-        "outdoor-gym",
-        "portrait",
-        "side-oblique",
-        "parallel-bars",
-        "standard-two-arm",
-        "background-clutter"
-      ],
-      "recipe": {
-        "source_start_seconds": 0,
-        "duration_seconds": 12,
-        "frames_per_second": 8,
-        "max_long_edge": 640,
-        "expected_frame_count": 96
-      },
-      "expectation": {
-        "minimum_people_fraction": 0.95,
-        "minimum_any_arm_fraction": 0.85,
-        "expected_orientation": "portrait"
-      },
-      "side": "right",
-      "visual_review": {
-        "method": "All 96 prepared frames were inspected in indexed temporal order at 8 FPS before Apple Vision corpus inference.",
-        "observed_content": "One athlete performs real bodyweight dips on two fixed parallel rails in a portrait side/oblique outdoor-gym view. Prepared frame 0 is already at the bent/low endpoint and the athlete first rises to extension; after that leading partial return, five complete extension-to-bent-to-extension movement cycles are visible.",
-        "limitations": [
-          "The leading bent-to-extension partial motion is not a countable cycle because its extended start is outside the clip.",
-          "Movement-cycle ground truth only; dip depth, lockout validity, body alignment and overall form are not qualified.",
-          "The image-plane elbow angle is an engineering signal, not a calibrated anatomical 3D angle."
-        ]
-      },
-      "count_expectation": {
-        "bar_reference_edge": [
-          190,
-          372,
-          216,
-          372
-        ],
-        "bar_reference_note": "Manually reviewed fixed near-side rail centerline immediately to the right of the selected hand in the 360x640 prepared image; fixed camera, reused for all frames.",
-        "expected_observed_movements": 5,
-        "expected_partial_attempts": 0
-      }
-    },
-    {
       "id": "solodkyi-one-arm-portrait",
       "tier": "stress-coverage",
       "exercise": "pullUp",
@@ -290,8 +237,8 @@
   ],
   "known_gap": {
     "exercise": "dip",
-    "status": "Real parallel-bar dip footage is now pinned and movement-count-qualified. Dip-depth/form validity, 3D joint accuracy and held-out population-level accuracy remain unqualified."
+    "status": "Real parallel-bar dip sources are reproducibly pinned and visually reviewed, but production dip movement counting is not yet qualified. The JULLIAN W development probe produced 80.2% person coverage, 70.8% arm coverage, and 0/5 counted movements on real Apple Vision: the image-plane elbow never sustained the current 155-degree extended gate, and short pose dropouts were treated as immediate resets. Do not lower corpus floors or relabel the footage to hide this gap."
   },
   "reviewed_date": "2026-09-28",
-  "review_policy": "Visual expectations were recorded before corpus inference. The FitnessScape count label was later corrected from 2 to 1 after indexed-frame visual re-review showed frame 0 already mid-ascent; the counter output was not used to redefine endpoint thresholds. The Yokota crowded-pull-up interval and its multi-person requirement were committed from visual review before running Apple Vision on that interval. The JULLIAN W dip fixture was reviewed over all 96 prepared frames and labelled as five complete extension-to-bent-to-extension cycles, after one leading partial return, before Apple Vision was run on it."
+  "review_policy": "Visual expectations were recorded before corpus inference. The FitnessScape count label was later corrected from 2 to 1 after indexed-frame visual re-review showed frame 0 already mid-ascent; the counter output was not used to redefine endpoint thresholds. The Yokota crowded-pull-up interval and its multi-person requirement were committed from visual review before running Apple Vision on that interval. A real JULLIAN W parallel-bar dip candidate was also labelled before inference; its failed native qualification is recorded as a production counter limitation rather than being tuned into a passing corpus case."
 }
