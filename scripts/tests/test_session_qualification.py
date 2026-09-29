@@ -43,6 +43,7 @@ class SessionQualificationTests(unittest.TestCase):
             "exercise": "pull_up",
             "evidence_class": "field",
             "population_eligible": True,
+            "reviewed_without_runtime_output": True,
             "source_group": "field-session-001",
             "participant_group": "participant-001",
             "expected_movements": 10,
@@ -72,6 +73,22 @@ class SessionQualificationTests(unittest.TestCase):
         self.assertEqual(metrics["bar_setup_mean_attempts"], 2)
         self.assertEqual(metrics["false_camera_interruptions"], 1)
         self.assertEqual(metrics["camera_event_detection_fraction"], 1.0)
+
+    def test_population_eligible_requires_independent_review(self):
+        manifest = copy.deepcopy(self.manifest)
+        session = copy.deepcopy(manifest["sessions"][0])
+        session.update({
+            "id": "field_session_unreviewed",
+            "exercise": "dip",
+            "evidence_class": "field",
+            "population_eligible": True,
+            "reviewed_without_runtime_output": False,
+            "source_group": "field-source-unreviewed",
+            "participant_group": "participant-unreviewed",
+        })
+        manifest["sessions"].append(session)
+        with self.assertRaises(session_qualification.SessionError):
+            session_qualification.analyze(manifest)
 
     def test_population_eligible_requires_field_evidence(self):
         manifest = copy.deepcopy(self.manifest)
