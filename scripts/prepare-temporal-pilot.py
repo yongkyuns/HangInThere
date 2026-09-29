@@ -110,7 +110,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
         offset = selected[0]
         refs.append({'schema_version': 1, 'id': row['id'], 'exercise': row['exercise'], 'side': row['side'],
                      'event_definition': {'pullUp': 'observed_start_to_top', 'dip': 'observed_top_bottom_top'}[row['exercise']],
-                     'counter_policy_version': 5,
+                     'counter_policy_version': 6,
                      'reviewed_without_counter_output': not bool(row.get('development_after_prior_counter_exposure', False)),
                      'development_after_prior_counter_exposure': bool(row.get('development_after_prior_counter_exposure', False)),
                      'provenance': spec['annotation_provenance'], 'form_verification': 'unverified',
