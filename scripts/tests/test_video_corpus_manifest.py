@@ -6,6 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "HangInThereTests" / "Fixtures" / "corpus.json"
 RESULT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-result.json"
+NEXT_HELDOUT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-v2.json"
 
 
 class VideoCorpusManifestTests(unittest.TestCase):
@@ -13,6 +14,7 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         self.cases = self.manifest["cases"]
         self.dip_result = json.loads(RESULT.read_text(encoding="utf-8"))
+        self.next_holdout = json.loads(NEXT_HELDOUT.read_text(encoding="utf-8"))
 
     def test_every_case_has_unique_id_and_reviewed_expectations(self):
         ids = [case["id"] for case in self.cases]
@@ -101,6 +103,29 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.assertLess(r["observed"]["people_fraction"], r["locked_expectation"]["minimum_people_fraction"])
         self.assertLess(r["observed"]["any_arm_fraction"], r["locked_expectation"]["minimum_any_arm_fraction"])
         self.assertIn("Do not change counter policy v4", r["policy"])
+
+    def test_second_dip_holdout_is_locked_before_inference(self):
+        h = self.next_holdout
+        self.assertEqual(h["status"], "locked-before-inference")
+        self.assertTrue(h["selection_provenance"]["reviewed_without_model_output"])
+        self.assertEqual(h["selection_provenance"]["source_only_artifact_sha256"],
+                         "6fdf2a6fbdaf18f916578235951261cc24f093a6873e823faae951c12d94926c")
+        c = h["case"]
+        self.assertEqual(c["id"], "pavel-heldout-v2-parallel-bar-dips")
+        self.assertEqual(c["source_bytes"], 27403001)
+        self.assertEqual(c["source_sha256"],
+                         "f40f1a37b04ab0cc5e86ed71c3af9b6413fd8094c12531c967cd3d3eeaca7985")
+        self.assertEqual(c["recipe"]["expected_frame_count"], 112)
+        self.assertEqual(c["count_expectation"]["expected_observed_movements"], 3)
+        self.assertEqual(c["count_expectation"]["expected_partial_attempts"], 0)
+        self.assertEqual(c["count_expectation"]["expected_interrupted_attempts"], 0)
+        self.assertEqual(c["count_expectation"]["bar_reference_image_size"], [640, 360])
+        self.assertEqual(len(c["event_windows_source_seconds"]), 3)
+        self.assertEqual(c["expectation"]["minimum_people_fraction"], 0.95)
+        self.assertEqual(c["expectation"]["minimum_any_arm_fraction"], 0.85)
+        self.assertFalse(any(case["id"] == c["id"] for case in self.cases),
+                         "Untouched holdout must not enter the passing corpus before the next redesign is frozen.")
+
 
 
 if __name__ == "__main__":
