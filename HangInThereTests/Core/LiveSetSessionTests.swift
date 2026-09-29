@@ -13,6 +13,8 @@ struct LiveSetSessionTests {
         #expect(session.movementTimes.count == 1)
         #expect(abs((session.movementTimes.first ?? -1) - 0.45) < 1e-9)
         #expect(session.trackingCoverage == 1)
+        #expect(session.firstSourceTimestampSeconds == 10.0)
+        #expect(session.lastSourceTimestampSeconds == 10.45)
 
         session.finish()
         #expect(session.phase == .finished)
