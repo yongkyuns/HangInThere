@@ -30,6 +30,8 @@ class SessionQualificationTests(unittest.TestCase):
         self.assertEqual(all_metrics["extra_movements"], 0)
         self.assertAlmostEqual(all_metrics["tracking_coverage_weighted"], 422 / 439)
         self.assertEqual(field_metrics["session_count"], 0)
+        self.assertEqual(field_metrics["participant_group_count"], 0)
+        self.assertEqual(field_metrics["source_group_count"], 0)
         self.assertIsNone(field_metrics["exact_count_fraction"])
         self.assertEqual(report["evidence_class_counts"], {
             "development": 2,
@@ -63,6 +65,8 @@ class SessionQualificationTests(unittest.TestCase):
         report = session_qualification.analyze(manifest)
         metrics = report["population_eligible_sessions"]
         self.assertEqual(metrics["session_count"], 1)
+        self.assertEqual(metrics["participant_group_count"], 1)
+        self.assertEqual(metrics["source_group_count"], 1)
         self.assertEqual(metrics["exact_count_sessions"], 0)
         self.assertEqual(metrics["missed_movements"], 1)
         self.assertEqual(metrics["extra_movements"], 0)
