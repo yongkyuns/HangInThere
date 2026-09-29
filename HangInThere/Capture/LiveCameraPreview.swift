@@ -1256,6 +1256,17 @@ extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
                 return
             }
 
+            guard self.debugCaptureState == .stopping else {
+                try? FileManager.default.removeItem(at: outputFileURL)
+                self.debugCaptureURL = nil
+                self.debugCaptureSessionJSON = nil
+                self.debugCaptureQualificationJSON = nil
+                self.debugCaptureState = .failed(
+                    message ?? "Debug recording ended before finalization was requested."
+                )
+                return
+            }
+
             guard succeeded,
                   FileManager.default.fileExists(atPath: outputFileURL.path)
             else {
