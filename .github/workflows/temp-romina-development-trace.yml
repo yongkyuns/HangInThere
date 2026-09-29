@@ -59,7 +59,7 @@ jobs:
               'exercise':'parallel_bar_dip',
               'split':'development',
               'source_group':'Pexels-5046452',
-              'subject_group':None,
+              'subject_group':'Romina-Martinez-Pexels-5046452',
               'rights':{
                 'status':'approved',
                 'evidence':'Romina Martinez / Pexels; Pexels License; consumed held-out development analysis only.',
