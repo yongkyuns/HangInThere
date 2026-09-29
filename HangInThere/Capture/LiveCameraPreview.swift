@@ -209,6 +209,7 @@ final class LiveCameraPreviewController {
     @ObservationIgnored private var debugSessionID: UUID?
     @ObservationIgnored private var debugConfirmedBar: ConfirmedBar?
     @ObservationIgnored private var debugFinalizeTask: Task<Void, Never>?
+    @ObservationIgnored private var debugDiscardAfterFinalize = false
 
     var isCameraReady: Bool { state == .ready }
     var isSuspended: Bool { suspended }
@@ -291,6 +292,7 @@ final class LiveCameraPreviewController {
             debugCaptureDirectory = directory
             debugSessionID = identifier
             debugConfirmedBar = nil
+            debugDiscardAfterFinalize = false
             debugCaptureShareURLs = []
             debugCaptureSummary = nil
             debugCaptureRouter.attach(recorder)
@@ -316,6 +318,7 @@ final class LiveCameraPreviewController {
         debugConfirmedBar = nil
         debugCaptureShareURLs = []
         debugCaptureSummary = nil
+        debugDiscardAfterFinalize = false
         debugCaptureState = .idle
     }
 
@@ -563,8 +566,13 @@ final class LiveCameraPreviewController {
         if liveSet.phase == .running {
             liveSet.finish()
         }
-        if debugCaptureState == .recording {
+        switch debugCaptureState {
+        case .recording, .ready, .failed:
             discardDebugCapture()
+        case .finalizing:
+            debugDiscardAfterFinalize = true
+        case .idle:
+            break
         }
         discardNextSetFrame = false
         suspended = false
@@ -755,6 +763,19 @@ final class LiveCameraPreviewController {
         debugFinalizeTask = Task { @MainActor [weak self] in
             let result = await recorder.finish()
             guard !Task.isCancelled, let self else { return }
+
+            if debugDiscardAfterFinalize {
+                try? FileManager.default.removeItem(at: directory)
+                debugCaptureDirectory = nil
+                debugSessionID = nil
+                debugConfirmedBar = nil
+                debugCaptureShareURLs = []
+                debugCaptureSummary = nil
+                debugDiscardAfterFinalize = false
+                debugCaptureState = .idle
+                debugFinalizeTask = nil
+                return
+            }
 
             switch result {
             case .failure(let failure):
