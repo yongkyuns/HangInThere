@@ -217,6 +217,8 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var debugCaptureBarSnapshot: ConfirmedBar?
     @ObservationIgnored private var debugCaptureStartedUptimeSeconds: Double?
     @ObservationIgnored private var debugCaptureFinishedUptimeSeconds: Double?
+    @ObservationIgnored private var debugCaptureFirstAnalyzedSourceSeconds: Double?
+    @ObservationIgnored private var debugCaptureLastAnalyzedSourceSeconds: Double?
     @ObservationIgnored private var debugCaptureSessionJSON: String?
     @ObservationIgnored private var debugCaptureQualificationJSON: String?
     @ObservationIgnored private var discardDebugCaptureWhenFinished = false
@@ -301,6 +303,8 @@ final class LiveCameraPreviewController: NSObject {
         debugCaptureBarSnapshot = currentBar
         debugCaptureStartedUptimeSeconds = nil
         debugCaptureFinishedUptimeSeconds = nil
+        debugCaptureFirstAnalyzedSourceSeconds = nil
+        debugCaptureLastAnalyzedSourceSeconds = nil
         debugCaptureSessionJSON = nil
         debugCaptureQualificationJSON = nil
         discardDebugCaptureWhenFinished = false
@@ -330,6 +334,8 @@ final class LiveCameraPreviewController: NSObject {
         debugCaptureBarSnapshot = nil
         debugCaptureStartedUptimeSeconds = nil
         debugCaptureFinishedUptimeSeconds = nil
+        debugCaptureFirstAnalyzedSourceSeconds = nil
+        debugCaptureLastAnalyzedSourceSeconds = nil
         debugCaptureSessionJSON = nil
         debugCaptureQualificationJSON = nil
         discardDebugCaptureWhenFinished = false
@@ -372,7 +378,11 @@ final class LiveCameraPreviewController: NSObject {
                     0,
                     (debugCaptureFinishedUptimeSeconds ?? ProcessInfo.processInfo.systemUptime)
                         - (debugCaptureStartedUptimeSeconds ?? ProcessInfo.processInfo.systemUptime)
-                )
+                ),
+                "firstAnalyzedSourceSeconds":
+                    (debugCaptureFirstAnalyzedSourceSeconds as Any?) ?? NSNull(),
+                "lastAnalyzedSourceSeconds":
+                    (debugCaptureLastAnalyzedSourceSeconds as Any?) ?? NSNull()
             ],
             "counterPolicyVersion": ExerciseCounter.policyVersion,
             "exercise": liveSet.exercise.rawValue,
@@ -387,6 +397,10 @@ final class LiveCameraPreviewController: NSObject {
                 "usableTrackingFrames": liveSet.usableTrackingFrameCount,
                 "trackingCoverage": (liveSet.trackingCoverage as Any?) ?? NSNull(),
                 "durationSeconds": liveSet.durationSeconds,
+                "firstSourceSeconds":
+                    (liveSet.firstSourceTimestampSeconds as Any?) ?? NSNull(),
+                "lastSourceSeconds":
+                    (liveSet.lastSourceTimestampSeconds as Any?) ?? NSNull(),
                 "movementTimes": liveSet.movementTimes
             ],
             "app": [
@@ -1096,6 +1110,16 @@ final class LiveCameraPreviewController: NSObject {
 
         switch event {
         case .frame(let frame):
+            if debugCaptureState == .recording || debugCaptureState == .stopping {
+                let seconds = frame.pose.timestamp.seconds
+                if seconds.isFinite {
+                    if debugCaptureFirstAnalyzedSourceSeconds == nil {
+                        debugCaptureFirstAnalyzedSourceSeconds = seconds
+                    }
+                    debugCaptureLastAnalyzedSourceSeconds = seconds
+                }
+            }
+
             if let bar, bar.imageSize != frame.pose.imageSize {
                 self.bar = nil
                 setupGeneration &+= 1
@@ -1190,6 +1214,8 @@ extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
                 self.debugCaptureBarSnapshot = nil
                 self.debugCaptureStartedUptimeSeconds = nil
                 self.debugCaptureFinishedUptimeSeconds = nil
+                self.debugCaptureFirstAnalyzedSourceSeconds = nil
+                self.debugCaptureLastAnalyzedSourceSeconds = nil
                 self.debugCaptureSessionJSON = nil
                 self.debugCaptureQualificationJSON = nil
                 self.discardDebugCaptureWhenFinished = false
