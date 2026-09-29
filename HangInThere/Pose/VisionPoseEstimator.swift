@@ -2,7 +2,8 @@ import CoreGraphics
 import ImageIO
 import Vision
 
-protocol PoseEstimator {
+// Estimators can be supplied to a replay actor without weakening isolation.
+protocol PoseEstimator: Sendable {
     func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult
 }
 

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "source_page": "https://dreamdragon.github.io/PennAction/",
+  "archive_url": "https://www.cis.upenn.edu/~kostas/Penn_Action.tar.gz",
+  "archive_bytes": 3235203923,
+  "archive_sha256": "e3e41bd99deb7b3beb9785f78b209de272bb0fa60ff4432ffa88118907a797de",
+  "digest_scope": "observed publisher download; repeat-run pin, not a publisher-issued digest",
+  "inventory_run": "https://github.com/yongkyuns/HangInThere/actions/runs/36288628405",
+  "native_annotations_inspected": 2326,
+  "counts_by_native_action": {
+    "baseball_pitch": 167,
+    "baseball_swing": 173,
+    "bench_press": 140,
+    "bowl": 220,
+    "clean_and_jerk": 88,
+    "golf_swing": 166,
+    "jump_rope": 82,
+    "jumping_jacks": 112,
+    "pullup": 199,
+    "pushup": 211,
+    "situp": 100,
+    "squat": 231,
+    "strum_guitar": 94,
+    "tennis_forehand": 157,
+    "tennis_serve": 186
+  },
+  "pull_up_sequences": 199,
+  "pull_up_frames": 13865,
+  "native_pull_up_label": "pullup",
+  "documented_pull_up_alias": "pull_ups",
+  "first_six_sequence_ids": [
+    "1149",
+    "1150",
+    "1151",
+    "1152",
+    "1153",
+    "1154"
+  ],
+  "first_six_frames": 271,
+  "scope": "Acquisition and native metadata evidence only. Not pose accuracy, independent subject count, permission approval, or training."
+}

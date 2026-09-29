@@ -10,20 +10,80 @@ enum ReplayPhase: String {
     case failed = "Unable to replay"
 }
 
+struct BarSetupFrame: Identifiable, Sendable {
+    let id = UUID()
+    let frame: ProcessedFrame
+    let role: ConfirmedBar.Role
+    let generation: UInt64
+}
+
 @MainActor @Observable
 final class ReplayController {
+    private(set) var counter = ExerciseCounter()
+    private(set) var bar: ConfirmedBar?
     private(set) var phase: ReplayPhase = .idle
     private(set) var frame: ProcessedFrame?
     private(set) var sourceName: String?
     private(set) var errorMessage: String?
+    private(set) var failureReport: String?
     private(set) var displayedFrames = 0
     private(set) var durationSeconds = 0.0
+    private(set) var countingFrames = 0
+    private(set) var analyzableFrames = 0
     @ObservationIgnored private var firstSourceTime = 0.0
-    @ObservationIgnored private var reader = VideoReplayReader()
+    @ObservationIgnored private let estimator: any PoseEstimator
+    @ObservationIgnored private var reader: VideoReplayReader
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private var pending: ProcessedFrame?
     @ObservationIgnored private var session: UInt64 = 0
     @ObservationIgnored private var playback: UInt64 = 0
+
+    init(estimator: any PoseEstimator = VisionPoseEstimator()) {
+        self.estimator = estimator
+        self.reader = VideoReplayReader(estimator: estimator)
+    }
+
+    var barRole: ConfirmedBar.Role {
+        counter.exercise == .pullUp ? .pullUpGrip : (counter.side == .left ? .leftDipRail : .rightDipRail)
+    }
+    var currentBar: ConfirmedBar? {
+        guard let frame, let bar, bar.role == barRole, bar.imageSize == frame.pose.imageSize else { return nil }
+        return bar
+    }
+    func beginBarSetup() -> BarSetupFrame? {
+        guard phase == .paused || phase == .playing || phase == .finished, let frame else { return nil }
+        pause()
+        return BarSetupFrame(frame: frame, role: barRole, generation: session)
+    }
+    @discardableResult
+    func confirmBar(_ bar: ConfirmedBar, for setup: BarSetupFrame) -> Bool {
+        guard phase == .paused || phase == .finished,
+              setup.generation == session, setup.role == barRole, bar.role == barRole,
+              bar.isValid, bar.imageSize == frame?.pose.imageSize,
+              bar.sourceTime == frame?.pose.timestamp,
+              bar.sourceTime == setup.frame.pose.timestamp else { return false }
+        self.bar = bar
+        // Re-run the set from source time zero so every counted frame uses the
+        // same independently confirmed fixed apparatus reference.
+        restart(preserveBar: true)
+        return true
+    }
+    func clearBar() {
+        bar = nil
+        counter.reset()
+        resetAnalysisMetrics()
+    }
+
+    // Switching exercise/arm replays from the beginning instead of mixing two
+    // policies in one set. Only displayed source frames advance the counter.
+    func configureCounting(exercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side) {
+        guard phase != .loading, counter.exercise != exercise || counter.side != side else { return }
+        pause()
+        counter = ExerciseCounter(exercise: exercise, side: side)
+        bar = nil
+        resetAnalysisMetrics()
+        if canRestart { restart(preserveBar: false) }
+    }
 
     var canPlay: Bool { phase == .paused }
     var canRestart: Bool { frame != nil && phase != .loading }
@@ -31,6 +91,16 @@ final class ReplayController {
     var progress: Double {
         if phase == .finished { return 1 }
         return durationSeconds > 0 ? min(1, max(0, elapsed / durationSeconds)) : 0
+    }
+    var trackingCoverage: Double? {
+        guard countingFrames > 0 else { return nil }
+        return Double(analyzableFrames) / Double(countingFrames)
+    }
+    var movementTimes: [Double] {
+        counter.events.compactMap { event in
+            guard event.outcome == .movement else { return nil }
+            return max(0, event.sourceSeconds - firstSourceTime)
+        }
     }
 
     func open(_ url: URL) {
@@ -40,13 +110,17 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        let nextReader = VideoReplayReader()
+        let nextReader = VideoReplayReader(estimator: estimator)
         reader = nextReader
         frame = nil
         pending = nil
         displayedFrames = 0
+        counter.reset()
+        bar = nil
         durationSeconds = 0
+        resetAnalysisMetrics()
         errorMessage = nil
+        failureReport = nil
         sourceName = url.lastPathComponent
         phase = .loading
         operation = Task {
@@ -72,13 +146,17 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        reader = VideoReplayReader()
+        reader = VideoReplayReader(estimator: estimator)
         frame = nil
         pending = nil
         sourceName = nil
         errorMessage = nil
+        failureReport = nil
         displayedFrames = 0
+        counter.reset()
+        bar = nil
         durationSeconds = 0
+        resetAnalysisMetrics()
         phase = .idle
         operation = Task {
             await previous?.value
@@ -87,7 +165,7 @@ final class ReplayController {
         }
     }
 
-    func restart() {
+    func restart(preserveBar: Bool = true) {
         guard canRestart else { return }
         let previous = operation
         previous?.cancel()
@@ -97,7 +175,11 @@ final class ReplayController {
         let currentReader = reader
         pending = nil
         errorMessage = nil
+        failureReport = nil
         phase = .loading
+        counter.reset()
+        resetAnalysisMetrics()
+        if !preserveBar { bar = nil }
         operation = Task {
             await previous?.value
             guard session == token, !Task.isCancelled else { return }
@@ -116,6 +198,7 @@ final class ReplayController {
         guard let first else { throw ReplayError.noFrames }
         frame = first
         firstSourceTime = first.pose.timestamp.seconds
+        consumeForCounting(first.pose)
         displayedFrames = 1
         durationSeconds = info.durationSeconds
         phase = .paused
@@ -155,6 +238,7 @@ final class ReplayController {
                     pending = next
                     guard isCurrent(token, playToken) else { return }
                     guard let next else {
+                        counter.finish()
                         phase = .finished
                         operation = nil
                         return
@@ -165,7 +249,13 @@ final class ReplayController {
                                                    wallDelta: wall)
                     if delay > 0 { try await clock.sleep(for: .seconds(delay)) }
                     guard isCurrent(token, playToken) else { return }
+                    if let bar, bar.imageSize != next.pose.imageSize {
+                        self.bar = nil
+                        counter.reset()
+                        resetAnalysisMetrics()
+                    }
                     self.frame = next
+                    consumeForCounting(next.pose)
                     pending = nil
                     displayedFrames += 1
                     lastPTS = next.pose.timestamp.seconds
@@ -179,9 +269,22 @@ final class ReplayController {
         }
     }
 
+    private func consumeForCounting(_ pose: PoseResult) {
+        let referenceEdge = currentBar?.referenceEdge
+        if referenceEdge != nil { countingFrames += 1 }
+        counter.consume(pose, referenceEdge: referenceEdge)
+        if referenceEdge != nil, counter.trackingIssue == nil { analyzableFrames += 1 }
+    }
+
+    private func resetAnalysisMetrics() {
+        countingFrames = 0
+        analyzableFrames = 0
+    }
+
     func reportImportFailure(_ error: Error) {
         pause()
         errorMessage = error.localizedDescription
+        failureReport = makeFailureReport(error, operation: "file selection")
     }
 
     private func isCurrent(_ token: UInt64, _ playToken: UInt64) -> Bool {
@@ -189,8 +292,50 @@ final class ReplayController {
     }
 
     private func fail(_ error: Error) {
+        counter.interrupt()
         phase = .failed
         errorMessage = error.localizedDescription
+        failureReport = makeFailureReport(error, operation: "replay")
         operation = nil
+    }
+
+    // An explicit user share action can export this text. Never include a source
+    // URL/name, image, landmarks, error description/userInfo, or device identifier.
+    // A retained frame describes the LAST SUCCESS, not the frame that failed.
+    private func makeFailureReport(_ error: Error, operation: String) -> String {
+        #if targetEnvironment(simulator)
+        let environment = "iOS simulator"
+        #elseif os(iOS)
+        let environment = "physical iOS device"
+        #else
+        let environment = "native host"
+        #endif
+        #if arch(arm64)
+        let architecture = "arm64"
+        #elseif arch(x86_64)
+        let architecture = "x86_64"
+        #else
+        let architecture = "other"
+        #endif
+        let systemError = error as NSError
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
+        var lines = [
+            "HangInThere failure report v1",
+            "App: \(version) (\(build))",
+            "Environment: \(environment); architecture: \(architecture)",
+            "OS: \(ProcessInfo.processInfo.operatingSystemVersionString)",
+            "Operation: \(operation)",
+            "Estimator type: \(String(reflecting: type(of: estimator)))",
+            "Error domain: \(systemError.domain); code: \(systemError.code)",
+            "Successfully displayed frames: \(displayedFrames)"
+        ]
+        if let frame {
+            lines.append("Last successful pose: \(frame.pose.backend), revision \(frame.pose.requestRevision)")
+            lines.append("Last successful image: \(frame.image.width) x \(frame.image.height)")
+            lines.append("Last successful source time: \(frame.pose.timestamp.value)/\(frame.pose.timestamp.timescale)")
+        }
+        lines.append("No video, filenames, paths, landmarks, or device identifiers included.")
+        return lines.joined(separator: "\n")
     }
 }

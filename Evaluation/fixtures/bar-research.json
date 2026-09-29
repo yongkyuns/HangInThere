@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "annotation_provenance": "Development-only bar references reviewed before this method comparison; not held-out accuracy qualification.",
+  "pullup_video_static": {
+    "region": [365, 90, 480, 135],
+    "frames": [
+      "pullup_video/0000.png", "pullup_video/0001.png", "pullup_video/0002.png", "pullup_video/0003.png", "pullup_video/0004.png",
+      "pullup_video/0005.png", "pullup_video/0006.png", "pullup_video/0007.png", "pullup_video/0008.png", "pullup_video/0009.png",
+      "pullup_video/0010.png", "pullup_video/0011.png", "pullup_video/0012.png", "pullup_video/0013.png", "pullup_video/0014.png",
+      "pullup_video/0015.png", "pullup_video/0016.png", "pullup_video/0017.png", "pullup_video/0018.png", "pullup_video/0019.png",
+      "pullup_video/0020.png", "pullup_video/0021.png", "pullup_video/0022.png", "pullup_video/0023.png", "pullup_video/0024.png",
+      "pullup_video/0025.png", "pullup_video/0026.png", "pullup_video/0027.png", "pullup_video/0028.png", "pullup_video/0029.png",
+      "pullup_video/0030.png", "pullup_video/0031.png", "pullup_video/0032.png", "pullup_video/0033.png", "pullup_video/0034.png",
+      "pullup_video/0035.png", "pullup_video/0036.png", "pullup_video/0037.png", "pullup_video/0038.png", "pullup_video/0039.png",
+      "pullup_video/0040.png", "pullup_video/0041.png", "pullup_video/0042.png", "pullup_video/0043.png", "pullup_video/0044.png"
+    ],
+    "noBarFrameIndices": [0],
+    "upperEdgePoints": [{"x":380,"y":114},{"x":420,"y":108},{"x":465,"y":102}],
+    "note": "Fixed-camera sequence. The reviewed bar edge from frame 0002 is used as a static development reference for frames 1-44; frame 0 is an opening graphic with no apparatus."
+  },
+  "stills": [
+    {"id":"pullup_back_clear","image":"pullup_back/0000.png","region":[675,115,910,183],"upperEdgePoints":[{"x":700,"y":134},{"x":800,"y":142},{"x":890,"y":150}]},
+    {"id":"dip_rail_wrapped","image":"dip_front/0000.png","region":[385,225,505,370],"upperEdgePoints":[]}
+  ]
+}

@@ -1,0 +1,99 @@
+name: Bar object detector prototype
+on:
+  push:
+    branches: [feat/bar-setup]
+    paths:
+      - 'Evaluation/CreateMLBarObjectExperiment.swift'
+      - 'Evaluation/BAR_OBJECT_PROTOTYPE.md'
+      - 'Evaluation/fixtures/bar-object-prototype.json'
+      - 'Evaluation/research_tests/bar_object_prototype_test.py'
+      - 'scripts/prepare-bar-object-prototype.py'
+      - 'scripts/prepare-temporal-pilot.py'
+      - 'scripts/prepare-source-pilot.py'
+      - '.github/workflows/bar-object-prototype.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train-and-evaluate:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare exact research tools
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 -m venv /tmp/bar-object-env
+          /tmp/bar-object-env/bin/pip install --only-binary=:all: Pillow==12.3.0
+      - name: Validate data-preparation contracts
+        run: |
+          /tmp/bar-object-env/bin/python Evaluation/research_tests/bar_object_prototype_test.py -v
+          xcrun swiftc -parse-as-library Evaluation/CreateMLBarObjectExperiment.swift -o /tmp/CreateMLBarObjectExperiment
+      - name: Rebuild byte-pinned source media
+        run: |
+          PYTHONPATH=scripts /tmp/bar-object-env/bin/python scripts/prepare-temporal-pilot.py \
+            --cache build/temporal-cache --output build/temporal --fetch
+          PYTHONPATH=scripts /tmp/bar-object-env/bin/python scripts/prepare-source-pilot.py \
+            --cache build/source-cache --output build/source-pilot --fetch
+      - name: Prepare source-separated bar object data
+        run: |
+          /tmp/bar-object-env/bin/python scripts/prepare-bar-object-prototype.py \
+            --temporal-root build/temporal \
+            --source-root build/source-pilot \
+            --cache build/bar-object-cache \
+            --output build/bar-object-data \
+            --fetch | tee build/bar-object-data-summary.txt
+      - name: Train and evaluate Apple Create ML prototype
+        run: |
+          mkdir -p build/bar-object-results
+          /tmp/CreateMLBarObjectExperiment \
+            build/bar-object-data/train \
+            build/bar-object-data/test \
+            build/bar-object-results \
+            300 | tee build/bar-object-results/console.txt
+      - name: Validate report integrity without asserting prototype accuracy
+        run: |
+          /tmp/bar-object-env/bin/python - <<'PY'
+          import json, math
+          from pathlib import Path
+          report = json.loads(Path('build/bar-object-results/report.json').read_text())
+          predictions = json.loads(Path('build/bar-object-results/predictions.json').read_text())
+          manifest = json.loads(Path('build/bar-object-data/manifest.json').read_text())
+          assert report['schemaVersion'] == 1 and report['poseInputs'] is False
+          assert report['testImageCount'] == 3 and len(predictions) == 3
+          assert manifest['pose_inputs'] is False and manifest['test_images'] == 3
+          assert manifest['schema_version'] == 2
+          assert manifest['training_negative_images'] >= 10
+          assert manifest['training_positive_images'] > manifest['training_negative_images']
+          assert len(manifest['training_source_groups']) >= 10
+          assert report['modelBytes'] > 0 and report['trainingSeconds'] > 0
+          for split in ('training', 'test'):
+              for key in ('variedIoU', 'iou50'):
+                  value = report[split][key]
+                  assert math.isfinite(value) and 0 <= value <= 1
+          print(json.dumps({
+              'training_images': manifest['training_images'],
+              'training_objects': manifest['training_objects'],
+              'training_positive_images': manifest['training_positive_images'],
+              'training_negative_images': manifest['training_negative_images'],
+              'training_source_groups': manifest['training_source_groups'],
+              'test_mAP_50_95': report['test']['variedIoU'],
+              'test_mAP_50': report['test']['iou50'],
+              'model_bytes': report['modelBytes'],
+              'training_seconds': report['trainingSeconds'],
+              'test_prediction_counts': {row['image']: len(row['objects']) for row in predictions},
+          }, indent=2, sort_keys=True))
+          PY
+      - name: Retain prototype model and evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bar-object-prototype
+          retention-days: 3
+          path: |
+            build/bar-object-results
+            build/bar-object-data/manifest.json
+            build/bar-object-data/test/annotations.json
+            build/bar-object-data-summary.txt
+          if-no-files-found: error

@@ -30,9 +30,24 @@ enum VideoTestSupport {
         return url
     }
 
+    static func fixtureResource(_ name: String) throws -> URL {
+        #if SWIFT_PACKAGE
+        let bundle = Bundle.module
+        #else
+        let bundle = Bundle(for: FixtureBundleToken.self)
+        #endif
+        let root = try #require(bundle.resourceURL)
+        let url = root.appendingPathComponent("Fixtures/\(name)")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw FixtureError.failed("Missing fixture metadata \(name). Test resources are incomplete.")
+        }
+        return url
+    }
+
     // Original synthetic pixels, not a human-pose accuracy fixture. Four coloured
     // quadrants make every rotation/reflection observable after actual decoding.
-    static func makeVideo(transform: CGAffineTransform = .identity) async throws -> URL {
+    static func makeVideo(transform: CGAffineTransform = .identity,
+                          timestamps: [CMTime] = VideoTestSupport.timestamps) async throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("quadrants-\(UUID().uuidString).mp4")
         let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
         let width = 160, height = 96
@@ -94,7 +109,7 @@ enum VideoTestSupport {
                     throw FixtureError.failed(writer.error?.localizedDescription ?? "Could not append frame.")
                 }
             }
-            writer.endSession(atSourceTime: CMTime(value: 51, timescale: 100))
+            writer.endSession(atSourceTime: CMTimeAdd(timestamps.last ?? .zero, CMTime(value: 10, timescale: 100)))
             input.markAsFinished()
             await writer.finishWriting()
             guard writer.status == .completed else {
@@ -127,5 +142,29 @@ enum VideoTestSupport {
             return left.allSatisfy { person.landmark($0, minimumConfidence: 0.2) != nil }
                 || right.allSatisfy { person.landmark($0, minimumConfidence: 0.2) != nil }
         }
+    }
+}
+
+// Explicit test-only inference, never a production fallback or model evidence.
+// Return a nonempty sentinel so tests detect dropped/replaced estimator output.
+struct TestPoseEstimator: PoseEstimator {
+    static let backend = "Test pose estimator (not Vision)"
+    static let failureMessage = "Injected pose inference failure."
+    let failAtOrAfter: Double?
+
+    init(failAtOrAfter: Double? = nil) {
+        self.failAtOrAfter = failAtOrAfter
+    }
+
+    func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
+        if let failAtOrAfter, timestamp.seconds >= failAtOrAfter {
+            throw FixtureError.failed(Self.failureMessage)
+        }
+        let size = ImageSize(width: Double(image.width), height: Double(image.height))
+        let marker = Landmark(joint: .leftWrist,
+                              position: Point2D(x: size.width / 4, y: size.height / 4), confidence: 1)
+        return PoseResult(timestamp: timestamp, imageSize: size,
+                          people: [PoseObservation(landmarks: [marker])],
+                          backend: Self.backend, requestRevision: 0)
     }
 }

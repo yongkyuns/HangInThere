@@ -1,0 +1,278 @@
+{
+  "annotation_provenance": "Single-assistant visual temporal review on raw/source-only media. Pull-up and DVIDS dip windows were frozen before their counter runs; prior pose-only pull-up exposure is disclosed. The controlled Pexels dip was initially reviewed at 2 FPS before Vision/counter execution, then re-reviewed from the pinned source-only 8 FPS artifact after earlier counter failures exposed insufficient temporal review resolution. That development-only re-review corrected the controlled clip from seven to nine complete top-return cycles; no model-derived timestamps were used for the corrected windows. The separate held-out dip fixture remains outside this development corpus.",
+  "review_artifact_sha256": "3a85ad57dc18da66189f733caf4dd94d54753fe363c12fbd9cfaec7f0772234f",
+  "schema_version": 1,
+  "scope": "Four continuously decoded clips: one controlled fixed-camera pull-up, one controlled fixed-camera parallel-bar dip, and two crowded/moving-camera dip stress diagnostics. Model-independent approximate single-reviewer temporal labels; no strict-form verdict.",
+  "sources": [
+    {
+      "bar_reference_edge": [
+        401.9179,
+        113.4035,
+        489.4577,
+        99.9114
+      ],
+      "bar_reference_provenance": "Development fixed-edge review on the 960x540 prepared clip after policy-v1 failure analysis; selected from image line evidence only, with no pose joints or counter-v2 output. Not an independent held-out bar label.",
+      "bytes": 358754,
+      "credit": "FitnessScape; source YouTube 0I6q9NqK9tM",
+      "encoder_time_base": "1:30",
+      "end_source_seconds": 6,
+      "events_source_seconds": [
+        [
+          4.433,
+          4.633
+        ]
+      ],
+      "exercise": "pullUp",
+      "first_source_pts": 0,
+      "frame_range": [
+        0,
+        180
+      ],
+      "id": "pullup_censored",
+      "last_source_pts": 5.967,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "page": "https://commons.wikimedia.org/wiki/File:Pull-ups_-_exercise_demonstration_video.webm",
+      "review_notes": "All 45 overview frames and denser second-ascent frames reviewed. Second visible hang-to-top event; final descent is cut, but the documented pull-up event is at top. One source already used for pose-only comparison, not held-out. No chin clearance label. Broad initial exclusion retained in coverage.",
+      "side": "left",
+      "source_frames": 180,
+      "source_group": "Commons-pullup_video",
+      "source_sha256": "1ddf02c690c6da9d27c9ca50453d2df212d777bb402203af116b70bf27a2227d",
+      "source_size": [
+        1280,
+        720
+      ],
+      "title": "Pull-ups - exercise demonstration video.webm",
+      "ungradable_source_intervals": [
+        {
+          "reason": "First ascent begins behind the opening graphic; initial extended start is not visible.",
+          "seconds": [
+            0,
+            2.6
+          ]
+        }
+      ],
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Pull-ups_-_exercise_demonstration_video.webm"
+    },
+    {
+      "bytes": 307808689,
+      "credit": "U.S. Army / Sgt. Jacob Moir / 49th Public Affairs Detachment",
+      "encoder_time_base": "1001:60000",
+      "end_source_seconds": 158.00785,
+      "events_source_seconds": [
+        [
+          146.95,
+          147.2
+        ],
+        [
+          147.95,
+          148.2
+        ],
+        [
+          148.95,
+          149.2
+        ],
+        [
+          149.95,
+          150.2
+        ],
+        [
+          150.95,
+          151.2
+        ],
+        [
+          151.92,
+          152.18
+        ],
+        [
+          152.95,
+          153.2
+        ],
+        [
+          153.95,
+          154.2
+        ],
+        [
+          155.08,
+          155.38
+        ],
+        [
+          156.35,
+          156.62
+        ]
+      ],
+      "exercise": "dip",
+      "first_source_pts": 144.8447,
+      "frame_range": [
+        8682,
+        9471
+      ],
+      "id": "dip_rear",
+      "last_source_pts": 157.991167,
+      "license": "PD-US-Army",
+      "license_url": "https://www.dvidshub.net/about/copyright",
+      "page": "https://www.dvidshub.net/video/884241/aaw23-fittest-all-american-challenge",
+      "review_notes": "Ten visible complete top-bottom-top cycles following an already-in-progress initial effort; last dismount/foreground occlusion remains in the negative interval. Rear view, spectators, mild camera movement. No depth/lockout validity labels.",
+      "side": "left",
+      "source_frames": 15010,
+      "source_group": "DVIDS-884241-session",
+      "source_sha256": "fc7c5cb37d598ce82057dea08358f724103088cb6acc58eee93519267b52e760",
+      "source_size": [
+        1920,
+        1080
+      ],
+      "title": "AAW23 - Fittest All American Challenge",
+      "ungradable_source_intervals": [
+        {
+          "reason": "Shot opens during an effort whose preceding top is outside the observed sequence.",
+          "seconds": [
+            144.8447,
+            146
+          ]
+        }
+      ],
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/2305/DOD_109654583/DOD_109654583.mp4"
+    },
+    {
+      "bytes": 307808689,
+      "credit": "U.S. Army / Sgt. Jacob Moir / 49th Public Affairs Detachment",
+      "encoder_time_base": "1001:60000",
+      "end_source_seconds": 175.792283,
+      "events_source_seconds": [
+        [
+          167.78,
+          168.05
+        ],
+        [
+          169.35,
+          169.62
+        ],
+        [
+          170.95,
+          171.2
+        ],
+        [
+          172.5,
+          172.7
+        ],
+        [
+          173.97,
+          174.22
+        ],
+        [
+          175.5,
+          175.77
+        ]
+      ],
+      "exercise": "dip",
+      "first_source_pts": 165.832333,
+      "frame_range": [
+        9940,
+        10537
+      ],
+      "id": "dip_side",
+      "last_source_pts": 175.7756,
+      "license": "PD-US-Army",
+      "license_url": "https://www.dvidshub.net/about/copyright",
+      "page": "https://www.dvidshub.net/video/884241/aaw23-fittest-all-american-challenge",
+      "review_notes": "Six visible complete top-bottom-top cycles after initial in-progress ascent. Side-oblique view, near left arm selected before inference; background spectators and partial head crop preserved. No depth or lockout validity labels.",
+      "side": "left",
+      "source_frames": 15010,
+      "source_group": "DVIDS-884241-session",
+      "source_sha256": "fc7c5cb37d598ce82057dea08358f724103088cb6acc58eee93519267b52e760",
+      "source_size": [
+        1920,
+        1080
+      ],
+      "title": "AAW23 - Fittest All American Challenge",
+      "ungradable_source_intervals": [
+        {
+          "reason": "Shot opens during an effort whose preceding top is outside the observed sequence.",
+          "seconds": [
+            165.832333,
+            166.4
+          ]
+        }
+      ],
+      "url": "https://d34w7g4gy10iej.cloudfront.net/video/2305/DOD_109654583/DOD_109654583.mp4"
+    },
+    {
+      "id": "dip_controlled_pexels",
+      "title": "Dynamic Workout: Man Exercising on Parallel Bars",
+      "page": "https://www.pexels.com/video/dynamic-workout-man-exercising-on-parallel-bars-34568748/",
+      "url": "https://www.pexels.com/download/video/34568748/",
+      "source_sha256": "48bbb11b9929cb4caea2b042dea46d0f7c717b92f0842a93d4165cf73d3c3afc",
+      "bytes": 5319143,
+      "source_frames": 300,
+      "source_size": [
+        1080,
+        1920
+      ],
+      "frame_range": [
+        0,
+        300
+      ],
+      "first_source_pts": 0,
+      "last_source_pts": 11.96,
+      "end_source_seconds": 12,
+      "encoder_time_base": "1:25",
+      "exercise": "dip",
+      "side": "left",
+      "source_group": "Pexels-34568748",
+      "credit": "JULLIAN PRODUCTION / Pexels",
+      "license": "Pexels License",
+      "license_url": "https://www.pexels.com/license/",
+      "events_source_seconds": [
+        [
+          1.65,
+          1.85
+        ],
+        [
+          2.95,
+          3.2
+        ],
+        [
+          4.15,
+          4.4
+        ],
+        [
+          5.45,
+          5.7
+        ],
+        [
+          6.7,
+          6.95
+        ],
+        [
+          8.05,
+          8.3
+        ],
+        [
+          9.35,
+          9.6
+        ],
+        [
+          10.6,
+          10.85
+        ],
+        [
+          11.8,
+          12
+        ]
+      ],
+      "bar_reference_edge_source": [
+        590,
+        1026,
+        900,
+        1059
+      ],
+      "bar_reference_provenance": "Single-assistant visual review of the source-resolution near-hand rail on a clear fixed-camera frame at ~3 s, frozen before Apple Vision pose inference or policy-v2 counter execution. The line is an observed image reference, not proof of physical contact.",
+      "ungradable_source_intervals": [],
+      "review_notes": "One athlete, fixed camera, stable parallel bars. Source-only 8 FPS re-review confirms nine complete top-bottom-top cycles from the visible initial support through a final return by EOF. The earlier 2 FPS development review missed two cycles and placed several top-return windows late. This corrected clip is explicitly development-exposed, not held-out. No dip-depth/lockout/form validity label.",
+      "development_after_prior_counter_exposure": true
+    }
+  ],
+  "tolerance_seconds": 0.35,
+  "controlled_dip_review_artifact_sha256": "a1a2e11f01c7f58a5ba790b219f836c34b6a868a0311a7a72b21b112d8aaef38",
+  "controlled_dip_high_rate_review_artifact_sha256": "23d7dda91f39b4dc4578fb507737ee9390125833ba63e94a8d2885e495b46ac2"
+}

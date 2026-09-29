@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "source_sha256": "d278e8f61fbc1cfbedc8a38ddcdfa5b9b44d1429a209c198b59172d7fb6443a7",
+  "source_id": "DVIDS-1017606 / 260731-M-RK873-1003",
+  "image_width": 960,
+  "image_height": 540,
+  "scope": "Exploratory image-sequence diagnostic only. Three intervals of the SAME source and apparent athlete, not three independent subjects or a held-out corpus.",
+  "annotation_provenance": "Single assistant visual coordinate review of original-source frames before viewing this pilot's Vision predictions. Approximate visible joint centers, with shoulder locations estimated through clothing; no expert adjudication or calibrated annotation-error bound. Do not use these labels to establish 5-degree accuracy, rep validity, or training ground truth.",
+  "rights_evidence": "Test-only extension of the reviewed public-domain U.S. Marine Corps source in HangInThereTests/Fixtures/source.json. No endorsement or marketing use. No other dataset media included.",
+  "sequences": [
+    {
+      "id": "hang",
+      "source_frame_indices": [450, 453, 456, 459, 462, 465, 468, 471, 474, 477, 480, 483, 486, 489, 492, 495, 498, 501, 504, 507, 510, 513, 516, 519, 522, 525, 528, 531, 534, 537],
+      "source_pts_seconds": [15.015, 15.115, 15.215, 15.315, 15.415, 15.516, 15.616, 15.716, 15.816, 15.916, 16.016, 16.116, 16.216, 16.316, 16.416, 16.517, 16.617, 16.717, 16.817, 16.917, 17.017, 17.117, 17.217, 17.317, 17.417, 17.518, 17.618, 17.718, 17.818, 17.918],
+      "labels": [
+        {"frame_index": 2, "points": {"leftShoulder": [594, 168], "leftElbow": [580, 113], "leftWrist": [571, 54], "rightShoulder": [655, 166], "rightElbow": [665, 107], "rightWrist": [675, 28]}},
+        {"frame_index": 10, "points": {"leftShoulder": [587, 159], "leftElbow": [580, 107], "leftWrist": [575, 50], "rightShoulder": [652, 149], "rightElbow": [674, 94], "rightWrist": [674, 24]}},
+        {"frame_index": 25, "points": {"leftShoulder": [591, 160], "leftElbow": [576, 109], "leftWrist": [569, 51], "rightShoulder": [650, 145], "rightElbow": [683, 82], "rightWrist": [684, 15]}}
+      ]
+    },
+    {
+      "id": "descent",
+      "source_frame_indices": [689, 692, 695, 698, 701, 704, 707, 710, 713, 716, 719, 722, 725, 728, 731, 734, 737, 740, 743, 746, 749, 752, 755, 758, 761, 764, 767, 770, 773, 776],
+      "source_pts_seconds": [22.99, 23.09, 23.19, 23.29, 23.39, 23.49, 23.59, 23.69, 23.79, 23.891, 23.991, 24.091, 24.191, 24.291, 24.391, 24.491, 24.591, 24.691, 24.791, 24.892, 24.992, 25.092, 25.192, 25.292, 25.392, 25.492, 25.592, 25.692, 25.792, 25.893],
+      "labels": [
+        {"frame_index": 2, "points": {"leftShoulder": [570, 44], "leftElbow": [550, 99], "rightShoulder": [646, 35], "rightElbow": [682, 76], "rightWrist": [683, 25]}},
+        {"frame_index": 15, "points": {"leftShoulder": [573, 60], "leftElbow": [551, 105], "rightShoulder": [648, 58], "rightElbow": [697, 80], "rightWrist": [681, 28]}},
+        {"frame_index": 25, "points": {"leftShoulder": [594, 167], "leftElbow": [579, 113], "leftWrist": [570, 55], "rightShoulder": [651, 150], "rightElbow": [668, 97], "rightWrist": [678, 33]}}
+      ]
+    },
+    {
+      "id": "cycle",
+      "source_frame_indices": [869, 872, 875, 878, 881, 884, 887, 890, 893, 896, 899, 902, 905, 908, 911, 914, 917, 920, 923, 926, 929, 932, 935, 938, 941, 944, 947, 950, 953, 956, 959, 962, 965, 968, 971, 974, 977, 980, 983, 986],
+      "source_pts_seconds": [28.996, 29.096, 29.196, 29.296, 29.396, 29.496, 29.596, 29.696, 29.796, 29.897, 29.997, 30.097, 30.197, 30.297, 30.397, 30.497, 30.597, 30.697, 30.797, 30.898, 30.998, 31.098, 31.198, 31.298, 31.398, 31.498, 31.598, 31.698, 31.798, 31.899, 31.999, 32.099, 32.199, 32.299, 32.399, 32.499, 32.599, 32.699, 32.799, 32.9],
+      "labels": [
+        {"frame_index": 2, "points": {"leftShoulder": [461, 118], "leftElbow": [447, 60], "rightShoulder": [514, 109], "rightElbow": [526, 58]}},
+        {"frame_index": 15, "points": {"leftShoulder": [452, 120], "leftElbow": [444, 64], "rightShoulder": [509, 115], "rightElbow": [522, 64]}},
+        {"frame_index": 35, "points": {"leftShoulder": [454, 120], "leftElbow": [442, 64], "rightShoulder": [511, 111], "rightElbow": [525, 61]}}
+      ]
+    }
+  ]
+}
