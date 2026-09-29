@@ -349,7 +349,10 @@ struct ExerciseCounter: Sendable {
 
     private func reachedBentEndpoint(_ sample: Sample) -> Bool {
         guard let anchor else { return false }
-        let required = requiredDipTravel(anchor)
+        let required = requiredTravel(
+            anchorDistance: anchor.shoulderToBarPixels,
+            imageShortSide: anchor.imageShortSide
+        )
         let travelTowardBar = anchor.shoulderToBarPixels - sample.shoulderToBarPixels
         return sample.degrees <= Self.bentDegrees && travelTowardBar >= required
     }
