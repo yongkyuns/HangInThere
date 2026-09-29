@@ -75,6 +75,10 @@ struct LiveDeviceQualificationRecorder: Sendable {
         let stability: StabilitySummary
         let thresholds: Thresholds
         let observedMovements: Int
+        let partialAttempts: Int
+        let interruptedAttempts: Int
+        let setAnalyzedFrames: Int
+        let setUsableTrackingFrames: Int
         let trackingCoverage: Double?
         let setPhase: String
         let setEndReason: String?
@@ -160,6 +164,10 @@ struct LiveDeviceQualificationRecorder: Sendable {
         analysisFailures: Int,
         sceneRegistrationFailures: Int,
         observedMovements: Int,
+        partialAttempts: Int,
+        interruptedAttempts: Int,
+        setAnalyzedFrames: Int,
+        setUsableTrackingFrames: Int,
         trackingCoverage: Double?,
         setPhase: String,
         setEndReason: String?
@@ -220,6 +228,10 @@ struct LiveDeviceQualificationRecorder: Sendable {
                 minimumTranslationConsensusPatches: StaticSceneStability.minimumConsensusPatches
             ),
             observedMovements: max(0, observedMovements),
+            partialAttempts: max(0, partialAttempts),
+            interruptedAttempts: max(0, interruptedAttempts),
+            setAnalyzedFrames: max(0, setAnalyzedFrames),
+            setUsableTrackingFrames: min(max(0, setUsableTrackingFrames), max(0, setAnalyzedFrames)),
             trackingCoverage: trackingCoverage.flatMap(sanitizedUnitInterval),
             setPhase: setPhase,
             setEndReason: setEndReason,
