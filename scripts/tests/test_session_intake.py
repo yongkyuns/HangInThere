@@ -1,6 +1,8 @@
 import copy
 import importlib.util
+import json
 from pathlib import Path
+import tempfile
 import unittest
 
 
@@ -68,6 +70,7 @@ class SessionIntakeTests(unittest.TestCase):
         self.assertEqual(session["analyzed_frames"], 200)
         self.assertEqual(session["usable_tracking_frames"], 190)
         self.assertEqual(session["bar_setup"]["attempts"], 2)
+        self.assertTrue(session["reviewed_without_runtime_output"])
         self.assertNotIn("samples", session)
         self.assertNotIn("runtime", session)
         self.assertNotIn("thresholds", session)
@@ -97,14 +100,17 @@ class SessionIntakeTests(unittest.TestCase):
             session_intake.build_session(review(), runtime)
 
     def test_duplicate_ids_across_pairs_are_rejected(self):
-        # build_manifest reads paths, so validate duplicate behavior at the
-        # session-manifest layer rather than fabricating filesystem inputs.
-        manifest = {"schema_version": 1, "sessions": [
-            session_intake.build_session(review(), report()),
-            session_intake.build_session(review(), report()),
-        ]}
-        ids = [s["id"] for s in manifest["sessions"]]
-        self.assertNotEqual(len(ids), len(set(ids)))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            review_path = root / "review.json"
+            report_path = root / "report.json"
+            review_path.write_text(json.dumps(review()), encoding="utf-8")
+            report_path.write_text(json.dumps(report()), encoding="utf-8")
+            with self.assertRaises(session_intake.IntakeError):
+                session_intake.build_manifest([
+                    (review_path, report_path),
+                    (review_path, report_path),
+                ])
 
 
 if __name__ == "__main__":
