@@ -5,17 +5,19 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "HangInThereTests" / "Fixtures" / "corpus.json"
+RESULT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-result.json"
 
 
 class VideoCorpusManifestTests(unittest.TestCase):
     def setUp(self):
         self.manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
         self.cases = self.manifest["cases"]
+        self.dip_result = json.loads(RESULT.read_text(encoding="utf-8"))
 
     def test_every_case_has_unique_id_and_reviewed_expectations(self):
         ids = [case["id"] for case in self.cases]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertGreaterEqual(len(ids), 7)
+        self.assertGreaterEqual(len(ids), 6)
         for case in self.cases:
             self.assertIn(case["tier"], {"count-qualified", "tracking-qualified", "stress-coverage"})
             self.assertIn("visual_review", case)
@@ -50,9 +52,9 @@ class VideoCorpusManifestTests(unittest.TestCase):
                 self.assertGreater(recipe["frames_per_second"], 0)
                 self.assertGreater(recipe["duration_seconds"], 0)
 
-    def test_count_qualified_corpus_includes_locked_heldout_dip(self):
+    def test_count_qualified_corpus_retains_independent_pullup_views(self):
         count_cases = [case for case in self.cases if case["tier"] == "count-qualified"]
-        self.assertGreaterEqual(len(count_cases), 3)
+        self.assertGreaterEqual(len(count_cases), 2)
         ids = {case["id"] for case in count_cases}
         self.assertIn("iwakuni-standard-rear-oblique", ids)
         self.assertIn("fitnessscape-standard-indoor", ids)
@@ -62,15 +64,10 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.assertEqual(indoor["count_expectation"]["expected_partial_attempts"], 0)
         self.assertEqual(len(indoor["count_expectation"]["bar_reference_edge"]), 4)
 
-        dip = next(case for case in count_cases if case["id"] == "romina-heldout-parallel-bar-dips")
-        self.assertEqual(dip["exercise"], "dip")
-        self.assertEqual(dip["qualification_role"], "held-out")
-        self.assertEqual(dip["source_sha256"], "599f5169931e0893c8d7864e57859ca6c999a47e8f4ea3a7171229ac33bc1ba7")
-        self.assertEqual(dip["recipe"]["expected_frame_count"], 27)
-        self.assertEqual(dip["count_expectation"]["expected_observed_movements"], 3)
-        self.assertEqual(dip["count_expectation"]["expected_partial_attempts"], 0)
-        self.assertEqual(dip["count_expectation"]["expected_interrupted_attempts"], 0)
-        self.assertEqual(len(dip["count_expectation"]["bar_reference_edge"]), 4)
+        self.assertFalse(
+            any(case["exercise"] == "dip" and case["tier"] == "count-qualified" for case in self.cases),
+            "Failed held-out dip footage must not remain in the passing corpus.",
+        )
 
     def test_crowded_pullup_exercises_real_multi_person_safety(self):
         case = next(case for case in self.cases if case["id"] == "yokota-crowded-pullup")
@@ -81,18 +78,29 @@ class VideoCorpusManifestTests(unittest.TestCase):
         self.assertIn("foreground-occlusion", case["environment_tags"])
         self.assertNotIn("count_expectation", case)
 
-    def test_dip_heldout_status_is_explicit(self):
+    def test_consumed_dip_holdout_is_recorded_without_relaxation(self):
         gap = self.manifest["known_gap"]
         self.assertEqual(gap["exercise"], "dip")
         status = gap["status"].lower()
-        self.assertIn("policy v4", status)
+        self.assertIn("not held-out-qualified", status)
         self.assertIn("9/9", status)
-        self.assertIn("held-out", status)
-        self.assertIn("pending", status)
-        self.assertIn("do not alter", status)
-        self.assertNotIn("0/5", status)
-        self.assertNotIn("155-degree", status)
+        self.assertIn("0/3", status)
+        self.assertIn("consumed", status)
+        self.assertIn("new untouched held-out", status)
         self.assertNotIn("chair", " ".join(case["id"] for case in self.cases).lower())
+
+        r = self.dip_result
+        self.assertEqual(r["status"], "failed-heldout-qualification")
+        self.assertEqual(r["tested_commit"], "c8b5f9068804839fed13e922c96f8090abc389c8")
+        self.assertEqual(r["counter_policy_version"], 4)
+        self.assertEqual(r["prepared_derivative"]["frame_count"], 27)
+        self.assertEqual(r["locked_expectation"]["expected_observed_movements"], 3)
+        self.assertEqual(r["observed"]["observed_movements"], 0)
+        self.assertEqual(r["observed"]["partial_attempts"], 0)
+        self.assertEqual(r["observed"]["interrupted_attempts"], 1)
+        self.assertLess(r["observed"]["people_fraction"], r["locked_expectation"]["minimum_people_fraction"])
+        self.assertLess(r["observed"]["any_arm_fraction"], r["locked_expectation"]["minimum_any_arm_fraction"])
+        self.assertIn("Do not change counter policy v4", r["policy"])
 
 
 if __name__ == "__main__":
