@@ -88,11 +88,15 @@ Current reviewed scenarios:
   occluder plus the athlete and surrounding gym activity. This is a stress case:
   real Vision must expose at least one multi-person frame, and production arm
   measurement must reject that frame instead of silently selecting a person;
-- **JULLIAN W parallel-bar dips** — 96 reviewed portrait frames from a Pexels
-  clip. The file starts at the bent/low endpoint, returns to extension, then
-  contains five complete extension-to-bent-to-extension cycles. The leading
-  partial return is intentionally ignored. This is movement-count ground truth,
-  not dip-depth or form qualification;
+- **JULLIAN PRODUCTION parallel-bar dips (development probe)** — 96 visually
+  reviewed portrait frames from Pexels, labelled as five complete cycles after
+  one leading partial return. Real Apple Vision produced 80.2% person / 70.8%
+  arm coverage and the production counter counted 0/5, so this source is not in
+  the qualifying corpus; it is development evidence for the dip-counter redesign;
+- **Romina Martinez parallel-bar dips (held out)** — a separate 27-frame,
+  three-cycle Pexels interval is pinned in `dip-heldout.json`. Its labels were
+  locked before inference and it must remain untouched until the redesign is
+  completed on the JULLIAN development source;
 - **Solodkyi portrait one-arm** — portrait, large swing/inversion, blur/defocus stress;
 - **Solodkyi outdoor tree branch** — nonstandard apparatus, foliage/high-contrast
   background, swing/inversion stress.
@@ -117,9 +121,11 @@ thumbnails. CI retains
 the approved derived corpus temporarily for inspection; source media remains ignored
 under `Data/external/`.
 
-The real parallel-bar footage gap is now closed by the pinned JULLIAN W/Pexels
-fixture. Its source is covered by the Pexels License and the prepared file is
-byte/SHA-256 pinned before inference. Five movement cycles are visually reviewed,
-but **dip depth, lockout validity, body alignment, 3D joint accuracy and population-
-level accuracy remain unqualified**. Chair dips and still photographs were not
-substituted for real parallel-bar motion.
+Real parallel-bar footage is now reproducibly pinned, but **production dip
+movement counting is still unqualified**. The JULLIAN development clip exposed
+two concrete limitations without changing its labels or corpus floors: projected
+top-support elbow angles usually stay below the shared 155° gate, and short
+Vision dropouts currently reset the state machine. The separate Romina fixture
+remains held out so a redesign can be developed on JULLIAN and then checked once
+against untouched real footage. Dip depth, lockout validity, body alignment, 3D
+joint accuracy and population-level accuracy remain unqualified.
