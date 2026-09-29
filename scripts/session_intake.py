@@ -30,6 +30,16 @@ _SPEC.loader.exec_module(device_analysis)
 
 EVIDENCE_CLASSES = {"development", "heldout_consumed", "field"}
 EXERCISES = {"pull_up", "dip"}
+RUNTIME_END_REASONS = {
+    "manual",
+    "appInactive",
+    "cameraInterrupted",
+    "cameraFailure",
+    "setupInvalidated",
+    "phoneMoved",
+    "sceneShifted",
+    "sceneScaled",
+}
 
 
 class IntakeError(ValueError):
@@ -160,13 +170,16 @@ def validate_runtime_report(report: dict[str, Any]) -> None:
             "trackingCoverage disagrees with set-specific frame counts",
         )
 
+    require(report.get("setPhase") == "finished", "device report must represent a finished set")
+    require(
+        report.get("setEndReason") in RUNTIME_END_REASONS,
+        "finished device report needs an explicit recognized setEndReason",
+    )
+
 
 def build_session(review: dict[str, Any], report: dict[str, Any]) -> dict[str, Any]:
     validate_review(review)
     validate_runtime_report(report)
-    if review["population_eligible"]:
-        require(report.get("setPhase") == "finished", "population-eligible set must be finished")
-
     return {
         "id": review["id"],
         "exercise": review["exercise"],
@@ -179,7 +192,7 @@ def build_session(review: dict[str, Any], report: dict[str, Any]) -> dict[str, A
         "observed_movements": report["observedMovements"],
         "partial_attempts": report["partialAttempts"],
         "interrupted_attempts": report["interruptedAttempts"],
-        "end_reason": report.get("setEndReason") or "manual",
+        "end_reason": report["setEndReason"],
         "analyzed_frames": report["setAnalyzedFrames"],
         "usable_tracking_frames": report["setUsableTrackingFrames"],
         "bar_setup": review["bar_setup"],
