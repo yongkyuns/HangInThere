@@ -180,11 +180,5 @@ internal fun WorkoutActions(state: WorkoutViewModel.State, onFinish: () -> Unit,
     }
 }
 
-private fun setupText(issue: String): String = when(issue) {
-    "multiplePeople" -> "Show one person"
-    "phoneMoved" -> "Phone moved · set it down and start again"
-    "sceneShifted", "sceneScaled" -> "Camera view changed · start again"
-    "phoneUnavailable", "motionUnavailable" -> "Waiting for phone motion sensors"
-    "sceneUnavailable" -> "Keep the camera still with background visible"
-    else -> "Hold your starting position · show both hands"
-}
+private fun setupText(issue: String): String = WorkoutSetupGuidance.message(issue)
+    ?: "Hold your starting position · show both hands"

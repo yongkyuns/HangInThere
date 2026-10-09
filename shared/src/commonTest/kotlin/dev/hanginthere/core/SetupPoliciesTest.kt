@@ -113,6 +113,52 @@ class SetupPoliciesTest {
         assertNull(runtime.snapshot.referenceEdge);assertNull(runtime.snapshot.countdownSeconds)
         assertEquals(LiveSetSession.Phase.idle,runtime.snapshot.phase)
     }
+    @Test fun idleAutoReportsMissingBilateralEvidenceAsFramingInsteadOfIdentity() {
+        val runtime=WorkoutRuntime()
+        for(i in 0..8) {
+            val input=frame(i*.1,dip=false,candidates=emptyList())
+            val person=input.pose.people.single()
+            val oneArm=person.landmarks.filter { it.joint in ArmMeasurement.Side.left.joints }
+            runtime.observe(input.copy(pose=input.pose.copy(people=listOf(PoseObservation(oneArm)))))
+            assertNull(runtime.resolvedExercise)
+            assertEquals("framingIncomplete",runtime.snapshot.setupIssue)
+        }
+        // Fresh, measurable chains need a stable identity before apparatus can
+        // qualify. Neither message should claim the unseen bar was detected.
+        runtime.observe(frame(.9,dip=false,candidates=emptyList()))
+        assertEquals("exerciseIdentityNeeded",runtime.snapshot.setupIssue)
+        for(i in 10..16) runtime.observe(frame(i*.1,dip=false,candidates=emptyList()))
+        assertEquals(ExerciseCounter.Exercise.pullUp,runtime.resolvedExercise)
+        assertEquals("barReferenceNeeded",runtime.snapshot.setupIssue)
+        assertNull(runtime.confirmedBar)
+    }
+    @Test fun explicitExerciseAndRunningSetsRetainOneArmFallback() {
+        val explicit=WorkoutRuntime(WorkoutExerciseSelection.pullUp)
+        fun oneArmInput(seconds:Double):WorkoutRuntime.FrameInput {
+            val input=frame(seconds,dip=false,candidates=emptyList())
+            return input.copy(pose=input.pose.copy(people=input.pose.people.map { person ->
+                PoseObservation(person.landmarks.filter { it.joint in ArmMeasurement.Side.left.joints })
+            }))
+        }
+        explicit.observe(oneArmInput(0.0))
+        assertEquals("barReferenceNeeded",explicit.snapshot.setupIssue)
+        val automatic=WorkoutRuntime()
+        for(i in 0..55) automatic.observe(frame(i*.1))
+        assertEquals(LiveSetSession.Phase.running,automatic.session.phase)
+        val input=frame(5.6)
+        automatic.observe(input.copy(pose=input.pose.copy(people=input.pose.people.map { person ->
+            PoseObservation(person.landmarks.filter { it.joint in ArmMeasurement.Side.left.joints })
+        })))
+        assertNull(automatic.snapshot.setupIssue)
+        assertEquals(LiveSetSession.Phase.running,automatic.session.phase)
+    }
+    @Test fun setupGuidanceExplainsRequiredEvidenceWithoutMandatoryManualSetup() {
+        assertEquals("Show both arms and hands clearly",WorkoutSetupGuidance.message("framingIncomplete"))
+        assertTrue(assertNotNull(WorkoutSetupGuidance.message("exerciseIdentityNeeded")).contains("hang or top support"))
+        val apparatus=assertNotNull(WorkoutSetupGuidance.message("barReferenceNeeded"))
+        assertTrue(apparatus.contains("bar or rails"));assertTrue(apparatus.contains("beside your hands"))
+        assertFalse(apparatus.contains("settings"));assertNull(WorkoutSetupGuidance.message("unknown"))
+    }
     @Test fun runtimeAcquiresAndStartsWithActualCameraEvidenceThenLocksIdentity() {
         val runtime=WorkoutRuntime()
         for(i in 0..55) runtime.observe(frame(i*.1))

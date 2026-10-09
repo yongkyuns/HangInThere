@@ -61,6 +61,15 @@ struct LiveSetupView: View {
         exerciseSelection == .automatic && camera.resolvedExercise == nil
     }
 
+    // Auto needs both starting chains to identify the exercise. This is display
+    // guidance only; an obscured arm may still fall back during a running set.
+    private var automaticExerciseGuidance: String {
+        if let pose = camera.latestPose, PullUpArmMeasurement(pose: pose).arms.count != 2 {
+            return "Show both arms and hands clearly"
+        }
+        return "Hold a clear hang or top support · show both hands"
+    }
+
     private var guide: LiveSetupGuide {
         LiveSetupGuide(exercise: exercise, side: side)
     }
@@ -163,7 +172,7 @@ struct LiveSetupView: View {
             }
         }
         if !camera.framing.state.isReady { return camera.framing.title }
-        if isDetectingExercise { return "Hold a hang or top support · show both hands" }
+        if isDetectingExercise { return automaticExerciseGuidance }
         if camera.currentBar == nil {
             if exercise == .dip {
                 switch camera.automaticBarState {
@@ -843,7 +852,7 @@ struct LiveSetupView: View {
     }
 
     private var liveStartHelp: String {
-        if isDetectingExercise { return "Show both hands and hold a hang or top support to detect the exercise." }
+        if isDetectingExercise { return automaticExerciseGuidance }
         if camera.handsFreeStartEnabled {
             return exercise == .pullUp
                 ? "Hang from the bar with extended arms. Hold still through the spoken countdown, then begin on ‘go’."
@@ -854,7 +863,7 @@ struct LiveSetupView: View {
     }
 
     private var barCalibrationDetail: String {
-        if isDetectingExercise { return "Detecting your exercise first. Choose Pull-up or Dips above for manual setup." }
+        if isDetectingExercise { return automaticExerciseGuidance }
         if let bar = camera.currentBar {
             return bar.method == .automaticContours
                 ? "\(exercise == .dip ? "Rails" : "Bar") found automatically. Keep the phone fixed. \(liveStartHelp)"

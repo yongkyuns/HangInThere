@@ -20,6 +20,12 @@ MediaPipe or OpenCV imports. Source PTS advances dwell; display timers cannot ea
 a movement. Real pixels must support an apparatus edge, and missing scene evidence
 cannot certify a fixed camera. Front preview stays unmirrored, matching analysis.
 
+Recorded pixels honor actual decoder BT.601/BT.709 and full/limited-range metadata.
+Known HDR asks API31+ decoders for SDR tone mapping and requires verified SDR output
+before analysis; unsupported HDR, high-bit-depth or unconverted BT.2020 is an
+actionable import failure. An SDR conversion succeeding does not qualify the
+original HDR container. Camera pixels retain the explicit legacy BT.601 assumption.
+
 The adapter gives MediaPipe its own bitmap because closing its image recycles
 that input. The canonical frame remains available to contour extraction, scene
 registration and display. Native CI checks this ownership contract and includes
@@ -126,3 +132,23 @@ establish full functional or performance parity.
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;
 it contains the pinned Heavy pose model and needs no model download at runtime.
+
+## Authorized private recordings
+
+An explicit authorization can use the separate owner-only
+[private evaluation workflow](../.github/workflows/android-private.yml).
+`prepare-private-android-evaluation.py` prepares anonymous, silent SDR derivatives
+with explicit HDR conversion, preserving every frame and exact rational source PTS;
+original-format cases remain separate. Frozen labels and source-reviewed manual
+edges are retained. Production Auto replay and manual fixed-edge counter diagnostics
+are graded independently, not treated as equivalent setup evidence.
+
+The local caller age-encrypts input assets before transport. The input decryption
+key is a temporary environment secret restricted to the reviewed branch; report
+decryption keys stay only on the authorizing Mac. Plaintext media, poses, logs and
+embedded test APKs never enter public artifacts or shared build caches. Detailed
+results are encrypted before upload and retained for two days. Only anonymous
+counts and pass/fail status appear in public summaries, which require complete
+source coverage and successful native execution/collection. Missing reports fail
+closed. Temporary input secrets and ciphertext release assets are removed after all
+evaluation jobs terminate. None of this qualifies physical live-camera performance.

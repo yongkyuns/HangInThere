@@ -82,6 +82,12 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         }
         val motionFresh=isFresh(seconds,input.motionTimestamp,motionMaximumAgeSeconds) && input.attitude!=null
         val framingReady=pose.imageSize.isValid && pose.people.size==1 && (if(selection==WorkoutExerciseSelection.automatic || activeExercise==ExerciseCounter.Exercise.pullUp) PullUpArmMeasurement(pose).arms.isNotEmpty() else ArmMeasurement(pose,side).estimate!=null)
+        // Auto acquisition needs both current-frame chains to distinguish a hang
+        // from support. One arm may still continue an already running set or a
+        // resolved replay; this guidance must not tighten those counting gates.
+        val automaticFramingIncomplete=session.phase==LiveSetSession.Phase.idle &&
+            selection==WorkoutExerciseSelection.automatic && replayExercise==null &&
+            PullUpArmMeasurement(pose).arms.size!=2
         var acquiredThisFrame=false
         if(session.phase==LiveSetSession.Phase.idle && confirmedBar==null && motionFresh && framingReady && !input.paused && (selection.exercise!=null || identity.apparatusCandidate!=null) && input.candidates.isNotEmpty()) {
             if(lastAcquisitionSeconds==null || (seconds-lastAcquisitionSeconds!!)>=AutomaticPullUpBar.samplingInterval) {
@@ -113,7 +119,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         val bar=confirmedBar
         val sceneFresh=isFresh(seconds,input.sceneTimestamp,sceneMaximumAgeSeconds)
         issue=when {
-            !framingReady -> "framingIncomplete"
+            !framingReady || automaticFramingIncomplete -> "framingIncomplete"
             resolvedExercise==null -> "exerciseIdentityNeeded"
             bar==null -> "barReferenceNeeded"
             !motionFresh || !phoneOrientation.state.allowsLiveSet -> "phoneStabilityNeeded"
@@ -181,5 +187,22 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         const val motionMaximumAgeSeconds=.5
         const val sceneMaximumAgeSeconds=.8
         private fun isFresh(frame:Double,sample:Double?,maximumAge:Double)=frame.isFinite() && sample!=null && sample.isFinite() && sample<=frame+.05 && frame-sample<=maximumAge
+    }
+}
+
+/** Shared actionable setup guidance for live overlays and recorded-review outcomes. */
+object WorkoutSetupGuidance {
+    fun message(issue:String):String?=when(issue) {
+        "multiplePeople" -> "Show one person"
+        "framingIncomplete" -> "Show both arms and hands clearly"
+        "exerciseIdentityNeeded" -> "Hold a clear hang or top support with both arms and hands visible"
+        "barReferenceNeeded", "barReferenceUnavailable" -> "Show the gripping bar or rails beside your hands"
+        "phoneMoved" -> "Phone moved · set it down and start again"
+        "sceneShifted", "sceneScaled" -> "Camera view changed · start again"
+        "phoneUnavailable", "motionUnavailable" -> "Waiting for phone motion sensors"
+        "phoneStabilityNeeded" -> "Keep the camera still while stability is checked"
+        "sceneStabilityNeeded", "sceneUnavailable" -> "Keep the camera still with a stable background visible"
+        "paused" -> "Close settings to continue setup"
+        else -> null
     }
 }

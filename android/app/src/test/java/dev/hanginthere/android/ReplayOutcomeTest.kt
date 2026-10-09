@@ -49,6 +49,18 @@ class ReplayOutcomeTest {
         assertEquals(ReplayOutcome.Kind.setupUnavailable, result.kind)
         assertTrue(result.message!!.contains("stable background"))
     }
+    @Test fun missingReferenceExplainsActualApparatusVisibility() {
+        val result = ReplayOutcome.atEnd(0, false, true, "barReferenceNeeded", null)
+        assertEquals(ReplayOutcome.Kind.setupUnavailable, result.kind)
+        assertEquals("Video not evaluated · show the gripping bar or rails beside your hands", result.message)
+        assertFalse(result.message!!.contains("settings"))
+    }
+    @Test fun unresolvedIdentityExplainsStartingPoseWithoutGuessingCameraMovement() {
+        val result = ReplayOutcome.atEnd(0, false, true, "exerciseIdentityNeeded", null)
+        assertEquals(ReplayOutcome.Kind.setupUnavailable, result.kind)
+        assertEquals("Video not evaluated · hold a clear hang or top support with both arms and hands visible", result.message)
+        assertFalse(result.message!!.contains("camera view changed"))
+    }
     @Test fun sceneInterruptionIsNotFullSourceSuccess() {
         val result = ReplayOutcome.atEnd(25, true, false, "barReferenceNeeded", LiveSetSession.EndReason.sceneShifted)
         assertEquals(ReplayOutcome.Kind.interrupted, result.kind)

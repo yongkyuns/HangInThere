@@ -9,10 +9,8 @@ import android.os.Debug
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.hanginthere.android.camera.CanonicalPixels
-import dev.hanginthere.android.camera.PhoneAttitude
-import dev.hanginthere.android.session.AnalysisPipeline
-import dev.hanginthere.android.session.ReplayOutcome
 import dev.hanginthere.android.replay.VideoFrames
+import dev.hanginthere.android.replay.YuvColorEncoding
 import dev.hanginthere.android.vision.ObservedEdges
 import dev.hanginthere.android.vision.PoseEstimator
 import dev.hanginthere.android.vision.SceneRegistration
@@ -24,6 +22,7 @@ import org.junit.runner.RunWith
 import java.io.File
 import java.security.MessageDigest
 import java.nio.ByteBuffer
+import kotlin.math.roundToInt
 
 /** Device/emulator evaluation uses the exact production decoder, CPU model and observed-contour fitter. */
 @RunWith(AndroidJUnit4::class)
@@ -32,8 +31,26 @@ class PlatformEvaluationTest {
     private val app = instrumentation.targetContext
     private val assets = instrumentation.context.assets
     private val json = Json { ignoreUnknownKeys = true; prettyPrint = true; encodeDefaults = true }
+    @Test fun sdrRangesPreserveNeutralBlackAndWhiteWithoutWrapping() {
+        val planes = listOf(CanonicalPixels.Plane(ByteBuffer.wrap(byteArrayOf(0, 16, 235.toByte(), 255.toByte())), 2, 1),
+            CanonicalPixels.Plane(ByteBuffer.wrap(byteArrayOf(128.toByte())), 1, 1),
+            CanonicalPixels.Plane(ByteBuffer.wrap(byteArrayOf(128.toByte())), 1, 1))
+        YuvColorEncoding.Standard.entries.forEach { standard ->
+            YuvColorEncoding.Range.entries.forEach { range ->
+                val bitmap = CanonicalPixels.yuv(2, 2, Rect(0, 0, 2, 2), planes, YuvColorEncoding(standard, range))
+                try {
+                    val expected = if (range == YuvColorEncoding.Range.limited) listOf(0, 0, 255, 255) else listOf(0, 16, 235, 255)
+                    expected.forEachIndexed { index, value ->
+                        val pixel = bitmap.getPixel(index % 2, index / 2)
+                        assertEquals(value, Color.red(pixel)); assertEquals(value, Color.green(pixel)); assertEquals(value, Color.blue(pixel))
+                    }
+                } finally { bitmap.recycle() }
+            }
+        }
+    }
     @Test fun bulkYuvMatchesIndependentScalarColorsAcrossCropAndPlaneLayouts() {
-        fun checkLayout(width: Int, height: Int, crop: Rect, yStride: Int, chromaStride: Int) {
+        fun checkLayout(width: Int, height: Int, crop: Rect, yStride: Int, chromaStride: Int,
+                        encoding: YuvColorEncoding = YuvColorEncoding()) {
             fun sample(plane: Int, x: Int, y: Int): Int = when (plane) {
                 0 -> 16 + (x * 19 + y * 13) % 220
                 1 -> 16 + (x * 37 + y * 29) % 225
@@ -52,14 +69,22 @@ class PlatformEvaluationTest {
                 CanonicalPixels.Plane(buffer, rowStride, pixelStride)
             }
             val positions = planes.map { it.buffer.position() }
-            val bitmap = CanonicalPixels.yuv(width, height, crop, planes)
+            val bitmap = CanonicalPixels.yuv(width, height, crop, planes, encoding)
             try {
                 for (y in crop.top until crop.bottom) for (x in crop.left until crop.right) {
-                    val luminance = (sample(0, x, y) - 16).coerceAtLeast(0)
+                    val limited = encoding.range == YuvColorEncoding.Range.limited
+                    val luminance = (sample(0, x, y) - if (limited) 16 else 0).coerceAtLeast(0)
                     val u = sample(1, x / 2, y / 2) - 128; val v = sample(2, x / 2, y / 2) - 128
-                    val expected = listOf(((298 * luminance + 409 * v + 128) shr 8).coerceIn(0, 255),
-                        ((298 * luminance - 100 * u - 208 * v + 128) shr 8).coerceIn(0, 255),
-                        ((298 * luminance + 516 * u + 128) shr 8).coerceIn(0, 255))
+                    // Independent coefficient table, not the production matrix builder.
+                    val coefficients = when {
+                        encoding.standard == YuvColorEncoding.Standard.bt709 && limited -> listOf(1.16438356, 1.79274107, -.21324861, -.53290933, 2.11240179)
+                        encoding.standard == YuvColorEncoding.Standard.bt709 -> listOf(1.0, 1.5748, -.18732427, -.46812427, 1.8556)
+                        limited -> listOf(298.0 / 256, 409.0 / 256, -100.0 / 256, -208.0 / 256, 516.0 / 256)
+                        else -> listOf(1.0, 1.402, -.34413629, -.71413629, 1.772)
+                    }
+                    val base = coefficients[0] * luminance
+                    val expected = listOf(base + coefficients[1] * v, base + coefficients[2] * u + coefficients[3] * v,
+                        base + coefficients[4] * u).map { it.roundToInt().coerceIn(0, 255) }
                     val pixel = bitmap.getPixel(x - crop.left, y - crop.top)
                     val actual = listOf(Color.red(pixel), Color.green(pixel), Color.blue(pixel))
                     expected.zip(actual).forEachIndexed { channel, (reference, observed) ->
@@ -75,6 +100,13 @@ class PlatformEvaluationTest {
         checkLayout(16, 12, Rect(2, 2, 14, 10), 1, 2)
         checkLayout(16, 12, Rect(2, 2, 14, 10), 2, 2)
         checkLayout(15, 11, Rect(3, 1, 13, 9), 1, 2) // Odd-origin scalar fallback.
+        YuvColorEncoding.Standard.entries.forEach { standard ->
+            YuvColorEncoding.Range.entries.forEach { range ->
+                val encoding = YuvColorEncoding(standard, range)
+                checkLayout(16, 12, Rect(2, 2, 14, 10), 2, 2, encoding)
+                checkLayout(15, 11, Rect(3, 1, 13, 9), 1, 2, encoding)
+            }
+        }
     }
     @Test fun poseSdkDoesNotRecycleCallerPixels() {
         val source = Bitmap.createBitmap(320, 240, Bitmap.Config.ARGB_8888)
@@ -188,7 +220,7 @@ class PlatformEvaluationTest {
                 val expectedFrames = fixture.getValue("expectedFrames").jsonPrimitive.int
                 if (frames != expectedFrames) failures += "$id expected $expectedFrames decoded frames, got $frames"
                 val elapsed = (System.nanoTime() - started) / 1e9
-                val production = evaluateProductionReplay(id, output, file, exercise, side, expected, expectedFrames, fixture.getValue("sourcePtsMicroseconds").jsonArray)
+                val production = NativeReplayEvaluator(app).evaluateAutomatic(id, output, file, exercise, side, expected, expectedFrames, fixture.getValue("sourcePtsMicroseconds").jsonArray.map { it.jsonPrimitive.long })
                 file.delete()
                 if (production["error"] != null) failures += "$id production native execution failed: ${production.getValue("error").jsonPrimitive.content}"
                 else if (production.getValue("singlePersonFrames").jsonPrimitive.int == 0) failures += "$id production native execution produced no single-person poses"
@@ -233,113 +265,7 @@ class PlatformEvaluationTest {
         File(output, "report.json").writeText(json.encodeToString(JsonElement.serializer(), report))
         assertTrue(failures.joinToString("\n"), failures.isEmpty())
     }
-    private fun evaluateProductionReplay(id: String, output: File, file: File, expectedExercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side, expected: Int,
-                                         expectedFrames: Int, expectedPts: JsonArray): JsonObject {
-        val times = mutableListOf<Double>(); var acquired = false; var acquisitionSeconds: Double? = null
-        var acquisitionReady = false; var acquisitionReadySeconds: Double? = null
-        var movements = 0; var selected: ExerciseCounter.Exercise? = null; var firstCountSource: Double? = null
-        var peakPss = 0; var peakNative = 0L; var peakJava = 0L
-        var decodedFrames = 0; var peopleFrames = 0; var multiplePeopleFrames = 0
-        var countingSourceFrames = 0; var countingSourceEnded = false; var countingPassStarted = false
-        var outcome: ReplayOutcome? = null; var endReason: LiveSetSession.EndReason? = null
-        var finalSetupIssue: String? = null
-        var events: JsonElement = JsonArray(emptyList())
-        val elapsedStart = System.nanoTime()
-        try {
-            AnalysisPipeline(app, WorkoutExerciseSelection.automatic, side).use { pipeline ->
-                fun pass(acquire: Boolean): Boolean {
-                    File(output, "$id-production-${if (acquire) "acquisition" else "counting"}.jsonl").bufferedWriter().use { trace ->
-                        VideoFrames(app, Uri.fromFile(file)).use { reader ->
-                            var passFrames = 0
-                            while (true) {
-                                // Match the ViewModel: an interrupted set cannot resume counting later pixels.
-                                if (!acquire && pipeline.runtime.snapshot.phase == LiveSetSession.Phase.finished) {
-                                    countingSourceFrames = passFrames
-                                    return false
-                                }
-                                val started = System.nanoTime()
-                                val frame = reader.next() ?: break
-                                frame.use {
-                                    val time = it.presentationTimeUs / 1e6
-                                    check(passFrames < expectedPts.size && it.presentationTimeUs == expectedPts[passFrames].jsonPrimitive.long) {
-                                        "Production source PTS mismatch at $passFrames: ${it.presentationTimeUs}"
-                                    }
-                                    val sample = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
-                                    val result = pipeline.process(it.bitmap, it.presentationTimeUs, sample)
-                                    // Include the production UI ownership copy, never merely model inference.
-                                    it.bitmap.copy(Bitmap.Config.ARGB_8888, false).recycle()
-                                    times += (System.nanoTime() - started) / 1e6
-                                    // Diagnostic serialization is intentionally outside the measured native path.
-                                    trace.write(buildJsonObject {
-                                        put("frameIndex", passFrames); put("sourcePtsMicroseconds", it.presentationTimeUs)
-                                        put("pose", Json.encodeToJsonElement(result.pose))
-                                        put("snapshot", Json.encodeToJsonElement(result.snapshot))
-                                    }.toString()); trace.newLine()
-                                    passFrames++; decodedFrames++
-                                    if (result.pose.people.size == 1) peopleFrames++ else if (result.pose.people.size > 1) multiplePeopleFrames++
-                                    selected = result.snapshot.exercise
-                                    finalSetupIssue = result.snapshot.setupIssue
-                                    if (result.snapshot.referenceEdge != null) { acquired = true; if (acquisitionSeconds == null) acquisitionSeconds = time }
-                                    if (acquire && pipeline.runtime.isReplayAcquisitionReady) {
-                                        acquisitionReady = true; acquisitionReadySeconds = time
-                                    }
-                                    movements = result.snapshot.observedMovements
-                                    if (!acquire && result.snapshot.phase == LiveSetSession.Phase.running && firstCountSource == null) firstCountSource = time
-                                    val memory = Debug.MemoryInfo(); Debug.getMemoryInfo(memory); peakPss = maxOf(peakPss, memory.totalPss)
-                                    peakNative = maxOf(peakNative, Debug.getNativeHeapAllocatedSize())
-                                    val heap = Runtime.getRuntime(); peakJava = maxOf(peakJava, heap.totalMemory() - heap.freeMemory())
-                                }
-                                if (acquire && acquisitionReady) break
-                            }
-                            check((acquire && acquisitionReady) || passFrames == expectedFrames) { "Production decoded $passFrames/$expectedFrames source frames" }
-                            if (!acquire) countingSourceFrames = passFrames
-                            return !(acquire && acquisitionReady)
-                        }
-                    }
-                }
-                pass(true)
-                if (acquisitionReady && pipeline.rewindReplay()) { countingPassStarted = true; countingSourceEnded = pass(false) }
-                endReason = pipeline.runtime.session.endReason
-                finalSetupIssue = pipeline.runtime.snapshot.setupIssue
-                outcome = ReplayOutcome.atEnd(pipeline.runtime.session.analyzedFrames, acquired, !countingPassStarted || countingSourceEnded,
-                    pipeline.runtime.snapshot.setupIssue, endReason)
-                pipeline.runtime.stop()
-                movements = pipeline.runtime.snapshot.observedMovements
-                events = Json.encodeToJsonElement(pipeline.runtime.session.counter.events)
-            }
-            return buildJsonObject {
-                put("acquiredActualContours", acquired); put("acquisitionSourceSeconds", acquisitionSeconds?.let(::JsonPrimitive) ?: JsonNull)
-                put("acquisitionReady", acquisitionReady); put("acquisitionReadySourceSeconds", acquisitionReadySeconds?.let(::JsonPrimitive) ?: JsonNull)
-                put("selectedExercise", selected?.name?.let(::JsonPrimitive) ?: JsonNull); put("firstCountingSourceSeconds", firstCountSource?.let(::JsonPrimitive) ?: JsonNull)
-                put("observedMovements", movements); put("expectedMovements", expected)
-                put("functionalParity", acquired && selected == expectedExercise && movements == expected && countingPassStarted &&
-                    countingSourceEnded && countingSourceFrames == expectedFrames && outcome?.kind == ReplayOutcome.Kind.complete)
-                put("replayOutcome", outcome?.kind?.name?.let(::JsonPrimitive) ?: JsonNull)
-                put("outcomeMessage", outcome?.message?.let(::JsonPrimitive) ?: JsonNull)
-                put("setupIssue", finalSetupIssue?.let(::JsonPrimitive) ?: JsonNull)
-                put("endReason", endReason?.name?.let(::JsonPrimitive) ?: JsonNull)
-                put("countingPassStarted", countingPassStarted); put("countingSourceEnded", countingSourceEnded)
-                put("countingSourceFrames", countingSourceFrames); put("events", events)
-                put("decodedFrames", decodedFrames); put("singlePersonFrames", peopleFrames); put("multiplePersonFrames", multiplePeopleFrames)
-                put("pipelineWithDisplayCopyLatencyMillis", latency(times)); put("elapsedSeconds", (System.nanoTime() - elapsedStart) / 1e9)
-                put("pipelineLatencyScope", "decode+canonical pixels+pose+actual contours/scene+runtime+display copy; excludes model initialization and EOF null read")
-                put("decodePixelConversion", CanonicalPixels.YUV_CONVERSION)
-                put("peakPssKb", peakPss); put("peakNativeAllocatedBytes", peakNative); put("peakJavaAllocatedBytes", peakJava)
-                put("attitudeScope", "virtual fixed recording phone; actual image registration required")
-            }
-        } catch (error: Throwable) { return buildJsonObject {
-            put("functionalParity", false); put("acquiredActualContours", acquired)
-            put("setupIssue", finalSetupIssue?.let(::JsonPrimitive) ?: JsonNull); put("error", error.stackTraceToString())
-        } }
-    }
-    private fun latency(samples: List<Double>): JsonObject = buildJsonObject {
-        put("samples", samples.size)
-        if (samples.isNotEmpty()) {
-            val warm = samples.drop(1).sorted().ifEmpty { samples.sorted() }
-            fun percentile(fraction: Double) = warm[((warm.size - 1) * fraction).toInt()]
-            put("first", samples.first()); put("p50", percentile(0.5)); put("p95", percentile(0.95)); put("maximum", samples.max())
-        }
-    }
+    private fun latency(samples: List<Double>) = NativeEvaluationMetrics.latency(samples)
     @Test fun canonicalRotationAndObservedContours() {
         val raw = Bitmap.createBitmap(80, 40, Bitmap.Config.ARGB_8888)
         raw.eraseColor(Color.BLACK)

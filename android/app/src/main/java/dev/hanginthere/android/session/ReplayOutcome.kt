@@ -2,6 +2,7 @@ package dev.hanginthere.android.session
 
 import dev.hanginthere.core.LiveSetSession
 import dev.hanginthere.core.WorkoutRuntime
+import dev.hanginthere.core.WorkoutSetupGuidance
 
 /** EOF is a decoder event, not proof that a counting session actually began. */
 data class ReplayOutcome(val kind: Kind, val message: String? = null) {
@@ -26,12 +27,10 @@ data class ReplayOutcome(val kind: Kind, val message: String? = null) {
             }
             if (analyzedFrames == 0) {
                 val reason = when (setupIssue) {
-                    "multiplePeople" -> "show one person"
-                    "framingIncomplete" -> "show both arms and hands"
-                    "exerciseIdentityNeeded" -> "starting exercise could not be identified"
                     "sceneStabilityNeeded", "sceneUnavailable" -> "stable background could not be confirmed"
                     "phoneStabilityNeeded" -> "camera stability could not be confirmed"
-                    else -> if (acquired) "counting could not start from this camera view" else "visible apparatus and starting support could not be confirmed"
+                    else -> setupIssue?.let(WorkoutSetupGuidance::message)?.replaceFirstChar { it.lowercase() }
+                        ?: if (acquired) "counting could not start from this camera view" else "visible apparatus and starting support could not be confirmed"
                 }
                 return ReplayOutcome(Kind.setupUnavailable, "Video not evaluated · $reason")
             }
