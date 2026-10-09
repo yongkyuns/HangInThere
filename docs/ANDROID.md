@@ -26,7 +26,11 @@ registration and display. Native CI checks this ownership contract and includes
 the copy in timing and memory measurements. Replay EOF distinguishes completed
 evaluation, unresolved setup and interruption; decoding completion alone cannot
 turn an unevaluated video into a successful zero count. Failed replay analysis
-closes the actual counting session and always exposes retry.
+closes the actual counting session and always exposes retry. Recorded acquisition
+waits for both observed apparatus and stable exercise identity; a bar alone cannot
+end the acquisition pass before Auto has identified the exercise. Native integrity
+checks compare decoder microseconds against container integer ticks and rational
+timebases, avoiding FFprobe decimal rounding while preserving actual source PTS.
 
 ## Evaluation layers
 

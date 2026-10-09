@@ -5,6 +5,7 @@ The test APK contains test-only media and must not be published as an artifact.
 Source rights, actual decoded PTS and derivative hashes travel with each fixture.
 """
 import importlib.util
+from fractions import Fraction
 import json
 from pathlib import Path
 import shutil
@@ -14,6 +15,22 @@ ROOT=Path(__file__).resolve().parents[1]
 def module(name):
     spec=importlib.util.spec_from_file_location(name,ROOT/'scripts'/f'{name}.py')
     m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
+def timestamp_evidence(video):
+    """Read container ticks; Android MediaExtractor truncates rational PTS to µs."""
+    result=json.loads(subprocess.check_output(['ffprobe','-v','error','-select_streams','v:0',
+        '-show_frames','-show_streams','-show_entries',
+        'stream=time_base:frame=best_effort_timestamp','-of','json',str(video)],text=True))
+    time_base=Fraction(result['streams'][0]['time_base'])
+    ticks=[int(frame['best_effort_timestamp']) for frame in result['frames']]
+    return timestamp_fields(ticks,time_base)
+
+def timestamp_fields(ticks,time_base):
+    assert time_base>0 and ticks and ticks[0]>=0 and all(a<b for a,b in zip(ticks,ticks[1:])), 'Invalid container PTS'
+    micros=[tick*time_base.numerator*1_000_000//time_base.denominator for tick in ticks]
+    assert all(a<b for a,b in zip(micros,micros[1:])), 'Microsecond timebase lost frame ordering'
+    return dict(sourcePtsTicks=ticks,sourceTimeBase=dict(numerator=time_base.numerator,
+        denominator=time_base.denominator),sourcePtsMicroseconds=micros)
+
 def main():
     smoke=module('prepare-fixtures')
     source=ROOT/'Data/external/p0-pullup-source.webm'
@@ -42,7 +59,7 @@ def main():
         clips.append(dict(id=id,video=video.name,exercise=exercise,side=side,
             referenceEdge=dict(a=dict(x=edge[0],y=edge[1]),b=dict(x=edge[2],y=edge[3])),
             qualificationRole=role,expectedMovements=expected,expectedFrames=len(pts),sourcePtsSeconds=pts,
-            sha256=smoke.digest(video),sourceHash=source_hash))
+            sha256=smoke.digest(video),sourceHash=source_hash,**timestamp_evidence(video)))
     setup_spec=json.loads((ROOT/'Evaluation/fixtures/android-setup.json').read_text())
     dip_source=source_tools.source_file(setup_spec['dip_source'],ROOT/'Data/external/android-ci',True)
     setup_clips=[]
@@ -55,7 +72,7 @@ def main():
         pts,size=source_tools.probe(target)
         assert len(pts)==72 and pts[0]==0, 'Authored setup timeline changed'
         setup_clips.append(dict(id=id,video=target.name,exercise=exercise,expectedFrames=72,
-            sourcePtsSeconds=pts,sha256=smoke.digest(target),scope=setup_spec['scope']))
+            sourcePtsSeconds=pts,sha256=smoke.digest(target),scope=setup_spec['scope'],**timestamp_evidence(target)))
     manifest=dict(schemaVersion=1,scope='Public development evidence; positive accuracy required, original capture failures retained as diagnostic. No form or held-out accuracy verdict',clips=clips,
                   setupClips=setup_clips)
     (dest/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')

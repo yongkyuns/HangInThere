@@ -174,13 +174,14 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                                 publish(token, latest)
                                 acquired = result.snapshot.referenceEdge != null
                             }
-                            if (acquireOnly && acquired) break
+                            // Apparatus can lock before Auto's exercise dwell has completed.
+                            if (acquireOnly && active.runtime.isReplayAcquisitionReady) break
                         }
                     }
                     return false
                 }
                 runPass(true)
-                val countingSourceEnded = if (generation.get() == token && acquired && active.rewindReplay()) runPass(false) else true
+                val countingSourceEnded = if (generation.get() == token && active.runtime.isReplayAcquisitionReady && active.rewindReplay()) runPass(false) else true
                 if (generation.get() == token) {
                     val outcome = ReplayOutcome.atEnd(active.runtime.session.analyzedFrames, acquired, countingSourceEnded,
                         active.runtime.snapshot.setupIssue, active.runtime.session.endReason)

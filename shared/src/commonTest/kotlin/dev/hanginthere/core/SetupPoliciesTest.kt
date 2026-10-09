@@ -153,6 +153,57 @@ class SetupPoliciesTest {
         runtime.observe(frame(.2));assertEquals(3,runtime.session.analyzedFrames)
         assertEquals(.2,runtime.session.lastSourceSeconds)
     }
+    @Test fun replayAcquisitionWaitsForStableIdentityAfterApparatusLock() {
+        val runtime=WorkoutRuntime()
+        val bar=BarLineCandidate(BarSegment(Point2D(200.0,195.0),Point2D(800.0,195.0)),600.0)
+        fun pullFrame(seconds:Double,extended:Boolean):WorkoutRuntime.FrameInput {
+            val input=frame(seconds,dip=false,candidates=listOf(listOf(bar)))
+            if(extended) return input
+            // Both observed chains remain usable with fixed overhead hands and
+            // shoulders, but bent elbows cannot qualify the extended-hang identity.
+            val person=input.pose.people.single()
+            val landmarks=person.landmarks.map { landmark ->
+                when(landmark.joint) {
+                    PoseJoint.leftElbow -> landmark.copy(position=landmark.position.copy(x=landmark.position.x+140))
+                    PoseJoint.rightElbow -> landmark.copy(position=landmark.position.copy(x=landmark.position.x-140))
+                    else -> landmark
+                }
+            }
+            return input.copy(pose=input.pose.copy(people=listOf(PoseObservation(landmarks))))
+        }
+
+        assertFalse(runtime.isReplayAcquisitionReady)
+        assertFalse(runtime.rewindReplay(identity,0.0))
+        for(seconds in listOf(0.0,.3,.6,.9)) runtime.observe(pullFrame(seconds,extended=false))
+        val reference=assertNotNull(runtime.confirmedBar)
+        assertEquals(ConfirmedBar.Method.automaticContours,reference.method)
+        assertEquals(bar.edge,reference.referenceEdge)
+        assertNull(runtime.resolvedExercise)
+        assertFalse(runtime.isReplayAcquisitionReady)
+        assertFalse(runtime.rewindReplay(identity,0.0))
+        assertEquals(LiveSetSession.Phase.idle,runtime.session.phase)
+        assertEquals(0,runtime.session.observedMovements)
+
+        runtime.observe(pullFrame(1.0,extended=true))
+        runtime.observe(pullFrame(1.2,extended=true))
+        runtime.observe(pullFrame(1.4,extended=true))
+        assertFalse(runtime.isReplayAcquisitionReady)
+        runtime.observe(pullFrame(1.6,extended=true))
+        assertEquals(ExerciseCounter.Exercise.pullUp,runtime.resolvedExercise)
+        assertTrue(runtime.isReplayAcquisitionReady)
+        assertEquals(reference,runtime.confirmedBar)
+        assertEquals(LiveSetSession.Phase.idle,runtime.session.phase)
+        // Recording evaluation rewinds as soon as acquisition and identity are
+        // ready. It must not wait for the live three-second Go cue.
+        assertTrue(runtime.rewindReplay(identity,0.0))
+        runtime.observe(pullFrame(0.0,extended=true))
+        assertEquals(LiveSetSession.Phase.running,runtime.session.phase)
+        assertEquals(0.0,runtime.session.firstSourceSeconds)
+        assertEquals(1,runtime.session.analyzedFrames)
+        assertNull(runtime.snapshot.countdownSeconds)
+        assertTrue(runtime.snapshot.isReplayReview)
+        assertEquals(reference,runtime.confirmedBar)
+    }
     @Test fun replayRewindRetainsObservedReferenceButRequiresFreshActualScene() {
         val runtime=WorkoutRuntime()
         for(i in 0..20) runtime.observe(frame(i*.1))

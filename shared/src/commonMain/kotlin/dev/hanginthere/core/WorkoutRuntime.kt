@@ -53,6 +53,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private var generation=0
     init {session.reset(activeExercise,side)}
     val resolvedExercise get()=selection.exercise ?: replayExercise ?: identity.exercise
+    /** Apparatus can precede stable Auto identity; recorded acquisition must await both. */
+    val isReplayAcquisitionReady get() = confirmedBar != null && resolvedExercise != null
     val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview)
 
     fun configure(selection:WorkoutExerciseSelection,side:ArmMeasurement.Side=this.side) {

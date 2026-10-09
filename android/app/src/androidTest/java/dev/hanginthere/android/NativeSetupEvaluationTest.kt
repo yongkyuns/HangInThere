@@ -37,7 +37,7 @@ class NativeSetupEvaluationTest {
             check(asset in setOf("pullup-held-start.mp4", "dip-held-start.mp4"))
             val expected = ExerciseCounter.Exercise.valueOf(fixture.getValue("exercise").jsonPrimitive.content)
             val expectedFrames = fixture.getValue("expectedFrames").jsonPrimitive.int
-            val expectedPts = fixture.getValue("sourcePtsSeconds").jsonArray
+            val expectedPts = fixture.getValue("sourcePtsMicroseconds").jsonArray
             check(expectedFrames == 72 && expectedPts.size == expectedFrames)
             val id = fixture.getValue("id").jsonPrimitive.content
             val file = File(app.cacheDir, asset)
@@ -66,8 +66,8 @@ class NativeSetupEvaluationTest {
                                     val frame = reader.next() ?: break
                                     frame.use {
                                         val time = it.presentationTimeUs / 1e6
-                                        check(frames < expectedFrames && kotlin.math.abs(time - expectedPts[frames].jsonPrimitive.double) <= 1e-6) {
-                                            "Source PTS changed at frame $frames: $time"
+                                        check(frames < expectedFrames && it.presentationTimeUs == expectedPts[frames].jsonPrimitive.long) {
+                                            "Source PTS changed at frame $frames: ${it.presentationTimeUs}"
                                         }
                                         val sample = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
                                         val result = pipeline.process(it.bitmap, it.presentationTimeUs, sample)
