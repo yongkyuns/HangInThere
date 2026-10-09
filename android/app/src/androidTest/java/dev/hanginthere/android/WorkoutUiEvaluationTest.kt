@@ -22,9 +22,11 @@ class WorkoutUiEvaluationTest {
         val app = instrumentation.targetContext
         val testAssets = instrumentation.context.assets
         val manifest = testAssets.open("generated/manifest.json").bufferedReader().use { Json.parseToJsonElement(it.readText()).jsonObject }
-        val fixture = manifest.getValue("clips").jsonArray.first().jsonObject
+        val fixture = manifest.getValue("clips").jsonArray.map { it.jsonObject }
+            .single { it.getValue("qualificationRole").jsonPrimitive.content == "positive" }
         val source = fixture.getValue("video").jsonPrimitive.content
         val expected = fixture.getValue("expectedMovements").jsonPrimitive.int
+        assertEquals("Positive UI recording must retain the frozen one-movement truth", 1, expected)
         val file = File(app.cacheDir, "ui-evaluation.mp4")
         testAssets.open("generated/$source").use { input -> file.outputStream().use { input.copyTo(it) } }
         try {
@@ -50,6 +52,7 @@ class WorkoutUiEvaluationTest {
                     val state = model.state.value
                     val report = buildJsonObject {
                         put("fixture", fixture.getValue("id")); put("expectedMovements", expected)
+                        put("qualificationRole", fixture.getValue("qualificationRole"))
                         put("observedMovements", state.result?.snapshot?.observedMovements ?: -1)
                         put("phase", state.result?.snapshot?.phase?.name ?: "unknown")
                         put("selection", state.selection.name); put("side", state.side.name); put("finished", state.finished)

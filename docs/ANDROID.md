@@ -20,6 +20,14 @@ MediaPipe or OpenCV imports. Source PTS advances dwell; display timers cannot ea
 a movement. Real pixels must support an apparatus edge, and missing scene evidence
 cannot certify a fixed camera. Front preview stays unmirrored, matching analysis.
 
+The adapter gives MediaPipe its own bitmap because closing its image recycles
+that input. The canonical frame remains available to contour extraction, scene
+registration and display. Native CI checks this ownership contract and includes
+the copy in timing and memory measurements. Replay EOF distinguishes completed
+evaluation, unresolved setup and interruption; decoding completion alone cannot
+turn an unevaluated video into a successful zero count. Failed replay analysis
+closes the actual counting session and always exposes retry.
+
 ## Evaluation layers
 
 1. `prepare-workout-oracle.py` generates original analytic trajectories with
@@ -33,14 +41,36 @@ cannot certify a fixed camera. Front preview stays unmirrored, matching analysis
 3. Android API29/API35 CI decodes pinned public pull-up/dip media through the
    production MediaCodec, MediaPipe and OpenCV adapters. Exact frame count, actual
    PTS, derivative checksums and independently reviewed movement totals are
-   asserted. Fixed-edge counting and production Auto replay are distinct evidence.
+   asserted for every fixture. The prospective `pullup_margin` positive requires
+   one movement in both fixed-edge and production Auto replay, with uninterrupted
+   counting through EOF. Fixed-edge and Auto are distinct evidence.
 4. A Mac CI job replays Android-produced model observations through production
    Swift. It compares count and event outcomes/reasons/times on identical poses,
    independently of Apple Vision versus MediaPipe accuracy differences.
 
 The public clips are development smoke cases, not a held-out accuracy benchmark.
-The pull-up subject's head is cropped; strict chin clearance and dip depth remain
-unverified on both platforms. No user recordings or local predictions are
+Separate authored setup videos repeat a source-only reviewed starting frame for
+six seconds. Native tests use the real decoder, pose model, contours and background
+registration without replay rewind, then require Auto identity, the complete
+three-second countdown and zero false movements. The fixed recording quaternion
+is explicitly virtual. These cases test static setup integration and do not prove
+dynamic dip accuracy or a naturally observed six-second starting hold.
+The original cropped `pullup_smoke` (1 expected) and panning
+`dip_controlled_pexels` (9 expected) failed as 0/1 and 0/9 on both emulators in
+run37983414013. They were reclassified as diagnostics **after those failures and
+source-only review**, retaining their labels and explicit accuracy failures. A
+separate `Original capture accuracy diagnostics` job intentionally stays red while
+these fail; there is no `continue-on-error` on instrumentation or that job. This
+means the overall workflow may remain red even if the named policy/native jobs
+pass. Those job names distinguish engineering qualification from original capture
+accuracy; no branch protection requirements are changed here.
+
+The clearer Commons pull-up window/full visible bar annotation was frozen before
+its new Android inference; prior iOS source exposure is disclosed in its recipe.
+Dynamic dip accuracy remains unqualified: three additional public candidates
+reviewed before inference had moving cameras, held-only motion or bench dips.
+Static dip Auto/countdown success is not dynamic movement validation. Strict chin
+clearance and dip depth remain unverified on both platforms. No user recordings or local predictions are
 published. Source recordings and test APKs are excluded from CI artifacts.
 
 ## Performance evidence

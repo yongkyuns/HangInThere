@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 mkdir -p build/android-evaluation
+cp android/app/src/androidTest/assets/generated/ATTRIBUTION.txt build/android-evaluation/ATTRIBUTION.txt
 # Retain diagnostics even when an accuracy assertion fails. No media/test APK uploads.
 set +e
 ./gradlew :android:app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true --console=plain

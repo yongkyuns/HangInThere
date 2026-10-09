@@ -121,7 +121,9 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         mutableState.value = State(selection = selection, side = side)
         attitude.start()
         inferenceExecutor.execute {
+            if (token != generation.get()) return@execute
             pipeline?.close(); pipeline = null
+            if (token != generation.get()) return@execute
             try { pipeline = AnalysisPipeline(getApplication(), selection, side) }
             catch (error: Throwable) { publish(token, mutableState.value.copy(error = error.message ?: "Unable to initialize analysis")) }
         }
@@ -148,7 +150,10 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         synchronized(controlLock) { replayRunning = true; controls.clear() }
         mutableState.value = State(replay = true, selection = selection, side = side)
         inferenceExecutor.execute {
+            // Keep the latest dispatch's replayRunning flag when skipping obsolete work.
+            if (token != generation.get()) return@execute
             pipeline?.close(); pipeline = null
+            if (token != generation.get()) return@execute
             var latest = State(replay = true, selection = selection, side = side)
             try {
                 pipeline = AnalysisPipeline(getApplication(), selection, side)

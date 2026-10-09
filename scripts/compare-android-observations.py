@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Replay actual Android model observations through unchanged production Swift.
 
-This isolates the counter contract from model differences. Inputs must be the two
+This isolates the counter contract from model differences. Inputs must be the three
 public-fixture reports; private recordings never belong in this CI directory.
 """
 import argparse,hashlib,json,subprocess
@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def main(directory):
     r=json.loads((directory/'report.json').read_text())
-    assert {c['id'] for c in r['cases']}=={'pullup_smoke','dip_controlled_pexels'}
+    assert {c['id'] for c in r['cases']}=={'pullup_margin','pullup_smoke','dip_controlled_pexels'}
     binary=ROOT/'build/android-swift-counter';binary.parent.mkdir(parents=True,exist_ok=True)
     names=['PoseObservation','Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement',
            'DipSupportMeasurement','PullUpProgress','DipProgress','ExerciseCounter']

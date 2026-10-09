@@ -18,7 +18,7 @@ import urllib.request
 import evaluation as ev
 
 SPEC = ev.ROOT / 'Evaluation/fixtures/temporal-pilot.json'
-ALLOWED_HOSTS = {'upload.wikimedia.org', 'd34w7g4gy10iej.cloudfront.net', 'www.pexels.com'}
+ALLOWED_HOSTS = {'upload.wikimedia.org', 'd34w7g4gy10iej.cloudfront.net', 'www.pexels.com', 'videos.pexels.com'}
 
 
 def command(args):
