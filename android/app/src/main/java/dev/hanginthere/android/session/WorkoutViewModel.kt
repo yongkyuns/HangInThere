@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicReference
 class WorkoutViewModel(application: Application) : AndroidViewModel(application) {
     data class State(val bitmap: Bitmap? = null, val result: AnalysisPipeline.Result? = null, val error: String? = null,
         val replay: Boolean = false, val finished: Boolean = false, val selection: WorkoutExerciseSelection = WorkoutExerciseSelection.automatic,
-        val side: ArmMeasurement.Side = ArmMeasurement.Side.left, val interrupted: Boolean = false)
+        val side: ArmMeasurement.Side = ArmMeasurement.Side.left, val interrupted: Boolean = false,
+        val replayOutcome: ReplayOutcome.Kind? = null)
     private val mutableState = MutableStateFlow(State())
     val state = mutableState.asStateFlow()
     val inferenceExecutor = Executors.newSingleThreadExecutor()
@@ -148,18 +149,18 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         mutableState.value = State(replay = true, selection = selection, side = side)
         inferenceExecutor.execute {
             pipeline?.close(); pipeline = null
+            var latest = State(replay = true, selection = selection, side = side)
             try {
                 pipeline = AnalysisPipeline(getApplication(), selection, side)
                 val active = requireNotNull(pipeline)
-                var latest = State(replay = true, selection = selection, side = side)
                 var acquired = false
-                fun runPass(acquireOnly: Boolean) {
+                fun runPass(acquireOnly: Boolean): Boolean {
                     VideoFrames(getApplication(), uri).use { reader ->
                         while (generation.get() == token) {
                             drainControls(token, active)
                             while (paused && generation.get() == token) { drainControls(token, active); Thread.sleep(50) }
                             if (!acquireOnly && active.runtime.snapshot.phase == LiveSetSession.Phase.finished) break
-                            val frame = reader.next { generation.get() != token } ?: break
+                            val frame = reader.next { generation.get() != token } ?: return generation.get() == token
                             frame.use {
                                 val time = it.presentationTimeUs / 1e6
                                 val virtualAttitude = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
@@ -171,15 +172,24 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                             if (acquireOnly && acquired) break
                         }
                     }
+                    return false
                 }
                 runPass(true)
-                if (generation.get() == token && acquired && active.rewindReplay()) runPass(false)
+                val countingSourceEnded = if (generation.get() == token && acquired && active.rewindReplay()) runPass(false) else true
                 if (generation.get() == token) {
+                    val outcome = ReplayOutcome.atEnd(active.runtime.session.analyzedFrames, acquired, countingSourceEnded,
+                        active.runtime.snapshot.setupIssue, active.runtime.session.endReason)
                     active.runtime.stop()
-                    latest = latest.copy(result = latest.result?.copy(snapshot = active.runtime.snapshot), finished = true)
+                    latest = latest.copy(result = latest.result?.copy(snapshot = active.runtime.snapshot), finished = true,
+                        error = outcome.message, interrupted = outcome.kind == ReplayOutcome.Kind.interrupted, replayOutcome = outcome.kind)
                     publish(token, latest)
                 }
-            } catch (error: Throwable) { publish(token, mutableState.value.copy(error = error.message ?: "Video evaluation failed", replay = true, finished = true)) }
+            } catch (error: Throwable) {
+                val active = pipeline
+                val outcome = ReplayOutcome.analysisFailure(active?.runtime, error.message)
+                publish(token, latest.copy(result = latest.result?.let { result -> active?.runtime?.snapshot?.let { result.copy(snapshot = it) } ?: result },
+                    error = outcome.message, replay = true, finished = true, interrupted = true, replayOutcome = outcome.kind))
+            }
             finally {
                 synchronized(controlLock) { if (generation.get() == token) replayRunning = false }
                 pipeline?.let { drainControls(token, it) }

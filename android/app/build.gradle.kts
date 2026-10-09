@@ -9,6 +9,7 @@ plugins {
 }
 val poseRuntimeVersion = "0.10.32"
 val poseRuntimeSha256 = "d6e69475707d07a24478e9ff00c437c48c9a834ffb04d4e6e0ba907defa87777"
+val composeBom = "androidx.compose:compose-bom:2025.10.00"
 android {
     namespace = "dev.hanginthere.android"
     compileSdk = 36
@@ -35,7 +36,8 @@ val poseRuntimeVerification by configurations.creating {
 dependencies {
     add(poseRuntimeVerification.name, "com.google.mediapipe:tasks-vision:$poseRuntimeVersion@aar")
     implementation(project(":shared"))
-    implementation(platform("androidx.compose:compose-bom:2025.10.00"))
+    implementation(platform(composeBom))
+    androidTestImplementation(platform(composeBom))
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -51,6 +53,7 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test:rules:1.7.0")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
 
 // Verify the actual upstream runtime artifact, including emulator JNI support, before packaging.

@@ -65,7 +65,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
       - name: Prepare pinned public media and model
         run: |
-          python3 -m unittest discover -s scripts/tests -p test_android_evaluation.py -v
+          python3 -m unittest discover -s scripts/tests -p 'test_android*.py' -v
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
           python3 scripts/prepare-android-fixtures.py

@@ -38,6 +38,10 @@ def main():
             sha256=smoke.digest(video),sourceHash=source_hash))
     manifest=dict(schemaVersion=1,scope='public development smoke, movement only; no form verdict',clips=clips)
     (dest/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    # Authored negative, separate from public movement labels: no person/apparatus.
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'lavfi', '-i',
+                    'color=c=black:s=320x240:r=12:d=2', '-an', '-c:v', 'libx264',
+                    '-pix_fmt', 'yuv420p', str(dest/'no-person.mp4')], check=True)
     (dest/'ATTRIBUTION.txt').write_text(spec.get('attribution','U.S. Marines / Wikimedia Commons public-domain B-roll')+'\n'+(temporal/'ATTRIBUTION.txt').read_text())
     subprocess.run(['python3',str(ROOT/'scripts/prepare-mediapipe-model.py'),'--output',
                     str(ROOT/'android/app/src/main/assets/pose_landmarker_heavy.task'),'--metadata',

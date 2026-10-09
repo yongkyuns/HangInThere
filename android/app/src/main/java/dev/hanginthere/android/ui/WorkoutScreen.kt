@@ -146,11 +146,8 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 else -> "Hold a hang or top support · show both hands"
             }
             Text(message, Modifier.background(Color.Black.copy(alpha = 0.6f)).padding(10.dp), color = Color.White)
-            if (running) {
-                LinearProgressIndicator(progress = { (state.result?.progress ?: 0.0).toFloat() }, Modifier.fillMaxWidth().padding(vertical = 10.dp), color = if (state.result?.progress == 1.0) Color.Green else Color.Cyan)
-                FilledTonalButton(onClick = model::finishSet) { Text("End set") }
-            } else if (state.interrupted && !state.replay) FilledTonalButton(onClick = { model.startLive(selection, side) }) { Text("Start next set") }
-            else if (snapshot?.phase == LiveSetSession.Phase.finished) FilledTonalButton(onClick = model::nextSet) { Text(if (state.replay) "Evaluate again" else "Next set") }
+            WorkoutActions(state, onFinish = model::finishSet, onNext = model::nextSet,
+                onRestart = { model.startLive(selection, side) })
         }
     }
     if (settings) AlertDialog(onDismissRequest = { settings = false }, title = { Text("Workout settings") }, text = {
@@ -165,6 +162,22 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             Text("Counts are observed movements. Depth and lockout form are not yet verified.")
         }
     }, confirmButton = { TextButton(onClick = { settings = false }) { Text("Done") } })
+}
+
+/** Terminal replay state takes precedence over any previously rendered counter snapshot. */
+@Composable
+internal fun WorkoutActions(state: WorkoutViewModel.State, onFinish: () -> Unit, onNext: () -> Unit, onRestart: () -> Unit) {
+    if (state.replay && state.finished) {
+        FilledTonalButton(onClick = onNext) { Text("Evaluate again") }
+    } else if (state.result?.snapshot?.phase == LiveSetSession.Phase.running) {
+        LinearProgressIndicator(progress = { (state.result.progress).toFloat() }, Modifier.fillMaxWidth().padding(vertical = 10.dp),
+            color = if (state.result.progress == 1.0) Color.Green else Color.Cyan)
+        FilledTonalButton(onClick = onFinish) { Text("End set") }
+    } else if (state.interrupted && !state.replay) {
+        FilledTonalButton(onClick = onRestart) { Text("Start next set") }
+    } else if (state.result?.snapshot?.phase == LiveSetSession.Phase.finished) {
+        FilledTonalButton(onClick = onNext) { Text(if (state.replay) "Evaluate again" else "Next set") }
+    }
 }
 
 private fun setupText(issue: String): String = when(issue) {

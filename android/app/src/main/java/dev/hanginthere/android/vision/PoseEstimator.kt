@@ -34,7 +34,11 @@ class PoseEstimator(context: Context) : Closeable {
         val milliseconds = presentationTimeUs / 1000
         require(milliseconds > lastTimestampMs) { "MediaPipe requires strictly increasing millisecond timestamps" }
         lastTimestampMs = milliseconds
-        val image = BitmapImageBuilder(bitmap).build()
+        // BitmapImageContainer.close() recycles its input. The caller retains the
+        // canonical pixels for contours, registration and display after inference.
+        val sdkBitmap = checkNotNull(bitmap.copy(Bitmap.Config.ARGB_8888, false)) { "Unable to allocate pose input" }
+        val image = try { BitmapImageBuilder(sdkBitmap).build() }
+        catch (error: Throwable) { sdkBitmap.recycle(); throw error }
         val result = try { detector.detectForVideo(image, milliseconds) } finally { image.close() }
         val people = result.landmarks().map { points ->
             val landmarks = JOINTS.map { (joint, index) ->

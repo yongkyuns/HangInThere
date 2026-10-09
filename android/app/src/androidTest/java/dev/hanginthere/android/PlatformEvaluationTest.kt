@@ -29,6 +29,26 @@ class PlatformEvaluationTest {
     private val app = instrumentation.targetContext
     private val assets = instrumentation.context.assets
     private val json = Json { ignoreUnknownKeys = true; prettyPrint = true; encodeDefaults = true }
+    @Test fun poseSdkDoesNotRecycleCallerPixels() {
+        val source = Bitmap.createBitmap(320, 240, Bitmap.Config.ARGB_8888)
+        source.eraseColor(Color.BLACK)
+        android.graphics.Canvas(source).drawRect(20f, 100f, 300f, 121f,
+            android.graphics.Paint().apply { color = Color.WHITE })
+        try {
+            PoseEstimator(app).use { estimator ->
+                estimator.estimate(source, 0)
+                assertFalse("SDK must only recycle its own input copy", source.isRecycled)
+                assertEquals(Color.WHITE, source.getPixel(50, 110))
+                val contours = ObservedEdges().detect(source, BarRegion(0.0, 60.0, 320.0, 180.0))
+                assertTrue("Caller pixels must remain available to actual OpenCV", contours.count { it.edge.length >= 200 } >= 2)
+                source.copy(Bitmap.Config.ARGB_8888, false).let { display ->
+                    assertEquals(Color.WHITE, display.getPixel(50, 110)); display.recycle()
+                }
+                estimator.estimate(source, 33_000)
+                assertFalse("Second increasing-PTS inference must preserve the caller", source.isRecycled)
+            }
+        } finally { source.recycle() }
+    }
     @Test fun publicVideoFunctionalAndPerformanceEvaluation() {
         val manifest = assets.open("generated/manifest.json").bufferedReader().use { json.parseToJsonElement(it.readText()) }
         val fixtures = if (manifest is JsonArray) manifest else manifest.jsonObject.getValue("clips").jsonArray
