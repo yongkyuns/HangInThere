@@ -90,6 +90,8 @@ enum BarLineFitter {
 
     // Guided single-edge recovery. It can bridge short gaps between collinear
     // observed contour fragments, but never extends past the outermost samples.
+    // Clutter retains the strongest 512 observed segments for grouping. The
+    // 200,000-point and four-million simplification-operation guards still apply.
     static func candidates(contours: [[Point2D]], region: BarRegion,
                            size: ImageSize) throws -> [BarLineCandidate] {
         guard region.isValid(in: size) else { throw BarFitError.invalidRegion }
@@ -99,20 +101,35 @@ enum BarLineFitter {
 
         var budget = 4_000_000
         var segments: [BarSegment] = []
+        var exceededCapacity = false
         for contour in contours {
             guard contour.count > 1, contour.allSatisfy({ region.contains($0) }) else { continue }
             let points = try simplify(contour, tolerance: 1.0, budget: &budget)
             for i in 1..<points.count {
                 let edge = BarSegment(a: points[i - 1], b: points[i])
                 if edge.isValid, edge.length >= 2 { segments.append(edge) }
-                guard segments.count <= BarFitter.maximumSegments else { throw BarFitError.tooComplex }
+                // Bound retained work without discarding a real long edge merely
+                // because unrelated texture supplied many short observations.
+                if segments.count >= 2 * BarFitter.maximumSegments {
+                    exceededCapacity = true
+                    retainStrongest(&segments)
+                }
             }
+        }
+        if segments.count > BarFitter.maximumSegments {
+            exceededCapacity = true
+            retainStrongest(&segments)
         }
 
         let major = max(region.width, region.height)
         let maximumGap = min(45.0, 0.20 * major)
         var groups: [Group] = []
-        for edge in segments.sorted(by: { $0.length > $1.length }) {
+        // Preserve the original order for ordinary frames. Over-capacity frames
+        // use canonical endpoint ties so contour enumeration cannot select rails.
+        let ranked = exceededCapacity
+            ? segments.map(\.ordered).sorted(by: observedRank)
+            : segments.sorted(by: { $0.length > $1.length })
+        for edge in ranked {
             guard let unit = canonicalUnit(edge) else { continue }
             let points = [edge.a, edge.b]
             var placed = false
@@ -173,6 +190,20 @@ enum BarLineFitter {
             }
         }
         return Array(unique.prefix(12))
+    }
+
+    private static func retainStrongest(_ segments: inout [BarSegment]) {
+        segments.sort(by: observedRank)
+        segments.removeLast(segments.count - BarFitter.maximumSegments)
+    }
+
+    private static func observedRank(_ lhs: BarSegment, _ rhs: BarSegment) -> Bool {
+        if lhs.length != rhs.length { return lhs.length > rhs.length }
+        let l = lhs.ordered, r = rhs.ordered
+        if l.a.x != r.a.x { return l.a.x < r.a.x }
+        if l.a.y != r.a.y { return l.a.y < r.a.y }
+        if l.b.x != r.b.x { return l.b.x < r.b.x }
+        return l.b.y < r.b.y
     }
 
     private static func canonicalUnit(_ edge: BarSegment) -> (Double, Double)? {

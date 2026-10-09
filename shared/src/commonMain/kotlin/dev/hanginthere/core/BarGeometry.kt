@@ -104,8 +104,21 @@ object BarFitter {
         return keep.sorted().map{points[it]}
     }
 }
-/** Guided edge fitting bridges only collinear observed fragments and never extrapolates. */
+/**
+ * Guided edge fitting bridges only collinear observed fragments and never extrapolates.
+ * Clutter retains the strongest 512 observed segments for grouping; the 200,000-point
+ * and four-million simplification-operation guards still apply.
+ */
 object BarLineFitter {
+    private val observedRank = compareByDescending<BarSegment> { it.length }
+        .thenBy { it.ordered.a.x }.thenBy { it.ordered.a.y }
+        .thenBy { it.ordered.b.x }.thenBy { it.ordered.b.y }
+
+    private fun retainStrongest(segments: MutableList<BarSegment>) {
+        segments.sortWith(observedRank)
+        segments.subList(BarFitter.maximumSegments, segments.size).clear()
+    }
+
     private data class Fit(val ux:Double,val uy:Double,val offset:Double,val t0:Double,val t1:Double)
     private data class Group(val points:MutableList<Point2D>,var fit:Fit)
     private fun fit(points:List<Point2D>):Fit? {
@@ -122,9 +135,33 @@ object BarLineFitter {
     fun candidates(contours:List<List<Point2D>>,region:BarRegion,size:ImageSize):List<BarLineCandidate> {
         BarFitter.requireComplexity(contours,region,size)
         var budget=4_000_000;val segments=mutableListOf<BarSegment>()
-        contours.forEach {c -> if(c.size>1 && c.all{region.contains(it)}) BarFitter.simplify(c,1.0){if(--budget<0) throw BarFitException("tooComplex")}.zipWithNext().forEach{(a,b)->val e=BarSegment(a,b);if(e.isValid) segments.add(e);if(segments.size>BarFitter.maximumSegments) throw BarFitException("tooComplex")}}
+        var exceededCapacity = false
+        contours.forEach { contour ->
+            if (contour.size > 1 && contour.all { region.contains(it) }) {
+                BarFitter.simplify(contour, 1.0) {
+                    if (--budget < 0) throw BarFitException("tooComplex")
+                }.zipWithNext().forEach { (a, b) ->
+                    val edge = BarSegment(a, b)
+                    if (edge.isValid) segments.add(edge)
+                    // Keep observed long edges despite unrelated texture, while
+                    // retaining the same 512-segment bound on grouping work.
+                    if (segments.size >= 2 * BarFitter.maximumSegments) {
+                        exceededCapacity = true
+                        retainStrongest(segments)
+                    }
+                }
+            }
+        }
+        if (segments.size > BarFitter.maximumSegments) {
+            exceededCapacity = true
+            retainStrongest(segments)
+        }
+        // Ordinary frames retain their original order; canonical endpoint ties
+        // make overflow selection independent of contour enumeration/direction.
+        val ranked = if (exceededCapacity) segments.map { it.ordered }.sortedWith(observedRank)
+            else segments.sortedByDescending { it.length }
         val major=max(region.width,region.height);val gapLimit=min(45.0,.20*major);val groups=mutableListOf<Group>()
-        segments.sortedByDescending{it.length}.forEach {e ->
+        ranked.forEach {e ->
             var ux=(e.b.x-e.a.x)/e.length;var uy=(e.b.y-e.a.y)/e.length
             if(ux<0 || (abs(ux)<1e-12 && uy<0)){ux=-ux;uy=-uy}
             val points=listOf(e.a,e.b)

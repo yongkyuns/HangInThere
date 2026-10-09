@@ -14,6 +14,12 @@ iOS adapter migration can replace the reference.
 | Stability | Quaternion delta, background translation/scale gates, freshness | Rotation-vector sensor and background image registration |
 | Workout | Auto exercise identity, countdown, set lifecycle, bilateral evidence, policy-v8 events and progress | Serial analysis owner, generation invalidation and Compose overlay |
 
+Guided edge fitting retains at most512 actual observed segments for grouping.
+Clutter uses segment length and canonical endpoint ties to retain the strongest
+support, avoiding whole-frame rejection at the old segment-count limit. The
+200,000-point and four-million simplification-operation guards remain in force;
+this change neither extrapolates edges nor changes apparatus/count thresholds.
+
 Pose confidence is SDK evidence, not a calibrated probability. MediaPipe uses
 the weaker visibility/presence value. Counter and setup code have no camera, UI,
 MediaPipe or OpenCV imports. Source PTS advances dwell; display timers cannot earn
@@ -77,14 +83,14 @@ accuracy; no branch protection requirements are changed here.
 
 The clearer Commons pull-up window/full visible bar annotation was frozen before
 its new Android inference; prior iOS source exposure is disclosed in its recipe.
-Dynamic dip accuracy remains unqualified: three additional public candidates
+The public dynamic dip cases remain unqualified: three additional public candidates
 reviewed before inference had moving cameras, held-only motion or bench dips.
 The authored static dip Auto/countdown test currently fails: exercise identity is
 recognized, but the partly occluded far grip does not provide an eligible observed
 rail. Both API29/API35 required native jobs fail this setup assertion, independently
 of the original capture accuracy jobs. Swift and Kotlin reject the same rail
 geometry; no thresholds or fixture labels were changed to bypass the failure.
-Static dip Auto/countdown and dynamic dip accuracy therefore remain unqualified. Strict chin
+Static dip Auto/countdown and generalized dynamic dip accuracy therefore remain unqualified. Strict chin
 clearance and dip depth remain unverified on both platforms. No user recordings or local predictions are
 published. Source recordings and test APKs are excluded from CI artifacts.
 
@@ -152,3 +158,21 @@ counts and pass/fail status appear in public summaries, which require complete
 source coverage and successful native execution/collection. Missing reports fail
 closed. Temporary input secrets and ciphertext release assets are removed after all
 evaluation jobs terminate. None of this qualifies physical live-camera performance.
+
+### Authorized recording checkpoint
+
+[Private CI run37998132925](https://github.com/yongkyuns/HangInThere/actions/runs/37998132925)
+evaluates commit `46903641818fa54dfec2c5ba165088ce3cb40408`. On both API29 and API35,
+the complete SDR derivatives count 2/2 pull-ups and 4/4 dips in production Auto,
+for both arm selections. Counting covers all690 and1124 source frames respectively;
+actual contours acquire the apparatus before the counting pass rewinds. The separate
+frozen fixed-edge diagnostics give the same totals, and production Swift reproduces
+all count/event outcomes, reasons and timestamps from the identical Android poses.
+These two recordings are development evidence, not a held-out accuracy benchmark.
+
+Both unchanged HDR originals fail import on both emulators before analysis. API35
+cannot initialize their Dolby Vision decoder; an SDR derivative passing does not
+qualify the original container. Consequently both private jobs remain red despite
+all four SDR cases passing. No private poses, source images or detailed reports are
+published. Optimization and contour changes require their own native reruns before
+these counts can be attributed to a later implementation.

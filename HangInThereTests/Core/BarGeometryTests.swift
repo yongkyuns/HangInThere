@@ -151,4 +151,73 @@ import Testing
         let fit = try #require(AspectFit(image:size,viewport:ImageSize(width:320,height:400)))
         #expect(fit.imagePoint(fit.displayPoint(Point2D(x:50,y:100))) == Point2D(x:50,y:100))
     }
+
+    private var clutterRegion: BarRegion {
+        BarRegion(Point2D(x:0,y:0),Point2D(x:1000,y:1000))
+    }
+    private var clutterTube: [[Point2D]] {
+        [line(100,300,900,300),line(100,308,900,308)].map { [$0.a,$0.b] }
+    }
+    private var eligibleClutter: [[Point2D]] {
+        // Eligible >=2px fragments in a small texture patch. Repeated trimming
+        // must preserve real long edges without turning this patch into a rail.
+        (0..<2400).map { index in
+            let x = 50 + Double(index % 20), y = 50 + Double((index / 20) % 20)
+            return [Point2D(x:x,y:y),Point2D(x:x+4,y:y)]
+        }
+    }
+    private func clutterCandidates(_ contours: [[Point2D]]) throws -> [BarLineCandidate] {
+        try BarLineFitter.candidates(contours:contours,region:clutterRegion,
+                                    size:ImageSize(width:1000,height:1000))
+    }
+    @Test func boundedSingleEdgeFitterRetainsActualTubeWithoutExtrapolation() throws {
+        let expected = try clutterCandidates(clutterTube)
+        let actual = try clutterCandidates(eligibleClutter + clutterTube)
+        #expect(actual == expected)
+        #expect(actual.count == 2)
+        let pair = try #require(BarFitter.pair(actual[0].edge,actual[1].edge,minimumLength:24))
+        #expect(pair.centerline == line(100,304,900,304))
+    }
+    @Test func boundedSingleEdgeRankingIgnoresContourOrderAndDirection() throws {
+        let input = eligibleClutter + clutterTube
+        let expected = try clutterCandidates(input)
+        #expect(try clutterCandidates(input.reversed().map { Array($0.reversed()) }) == expected)
+        #expect(try clutterCandidates(clutterTube + eligibleClutter.reversed()) == expected)
+        // These equal-length observations straddle the retention boundary;
+        // canonical ties must select the same 512, not merely preserve the tube.
+        let ties = (0..<1100).map { index in
+            [Point2D(x:100,y:20+Double(index)*0.8),Point2D(x:900,y:20+Double(index)*0.8)]
+        }
+        let retained = try clutterCandidates(Array(ties.prefix(BarFitter.maximumSegments)))
+        #expect(!retained.isEmpty)
+        #expect(try clutterCandidates(ties) == retained)
+        #expect(try clutterCandidates(ties.reversed().map { Array($0.reversed()) }) == retained)
+    }
+    @Test func boundedSingleEdgeClutterCannotInventObservedSupport() throws {
+        #expect(try clutterCandidates(eligibleClutter).isEmpty)
+        let degenerate = Array(repeating:[Point2D(x:100,y:100),Point2D(x:100,y:100)],count:2400)
+        #expect(try clutterCandidates(degenerate).isEmpty)
+        let tiny = (0..<900).map { index in
+            [Point2D(x:20+Double(index),y:600),Point2D(x:21+Double(index),y:600)]
+        }
+        #expect(try clutterCandidates(tiny).isEmpty)
+        #expect(try clutterCandidates(tiny + clutterTube) == clutterCandidates(clutterTube))
+    }
+    @Test func boundedSingleEdgeQuietFramesKeepOriginalProposalOrder() throws {
+        let expected = [BarLineCandidate(edge:line(100,300,900,300),geometryScore:800),
+                        BarLineCandidate(edge:line(100,308,900,308),geometryScore:800)]
+        #expect(try clutterCandidates(Array(clutterTube.reversed())) == expected)
+    }
+    @Test func boundedSingleEdgePointLimitStillFailsExplicitly() {
+        #expect(throws: BarFitError.self) {
+            try clutterCandidates([Array(repeating:Point2D(x:100,y:100),count:BarFitter.maximumPoints+1)])
+        }
+    }
+    @Test func boundedSingleEdgeSimplificationBudgetStillFailsExplicitly() {
+        // Repeated RDP splits exceed the unchanged distance-check budget.
+        let zigzag = (0..<5000).map {
+            Point2D(x:20+Double($0)*0.1,y:$0%2==0 ? 100 : 200)
+        }
+        #expect(throws: BarFitError.self) { try clutterCandidates([zigzag]) }
+    }
 }
