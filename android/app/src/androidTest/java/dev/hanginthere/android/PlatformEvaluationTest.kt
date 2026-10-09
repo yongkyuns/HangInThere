@@ -142,7 +142,7 @@ class PlatformEvaluationTest {
             put("schemaVersion", 1); put("policyVersion", ExerciseCounter.policyVersion)
             put("package", app.packageName); put("sdk", Build.VERSION.SDK_INT); put("device", Build.DEVICE); put("model", Build.MODEL)
             put("fingerprint", Build.FINGERPRINT); put("abis", Json.encodeToJsonElement(Build.SUPPORTED_ABIS.toList()))
-            put("delegate", "CPU"); put("poseArtifact", "com.google.mediapipe:tasks-vision:0.10.26.1"); put("opencvArtifact", "org.opencv:opencv:4.12.0")
+            put("delegate", "CPU"); put("poseArtifact", PoseEstimator.ARTIFACT); put("poseArtifactSha256", PoseEstimator.ARTIFACT_SHA256); put("opencvArtifact", "org.opencv:opencv:4.12.0")
             put("modelSha256", PoseEstimator.MODEL_SHA256); put("canonicalPixels", "upright unmirrored origin top-left max1280")
             put("confidence", "minimum of raw visibility and presence; threshold0.3; not cross-backend calibrated")
             put("benchmarkScope", "Emulator replay wall time, no physical camera/thermal/battery qualification; first inference retained separately")

@@ -4,7 +4,7 @@ The Compose screen is a full camera canvas with aligned, unmirrored pose and app
 
 ## Build
 
-Use JDK17, Android SDK36 and the checked-in Gradle8.13 wrapper. Tool/plugin/artifact versions are explicit. Download the official Heavy model with its verified SHA256:
+Use JDK17, Android SDK36 and the checked-in Gradle8.13 wrapper. Tool/plugin/artifact versions are explicit. MediaPipe0.10.32 is checksum-verified before packaging and includes actual ARM32/ARM64/x86/x86_64 JNI, each independently inspected with16KiB ELF LOAD alignment. Earlier0.10.26.1 lacked emulator JNI and is not used. Download the official Heavy model with its verified SHA256:
 
 ```
 python3 scripts/prepare-mediapipe-model.py --output android/app/src/main/assets/pose_landmarker_heavy.task --metadata build/android-model.json
@@ -28,4 +28,4 @@ The model is ignored; no user footage belongs in app or test assets. Instrumenta
 
 Emulator instrumentation reports exact decoded PTS, decoded frame count, observed MediaPipe movement counts on reviewed fixed edges, actual contour detections, pose/decode/contour/scene latency distributions plus separate production Auto replay acquisition and full pipeline/display-copy timings and process/native/Java memory. Reports are written under app external-files `evaluation/` even when count parity fails. A fixed-edge fixture count is not a proof that production Auto setup succeeds on that view. JVM shared-engine oracle parity separately isolates policy equivalence from differences in body-pose backends.
 
-CPU/emulator wall time is not phone frame-rate, thermal, battery or camera qualification. Front-camera hardware, sensor timebase alignment and background texture sensitivity need physical Android coverage before claiming full live/performance parity. No fallback fabricates stable registration evidence.
+CPU/emulator wall time is not phone frame-rate, thermal, battery or camera qualification. Front-camera hardware, sensor timebase alignment and background texture sensitivity need physical Android coverage before claiming full live/performance parity. Replay setting/grip changes restart the full cached video source on a new generation; completion closes the actual counter. Completed replays expose Evaluate again. Exercise/grip/camera changes are disabled during live sets so the selected exercise remains fixed. UI instrumentation captures the real app before assertions, including failures. No fallback fabricates stable registration evidence.

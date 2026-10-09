@@ -3,16 +3,16 @@ set -euo pipefail
 mkdir -p build/android-evaluation
 # Retain diagnostics even when an accuracy assertion fails. No media/test APK uploads.
 set +e
-./gradlew :android:app:connectedDebugAndroidTest --console=plain
+./gradlew :android:app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true --console=plain
 test_status=$?
 set -e
 adb pull /sdcard/Android/data/dev.hanginthere.android/files/evaluation/. build/android-evaluation/ || true
 adb logcat -d -v threadtime > build/android-evaluation/logcat.txt
-adb shell am start -n dev.hanginthere.android/.MainActivity
-adb shell pm grant dev.hanginthere.android android.permission.CAMERA
-adb shell am force-stop dev.hanginthere.android
-adb shell am start -n dev.hanginthere.android/.MainActivity
-adb exec-out screencap -p > build/android-evaluation/live-screen.png
+# Diagnostic collection must not overwrite the instrumentation failure status.
+adb shell pm grant dev.hanginthere.android android.permission.CAMERA || true
+adb shell am force-stop dev.hanginthere.android || true
+adb shell am start -n dev.hanginthere.android/.MainActivity || true
+adb exec-out screencap -p > build/android-evaluation/live-screen.png || true
 python3 - <<'PY'
 import json,subprocess
 from pathlib import Path

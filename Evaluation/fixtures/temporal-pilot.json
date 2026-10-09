@@ -2,6 +2,7 @@
   "annotation_provenance": "Single-assistant visual temporal review on raw/source-only media. Pull-up and DVIDS dip windows were frozen before their counter runs; prior pose-only pull-up exposure is disclosed. The controlled Pexels dip was initially reviewed at 2 FPS before Vision/counter execution, then re-reviewed from the pinned source-only 8 FPS artifact after earlier counter failures exposed insufficient temporal review resolution. That development-only re-review corrected the controlled clip from seven to nine complete top-return cycles; no model-derived timestamps were used for the corrected windows. The separate held-out dip fixture remains outside this development corpus.",
   "review_artifact_sha256": "3a85ad57dc18da66189f733caf4dd94d54753fe363c12fbd9cfaec7f0772234f",
   "schema_version": 1,
+  "counter_policy_version": 8,
   "scope": "Four continuously decoded clips: one controlled fixed-camera pull-up, one controlled fixed-camera parallel-bar dip, and two crowded/moving-camera dip stress diagnostics. Model-independent approximate single-reviewer temporal labels; no strict-form verdict.",
   "sources": [
     {

@@ -8,6 +8,7 @@ import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import dev.hanginthere.core.*
+import dev.hanginthere.android.BuildConfig
 import java.io.Closeable
 import java.security.MessageDigest
 
@@ -54,6 +55,8 @@ class PoseEstimator(context: Context) : Closeable {
     }
     override fun close() = detector.close()
     companion object {
+        const val ARTIFACT = "com.google.mediapipe:tasks-vision:${BuildConfig.POSE_RUNTIME_VERSION}"
+        const val ARTIFACT_SHA256 = BuildConfig.POSE_RUNTIME_AAR_SHA256
         const val MODEL = "pose_landmarker_heavy.task"
         const val MODEL_SHA256 = "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b"
         private val JOINTS = listOf(PoseJoint.nose to 0, PoseJoint.leftEye to 2, PoseJoint.rightEye to 5,

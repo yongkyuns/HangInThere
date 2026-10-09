@@ -51,7 +51,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
     var resumed by remember { mutableStateOf(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
     var manual by remember { mutableStateOf(false) }
     var firstTap by remember { mutableStateOf<Point2D?>(null) }
-    val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) model.replay(uri) }
+    val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) model.replay(uri, selection, side) }
     DisposableEffect(owner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) resumed = true
@@ -131,7 +131,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
         }
         Column(Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(12.dp)) {
             FilledTonalButton(onClick = { settings = true }) { Text("Settings") }
-            if (allowCamera && !state.replay) FilledTonalButton(onClick = { front = !front }) { Text("Flip") }
+            if (allowCamera && !state.replay) FilledTonalButton(onClick = { front = !front }, enabled = state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text("Flip") }
         }
         state.result?.snapshot?.countdownSeconds?.let { Text("$it", Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = 0.5f)).padding(24.dp), fontSize = 72.sp, color = Color.White) }
         Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -150,15 +150,15 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 LinearProgressIndicator(progress = { (state.result?.progress ?: 0.0).toFloat() }, Modifier.fillMaxWidth().padding(vertical = 10.dp), color = if (state.result?.progress == 1.0) Color.Green else Color.Cyan)
                 FilledTonalButton(onClick = model::finishSet) { Text("End set") }
             } else if (state.interrupted && !state.replay) FilledTonalButton(onClick = { model.startLive(selection, side) }) { Text("Start next set") }
-            else if (snapshot?.phase == LiveSetSession.Phase.finished) FilledTonalButton(onClick = model::nextSet) { Text("Next set") }
+            else if (snapshot?.phase == LiveSetSession.Phase.finished) FilledTonalButton(onClick = model::nextSet) { Text(if (state.replay) "Evaluate again" else "Next set") }
         }
     }
     if (settings) AlertDialog(onDismissRequest = { settings = false }, title = { Text("Workout settings") }, text = {
         Column {
             Text("Exercise")
-            Row { listOf(WorkoutExerciseSelection.automatic to "Auto", WorkoutExerciseSelection.pullUp to "Pull-up", WorkoutExerciseSelection.dip to "Dip").forEach { (choice, title) -> TextButton(onClick = { selection = choice }) { Text(if (selection == choice) "✓ $title" else title) } } }
+            Row { listOf(WorkoutExerciseSelection.automatic to "Auto", WorkoutExerciseSelection.pullUp to "Pull-up", WorkoutExerciseSelection.dip to "Dip").forEach { (choice, title) -> TextButton(onClick = { selection = choice; if (state.replay) model.changeReplaySelection(choice, side) }, enabled = state.replay || state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text(if (selection == choice) "✓ $title" else title) } } }
             Text("Reference grip")
-            Row { ArmMeasurement.Side.entries.forEach { choice -> TextButton(onClick = { side = choice }) { Text(if (side == choice) "✓ ${choice.name}" else choice.name) } } }
+            Row { ArmMeasurement.Side.entries.forEach { choice -> TextButton(onClick = { side = choice; if (state.replay) model.changeReplaySelection(selection, choice) }, enabled = state.replay || state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text(if (side == choice) "✓ ${choice.name}" else choice.name) } } }
             TextButton(onClick = { settings = false; firstTap = null; manual = true }) { Text("Set visible reference edge") }
             TextButton(onClick = { settings = false; videoPicker.launch(arrayOf("video/*")) }) { Text("Evaluate a video") }
             if (state.replay) TextButton(onClick = { settings = false; model.startLive(selection, side) }) { Text("Return to live camera") }

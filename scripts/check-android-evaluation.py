@@ -8,6 +8,7 @@ def core(path):
     r=json.loads(path.read_text());assert r['cases']>=25 and r['frames']>=180
     p95=r['p95NanosecondsPerFrame'];assert finite_positive(p95) and p95<1_000_000, 'Shared core p95 exceeds 1ms/frame'
     s=r['swift']['p95NanosecondsPerFrame'];assert finite_positive(s)
+    assert finite_positive(r['checksum']) and abs(r['checksum']-r['swift']['checksum'])<1e-7, 'Benchmark output was not consumed identically'
     print(f"Same-host core p95: Swift {s/1000:.1f}µs, Kotlin {p95/1000:.1f}µs ({p95/s:.2f}×); core budget<1ms. Camera/model excluded.")
 def native(path):
     r=json.loads(path.read_text());assert r['policyVersion']==8 and not r['failures']

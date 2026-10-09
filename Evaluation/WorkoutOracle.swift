@@ -56,6 +56,7 @@ private struct Benchmark: Encodable {
     let framesPerIteration: Int
     let p50NanosecondsPerFrame: Double
     let p95NanosecondsPerFrame: Double
+    let checksum: Double
 }
 @main private enum WorkoutOracle {
     static func run(_ input: Case) -> Result {
@@ -83,15 +84,22 @@ private struct Benchmark: Encodable {
         let frames = cases.reduce(0) { $0 + $1.steps.count }
         for _ in 0..<20 { for input in cases { _ = run(input) } }
         var timings: [Double] = []
+        var checksum = 0.0
         for _ in 0..<100 {
             let start = DispatchTime.now().uptimeNanoseconds
-            for input in cases { _ = run(input) }
+            for input in cases {
+                let result = run(input)
+                for snapshot in result.snapshots {
+                    checksum += Double(snapshot.summary.observedMovements)
+                        + (snapshot.pullUpProgress?.fraction ?? 0) + (snapshot.dipProgress?.fraction ?? 0)
+                }
+            }
             timings.append(Double(DispatchTime.now().uptimeNanoseconds - start) / Double(frames))
         }
         timings.sort()
         let report = Report(policyVersion: ExerciseCounter.policyVersion, cases: results,
             benchmark: Benchmark(cases: cases.count, iterations: timings.count, framesPerIteration: frames,
-                p50NanosecondsPerFrame: timings[50], p95NanosecondsPerFrame: timings[95]))
+                p50NanosecondsPerFrame: timings[50], p95NanosecondsPerFrame: timings[95], checksum: checksum))
         let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         print(String(decoding: try encoder.encode(report), as: UTF8.self))
     }

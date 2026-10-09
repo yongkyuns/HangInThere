@@ -65,9 +65,14 @@ class SwiftParityTest {
         }
         assertTrue(frames >= 180)
         val inputs=cases.map { json.decodeFromJsonElement<Input>(it.jsonObject.getValue("input")) }
-        repeat(20) { inputs.forEach { run(it) } }
+        repeat(1000) { inputs.forEach { run(it) } }
+        var checksum=0.0
         val times=List(100) {
-            val start=System.nanoTime();inputs.forEach { run(it) }
+            val start=System.nanoTime()
+            inputs.forEach { input ->
+                run(input).first.forEach { snapshot -> checksum += snapshot.summary.observedMovements.toDouble() +
+                    (snapshot.pullUpProgress?.fraction ?: 0.0) + (snapshot.dipProgress?.fraction ?: 0.0) }
+            }
             (System.nanoTime()-start).toDouble()/frames
         }.sorted()
         val result=buildJsonObject {
@@ -75,7 +80,10 @@ class SwiftParityTest {
             put("cases",cases.size);put("frames",frames);put("iterations",100)
             put("p50NanosecondsPerFrame",times[50]);put("p95NanosecondsPerFrame",times[95])
             put("swift",report.getValue("benchmark"))
+            put("checksum",checksum)
         }
+        assertTrue(abs(report.getValue("benchmark").jsonObject.getValue("checksum").jsonPrimitive.double-checksum)<1e-7,
+            "Both benchmark loops must consume matching movement and progress outputs")
         val output=File(System.getenv("WORKOUT_PARITY_REPORT") ?: "../build/workout-oracle/kotlin-parity.json")
         output.parentFile.mkdirs();output.writeText(json.encodeToString(result))
     }

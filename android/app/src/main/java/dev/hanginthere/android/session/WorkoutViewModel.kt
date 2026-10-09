@@ -38,6 +38,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     private val controls = ArrayBlockingQueue<Control>(16)
     private val controlLock = Any()
     private var replayRunning = false
+    private var replayUri: Uri? = null
     private fun control(action: (AnalysisPipeline) -> Unit) {
         val command = Control(generation.get(), action)
         val queued = synchronized(controlLock) {
@@ -46,15 +47,22 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                 true
             } else false
         }
-        if (!queued) inferenceExecutor.execute { if (command.token == generation.get()) pipeline?.let(command.action) }
+        if (!queued) inferenceExecutor.execute { if (command.token == generation.get()) pipeline?.let { applyControl(command, it) } }
     }
     private fun drainControls(token: Long, active: AnalysisPipeline) {
         while (true) {
             val command = synchronized(controlLock) {
                 if (generation.get() == token) controls.poll() else null
             } ?: break
-            if (command.token == token && generation.get() == token) command.action(active)
+            if (command.token == token && generation.get() == token) applyControl(command, active)
         }
+    }
+    private fun applyControl(command: Control, active: AnalysisPipeline) {
+        command.action(active)
+        val current = state.value
+        val snapshot = active.runtime.snapshot
+        publish(command.token, current.copy(result = current.result?.copy(snapshot = snapshot),
+            finished = current.replay && snapshot.phase == LiveSetSession.Phase.finished))
     }
     private fun publish(token: Long, value: State) {
         pendingUI.set(token to value)
@@ -84,7 +92,14 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     fun finishSet() { control { it.runtime.stop() } }
-    fun nextSet() { control { it.runtime.nextSet() } }
+    fun nextSet() {
+        val current = state.value
+        if (current.replay) replayUri?.let { replay(it, current.selection, current.side) }
+        else control { it.runtime.nextSet() }
+    }
+    fun changeReplaySelection(selection: WorkoutExerciseSelection, side: ArmMeasurement.Side) {
+        replayUri?.takeIf { state.value.replay }?.let { replay(it, selection, side) }
+    }
     fun confirmManual(a: Point2D, b: Point2D) {
         val token = generation.get(); val current = state.value; val pose = current.result?.pose ?: return
         control { active ->
@@ -126,8 +141,8 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         } catch (error: Throwable) { publish(token, mutableState.value.copy(error = error.message ?: "Camera analysis failed")) }
         finally { image.close() }
     }
-    fun replay(uri: Uri) {
-        val selection = state.value.selection; val side = state.value.side
+    fun replay(uri: Uri, selection: WorkoutExerciseSelection = state.value.selection, side: ArmMeasurement.Side = state.value.side) {
+        replayUri = uri
         val token = generation.incrementAndGet(); attitude.close()
         synchronized(controlLock) { replayRunning = true; controls.clear() }
         mutableState.value = State(replay = true, selection = selection, side = side)
@@ -143,6 +158,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                         while (generation.get() == token) {
                             drainControls(token, active)
                             while (paused && generation.get() == token) { drainControls(token, active); Thread.sleep(50) }
+                            if (!acquireOnly && active.runtime.snapshot.phase == LiveSetSession.Phase.finished) break
                             val frame = reader.next { generation.get() != token } ?: break
                             frame.use {
                                 val time = it.presentationTimeUs / 1e6
