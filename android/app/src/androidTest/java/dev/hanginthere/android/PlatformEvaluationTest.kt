@@ -48,6 +48,35 @@ class PlatformEvaluationTest {
             }
         }
     }
+    @Test fun sdrBulkConversionPreservesFloatRoundingAtSensitiveColors() {
+        data class Sample(val encoding: YuvColorEncoding, val y: Int, val u: Int, val v: Int, val rgb: Int)
+        // Independent rounded reference colors, away from exact half-integer
+        // ties. Quantized 8-bit transform coefficients change these by one level;
+        // that tolerance was insufficient for end-to-end Auto setup equivalence.
+        val samples = listOf(
+            Sample(YuvColorEncoding(YuvColorEncoding.Standard.bt709, YuvColorEncoding.Range.limited),
+                16, 0, 145, Color.rgb(30, 18, 0)),
+            Sample(YuvColorEncoding(YuvColorEncoding.Standard.bt709, YuvColorEncoding.Range.full),
+                0, 0, 50, Color.rgb(0, 60, 0)),
+            Sample(YuvColorEncoding(YuvColorEncoding.Standard.bt601, YuvColorEncoding.Range.full),
+                0, 0, 98, Color.rgb(0, 65, 0))
+        )
+        samples.forEach { sample ->
+            // Even dimensions exercise SIMD blocks plus a scalar remainder.
+            val width = 18; val height = 2
+            val planes = listOf(
+                CanonicalPixels.Plane(ByteBuffer.wrap(ByteArray(width * height) { sample.y.toByte() }), width, 1),
+                CanonicalPixels.Plane(ByteBuffer.wrap(ByteArray(width * height / 4) { sample.u.toByte() }), width / 2, 1),
+                CanonicalPixels.Plane(ByteBuffer.wrap(ByteArray(width * height / 4) { sample.v.toByte() }), width / 2, 1)
+            )
+            val bitmap = CanonicalPixels.yuv(width, height, Rect(0, 0, width, height), planes, sample.encoding)
+            try {
+                for (y in 0 until height) for (x in 0 until width) {
+                    assertEquals("Sensitive SDR reference at $x,$y for ${sample.encoding}", sample.rgb, bitmap.getPixel(x, y))
+                }
+            } finally { bitmap.recycle() }
+        }
+    }
     @Test fun bulkYuvMatchesIndependentScalarColorsAcrossCropAndPlaneLayouts() {
         fun checkLayout(width: Int, height: Int, crop: Rect, yStride: Int, chromaStride: Int,
                         encoding: YuvColorEncoding = YuvColorEncoding()) {

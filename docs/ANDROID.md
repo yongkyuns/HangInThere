@@ -176,3 +176,10 @@ qualify the original container. Consequently both private jobs remain red despit
 all four SDR cases passing. No private poses, source images or detailed reports are
 published. Optimization and contour changes require their own native reruns before
 these counts can be attributed to a later implementation.
+
+The attempted direct8-bit color transform at `f123466` was discarded: despite
+exhaustive host pixel differences bounded by one channel level, native API29
+Auto dip acquisition regressed to unavailable for both arm selections. The
+fixed-edge diagnostic still counted4/4, isolating failure to the complete setup
+path. Current conversion preserves the prior float-transform pixel output; no
+buffer optimization is claimed without successful complete native reruns.
