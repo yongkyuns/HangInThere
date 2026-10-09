@@ -73,7 +73,12 @@ The clearer Commons pull-up window/full visible bar annotation was frozen before
 its new Android inference; prior iOS source exposure is disclosed in its recipe.
 Dynamic dip accuracy remains unqualified: three additional public candidates
 reviewed before inference had moving cameras, held-only motion or bench dips.
-Static dip Auto/countdown success is not dynamic movement validation. Strict chin
+The authored static dip Auto/countdown test currently fails: exercise identity is
+recognized, but the partly occluded far grip does not provide an eligible observed
+rail. Both API29/API35 required native jobs fail this setup assertion, independently
+of the original capture accuracy jobs. Swift and Kotlin reject the same rail
+geometry; no thresholds or fixture labels were changed to bypass the failure.
+Static dip Auto/countdown and dynamic dip accuracy therefore remain unqualified. Strict chin
 clearance and dip depth remain unverified on both platforms. No user recordings or local predictions are
 published. Source recordings and test APKs are excluded from CI artifacts.
 
@@ -90,6 +95,33 @@ Physical Android front/back cameras, vendor sensor clocks, thermal throttling,
 battery use and sustained live throughput cannot be qualified by an emulator.
 Full device performance parity remains open until representative Android hardware
 is tested. Do not describe green core or emulator checks as proof of that parity.
+
+## Native evaluation checkpoint
+
+[CI run37990163632](https://github.com/yongkyuns/HangInThere/actions/runs/37990163632)
+evaluates implementation commit `4d6ae095324ad18edeadfcaf902e6c540348cb81` on both
+API29 and API35. Its native reports show:
+
+| Check | Both emulator results |
+| --- | --- |
+| Positive pull-up, fixed observed edge | 1/1 movements |
+| Positive pull-up, production Auto replay | 1/1, complete108-frame counting pass |
+| Rendered replay UI, Auto and explicit Pull-up/right-side settings | 1 movement, completed |
+| Authored held pull-up, Auto setup | Observed bar,3/2/1 countdown, running after3.083333s |
+| Authored held dip, Auto setup | Dip identified; rail acquisition and countdown fail |
+| Original pull-up/dip captures | 0/1 and0/9; accuracy jobs fail |
+
+The same run passed all89 shared tests, the iOS simulator framework build and
+Swift replay of both emulators' model observations. Same-host core p95 was1.3µs
+for Kotlin and6.1µs for Swift, with identical consumed checksums. These core-only
+times exclude camera and pose inference.
+
+Decode-inclusive production pipeline p95 across the three clips was109.8–130.6ms
+on API29 and83.8–102.9ms on API35. Peak process PSS was299.8–311.9MiB and
+284.5–290.8MiB respectively. These are emulator regression measurements with
+different runner hosts, not a phone comparison or a real-time guarantee. The native
+jobs remain red because of the dip setup assertion; this checkpoint does not
+establish full functional or performance parity.
 
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;
