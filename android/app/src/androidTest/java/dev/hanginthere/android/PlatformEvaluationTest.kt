@@ -88,8 +88,9 @@ class PlatformEvaluationTest {
                     val pixel = bitmap.getPixel(x - crop.left, y - crop.top)
                     val actual = listOf(Color.red(pixel), Color.green(pixel), Color.blue(pixel))
                     expected.zip(actual).forEachIndexed { channel, (reference, observed) ->
+                        val tolerance = if (encoding == YuvColorEncoding()) 2 else 1
                         assertTrue("YUV crop/stride color at $x,$y channel $channel: $reference vs $observed",
-                            kotlin.math.abs(reference - observed) <= 2)
+                            kotlin.math.abs(reference - observed) <= tolerance)
                     }
                     assertEquals(255, Color.alpha(pixel))
                 }

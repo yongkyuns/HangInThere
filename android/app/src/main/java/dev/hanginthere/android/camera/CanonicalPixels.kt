@@ -91,24 +91,23 @@ object CanonicalPixels {
     private fun convertSdr(packed: ByteArray, width: Int, height: Int, encoding: YuvColorEncoding, rgba: Mat) {
         val y = Mat(height, width, CvType.CV_8UC1)
         val uSmall = Mat(height / 2, width / 2, CvType.CV_8UC1); val vSmall = Mat(height / 2, width / 2, CvType.CV_8UC1)
-        val u = Mat(); val v = Mat(); val yuv = Mat(); val rgbFloat = Mat(); val rgb = Mat()
+        val u = Mat(); val v = Mat(); val yuv = Mat(); val rgb = Mat()
         val matrix = Mat(3, 4, CvType.CV_32F)
         try {
             val area = width * height
             y.put(0, 0, packed, 0, area)
             uSmall.put(0, 0, packed, area, area / 4); vSmall.put(0, 0, packed, area * 5 / 4, area / 4)
             if (encoding.range == YuvColorEncoding.Range.limited) Core.max(y, Scalar(16.0), y)
-            y.convertTo(y, CvType.CV_32F)
             Imgproc.resize(uSmall, u, Size(width.toDouble(), height.toDouble()), 0.0, 0.0, Imgproc.INTER_NEAREST)
             Imgproc.resize(vSmall, v, Size(width.toDouble(), height.toDouble()), 0.0, 0.0, Imgproc.INTER_NEAREST)
-            u.convertTo(u, CvType.CV_32F); v.convertTo(v, CvType.CV_32F)
             Core.merge(listOf(y, u, v), yuv)
             matrix.put(0, 0, encoding.rgbMatrix().map { it.toFloat() }.toFloatArray())
-            Core.transform(yuv, rgbFloat, matrix)
-            rgbFloat.convertTo(rgb, CvType.CV_8UC3)
+            // transform retains source depth and saturates the final RGB values;
+            // full-frame float planes and a float RGB intermediate are unnecessary.
+            Core.transform(yuv, rgb, matrix)
             Imgproc.cvtColor(rgb, rgba, Imgproc.COLOR_RGB2RGBA)
         } finally {
-            matrix.release(); rgb.release(); rgbFloat.release(); yuv.release(); v.release(); u.release()
+            matrix.release(); rgb.release(); yuv.release(); v.release(); u.release()
             vSmall.release(); uSmall.release(); y.release()
         }
     }

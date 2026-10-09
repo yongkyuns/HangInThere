@@ -21,7 +21,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: private-android-${{ github.ref }}
+  group: private-android-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: false
 jobs:
   imported:
