@@ -1,8 +1,8 @@
 import Foundation
 
 // Live framing readiness is deliberately narrower than workout readiness.
-// It verifies that exactly one athlete and the selected shoulder/elbow/wrist
-// chain are measurable in the current frame. It does NOT verify apparatus,
+// It verifies exactly one athlete and usable shoulder/elbow/wrist chains
+// (both when available for pull-ups; the selected arm for dips). It does NOT verify apparatus,
 // camera stability, exercise identity, rep validity, or form.
 struct LiveFramingAssessment: Equatable, Sendable {
     enum State: String, Equatable, Sendable {
@@ -18,12 +18,15 @@ struct LiveFramingAssessment: Equatable, Sendable {
     }
 
     let state: State
+    let usesBothArms: Bool
 
-    init(state: State = .waitingForFrame) {
+    init(state: State = .waitingForFrame, usesBothArms: Bool = false) {
         self.state = state
+        self.usesBothArms = usesBothArms
     }
 
-    init(pose: PoseResult, side: ArmMeasurement.Side) {
+    init(pose: PoseResult, side: ArmMeasurement.Side, usesBothArms: Bool = false) {
+        self.usesBothArms = usesBothArms
         guard pose.imageSize.isValid else {
             state = .analysisUnavailable
             return
@@ -38,8 +41,10 @@ struct LiveFramingAssessment: Equatable, Sendable {
         }
 
         let arm = ArmMeasurement(pose: pose, side: side)
-        guard arm.estimate != nil else {
-            switch arm.unavailableReason {
+        let bilateral = PullUpArmMeasurement(pose: pose)
+        let usable = usesBothArms ? !bilateral.arms.isEmpty : arm.estimate != nil
+        guard usable else {
+            switch usesBothArms ? bilateral.unavailableReason : arm.unavailableReason {
             case .missingJoint, .noPerson:
                 state = .selectedArmHidden
             case .lowConfidence, .shortProjectedSegment:
@@ -58,11 +63,11 @@ struct LiveFramingAssessment: Equatable, Sendable {
     var title: String {
         switch state {
         case .waitingForFrame: "Checking framing"
-        case .ready: "Athlete and selected arm visible"
+        case .ready: usesBothArms ? "Athlete and usable arms visible" : "Athlete and selected arm visible"
         case .noPerson: "Step into frame"
         case .multiplePeople: "Keep one athlete in frame"
-        case .selectedArmHidden: "Show the selected arm"
-        case .selectedArmUnclear: "Make the selected arm clearer"
+        case .selectedArmHidden: usesBothArms ? "Show your arms" : "Show the selected arm"
+        case .selectedArmUnclear: usesBothArms ? "Make your arms clearer" : "Make the selected arm clearer"
         case .analysisUnavailable: "Framing check unavailable"
         }
     }
@@ -72,15 +77,18 @@ struct LiveFramingAssessment: Equatable, Sendable {
         case .waitingForFrame:
             "Waiting for the first analyzed camera frame."
         case .ready:
-            "One athlete and the selected shoulder, elbow, and wrist are measurable."
+            usesBothArms ? "Both arms are used when measurable; one can continue if the other is obscured."
+                : "One athlete and the selected shoulder, elbow, and wrist are measurable."
         case .noPerson:
             "Move into the camera view before continuing setup."
         case .multiplePeople:
             "The first live-workout profile supports one athlete at a time."
         case .selectedArmHidden:
-            "Reposition the phone or athlete so the selected shoulder, elbow, and wrist are visible."
+            usesBothArms ? "Keep at least one shoulder, elbow, and wrist visible."
+                : "Reposition the phone or athlete so the selected shoulder, elbow, and wrist are visible."
         case .selectedArmUnclear:
-            "Move closer, improve lighting, or adjust the view so the selected arm can be measured reliably."
+            usesBothArms ? "Move closer, improve lighting, or adjust the view so your arms can be measured reliably."
+                : "Move closer, improve lighting, or adjust the view so the selected arm can be measured reliably."
         case .analysisUnavailable:
             "Live pose analysis could not produce a usable framing result."
         }

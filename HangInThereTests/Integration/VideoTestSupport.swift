@@ -47,10 +47,10 @@ enum VideoTestSupport {
     // Original synthetic pixels, not a human-pose accuracy fixture. Four coloured
     // quadrants make every rotation/reflection observable after actual decoding.
     static func makeVideo(transform: CGAffineTransform = .identity,
-                          timestamps: [CMTime] = VideoTestSupport.timestamps) async throws -> URL {
+                          timestamps: [CMTime] = VideoTestSupport.timestamps,
+                          width: Int = 160, height: Int = 96) async throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("quadrants-\(UUID().uuidString).mp4")
         let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
-        let width = 160, height = 96
         let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
             AVVideoCodecKey: AVVideoCodecType.h264,
             AVVideoWidthKey: width, AVVideoHeightKey: height

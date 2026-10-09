@@ -357,7 +357,7 @@ struct ConfirmedBar: Equatable, Sendable {
             }
         }
     }
-    enum Method: String, Sendable { case guidedContours, manualEdge }
+    enum Method: String, Sendable { case guidedContours, manualEdge, automaticContours }
     let role: Role
     let method: Method
     let referenceEdge: BarSegment
@@ -374,6 +374,6 @@ struct ConfirmedBar: Equatable, Sendable {
                 && bounds.contains(oppositeEdge.b)
                 && BarFitter.pair(referenceEdge, oppositeEdge, minimumLength: 24) != nil
         }
-        return method == .manualEdge || method == .guidedContours
+        return true
     }
 }

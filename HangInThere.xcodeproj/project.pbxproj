@@ -5,6 +5,44 @@
 	};
 	objectVersion = 56;
 	objects = {
+		AEB000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetection.swift; sourceTree = "<group>";};
+		AEB000000000000000000002 = {isa = PBXBuildFile; fileRef = AEB000000000000000000001;};
+		AEB000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetectionTests.swift; sourceTree = "<group>";};
+		AEB000000000000000000004 = {isa = PBXBuildFile; fileRef = AEB000000000000000000003;};
+		ADA000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipRails.swift; sourceTree = "<group>";};
+		ADA000000000000000000002 = {isa = PBXBuildFile; fileRef = ADA000000000000000000001;};
+		ADA000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipRailsTests.swift; sourceTree = "<group>";};
+		ADA000000000000000000004 = {isa = PBXBuildFile; fileRef = ADA000000000000000000003;};
+		AD9000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgress.swift; sourceTree = "<group>";};
+		AD9000000000000000000002 = {isa = PBXBuildFile; fileRef = AD9000000000000000000001;};
+		AD9000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgressTests.swift; sourceTree = "<group>";};
+		AD9000000000000000000004 = {isa = PBXBuildFile; fileRef = AD9000000000000000000003;};
+		AD8000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipSupportMeasurement.swift; sourceTree = "<group>";};
+		AD8000000000000000000002 = {isa = PBXBuildFile; fileRef = AD8000000000000000000001;};
+		AD8000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipSupportTests.swift; sourceTree = "<group>";};
+		AD8000000000000000000004 = {isa = PBXBuildFile; fileRef = AD8000000000000000000003;};
+		A92000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutOverlay.swift; sourceTree = "<group>";};
+		A92000000000000000000002 = {isa = PBXBuildFile; fileRef = A92000000000000000000001;};
+		A91000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpProgress.swift; sourceTree = "<group>";};
+		A91000000000000000000002 = {isa = PBXBuildFile; fileRef = A91000000000000000000001;};
+		A91000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseProgressView.swift; sourceTree = "<group>";};
+		A91000000000000000000004 = {isa = PBXBuildFile; fileRef = A91000000000000000000003;};
+		A91000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpProgressTests.swift; sourceTree = "<group>";};
+		A91000000000000000000006 = {isa = PBXBuildFile; fileRef = A91000000000000000000005;};
+		ABA000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpArmMeasurement.swift; sourceTree = "<group>";};
+		ABA000000000000000000002 = {isa = PBXBuildFile; fileRef = ABA000000000000000000001;};
+		AF5000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeSetStart.swift; sourceTree = "<group>";};
+		AF5000000000000000000002 = {isa = PBXBuildFile; fileRef = AF5000000000000000000001;};
+		AF5000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeSetStartTests.swift; sourceTree = "<group>";};
+		AF5000000000000000000004 = {isa = PBXBuildFile; fileRef = AF5000000000000000000003;};
+		AAB000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBarReplayTests.swift; sourceTree = "<group>";};
+		AAB000000000000000000006 = {isa = PBXBuildFile; fileRef = AAB000000000000000000005;};
+		AAB000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticPullUpBarTests.swift; sourceTree = "<group>";};
+		AAB000000000000000000004 = {isa = PBXBuildFile; fileRef = AAB000000000000000000003;};
+		AAB000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticPullUpBar.swift; sourceTree = "<group>";};
+		AAB000000000000000000002 = {isa = PBXBuildFile; fileRef = AAB000000000000000000001;};
+		ACF000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCameraSelectionTests.swift; sourceTree = "<group>";};
+		ACF000000000000000000002 = {isa = PBXBuildFile; fileRef = ACF000000000000000000001;};
 		D8B6A101D4B748E0A35F0501 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSessionPackageTests.swift; sourceTree = "<group>";};
 		D8B6A101D4B748E0A35F0502 = {isa = PBXBuildFile; fileRef = D8B6A101D4B748E0A35F0501;};
 		6FAA384EC7A5412D562FC46C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupControllerTests.swift; sourceTree = "<group>";};
@@ -127,6 +165,14 @@
 				43CB0B7C6E08EDC8E4AA2F66,
 				5BC7DD8ACA3C903E46747468,
 				8481783EB299CE0AF72A03FC,
+				AAB000000000000000000001,
+				AF5000000000000000000001,
+				AD8000000000000000000001,
+				ABA000000000000000000001,
+				A91000000000000000000001,
+				AD9000000000000000000001,
+				ADA000000000000000000001,
+				AEB000000000000000000001,
 			);
 			path = Analysis;
 			sourceTree = "<group>";
@@ -233,6 +279,8 @@
 				0E5AF088BD7AE9E54F6DD437,
 				A1C4E501D4B748E0A35F0201,
 				F7CAEB01FD068EC3F6730101,
+				A91000000000000000000003,
+				A92000000000000000000001,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -293,6 +341,13 @@
 				20D103A57978004A86CB32BB,
 				4F379B112854E7D1DBC649C1,
 				79196D918F8B048991F2F9AF,
+				AAB000000000000000000003,
+				AF5000000000000000000003,
+				AD8000000000000000000003,
+				AD9000000000000000000003,
+				ADA000000000000000000003,
+				AEB000000000000000000003,
+				A91000000000000000000005,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -354,6 +409,8 @@
 				F8DBFC01AE179FD407840101,
 				3B9FA338709B9E10B4C03079,
 				6FAA384EC7A5412D562FC46C,
+				ACF000000000000000000001,
+				AAB000000000000000000005,
 				D8B6A101D4B748E0A35F0501,
 			);
 			path = Integration;
@@ -579,6 +636,14 @@
 				FE333C4A500F8EE29434119C,
 				791BB657D4527DA9E1EC61DE,
 				7AFD4C2AA908445A9FA9C75C,
+				AAB000000000000000000002,
+				AF5000000000000000000002,
+				AD8000000000000000000002,
+				ABA000000000000000000002,
+				A91000000000000000000002,
+				AD9000000000000000000002,
+				ADA000000000000000000002,
+				AEB000000000000000000002,
 				4FCAF8DC138451CD331D2CBA,
 				9D3E611A749B44DBBE2C91D5,
 				0996E9AF653C1BA777C60ABA,
@@ -599,6 +664,8 @@
 				3A7A75359E86E2A3E8712F61,
 				A1C4E501D4B748E0A35F0202,
 				F7CAEB01FD068EC3F6730102,
+				A91000000000000000000004,
+				A92000000000000000000002,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -634,8 +701,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				C476E88F0B62A3B7D2B8E034,
+				ACF000000000000000000002,
+				AAB000000000000000000006,
 				E907D117346B40511577EFAB,
 				AE9049A619C3D801DBA2F172,
+				AAB000000000000000000004,
+				AF5000000000000000000004,
+				AD8000000000000000000004,
+				AD9000000000000000000004,
+				ADA000000000000000000004,
+				AEB000000000000000000004,
+				A91000000000000000000006,
 				9F515F569E5290F4F4BB1565,
 				97569001D677958331EBAE90,
 				ACBA66C5AD79A82B40C4DF2D,

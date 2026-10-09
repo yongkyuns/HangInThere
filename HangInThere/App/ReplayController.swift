@@ -21,6 +21,7 @@ struct BarSetupFrame: Identifiable, Sendable {
 final class ReplayController {
     private(set) var counter = ExerciseCounter()
     private(set) var bar: ConfirmedBar?
+    private(set) var automaticBarState: AutomaticPullUpBar.State = .lookingForGrip
     private(set) var phase: ReplayPhase = .idle
     private(set) var frame: ProcessedFrame?
     private(set) var sourceName: String?
@@ -35,11 +36,17 @@ final class ReplayController {
     @ObservationIgnored private var reader: VideoReplayReader
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private var pending: ProcessedFrame?
-    @ObservationIgnored private var session: UInt64 = 0
+    @ObservationIgnored private var session: UInt64 = 0 {
+        didSet { resetAutomaticBarSetup() }
+    }
     @ObservationIgnored private var playback: UInt64 = 0
+    @ObservationIgnored private let barDetector: any BarEdgeDetector
+    @ObservationIgnored private var automaticBarPolicy = AutomaticApparatusReference()
+    @ObservationIgnored private var lastAutomaticBarSeconds: Double?
 
-    init(estimator: any PoseEstimator = VisionPoseEstimator()) {
+    init(estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector()) {
         self.estimator = estimator
+        self.barDetector = barDetector
         self.reader = VideoReplayReader(estimator: estimator)
     }
 
@@ -69,6 +76,8 @@ final class ReplayController {
         return true
     }
     func clearBar() {
+        pause()
+        resetAutomaticBarSetup()
         bar = nil
         counter.reset()
         resetAnalysisMetrics()
@@ -165,7 +174,7 @@ final class ReplayController {
         }
     }
 
-    func restart(preserveBar: Bool = true) {
+    func restart(preserveBar: Bool = true, resumePlayback: Bool = false) {
         guard canRestart else { return }
         let previous = operation
         previous?.cancel()
@@ -188,6 +197,7 @@ final class ReplayController {
                 let first = try await currentReader.nextFrame()
                 guard session == token, !Task.isCancelled else { return }
                 try showFirst(first, info: info)
+                if resumePlayback { play() }
             } catch {
                 if session == token, !Task.isCancelled { fail(error) }
             }
@@ -206,6 +216,7 @@ final class ReplayController {
     }
 
     func pause() {
+        resetAutomaticBarSetup()
         guard phase == .playing else { return }
         phase = .paused
         playback &+= 1
@@ -255,6 +266,8 @@ final class ReplayController {
                         resetAnalysisMetrics()
                     }
                     self.frame = next
+                    if await findAutomaticBar(next, token: token, playToken: playToken) { return }
+                    guard isCurrent(token, playToken) else { return }
                     consumeForCounting(next.pose)
                     pending = nil
                     displayedFrames += 1
@@ -274,6 +287,46 @@ final class ReplayController {
         if referenceEdge != nil { countingFrames += 1 }
         counter.consume(pose, referenceEdge: referenceEdge)
         if referenceEdge != nil, counter.trackingIssue == nil { analyzableFrames += 1 }
+    }
+
+    private func resetAutomaticBarSetup() {
+        automaticBarPolicy.reset()
+        automaticBarState = .lookingForGrip
+        lastAutomaticBarSeconds = nil
+    }
+
+    private func findAutomaticBar(_ frame: ProcessedFrame, token: UInt64, playToken: UInt64) async -> Bool {
+        guard bar == nil else { return false }
+        let seconds = frame.pose.timestamp.seconds
+        if let lastAutomaticBarSeconds, seconds - lastAutomaticBarSeconds < AutomaticPullUpBar.samplingInterval { return false }
+        lastAutomaticBarSeconds = seconds
+        guard let grip = AutomaticApparatusReference.search(pose: frame.pose, exercise: counter.exercise) else {
+            automaticBarPolicy.reset()
+            automaticBarState = .lookingForGrip
+            return false
+        }
+        var candidates: [[BarLineCandidate]] = []
+        do {
+            for region in grip.regions {
+                candidates.append(try await barDetector.detect(image: frame.image, region: region))
+                guard isCurrent(token, playToken) else { return false }
+            }
+        }
+        catch {
+            guard isCurrent(token, playToken) else { return false }
+            automaticBarPolicy.reset()
+            automaticBarState = .findingEdge
+            return false
+        }
+        guard isCurrent(token, playToken) else { return false }
+        let proposal = automaticBarPolicy.observe(pose: frame.pose, exercise: counter.exercise, side: counter.side, candidates: candidates)
+        automaticBarState = automaticBarPolicy.state
+        guard let proposal else { return false }
+        bar = proposal
+        // Rewind once, then continue automatically so movements preceding bar
+        // acquisition are evaluated with the same fixed reference too.
+        restart(preserveBar: true, resumePlayback: true)
+        return true
     }
 
     private func resetAnalysisMetrics() {

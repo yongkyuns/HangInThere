@@ -1,3 +1,89 @@
+# Current counting policy (v8)
+
+Pull-up behavior retains policy v7. Dip behavior uses the support-relative policy
+below; saved summaries record `selectedGripWithAvailableArms` for dips.
+
+Pull-ups use both independently measurable shoulder/elbow/wrist chains from one
+athlete. If one chain is obscured or below the existing confidence/geometry gates,
+the other can continue using its own previously observed extended-hang baseline.
+The side picker applies only to dips. Available arms must agree; the counter does
+not average angles or choose whichever arm would produce a count.
+
+A pull-up increments at the bent-arm endpoint after an extended starting hang:
+
+- All usable elbows reach at least 155 degrees for 0.12 seconds to establish a hang.
+- All usable elbows go below 140 degrees to begin the attempt.
+- All usable elbows reach at most 100 degrees, and each shoulder's perpendicular
+  distance to the fixed bar decreases by at least 20% of its own hang distance
+  and at least 4% of the image's shorter dimension, for 0.12 seconds.
+- At least one arm must remain continuously measurable throughout each endpoint
+  hold; alternating disjoint arm observations cannot supply the dwell.
+- Another count requires returning to the extended hang for 0.12 seconds.
+
+An arm newly visible while bent cannot borrow the other arm's hang baseline;
+tracking resets until a valid starting hang is observed. No measurable arm,
+multiple athletes, invalid apparatus, or a source-time gap over 0.35 seconds
+interrupts tracking. Live counting also requires a started set, a fixed confirmed
+bar, and the existing phone/scene stability checks. These are provisional movement
+counts: chin clearance and exercise form are not verified.
+
+## Dip support and movement
+
+A manually confirmed finite rail segment remains mandatory. One athlete's selected
+shoulder and wrist must be unique, in bounds, and meet the existing 0.3 joint-score
+gate; the wrist must be within 12% of the image short side of that segment. This
+is image proximity evidence, not verified physical hand contact.
+
+Starting support requires a measurable selected elbow of at least 140 degrees,
+the shoulder above the wrist by at least 35% of projected upper-arm plus forearm
+length, and every other measurable arm also at least 140 degrees. At that support
+pose, freeze the selected wrist and the unit direction from wrist to shoulder.
+Shoulder height is its signed projection along this direction. Rail orientation
+does not determine the movement axis, including when rails project vertically.
+
+- A 0.12s support hold acquires the counter's top baseline.
+- Meaningful lowering requires travel of at least
+  `max(18% of acquired projected arm length, 2% of image short side)`.
+- Departure requires half that travel and at least 15 degrees of elbow bending.
+  The 120-degree support sanity gate remains; it is not strict lockout grading.
+- The bottom requires the full travel and either an elbow angle at most 100
+  degrees or at least 30 degrees of bending from the top, for 0.12s. A usable
+  opposite arm with its own top evidence must also meet the bend gate.
+- Count only after returning within `max(8% of acquired arm length, 1% of image
+  short side)` of the cycle's top, recovering at least half the required travel
+  from its bottom, and showing elbow recovery to at least
+  `max(120 degrees, top angle minus 20 degrees)` for 0.12s. A usable opposite arm
+  with a top baseline must also recover. No count is awarded at the bottom.
+- Near-extension frames (at least 155 degrees) can update local top posture
+  between cycles. The wrist, movement axis and arm scale remain frozen.
+- Wrist movement beyond 12% of acquired arm length interrupts the attempt.
+  Missing shoulder/wrist observations pause; outages over 0.75s reset support.
+  A missing elbow may sustain an already observed return endpoint using reliable
+  shoulder/grip geometry, but cannot establish a new top or bottom.
+
+All dwell uses actual source timestamps. Existing time-gap and phone/scene motion
+guards remain. These engineering gates count movement, not strict dip depth/form.
+Projected arm scale can be unreliable under foreshortening; unsupported views
+must be evaluated separately rather than treated as qualified.
+
+## Hands-free dip starting
+
+After rail confirmation and stable phone/scene setup, fresh eligible frames earn
+a visible and spoken **3, 2, 1, go** countdown. During the hold, the selected hand
+must remain within 12% of acquired arm length of its initial grip and the shoulder
+within 8% of that length of its initial position. Moving, losing support, missing
+frames, or opening workout details cancels the countdown. Details dismissal requires
+three fresh seconds. The countdown frame and the next queued frame are discarded
+before live counting, matching pull-up start behavior.
+
+No knee or ankle observations are required. Crossed legs are optional; this policy
+does not implement a crossed-leg classifier. Disabling hands-free start exposes
+the manual Start set control. Dip rail acquisition is automatic when both grips
+and paired handle edges are visible and stable. Manual setup remains available
+for unclear rails; acquisition does not change the movement-counting thresholds.
+
+The policy-v2 evidence below is retained as historical evaluation context.
+
 # Bar-relative movement counter (policy v2)
 
 `ExerciseCounter` remains a small framework-free state machine shared by the app,

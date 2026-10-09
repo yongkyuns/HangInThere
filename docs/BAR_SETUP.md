@@ -1,4 +1,49 @@
-# Guided bar setup: first implementation
+# Bar setup
+
+## Automatic pull-up setup
+
+Live capture and video review now default to automatic pull-up setup. One athlete,
+both measurable arms, and two confident wrists raised above the shoulders define
+a bounded search region. The existing image-only Vision contour detector supplies
+finite observed edges. A proposed edge must be near both hands, span most of their
+separation, and be approximately horizontal. Thin parallel silhouette edges resolve
+to the upper observed edge; separate plausible bars remain ambiguous. Wrist positions
+never become the reference line, and contour support scores do not resolve ambiguity.
+
+At least four consistent samples over 0.9 seconds are required, sampled no faster
+than every 0.3 seconds. Missing evidence, gaps, changing geometry, or moving grips
+restart acquisition. The final observed edge is recorded as `automaticContours`
+and stays fixed after lock. Live setup defaults to hands-free start, calibrates phone
+orientation and static background from the lock frame, and clears setup after camera
+movement. After lock, one athlete must grip the fixed edge with both hands and
+keep the selected arm extended through a spoken 3-second countdown. Fresh eligible
+frames alone advance the countdown; a gap, lost grip, invalid setup, or manual
+setup cancels it. Counting starts on the next analyzed frame after “go”. Disable
+**Hands-free start** to restore the manual **Start set** button. Manual setup cancels
+pending automatic results. Camera switching, source
+replacement, and exercise changes discard acquisition history.
+
+In video review, press **Play** to acquire the bar. A successful lock automatically
+rewinds once and resumes with that fixed edge, including movements before lock.
+This assumes a fixed-camera recording, as the existing manual review workflow does.
+Dips also acquire grip rails automatically while the athlete holds top support
+with both hands visible. Separate local contour searches require paired visible
+handle edges, then stable grip/rail evidence before calibrating the selected
+anatomical rail. A fresh matching edge can maintain an already witnessed handle
+through partial occlusion. The rails may project vertically. Pose guides the
+search; it never creates the apparatus line. Live then waits for the three-second
+top-support countdown. Recorded review rewinds once with the acquired fixed rail.
+
+Use **Set bar manually** for unclear pull-up or dip views.
+
+The version-1 thresholds are conservative heuristics, not calibrated semantic bar
+recognition. Permanent synthetic tests protect ambiguity, missing evidence, dwell,
+lifecycle cancellation, and replay behavior. `Evaluation/AutomaticBarAudit.swift`
+runs the exact decoder, Vision backends, automatic policy, and counter on an explicitly
+supplied local video, writing sampled edges and counts for private evaluation. A
+successful local clip does not establish accuracy across other views or devices.
+
+## Guided setup: original implementation
 
 Target: one athlete, fixed phone and straight gripping sections. No multi-person
 identity tracker, moving-camera reconstruction, new model or iOS package. This

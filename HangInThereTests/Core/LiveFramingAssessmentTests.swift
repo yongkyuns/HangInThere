@@ -10,6 +10,13 @@ struct LiveFramingAssessmentTests {
         #expect(result.state.isReady)
     }
 
+    @Test func pullUpFramingAcceptsEitherUsableArm() {
+        let pose = makePose(side: .right)
+        let result = LiveFramingAssessment(pose: pose, side: .left, usesBothArms: true)
+        #expect(result.state == .ready)
+        #expect(result.title == "Athlete and usable arms visible")
+    }
+
     @Test func oppositeArmCannotSatisfySelectedSide() {
         let pose = makePose(side: .right)
         let result = LiveFramingAssessment(pose: pose, side: .left)

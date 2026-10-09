@@ -6,6 +6,8 @@ DerivedData/
 build/
 .build/
 *.xcresult
+buildServer.json
+.compile
 
 # Personal signing and local configuration
 Local.xcconfig

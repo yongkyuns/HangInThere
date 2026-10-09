@@ -73,6 +73,146 @@ struct ExerciseCounterTests {
                    backend: "analytic test arm", requestRevision: 0)
     }
 
+    // Combine independently generated chains into one athlete, preserving each
+    // shoulder's geometry and allowing deliberate one-arm observation outages.
+    private static func bilateralPose(_ time: Double, left: Double?, right: Double?,
+                                      rightOffset: Double = 0) -> PoseResult {
+        let base = pose(time)
+        var landmarks: [Landmark] = []
+        if let left { landmarks += pose(time, degrees: left, wristX: 300).people[0].landmarks }
+        if let right {
+            landmarks += pose(time, degrees: right, side: .right, wristX: 700,
+                              verticalOffset: rightOffset).people[0].landmarks
+        }
+        return PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+                          people: [PoseObservation(landmarks: landmarks)],
+                          backend: base.backend, requestRevision: base.requestRevision)
+    }
+
+    private func feedBoth(_ c: inout ExerciseCounter, _ time: Double,
+                          _ left: Double?, _ right: Double?, rightOffset: Double = 0) {
+        c.consume(Self.bilateralPose(time, left: left, right: right, rightOffset: rightOffset),
+                  referenceEdge: Self.referenceEdge)
+    }
+
+    @Test func bilateralPullUpsIgnoreSidePreferenceAndRequireBothEndpoints() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(side: side)
+            feedBoth(&c, 0, 170, 170)
+            feedBoth(&c, 0.15, 170, 170)
+            feedBoth(&c, 0.3, 80, 170)
+            feedBoth(&c, 0.45, 80, 170)
+            #expect(c.phase == .ready)
+            #expect(c.observedMovements == 0)
+            feedBoth(&c, 0.6, 80, 80)
+            feedBoth(&c, 0.75, 80, 80)
+            #expect(c.observedMovements == 1)
+            feedBoth(&c, 0.9, 170, 80)
+            feedBoth(&c, 1.05, 170, 80)
+            #expect(c.phase == .returning)
+            feedBoth(&c, 1.2, 170, 170)
+            feedBoth(&c, 1.35, 170, 170)
+            feedBoth(&c, 1.5, 80, 80)
+            feedBoth(&c, 1.65, 80, 80)
+            #expect(c.observedMovements == 2)
+        }
+    }
+
+    @Test func bothBentArmsMustMeetTravelGateIndividually() {
+        var c = ExerciseCounter()
+        feedBoth(&c, 0, 170, 170)
+        feedBoth(&c, 0.15, 170, 170)
+        // Right elbow bends, but its shoulder does not travel toward the bar.
+        feedBoth(&c, 0.3, 80, 80, rightOffset: 90)
+        feedBoth(&c, 0.45, 80, 80, rightOffset: 90)
+        #expect(c.phase == .outbound)
+        #expect(c.observedMovements == 0)
+        feedBoth(&c, 0.6, 80, 80)
+        feedBoth(&c, 0.75, 80, 80)
+        #expect(c.observedMovements == 1)
+    }
+
+    @Test func obscuredArmFallsBackToPreviouslyAnchoredArm() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter()
+            feedBoth(&c, 0, 170, 170)
+            feedBoth(&c, 0.15, 170, 170)
+            feedBoth(&c, 0.3, side == .left ? 80 : nil, side == .right ? 80 : nil)
+            feedBoth(&c, 0.45, side == .left ? 80 : nil, side == .right ? 80 : nil)
+            #expect(c.observedMovements == 1)
+            #expect(c.interruptedAttempts == 0)
+        }
+    }
+
+    @Test func newlyVisibleBentArmCannotBorrowOtherArmsBaseline() {
+        var c = ExerciseCounter()
+        feedBoth(&c, 0, 170, nil)
+        feedBoth(&c, 0.15, 170, nil)
+        feedBoth(&c, 0.3, 80, nil)
+        feedBoth(&c, 0.45, 80, 80)
+        #expect(c.observedMovements == 0)
+        #expect(c.phase == .seekingStart)
+        #expect(c.interruptedAttempts == 1)
+        #expect(c.trackingIssue == "armBaselineUnavailable")
+    }
+
+    @Test func disjointArmGlimpsesCannotCompleteEndpointDwell() {
+        var c = ExerciseCounter()
+        feedBoth(&c, 0, 170, 170)
+        feedBoth(&c, 0.15, 170, 170)
+        feedBoth(&c, 0.3, 80, nil)
+        feedBoth(&c, 0.45, nil, 80)
+        #expect(c.observedMovements == 0)
+        feedBoth(&c, 0.6, nil, 80)
+        #expect(c.observedMovements == 1)
+    }
+
+    @Test func continuousArmAllowsDwellWhenOtherArmDropsOut() {
+        var c = ExerciseCounter()
+        feedBoth(&c, 0, 170, 170)
+        feedBoth(&c, 0.15, 170, 170)
+        feedBoth(&c, 0.3, 80, 80)
+        feedBoth(&c, 0.45, nil, 80)
+        #expect(c.observedMovements == 1)
+    }
+
+    @Test func armsKeepIndependentShoulderBaselines() {
+        var c = ExerciseCounter()
+        feedBoth(&c, 0, 170, 170, rightOffset: 100)
+        feedBoth(&c, 0.15, 170, 170, rightOffset: 100)
+        feedBoth(&c, 0.3, 80, 80, rightOffset: 100)
+        feedBoth(&c, 0.45, 80, 80, rightOffset: 100)
+        #expect(c.observedMovements == 1)
+        #expect(c.interruptedAttempts == 0)
+    }
+
+    @Test func partialReturnRefreshesPullUpBaseline() {
+        var c = ExerciseCounter()
+        feedBoth(&c, 0, 170, 170)
+        feedBoth(&c, 0.15, 170, 170)
+        feedBoth(&c, 0.3, 130, 130)
+        feedBoth(&c, 0.45, 170, 170, rightOffset: -70)
+        feedBoth(&c, 0.6, 170, 170, rightOffset: -70)
+        #expect(c.partialAttempts == 1)
+        // Against the new right-arm baseline, this endpoint has insufficient travel.
+        feedBoth(&c, 0.75, 80, 80)
+        feedBoth(&c, 0.9, 80, 80)
+        #expect(c.observedMovements == 0)
+    }
+
+    @Test func summaryRecordsBilateralPolicyAndReadsHistoricalReports() throws {
+        let summary = ExerciseCounter().summary
+        #expect(summary.armTracking == "bothUsableArms")
+        #expect(ExerciseCounter(exercise: .dip).summary.armTracking == "selectedGripWithAvailableArms")
+        let data = try JSONEncoder().encode(summary)
+        var historical = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        historical.removeValue(forKey: "armTracking")
+        let decoded = try JSONDecoder().decode(ExerciseCounter.Summary.self,
+            from: JSONSerialization.data(withJSONObject: historical))
+        #expect(decoded.armTracking == nil)
+        #expect(decoded.observedMovements == summary.observedMovements)
+    }
+
     @Test func pullUpCountsAtTopAndRequiresReturnBeforeNext() {
         var c = ExerciseCounter()
         arm(&c)
@@ -118,53 +258,64 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 0)
     }
 
-    @Test func dipReturnUsesRelativeRecoveryBelowSupportAngleGate() {
+    @Test func dipPartialRecoveryRequiresReturningNearStartingTop() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110),(0.75,110)])
+        #expect(c.observedMovements == 0)
+        #expect(c.phase == .returning)
+        feed(&c, [(0.9,140),(1.05,140)])
         #expect(c.observedMovements == 1)
         #expect(c.partialAttempts == 0)
         #expect(c.interruptedAttempts == 0)
     }
 
-    @Test func dipTravelUsesImageScaleRatherThanRailBaselineDistance() {
+    @Test func dipTravelUsesConfirmedGripAndArmScale() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         for (time, angle) in [(0.0,140.0),(0.15,140.0),(0.3,80.0),
                               (0.45,80.0),(0.6,140.0),(0.75,140.0)] {
             c.consume(
                 Self.pose(time, degrees: angle, exercise: .dip, side: .right,
                           verticalOffset: -250),
-                referenceEdge: Self.referenceEdge
+                referenceEdge: BarSegment(a: .init(x: 100, y: 250), b: .init(x: 900, y: 250))
             )
         }
         #expect(c.observedMovements == 1)
         #expect(c.interruptedAttempts == 0)
     }
 
-    @Test func dipTopRailGeometryCanAdvanceAcrossElbowConfidenceDrop() {
+    @Test func dipGeometryCannotAcquireUnobservedExtensionAcrossElbowConfidenceDrop() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110)])
         c.consume(
             Self.poseWithLowConfidenceElbow(0.75, degrees: 140, exercise: .dip, side: .right),
             referenceEdge: Self.referenceEdge
         )
+        #expect(c.observedMovements == 0)
+        feed(&c, [(0.9,140)])
+        c.consume(
+            Self.poseWithLowConfidenceElbow(1.05, degrees: 140, exercise: .dip, side: .right),
+            referenceEdge: Self.referenceEdge
+        )
         #expect(c.observedMovements == 1)
 
-        feed(&c, [(0.9,90),(1.05,90),(1.2,110)])
+        feed(&c, [(1.2,70),(1.35,70),(1.5,140)])
         c.consume(
-            Self.poseWithLowConfidenceElbow(1.35, degrees: 140, exercise: .dip, side: .right),
+            Self.poseWithLowConfidenceElbow(1.65, degrees: 140, exercise: .dip, side: .right),
             referenceEdge: Self.referenceEdge
         )
         #expect(c.observedMovements == 2)
         #expect(c.interruptedAttempts == 0)
     }
 
-    @Test func dipReturnEndpointCanFinishWithGeometryOnlyLowConfidenceShoulder() {
+    @Test func dipReturnEndpointNeedsReliableShoulderEvidence() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110)])
         c.consume(
             Self.poseWithLowConfidenceShoulder(0.75, degrees: 140, exercise: .dip, side: .right),
             referenceEdge: Self.referenceEdge
         )
+        #expect(c.observedMovements == 0)
+        feed(&c, [(0.9,140),(1.05,140)])
         #expect(c.observedMovements == 1)
         #expect(c.partialAttempts == 0)
         #expect(c.interruptedAttempts == 0)
@@ -185,7 +336,7 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 0)
     }
 
-    @Test func dipReturnUsesLocalBottomWhenTopBaselineDrifts() {
+    @Test func dipGripMovementCannotBeAcceptedAsTopBaselineDrift() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         feed(&c, [(0,140),(0.15,140)])
         c.consume(
@@ -196,8 +347,8 @@ struct ExerciseCounterTests {
             Self.pose(0.45, degrees: 70, exercise: .dip, side: .right),
             referenceEdge: Self.referenceEdge
         )
-        // The next top is shifted toward the rail relative to the original
-        // anchor. A complete local bottom-to-top recovery must still count.
+        // Moving the whole support pose also moves the hand. It must break the
+        // fixed grip instead of manufacturing a local completed cycle.
         c.consume(
             Self.pose(0.6, degrees: 140, exercise: .dip, side: .right, verticalOffset: 40),
             referenceEdge: Self.referenceEdge
@@ -206,8 +357,8 @@ struct ExerciseCounterTests {
             Self.pose(0.75, degrees: 140, exercise: .dip, side: .right, verticalOffset: 40),
             referenceEdge: Self.referenceEdge
         )
-        #expect(c.observedMovements == 1)
-        #expect(c.interruptedAttempts == 0)
+        #expect(c.observedMovements == 0)
+        #expect(c.interruptedAttempts == 1)
     }
     @Test func dipBentHoldCannotArmAsAStart() {
         var c = ExerciseCounter(exercise: .dip)

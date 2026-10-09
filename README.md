@@ -21,12 +21,47 @@ reps or form scores. Inference may slow replay;
 frames are processed sequentially instead of silently skipped. Audio is not played.
 
 The replay screen now adds **bar-relative timestamp-based movement counting** for
-pull-ups and parallel-bar dips. The user confirms one fixed gripping bar/rail edge,
-selects an anatomical arm, and the counter combines that independent apparatus
-reference with Apple Vision body landmarks. Missing bar setup does not fall back to
-wrist-derived geometry. Partial/interrupted outcomes and explicit **Form unverified**
+pull-ups and parallel-bar dips. Pull-up setup finds a visible gripping edge near
+both raised hands and locks it after at least four consistent observations over
+0.9 seconds. Live workouts default to **Auto** exercise selection: a stable
+starting hang identifies pull-ups and top support identifies dips, with actual
+bar/rail contours required before the countdown. The header shows the detected
+exercise; it remains fixed until the set ends and is detected again after
+**Next set**. Explicit exercise selection is available in settings.
+Both live exercises default to **Hands-free start**: hang with extended
+arms for pull-ups, or hold top support with steady hands for dips, through the
+spoken **3, 2, 1, go** countdown. Crossing the legs is optional. Counting starts
+automatically on a fresh frame; lost grip, unstable setup, or missing frames cancel
+the countdown. Disable the toggle to use **Start set** manually. Video review automatically
+rewinds and resumes so earlier movements are counted too. Dips automatically find a rail beside each visible hand during top support,
+then use the same countdown. Manual setup remains available for unclear views. Pull-ups use both measurable arms,
+each with its own extended-hang baseline; one arm can continue when the other is
+obscured. Both available arms must meet the endpoint gates. Dips retain an
+anatomical arm selector for the confirmed grip, with opposite-arm evidence checked
+when it has a usable starting baseline. Dip lowering follows a frozen
+grip-to-shoulder direction rather than the rail's silhouette direction; the count
+requires a return near the acquired top with arm recovery and retained grip.
+The counter combines the fixed apparatus reference with Apple Vision body landmarks.
+Missing bar setup cannot count. Partial/interrupted outcomes and explicit **Form unverified**
 status remain; chin clearance and strict dip depth are not yet acceptance criteria.
+Live video and recorded review show a compact **rep progress meter** at the video
+edge. Pull-ups follow both arms' angle and shoulder-travel evidence, with a separate
+reset meter for returning to the hang. Dips fill the first half through lowering
+and the bottom hold, then the second half through returning to top support and
+holding it. Both meters reserve completion for an actual count and turn green
+only then; missing tracking clears progress. They describe the counting criteria,
+not strict form.
 See [the counter policy](docs/COUNTING.md) and [bar setup](docs/BAR_SETUP.md).
+
+Live Workout is a **full-screen video canvas** with rep count, progress, brief
+setup cues, and start/finish controls over the feed. The settings button opens
+Workout options, detailed results, placement help, and Diagnostics in a separate
+panel. Opening it pauses the hands-free countdown until the panel closes.
+A **camera-switch button inside the preview** toggles rear/front cameras before a
+set. Changing
+cameras clears framing and the fixed bar reference, so reacquire the bar before
+starting. Camera selection is locked during a set or debug recording. The front
+preview is unmirrored, matching analysis and recorded debug video.
 
 The app uses SwiftUI, AVFoundation, Core Image, and Vision. There are no third-party
 runtime packages, backend services, accounts, model downloads, or analytics.

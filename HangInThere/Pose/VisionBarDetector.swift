@@ -2,9 +2,13 @@ import CoreGraphics
 import Foundation
 import Vision
 
-// Setup only. No trained bar model, wrist-derived geometry or person association.
-// The caller supplies a guided region; the result always requires confirmation.
-actor VisionBarDetector {
+protocol BarEdgeDetector: Sendable {
+    func detect(image: CGImage, region: BarRegion) async throws -> [BarLineCandidate]
+}
+
+// Image-only edge extraction for setup; no trained bar model or inferred line.
+// The caller supplies a manual or pose-guided region and decides how to confirm it.
+actor VisionBarDetector: BarEdgeDetector {
     func detect(image: CGImage, region: BarRegion) throws -> [BarLineCandidate] {
         try Task.checkCancellation()
         let size = ImageSize(width: Double(image.width), height: Double(image.height))
@@ -25,6 +29,9 @@ actor VisionBarDetector {
                 let request = VNDetectContoursRequest()
                 request.revision = VNDetectContourRequestRevision1
                 request.maximumImageDimension = 1024
+                // Keep a linear contrast response. The default enhancement can
+                // suppress low-light silhouette edges and amplify crop/noise edges.
+                request.contrastAdjustment = 1.0
                 request.detectsDarkOnLight = darkOnLight
                 try VNImageRequestHandler(cgImage: cropped, orientation: .up, options: [:]).perform([request])
                 for observation in request.results ?? [] {

@@ -51,6 +51,27 @@ import Testing
         #expect(try await VisionBarDetector().detect(image:image,
             region:BarRegion(Point2D(x:10,y:10),Point2D(x:150,y:90))).isEmpty)
     }
+    @Test func lowLightTexturedBackgroundStillPreservesObservedBarEdge() async throws {
+        let width = 640, height = 360
+        var bytes = [UInt8](repeating: 255, count: width * height * 4)
+        var seed: UInt32 = 17
+        for y in 0..<height { for x in 0..<width {
+            seed = seed &* 1664525 &+ 1013904223
+            let noise = Int(seed >> 24) % 17 - 8
+            let inside = (80...550).contains(x) && (95...107).contains(y)
+            let value = UInt8((inside ? 35 : 150) + noise)
+            let i = (y * width + x) * 4
+            bytes[i] = value; bytes[i + 1] = value; bytes[i + 2] = value
+        } }
+        let provider = try #require(CGDataProvider(data: Data(bytes) as CFData))
+        let image = try #require(CGImage(width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32,
+            bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue),
+            provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+        let candidates = try await VisionBarDetector().detect(image: image,
+            region: BarRegion(Point2D(x: 40, y: 60), Point2D(x: 600, y: 160)))
+        #expect(candidates.contains { abs($0.edge.midpoint.y - 95) < 4 && $0.edge.length > 440 })
+    }
     private func makeImage(width:Int,height:Int,bright:Bool=false, inside:(Int,Int)->Bool) throws -> CGImage {
         var bytes = [UInt8](repeating:255,count:width*height*4)
         for y in 0..<height { for x in 0..<width {

@@ -178,7 +178,8 @@ struct ReplayView: View {
                     .scaledToFit()
 
                 if showPoseOverlay {
-                    PoseOverlay(result: frame.pose, selectedSide: model.counter.side)
+                    PoseOverlay(result: frame.pose, selectedSide: model.counter.side,
+                                usesBothArms: true)
                 }
 
                 BarOverlay(imageSize: frame.pose.imageSize, bar: model.currentBar)
@@ -208,12 +209,16 @@ struct ReplayView: View {
 
                     Spacer()
 
+                    if model.currentBar != nil, model.phase != .finished {
+                        ExerciseProgressView(counter: model.counter)
+                    }
+
                     HStack {
                         if model.currentBar != nil {
                             Label("Bar reference set", systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(.white)
                         } else {
-                            Label("Set bar to count", systemImage: "line.diagonal")
+                            Label(model.barRole == .pullUpGrip ? "Looking for bar" : "Looking for dip rails", systemImage: "viewfinder")
                                 .foregroundStyle(.white)
                         }
 
@@ -464,7 +469,7 @@ struct ReplayView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(completedAnalysis ? "Session complete" : "Movement count")
                         .font(.headline)
-                    Text(model.currentBar == nil ? "Set the bar reference to enable counting." : model.counter.phase.title)
+                    Text(model.currentBar == nil ? barSetupHelp : model.counter.phase.title)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -539,18 +544,20 @@ struct ReplayView: View {
             }
             .pickerStyle(.segmented)
 
-            Picker(
-                "Tracking side",
-                selection: Binding(
-                    get: { model.counter.side },
-                    set: { model.configureCounting(exercise: model.counter.exercise, side: $0) }
-                )
-            ) {
-                ForEach(ArmMeasurement.Side.allCases, id: \.rawValue) { side in
-                    Text(side.rawValue.capitalized).tag(side)
+            if model.counter.exercise == .dip {
+                Picker(
+                    "Tracking side",
+                    selection: Binding(
+                        get: { model.counter.side },
+                        set: { model.configureCounting(exercise: model.counter.exercise, side: $0) }
+                    )
+                ) {
+                    ForEach(ArmMeasurement.Side.allCases, id: \.rawValue) { side in
+                        Text(side.rawValue.capitalized).tag(side)
+                    }
                 }
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
 
             Divider()
 
@@ -569,7 +576,7 @@ struct ReplayView: View {
 
                 Spacer()
 
-                Button(model.currentBar == nil ? "Set bar" : "Adjust") {
+                Button(model.currentBar == nil ? "Set bar manually" : "Adjust") {
                     barSetup = model.beginBarSetup()
                 }
                 .buttonStyle(.borderedProminent)
@@ -745,9 +752,11 @@ struct ReplayView: View {
 
     private var barSetupHelp: String {
         if let bar = model.currentBar {
-            return String(format: "Fixed from source %.2f s. Replay restarts so every counted frame uses this reference.", bar.sourceTime.seconds)
+            let prefix = bar.method == .automaticContours ? "Found automatically." : "Confirmed manually."
+            return prefix + String(format: " Fixed from source %.2f s. Replay restarts so every counted frame uses this reference.", bar.sourceTime.seconds)
         }
-        return "Preview to a clear frame, pause, then mark the gripping bar or selected dip rail."
+        if model.barRole != .pullUpGrip { return "Preview to a clear frame, pause, then mark the selected dip rail." }
+        return "Press Play to find the pull-up bar automatically. Keep both hands visible. Replay restarts after the bar locks; manual setup is available if needed."
     }
 
     private var trackingStatusTitle: String {
