@@ -33,3 +33,10 @@ __pycache__/
 
 # Optional host annotation environment
 .venv/
+
+# Android/Kotlin machine state, pinned downloaded assets and prepared test media
+.gradle/
+.kotlin/
+local.properties
+android/app/src/main/assets/*.task
+android/app/src/androidTest/assets/generated/

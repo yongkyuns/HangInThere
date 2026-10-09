@@ -1,0 +1,183 @@
+package dev.hanginthere.core
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Platform-free live setup and set lifecycle. Adapters deliver upright poses,
+ * genuine contour candidates and independent camera evidence on one source clock.
+ * [search] does not mutate setup. [observe] consumes detections synchronously from
+ * that same pose, so adapters must reject canceled or stale inference completions.
+ */
+class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection.automatic,side:ArmMeasurement.Side=ArmMeasurement.Side.left) {
+    @Serializable data class FrameInput(
+        val pose:PoseResult,
+        val candidates:List<List<BarLineCandidate>> = emptyList(),
+        val attitude:PhoneOrientationStability.Quaternion? = null,
+        val motionTimestamp:Double? = null,
+        val translations:List<StaticSceneStability.PatchTranslation> = emptyList(),
+        val globalScaleFraction:Double? = null,
+        val sceneTimestamp:Double? = null,
+        val paused:Boolean = false,
+        val cameraReady:Boolean = true,
+    )
+    @Serializable data class Snapshot(
+        val exercise:ExerciseCounter.Exercise?,
+        val apparatusExercise:ExerciseCounter.Exercise?,
+        val phase:LiveSetSession.Phase,
+        val observedMovements:Int,
+        val countdownSeconds:Int?,
+        val referenceEdge:BarSegment?,
+        val acquisitionState:AutomaticPullUpBar.State,
+        val phoneState:PhoneOrientationStability.State,
+        val sceneState:StaticSceneStability.State,
+        val setupIssue:String?,
+        val setupGeneration:Int,
+        val isReplayReview:Boolean=false,
+    )
+    var selection=selection;private set
+    var side=side;private set
+    val session=LiveSetSession()
+    val phoneOrientation=PhoneOrientationStability()
+    val staticScene=StaticSceneStability()
+    val handsFreeStart=HandsFreeSetStart()
+    private val identity=AutomaticExerciseDetection()
+    private val apparatus=AutomaticApparatusReference()
+    var confirmedBar:ConfirmedBar?=null;private set
+    private var activeExercise=selection.exercise ?: ExerciseCounter.Exercise.pullUp
+    private var discardNextSetFrame=false
+    private var lastFrameAt:Double?=null
+    private var lastAcquisitionSeconds:Double?=null
+    private var replayExercise:ExerciseCounter.Exercise?=null
+    private var replayReview=false
+    private var issue:String?="waitingForFrame"
+    private var generation=0
+    init {session.reset(activeExercise,side)}
+    val resolvedExercise get()=selection.exercise ?: replayExercise ?: identity.exercise
+    val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview)
+
+    fun configure(selection:WorkoutExerciseSelection,side:ArmMeasurement.Side=this.side) {
+        if(session.phase==LiveSetSession.Phase.running || (this.selection==selection && this.side==side)) return
+        this.selection=selection;this.side=side;identity.reset();replayExercise=null;replayReview=false
+        activeExercise=selection.exercise ?: activeExercise
+        clearSetup();session.reset(activeExercise,side)
+    }
+    fun search(pose:PoseResult):AutomaticApparatusReference.Search? {
+        if(session.phase!=LiveSetSession.Phase.idle || confirmedBar!=null) return null
+        val exercise=selection.exercise ?: replayExercise ?: AutomaticExerciseDetection.apparatusCandidate(pose) ?: return null
+        return AutomaticApparatusReference.search(pose,exercise)
+    }
+    fun observe(input:FrameInput):Snapshot {
+        val pose=input.pose;val seconds=pose.timestamp.seconds
+        if(!input.cameraReady){interrupt(LiveSetSession.EndReason.cameraFailure);issue="cameraUnavailable";return snapshot}
+        if(confirmedBar!=null && confirmedBar!!.imageSize!=pose.imageSize){interrupt(LiveSetSession.EndReason.setupInvalidated);issue="barReferenceUnavailable";return snapshot}
+        if(session.phase==LiveSetSession.Phase.idle && selection==WorkoutExerciseSelection.automatic && replayExercise==null) {
+            val previous=identity.exercise;val previousApparatus=identity.apparatusCandidate
+            identity.observe(pose)
+            if(previousApparatus!=identity.apparatusCandidate || (previous!=null && identity.exercise==null)) {
+                activeExercise=identity.apparatusCandidate ?: activeExercise
+                clearSetup();session.reset(activeExercise,side)
+            }
+        }
+        val motionFresh=isFresh(seconds,input.motionTimestamp,motionMaximumAgeSeconds) && input.attitude!=null
+        val framingReady=pose.imageSize.isValid && pose.people.size==1 && (if(selection==WorkoutExerciseSelection.automatic || activeExercise==ExerciseCounter.Exercise.pullUp) PullUpArmMeasurement(pose).arms.isNotEmpty() else ArmMeasurement(pose,side).estimate!=null)
+        var acquiredThisFrame=false
+        if(session.phase==LiveSetSession.Phase.idle && confirmedBar==null && motionFresh && framingReady && !input.paused && (selection.exercise!=null || identity.apparatusCandidate!=null) && input.candidates.isNotEmpty()) {
+            if(lastAcquisitionSeconds==null || (seconds-lastAcquisitionSeconds!!)>=AutomaticPullUpBar.samplingInterval) {
+                lastAcquisitionSeconds=seconds
+                val proposal=apparatus.observe(pose,activeExercise,side,input.candidates)
+                if(proposal!=null && proposal.isValid && phoneOrientation.calibrate(input.attitude,input.motionTimestamp!!) && staticScene.calibrate(pose.imageSize)) {
+                    confirmedBar=proposal;generation++;acquiredThisFrame=true
+                }
+            }
+        }
+        if(confirmedBar!=null) {
+            if(!motionFresh) {
+                handsFreeStart.reset()
+                if(session.phase==LiveSetSession.Phase.running) {
+                    session.interruptAndFinish("phoneOrientationUnavailable",LiveSetSession.EndReason.setupInvalidated)
+                    clearSetup();issue="phoneOrientationUnavailable";return snapshot
+                }
+            } else if(phoneOrientation.observe(input.attitude,input.motionTimestamp!!)==PhoneOrientationStability.State.moved) {
+                interrupt(LiveSetSession.EndReason.phoneMoved);issue="phoneMoved";return snapshot
+            }
+            if(!acquiredThisFrame && isFresh(seconds,input.sceneTimestamp,sceneMaximumAgeSeconds)) {
+                if(staticScene.observe(input.translations,input.globalScaleFraction,input.sceneTimestamp!!)==StaticSceneStability.State.moved) {
+                    val endReason=if(staticScene.movementKind==StaticSceneStability.MovementKind.scale) LiveSetSession.EndReason.sceneScaled else LiveSetSession.EndReason.sceneShifted
+                    interrupt(endReason);issue=endReason.name;return snapshot
+                }
+            }
+        }
+        lastFrameAt=seconds.takeIf{it.isFinite()}
+        val bar=confirmedBar
+        val sceneFresh=isFresh(seconds,input.sceneTimestamp,sceneMaximumAgeSeconds)
+        issue=when {
+            !framingReady -> "framingIncomplete"
+            resolvedExercise==null -> "exerciseIdentityNeeded"
+            bar==null -> "barReferenceNeeded"
+            !motionFresh || !phoneOrientation.state.allowsLiveSet -> "phoneStabilityNeeded"
+            !sceneFresh || !staticScene.state.allowsLiveSet -> "sceneStabilityNeeded"
+            input.paused -> "paused"
+            else -> null
+        }
+        if(replayReview && session.phase==LiveSetSession.Phase.idle) {
+            // A recording has no spoken start cue. Preserve the entire source
+            // timeline once its actual background registration qualifies. Even
+            // an unusable pose is consumed so coverage and baseline timing match.
+            val cameraQualified=bar!=null && motionFresh && phoneOrientation.state.allowsLiveSet
+                && sceneFresh && staticScene.state.allowsLiveSet
+            if(cameraQualified && !input.paused) {
+                handsFreeStart.reset();session.start(activeExercise,side)
+                discardNextSetFrame=false;session.consume(pose,bar?.referenceEdge)
+            }
+            return snapshot
+        }
+        if(session.phase==LiveSetSession.Phase.idle) {
+            val eligible=issue==null && (activeExercise==ExerciseCounter.Exercise.dip || HandsFreeSetStart.isStartingPosition(pose,bar!!.referenceEdge))
+            val began=if(activeExercise==ExerciseCounter.Exercise.dip) handsFreeStart.observeDip(pose,side,bar?.referenceEdge,eligible,input.paused) else handsFreeStart.observe(seconds,eligible,input.paused)
+            if(began) {
+                if(resolvedExercise!=null && (selection!=WorkoutExerciseSelection.automatic || replayExercise!=null || identity.lock())) {
+                    session.start(activeExercise,side);discardNextSetFrame=true
+                } else handsFreeStart.reset()
+                return snapshot
+            }
+        } else if(session.phase==LiveSetSession.Phase.running) {
+            if(discardNextSetFrame){discardNextSetFrame=false;return snapshot}
+            session.consume(pose,bar?.referenceEdge)
+        }
+        return snapshot
+    }
+    /** A watchdog calls this when no analyzed frame arrives; timers cannot earn dwell. */
+    fun tick(timestamp:Double) {
+        if(handsFreeStart.state.phase==HandsFreeSetStart.Phase.countdown && (lastFrameAt==null || !timestamp.isFinite() || timestamp-lastFrameAt!!>HandsFreeSetStart.maximumFrameGap)) handsFreeStart.reset()
+    }
+    fun stop(){handsFreeStart.reset();discardNextSetFrame=false;session.finish()}
+    fun nextSet(){if(session.phase!=LiveSetSession.Phase.finished) return;handsFreeStart.reset();discardNextSetFrame=false;replayReview=false;session.prepareNextSet();if(selection==WorkoutExerciseSelection.automatic){identity.reset();replayExercise=null;clearSetup()}}
+    fun interrupt(reason:LiveSetSession.EndReason) {
+        val counterReason=if(reason==LiveSetSession.EndReason.setupInvalidated) "barReferenceUnavailable" else reason.name
+        session.interruptAndFinish(counterReason,reason);handsFreeStart.reset();discardNextSetFrame=false;clearSetup()
+        if(session.phase==LiveSetSession.Phase.idle){identity.reset();replayExercise=null}
+    }
+    /** Explicit manual apparatus fallback still must have valid pixels and camera calibration. */
+    fun confirmManualBar(bar:ConfirmedBar,attitude:PhoneOrientationStability.Quaternion?,motionTimestamp:Double):Boolean {
+        if(session.phase==LiveSetSession.Phase.running || !bar.isValid || resolvedExercise==null || bar.role!=expectedRole() || !phoneOrientation.calibrate(attitude,motionTimestamp) || !staticScene.calibrate(bar.imageSize)) return false
+        clearAcquisition();confirmedBar=bar;generation++;return true
+    }
+    /** Recorded review rewinds after acquisition, retaining only the observed apparatus identity.
+     * Review counts directly from the first frame with qualifying image registration,
+     * without the live countdown or queued-frame skip. Replay attitude is explicitly
+     * virtual; registration still comes from the actual frames.
+     */
+    fun rewindReplay(attitude:PhoneOrientationStability.Quaternion,motionTimestamp:Double):Boolean {
+        val bar=confirmedBar ?: return false;val exercise=resolvedExercise ?: return false
+        if(!phoneOrientation.calibrate(attitude,motionTimestamp) || !staticScene.calibrate(bar.imageSize)) return false
+        replayExercise=exercise;replayReview=true;activeExercise=exercise;identity.reset();handsFreeStart.reset();session.reset(exercise,side);lastFrameAt=null;lastAcquisitionSeconds=null;discardNextSetFrame=false;generation++;return true
+    }
+    private fun expectedRole()=if(activeExercise==ExerciseCounter.Exercise.pullUp) ConfirmedBar.Role.pullUpGrip else if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail
+    private fun clearAcquisition(){apparatus.reset();lastAcquisitionSeconds=null;handsFreeStart.reset()}
+    private fun clearSetup(){clearAcquisition();confirmedBar=null;phoneOrientation.reset();staticScene.reset();generation++;issue="barReferenceNeeded"}
+    companion object {
+        const val motionMaximumAgeSeconds=.5
+        const val sceneMaximumAgeSeconds=.8
+        private fun isFresh(frame:Double,sample:Double?,maximumAge:Double)=frame.isFinite() && sample!=null && sample.isFinite() && sample<=frame+.05 && frame-sample<=maximumAge
+    }
+}

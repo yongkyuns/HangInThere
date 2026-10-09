@@ -3,6 +3,10 @@
 A lean, on-device iPhone app in development for pull-up and parallel-bar dip
 counting and camera-view-specific range-of-motion analysis.
 
+An Android client is under qualification on `codex/android-parity`: native
+Compose/CameraX with a framework-free Kotlin Multiplatform workout core. See
+[Android architecture and CI evidence](docs/ANDROID.md) and [build instructions](android/README.md).
+
 **P0: video import/replay and real Apple Vision integration.** The source and
 GitHub qualification workflow are published in [PR #2](https://github.com/yongkyuns/HangInThere/pull/2).
 Use that PR's exact-head checks and [the evidence record](docs/P0_STATUS.md) for
