@@ -115,16 +115,26 @@ while True: time.sleep(0.01)
             self.assertEqual(profiler.profile(self.log, self.output, self.stopped), 1)
 
     def test_cli_termination_exits_a_waiting_watcher_promptly(self):
-        child = subprocess.Popen([sys.executable, str(ROOT / "scripts/profile-replay.py"),
-                                  "--log", str(self.log), "--output", str(self.output)],
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        self.addCleanup(lambda: child.kill() if child.poll() is None else None)
-        self.assertTrue(select.select([child.stdout], [], [], 3)[0], "Watcher never became ready.")
-        self.assertIn("Waiting for the synthetic replay", child.stdout.readline())
-        child.terminate()
-        stdout, stderr = child.communicate(timeout=3)
-        self.assertEqual(child.returncode, 0, stdout + stderr)
-        self.assertFalse(self.output.exists())
+        # Exercise signals immediately after readiness and during the poll's
+        # sleep. threading.Event.set() in a signal handler can deadlock if the
+        # interrupted wait holds its internal non-reentrant condition lock.
+        for delay in (0, 0.01, 0.05, 0.1):
+            with self.subTest(delay=delay):
+                child = subprocess.Popen([sys.executable, str(ROOT / "scripts/profile-replay.py"),
+                                          "--log", str(self.log), "--output", str(self.output)],
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                try:
+                    self.assertTrue(select.select([child.stdout], [], [], 3)[0], "Watcher never became ready.")
+                    self.assertIn("Waiting for the synthetic replay", child.stdout.readline())
+                    time.sleep(delay)
+                    child.terminate()
+                    stdout, stderr = child.communicate(timeout=3)
+                    self.assertEqual(child.returncode, 0, stdout + stderr)
+                    self.assertFalse(self.output.exists())
+                finally:
+                    if child.poll() is None:
+                        child.kill()
+                    child.communicate(timeout=3)
 
 
 if __name__ == "__main__":

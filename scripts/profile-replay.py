@@ -11,13 +11,29 @@ from pathlib import Path
 import re
 import signal
 import subprocess
-import threading
 import time
 
 REPLAY_START = re.compile(
     r"Replay stage: pid=([1-9][0-9]*), wallMilliseconds=[^,]+, "
     r"stage=preparation, boundary=began,"
 )
+
+
+class SignalCancellation:
+    """A signal handler must never acquire a lock interrupted code may hold."""
+    def __init__(self):
+        self.requested = False
+
+    def set(self):
+        self.requested = True
+
+    def is_set(self):
+        return self.requested
+
+    def wait(self, seconds):
+        if not self.requested:
+            time.sleep(seconds)
+        return self.requested
 
 
 def wait_for_replay_pid(log, stopped, timeout=300):
@@ -84,7 +100,7 @@ def main():
     parser.add_argument("--log", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    stopped = threading.Event()
+    stopped = SignalCancellation()
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, lambda *_: stopped.set())
     try:
