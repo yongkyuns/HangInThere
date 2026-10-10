@@ -82,14 +82,33 @@ class AndroidApkTests(unittest.TestCase):
     def test_selected_cpp_runtime_must_match_the_pinned_toolchain(self):
         with tempfile.TemporaryDirectory() as directory:
             ndk = Path(directory)
-            for abi, triple in CHECK.NDK_TRIPLES.items():
-                runtime = ndk / f'toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/{triple}/libc++_shared.so'
-                runtime.parent.mkdir(parents=True, exist_ok=True); runtime.write_bytes(elf())
-            self.check(self.entries(), ndk)
             entries = self.entries()
-            entries['lib/x86_64/libc++_shared.so'] = elf() + b'different-runtime'
-            with self.assertRaisesRegex(AssertionError, 'different C\\+\\+ runtime'):
-                self.check(entries, ndk)
+            for abi, triple in CHECK.NDK_TRIPLES.items():
+                entries[f'lib/{abi}/libc++_shared.so'] = elf(
+                    bits=64 if abi in ('arm64-v8a', 'x86_64') else 32,
+                    alignment=CHECK.CPP_LOAD_ALIGNMENT[abi])
+                runtime = ndk / f'toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/{triple}/libc++_shared.so'
+                runtime.parent.mkdir(parents=True, exist_ok=True); runtime.write_bytes(entries[f'lib/{abi}/libc++_shared.so'])
+            self.check(entries, ndk)
+            for abi in CHECK.ABIS:
+                invalid = dict(entries); path = f'lib/{abi}/libc++_shared.so'
+                invalid[path] += b'different-runtime'
+                with self.assertRaisesRegex(AssertionError, 'different C\\+\\+ runtime'):
+                    self.check(invalid, ndk)
+
+    def test_cpp_alignment_matches_android_abi_requirements(self):
+        entries = self.entries()
+        for abi in ('armeabi-v7a', 'x86'):
+            entries[f'lib/{abi}/libc++_shared.so'] = elf(bits=32, alignment=4096)
+        self.check(entries)
+        for abi in ('arm64-v8a', 'x86_64'):
+            invalid = dict(entries)
+            invalid[f'lib/{abi}/libc++_shared.so'] = elf(alignment=4096)
+            with self.assertRaisesRegex(AssertionError, 'C\\+\\+ runtime.*alignment'):
+                self.check(invalid)
+        entries['lib/x86/libc++_shared.so'] = elf(bits=32, alignment=2048)
+        with self.assertRaisesRegex(AssertionError, 'C\\+\\+ runtime.*alignment'):
+            self.check(entries)
 
     def test_changed_model_is_rejected(self):
         entries = self.entries()

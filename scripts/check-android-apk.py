@@ -7,6 +7,7 @@ ABIS=('arm64-v8a','armeabi-v7a','x86','x86_64')
 NDK_TRIPLES={'arm64-v8a':'aarch64-linux-android','armeabi-v7a':'arm-linux-androideabi',
              'x86':'i686-linux-android','x86_64':'x86_64-linux-android'}
 HDR_LIBRARIES=('hanginthere_hdr','avcodec','avformat','avfilter','avutil','swscale')
+CPP_LOAD_ALIGNMENT={'arm64-v8a':16384,'armeabi-v7a':4096,'x86':4096,'x86_64':16384}
 def load_alignments(data):
     assert data[:4]==b'\x7fELF' and data[5]==1,'Expected little-endian Android ELF'
     if data[4]==2:
@@ -40,7 +41,10 @@ def check(apk,ndk=None):
             path=f'lib/{abi}/libc++_shared.so'
             assert path in z.namelist(),f'C++ runtime missing for {abi}'
             data=z.read(path);alignments=load_alignments(data)
-            assert alignments and min(alignments)>=16384,f'C++ runtime {abi} is not16KiB aligned'
+            # Android's 16KiB requirement applies to 64-bit ABIs. The pinned
+            # NDK supplies 4KiB-aligned C++ runtimes for its 32-bit ABIs.
+            required=CPP_LOAD_ALIGNMENT[abi]
+            assert alignments and min(alignments)>=required,f'C++ runtime {abi} load alignment is below {required}'
             digest=hashlib.sha256(data).hexdigest()
             if ndk is not None:
                 candidates=list((ndk/'toolchains/llvm/prebuilt').glob(f'*/sysroot/usr/lib/{NDK_TRIPLES[abi]}/libc++_shared.so'))
@@ -54,4 +58,4 @@ if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('apk',type=Path);p.add_argument('--output',type=Path);p.add_argument('--ndk',type=Path,required=True);a=p.parse_args()
     r=check(a.apk,a.ndk)
     if a.output:a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(r,indent=2)+'\n')
-    print('Packaged pose model, OpenCV, HDR decoder and all4 native ABIs verified (16KiB aligned).')
+    print('Packaged model and all4 native ABIs verified; HDR/pose libraries and 64-bit C++ runtimes are 16KiB aligned, all C++ runtimes match the pinned NDK.')

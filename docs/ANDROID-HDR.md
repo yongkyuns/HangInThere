@@ -46,8 +46,9 @@ is linked into the filter library. The JNI wrapper uses those public APIs.
 Use Python 3.12+, make, autoconf, automake, libtool and pkg-config on Linux/macOS.
 Android Gradle installs NDK **28.2.13676358** and CMake **3.22.1** through the SDK;
 accept their SDK licenses using sdkmanager. CMake invokes the pinned build for
-each Android ABI. All four existing ABIs are preserved, and every packaged ELF
-must have at least 16 KiB load alignment. Builds are keyed by recipe, ABI and NDK;
+each Android ABI. All four existing ABIs are preserved. HDR and pose libraries
+must have at least 16 KiB load alignment; NDK C++ runtime checks follow Android's
+ABI requirements (16 KiB for 64-bit, 4 KiB for 32-bit). Builds are keyed by recipe, ABI and NDK;
 private media never enters dependency builds or their output.
 OpenCV also bundles a C++ runtime. Packaging selects the project runtime, and the
 APK gate compares every ABI's selected bytes against the pinned NDK; choosing an
@@ -56,6 +57,8 @@ preserves that library's bytes for verification. This keeps one C++ runtime acro
 adapters without relying on an unchecked duplicate-library selection.
 The 32-bit x86 codec uses portable C CABAC code because its inline assembly emits
 text relocations that Android rejects; the other ABIs retain their inline paths.
+See the [NDK build-system requirements](https://android.googlesource.com/platform/ndk/+show/refs/heads/main/docs/BuildSystemMaintainers.md)
+for the 64-bit scope of flexible page sizes.
 
 For a host decoder check, run `python3 scripts/test-hdr-decoder.py`. For Android,
 run the ordinary Gradle assemble/lint/unit/instrumentation commands. Sources and
