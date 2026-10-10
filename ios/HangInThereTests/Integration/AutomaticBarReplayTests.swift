@@ -63,7 +63,8 @@ private actor TestDipRailDetector: BarEdgeDetector {
         let detector = TestBarDetector()
         let started = ContinuousClock.now
         let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: { event in
-            print("Replay stage: wallMilliseconds=\(ReplayTrace.milliseconds(since: started)), " +
+            print("Replay stage: pid=\(ProcessInfo.processInfo.processIdentifier), " +
+                  "wallMilliseconds=\(ReplayTrace.milliseconds(since: started)), " +
                   "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
                   "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
                   "stageMilliseconds=\(event.milliseconds?.description ?? "none")")

@@ -35,6 +35,12 @@ args = sys.argv[1:]
 with Path(os.environ['COMMAND_LOG']).open('a') as log:
     log.write(json.dumps(args) + '\\n')
 if args[0] == 'test':
+    if os.environ.get('WAIT_FOR_PROFILE') == '1':
+        import time
+        deadline = time.monotonic() + 5
+        while not Path('watcher-ready').exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert Path('watcher-ready').exists()
     print('Test run with ' + os.environ['TEST_COUNT'] + ' tests in 7 suites.')
     sys.exit(int(os.environ['TEST_EXIT']))
 if args[0] == 'build':
@@ -108,6 +114,30 @@ else:
     def test_vision_failure_is_not_swallowed_by_tee(self):
         result, _ = self.run_script('vision', TEST_EXIT='65')
         self.assertEqual(result.returncode, 65, result.stderr)
+
+    def test_opt_in_profiler_is_stopped_without_masking_test_failure(self):
+        (self.root / 'scripts/profile-replay.py').write_text('''import json, signal, sys, time
+from pathlib import Path
+def stop(*_):
+    Path('watcher-stopped').touch()
+    raise SystemExit(0)
+signal.signal(signal.SIGTERM, stop)
+Path('watcher-args.json').write_text(json.dumps(sys.argv[1:]))
+Path('watcher-ready').touch()
+while True: time.sleep(0.01)
+''')
+        (self.root / 'build').mkdir()
+        (self.root / 'build/replay-native-threads.txt').write_text('stale profile')
+        (self.root / 'build/simulator-mechanics-tests.txt').write_text('stale PID')
+        result, _ = self.run_script('mechanics', TEST_EXIT='65', WAIT_FOR_PROFILE='1',
+                                    HANGINTHERE_REPLAY_THREAD_PROFILE='1')
+        self.assertEqual(result.returncode, 65, result.stderr)
+        self.assertTrue((self.root / 'watcher-stopped').exists())
+        self.assertEqual(json.loads((self.root / 'watcher-args.json').read_text()),
+                         ['--log', str(self.root / 'build/simulator-mechanics-tests.txt'),
+                          '--output', str(self.root / 'build/replay-native-threads.txt')])
+        self.assertFalse((self.root / 'build/replay-native-threads.txt').exists())
+        self.assertNotIn('stale PID', (self.root / 'build/simulator-mechanics-tests.txt').read_text())
 
     def test_device_build_failure_stops_mechanical_job(self):
         result, commands = self.run_script('mechanics', BUILD_EXIT='65')

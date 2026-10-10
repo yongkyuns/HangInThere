@@ -69,21 +69,24 @@ case "$SUITE" in
   ) ;;
 esac
 # Opt-in diagnostic sampling of the fresh synthetic-only mechanics test host.
-# sample records stacks, not image/pose payloads. Start after device compilation
-# and wait for the simulator app. Stop the child on every exit, including a
-# failed build/test; sampling must never replace or mask the test exit status.
+# sample records stacks, not image/pose payloads. Wait for the actual replay
+# preparation PID, since Xcode first launches a separate discovery host. Stop
+# the watcher and sampler on every exit; preserve the original test exit status.
 REPLAY_SAMPLER_PID=''
 stop_replay_sampler() {
   if [[ -n "$REPLAY_SAMPLER_PID" ]]; then
-    # SIGINT lets sample finalize a partial profile if tests finish early.
-    kill -INT "$REPLAY_SAMPLER_PID" 2>/dev/null || true
+    # The watcher forwards SIGINT to sample to finalize a partial call graph.
+    kill -TERM "$REPLAY_SAMPLER_PID" 2>/dev/null || true
     wait "$REPLAY_SAMPLER_PID" 2>/dev/null || true
   fi
 }
 trap stop_replay_sampler EXIT
 if [[ "$SUITE" == mechanics && "${HANGINTHERE_REPLAY_THREAD_PROFILE:-0}" == 1 ]]; then
-  /usr/bin/sample HangInThere 40 10 -wait -mayDie \
-    -file "$ROOT/build/replay-native-threads.txt" \
+  # Prevent a previous run's PID or profile from being mistaken for this run.
+  : > "$TEST_LOG"
+  rm -f build/replay-native-threads.txt
+  python3 scripts/profile-replay.py --log "$ROOT/$TEST_LOG" \
+    --output "$ROOT/build/replay-native-threads.txt" \
     > "$ROOT/build/replay-native-sampler.txt" 2>&1 &
   REPLAY_SAMPLER_PID=$!
 fi
