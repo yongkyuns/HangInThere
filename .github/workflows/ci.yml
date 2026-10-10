@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      native_replay_profile:
+        description: Sample native threads during the synthetic simulator mechanics run
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -106,6 +111,8 @@ jobs:
         # Model availability remains a real failing check, not continue-on-error
         # or a fallback. Native host success never substitutes for iOS Vision.
         if: ${{ !cancelled() }}
+        env:
+          HANGINTHERE_REPLAY_THREAD_PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.native_replay_profile && matrix.suite == 'mechanics' && '1' || '0' }}
         run: ./scripts/test-ios.sh "${{ matrix.suite }}"
       - name: Retain simulator results and provenance
         if: always()

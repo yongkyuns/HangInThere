@@ -68,6 +68,25 @@ case "$SUITE" in
     -only-testing:HangInThereTests/RealVideoCorpusTests
   ) ;;
 esac
+# Opt-in diagnostic sampling of the fresh synthetic-only mechanics test host.
+# sample records stacks, not image/pose payloads. Start after device compilation
+# and wait for the simulator app. Stop the child on every exit, including a
+# failed build/test; sampling must never replace or mask the test exit status.
+REPLAY_SAMPLER_PID=''
+stop_replay_sampler() {
+  if [[ -n "$REPLAY_SAMPLER_PID" ]]; then
+    # SIGINT lets sample finalize a partial profile if tests finish early.
+    kill -INT "$REPLAY_SAMPLER_PID" 2>/dev/null || true
+    wait "$REPLAY_SAMPLER_PID" 2>/dev/null || true
+  fi
+}
+trap stop_replay_sampler EXIT
+if [[ "$SUITE" == mechanics && "${HANGINTHERE_REPLAY_THREAD_PROFILE:-0}" == 1 ]]; then
+  /usr/bin/sample HangInThere 40 10 -wait -mayDie \
+    -file "$ROOT/build/replay-native-threads.txt" \
+    > "$ROOT/build/replay-native-sampler.txt" 2>&1 &
+  REPLAY_SAMPLER_PID=$!
+fi
 "${test_command[@]}" 2>&1 | tee "$TEST_LOG"
 # xcodebuild can succeed with an unmatched filter. Zero selected tests is not
 # qualification. Keep pipefail above so any actual test failure stays a failure.
