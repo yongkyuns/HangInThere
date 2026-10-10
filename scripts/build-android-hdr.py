@@ -73,8 +73,11 @@ def build(output, abi, ndk=None):
         env = os.environ.copy()
         common = ['--prefix=' + str(install)]
         ffmpeg = []
+        # Static zimg needs both its C++ runtime and libm in the pkg-config
+        # link check. Darwin folds math into libSystem; Linux/Android do not.
+        env['STL_LIBS'] = '-lstdc++ -lm'
         if not ndk and os.uname().sysname == 'Darwin':
-            env['STL_LIBS'] = '-lc++'
+            env['STL_LIBS'] = '-lc++ -lm'
         if ndk:
             revision = next(line.split('=')[1].strip() for line in (ndk / 'source.properties').read_text().splitlines()
                             if line.startswith('Pkg.Revision'))
@@ -87,7 +90,7 @@ def build(output, abi, ndk=None):
             env.update(CC=str(tools / (triple + '26-clang')), CXX=str(tools / (triple + '26-clang++')),
                        AR=str(tools / 'llvm-ar'), RANLIB=str(tools / 'llvm-ranlib'), STRIP=str(tools / 'llvm-strip'),
                        LDFLAGS='-Wl,-z,max-page-size=16384', CFLAGS='-fPIC', CXXFLAGS='-fPIC')
-            env['STL_LIBS'] = '-lc++_shared'
+            env['STL_LIBS'] = '-lc++_shared -lm'
             common += ['--host=' + triple.replace('armv7a', 'arm')]
             ffmpeg = ['--enable-cross-compile', '--target-os=android', '--arch=' + arch,
                       '--cc=' + env['CC'], '--cxx=' + env['CXX'], '--ar=' + env['AR'], '--ranlib=' + env['RANLIB'],
