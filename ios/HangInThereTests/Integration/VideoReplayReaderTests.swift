@@ -5,6 +5,40 @@ import Testing
 
 @Suite(.serialized)
 struct VideoReplayReaderTests {
+    @Test func stageTraceKeepsSourceTimeAndClosesThrownInferenceSpan() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let (events, continuation) = AsyncStream.makeStream(of: ReplayTrace.self)
+        let reader = VideoReplayReader(estimator: TestPoseEstimator(failAtOrAfter: 0.1), trace: {
+            continuation.yield($0)
+        })
+        _ = try await reader.open(url)
+        let first = try await reader.nextFrame()
+        #expect(first?.pose.timestamp.seconds == 0)
+        do {
+            _ = try await reader.nextFrame()
+            Issue.record("Tracing must preserve the estimator's thrown failure.")
+        } catch FixtureError.failed(let message) {
+            #expect(message == TestPoseEstimator.failureMessage)
+        }
+        await reader.close()
+        continuation.finish()
+        var recorded: [ReplayTrace] = []
+        for await event in events { recorded.append(event) }
+        #expect(recorded.map(\.stage) == [.context, .context, .preparation, .preparation] +
+                Array(repeating: [.decoding, .decoding, .geometry, .geometry,
+                                  .rendering, .rendering, .estimation, .estimation], count: 2).flatMap { $0 })
+        for index in stride(from: 0, to: recorded.count - 1, by: 2) {
+            let begin = recorded[index], end = recorded[index + 1]
+            #expect(begin.stage == end.stage && begin.sourceSeconds == end.sourceSeconds)
+            #expect(begin.boundary == .began && begin.milliseconds == nil)
+            #expect(end.boundary == .ended)
+            let elapsed = try #require(end.milliseconds)
+            #expect(elapsed.isFinite && elapsed >= 0)
+        }
+        #expect(recorded.filter { $0.stage == .estimation && $0.boundary == .ended }.map(\.sourceSeconds) == [0, 0.1])
+    }
+
     @Test(arguments: [false, true])
     func rawFixturesRoundTripFractionalPTSAndAllQuadrants(portrait: Bool) async throws {
         let times = [0, 1, 3, 7].map { CMTime(value: $0, timescale: 30) }

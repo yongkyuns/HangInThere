@@ -61,7 +61,13 @@ private actor TestDipRailDetector: BarEdgeDetector {
         let url = try await video()
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = TestBarDetector()
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
+        let started = ContinuousClock.now
+        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: { event in
+            print("Replay stage: wallMilliseconds=\(ReplayTrace.milliseconds(since: started)), " +
+                  "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
+                  "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
+                  "stageMilliseconds=\(event.milliseconds?.description ?? "none")")
+        })
         defer { model.close() }
         model.open(url)
         try await wait(model, for: "initial opening") { model.phase == .paused }

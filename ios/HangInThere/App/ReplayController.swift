@@ -33,6 +33,7 @@ final class ReplayController {
     private(set) var analyzableFrames = 0
     @ObservationIgnored private var firstSourceTime = 0.0
     @ObservationIgnored private let estimator: any PoseEstimator
+    @ObservationIgnored private let trace: ReplayTrace.Handler?
     @ObservationIgnored private var reader: VideoReplayReader
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private var pending: ProcessedFrame?
@@ -44,10 +45,12 @@ final class ReplayController {
     @ObservationIgnored private var automaticBarPolicy = AutomaticApparatusReference()
     @ObservationIgnored private var lastAutomaticBarSeconds: Double?
 
-    init(estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector()) {
+    init(estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector(),
+         trace: ReplayTrace.Handler? = nil) {
         self.estimator = estimator
+        self.trace = trace
         self.barDetector = barDetector
-        self.reader = VideoReplayReader(estimator: estimator)
+        self.reader = VideoReplayReader(estimator: estimator, trace: trace)
     }
 
     var barRole: ConfirmedBar.Role {
@@ -119,7 +122,7 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        let nextReader = VideoReplayReader(estimator: estimator)
+        let nextReader = VideoReplayReader(estimator: estimator, trace: trace)
         reader = nextReader
         frame = nil
         pending = nil
@@ -155,7 +158,7 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        reader = VideoReplayReader(estimator: estimator)
+        reader = VideoReplayReader(estimator: estimator, trace: trace)
         frame = nil
         pending = nil
         sourceName = nil
@@ -283,6 +286,12 @@ final class ReplayController {
     }
 
     private func consumeForCounting(_ pose: PoseResult) {
+        let started = ContinuousClock.now
+        trace?(.init(stage: .counting, boundary: .began, sourceSeconds: pose.timestamp.seconds, milliseconds: nil))
+        defer {
+            trace?(.init(stage: .counting, boundary: .ended, sourceSeconds: pose.timestamp.seconds,
+                         milliseconds: ReplayTrace.milliseconds(since: started)))
+        }
         let referenceEdge = currentBar?.referenceEdge
         if referenceEdge != nil { countingFrames += 1 }
         counter.consume(pose, referenceEdge: referenceEdge)

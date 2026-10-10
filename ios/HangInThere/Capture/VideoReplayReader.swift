@@ -12,6 +12,27 @@ struct ProcessedFrame: Sendable {
     let processingMilliseconds: Double
 }
 
+// Opt-in native-stage diagnostics contain only timing and source time. The
+// callback runs on the worker executing the stage; it must not block that work.
+// Begin/end pairs also identify a native call that has not returned yet.
+// End marks return or throw, not success. Durations include callback overhead
+// and scheduler delays, so these are diagnostics rather than throughput budgets.
+struct ReplayTrace: Sendable {
+    enum Stage: String, Sendable { case context, preparation, decoding, geometry, rendering, estimation, counting }
+    enum Boundary: String, Sendable { case began, ended }
+    typealias Handler = @Sendable (ReplayTrace) -> Void
+
+    let stage: Stage
+    let boundary: Boundary
+    let sourceSeconds: Double?
+    let milliseconds: Double?
+
+    static func milliseconds(since start: ContinuousClock.Instant) -> Double {
+        let duration = start.duration(to: .now).components
+        return Double(duration.seconds) * 1_000 + Double(duration.attoseconds) / 1e15
+    }
+}
+
 enum ReplayError: LocalizedError {
     case noVideo, notOpen, invalidTime, invalidGeometry, noFrames
     case decoding(String)
@@ -39,12 +60,19 @@ actor VideoReplayReader {
     private var transform = Affine2D()
     private var timeline = ReplayTimeline()
     private var generation: UInt64 = 0
-    private let context = CIContext(options: [.cacheIntermediates: false])
+    private let context: CIContext
     private let estimator: any PoseEstimator
+    private let trace: ReplayTrace.Handler?
     private let maximumDimension = 1280.0
 
-    init(estimator: any PoseEstimator = VisionPoseEstimator()) {
+    init(estimator: any PoseEstimator = VisionPoseEstimator(), trace: ReplayTrace.Handler? = nil) {
         self.estimator = estimator
+        self.trace = trace
+        let started = ContinuousClock.now
+        trace?(.init(stage: .context, boundary: .began, sourceSeconds: nil, milliseconds: nil))
+        context = CIContext(options: [.cacheIntermediates: false])
+        trace?(.init(stage: .context, boundary: .ended, sourceSeconds: nil,
+                     milliseconds: ReplayTrace.milliseconds(since: started)))
     }
 
     func open(_ source: URL) async throws -> VideoInfo {
@@ -92,6 +120,12 @@ actor VideoReplayReader {
     }
 
     private func prepare(_ url: URL, token: UInt64) async throws -> VideoInfo {
+        let started = ContinuousClock.now
+        trace?(.init(stage: .preparation, boundary: .began, sourceSeconds: nil, milliseconds: nil))
+        defer {
+            trace?(.init(stage: .preparation, boundary: .ended, sourceSeconds: nil,
+                         milliseconds: ReplayTrace.milliseconds(since: started)))
+        }
         let prepared = try await Self.makeDecoder(url)
         try Task.checkCancellation()
         guard token == generation else { throw CancellationError() }
@@ -143,7 +177,7 @@ actor VideoReplayReader {
         guard let reader, let output else { throw ReplayError.notOpen }
         return try autoreleasepool {
             let started = ContinuousClock.now
-            guard let sample = output.copyNextSampleBuffer() else {
+            guard let sample = measure(.decoding, { output.copyNextSampleBuffer() }) else {
                 if reader.status == .completed { return nil }
                 throw ReplayError.decoding(reader.error?.localizedDescription ?? "The decoder stopped unexpectedly.")
             }
@@ -165,25 +199,43 @@ actor VideoReplayReader {
                     throw ReplayError.invalidGeometry
                 }
             }
-            guard let geometry = OrientedGeometry(
-                sourceSize: ImageSize(width: width, height: height), preferredTransform: transform
-            ) else { throw ReplayError.invalidGeometry }
-            let t = geometry.coreImageTransform
-            var pixels = CIImage(cvPixelBuffer: buffer).transformed(by: CGAffineTransform(
-                a: t.a, b: t.b, c: t.c, d: t.d, tx: t.tx, ty: t.ty))
-            let scale = min(1, maximumDimension / max(geometry.outputSize.width, geometry.outputSize.height))
-            pixels = pixels.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
-            let rect = CGRect(x: 0, y: 0,
-                              width: max(1, (geometry.outputSize.width * scale).rounded()),
-                              height: max(1, (geometry.outputSize.height * scale).rounded()))
-            guard let image = context.createCGImage(pixels, from: rect) else {
+            let (pixels, rect) = try measure(.geometry, sourceSeconds: timestamp.seconds) {
+                guard let geometry = OrientedGeometry(
+                    sourceSize: ImageSize(width: width, height: height), preferredTransform: transform
+                ) else { throw ReplayError.invalidGeometry }
+                let t = geometry.coreImageTransform
+                var pixels = CIImage(cvPixelBuffer: buffer).transformed(by: CGAffineTransform(
+                    a: t.a, b: t.b, c: t.c, d: t.d, tx: t.tx, ty: t.ty))
+                let scale = min(1, maximumDimension / max(geometry.outputSize.width, geometry.outputSize.height))
+                pixels = pixels.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+                let rect = CGRect(x: 0, y: 0,
+                                  width: max(1, (geometry.outputSize.width * scale).rounded()),
+                                  height: max(1, (geometry.outputSize.height * scale).rounded()))
+                return (pixels, rect)
+            }
+            guard let image = measure(.rendering, sourceSeconds: timestamp.seconds, {
+                context.createCGImage(pixels, from: rect)
+            }) else {
                 throw ReplayError.decoding("The oriented image could not be rendered.")
             }
-            let pose = try estimator.estimate(image: image, timestamp: timestamp)
-            let duration = started.duration(to: .now).components
-            let milliseconds = Double(duration.seconds) * 1_000 + Double(duration.attoseconds) / 1e15
+            let pose = try measure(.estimation, sourceSeconds: timestamp.seconds) {
+                try estimator.estimate(image: image, timestamp: timestamp)
+            }
+            let milliseconds = ReplayTrace.milliseconds(since: started)
             return ProcessedFrame(image: image, pose: pose, processingMilliseconds: milliseconds)
         }
+    }
+
+    private func measure<Result>(_ stage: ReplayTrace.Stage, sourceSeconds: Double? = nil,
+                                 _ work: () throws -> Result) rethrows -> Result {
+        guard let trace else { return try work() }
+        let started = ContinuousClock.now
+        trace(.init(stage: stage, boundary: .began, sourceSeconds: sourceSeconds, milliseconds: nil))
+        defer {
+            trace(.init(stage: stage, boundary: .ended, sourceSeconds: sourceSeconds,
+                        milliseconds: ReplayTrace.milliseconds(since: started)))
+        }
+        return try work()
     }
 
     func close() {
