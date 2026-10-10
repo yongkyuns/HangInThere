@@ -8,7 +8,7 @@ class VideoDecoderPolicyTest {
     private val hlg = VideoColorMetadata(standard = 6, range = 2, transfer = 7, hasHdrMetadata = true)
 
     @Test fun compatibleDolbyHlgUsesHevcWithoutClaimingSdrConversion() {
-        assertEquals("video/hevc", VideoDecoderPolicy.compatibleBaseLayer(
+        assertEquals(VideoDecoderRequirement("video/hevc", 2), VideoDecoderPolicy.compatibleBaseLayer(
             "video/dolby-vision", VideoDecoderPolicy.DOLBY_VISION_PROFILE_8, hlg))
         val colorPolicy = VideoColorPolicy(hlg, 35)
         assertTrue(colorPolicy.requestSdrToneMapping)
@@ -37,5 +37,47 @@ class VideoDecoderPolicyTest {
             assertNull(VideoDecoderPolicy.compatibleBaseLayer(mime, 256, hlg))
             assertNull(VideoDecoderPolicy.compatibleBaseLayer(mime, null, VideoColorMetadata()))
         }
+    }
+
+    @Test fun main8DefaultCannotDisplaceTheDecoderThatMatchesMain10() {
+        val queries = mutableListOf<VideoDecoderRequirement>()
+        val selection = VideoDecoderPolicy.selectHdrDecoder(VideoDecoderRequirement("video/dolby-vision", 256), hlg) { requirement ->
+            queries += requirement
+            // A MIME-only factory would choose the first HEVC decoder here.
+            listOf(Triple("main8-default", "video/hevc", 1), Triple("main10-match", "video/hevc", 2))
+                .firstOrNull { it.second == requirement.mimeType && it.third == requirement.profile }?.first
+        }
+        assertEquals(listOf(VideoDecoderRequirement("video/dolby-vision", 256), VideoDecoderRequirement("video/hevc", 2)), queries)
+        assertEquals("main10-match", selection.codecName)
+        assertEquals(VideoDecoderRequirement("video/hevc", 2), selection.requirement)
+    }
+
+    @Test fun matchingDolbyDecoderRetainsItsProfileAndNeedsNoBaseLayerQuery() {
+        val source = VideoDecoderRequirement("video/dolby-vision", 256)
+        var queries = 0
+        val selection = VideoDecoderPolicy.selectHdrDecoder(source, hlg) { requirement ->
+            queries++; assertEquals(source, requirement); "dolby-match"
+        }
+        assertEquals(1, queries); assertEquals(VideoDecoderSelection(source, "dolby-match"), selection)
+    }
+
+    @Test fun main8OnlyDeviceFailsSelectionWithoutUnqualifiedMimeFallback() {
+        val queries = mutableListOf<VideoDecoderRequirement>()
+        assertThrows(IllegalArgumentException::class.java) {
+            VideoDecoderPolicy.selectHdrDecoder(VideoDecoderRequirement("video/dolby-vision", 256), hlg) {
+                queries += it
+                if (it.mimeType == "video/hevc" && it.profile == 1) "main8-only" else null
+            }
+        }
+        assertEquals(listOf(VideoDecoderRequirement("video/dolby-vision", 256), VideoDecoderRequirement("video/hevc", 2)), queries)
+    }
+
+    @Test fun unsupportedProfileNeverQueriesAnInventedHevcRequirement() {
+        val queries = mutableListOf<VideoDecoderRequirement>()
+        val source = VideoDecoderRequirement("video/dolby-vision", 32)
+        assertThrows(IllegalArgumentException::class.java) {
+            VideoDecoderPolicy.selectHdrDecoder(source, hlg) { queries += it; null }
+        }
+        assertEquals(listOf(source), queries)
     }
 }

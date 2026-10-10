@@ -40,4 +40,24 @@ class VideoColorPolicyTest {
     @Test fun unexpectedHdrOutputIsRejectedEvenForSdrSource() {
         assertThrows(IllegalArgumentException::class.java) { VideoColorPolicy(VideoColorMetadata(1, 2, 3), 35).resolveOutput(VideoColorMetadata(6, 2, 7)) }
     }
+    @Test fun unsupportedOrDifferentToneMapNegotiationIsRejectedBeforeOutput() {
+        val policy = VideoColorPolicy(VideoColorMetadata(6, 2, 7), 35)
+        listOf(0, 6, 7, 99).forEach { transfer ->
+            assertThrows(IllegalArgumentException::class.java) { policy.verifyToneMappingRequest(transfer) }
+        }
+    }
+    @Test fun acceptedOrMissingNegotiationStillNeedsVerifiedSdrOutput() {
+        val policy = VideoColorPolicy(VideoColorMetadata(6, 2, 7), 35)
+        listOf(3, null).forEach { transfer ->
+            policy.verifyToneMappingRequest(transfer)
+            assertThrows(IllegalArgumentException::class.java) { policy.resolveOutput(VideoColorMetadata(6, 2, 7)) }
+            assertThrows(IllegalArgumentException::class.java) { policy.resolveOutput(VideoColorMetadata()) }
+            assertEquals(YuvColorEncoding(YuvColorEncoding.Standard.bt709), policy.resolveOutput(VideoColorMetadata(1, 2, 3)))
+        }
+    }
+    @Test fun sdrSourceDoesNotRequireHdrNegotiation() {
+        val policy = VideoColorPolicy(VideoColorMetadata(1, 2, 3), 29)
+        policy.verifyToneMappingRequest(0)
+        assertEquals(YuvColorEncoding(YuvColorEncoding.Standard.bt709), policy.resolveOutput(VideoColorMetadata()))
+    }
 }

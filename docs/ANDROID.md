@@ -124,13 +124,20 @@ negative. Grip thresholds, bilateral tube identity and acquisition dwell are unc
 
 Decoder selection distinguishes container codec compatibility from pixel color
 conversion. A declared Dolby Vision profile8 with HLG/BT.2020 may use its compatible
-HEVC base layer when no suitable Dolby decoder is available on API31+. Other Dolby
-profiles or incomplete color metadata retain the original decoder path. Selection
-preserves the source HDR metadata and requests SDR tone mapping; every output buffer
-must still prove SDR transfer, gamut and range. A selected HEVC decoder does not
-qualify HDR import. Native Auto/fixed-reference reports retain the selected decoder
-MIME, including failures after initialization. This narrow compatibility path follows
+HEVC **Main10** base layer when no suitable Dolby decoder is available on API31+.
+Other Dolby profiles or incomplete color metadata cannot use that fallback. HDR
+selection queries the complete final format and creates the returned codec by name;
+it never substitutes a MIME-only default that may support only Main8. Adaptation
+removes the incompatible Dolby level but preserves source CSD, geometry, HDR metadata
+and the SDR tone-map request. After configuration, an explicitly rejected conversion
+request fails before the codec starts. A missing negotiation key is not proof of
+conversion: every output buffer must still prove SDR transfer, gamut and range.
+A selected Main10 decoder does not qualify HDR import. Native Auto/fixed-reference
+reports retain the required MIME/profile, codec name, negotiation value and failure
+stage, including constructor failures; private details remain encrypted. This path follows
 [Android's format guidance](https://developer.android.com/media/platform/supported-formats)
+[format-based codec selection](https://developer.android.com/reference/android/media/MediaCodec#creation),
+[transfer-request negotiation](https://developer.android.com/reference/android/media/MediaFormat#KEY_COLOR_TRANSFER_REQUEST)
 and [Media3's compatible decoder selection](https://github.com/androidx/media/blob/release/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/mediacodec/MediaCodecUtil.java).
 
 ## Performance evidence

@@ -32,6 +32,11 @@ class VideoColorPolicy(private val source: VideoColorMetadata, sdk: Int) {
     init {
         require(!requestSdrToneMapping || sdk >= 31) { HDR_UNSUPPORTED }
     }
+    fun verifyToneMappingRequest(configuredTransfer: Int?) {
+        // Android reports 0 when the requested conversion is unsupported. Some
+        // implementations omit the key; those still require proof on every output.
+        if (requestSdrToneMapping) require(configuredTransfer == null || configuredTransfer == 3) { HDR_UNSUPPORTED }
+    }
     fun resolveOutput(output: VideoColorMetadata): YuvColorEncoding {
         if (source.isHdr) {
             // A request is not proof of conversion. Require the actual decoder output transfer.

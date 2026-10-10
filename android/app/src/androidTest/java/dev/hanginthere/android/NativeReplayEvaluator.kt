@@ -7,6 +7,8 @@ import android.os.Debug
 import dev.hanginthere.android.camera.CanonicalPixels
 import dev.hanginthere.android.camera.PhoneAttitude
 import dev.hanginthere.android.replay.VideoFrames
+import dev.hanginthere.android.replay.VideoDecoderDiagnostics
+import dev.hanginthere.android.replay.HdrVideoImportException
 import dev.hanginthere.android.session.AnalysisPipeline
 import dev.hanginthere.android.session.ReplayOutcome
 import dev.hanginthere.android.vision.PoseEstimator
@@ -26,6 +28,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         val latencies = mutableListOf<Double>()
         val colorEncodings = linkedSetOf<String>()
         var decoderMimeType: String? = null
+        var decoderDiagnostics: VideoDecoderDiagnostics? = null
         var peakPss = 0
         try {
             check(referenceSize.isValid && sourceEdge.isValid && expectedPts.size == expectedFrames)
@@ -33,6 +36,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 PoseEstimator(app).use { estimator ->
                     VideoFrames(app, Uri.fromFile(file)).use { reader ->
                         decoderMimeType = reader.decoderMimeType
+                        decoderDiagnostics = reader.decoderDiagnostics
                         while (true) {
                             val started = System.nanoTime()
                             val frame = reader.next() ?: break
@@ -58,7 +62,10 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 }
             }
             check(frames == expectedFrames && peopleFrames > 0) { "Fixed reference native coverage failure" }
-        } catch (failure: Throwable) { error = failure.stackTraceToString() }
+        } catch (failure: Throwable) {
+            (failure as? HdrVideoImportException)?.diagnostics?.let { decoderDiagnostics = it; decoderMimeType = it.requiredMimeType }
+            error = failure.stackTraceToString()
+        }
         finally { counter.finish() }
         return buildJsonObject {
             put("scope", "Manual fixed edge counter diagnostic; full source native poses, no Auto acquisition or UI parity claim")
@@ -71,6 +78,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
             put("peakPssKb", peakPss); put("error", error?.let(::JsonPrimitive) ?: JsonNull)
             put("decodedColorEncodings", JsonArray(colorEncodings.map(::JsonPrimitive)))
             put("decoderMimeType", decoderMimeType?.let(::JsonPrimitive) ?: JsonNull)
+            put("decoderDiagnostics", decoderDiagnostics?.let { Json.encodeToJsonElement(it) } ?: JsonNull)
         }
     }
     fun evaluateAutomatic(id: String, output: File, file: File, expectedExercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side, expected: Int,
@@ -86,6 +94,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         var events: JsonElement = JsonArray(emptyList())
         val colorEncodings = linkedSetOf<String>()
         val decoderMimeTypes = linkedSetOf<String>()
+        val decoderDiagnostics = linkedSetOf<VideoDecoderDiagnostics>()
         val elapsedStart = System.nanoTime()
         try {
             AnalysisPipeline(app, WorkoutExerciseSelection.automatic, side).use { pipeline ->
@@ -93,6 +102,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
                     File(output, "$id-production-${if (acquire) "acquisition" else "counting"}.jsonl").bufferedWriter().use { trace ->
                         VideoFrames(app, Uri.fromFile(file)).use { reader ->
                             decoderMimeTypes += reader.decoderMimeType
+                            decoderDiagnostics += reader.decoderDiagnostics
                             var passFrames = 0
                             while (true) {
                                 // Match the ViewModel: an interrupted set cannot resume counting later pixels.
@@ -170,12 +180,19 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 put("decodePixelConversion", CanonicalPixels.YUV_CONVERSION)
                 put("decodedColorEncodings", JsonArray(colorEncodings.map(::JsonPrimitive)))
                 put("decoderMimeTypes", JsonArray(decoderMimeTypes.map(::JsonPrimitive)))
+                put("decoderDiagnostics", Json.encodeToJsonElement(decoderDiagnostics.toList()))
                 put("peakPssKb", peakPss); put("peakNativeAllocatedBytes", peakNative); put("peakJavaAllocatedBytes", peakJava)
                 put("attitudeScope", "virtual fixed recording phone; actual image registration required")
             }
-        } catch (error: Throwable) { return buildJsonObject {
+        } catch (error: Throwable) {
+            (error as? HdrVideoImportException)?.diagnostics?.let { diagnostics ->
+                decoderDiagnostics += diagnostics
+                diagnostics.requiredMimeType?.let { decoderMimeTypes += it }
+            }
+            return buildJsonObject {
             put("functionalParity", false); put("acquiredActualContours", acquired)
             put("decoderMimeTypes", JsonArray(decoderMimeTypes.map(::JsonPrimitive)))
+            put("decoderDiagnostics", Json.encodeToJsonElement(decoderDiagnostics.toList()))
             put("setupIssue", finalSetupIssue?.let(::JsonPrimitive) ?: JsonNull); put("error", error.stackTraceToString())
         } }
     }
