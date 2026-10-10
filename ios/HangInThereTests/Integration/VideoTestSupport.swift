@@ -46,72 +46,62 @@ enum VideoTestSupport {
 
     // Original synthetic pixels, not a human-pose accuracy fixture. Four coloured
     // quadrants make every rotation/reflection observable after actual decoding.
+    // Store BGRA samples without reencoding: mechanics must not depend on a
+    // simulator H.264 encoder starting up. Compressed decoding has its own pinned
+    // fixture in VideoReplayReaderTests; there is no silent codec fallback here.
     static func makeVideo(transform: CGAffineTransform = .identity,
                           timestamps: [CMTime] = VideoTestSupport.timestamps,
                           width: Int = 160, height: Int = 96) async throws -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("quadrants-\(UUID().uuidString).mp4")
-        let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
-            AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: width, AVVideoHeightKey: height
-        ])
+        let firstBuffer = try quadrantBuffer(width: width, height: height)
+        var optionalFormat: CMVideoFormatDescription?
+        let formatStatus = CMVideoFormatDescriptionCreateForImageBuffer(
+            allocator: kCFAllocatorDefault, imageBuffer: firstBuffer,
+            formatDescriptionOut: &optionalFormat)
+        guard formatStatus == noErr, let format = optionalFormat else {
+            throw FixtureError.failed("Cannot describe test pixels (\(formatStatus)).")
+        }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("quadrants-\(UUID().uuidString).mov")
+        let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: nil, sourceFormatHint: format)
         input.expectsMediaDataInRealTime = false
         input.transform = transform
-        let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferWidthKey as String: width, kCVPixelBufferHeightKey as String: height,
-            kCVPixelBufferIOSurfacePropertiesKey as String: [:]
-        ])
-        guard writer.canAdd(input) else { throw FixtureError.failed("Cannot add video writer input.") }
-        writer.add(input)
-        guard writer.startWriting() else { throw FixtureError.failed(writer.error?.localizedDescription ?? "Writer failed to start.") }
-        writer.startSession(atSourceTime: .zero)
         do {
-            for pts in timestamps {
+            guard writer.canAdd(input) else { throw FixtureError.failed("Cannot add video writer input.") }
+            writer.add(input)
+            guard writer.startWriting() else { throw FixtureError.failed(writer.error?.localizedDescription ?? "Writer failed to start.") }
+            writer.startSession(atSourceTime: .zero)
+            for (index, pts) in timestamps.enumerated() {
                 let deadline = ContinuousClock.now.advanced(by: .seconds(10))
                 while !input.isReadyForMoreMediaData {
                     guard writer.status == .writing, ContinuousClock.now < deadline else {
-                        throw FixtureError.failed(writer.error?.localizedDescription ?? "Writer readiness timed out.")
+                        throw FixtureError.failed(writer.error?.localizedDescription ?? "Writer readiness timed out at frame \(index), PTS \(pts.seconds).")
                     }
                     try await Task.sleep(for: .milliseconds(5))
                 }
-                var optionalBuffer: CVPixelBuffer?
-                let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA,
-                                                  [kCVPixelBufferIOSurfacePropertiesKey as String: [:]] as CFDictionary,
-                                                  &optionalBuffer)
-                guard status == kCVReturnSuccess, let buffer = optionalBuffer else {
-                    throw FixtureError.failed("Cannot allocate test frame.")
+                let buffer = index == 0 ? firstBuffer : try quadrantBuffer(width: width, height: height)
+                var timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: pts, decodeTimeStamp: .invalid)
+                var optionalSample: CMSampleBuffer?
+                let status = CMSampleBufferCreateReadyWithImageBuffer(
+                    allocator: kCFAllocatorDefault, imageBuffer: buffer,
+                    formatDescription: format, sampleTiming: &timing,
+                    sampleBufferOut: &optionalSample)
+                guard status == noErr, let sample = optionalSample else {
+                    throw FixtureError.failed("Cannot create test sample \(index) (\(status)).")
                 }
-                CVPixelBufferLockBaseAddress(buffer, [])
-                guard let base = CVPixelBufferGetBaseAddress(buffer) else {
-                    CVPixelBufferUnlockBaseAddress(buffer, [])
-                    throw FixtureError.failed("Test frame has no pixel storage.")
-                }
-                let bytes = base.assumingMemoryBound(to: UInt8.self)
-                let stride = CVPixelBufferGetBytesPerRow(buffer)
-                for y in 0..<height {
-                    for x in 0..<width {
-                        let offset = y * stride + x * 4
-                        let top = y < height / 2, left = x < width / 2
-                        let rgb: (UInt8, UInt8, UInt8)
-                        switch (top, left) {
-                        case (true, true): rgb = (240, 0, 0)
-                        case (true, false): rgb = (0, 240, 0)
-                        case (false, true): rgb = (0, 0, 240)
-                        case (false, false): rgb = (240, 240, 0)
-                        }
-                        bytes[offset] = rgb.2; bytes[offset + 1] = rgb.1
-                        bytes[offset + 2] = rgb.0; bytes[offset + 3] = 255
-                    }
-                }
-                CVPixelBufferUnlockBaseAddress(buffer, [])
-                guard adaptor.append(buffer, withPresentationTime: pts) else {
-                    throw FixtureError.failed(writer.error?.localizedDescription ?? "Could not append frame.")
+                guard input.append(sample) else {
+                    throw FixtureError.failed(writer.error?.localizedDescription ?? "Could not append frame \(index).")
                 }
             }
             writer.endSession(atSourceTime: CMTimeAdd(timestamps.last ?? .zero, CMTime(value: 10, timescale: 100)))
             input.markAsFinished()
-            await writer.finishWriting()
+            writer.finishWriting(completionHandler: {})
+            let deadline = ContinuousClock.now.advanced(by: .seconds(10))
+            while writer.status == .writing {
+                guard ContinuousClock.now < deadline else {
+                    throw FixtureError.failed("Test video finalization timed out.")
+                }
+                try await Task.sleep(for: .milliseconds(5))
+            }
             guard writer.status == .completed else {
                 throw FixtureError.failed(writer.error?.localizedDescription ?? "Could not finish test video.")
             }
@@ -121,6 +111,41 @@ enum VideoTestSupport {
             try? FileManager.default.removeItem(at: url)
             throw error
         }
+    }
+
+    private static func quadrantBuffer(width: Int, height: Int) throws -> CVPixelBuffer {
+        var optionalBuffer: CVPixelBuffer?
+        let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA,
+                                        [kCVPixelBufferIOSurfacePropertiesKey as String: [:]] as CFDictionary,
+                                        &optionalBuffer)
+        guard status == kCVReturnSuccess, let buffer = optionalBuffer else {
+            throw FixtureError.failed("Cannot allocate test frame (\(status)).")
+        }
+        guard CVPixelBufferLockBaseAddress(buffer, []) == kCVReturnSuccess else {
+            throw FixtureError.failed("Cannot lock test pixels.")
+        }
+        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
+        guard let base = CVPixelBufferGetBaseAddress(buffer) else {
+            throw FixtureError.failed("Test frame has no pixel storage.")
+        }
+        let bytes = base.assumingMemoryBound(to: UInt8.self)
+        let stride = CVPixelBufferGetBytesPerRow(buffer)
+        for y in 0..<height {
+            for x in 0..<width {
+                let offset = y * stride + x * 4
+                let top = y < height / 2, left = x < width / 2
+                let rgb: (UInt8, UInt8, UInt8)
+                switch (top, left) {
+                case (true, true): rgb = (240, 0, 0)
+                case (true, false): rgb = (0, 240, 0)
+                case (false, true): rgb = (0, 0, 240)
+                case (false, false): rgb = (240, 240, 0)
+                }
+                bytes[offset] = rgb.2; bytes[offset + 1] = rgb.1
+                bytes[offset + 2] = rgb.0; bytes[offset + 3] = 255
+            }
+        }
+        return buffer
     }
 
     static func rgb(_ image: CGImage, normalizedTopLeft point: Point2D) -> [UInt8] {

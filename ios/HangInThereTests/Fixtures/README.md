@@ -57,9 +57,12 @@ establish chin clearance, rep validity, form quality, or population-level accura
 Dip footage and independently labelled held-out evaluation remain separate
 qualification work.
 
-Separate tests create four-quadrant videos with AVAssetWriter. Their synthetic
-pixels test actual decoding, orientation, irregular timestamps and lifecycle;
-they never replace the human-motion fixture.
+Separate tests create uncompressed BGRA four-quadrant MOV videos with
+AVAssetWriter. Their synthetic pixels test actual decoding, orientation,
+irregular timestamps and lifecycle without starting a simulator H.264 encoder.
+The small committed [H.264 decoder fixture](decoder/README.md) independently
+protects compressed decoding, VFR timestamps and rotation in the mechanics job,
+even when Vision cannot initialize. These never replace the human-motion fixture.
 
 The original source bytes were acquired and verified on 2026-09-26:
 SHA-1 `9c455b575ce8f3df74ab2a8d7f30bbb85f4c227a`,

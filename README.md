@@ -123,6 +123,9 @@ The iOS mechanics tests exercise actual AVFoundation decoding, variable
 timestamps, portrait orientation, decoder replacement/recovery, and controller
 lifecycle with an explicitly injected, test-only pose estimator. They also assert
 that inference errors propagate instead of becoming successful empty frames.
+Runtime synthetic fixtures store uncompressed BGRA samples; a small committed
+H.264/BT.709 fixture separately checks compressed decoding, rotation, every
+quadrant's color and variable timestamps without requiring a runtime encoder.
 Production reader/controller defaults remain real Apple Vision; there is no
 runtime fallback. The separate `VisionSmokeTests` use the production defaults
 for real-human still/video inference, negative video, and controller reimport.

@@ -23,7 +23,8 @@ xcodebuild build \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/device-build.txt
 fi
 
-# Decoder/controller tests generate their own video and never need model media.
+# Mechanics generates raw MOVs and bundles a small pinned synthetic H.264 file;
+# it does not download human/model media. Vision still requires the real corpus.
 if [[ "$SUITE" != mechanics ]]; then
   python3 scripts/prepare-fixtures.py --verify-only
   python3 scripts/prepare-video-corpus.py --verify-only

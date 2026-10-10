@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "scope": "synthetic explicitly tagged BT.709 SDR decoder mechanics only; no pose/model/accuracy evidence",
+  "video_sha256": "d400ca21c5e6f49d3e09e11b11faab6cdf379b20ab627c8df2f1bd140980ba56",
+  "video_bytes": 1704,
+  "codec": "h264",
+  "source_width": 160,
+  "source_height": 96,
+  "display_rotation_degrees": 90,
+  "frame_pts_seconds": [
+    0.0,
+    0.1,
+    0.23,
+    0.41
+  ],
+  "ffmpeg_version": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers",
+  "color_space": "bt709",
+  "color_primaries": "bt709",
+  "color_range": "tv",
+  "color_transfer": "bt709"
+}
