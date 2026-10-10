@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreImage
+import Dispatch
 import Foundation
 
 struct VideoInfo: Sendable {
@@ -49,11 +50,30 @@ enum ReplayError: LocalizedError {
     }
 }
 
+// AVAssetReader, Core Image and inference perform blocking native work. Run
+// those actor jobs on a dedicated serial Dispatch executor instead of occupying
+// a Swift cooperative worker while a framework waits for its own producer.
+// Dispatch owns thread scheduling; the actor still checks isolation and the
+// controller still requests one frame at a time.
+private final class ReplayExecutor: SerialExecutor {
+    private let queue = DispatchQueue(label: "dev.hanginthere.replay", qos: .userInitiated)
+
+    func enqueue(_ job: consuming ExecutorJob) {
+        let unownedJob = UnownedJob(job)
+        queue.async { [self] in
+            unownedJob.runSynchronously(on: asUnownedSerialExecutor())
+        }
+    }
+}
+
 // Preparation transfers an exclusively owned decoder graph into this actor.
 // After that, the reader, sample buffers, CIContext and inference stay here.
 // The main actor only receives immutable CGImages and Sendable observation data.
 // One nextFrame() call consumes exactly one source frame; no frame queue or timer.
 actor VideoReplayReader {
+    private nonisolated let executor = ReplayExecutor()
+    nonisolated var unownedExecutor: UnownedSerialExecutor { executor.asUnownedSerialExecutor() }
+
     private var reader: AVAssetReader?
     private var output: AVAssetReaderTrackOutput?
     private var localURL: URL?

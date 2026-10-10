@@ -5,6 +5,27 @@ import Testing
 
 @Suite(.serialized)
 struct VideoReplayReaderTests {
+    @MainActor @Test func nativeFrameStagesLeaveThePresentationActor() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let (events, continuation) = AsyncStream.makeStream(of: Bool.self)
+        let reader = VideoReplayReader(estimator: TestPoseEstimator(), trace: { event in
+            if event.stage != .context {
+                continuation.yield(Thread.isMainThread)
+            }
+        })
+        _ = try await reader.open(url)
+        var timestamps: [Double] = []
+        while let frame = try await reader.nextFrame() { timestamps.append(frame.pose.timestamp.seconds) }
+        await reader.close()
+        continuation.finish()
+        var stages: [Bool] = []
+        for await isMain in events { stages.append(isMain) }
+        #expect(!stages.isEmpty && stages.allSatisfy { !$0 },
+                "Native preparation, decode, render and inference must leave the presentation actor.")
+        #expect(timestamps == VideoTestSupport.timestamps.map(\.seconds))
+    }
+
     @Test func stageTraceKeepsSourceTimeAndClosesThrownInferenceSpan() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
