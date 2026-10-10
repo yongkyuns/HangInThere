@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sample the synthetic replay test's PID after its first preparation trace.
+"""Sample the synthetic replay test's PID as it enters the real test body.
 
 Xcode launches a discovery host before the real tests. Profiling an app name
 can capture that host instead. This diagnostic follows the live test log;
@@ -14,8 +14,8 @@ import subprocess
 import time
 
 REPLAY_START = re.compile(
-    r"Replay stage: pid=([1-9][0-9]*), wallMilliseconds=[^,]+, "
-    r"stage=preparation, boundary=began,"
+    r"Replay profile target: pid=([1-9][0-9]*), "
+    r"test=automaticLockRewindsOnceAndResumesWithoutManualSetup$"
 )
 
 
@@ -55,7 +55,7 @@ def wait_for_replay_pid(log, stopped, timeout=300):
                 return int(match[1])
         stopped.wait(0.1)
     if not stopped.is_set():
-        raise TimeoutError(f"No replay preparation PID appeared within {timeout:g} seconds.")
+        raise TimeoutError(f"No replay test PID appeared within {timeout:g} seconds.")
     return None
 
 
@@ -79,7 +79,7 @@ def profile(log, output, stopped, sampler="/usr/bin/sample", timeout=300):
     pid = wait_for_replay_pid(log, stopped, timeout)
     if pid is None or stopped.is_set():
         return 0
-    print(f"{datetime.now(timezone.utc).isoformat()} Replay preparation observed; "
+    print(f"{datetime.now(timezone.utc).isoformat()} Replay test entry observed; "
           f"sampling test PID {pid}.", flush=True)
     # Collect stacks immediately; -mayDie first resolves all loaded images,
     # which can consume the short replay window before any stack is sampled.
@@ -104,7 +104,7 @@ def main():
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, lambda *_: stopped.set())
     try:
-        print("Waiting for the synthetic replay preparation PID.", flush=True)
+        print("Waiting for the synthetic replay test PID.", flush=True)
         return profile(args.log, args.output, stopped)
     except (OSError, TimeoutError) as error:
         print(f"Native replay profile unavailable: {error}", flush=True)

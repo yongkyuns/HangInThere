@@ -70,7 +70,7 @@ case "$SUITE" in
 esac
 # Opt-in diagnostic sampling of the fresh synthetic-only mechanics test host.
 # sample records stacks, not image/pose payloads. Wait for the actual replay
-# preparation PID, since Xcode first launches a separate discovery host. Stop
+# test-entry PID, since Xcode first launches a separate discovery host. Stop
 # the watcher and sampler on every exit; preserve the original test exit status.
 REPLAY_SAMPLER_PID=''
 stop_replay_sampler() {

@@ -27,13 +27,13 @@ class ReplayProfilerTests(unittest.TestCase):
         self.stopped = threading.Event()
 
     def marker(self, pid=1234):
-        return (f"Replay stage: pid={pid}, wallMilliseconds=1.0, "
-                "stage=preparation, boundary=began, sourcePTS=none, stageMilliseconds=none\n")
+        return (f"Replay profile target: pid={pid}, "
+                "test=automaticLockRewindsOnceAndResumesWithoutManualSetup\n")
 
-    def test_waits_for_real_preparation_and_complete_log_line(self):
+    def test_waits_for_real_test_entry_and_complete_log_line(self):
         self.log.write_text("HangInThere[999:99] starting discovery\n" +
-                            self.marker(0) + self.marker().replace("stage=preparation", "stage=context") +
-                            self.marker().replace("boundary=began", "boundary=ended") +
+                            self.marker(0) + self.marker().replace("test=automatic", "test=unrelated") +
+                            "Replay stage: pid=1234, wallMilliseconds=1, stage=preparation, boundary=began,\n" +
                             self.marker().replace("pid=1234, ", "") + self.marker(4321)[:-1])
         result = []
         worker = threading.Thread(target=lambda: result.append(

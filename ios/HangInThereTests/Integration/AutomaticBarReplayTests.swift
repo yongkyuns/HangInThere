@@ -58,6 +58,10 @@ private actor TestDipRailDetector: BarEdgeDetector {
         try await VideoTestSupport.makeVideo(timestamps: [0, 35, 70, 105, 140, 175].map { CMTime(value: $0, timescale: 100) })
     }
     @Test func automaticLockRewindsOnceAndResumesWithoutManualSetup() async throws {
+        // Native attachment can take seconds. Identify the real test process
+        // before fixture creation, while keeping the replay's clock/deadline.
+        print("Replay profile target: pid=\(ProcessInfo.processInfo.processIdentifier), " +
+              "test=automaticLockRewindsOnceAndResumesWithoutManualSetup")
         let url = try await video()
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = TestBarDetector()
