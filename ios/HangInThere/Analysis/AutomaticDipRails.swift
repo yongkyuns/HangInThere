@@ -35,14 +35,22 @@ struct AutomaticReferenceStability: Sendable {
 
     static func sameLine(_ p: BarSegment, _ q: BarSegment, tolerance: Double,
                          angleDegrees: Double = 3, overlapFraction: Double = 0.65) -> Bool {
-        guard p.isValid, q.isValid else { return false }
+        guard sameSupportingLine(p, q, tolerance: tolerance, angleDegrees: angleDegrees) else { return false }
         let ux = (p.b.x - p.a.x) / p.length, uy = (p.b.y - p.a.y) / p.length
-        let dot = abs((ux * (q.b.x - q.a.x) + uy * (q.b.y - q.a.y)) / q.length)
         func projection(_ point: Point2D) -> Double { (point.x - p.a.x) * ux + (point.y - p.a.y) * uy }
         let a = projection(q.a), b = projection(q.b)
         let overlap = min(p.length, max(a, b)) - max(0, min(a, b))
+        return overlap >= min(p.length, q.length) * overlapFraction
+    }
+
+    // Unlike tracking, apparatus identity must also compare disjoint fragments.
+    // This tests their image lines without extending either observed segment.
+    static func sameSupportingLine(_ p: BarSegment, _ q: BarSegment, tolerance: Double,
+                                   angleDegrees: Double = 3) -> Bool {
+        guard p.isValid, q.isValid else { return false }
+        let ux = (p.b.x - p.a.x) / p.length, uy = (p.b.y - p.a.y) / p.length
+        let dot = abs((ux * (q.b.x - q.a.x) + uy * (q.b.y - q.a.y)) / q.length)
         return dot >= cos(angleDegrees * .pi / 180)
-            && overlap >= min(p.length, q.length) * overlapFraction
             && p.perpendicularDistance(to: q.a) <= tolerance && p.perpendicularDistance(to: q.b) <= tolerance
             && q.perpendicularDistance(to: p.a) <= tolerance && q.perpendicularDistance(to: p.b) <= tolerance
     }
@@ -57,7 +65,16 @@ struct AutomaticDipRails: Sendable {
     }
     private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
     private var stability = AutomaticReferenceStability()
-    private var witnessedRails: [BarSegment] = []
+    private struct ObservedRail {
+        let pair: BarCandidate
+        let edge: BarSegment
+        var halfWidth: Double {
+            let center = pair.centerline
+            return [pair.firstEdge.a, pair.firstEdge.b, pair.secondEdge.a, pair.secondEdge.b]
+                .map { center.perpendicularDistance(to: $0) }.max() ?? 0
+        }
+    }
+    private var witnessedRails: [ObservedRail] = []
     private var witnessedHands: [Point2D] = []
     mutating func reset() { self = Self() }
 
@@ -89,6 +106,10 @@ struct AutomaticDipRails: Sendable {
     }
 
     static func select(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize) -> BarSegment? {
+        selection(candidates: candidates, hand: hand, size: size)?.edge
+    }
+
+    private static func selection(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize) -> ObservedRail? {
         guard size.isValid, hand.isFinite else { return nil }
         let short = min(size.width, size.height)
         let bounds = BarRegion(.init(x: 0, y: 0), .init(x: size.width, y: size.height))
@@ -116,7 +137,7 @@ struct AutomaticDipRails: Sendable {
         guard let tube = tubes.first else { return nil }
         // Select one of the real silhouette edges, never the fitted centerline.
         guard tube.edge.distance(to: hand) <= short * 0.12 else { return nil }
-        return tube.edge.ordered
+        return ObservedRail(pair: tube.pair, edge: tube.edge.ordered)
     }
 
     mutating func observe(pose: PoseResult, side: ArmMeasurement.Side,
@@ -128,42 +149,59 @@ struct AutomaticDipRails: Sendable {
            !zip(witnessedHands, grip.hands).allSatisfy({ hypot($0.x - $1.x, $0.y - $1.y) <= short * 0.02 }) {
             reset()
         }
-        var edges: [BarSegment] = []
-        for index in 0..<2 {
-            let crop = grip.regions[index]
+        let local = grip.regions.enumerated().map { index, crop in
             // The detector uses an integral crop and fitted contour endpoints;
             // allow only their pixel rounding, without admitting torso edges.
             let observedCrop = BarRegion(.init(x: floor(crop.minX) - 1, y: floor(crop.minY) - 1),
                                          .init(x: ceil(crop.maxX) + 1, y: ceil(crop.maxY) + 1))
-            let local = candidates[index].filter {
+            return candidates[index].filter {
                 observedCrop.contains($0.edge.a) && observedCrop.contains($0.edge.b)
             }
+        }
+        var rails: [ObservedRail] = []
+        if witnessedRails.count == 2 {
             // A previously paired handle can retain identity through partial
             // occlusion only while a fresh matching silhouette edge is observed.
-            let matching = witnessedRails.count == 2 ? local.map(\.edge).filter {
-                $0.distance(to: grip.hands[index]) <= short * 0.12
-                    && min($0.a.y, $0.b.y) >= grip.hands[index].y + short * 0.04
-                    && AutomaticReferenceStability.sameLine(witnessedRails[index], $0,
-                        tolerance: short * 0.01, angleDegrees: 5, overlapFraction: 0.3)
-            }.sorted {
-                let a = witnessedRails[index].perpendicularDistance(to: $0.midpoint)
-                let b = witnessedRails[index].perpendicularDistance(to: $1.midpoint)
-                return a == b ? $0.length > $1.length : a < b
-            }.first : nil
-            if let edge = matching ?? Self.select(candidates: local, hand: grip.hands[index], size: pose.imageSize) {
-                edges.append(edge)
+            for index in 0..<2 {
+                let witness = witnessedRails[index]
+                let matching = local[index].map(\.edge).filter {
+                    $0.distance(to: grip.hands[index]) <= short * 0.12
+                        && min($0.a.y, $0.b.y) >= grip.hands[index].y + short * 0.04
+                        && AutomaticReferenceStability.sameLine(witness.edge, $0,
+                            tolerance: short * 0.01, angleDegrees: 5, overlapFraction: 0.3)
+                }.sorted {
+                    let a = witness.edge.perpendicularDistance(to: $0.midpoint)
+                    let b = witness.edge.perpendicularDistance(to: $1.midpoint)
+                    return a == b ? $0.length > $1.length : a < b
+                }.first
+                if let matching { rails.append(ObservedRail(pair: witness.pair, edge: matching.ordered)) }
             }
         }
-        guard edges.count == 2 else {
+        if rails.count != 2 {
+            // Losing either witness starts a new bilateral acquisition. A lone
+            // old silhouette cannot legitimize a newly selected second tube.
+            reset()
+            rails = (0..<2).compactMap {
+                Self.selection(candidates: local[$0], hand: grip.hands[$0], size: pose.imageSize)
+            }
+        }
+        guard rails.count == 2 else {
             reset(); state = candidates.allSatisfy(\.isEmpty) ? .findingEdge : .ambiguous; return nil
         }
-        // Both rails must remain distinguishable; the same crossbar cannot serve
-        // two hands. Direction follows image projection, not assumed world level.
+        let edges = rails.map(\.edge)
+        // Midpoints can be far apart on one tube. Compare its full paired width
+        // as well, even when each crop selected a different silhouette edge.
+        let sameTube = AutomaticReferenceStability.sameSupportingLine(rails[0].pair.centerline,
+            rails[1].pair.centerline, tolerance: rails[0].halfWidth + rails[1].halfWidth + short * 0.01,
+            angleDegrees: 5)
+        let sameFreshEdge = AutomaticReferenceStability.sameSupportingLine(edges[0], edges[1],
+            tolerance: short * 0.01, angleDegrees: 5)
         guard hypot(edges[0].midpoint.x - edges[1].midpoint.x,
-                    edges[0].midpoint.y - edges[1].midpoint.y) >= short * 0.10 else {
+                    edges[0].midpoint.y - edges[1].midpoint.y) >= short * 0.10,
+              !sameTube, !sameFreshEdge else {
             reset(); state = .ambiguous; return nil
         }
-        if witnessedRails.isEmpty { witnessedRails = edges; witnessedHands = grip.hands }
+        if witnessedRails.isEmpty { witnessedRails = rails; witnessedHands = grip.hands }
         state = .holding
         guard stability.observe(edges: edges, grips: grip.hands, pose: pose) else { return nil }
         let bar = ConfirmedBar(role: side == .left ? .leftDipRail : .rightDipRail,

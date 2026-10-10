@@ -81,7 +81,7 @@ class SetupSwiftParityTest {
         val path=System.getenv("SETUP_ORACLE") ?: "../build/setup-oracle/oracle.json"
         val oracle=json.parseToJsonElement(File(path).readText()).jsonObject
         val cases=oracle.getValue("cases").jsonArray
-        assertTrue(cases.size>=40,"Setup parity cases reduced")
+        assertTrue(cases.size>=49,"Setup parity cases reduced")
         var frames=0
         cases.forEach {value ->
             val row=value.jsonObject;val input=json.decodeFromJsonElement<Input>(row.getValue("input"))
@@ -99,7 +99,7 @@ class SetupSwiftParityTest {
             try {pairs=BarFitter.candidates(input.contours,input.region,input.size)} catch(e:BarFitException){pairError=e.message}
             equivalent(row,json.encodeToJsonElement(GeometryOutput(input,lines,pairs,lineError,pairError)),input.id)
         }
-        val report=buildJsonObject{put("scope","every-frame setup policies compared with unchanged production Swift; analytic evidence only");put("cases",cases.size);put("frames",frames);put("geometryCases",geometries.size);put("matched",true)}
+        val report=buildJsonObject{put("scope","every-frame setup policies compared with production Swift; analytic evidence only");put("cases",cases.size);put("frames",frames);put("geometryCases",geometries.size);put("matched",true)}
         val output=File(System.getenv("SETUP_PARITY_REPORT") ?: "../build/setup-oracle/kotlin-parity.json")
         output.parentFile.mkdirs();output.writeText(json.encodeToString(report))
     }

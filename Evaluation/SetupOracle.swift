@@ -1,4 +1,4 @@
-// Setup parity reference: compiles unchanged production Swift policies.
+// Setup parity reference: compiles production Swift policies.
 // Inputs are original analytic poses and observed contour segments, never private video.
 import Foundation
 

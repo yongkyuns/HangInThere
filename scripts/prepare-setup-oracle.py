@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Original analytical setup evidence with explicit acquisition/start labels.
 
-Uses the unchanged native Swift setup policies as oracle. No private recordings,
+Uses production Swift setup policies as oracle. No private recordings,
 model outputs, constant camera eligibility, or Kotlin-generated expectations.
 """
 import argparse
@@ -66,6 +66,29 @@ def prepare(output):
     # Preserve a paired observed handle through later partial occlusion.
     for s in partial[3:]:s['candidates']=[[candidate(x,550,x,650)] for x in [300,700]]
     add('dip-paired-witness-occlusion','dip',partial,True,True)
+    def transverse(slope=0, offset=0, opposite=False, reversed=False, right_slope=None):
+        rails=[]
+        for index,x in enumerate([300,700]):
+            lines=[]
+            for edge_index,height in enumerate([0,10]):
+                half=55 if opposite and index==edge_index else 50
+                direction=right_slope if index==1 and right_slope is not None else slope
+                def y(px): return 550+slope*(x-300)+direction*(px-x)+height+(offset if index==1 else 0)
+                endpoints=(x-half,y(x-half),x+half,y(x+half))
+                if reversed:endpoints=endpoints[2:]+endpoints[:2]
+                lines.append(candidate(*endpoints))
+            rails.append(lines)
+        return rails
+    for name,edges in [
+        ('horizontal',transverse()),('slanted',transverse(slope=.03)),
+        ('opposite-silhouettes',transverse(opposite=True)),
+        ('reversed',transverse(slope=.03,opposite=True,reversed=True))]:
+        add('dip-one-tube-'+name,'dip',[step(i/10,'dip',candidates=edges) for i in range(56)],False,False)
+    for name,edges in [('parallel',transverse(offset=45,opposite=True)),
+                       ('perspective',transverse(slope=.03,offset=45,opposite=True,right_slope=-.02))]:
+        add('dip-distinct-transverse-'+name,'dip',[step(i/10,'dip',candidates=edges) for i in range(56)],True,True)
+    replaced=[step(i/10,'dip',candidates=transverse(offset=45) if i<3 else transverse(opposite=True)) for i in range(56)]
+    add('dip-witness-replaced-by-one-tube','dip',replaced,False,False)
     ambiguous=[[candidate(200,450,800,450),candidate(200,495,800,495)]]
     add('pullUp-two-separate-bars','pullUp',[step(i/10,'pullUp',candidates=ambiguous) for i in range(56)],False,False)
     thin=[[candidate(200,495,800,495),candidate(200,500,800,500)]]

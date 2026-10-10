@@ -14,6 +14,16 @@ class SetupPoliciesTest {
     }
     private fun line(x:Double,y0:Double=590.0,y1:Double=700.0)=BarLineCandidate(BarSegment(Point2D(x,y0),Point2D(x,y1)),y1-y0)
     private fun rails()=listOf(listOf(line(250.0),line(258.0)),listOf(line(750.0),line(758.0)))
+    private fun transverseRails(slope:Double=0.0,rightOffset:Double=0.0,oppositeSilhouettes:Boolean=false,reversed:Boolean=false,rightSlope:Double?=null)=
+        listOf(250.0,750.0).mapIndexed { index,x ->
+            listOf(0.0,10.0).mapIndexed { edgeIndex,height ->
+                val half=if(oppositeSilhouettes && index==edgeIndex) 45.0 else 40.0
+                val direction=if(index==1) rightSlope ?: slope else slope
+                fun point(px:Double)=Point2D(px,595+slope*(x-250)+direction*(px-x)+height+if(index==1) rightOffset else 0.0)
+                val a=point(x-half);val b=point(x+half)
+                BarLineCandidate(BarSegment(if(reversed) b else a,if(reversed) a else b),2*half)
+            }
+        }
     private val identity=PhoneOrientationStability.Quaternion.create(0.0,0.0,0.0,1.0)!!
     private val stablePatches=listOf(StaticSceneStability.PatchTranslation(0.0,0.0),StaticSceneStability.PatchTranslation(.1,.1),StaticSceneStability.PatchTranslation(-.1,-.1))
     private fun frame(seconds:Double,dip:Boolean=true,candidates:List<List<BarLineCandidate>> = rails(),paused:Boolean=false)=WorkoutRuntime.FrameInput(pose(seconds,dip),candidates,identity,seconds,stablePatches,0.0,seconds,paused)
@@ -41,6 +51,65 @@ class SetupPoliciesTest {
         val locked=assertNotNull(policy.observe(pose(2.5),ArmMeasurement.Side.left,rails()))
         assertEquals(ConfirmedBar.Role.leftDipRail,locked.role);assertEquals(rails()[0][0].edge,locked.referenceEdge)
         assertNull(locked.oppositeEdge);assertEquals(AutomaticPullUpBar.State.locked,policy.state)
+    }
+    @Test fun separatedFragmentsOfOneTubeCannotBecomeTwoRails() {
+        for(slope in listOf(0.0,.03)) for(opposite in listOf(false,true)) for(reversed in listOf(false,true)) for(side in ArmMeasurement.Side.entries) {
+            val policy=AutomaticDipRails()
+            val fragments=transverseRails(slope=slope,oppositeSilhouettes=opposite,reversed=reversed)
+            for(time in listOf(0.0,.3,.6,1.0,1.3)) {
+                assertNull(policy.observe(pose(time),side,fragments))
+                assertEquals(AutomaticPullUpBar.State.ambiguous,policy.state)
+            }
+        }
+    }
+    @Test fun independentlyOffsetTransverseRailsStillAcquire() {
+        for(slope in listOf(0.0,.03)) for(side in ArmMeasurement.Side.entries) {
+            val policy=AutomaticDipRails()
+            val independent=transverseRails(slope=slope,rightOffset=45.0,oppositeSilhouettes=true,rightSlope=if(slope==0.0) null else -.02)
+            for(time in listOf(0.0,.3,.6)) assertNull(policy.observe(pose(time),side,independent))
+            val bar=assertNotNull(policy.observe(pose(1.0),side,independent))
+            assertTrue(independent[if(side==ArmMeasurement.Side.left) 0 else 1].any{it.edge.ordered==bar.referenceEdge})
+            assertEquals(AutomaticPullUpBar.State.locked,policy.state)
+        }
+    }
+    @Test fun freshSelectionCannotReplaceDistinctRailsWithOneTube() {
+        for(side in ArmMeasurement.Side.entries) {
+            val policy=AutomaticDipRails()
+            policy.observe(pose(0.0),side,transverseRails(rightOffset=45.0))
+            for(time in listOf(.3,.6,1.0,1.3,1.6)) {
+                assertNull(policy.observe(pose(time),side,transverseRails(oppositeSilhouettes=true)))
+                assertEquals(AutomaticPullUpBar.State.ambiguous,policy.state)
+            }
+        }
+    }
+    @Test fun losingEitherWitnessRequiresTwoFreshPairsAndRestartsDwell() {
+        val policy=AutomaticDipRails()
+        policy.observe(pose(0.0),ArmMeasurement.Side.left,rails())
+        val changed=listOf(listOf(line(250.0)),listOf(line(770.0),line(778.0)))
+        for(time in listOf(.3,.6,1.0)) {
+            assertNull(policy.observe(pose(time),ArmMeasurement.Side.left,changed))
+            assertEquals(AutomaticPullUpBar.State.ambiguous,policy.state)
+        }
+        for(time in listOf(1.3,1.6,1.9)) assertNull(policy.observe(pose(time),ArmMeasurement.Side.left,rails()))
+        assertTrue(assertNotNull(policy.observe(pose(2.3),ArmMeasurement.Side.left,rails())).isValid)
+    }
+    @Test fun supportingLineIdentityIsSymmetricButTrackingStillRequiresOverlap() {
+        val p=BarSegment(Point2D(100.0,100.0),Point2D(200.0,100.0))
+        for(reversed in listOf(false,true)) {
+            fun fragment(offset:Double):BarSegment {
+                val a=Point2D(300.0,100+offset);val b=Point2D(400.0,100+offset)
+                return BarSegment(if(reversed) b else a,if(reversed) a else b)
+            }
+            val boundary=fragment(5.0)
+            assertTrue(AutomaticReferenceStability.sameSupportingLine(p,boundary,5.0))
+            assertTrue(AutomaticReferenceStability.sameSupportingLine(boundary,p,5.0))
+            assertFalse(AutomaticReferenceStability.sameSupportingLine(p,fragment(5.001),5.0))
+            assertFalse(AutomaticReferenceStability.sameLine(p,fragment(0.0),5.0))
+        }
+        for(angle in listOf(4.99,5.01)) {
+            val q=BarSegment(Point2D(300.0,100.0),Point2D(400.0,100+100*tan(angle*PI/180)))
+            assertEquals(angle<5,AutomaticReferenceStability.sameSupportingLine(p,q,1000.0,5.0))
+        }
     }
     @Test fun dipRejectsForearmsTorsoContoursAndOnlyOneHandle() {
         val policy=AutomaticDipRails()

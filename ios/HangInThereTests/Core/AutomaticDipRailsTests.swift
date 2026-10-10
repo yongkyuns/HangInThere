@@ -12,6 +12,104 @@ import Testing
     }
     var rails: [[BarLineCandidate]] { [[rail(490),rail(500)], [rail(690),rail(700)]] }
 
+    func transverseRails(slope: Double = 0, rightOffset: Double = 0,
+                         oppositeSilhouettes: Bool = false, reversed: Bool = false,
+                         rightSlope: Double? = nil) -> [[BarLineCandidate]] {
+        [500.0,700.0].enumerated().map { index, x in
+            [0.0,10.0].enumerated().map { edgeIndex, height in
+                // Unequal support can make the two crops select opposite sides
+                // of the same tube. Tube identity must survive that choice.
+                let half = oppositeSilhouettes && index == edgeIndex ? 55.0 : 50.0
+                func point(_ px: Double) -> Point2D {
+                    let direction = index == 1 ? (rightSlope ?? slope) : slope
+                    return .init(x: px, y: 550 + slope * (x - 500) + direction * (px - x)
+                        + height + (index == 1 ? rightOffset : 0))
+                }
+                let a = point(x - half), b = point(x + half)
+                return BarLineCandidate(edge:.init(a:reversed ? b : a,b:reversed ? a : b),geometryScore:2*half)
+            }
+        }
+    }
+
+    @Test func separatedFragmentsOfOneTubeCannotBecomeTwoRails() {
+        for slope in [0.0,0.03] {
+            for opposite in [false,true] {
+                for reversed in [false,true] {
+                    for side in ArmMeasurement.Side.allCases {
+                        var policy = AutomaticDipRails()
+                        let fragments = transverseRails(slope:slope,oppositeSilhouettes:opposite,reversed:reversed)
+                        for time in [0.0,0.3,0.6,1,1.3] {
+                            #expect(policy.observe(pose:pose(time),side:side,candidates:fragments) == nil)
+                            #expect(policy.state == .ambiguous)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test func independentlyOffsetTransverseRailsStillAcquire() throws {
+        for slope in [0.0,0.03] {
+            for side in ArmMeasurement.Side.allCases {
+                var policy = AutomaticDipRails()
+                let independent = transverseRails(slope:slope,rightOffset:45,oppositeSilhouettes:true,
+                    rightSlope:slope == 0 ? nil : -0.02)
+                for time in [0.0,0.3,0.6] {
+                    #expect(policy.observe(pose:pose(time),side:side,candidates:independent) == nil)
+                }
+                let proposal = policy.observe(pose:pose(1),side:side,candidates:independent)
+                let bar = try #require(proposal)
+                #expect(independent[side == .left ? 0 : 1].contains { $0.edge.ordered == bar.referenceEdge })
+                #expect(policy.state == .locked)
+            }
+        }
+    }
+
+    @Test func freshSelectionCannotReplaceDistinctRailsWithOneTube() {
+        for side in ArmMeasurement.Side.allCases {
+            var policy = AutomaticDipRails()
+            _ = policy.observe(pose:pose(0),side:side,candidates:transverseRails(rightOffset:45))
+            for time in [0.3,0.6,1,1.3,1.6] {
+                #expect(policy.observe(pose:pose(time),side:side,candidates:transverseRails(oppositeSilhouettes:true)) == nil)
+                #expect(policy.state == .ambiguous)
+            }
+        }
+    }
+
+    @Test func losingEitherWitnessRequiresTwoFreshPairsAndRestartsDwell() throws {
+        var policy = AutomaticDipRails()
+        _ = policy.observe(pose:pose(0),side:.left,candidates:rails)
+        let changed = [[rail(500)],[rail(720),rail(730)]]
+        for time in [0.3,0.6,1] {
+            #expect(policy.observe(pose:pose(time),side:.left,candidates:changed) == nil)
+            #expect(policy.state == .ambiguous)
+        }
+        for time in [1.3,1.6,1.9] {
+            #expect(policy.observe(pose:pose(time),side:.left,candidates:rails) == nil)
+        }
+        let proposal = policy.observe(pose:pose(2.3),side:.left,candidates:rails)
+        #expect(try #require(proposal).isValid)
+    }
+
+    @Test func supportingLineIdentityIsSymmetricButTrackingStillRequiresOverlap() {
+        let p = BarSegment(a:.init(x:100,y:100),b:.init(x:200,y:100))
+        for reversed in [false,true] {
+            func fragment(_ offset: Double) -> BarSegment {
+                let a=Point2D(x:300,y:100+offset),b=Point2D(x:400,y:100+offset)
+                return .init(a:reversed ? b : a,b:reversed ? a : b)
+            }
+            let boundary = fragment(5)
+            #expect(AutomaticReferenceStability.sameSupportingLine(p,boundary,tolerance:5))
+            #expect(AutomaticReferenceStability.sameSupportingLine(boundary,p,tolerance:5))
+            #expect(!AutomaticReferenceStability.sameSupportingLine(p,fragment(5.001),tolerance:5))
+            #expect(!AutomaticReferenceStability.sameLine(p,fragment(0),tolerance:5))
+        }
+        for angle in [4.99,5.01] {
+            let q=BarSegment(a:.init(x:300,y:100),b:.init(x:400,y:100+100*tan(angle * .pi / 180)))
+            #expect(AutomaticReferenceStability.sameSupportingLine(p,q,tolerance:1000,angleDegrees:5) == (angle < 5))
+        }
+    }
+
     @Test func bothObservedHandlesLockAndRetainSelectedAnatomicalRole() throws {
         for side in ArmMeasurement.Side.allCases {
             var policy = AutomaticDipRails()

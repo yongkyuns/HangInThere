@@ -47,7 +47,7 @@ timebases, avoiding FFprobe decimal rounding while preserving actual source PTS.
 ## Evaluation layers
 
 1. `prepare-workout-oracle.py` generates original analytic trajectories with
-   explicit movement labels. The unchanged production Swift sources generate
+   explicit movement labels. Production Swift sources generate
    per-frame summaries, events and progress snapshots; JVM tests compare every
    field within 1e-9 for floating-point math. Static, partial, interrupted,
    bilateral-disagreement, missing-arm, crowd and timestamp cases are included.
@@ -103,6 +103,17 @@ hash-checked public setup fixture is also retained for contour diagnosis. These
 records use the existing detector call and canonical decoder pixels. The app
 result retains no image buffers, and the private evaluation does not export
 these public setup artifacts.
+
+Dip acquisition compares the paired silhouette widths and image supporting lines
+of both observed tubes. Widely separated fragments of one tube cannot establish
+two rails, including when the crops choose opposite silhouette edges. Each frame
+still needs two fresh matching observed edges. Losing either paired witness resets
+both witnesses and dwell; reacquisition requires two fresh pairs. The original
+below-hand, grip, countdown and counting gates remain in place. This conservative
+ambiguity check can reject physically separate rails whose projections overlap.
+It corrects a false-positive path; it does not recover an occluded rail or qualify
+the held-dip setup fixture. Core tests and the per-frame Swift/Kotlin CI oracle cover
+fragment identity, perspective-separated rails, partial occlusion and reacquisition.
 
 ## Performance evidence
 
