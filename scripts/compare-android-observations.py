@@ -13,7 +13,7 @@ def main(directory):
     binary=ROOT/'build/android-swift-counter';binary.parent.mkdir(parents=True,exist_ok=True)
     names=['PoseObservation','Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement',
            'DipSupportMeasurement','PullUpProgress','DipProgress','ExerciseCounter']
-    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'HangInThere/Analysis'/f'{x}.swift') for x in names]+[str(ROOT/'Evaluation/CountReplay.swift')],check=True)
+    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'ios/HangInThere/Analysis'/f'{x}.swift') for x in names]+[str(ROOT/'Evaluation/CountReplay.swift')],check=True)
     evidence=[]
     for case in r['cases']:
         poses=directory/(case['id']+'-observations.jsonl');lines=poses.read_text().splitlines()

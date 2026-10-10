@@ -18,7 +18,7 @@ uname -m | tee -a build/toolchain.txt
 if [[ "$SUITE" != vision ]]; then
 # Compile a real device target, but do not sign, install, archive, or publish it.
 xcodebuild build \
-  -project HangInThere.xcodeproj -scheme HangInThere -configuration Release \
+  -project ios/HangInThere.xcodeproj -scheme HangInThere -configuration Release \
   -destination 'generic/platform=iOS' -derivedDataPath build/DerivedData \
   CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/device-build.txt
 fi
@@ -53,7 +53,7 @@ TEST_LOG="build/simulator-${SUITE}-tests.txt"
 # Xcode refuses to overwrite an existing result bundle. Delete this output only.
 rm -rf "$RESULT_BUNDLE"
 test_command=(xcodebuild test
-  -project HangInThere.xcodeproj -scheme HangInThere -configuration Debug
+  -project ios/HangInThere.xcodeproj -scheme HangInThere -configuration Debug
   -destination "platform=iOS Simulator,id=${SIMULATOR_UDID}"
   -derivedDataPath build/DerivedData -resultBundlePath "$RESULT_BUNDLE"
   -parallel-testing-enabled NO)

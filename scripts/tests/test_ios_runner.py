@@ -58,9 +58,9 @@ else:
         path.write_text("#!/usr/bin/env python3\n" + code)
         path.chmod(0o755)
 
-    def run_script(self, *args, **env):
+    def run_script(self, *args, cwd=None, **env):
         result = subprocess.run(
-            ["bash", str(self.root / "scripts/test-ios.sh"), *args], cwd=self.root,
+            ["bash", str(self.root / "scripts/test-ios.sh"), *args], cwd=cwd or self.root,
             env={**self.env, **env}, text=True, capture_output=True, timeout=20,
         )
         commands = [json.loads(line) for line in self.log.read_text().splitlines()] if self.log.exists() else []
@@ -75,6 +75,15 @@ else:
         self.assertIn('build/Simulator-all.xcresult', commands[-1])
         self.assertTrue((self.root / 'fixture-verified').exists())
         self.assertTrue((self.root / 'corpus-verified').exists())
+
+    def test_platform_project_resolves_from_another_working_directory(self):
+        result, commands = self.run_script('mechanics', cwd=self.tools)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for command in commands:
+            if command[0] in {'build', 'test'}:
+                self.assertEqual(command[command.index('-project') + 1],
+                                 'ios/HangInThere.xcodeproj')
+        self.assertTrue((self.root / 'build/toolchain.txt').exists())
 
     def test_mechanics_needs_no_model_media_and_retains_device_build(self):
         result, commands = self.run_script('mechanics')

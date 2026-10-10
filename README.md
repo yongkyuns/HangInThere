@@ -7,6 +7,23 @@ An Android client is under qualification on `codex/android-parity`: native
 Compose/CameraX with a framework-free Kotlin Multiplatform workout core. See
 [Android architecture and CI evidence](docs/ANDROID.md) and [build instructions](android/README.md).
 
+## Repository layout
+
+| Directory | Responsibility |
+| --- | --- |
+| [`ios/`](ios/README.md) | Swift app, Xcode project, and iOS core/integration tests |
+| [`android/`](android/README.md) | Native Android app, platform adapters, and Android tests |
+| [`shared/`](shared/README.md) | Platform-independent Kotlin workout policies used by Android, with Swift parity tests |
+| [`Evaluation/`](Evaluation/README.md) | Offline evaluators, reviewed fixture specifications, research, and historical evidence |
+| `scripts/` | Build, fixture preparation, evaluation, and qualification commands |
+| `docs/` | Product design, counting rules, architecture, and qualification limits |
+| `.github/workflows/` | Platform builds, policy parity, and native evaluation pipelines |
+
+iOS currently uses its own Swift workout core; it does not link the Kotlin
+framework. Camera capture, pose inference, and UI remain platform-specific.
+Private recordings and downloaded datasets stay in ignored `Data/` directories;
+generated build results stay in ignored `build/` directories.
+
 **P0: video import/replay and real Apple Vision integration.** The source and
 GitHub qualification workflow are published in [PR #2](https://github.com/yongkyuns/HangInThere/pull/2).
 Use that PR's exact-head checks and [the evidence record](docs/P0_STATUS.md) for
@@ -67,19 +84,17 @@ cameras clears framing and the fixed bar reference, so reacquire the bar before
 starting. Camera selection is locked during a set or debug recording. The front
 preview is unmirrored, matching analysis and recorded debug video.
 
-The app uses SwiftUI, AVFoundation, Core Image, and Vision. There are no third-party
+The iOS app uses SwiftUI, AVFoundation, Core Image, and Vision. There are no third-party
 runtime packages, backend services, accounts, model downloads, or analytics.
 Imported files are copied into app-local temporary storage and removed on close
 or replacement; recordings are never uploaded by the app.
 
 ## Open the app
 
-Until the implementation PRs merge, check out the current bar-setup branch:
+From a checkout containing the iOS client:
 
 ```sh
-git clone --branch feat/bar-setup https://github.com/yongkyuns/HangInThere.git
-cd HangInThere
-open HangInThere.xcodeproj
+open ios/HangInThere.xcodeproj
 ```
 
 Choose the shared **HangInThere** scheme and an iPhone simulator, then Run.
@@ -126,7 +141,7 @@ python3 scripts/prepare-fixtures.py
 
 Preparation verifies the original source's digest and size, derives a small
 video and still, and records exact timestamps, derivative checksums, and encoder
-provenance. See [fixture provenance and limits](HangInThereTests/Fixtures/README.md).
+provenance. See [fixture provenance and limits](ios/HangInThereTests/Fixtures/README.md).
 Missing media, integrity failures, missing expected body landmarks, and backend
 errors are failures, not skipped checks or successful accuracy reports.
 This is a backend smoke check, **not** a pull-up/dip accuracy set.
@@ -141,6 +156,20 @@ It uses a pinned Xcode, read-only repository permissions and no Apple credential
 results/provenance and a separately named, approved smoke clip/still for review;
 private app imports are never collected. Unsigned compilation does not produce
 an installable phone app. Normal local signing is not disabled in the project.
+
+The [dataset-evaluation workflow](.github/workflows/evaluation.yml) also has an
+independent Ubuntu host-tools job on every pull request and push to `main`. It
+runs all script, evaluator/importer, and research-tool contract tests with pinned
+Python dependencies, plus shell syntax checks. These tests use synthetic inputs
+and do not depend on downloading footage or initializing a pose model. Native
+pipeline and accuracy checks remain separate jobs; their failures remain visible.
+
+The [Android workflow](.github/workflows/android.yml) runs shared-policy tests,
+Swift/Kotlin parity, an iOS framework build, Android unit tests and lint, and
+native API29/API35 instrumentation with counting, setup, UI, and pipeline-budget
+checks. [Private recording evaluation](.github/workflows/android-private.yml)
+is explicitly dispatched using temporary encrypted inputs. Physical-camera,
+thermal, and battery qualification still require devices.
 
 ## Real-video diversity qualification
 
@@ -158,7 +187,7 @@ python3 scripts/prepare-video-corpus.py
 ./scripts/test-apple-host.sh
 ```
 
-See [fixture provenance and corpus scope](HangInThereTests/Fixtures/README.md).
+See [fixture provenance and corpus scope](ios/HangInThereTests/Fixtures/README.md).
 
 ## Physical-device qualification reports
 

@@ -208,7 +208,7 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
         ev.require(counter["input_sha256"] == observation_hash and counter["source_revision"] == pose["source_commit"], "Counter/pose provenance differs")
         for path, sha in counter["source_sha256"].items():
             ev.require(ev.digest(ev.ROOT / path) == sha, "Counter source changed")
-            if path.startswith("HangInThere/"):
+            if path.startswith("ios/HangInThere/"):
                 ev.require(pose["source_files_sha256"].get(path) == sha, "Pose/counter app source differs")
         validate_run(ref, clip, row, counter, observations, ev.read_json(completion_path))
         scores = score_events(ref, [e["sourceSeconds"] for e in counter["events"] if e["outcome"] == "movement"])

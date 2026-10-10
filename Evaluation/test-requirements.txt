@@ -1,0 +1,3 @@
+# Host-only regression tests; includes the existing importer dependency pins.
+-r import-requirements.txt
+opencv-python-headless==4.13.0.92

@@ -6,12 +6,12 @@ on:
       - 'scripts/debug_session.py'
       - 'scripts/tests/test_debug_session.py'
       - 'Evaluation/DEBUG_SESSION.md'
-      - 'HangInThere/UI/QualificationReportDocument.swift'
-      - 'HangInThere/Capture/LiveCameraPreview.swift'
-      - 'HangInThere/UI/LiveSetupView.swift'
-      - 'HangInThere/Analysis/LiveSetSession.swift'
-      - 'HangInThereTests/Core/LiveDeviceQualificationRecorderTests.swift'
-      - 'HangInThereTests/Core/LiveSetSessionTests.swift'
+      - 'ios/HangInThere/UI/QualificationReportDocument.swift'
+      - 'ios/HangInThere/Capture/LiveCameraPreview.swift'
+      - 'ios/HangInThere/UI/LiveSetupView.swift'
+      - 'ios/HangInThere/Analysis/LiveSetSession.swift'
+      - 'ios/HangInThereTests/Core/LiveDeviceQualificationRecorderTests.swift'
+      - 'ios/HangInThereTests/Core/LiveSetSessionTests.swift'
       - '.github/workflows/debug-session.yml'
   push:
     branches: [main]

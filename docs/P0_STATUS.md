@@ -62,7 +62,7 @@ body-root movement at three preselected frames and logs actual frame-by-frame
 pose observations tied to the derivative hash. These are broad motion sanity
 checks, not rep counting or anatomical ground truth. The temporary full-source
 artifact step was removed after review; only the named small derivative remains.
-See [fixture provenance](../HangInThereTests/Fixtures/README.md).
+See [fixture provenance](../ios/HangInThereTests/Fixtures/README.md).
 
 The old introduction's passing results must not be attributed to this new motion
 interval. Consult the new exact-head run for its execution and inspect the

@@ -10,6 +10,36 @@ concurrency:
   group: evaluation-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
+  host-tools:
+    name: Script, evaluator and research-tool regressions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install host-only test dependencies
+        run: |
+          python3 -m venv /tmp/hit-host-tests
+          /tmp/hit-host-tests/bin/python -m pip install --only-binary=:all: -r Evaluation/test-requirements.txt
+      - name: Check shell entry points
+        run: |
+          for script in scripts/*.sh; do bash -n "$script"; done
+      # Run each suite independently so a failing suite does not hide the others.
+      # These contracts use synthetic inputs, with no model or media downloads.
+      - name: Test script contracts and CI routing
+        if: ${{ !cancelled() }}
+        run: /tmp/hit-host-tests/bin/python -m unittest discover -s scripts/tests -v
+      - name: Test evaluator and importer contracts
+        if: ${{ !cancelled() }}
+        run: /tmp/hit-host-tests/bin/python -m unittest discover -s Evaluation/tests -v
+      - name: Test research-tool contracts
+        if: ${{ !cancelled() }}
+        run: /tmp/hit-host-tests/bin/python -m unittest discover -s Evaluation/research_tests -p '*test.py' -v
+
   batch:
     name: Manifest, scoring and real-pipeline batch smoke
     runs-on: macos-15
@@ -34,8 +64,6 @@ jobs:
           python3 -m venv /tmp/hit-import-env
           /tmp/hit-import-env/bin/python -m pip install --only-binary=:all: -r Evaluation/import-requirements.txt
           echo "/tmp/hit-import-env/bin" >> "$GITHUB_PATH"
-      - name: Validate evaluator and importer contracts
-        run: python3 -m unittest discover -s Evaluation/tests -v
       - name: Prepare already-approved motion fixture
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
@@ -116,12 +144,12 @@ jobs:
       - name: Audit guided bar proposals on reviewed source images
         run: |
           xcrun swiftc -O -swift-version 6 -parse-as-library \
-            HangInThere/Analysis/*.swift HangInThere/Pose/VisionBarDetector.swift \
+            ios/HangInThere/Analysis/*.swift ios/HangInThere/Pose/VisionBarDetector.swift \
             Evaluation/BarSetupAudit.swift -o build/bar-setup-audit
           build/bar-setup-audit Evaluation/fixtures/bar-setup.json \
             Data/local/source-pilot Evaluation/output/bar-setup/report.json
-          shasum -a 256 HangInThere/Analysis/BarGeometry.swift \
-            HangInThere/Pose/VisionBarDetector.swift Evaluation/BarSetupAudit.swift \
+          shasum -a 256 ios/HangInThere/Analysis/BarGeometry.swift \
+            ios/HangInThere/Pose/VisionBarDetector.swift Evaluation/BarSetupAudit.swift \
             Evaluation/fixtures/bar-setup.json build/bar-setup-audit > build/bar-setup-provenance.txt
       - name: Inventory HAA4D public metadata
         if: ${{ !cancelled() }}

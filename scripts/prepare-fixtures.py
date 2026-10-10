@@ -20,8 +20,8 @@ import tempfile
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC_PATH = ROOT / "HangInThereTests/Fixtures/source.json"
-DESTINATION = ROOT / "HangInThereTests/Fixtures/generated"
+SPEC_PATH = ROOT / "ios/HangInThereTests/Fixtures/source.json"
+DESTINATION = ROOT / "ios/HangInThereTests/Fixtures/generated"
 
 
 def digest(path: Path, algorithm: str = "sha256") -> str:

@@ -323,8 +323,8 @@ def run_batch(manifest_path, root, output, engine, public_output=False, timeout=
                 record["pose_metrics"] = {"status": "no_independent_labels"}
         except (OSError, ValueError, KeyError, TypeError):
             record.update(status="evaluation_failure", pose_metrics={"status": "not_evaluated"})
-    sources = sorted(list((ROOT / "HangInThere/Analysis").glob("*.swift")) +
-                     [ROOT / "HangInThere/Capture/VideoReplayReader.swift", ROOT / "HangInThere/Pose/VisionPoseEstimator.swift",
+    sources = sorted(list((ROOT / "ios/HangInThere/Analysis").glob("*.swift")) +
+                     [ROOT / "ios/HangInThere/Capture/VideoReplayReader.swift", ROOT / "ios/HangInThere/Pose/VisionPoseEstimator.swift",
                       ROOT / "Evaluation/PoseBatch.swift", Path(__file__)])
     fingerprint = {str(p.relative_to(ROOT)): digest(p) for p in sources}
     commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True, capture_output=True, check=False).stdout.strip() or None
@@ -339,13 +339,13 @@ def run_batch(manifest_path, root, output, engine, public_output=False, timeout=
 
 
 def smoke_manifest(root):
-    fixture = root / "HangInThereTests/Fixtures/generated"
+    fixture = root / "ios/HangInThereTests/Fixtures/generated"
     meta = read_json(fixture / "prepared.json")
     video = fixture / "pullup-smoke.mp4"
     require(digest(video) == meta["video_sha256"], "Fixture integrity mismatch")
     return {"schema_version": 1, "clips": [{"id": "pullup_smoke", "dataset": "p0_smoke", "exercise": "pull_up",
         "split": "smoke", "source_group": meta["source_id"], "subject_group": None,
-        "rights": {"status": "approved", "evidence": "HangInThereTests/Fixtures/source.json; existing reviewed test-only use", "public_outputs": True},
+        "rights": {"status": "approved", "evidence": "ios/HangInThereTests/Fixtures/source.json; existing reviewed test-only use", "public_outputs": True},
         "media": {"kind": "video", "expected_frames": len(meta["frame_pts_seconds"]), "files": [
             {"path": str(video.relative_to(root)), "sha256": meta["video_sha256"]}]}}]}
 

@@ -58,7 +58,7 @@ def prepare(output):
     binary=output/'swift-workout-oracle'
     names=['PoseObservation','Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement',
            'DipSupportMeasurement','PullUpProgress','DipProgress','ExerciseCounter']
-    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'HangInThere/Analysis'/f'{x}.swift') for x in names]+[str(ROOT/'Evaluation/WorkoutOracle.swift')],check=True)
+    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'ios/HangInThere/Analysis'/f'{x}.swift') for x in names]+[str(ROOT/'Evaluation/WorkoutOracle.swift')],check=True)
     temporary=output/'oracle.json.tmp'
     with temporary.open('w') as out: subprocess.run([str(binary),str(inputs)],stdout=out,check=True)
     temporary.replace(output/'oracle.json')

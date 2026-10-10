@@ -95,7 +95,7 @@ def prepare(output):
         'PullUpProgress','DipProgress','ExerciseCounter','AutomaticPullUpBar','AutomaticDipRails','AutomaticExerciseDetection',
         'HandsFreeSetStart','PhoneOrientationStability','StaticSceneStability']
     binary=output/'swift-setup-oracle'
-    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'HangInThere/Analysis'/f'{name}.swift') for name in names]+[str(ROOT/'Evaluation/SetupOracle.swift')],check=True)
+    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'ios/HangInThere/Analysis'/f'{name}.swift') for name in names]+[str(ROOT/'Evaluation/SetupOracle.swift')],check=True)
     pending=output/'oracle.json.pending'
     with pending.open('w') as out:subprocess.run([str(binary),str(inputs),str(geometry_inputs)],stdout=out,check=True)
     pending.replace(output/'oracle.json')

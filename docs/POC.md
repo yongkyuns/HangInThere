@@ -118,27 +118,33 @@ Use one committed Xcode project, one app target, one unit/integration test targe
 and at most one small UI-test target. Commit the shared scheme. Start with plain
 Swift files inside the app target, not a workspace full of tiny packages.
 
-The following is a **planned** layout; these application files do not exist in
-the documentation-only seed:
+The repository now separates platform clients and keeps offline evaluation outside
+the app targets:
 
 ```text
-HangInThere.xcodeproj/          # committed project + shared scheme
-HangInThere/
-  App/                         # SwiftUI entry point and session UI state
-  Capture/                     # camera input and sequential video reader
-  Pose/                        # selected estimator + coordinate normalization
-  Analysis/                    # value types, geometry, filtering, rep logic
-  UI/                          # preview, setup, overlay, results
-  Evaluation/                  # replay runner and JSON/CSV report writer
-HangInThereTests/
-  Fixtures/                    # synthetic data + approved small real fixtures
-HangInThereUITests/             # only when useful UI behaviour is exercised
-Evaluation/
-  manifest.json                # dataset/clip provenance and split definitions
-  annotations/                 # reviewed labels with permitted provenance
-scripts/                       # a few build/evaluation commands, when needed
-.github/workflows/ci.yml        # added with real buildable targets
+ios/
+  HangInThere.xcodeproj/        # project + shared scheme
+  HangInThere/
+    App/                       # entry point and session state
+    Capture/                   # camera input and sequential video reader
+    Pose/                      # Apple Vision adapters
+    Analysis/                  # Swift workout reference implementation
+    UI/                        # preview, setup, overlay, results
+  HangInThereTests/
+    Core/
+    Integration/
+    Fixtures/                  # reviewed specifications; generated media ignored
+android/app/                   # native Android client and platform tests
+shared/                        # Kotlin workout policies used by Android
+Evaluation/                    # offline runners, reviewed specifications, evidence
+scripts/                       # build, fixture preparation, evaluation commands
+docs/                          # design and qualification records
+.github/workflows/             # platform and evaluation CI
 ```
+
+The iOS app currently uses the Swift reference, while Android uses the Kotlin
+core. Shared-framework compilation and parity tests precede any future iOS
+integration; they do not establish identical vision predictions.
 
 Both adapters call the same processing entry point:
 
@@ -489,14 +495,14 @@ xcrun simctl list devices available
 
 # SIMULATOR_UDID must be selected from the discovered available devices.
 xcodebuild test \
-  -project HangInThere.xcodeproj \
+  -project ios/HangInThere.xcodeproj \
   -scheme HangInThere \
   -destination "platform=iOS Simulator,id=${SIMULATOR_UDID}" \
   -resultBundlePath build/SimulatorTests.xcresult
 
 # No development profile or Apple login is needed for this compile-only check.
 xcodebuild build \
-  -project HangInThere.xcodeproj \
+  -project ios/HangInThere.xcodeproj \
   -scheme HangInThere \
   -configuration Release \
   -destination 'generic/platform=iOS' \
@@ -568,7 +574,7 @@ Once application code exists:
 1. Use a Mac/macOS version capable of running Xcode with support for the phone's
    installed iOS version. Verify this combination before relying on an older Mac.
    An iOS deployment target alone does not establish Xcode/device compatibility.
-2. Clone the repository and open `HangInThere.xcodeproj`. Run the simulator tests
+2. Clone the repository and open `ios/HangInThere.xcodeproj`. Run the simulator tests
    and bundled approved replay fixture first.
 3. Sign in to the Apple account in Xcode. Select the app target, enable automatic
    signing, choose the Personal Team, and use a unique bundle identifier.

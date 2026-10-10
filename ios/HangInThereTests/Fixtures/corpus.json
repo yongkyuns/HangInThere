@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "Small real-video diversity corpus for decoder/Apple-Vision/tracking robustness. Count expectations exist only where explicitly reviewed. This is not a population accuracy benchmark or form-validity dataset.",
-  "generated_root": "HangInThereTests/Fixtures/generated/corpus",
+  "generated_root": "ios/HangInThereTests/Fixtures/generated/corpus",
   "cases": [
     {
       "id": "iwakuni-standard-rear-oblique",

@@ -9,14 +9,14 @@ python3 "$ROOT/scripts/prepare-video-corpus.py" --verify-only
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/Sources/HangInThere" "$WORK/Tests/HangInThereTests"
-cp "$ROOT"/HangInThere/Analysis/*.swift "$WORK/Sources/HangInThere/"
-cp "$ROOT"/HangInThere/Capture/*.swift "$WORK/Sources/HangInThere/"
-cp "$ROOT"/HangInThere/Pose/*.swift "$WORK/Sources/HangInThere/"
-cp "$ROOT/HangInThere/App/ReplayController.swift" "$WORK/Sources/HangInThere/"
-cp "$ROOT/HangInThere/UI/QualificationReportDocument.swift" "$WORK/Sources/HangInThere/"
-cp "$ROOT"/HangInThereTests/Core/*.swift "$WORK/Tests/HangInThereTests/"
-cp "$ROOT"/HangInThereTests/Integration/*.swift "$WORK/Tests/HangInThereTests/"
-cp -R "$ROOT/HangInThereTests/Fixtures" "$WORK/Tests/HangInThereTests/Fixtures"
+cp "$ROOT"/ios/HangInThere/Analysis/*.swift "$WORK/Sources/HangInThere/"
+cp "$ROOT"/ios/HangInThere/Capture/*.swift "$WORK/Sources/HangInThere/"
+cp "$ROOT"/ios/HangInThere/Pose/*.swift "$WORK/Sources/HangInThere/"
+cp "$ROOT/ios/HangInThere/App/ReplayController.swift" "$WORK/Sources/HangInThere/"
+cp "$ROOT/ios/HangInThere/UI/QualificationReportDocument.swift" "$WORK/Sources/HangInThere/"
+cp "$ROOT"/ios/HangInThereTests/Core/*.swift "$WORK/Tests/HangInThereTests/"
+cp "$ROOT"/ios/HangInThereTests/Integration/*.swift "$WORK/Tests/HangInThereTests/"
+cp -R "$ROOT/ios/HangInThereTests/Fixtures" "$WORK/Tests/HangInThereTests/Fixtures"
 cat > "$WORK/Package.swift" <<'SWIFT'
 // swift-tools-version: 6.0
 import PackageDescription
