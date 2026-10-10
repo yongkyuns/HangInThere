@@ -20,6 +20,13 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y autoconf automake libtool pkg-config
       - name: Compile pinned codec sources and test production decoder
         run: python3 scripts/test-hdr-decoder.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: failure()
+        with:
+          name: hdr-host-build-diagnostics
+          path: |
+            build/android-hdr/host/build.log
+            build/android-hdr/host/ffmpeg/ffbuild/config.log
   shared-parity:
     name: Swift and Kotlin policy parity
     runs-on: macos-15
@@ -137,6 +144,8 @@ jobs:
             build/android-hdr/sources/ffmpeg.tar.xz
             build/android-hdr/sources/zimg.tar.gz
             build/android-hdr/*/complete.json
+            build/android-hdr/*/build.log
+            build/android-hdr/*/ffmpeg/ffbuild/config.log
             scripts/build-android-hdr.py
             android/app/src/main/cpp/*
             android/app/src/main/assets/licenses/*

@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tarfile
 import urllib.request
 
@@ -124,6 +125,11 @@ def build(output, abi, ndk=None):
             stamp.write_text(json.dumps(dict(fingerprint=fingerprint, abi=abi, ndkVersion=NDK_VERSION if ndk else None,
                                             sources={name: dict(version=v, url=u, sha256=s) for name, (v, u, s) in SOURCES.items()}), indent=2) + '\n')
         except subprocess.CalledProcessError as error:
+            # Dependency builds never consume media. Keep source/compiler failures
+            # actionable on CI; private workflows still encrypt their build stdout.
+            for diagnostic in (target / 'build.log', target / 'ffmpeg/ffbuild/config.log'):
+                if diagnostic.exists():
+                    print(f'--- {diagnostic.name} (tail) ---\n{diagnostic.read_text(errors="replace")[-8000:]}', file=sys.stderr)
             raise RuntimeError(f'HDR dependency build failed; see {target / "build.log"}') from error
         return install
 
