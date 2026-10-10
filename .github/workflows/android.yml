@@ -94,7 +94,7 @@ jobs:
       - name: Compile APK, check lint and host regressions
         run: ./gradlew :android:app:assembleDebug :android:app:assembleDebugAndroidTest :android:app:lintDebug :android:app:testDebugUnitTest --console=plain
       - name: Verify actual packaged native model and emulator ABI
-        run: python3 scripts/check-android-apk.py android/app/build/outputs/apk/debug/app-debug.apk --output build/android-evaluation/apk-provenance.json
+        run: python3 scripts/check-android-apk.py android/app/build/outputs/apk/debug/app-debug.apk --ndk "$ANDROID_HOME/ndk/28.2.13676358" --output build/android-evaluation/apk-provenance.json
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

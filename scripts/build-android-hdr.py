@@ -96,6 +96,10 @@ def build(output, abi, ndk=None):
                       '--cc=' + env['CC'], '--cxx=' + env['CXX'], '--ar=' + env['AR'], '--ranlib=' + env['RANLIB'],
                       '--strip=' + env['STRIP'], '--sysroot=' + str(toolchain / 'sysroot'),
                       '--extra-ldflags=-Wl,-z,max-page-size=16384', '--extra-libs=-lc++_shared']
+            if abi == 'x86':
+                # FFmpeg's 32-bit inline CABAC assembly emits absolute text
+                # relocations even with -fPIC. Android requires the C path here.
+                ffmpeg += ['--disable-inline-asm']
         env['PKG_CONFIG_LIBDIR'] = str(install / 'lib/pkgconfig')
         env['PKG_CONFIG_PATH'] = env['PKG_CONFIG_LIBDIR']
         try:

@@ -49,6 +49,13 @@ accept their SDK licenses using sdkmanager. CMake invokes the pinned build for
 each Android ABI. All four existing ABIs are preserved, and every packaged ELF
 must have at least 16 KiB load alignment. Builds are keyed by recipe, ABI and NDK;
 private media never enters dependency builds or their output.
+OpenCV also bundles a C++ runtime. Packaging selects the project runtime, and the
+APK gate compares every ABI's selected bytes against the pinned NDK; choosing an
+older AAR runtime fails the gate. The narrow `keepDebugSymbols` packaging rule
+preserves that library's bytes for verification. This keeps one C++ runtime across both native
+adapters without relying on an unchecked duplicate-library selection.
+The 32-bit x86 codec uses portable C CABAC code because its inline assembly emits
+text relocations that Android rejects; the other ABIs retain their inline paths.
 
 For a host decoder check, run `python3 scripts/test-hdr-decoder.py`. For Android,
 run the ordinary Gradle assemble/lint/unit/instrumentation commands. Sources and

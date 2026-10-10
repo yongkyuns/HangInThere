@@ -38,18 +38,19 @@ class AndroidApkTests(unittest.TestCase):
             result[f"lib/{abi}/libopencv_java4.so"] = b"opencv"
             for library in CHECK.HDR_LIBRARIES:
                 result[f"lib/{abi}/lib{library}.so"] = elf()
+            result[f"lib/{abi}/libc++_shared.so"] = elf()
         for notice in ('hdr-notice.txt','ffmpeg-LGPL-2.1.txt','zimg-WTFPL.txt'):
             result[f'assets/licenses/{notice}'] = b'license'
         return result
 
-    def check(self, entries):
+    def check(self, entries, ndk=None):
         with tempfile.TemporaryDirectory() as directory:
             apk = Path(directory) / "app.apk"
             with zipfile.ZipFile(apk, "w") as archive:
                 for name, data in entries.items():
                     archive.writestr(name, data)
             with patch.object(CHECK, "MODEL_SHA", hashlib.sha256(b"model").hexdigest()):
-                return CHECK.check(apk)
+                return CHECK.check(apk, ndk)
 
     def test_all_native_abis_and_model_are_required(self):
         self.assertEqual(set(self.check(self.entries())["nativePoseLibraries"]), set(CHECK.ABIS))
@@ -77,6 +78,18 @@ class AndroidApkTests(unittest.TestCase):
         entries['lib/arm64-v8a/libavcodec.so'] = elf(alignment=4096)
         with self.assertRaisesRegex(AssertionError, 'HDR.*aligned'):
             self.check(entries)
+
+    def test_selected_cpp_runtime_must_match_the_pinned_toolchain(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ndk = Path(directory)
+            for abi, triple in CHECK.NDK_TRIPLES.items():
+                runtime = ndk / f'toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/{triple}/libc++_shared.so'
+                runtime.parent.mkdir(parents=True, exist_ok=True); runtime.write_bytes(elf())
+            self.check(self.entries(), ndk)
+            entries = self.entries()
+            entries['lib/x86_64/libc++_shared.so'] = elf() + b'different-runtime'
+            with self.assertRaisesRegex(AssertionError, 'different C\\+\\+ runtime'):
+                self.check(entries, ndk)
 
     def test_changed_model_is_rejected(self):
         entries = self.entries()

@@ -27,7 +27,13 @@ android {
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
-    packaging { resources.excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1") }
+    packaging {
+        resources.excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1")
+        // The APK gate verifies duplicate selection against the pinned NDK.
+        // Preserve its bytes so AGP stripping cannot invalidate that check.
+        jniLibs.pickFirsts += "**/libc++_shared.so"
+        jniLibs.keepDebugSymbols += "**/libc++_shared.so"
+    }
     testOptions { animationsDisabled = true; unitTests.isReturnDefaultValues = true }
     externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" } }
 }
