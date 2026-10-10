@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Original analytical setup evidence with explicit acquisition/start labels.
+"""Analytical and frozen native setup evidence with acquisition/start labels.
 
-Uses production Swift setup policies as oracle. No private recordings,
-model outputs, constant camera eligibility, or Kotlin-generated expectations.
+Uses production Swift setup policies as oracle. Frozen public-source native
+observations are separately identified policy regressions, not new inference
+or an accuracy label. No private recordings or Kotlin-generated expectations.
 """
 import argparse
 import importlib.util
@@ -108,6 +109,13 @@ def prepare(output):
     add('pullUp-thin-parallel-bar','pullUp',[step(i/10,'pullUp',candidates=thin) for i in range(56)],True,True)
     settling=[step(i/10,'pullUp',degrees=145 if i<10 else 170) for i in range(66)]
     add('pullUp-hang-settles-before-countdown','pullUp',settling,True,True)
+    # Preserve the actual failed public held-dip observations independently of
+    # the unchanged positive native fixture. Projected foreground tube fragments
+    # must never become two rails or earn countdown through a geometry relaxation.
+    native=json.loads((ROOT/'Evaluation/fixtures/native-dip-overlap.json').read_text())
+    assert native['schemaVersion']==1 and len(native['steps'])==72
+    for side in ['left','right']:
+        add('dip-native-overlap-'+side,'dip',native['steps'],False,False,side=side)
     output.mkdir(parents=True,exist_ok=True)
     inputs=output/'inputs.json';inputs.write_text(json.dumps(cases,allow_nan=False))
     geometry_cases=[]
@@ -135,7 +143,7 @@ def prepare(output):
     pending=output/'oracle.json.pending'
     with pending.open('w') as out:subprocess.run([str(binary),str(inputs),str(geometry_inputs)],stdout=out,check=True)
     pending.replace(output/'oracle.json')
-    print(f'Generated {len(cases)} original setup cases + {len(geometry_cases)} observed geometry cases: {output / "oracle.json"}')
+    print(f'Generated {len(cases)} setup cases (including 2 frozen native regressions) + {len(geometry_cases)} observed geometry cases: {output / "oracle.json"}')
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path,default=ROOT/'build/setup-oracle')

@@ -81,12 +81,31 @@ class SetupSwiftParityTest {
         val path=System.getenv("SETUP_ORACLE") ?: "../build/setup-oracle/oracle.json"
         val oracle=json.parseToJsonElement(File(path).readText()).jsonObject
         val cases=oracle.getValue("cases").jsonArray
-        assertTrue(cases.size>=52,"Setup parity cases reduced")
+        assertTrue(cases.size>=54,"Setup parity cases reduced")
+        val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
+        assertTrue(ids.containsAll(listOf("dip-native-overlap-left","dip-native-overlap-right")),
+            "The frozen native regressions must execute; regenerate a stale setup oracle")
         var frames=0
         cases.forEach {value ->
             val row=value.jsonObject;val input=json.decodeFromJsonElement<Input>(row.getValue("input"))
             val actual=run(input);frames+=actual.size
             equivalent(row.getValue("snapshots"),json.encodeToJsonElement(actual),input.id)
+            if(input.id.startsWith("dip-native-overlap-")) {
+                // Same captured native samples also pass through the shipping
+                // runtime, including issue priority and automatic start gating.
+                val runtime=WorkoutRuntime(side=input.side)
+                input.steps.forEach {step ->
+                    val seconds=step.pose.timestamp.seconds
+                    val snapshot=runtime.observe(WorkoutRuntime.FrameInput(step.pose,step.candidates,
+                        step.attitude?.quaternion,seconds,step.translations,step.globalScaleFraction,seconds))
+                    assertNull(snapshot.referenceEdge,input.id)
+                    assertNull(snapshot.countdownSeconds,input.id)
+                    assertEquals(0,snapshot.observedMovements,input.id)
+                    assertEquals(LiveSetSession.Phase.idle,snapshot.phase,input.id)
+                    if(snapshot.exercise!=null) assertEquals("dipRailsUnclear",snapshot.setupIssue,input.id)
+                }
+                assertEquals(ExerciseCounter.Exercise.dip,runtime.resolvedExercise,input.id)
+            }
         }
         assertTrue(frames>=2000)
         val geometries=oracle.getValue("geometries").jsonArray
@@ -99,7 +118,7 @@ class SetupSwiftParityTest {
             try {pairs=BarFitter.candidates(input.contours,input.region,input.size)} catch(e:BarFitException){pairError=e.message}
             equivalent(row,json.encodeToJsonElement(GeometryOutput(input,lines,pairs,lineError,pairError)),input.id)
         }
-        val report=buildJsonObject{put("scope","every-frame setup policies compared with production Swift; analytic evidence only");put("cases",cases.size);put("frames",frames);put("geometryCases",geometries.size);put("matched",true)}
+        val report=buildJsonObject{put("scope","every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference");put("cases",cases.size);put("frames",frames);put("geometryCases",geometries.size);put("matched",true)}
         val output=File(System.getenv("SETUP_PARITY_REPORT") ?: "../build/setup-oracle/kotlin-parity.json")
         output.parentFile.mkdirs();output.writeText(json.encodeToString(report))
     }

@@ -121,6 +121,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         issue=when {
             !framingReady || automaticFramingIncomplete -> "framingIncomplete"
             resolvedExercise==null -> "exerciseIdentityNeeded"
+            bar==null && apparatus.state==AutomaticPullUpBar.State.ambiguous ->
+                if(activeExercise==ExerciseCounter.Exercise.dip) "dipRailsUnclear" else "pullUpBarUnclear"
             bar==null -> "barReferenceNeeded"
             !motionFresh || !phoneOrientation.state.allowsLiveSet -> "phoneStabilityNeeded"
             !sceneFresh || !staticScene.state.allowsLiveSet -> "sceneStabilityNeeded"
@@ -197,6 +199,8 @@ object WorkoutSetupGuidance {
         "framingIncomplete" -> "Show both arms and hands clearly"
         "exerciseIdentityNeeded" -> "Hold a clear hang or top support with both arms and hands visible"
         "barReferenceNeeded", "barReferenceUnavailable" -> "Show the gripping bar or rails beside your hands"
+        "dipRailsUnclear" -> "Change the camera angle so both grip rails are clearly separated"
+        "pullUpBarUnclear" -> "Change the camera angle so the gripping bar is clearly visible"
         "phoneMoved" -> "Phone moved · set it down and start again"
         "sceneShifted", "sceneScaled" -> "Camera view changed · start again"
         "phoneUnavailable", "motionUnavailable" -> "Waiting for phone motion sensors"

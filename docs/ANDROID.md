@@ -7,6 +7,42 @@ the reference implementation during this port. It does **not** yet link that
 framework. CI compiles the framework and compares the two engines before a future
 iOS adapter migration can replace the reference.
 
+## Current merge blockers
+
+PR29 remains a draft. Passing policy parity does not qualify the missing native
+capabilities below. Original labels, decoder color checks and playback deadlines
+remain unchanged.
+
+| Scope | Latest demonstrated limitation | Required qualification |
+| --- | --- | --- |
+| Native dip setup, API29/API35 | Held public pixels resolve Dip but provide no independent second rail; no countdown | A clear, prospectively reviewed bilateral rail view through native Auto and live countdown |
+| Original public accuracy | Cropped pull-up0/1; panning dip0/9 | Qualification of occluded poses and camera-relative references before claiming these captures are supported |
+| Original phone HDR imports | API29 cannot negotiate SDR conversion; API35 finds no complete Main10 format match | Actual supported Main10 decoding and verified SDR conversion of unchanged originals |
+| iOS simulator Vision | Apple body-pose weights fail to load | Real inference in a supported simulator runtime; native Mac and physical iPhone results remain separate |
+| iOS simulator decoder | Pinned H264 green/yellow samples have incorrect native chroma | Correct native decoding of the immutable fixture, with existing color tolerances |
+| iOS replay latency | Hosted native reads intermittently exceed the unchanged completion deadline | Repeat hosted replay after the dedicated executor change; a local pass is insufficient |
+
+iOS replay now uses a dedicated serial Dispatch executor for blocking native
+decoding, rendering and inference. Swift still checks actor isolation and fresh
+decoder ownership. This prevents that actor from occupying a cooperative worker;
+it is not yet evidence that the hosted native stall has been eliminated.
+
+When apparatus is ambiguous, both live clients now ask the user to change the
+camera angle. Android records `dipRailsUnclear` or `pullUpBarUnclear`, while
+retaining framing/identity precedence. A new clear view must earn fresh apparatus
+dwell and the complete countdown. No manual confirmation is required by the cue.
+
+`Evaluation/fixtures/native-dip-overlap.json` preserves all72 actual API35 pose
+records and all18 observed bilateral contour calls from run38084810283, including
+source PTS, asset/model pins and the decoded-image hash. Both anatomical reference
+choices are additional **rejection regressions** in the Swift/Kotlin oracle, and
+also exercise the composed Kotlin runtime with zero reference, countdown and
+movements. They do not replace or relabel the original failed native positive.
+The absent scene samples and fixed virtual attitude are explicit policy-test inputs.
+
+Physical camera/sensor timing, sustained performance, thermal/battery behavior,
+strict chin clearance and dip depth still need separate device/form qualification.
+
 | Boundary | Generalized policy | Android adapter |
 | --- | --- | --- |
 | Observations | Upright, unmirrored pixel coordinates, anatomical joint names, rational source timestamps | CameraX/MediaCodec canonical pixels and MediaPipe Heavy CPU |
@@ -53,7 +89,7 @@ timebases, avoiding FFprobe decimal rounding while preserving actual source PTS.
    bilateral-disagreement, missing-arm, crowd and timestamp cases are included.
 2. `prepare-setup-oracle.py` compares exercise identity, observed apparatus
    acquisition, countdown, camera stability and contour geometry against Swift.
-   Setup tests also exercise the composed runtime rather than only isolated gates.
+Setup tests also exercise the composed runtime rather than only isolated gates.
 3. Android API29/API35 CI decodes pinned public pull-up/dip media through the
    production MediaCodec, MediaPipe and OpenCV adapters. Exact frame count, actual
    PTS, derivative checksums and independently reviewed movement totals are

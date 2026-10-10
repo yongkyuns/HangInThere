@@ -264,6 +264,22 @@ class SetupPoliciesTest {
         val apparatus=assertNotNull(WorkoutSetupGuidance.message("barReferenceNeeded"))
         assertTrue(apparatus.contains("bar or rails"));assertTrue(apparatus.contains("beside your hands"))
         assertFalse(apparatus.contains("settings"));assertNull(WorkoutSetupGuidance.message("unknown"))
+        assertEquals("Change the camera angle so both grip rails are clearly separated",WorkoutSetupGuidance.message("dipRailsUnclear"))
+        assertTrue(assertNotNull(WorkoutSetupGuidance.message("pullUpBarUnclear")).contains("camera angle"))
+    }
+    @Test fun ambiguousDipApparatusReportsReframingAndCannotStartCountdown() {
+        val runtime=WorkoutRuntime()
+        for(i in 0..55) {
+            val snapshot=runtime.observe(frame(i*.1,candidates=transverseRails()))
+            if(snapshot.exercise!=null) assertEquals("dipRailsUnclear",snapshot.setupIssue)
+            assertNull(snapshot.referenceEdge);assertNull(snapshot.countdownSeconds)
+            assertEquals(0,snapshot.observedMovements)
+            assertEquals(LiveSetSession.Phase.idle,snapshot.phase)
+        }
+        // A new, measurable pair must still earn fresh dwell and countdown.
+        for(i in 56..110) runtime.observe(frame(i*.1))
+        assertEquals(LiveSetSession.Phase.running,runtime.snapshot.phase)
+        assertNull(runtime.snapshot.setupIssue)
     }
     @Test fun runtimeAcquiresAndStartsWithActualCameraEvidenceThenLocksIdentity() {
         val runtime=WorkoutRuntime()

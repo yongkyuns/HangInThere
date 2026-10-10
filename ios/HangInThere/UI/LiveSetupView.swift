@@ -179,7 +179,7 @@ struct LiveSetupView: View {
                 case .lookingForGrip: return "Hold top support · show both hands"
                 case .findingEdge: return "Finding dip rails…"
                 case .holding: return "Hold still · checking rails"
-                case .ambiguous: return "Rails unclear · adjust in settings"
+                case .ambiguous: return "Rails unclear · change the camera angle"
                 case .locked: return "Rails found"
                 }
             }
@@ -187,7 +187,7 @@ struct LiveSetupView: View {
             case .lookingForGrip: return "Grip the bar with both hands"
             case .findingEdge: return "Finding the bar…"
             case .holding: return "Hold still · locking the bar"
-            case .ambiguous: return "Bar unclear · adjust in settings"
+            case .ambiguous: return "Bar unclear · change the camera angle"
             case .locked: return "Bar found"
             }
         }
@@ -880,7 +880,7 @@ struct LiveSetupView: View {
             switch camera.automaticBarState {
             case .lookingForGrip: return "Hold top support with both hands visible. Setup is automatic."
             case .findingEdge: return "Looking for a visible rail beside each hand. Manual setup is available if needed."
-            case .ambiguous: return "No clear pair of grip rails yet. Show both grips or set the selected rail manually."
+            case .ambiguous: return "Change the camera angle so both grip rails are clearly separated and both hands are visible. Setup is automatic."
             case .holding: return "Checking that both rails and hands stay still…"
             case .locked: return "Rails found automatically. \(liveStartHelp)"
             }
