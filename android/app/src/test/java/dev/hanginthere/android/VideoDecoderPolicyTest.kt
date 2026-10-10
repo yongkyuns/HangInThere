@@ -7,6 +7,18 @@ import org.junit.Test
 class VideoDecoderPolicyTest {
     private val hlg = VideoColorMetadata(standard = 6, range = 2, transfer = 7, hasHdrMetadata = true)
 
+    @Test fun softwareHdrRequiresCompleteCompatibleColorAndProfile() {
+        assertTrue(VideoDecoderPolicy.supportsSoftwareHdr(VideoDecoderRequirement("video/dolby-vision", 256), hlg))
+        val hevc = VideoDecoderRequirement("video/hevc", 2)
+        assertTrue(VideoDecoderPolicy.supportsSoftwareHdr(hevc, hlg))
+        assertTrue(VideoDecoderPolicy.supportsSoftwareHdr(hevc, hlg.copy(transfer = 6, range = 1)))
+        listOf(hevc.copy(profile = 1), hevc.copy(profile = null), hevc.copy(mimeType = "video/avc"),
+            VideoDecoderRequirement("video/dolby-vision", 32)).forEach { assertFalse(VideoDecoderPolicy.supportsSoftwareHdr(it, hlg)) }
+        listOf(hlg.copy(transfer = 3), hlg.copy(transfer = null), hlg.copy(standard = 1),
+            hlg.copy(range = null), hlg.copy(range = 0)).forEach { assertFalse(VideoDecoderPolicy.supportsSoftwareHdr(hevc, it)) }
+        assertFalse(VideoDecoderPolicy.supportsSoftwareHdr(VideoDecoderRequirement("video/dolby-vision", 256), hlg.copy(transfer = 6)))
+    }
+
     @Test fun compatibleDolbyHlgUsesHevcWithoutClaimingSdrConversion() {
         assertEquals(VideoDecoderRequirement("video/hevc", 2), VideoDecoderPolicy.compatibleBaseLayer(
             "video/dolby-vision", VideoDecoderPolicy.DOLBY_VISION_PROFILE_8, hlg))

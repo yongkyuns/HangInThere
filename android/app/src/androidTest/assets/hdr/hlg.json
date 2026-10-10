@@ -1,0 +1,23 @@
+{
+  "sha256": "669a272dc5fa89e634cd1dfeb4324400ab9f9f85cefe834ce2da98e542448eb5",
+  "pts": [
+    0,
+    110000,
+    230000,
+    400000,
+    710000,
+    960000
+  ],
+  "luma": [
+    16,
+    123,
+    235
+  ],
+  "width": 128,
+  "height": 96,
+  "rotation": 270,
+  "scope": "Authored decoder-contract panels, not movement labels or phone footage",
+  "encoderVersion": "FFmpeg 8.1_1 Homebrew/libx265",
+  "referenceDecoderVersion": "FFmpeg 9.0.2-tessus",
+  "sourceRecipe": "scripts/author-hdr-fixtures.py"
+}

@@ -160,7 +160,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                 val active = requireNotNull(pipeline)
                 var acquired = false
                 fun runPass(acquireOnly: Boolean): Boolean {
-                    VideoFrames(getApplication(), uri).use { reader ->
+                    VideoFrames(getApplication(), uri, cancelled = { generation.get() != token }).use { reader ->
                         while (generation.get() == token) {
                             drainControls(token, active)
                             while (paused && generation.get() == token) { drainControls(token, active); Thread.sleep(50) }

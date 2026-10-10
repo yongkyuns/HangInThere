@@ -13,10 +13,11 @@ import dev.hanginthere.android.camera.CanonicalPixels
 import java.io.Closeable
 
 /** Streams every decodable source PTS exactly once; never approximates frames via seek sampling. */
-class VideoFrames(context: Context, uri: Uri) : Closeable {
+class VideoFrames(context: Context, uri: Uri, cancelled: () -> Boolean = { false }) : Closeable {
     data class Frame(val bitmap: Bitmap, val presentationTimeUs: Long) : Closeable { override fun close() = bitmap.recycle() }
     private val extractor = MediaExtractor()
     private var decoder: MediaCodec? = null
+    private var software: SoftwareHdrVideo? = null
     private var inputDone = false
     private var outputDone = false
     private var lastPTS = -1L
@@ -42,43 +43,50 @@ class VideoFrames(context: Context, uri: Uri) : Closeable {
             val sourceMime = requireNotNull(format.getString(MediaFormat.KEY_MIME))
             val profile = if (format.containsKey(MediaFormat.KEY_PROFILE)) format.getInteger(MediaFormat.KEY_PROFILE) else null
             decoderDiagnostics = decoderDiagnostics.copy(sourceMimeType = sourceMime, requiredMimeType = sourceMime, requiredProfile = profile)
-            colorPolicy = VideoColorPolicy(sourceColor, Build.VERSION.SDK_INT)
             rotation = if (format.containsKey(MediaFormat.KEY_ROTATION)) format.getInteger(MediaFormat.KEY_ROTATION) else 0
             val encodedWidth = format.getInteger(MediaFormat.KEY_WIDTH); val encodedHeight = format.getInteger(MediaFormat.KEY_HEIGHT)
             val quarterTurn = ((rotation % 360) + 360) % 360 in listOf(90, 270)
             sourceUprightWidth = if (quarterTurn) encodedHeight else encodedWidth
             sourceUprightHeight = if (quarterTurn) encodedWidth else encodedHeight
             durationUs = if (format.containsKey(MediaFormat.KEY_DURATION)) format.getLong(MediaFormat.KEY_DURATION) else 0
-            // Decode encoded sensor pixels; apply track rotation once ourselves.
-            format.setInteger(MediaFormat.KEY_ROTATION, 0)
-            format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible)
-            if (Build.VERSION.SDK_INT >= 31 && colorPolicy?.requestSdrToneMapping == true) {
-                format.setInteger(MediaFormat.KEY_COLOR_TRANSFER_REQUEST, MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
-                decoderDiagnostics = decoderDiagnostics.copy(requestedTransfer = MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
-            }
-            decoderDiagnostics = decoderDiagnostics.copy(stage = "selection")
-            val codec = if (Build.VERSION.SDK_INT >= 31 && hdrSource) {
-                val codecs = MediaCodecList(MediaCodecList.REGULAR_CODECS)
-                val selection = VideoDecoderPolicy.selectHdrDecoder(VideoDecoderRequirement(sourceMime, profile), sourceColor) { requirement ->
-                    VideoDecoderFormat.applyRequirement(format, requirement)
-                    decoderDiagnostics = decoderDiagnostics.copy(requiredMimeType = requirement.mimeType, requiredProfile = requirement.profile)
-                    codecs.findDecoderForFormat(format)
+            if (VideoDecoderPolicy.supportsSoftwareHdr(VideoDecoderRequirement(sourceMime, profile), sourceColor)) {
+                decoderDiagnostics = decoderDiagnostics.copy(stage = "software-open", requiredMimeType = VideoDecoderPolicy.HEVC_MIME,
+                    requiredProfile = VideoDecoderPolicy.HEVC_PROFILE_MAIN10, backend = "FFmpeg 8.1.3", toneMapping = SoftwareHdrVideo.MAPPING)
+                software = SoftwareHdrVideo(context, uri, rotation, requireNotNull(sourceColor.transfer), cancelled)
+                decoderDiagnostics = decoderDiagnostics.copy(stage = "decoding", codecName = "FFmpeg HEVC Main10")
+            } else {
+                colorPolicy = VideoColorPolicy(sourceColor, Build.VERSION.SDK_INT)
+                // Decode encoded sensor pixels; apply track rotation once ourselves.
+                format.setInteger(MediaFormat.KEY_ROTATION, 0)
+                format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible)
+                if (Build.VERSION.SDK_INT >= 31 && colorPolicy?.requestSdrToneMapping == true) {
+                    format.setInteger(MediaFormat.KEY_COLOR_TRANSFER_REQUEST, MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
+                    decoderDiagnostics = decoderDiagnostics.copy(requestedTransfer = MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
                 }
-                decoderDiagnostics = decoderDiagnostics.copy(codecName = selection.codecName)
-                MediaCodec.createByCodecName(selection.codecName)
-            } else MediaCodec.createDecoderByType(decoderMimeType)
-            decoder = codec // Cleanup owns the codec even when configure/start rejects a format.
-            decoderDiagnostics = decoderDiagnostics.copy(stage = "configuration", codecName = codec.name)
-            codec.configure(format, null, null, 0)
-            if (Build.VERSION.SDK_INT >= 31 && hdrSource) {
-                val input = codec.inputFormat
-                val configuredTransfer = if (input.containsKey(MediaFormat.KEY_COLOR_TRANSFER_REQUEST)) input.getInteger(MediaFormat.KEY_COLOR_TRANSFER_REQUEST) else null
-                decoderDiagnostics = decoderDiagnostics.copy(stage = "tone-mapping", configuredTransfer = configuredTransfer)
-                requireNotNull(colorPolicy).verifyToneMappingRequest(configuredTransfer)
+                decoderDiagnostics = decoderDiagnostics.copy(stage = "selection")
+                val codec = if (Build.VERSION.SDK_INT >= 31 && hdrSource) {
+                    val codecs = MediaCodecList(MediaCodecList.REGULAR_CODECS)
+                    val selection = VideoDecoderPolicy.selectHdrDecoder(VideoDecoderRequirement(sourceMime, profile), sourceColor) { requirement ->
+                        VideoDecoderFormat.applyRequirement(format, requirement)
+                        decoderDiagnostics = decoderDiagnostics.copy(requiredMimeType = requirement.mimeType, requiredProfile = requirement.profile)
+                        codecs.findDecoderForFormat(format)
+                    }
+                    decoderDiagnostics = decoderDiagnostics.copy(codecName = selection.codecName)
+                    MediaCodec.createByCodecName(selection.codecName)
+                } else MediaCodec.createDecoderByType(decoderMimeType)
+                decoder = codec // Cleanup owns the codec even when configure/start rejects a format.
+                decoderDiagnostics = decoderDiagnostics.copy(stage = "configuration", codecName = codec.name)
+                codec.configure(format, null, null, 0)
+                if (Build.VERSION.SDK_INT >= 31 && hdrSource) {
+                    val input = codec.inputFormat
+                    val configuredTransfer = if (input.containsKey(MediaFormat.KEY_COLOR_TRANSFER_REQUEST)) input.getInteger(MediaFormat.KEY_COLOR_TRANSFER_REQUEST) else null
+                    decoderDiagnostics = decoderDiagnostics.copy(stage = "tone-mapping", configuredTransfer = configuredTransfer)
+                    requireNotNull(colorPolicy).verifyToneMappingRequest(configuredTransfer)
+                }
+                decoderDiagnostics = decoderDiagnostics.copy(stage = "start")
+                codec.start()
+                decoderDiagnostics = decoderDiagnostics.copy(stage = "decoding")
             }
-            decoderDiagnostics = decoderDiagnostics.copy(stage = "start")
-            codec.start()
-            decoderDiagnostics = decoderDiagnostics.copy(stage = "decoding")
         } catch (failure: Throwable) {
             runCatching { close() }.exceptionOrNull()?.let { failure.addSuppressed(it) }
             if (hdrSource) throw HdrVideoImportException(decoderDiagnostics, failure)
@@ -86,6 +94,12 @@ class VideoFrames(context: Context, uri: Uri) : Closeable {
         }
     }
     fun next(cancelled: () -> Boolean = { false }): Frame? {
+        if (closed) return null
+        software?.let { reader ->
+            val frame = reader.next(cancelled)
+            if (frame != null) decodedColorEncoding = SoftwareHdrVideo.ENCODING
+            return frame
+        }
         val codec = decoder ?: return null
         val info = MediaCodec.BufferInfo()
         while (!outputDone && !cancelled()) {
@@ -121,8 +135,12 @@ class VideoFrames(context: Context, uri: Uri) : Closeable {
         if (closed) return
         closed = true
         val codec = decoder; decoder = null
-        try { codec?.let { runCatching { it.stop() }; it.release() } }
-        finally { extractor.release() }
+        val softwareReader = software; software = null
+        try { softwareReader?.close() }
+        finally {
+            try { codec?.let { runCatching { it.stop() }; it.release() } }
+            finally { extractor.release() }
+        }
     }
     private fun colorMetadata(format: MediaFormat): VideoColorMetadata {
         fun integer(key: String) = if (format.containsKey(key)) format.getInteger(key) else null

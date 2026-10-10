@@ -36,6 +36,10 @@ class AndroidApkTests(unittest.TestCase):
         for abi in CHECK.ABIS:
             result[f"lib/{abi}/libmediapipe_tasks_vision_jni.so"] = elf()
             result[f"lib/{abi}/libopencv_java4.so"] = b"opencv"
+            for library in CHECK.HDR_LIBRARIES:
+                result[f"lib/{abi}/lib{library}.so"] = elf()
+        for notice in ('hdr-notice.txt','ffmpeg-LGPL-2.1.txt','zimg-WTFPL.txt'):
+            result[f'assets/licenses/{notice}'] = b'license'
         return result
 
     def check(self, entries):
@@ -60,6 +64,18 @@ class AndroidApkTests(unittest.TestCase):
         entries = self.entries()
         del entries["lib/arm64-v8a/libopencv_java4.so"]
         with self.assertRaisesRegex(AssertionError, "OpenCV JNI missing"):
+            self.check(entries)
+
+    def test_missing_hdr_library_and_license_are_rejected(self):
+        for path in ('lib/x86_64/libavfilter.so', 'assets/licenses/ffmpeg-LGPL-2.1.txt'):
+            entries = self.entries(); del entries[path]
+            with self.assertRaisesRegex(AssertionError, 'HDR.*missing'):
+                self.check(entries)
+
+    def test_hdr_4k_alignment_is_rejected(self):
+        entries = self.entries()
+        entries['lib/arm64-v8a/libavcodec.so'] = elf(alignment=4096)
+        with self.assertRaisesRegex(AssertionError, 'HDR.*aligned'):
             self.check(entries)
 
     def test_changed_model_is_rejected(self):

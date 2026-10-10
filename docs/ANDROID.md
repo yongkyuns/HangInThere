@@ -17,7 +17,7 @@ remain unchanged.
 | --- | --- | --- |
 | Native dip setup, API29/API35 | Held public pixels resolve Dip but provide no independent second rail; no countdown | A clear, prospectively reviewed bilateral rail view through native Auto and live countdown |
 | Original public accuracy | Cropped pull-up0/1; panning dip0/9 | Qualification of occluded poses and camera-relative references before claiming these captures are supported |
-| Original phone HDR imports | API29 cannot negotiate SDR conversion; API35 finds no complete Main10 format match | Actual supported Main10 decoding and verified SDR conversion of unchanged originals |
+| Original phone HDR imports | Prior MediaCodec-only results reject originals on API29/API35; new bounded software HDR path awaits native qualification | Full-source Main10 decoding, SDR pixels, counts and performance on both APIs |
 | iOS simulator Vision | Apple body-pose weights fail to load | Real inference in a supported simulator runtime; native Mac and physical iPhone results remain separate |
 | iOS simulator decoder | Pinned H264 green/yellow samples have incorrect native chroma | Correct native decoding of the immutable fixture, with existing color tolerances |
 | iOS replay latency | Hosted native reads intermittently exceed the unchanged completion deadline | Repeat hosted replay after the dedicated executor change; a local pass is insufficient |

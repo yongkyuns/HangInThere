@@ -10,6 +10,16 @@ concurrency:
   group: android-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
+  hdr-decoder-host:
+    name: Software HDR decoder contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install source build tools
+        run: sudo apt-get update -qq && sudo apt-get install -y autoconf automake libtool pkg-config
+      - name: Compile pinned codec sources and test production decoder
+        run: python3 scripts/test-hdr-decoder.py
   shared-parity:
     name: Swift and Kotlin policy parity
     runs-on: macos-15
@@ -23,7 +33,7 @@ jobs:
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
         with:
           cmdline-tools-version: '13114758'
-          packages: platform-tools platforms;android-36 build-tools;36.0.0
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
       - name: Generate snapshots using production Swift policies
@@ -63,11 +73,16 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          cmdline-tools-version: '13114758'
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1
+          log-accepted-android-sdk-licenses: false
       - name: Prepare pinned public media and model
         run: |
           python3 -m unittest discover -s scripts/tests -p 'test_android*.py' -v
           sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg autoconf automake libtool pkg-config
           python3 scripts/prepare-android-fixtures.py
       - name: Compile APK, check lint and host regressions
         run: ./gradlew :android:app:assembleDebug :android:app:assembleDebugAndroidTest :android:app:lintDebug :android:app:testDebugUnitTest --console=plain
@@ -112,6 +127,20 @@ jobs:
             android/app/build/outputs/androidTest-results/connected/**/*.xml
             android/app/build/test-results/testDebugUnitTest/*.xml
             android/app/build/reports/lint-results-debug.html
+      - name: Publish matching HDR library sources and build recipe
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: android-hdr-source-api-${{ matrix.api }}
+          if-no-files-found: error
+          path: |
+            build/android-hdr/sources/ffmpeg.tar.xz
+            build/android-hdr/sources/zimg.tar.gz
+            build/android-hdr/*/complete.json
+            scripts/build-android-hdr.py
+            android/app/src/main/cpp/*
+            android/app/src/main/assets/licenses/*
+            docs/ANDROID-HDR.md
   native-policy-parity:
     name: Swift replay of Android model observations
     needs: emulator

@@ -48,7 +48,7 @@ jobs:
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
         with:
           cmdline-tools-version: '13114758'
-          packages: platform-tools platforms;android-36 build-tools;36.0.0
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
         with:
@@ -56,6 +56,8 @@ jobs:
           cache-disabled: true
       - name: Install pinned encryption tool and prepare model
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y autoconf automake libtool pkg-config
           umask 077
           mkdir -p "$PRIVATE_WORK/evidence" "$RUNNER_TEMP/private-age"
           curl --fail --silent --show-error --location --output "$RUNNER_TEMP/private-age/age.tar.gz" https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-linux-amd64.tar.gz

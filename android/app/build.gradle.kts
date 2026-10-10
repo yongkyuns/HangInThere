@@ -13,6 +13,7 @@ val composeBom = "androidx.compose:compose-bom:2025.10.00"
 android {
     namespace = "dev.hanginthere.android"
     compileSdk = 36
+    ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = "dev.hanginthere.android"
         minSdk = 26
@@ -22,11 +23,13 @@ android {
         buildConfigField("String", "POSE_RUNTIME_VERSION", "\"$poseRuntimeVersion\"")
         buildConfigField("String", "POSE_RUNTIME_AAR_SHA256", "\"$poseRuntimeSha256\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild { cmake { arguments += "-DANDROID_STL=c++_shared" } }
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging { resources.excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1") }
     testOptions { animationsDisabled = true; unitTests.isReturnDefaultValues = true }
+    externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" } }
 }
 kotlin { jvmToolchain(17) }
 val poseRuntimeVerification by configurations.creating {

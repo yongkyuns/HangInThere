@@ -15,6 +15,8 @@ data class VideoDecoderDiagnostics(
     val codecName: String? = null,
     val requestedTransfer: Int? = null,
     val configuredTransfer: Int? = null,
+    val backend: String = "MediaCodec",
+    val toneMapping: String? = null,
 )
 
 class HdrVideoImportException(val diagnostics: VideoDecoderDiagnostics, cause: Throwable) :
@@ -28,6 +30,12 @@ object VideoDecoderPolicy {
     const val DOLBY_VISION_PROFILE_8 = 256
     // MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10.
     const val HEVC_PROFILE_MAIN10 = 2
+
+    /** Software support is explicit; unknown Dolby profiles/color never enter it. */
+    fun supportsSoftwareHdr(source: VideoDecoderRequirement, color: VideoColorMetadata): Boolean =
+        color.standard == 6 && color.range in listOf(1, 2) && color.transfer in listOf(6, 7) &&
+            (source == VideoDecoderRequirement(HEVC_MIME, HEVC_PROFILE_MAIN10) ||
+                compatibleBaseLayer(source.mimeType, source.profile, color) != null)
 
     /**
      * Only the documented single-layer profile 8 HLG/BT.2020 combination may

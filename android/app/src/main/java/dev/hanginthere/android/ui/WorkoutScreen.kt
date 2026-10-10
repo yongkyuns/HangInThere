@@ -16,6 +16,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -46,6 +48,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
     val context = LocalContext.current; val owner = LocalLifecycleOwner.current
     var front by remember { mutableStateOf(false) }
     var settings by remember { mutableStateOf(false) }
+    var licenses by remember { mutableStateOf(false) }
     var selection by remember { mutableStateOf(WorkoutExerciseSelection.automatic) }
     var side by remember { mutableStateOf(ArmMeasurement.Side.left) }
     var resumed by remember { mutableStateOf(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
@@ -90,7 +93,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
     LaunchedEffect(state.replay, resumed) {
         while (!state.replay && resumed) { delay(100); model.tick(SystemClock.elapsedRealtimeNanos() / 1e9) }
     }
-    LaunchedEffect(settings, manual) { model.pause(settings || manual) }
+    LaunchedEffect(settings, manual, licenses) { model.pause(settings || manual || licenses) }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         state.bitmap?.let { Image(it.asImageBitmap(), contentDescription = "Workout video", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
         val pose = state.result?.pose
@@ -160,8 +163,15 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             TextButton(onClick = { settings = false; videoPicker.launch(arrayOf("video/*")) }) { Text("Evaluate a video") }
             if (state.replay) TextButton(onClick = { settings = false; model.startLive(selection, side) }) { Text("Return to live camera") }
             Text("Counts are observed movements. Depth and lockout form are not yet verified.")
+            TextButton(onClick = { settings = false; licenses = true }) { Text("Open-source licenses") }
         }
     }, confirmButton = { TextButton(onClick = { settings = false }) { Text("Done") } })
+    if (licenses) AlertDialog(onDismissRequest = { licenses = false }, title = { Text("Open-source licenses") }, text = {
+        val notice = remember { listOf("hdr-notice.txt", "ffmpeg-LGPL-2.1.txt", "zimg-WTFPL.txt").joinToString("\n\n") {
+            context.assets.open("licenses/$it").bufferedReader().use { reader -> reader.readText() }
+        } }
+        Text(notice, Modifier.verticalScroll(rememberScrollState()))
+    }, confirmButton = { TextButton(onClick = { licenses = false }) { Text("Done") } })
 }
 
 /** Terminal replay state takes precedence over any previously rendered counter snapshot. */
