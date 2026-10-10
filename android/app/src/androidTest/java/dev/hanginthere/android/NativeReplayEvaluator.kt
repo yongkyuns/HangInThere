@@ -25,12 +25,14 @@ internal class NativeReplayEvaluator(private val app: Context) {
         var canonicalEdge: BarSegment? = null; var error: String? = null
         val latencies = mutableListOf<Double>()
         val colorEncodings = linkedSetOf<String>()
+        var decoderMimeType: String? = null
         var peakPss = 0
         try {
             check(referenceSize.isValid && sourceEdge.isValid && expectedPts.size == expectedFrames)
             File(output, "$id-fixed-${side.name}-observations.jsonl").bufferedWriter().use { trace ->
                 PoseEstimator(app).use { estimator ->
                     VideoFrames(app, Uri.fromFile(file)).use { reader ->
+                        decoderMimeType = reader.decoderMimeType
                         while (true) {
                             val started = System.nanoTime()
                             val frame = reader.next() ?: break
@@ -68,6 +70,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
             put("events", Json.encodeToJsonElement(counter.events)); put("pipelineWithDisplayCopyLatencyMillis", NativeEvaluationMetrics.latency(latencies))
             put("peakPssKb", peakPss); put("error", error?.let(::JsonPrimitive) ?: JsonNull)
             put("decodedColorEncodings", JsonArray(colorEncodings.map(::JsonPrimitive)))
+            put("decoderMimeType", decoderMimeType?.let(::JsonPrimitive) ?: JsonNull)
         }
     }
     fun evaluateAutomatic(id: String, output: File, file: File, expectedExercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side, expected: Int,
@@ -82,12 +85,14 @@ internal class NativeReplayEvaluator(private val app: Context) {
         var finalSetupIssue: String? = null
         var events: JsonElement = JsonArray(emptyList())
         val colorEncodings = linkedSetOf<String>()
+        val decoderMimeTypes = linkedSetOf<String>()
         val elapsedStart = System.nanoTime()
         try {
             AnalysisPipeline(app, WorkoutExerciseSelection.automatic, side).use { pipeline ->
                 fun pass(acquire: Boolean): Boolean {
                     File(output, "$id-production-${if (acquire) "acquisition" else "counting"}.jsonl").bufferedWriter().use { trace ->
                         VideoFrames(app, Uri.fromFile(file)).use { reader ->
+                            decoderMimeTypes += reader.decoderMimeType
                             var passFrames = 0
                             while (true) {
                                 // Match the ViewModel: an interrupted set cannot resume counting later pixels.
@@ -164,11 +169,13 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 put("pipelineLatencyScope", "decode+canonical pixels+pose+actual contours/scene+runtime+display copy; excludes model initialization and EOF null read")
                 put("decodePixelConversion", CanonicalPixels.YUV_CONVERSION)
                 put("decodedColorEncodings", JsonArray(colorEncodings.map(::JsonPrimitive)))
+                put("decoderMimeTypes", JsonArray(decoderMimeTypes.map(::JsonPrimitive)))
                 put("peakPssKb", peakPss); put("peakNativeAllocatedBytes", peakNative); put("peakJavaAllocatedBytes", peakJava)
                 put("attitudeScope", "virtual fixed recording phone; actual image registration required")
             }
         } catch (error: Throwable) { return buildJsonObject {
             put("functionalParity", false); put("acquiredActualContours", acquired)
+            put("decoderMimeTypes", JsonArray(decoderMimeTypes.map(::JsonPrimitive)))
             put("setupIssue", finalSetupIssue?.let(::JsonPrimitive) ?: JsonNull); put("error", error.stackTraceToString())
         } }
     }

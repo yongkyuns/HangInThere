@@ -122,6 +122,17 @@ eligible rail. Matching Swift/Kotlin tests and52 per-frame setup oracle cases in
 this clutter case for both anatomical reference sides and an unreachable-only
 negative. Grip thresholds, bilateral tube identity and acquisition dwell are unchanged.
 
+Decoder selection distinguishes container codec compatibility from pixel color
+conversion. A declared Dolby Vision profile8 with HLG/BT.2020 may use its compatible
+HEVC base layer when no suitable Dolby decoder is available on API31+. Other Dolby
+profiles or incomplete color metadata retain the original decoder path. Selection
+preserves the source HDR metadata and requests SDR tone mapping; every output buffer
+must still prove SDR transfer, gamut and range. A selected HEVC decoder does not
+qualify HDR import. Native Auto/fixed-reference reports retain the selected decoder
+MIME, including failures after initialization. This narrow compatibility path follows
+[Android's format guidance](https://developer.android.com/media/platform/supported-formats)
+and [Media3's compatible decoder selection](https://github.com/androidx/media/blob/release/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/mediacodec/MediaCodecUtil.java).
+
 ## Performance evidence
 
 The same Mac runs optimized Swift and warmed JVM core loops on identical cases;
@@ -167,14 +178,15 @@ different runner hosts, not a phone comparison or a real-time guarantee. The nat
 jobs remain red because of the dip setup assertion; this checkpoint does not
 establish full functional or performance parity.
 
-[iOS/Mac CI run38042305298](https://github.com/yongkyuns/HangInThere/actions/runs/38042305298)
-passed all259 native macOS tests. Simulator mechanics passed257/259 tests: the
-strict pinned H.264 color test failed and automatic pull-up replay hit an
-uninformative state-transition timeout. The replay helper now reports the awaited
+[iOS/Mac CI run38044082120](https://github.com/yongkyuns/HangInThere/actions/runs/38044082120)
+passed all260 native macOS tests and259/260 simulator mechanics tests. All seven
+automatic replay tests passed on the hosted simulator; the strict pinned H.264
+color test still failed. An earlier run at `845bd96` hit an uninformative automatic
+pull-up replay timeout. The replay helper now reports the awaited
 transition, controller phase/error, source PTS, frame counts, apparatus state and
 processing duration, and immediately exposes a failed reader. Its20-second
-deadline and replay assertions remain unchanged; all seven replay tests pass on
-the local simulator. This diagnostic change does not establish a timeout fix.
+deadline and replay assertions remain unchanged. Passing this rerun does not
+establish a fix for the earlier timeout.
 Simulator Vision still fails all eight tests because the runtime cannot load
 `cnn_human_pose.espresso.weights`.
 

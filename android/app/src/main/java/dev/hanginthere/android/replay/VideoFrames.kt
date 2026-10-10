@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
+import android.media.MediaCodecList
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
@@ -21,6 +22,7 @@ class VideoFrames(context: Context, uri: Uri) : Closeable {
     private var lastPTS = -1L
     private var colorPolicy: VideoColorPolicy? = null
     var decodedColorEncoding: YuvColorEncoding? = null; private set
+    val decoderMimeType: String
     private val rotation: Int
     val durationUs: Long
     val sourceUprightWidth: Int
@@ -32,7 +34,8 @@ class VideoFrames(context: Context, uri: Uri) : Closeable {
                 ?: error("No video track")
             extractor.selectTrack(track)
             val format = extractor.getTrackFormat(track)
-            colorPolicy = VideoColorPolicy(colorMetadata(format), Build.VERSION.SDK_INT)
+            val sourceColor = colorMetadata(format)
+            colorPolicy = VideoColorPolicy(sourceColor, Build.VERSION.SDK_INT)
             rotation = if (format.containsKey(MediaFormat.KEY_ROTATION)) format.getInteger(MediaFormat.KEY_ROTATION) else 0
             val encodedWidth = format.getInteger(MediaFormat.KEY_WIDTH); val encodedHeight = format.getInteger(MediaFormat.KEY_HEIGHT)
             val quarterTurn = ((rotation % 360) + 360) % 360 in listOf(90, 270)
@@ -45,7 +48,20 @@ class VideoFrames(context: Context, uri: Uri) : Closeable {
             if (Build.VERSION.SDK_INT >= 31 && colorPolicy?.requestSdrToneMapping == true) {
                 format.setInteger(MediaFormat.KEY_COLOR_TRANSFER_REQUEST, MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
             }
-            val codec = MediaCodec.createDecoderByType(requireNotNull(format.getString(MediaFormat.KEY_MIME)))
+            val sourceMime = requireNotNull(format.getString(MediaFormat.KEY_MIME))
+            val profile = if (format.containsKey(MediaFormat.KEY_PROFILE)) format.getInteger(MediaFormat.KEY_PROFILE) else null
+            val baseLayer = VideoDecoderPolicy.compatibleBaseLayer(sourceMime, profile, sourceColor)
+            if (Build.VERSION.SDK_INT >= 31 && baseLayer != null &&
+                MediaCodecList(MediaCodecList.REGULAR_CODECS).findDecoderForFormat(format) == null) {
+                // A profile-8 HLG stream has a compatible HEVC base layer. Keep
+                // its actual HDR metadata and tone-map request; changing MIME
+                // alone never makes these pixels safe for the SDR pose model.
+                format.setString(MediaFormat.KEY_MIME, baseLayer)
+                format.removeKey(MediaFormat.KEY_PROFILE)
+                format.removeKey(MediaFormat.KEY_LEVEL)
+            }
+            decoderMimeType = requireNotNull(format.getString(MediaFormat.KEY_MIME))
+            val codec = MediaCodec.createDecoderByType(decoderMimeType)
             decoder = codec // Cleanup owns the codec even when configure/start rejects a format.
             codec.configure(format, null, null, 0)
             codec.start()
