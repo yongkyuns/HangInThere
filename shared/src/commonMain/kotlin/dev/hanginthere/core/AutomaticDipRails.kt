@@ -108,10 +108,13 @@ class AutomaticDipRails {
                 val a=candidates[i].edge;val b=candidates[j].edge
                 if(min(a.a.y,a.b.y)<hand.y+short*.04 || min(b.a.y,b.b.y)<hand.y+short*.04) continue
                 val edge=if(a.length==b.length){if(a.distance(hand)<=b.distance(hand)) a else b} else if(a.length>b.length) a else b
+                // Rank only complete proposals; an unreachable silhouette must
+                // not hide a valid rail merely because its centerline is near.
+                if(!(edge.distance(hand)<=short*.12)) continue
                 tubes.add(pair to edge)
             }
             val tube=tubes.sortedWith(compareByDescending<Pair<BarCandidate,BarSegment>>{it.first.geometryScore}.thenBy{it.first.centerline.distance(hand)}).firstOrNull() ?: return null
-            return if(tube.second.distance(hand)<=short*.12) ObservedRail(tube.first,tube.second.ordered) else null
+            return ObservedRail(tube.first,tube.second.ordered)
         }
     }
 }

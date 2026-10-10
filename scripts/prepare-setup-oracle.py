@@ -66,6 +66,19 @@ def prepare(output):
     # Preserve a paired observed handle through later partial occlusion.
     for s in partial[3:]:s['candidates']=[[candidate(x,550,x,650)] for x in [300,700]]
     add('dip-paired-witness-occlusion','dip',partial,True,True)
+    # Pair centerlines can pass the grip gate while the longer selected edge
+    # fails it. Such a pair must not outrank a wholly eligible observed rail.
+    unreachable=[]
+    for hand,outward in [(300,-1),(700,1)]:
+        unreachable.append([candidate(hand+outward*offset,540,hand+outward*offset,540+length)
+            for offset,length in [(118,150),(88,140)]])
+    valid=step(0,'dip')['candidates']
+    for side in ['left','right']:
+        mixed=[bad+good for bad,good in zip(unreachable,valid)]
+        add('dip-ineligible-pair-before-valid-'+side,'dip',
+            [step(i/10,'dip',candidates=mixed) for i in range(56)],True,True,side=side)
+    add('dip-unreachable-selected-edges','dip',
+        [step(i/10,'dip',candidates=unreachable) for i in range(56)],False,False)
     def transverse(slope=0, offset=0, opposite=False, reversed=False, right_slope=None):
         rails=[]
         for index,x in enumerate([300,700]):

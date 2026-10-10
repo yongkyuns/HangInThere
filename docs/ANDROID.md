@@ -115,6 +115,13 @@ It corrects a false-positive path; it does not recover an occluded rail or quali
 the held-dip setup fixture. Core tests and the per-frame Swift/Kotlin CI oracle cover
 fragment identity, perspective-separated rails, partial occlusion and reacquisition.
 
+Rail selection applies every eligibility gate before ranking tube pairs. A pair
+whose fitted centerline is near the hand can still have its selected observed edge
+outside the grip-distance limit. That unusable proposal must not hide a lower-ranked
+eligible rail. Matching Swift/Kotlin tests and52 per-frame setup oracle cases include
+this clutter case for both anatomical reference sides and an unreachable-only
+negative. Grip thresholds, bilateral tube identity and acquisition dwell are unchanged.
+
 ## Performance evidence
 
 The same Mac runs optimized Swift and warmed JVM core loops on identical cases;

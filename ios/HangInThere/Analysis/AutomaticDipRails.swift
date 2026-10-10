@@ -127,6 +127,9 @@ struct AutomaticDipRails: Sendable {
                       min(b.a.y, b.b.y) >= hand.y + short * 0.04 else { continue }
                 let edge = a.length == b.length ? (a.distance(to: hand) <= b.distance(to: hand) ? a : b)
                     : (a.length > b.length ? a : b)
+                // Rank only complete proposals. A nearby fitted centerline
+                // cannot let an unreachable silhouette hide a valid rail.
+                guard edge.distance(to: hand) <= short * 0.12 else { continue }
                 tubes.append((pair, edge))
             }
         }
@@ -136,7 +139,6 @@ struct AutomaticDipRails: Sendable {
         }
         guard let tube = tubes.first else { return nil }
         // Select one of the real silhouette edges, never the fitted centerline.
-        guard tube.edge.distance(to: hand) <= short * 0.12 else { return nil }
         return ObservedRail(pair: tube.pair, edge: tube.edge.ordered)
     }
 

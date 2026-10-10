@@ -12,6 +12,57 @@ import Testing
     }
     var rails: [[BarLineCandidate]] { [[rail(490),rail(500)], [rail(690),rail(700)]] }
 
+    // The paired center is close enough, but its longer selected silhouette
+    // lies beyond the grip-distance limit. Its score exceeds the valid rail.
+    func unreachableTube(hand: Point2D, outward: Double = -1, reversed: Bool = false) -> [BarLineCandidate] {
+        [(118.0,150.0),(88.0,140.0)].map { offset, length in
+            let a = Point2D(x:hand.x + outward * offset,y:hand.y + 40)
+            let b = Point2D(x:a.x,y:a.y + length)
+            return .init(edge:.init(a:reversed ? b : a,b:reversed ? a : b),geometryScore:length)
+        }
+    }
+
+    @Test func ineligibleHigherRankedTubeCannotHideValidObservedRails() throws {
+        for reversed in [false,true] {
+            let clutter = [500.0,700.0].enumerated().map { index, x in
+                unreachableTube(hand:.init(x:x,y:500),outward:index == 0 ? -1 : 1,reversed:reversed)
+            }
+            for side in ArmMeasurement.Side.allCases {
+                var policy = AutomaticDipRails()
+                let candidates = zip(clutter,rails).map { reversed ? $1 + $0 : $0 + $1 }
+                for time in [0.0,0.3,0.6] {
+                    #expect(policy.observe(pose:pose(time),side:side,candidates:candidates) == nil)
+                }
+                let proposal = policy.observe(pose:pose(1),side:side,candidates:candidates)
+                let bar = try #require(proposal)
+                #expect(bar.referenceEdge == rail(side == .left ? 500 : 700).edge)
+                #expect(bar.role == (side == .left ? .leftDipRail : .rightDipRail))
+            }
+        }
+    }
+
+    @Test func unreachableSelectedSilhouetteCannotAcquireByItsCloserCenterline() {
+        let hand = Point2D(x:500,y:500), size = pose(0).imageSize
+        for reversed in [false,true] {
+            let clutter = unreachableTube(hand:hand,reversed:reversed)
+            #expect(AutomaticDipRails.select(candidates:clutter,hand:hand,size:size) == nil)
+            var policy = AutomaticDipRails()
+            for time in [0.0,0.3,0.6,1,1.3] {
+                #expect(policy.observe(pose:pose(time),side:.left,candidates:[clutter,rails[1]]) == nil)
+                #expect(policy.state == .ambiguous)
+            }
+        }
+    }
+
+    @Test func finiteOversizedGeometryCannotAcquireWithNonFiniteGripDistance() {
+        let hand = Point2D(x:500,y:5e154)
+        let oversized = [490.0,500.0].map { x in
+            BarLineCandidate(edge:.init(a:.init(x:x,y:1e155),b:.init(x:x,y:2e155)),geometryScore:1e155)
+        }
+        #expect(oversized.allSatisfy { $0.edge.isValid })
+        #expect(AutomaticDipRails.select(candidates:oversized,hand:hand,size:.init(width:1000,height:3e155)) == nil)
+    }
+
     func transverseRails(slope: Double = 0, rightOffset: Double = 0,
                          oppositeSilhouettes: Bool = false, reversed: Bool = false,
                          rightSlope: Double? = nil) -> [[BarLineCandidate]] {

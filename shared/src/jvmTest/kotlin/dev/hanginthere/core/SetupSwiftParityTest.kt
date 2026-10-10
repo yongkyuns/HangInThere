@@ -81,7 +81,7 @@ class SetupSwiftParityTest {
         val path=System.getenv("SETUP_ORACLE") ?: "../build/setup-oracle/oracle.json"
         val oracle=json.parseToJsonElement(File(path).readText()).jsonObject
         val cases=oracle.getValue("cases").jsonArray
-        assertTrue(cases.size>=49,"Setup parity cases reduced")
+        assertTrue(cases.size>=52,"Setup parity cases reduced")
         var frames=0
         cases.forEach {value ->
             val row=value.jsonObject;val input=json.decodeFromJsonElement<Input>(row.getValue("input"))

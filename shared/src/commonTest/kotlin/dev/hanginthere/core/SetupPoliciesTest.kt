@@ -14,6 +14,11 @@ class SetupPoliciesTest {
     }
     private fun line(x:Double,y0:Double=590.0,y1:Double=700.0)=BarLineCandidate(BarSegment(Point2D(x,y0),Point2D(x,y1)),y1-y0)
     private fun rails()=listOf(listOf(line(250.0),line(258.0)),listOf(line(750.0),line(758.0)))
+    // A high-scoring pair has an eligible center but an unreachable longer edge.
+    private fun unreachableTube(hand:Point2D,reversed:Boolean=false,outward:Double=-1.0)=listOf(118.0 to 150.0,88.0 to 140.0).map { (offset,length) ->
+        val a=Point2D(hand.x+outward*offset,hand.y+40);val b=Point2D(a.x,a.y+length)
+        BarLineCandidate(BarSegment(if(reversed) b else a,if(reversed) a else b),length)
+    }
     private fun transverseRails(slope:Double=0.0,rightOffset:Double=0.0,oppositeSilhouettes:Boolean=false,reversed:Boolean=false,rightSlope:Double?=null)=
         listOf(250.0,750.0).mapIndexed { index,x ->
             listOf(0.0,10.0).mapIndexed { edgeIndex,height ->
@@ -51,6 +56,38 @@ class SetupPoliciesTest {
         val locked=assertNotNull(policy.observe(pose(2.5),ArmMeasurement.Side.left,rails()))
         assertEquals(ConfirmedBar.Role.leftDipRail,locked.role);assertEquals(rails()[0][0].edge,locked.referenceEdge)
         assertNull(locked.oppositeEdge);assertEquals(AutomaticPullUpBar.State.locked,policy.state)
+    }
+    @Test fun ineligibleHigherRankedTubeCannotHideValidObservedRails() {
+        for(reversed in listOf(false,true)) {
+            val clutter=listOf(250.0,750.0).mapIndexed { index,x ->
+                unreachableTube(Point2D(x,550.0),reversed,outward=if(index==0) -1.0 else 1.0)
+            }
+            for(side in ArmMeasurement.Side.entries) {
+                val policy=AutomaticDipRails()
+                val candidates=clutter.zip(rails()).map { (bad,good) -> if(reversed) good+bad else bad+good }
+                for(time in listOf(0.0,.3,.6)) assertNull(policy.observe(pose(time),side,candidates))
+                val bar=assertNotNull(policy.observe(pose(1.0),side,candidates))
+                assertEquals(rails()[if(side==ArmMeasurement.Side.left) 0 else 1][0].edge,bar.referenceEdge)
+                assertEquals(if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail,bar.role)
+            }
+        }
+    }
+    @Test fun unreachableSelectedSilhouetteCannotAcquireByItsCloserCenterline() {
+        for(reversed in listOf(false,true)) {
+            val clutter=unreachableTube(Point2D(250.0,550.0),reversed)
+            assertNull(AutomaticDipRails.select(clutter,Point2D(250.0,550.0),size))
+            val policy=AutomaticDipRails()
+            for(time in listOf(0.0,.3,.6,1.0,1.3)) {
+                assertNull(policy.observe(pose(time),ArmMeasurement.Side.left,listOf(clutter,rails()[1])))
+                assertEquals(AutomaticPullUpBar.State.ambiguous,policy.state)
+            }
+        }
+    }
+    @Test fun finiteOversizedGeometryCannotAcquireWithNonFiniteGripDistance() {
+        val hand=Point2D(500.0,5e154)
+        val oversized=listOf(line(490.0,1e155,2e155),line(500.0,1e155,2e155))
+        assertTrue(oversized.all { it.edge.isValid && it.edge.distance(hand).isNaN() })
+        assertNull(AutomaticDipRails.select(oversized,hand,ImageSize(1000.0,3e155)))
     }
     @Test fun separatedFragmentsOfOneTubeCannotBecomeTwoRails() {
         for(slope in listOf(0.0,.03)) for(opposite in listOf(false,true)) for(reversed in listOf(false,true)) for(side in ArmMeasurement.Side.entries) {
