@@ -64,10 +64,10 @@ private actor TestDipRailDetector: BarEdgeDetector {
         let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
         defer { model.close() }
         model.open(url)
-        try await wait { model.phase == .paused }
+        try await wait(model, for: "initial opening") { model.phase == .paused }
         #expect(model.bar == nil)
         model.play()
-        try await wait { model.phase == .finished }
+        try await wait(model, for: "playback completion") { model.phase == .finished }
         #expect(model.currentBar?.method == .automaticContours)
         #expect(model.currentBar?.sourceTime.seconds == 1.4)
         #expect(model.displayedFrames == 6)
@@ -84,7 +84,7 @@ private actor TestDipRailDetector: BarEdgeDetector {
         let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
         defer { model.close() }
         model.open(url)
-        try await wait { model.phase == .paused }
+        try await wait(model, for: "initial opening") { model.phase == .paused }
         model.play()
         try await waitForRequest(detector)
         let setup = try #require(model.beginBarSetup())
@@ -92,10 +92,10 @@ private actor TestDipRailDetector: BarEdgeDetector {
                                   referenceEdge: .init(a: .init(x: 30, y: 15), b: .init(x: 130, y: 15)),
                                   oppositeEdge: nil, imageSize: setup.frame.pose.imageSize, sourceTime: setup.frame.pose.timestamp)
         #expect(model.confirmBar(manual, for: setup))
-        try await wait { model.phase == .paused }
+        try await wait(model, for: "manual-reference rewind") { model.phase == .paused }
         #expect(model.currentBar == manual)
         model.play()
-        try await wait { model.phase == .finished }
+        try await wait(model, for: "playback completion") { model.phase == .finished }
         #expect(model.currentBar == manual)
         #expect(await detector.requests == 1)
     }
@@ -106,11 +106,11 @@ private actor TestDipRailDetector: BarEdgeDetector {
         let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
         defer { model.close() }
         model.open(url)
-        try await wait { model.phase == .paused }
+        try await wait(model, for: "initial opening") { model.phase == .paused }
         model.play()
         try await waitForRequest(detector)
         model.open(url)
-        try await wait { model.phase == .paused }
+        try await wait(model, for: "replacement source opening") { model.phase == .paused }
         #expect(model.bar == nil)
         #expect(model.displayedFrames == 1)
         #expect(model.automaticBarState == .lookingForGrip)
@@ -123,9 +123,9 @@ private actor TestDipRailDetector: BarEdgeDetector {
         defer { model.close() }
         model.configureCounting(exercise: .dip, side: .left)
         model.open(url)
-        try await wait { model.phase == .paused }
+        try await wait(model, for: "initial opening") { model.phase == .paused }
         model.play()
-        try await wait { model.phase == .finished }
+        try await wait(model, for: "playback completion") { model.phase == .finished }
         #expect(model.bar == nil)
         #expect(await detector.requests == 0)
     }
@@ -137,9 +137,9 @@ private actor TestDipRailDetector: BarEdgeDetector {
         defer {model.close()}
         model.configureCounting(exercise:.dip,side:.right)
         model.open(url)
-        try await wait {model.phase == .paused}
+        try await wait(model, for: "initial opening") {model.phase == .paused}
         model.play()
-        try await wait {model.phase == .finished}
+        try await wait(model, for: "playback completion") {model.phase == .finished}
         #expect(model.currentBar?.method == .automaticContours)
         #expect(model.currentBar?.role == .rightDipRail)
         #expect(model.currentBar?.sourceTime.seconds == 1.4)
@@ -155,23 +155,52 @@ private actor TestDipRailDetector: BarEdgeDetector {
         defer {model.close()}
         model.configureCounting(exercise:.dip,side:.left)
         model.open(url)
-        try await wait {model.phase == .paused}
+        try await wait(model, for: "initial opening") {model.phase == .paused}
         model.play()
-        try await wait {model.automaticBarState == .holding}
+        try await wait(model, for: "dip grip holding") {model.automaticBarState == .holding}
         model.configureCounting(exercise:.dip,side:.right)
-        try await wait {model.phase == .paused}
+        try await wait(model, for: "changed-side rewind") {model.phase == .paused}
         #expect(model.currentBar == nil)
         model.play()
-        try await wait {model.phase == .finished}
+        try await wait(model, for: "playback completion") {model.phase == .finished}
         #expect(model.currentBar?.role == .rightDipRail)
     }
 
-    private func wait(_ predicate: () -> Bool) async throws {
+    @Test func failedSourcePreservesOpeningErrorInsteadOfTimingOut() async throws {
+        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: TestBarDetector())
+        defer { model.close() }
+        model.open(FileManager.default.temporaryDirectory.appendingPathComponent("missing-\(UUID().uuidString).mov"))
+        do {
+            try await wait(model, for: "opening missing source") { model.phase == .paused }
+            Issue.record("Opening a missing source must fail.")
+        } catch FixtureError.failed(let message) {
+            #expect(model.phase == .failed)
+            let underlyingError = try #require(model.errorMessage)
+            #expect(message.contains("Failed while waiting for opening missing source"))
+            #expect(message.contains(underlyingError))
+            #expect(message.contains("displayedFrames=0, countingFrames=0"))
+        }
+    }
+
+    private func wait(_ model: ReplayController, for transition: String, _ predicate: () -> Bool) async throws {
         let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while !predicate() {
-            guard ContinuousClock.now < deadline else { throw FixtureError.failed("Automatic bar replay timeout") }
+            if model.phase == .failed {
+                throw FixtureError.failed("Failed while waiting for \(transition): \(diagnostics(model))")
+            }
+            guard ContinuousClock.now < deadline else {
+                throw FixtureError.failed("Timed out waiting for \(transition): \(diagnostics(model))")
+            }
             try await Task.sleep(for: .milliseconds(10))
         }
+    }
+
+    private func diagnostics(_ model: ReplayController) -> String {
+        "phase=\(model.phase), error=\(model.errorMessage ?? "none"), failureReport=\(model.failureReport ?? "none"), " +
+        "lastSourcePTS=\(model.frame?.pose.timestamp.seconds.description ?? "none"), " +
+        "displayedFrames=\(model.displayedFrames), countingFrames=\(model.countingFrames), " +
+        "automaticBarState=\(model.automaticBarState), referencePTS=\(model.bar?.sourceTime.seconds.description ?? "none"), " +
+        "processingMilliseconds=\(model.frame?.processingMilliseconds.description ?? "none")"
     }
     private func waitForRequest(_ detector: TestBarDetector) async throws {
         let deadline = ContinuousClock.now.advanced(by: .seconds(20))

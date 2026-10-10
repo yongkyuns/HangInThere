@@ -139,9 +139,11 @@ is tested. Do not describe green core or emulator checks as proof of that parity
 
 ## Native evaluation checkpoint
 
-[CI run37990163632](https://github.com/yongkyuns/HangInThere/actions/runs/37990163632)
-evaluates implementation commit `4d6ae095324ad18edeadfcaf902e6c540348cb81` on both
-API29 and API35. Its native reports show:
+[CI run38042305300](https://github.com/yongkyuns/HangInThere/actions/runs/38042305300)
+evaluates the rail-ranking fix at `845bd961c586e3ce195be67e22d76c280a72665a` on both
+API29 and API35. The recorded PR merge commit is
+`4e2b31e0065eb7cff79c40f4e4b5fbe3f4dbe1f8`; its Android, shared, iOS, script and
+workflow trees match that branch revision. Its native reports show:
 
 | Check | Both emulator results |
 | --- | --- |
@@ -152,17 +154,29 @@ API29 and API35. Its native reports show:
 | Authored held dip, Auto setup | Dip identified; rail acquisition and countdown fail |
 | Original pull-up/dip captures | 0/1 and0/9; accuracy jobs fail |
 
-The same run passed all89 shared tests, the iOS simulator framework build and
-Swift replay of both emulators' model observations. Same-host core p95 was1.3µs
-for Kotlin and6.1µs for Swift, with identical consumed checksums. These core-only
+The same run passed all106 shared tests,52 setup cases with2,870 per-frame
+snapshots,12 geometry cases, the iOS simulator framework build and Swift replay
+of both emulators' native pose observations. Same-host core
+p95 was4.2µs for Kotlin and7.4µs for Swift, below the1ms budget. These core-only
 times exclude camera and pose inference.
 
-Decode-inclusive production pipeline p95 across the three clips was109.8–130.6ms
-on API29 and83.8–102.9ms on API35. Peak process PSS was299.8–311.9MiB and
-284.5–290.8MiB respectively. These are emulator regression measurements with
+Decode-inclusive production pipeline p95 across the three clips was89.7–153.7ms
+on API29 and102.8–165.5ms on API35. Peak process PSS was299.1–309.8MiB and
+286.9–291.7MiB respectively. These are emulator regression measurements with
 different runner hosts, not a phone comparison or a real-time guarantee. The native
 jobs remain red because of the dip setup assertion; this checkpoint does not
 establish full functional or performance parity.
+
+[iOS/Mac CI run38042305298](https://github.com/yongkyuns/HangInThere/actions/runs/38042305298)
+passed all259 native macOS tests. Simulator mechanics passed257/259 tests: the
+strict pinned H.264 color test failed and automatic pull-up replay hit an
+uninformative state-transition timeout. The replay helper now reports the awaited
+transition, controller phase/error, source PTS, frame counts, apparatus state and
+processing duration, and immediately exposes a failed reader. Its20-second
+deadline and replay assertions remain unchanged; all seven replay tests pass on
+the local simulator. This diagnostic change does not establish a timeout fix.
+Simulator Vision still fails all eight tests because the runtime cannot load
+`cnn_human_pose.espresso.weights`.
 
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;
