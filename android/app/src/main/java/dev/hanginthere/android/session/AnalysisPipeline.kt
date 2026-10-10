@@ -6,10 +6,19 @@ import dev.hanginthere.android.camera.PhoneAttitude
 import dev.hanginthere.android.vision.*
 import dev.hanginthere.core.*
 import java.io.Closeable
+import kotlinx.serialization.Serializable
 
 /** One serial owner connects platform observations to the platform-independent workout policy. */
 class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseSelection, side: ArmMeasurement.Side) : Closeable {
-    data class Result(val pose: PoseResult, val snapshot: WorkoutRuntime.Snapshot, val progress: Double, val cue: String, val analysisMillis: Double)
+    /** The exact bounded detector output consumed by policy, without retaining frame pixels. */
+    @Serializable
+    data class ApparatusObservation(
+        val search: AutomaticApparatusReference.Search,
+        val candidates: List<List<BarLineCandidate>>,
+        val errors: List<String?>,
+    )
+    data class Result(val pose: PoseResult, val snapshot: WorkoutRuntime.Snapshot, val progress: Double, val cue: String,
+                      val analysisMillis: Double, val apparatus: ApparatusObservation? = null)
     val runtime = WorkoutRuntime(selection, side)
     private val edges = ObservedEdges()
     private val scene = SceneRegistration()
@@ -25,10 +34,15 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
         val seconds = pose.timestamp.seconds
         val search = runtime.search(pose)
         val detectionDue = lastDetectionSeconds?.let { seconds - it >= AutomaticPullUpBar.samplingInterval } ?: true
-        val candidates = if (search != null && detectionDue) {
+        val apparatus = if (search != null && detectionDue) {
             lastDetectionSeconds = seconds
-            search.regions.map { region -> runCatching { edges.detect(bitmap, region) }.getOrElse { emptyList() } }
-        } else emptyList()
+            val detections = search.regions.map { region -> runCatching { edges.detect(bitmap, region) } }
+            ApparatusObservation(search, detections.map { it.getOrElse { emptyList() } },
+                detections.map { it.exceptionOrNull()?.let { error ->
+                    "${error.javaClass.simpleName}: ${error.message.orEmpty()}".take(500)
+                } })
+        } else null
+        val candidates = apparatus?.candidates ?: emptyList()
         if (reference != null && (lastSceneSeconds?.let { seconds - it >= AutomaticPullUpBar.samplingInterval } ?: true)) {
             sceneEvidence = scene.observe(bitmap)
             lastSceneSeconds = seconds
@@ -47,7 +61,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
         val counter = runtime.session.counter
         val progress = counter.dipProgress?.fraction ?: counter.pullUpProgress?.fraction ?: 0.0
         val cue = counter.dipProgress?.cue?.name?.let(::cueText) ?: counter.pullUpProgress?.cue?.name?.let(::cueText) ?: snapshot.setupIssue.orEmpty()
-        return Result(pose, snapshot, progress, cue, (System.nanoTime() - started) / 1e6)
+        return Result(pose, snapshot, progress, cue, (System.nanoTime() - started) / 1e6, apparatus)
     }
     private fun cueText(name: String): String = when(name) {
         "hang", "reacquireHang" -> "Hold a full hang"

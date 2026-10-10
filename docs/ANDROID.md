@@ -86,13 +86,23 @@ its new Android inference; prior iOS source exposure is disclosed in its recipe.
 The public dynamic dip cases remain unqualified: three additional public candidates
 reviewed before inference had moving cameras, held-only motion or bench dips.
 The authored static dip Auto/countdown test currently fails: exercise identity is
-recognized, but the partly occluded far grip does not provide an eligible observed
-rail. Both API29/API35 required native jobs fail this setup assertion, independently
+recognized, but the partly occluded grip does not provide two independently eligible
+observed rails. Both API29/API35 required native jobs fail this setup assertion, independently
 of the original capture accuracy jobs. Swift and Kotlin reject the same rail
 geometry; no thresholds or fixture labels were changed to bypass the failure.
 Static dip Auto/countdown and generalized dynamic dip accuracy therefore remain unqualified. Strict chin
 clearance and dip depth remain unverified on both platforms. No user recordings or local predictions are
 published. Source recordings and test APKs are excluded from CI artifacts.
+
+Public held-setup timelines retain the exact apparatus search regions, contour
+candidates and bounded detector errors returned by the production pipeline on
+each detection sample. A null apparatus observation means no detection ran on
+that frame; empty candidate lists with errors distinguish detector failure from
+a successful search with no eligible edges. The first decoded frame of each
+hash-checked public setup fixture is also retained for contour diagnosis. These
+records use the existing detector call and canonical decoder pixels. The app
+result retains no image buffers, and the private evaluation does not export
+these public setup artifacts.
 
 ## Performance evidence
 
@@ -107,6 +117,7 @@ Physical Android front/back cameras, vendor sensor clocks, thermal throttling,
 battery use and sustained live throughput cannot be qualified by an emulator.
 Full device performance parity remains open until representative Android hardware
 is tested. Do not describe green core or emulator checks as proof of that parity.
+
 
 ## Native evaluation checkpoint
 

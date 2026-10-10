@@ -1,6 +1,7 @@
 package dev.hanginthere.android
 
 import android.net.Uri
+import android.graphics.Bitmap
 import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -69,6 +70,14 @@ class NativeSetupEvaluationTest {
                                         check(frames < expectedFrames && it.presentationTimeUs == expectedPts[frames].jsonPrimitive.long) {
                                             "Source PTS changed at frame $frames: ${it.presentationTimeUs}"
                                         }
+                                        // These two hash-checked, public-source fixtures are the
+                                        // only inputs to this test. Preserve decoder pixels for
+                                        // diagnosis; never re-run a different contour/pose path.
+                                        if (frames == 0) {
+                                            File(output, "$id-setup-first-frame.png").outputStream().use { pixels ->
+                                                check(it.bitmap.compress(Bitmap.CompressFormat.PNG, 100, pixels))
+                                            }
+                                        }
                                         val sample = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
                                         val result = pipeline.process(it.bitmap, it.presentationTimeUs, sample)
                                         val snapshot = result.snapshot
@@ -82,6 +91,9 @@ class NativeSetupEvaluationTest {
                                         poses.write(json.encodeToString(PoseResult.serializer(), result.pose)); poses.newLine()
                                         timeline.write(buildJsonObject {
                                             put("sourceSeconds", time); put("snapshot", json.encodeToJsonElement(WorkoutRuntime.Snapshot.serializer(), snapshot))
+                                            put("apparatus", result.apparatus?.let { observation ->
+                                                json.encodeToJsonElement(AnalysisPipeline.ApparatusObservation.serializer(), observation)
+                                            } ?: JsonNull)
                                         }.toString()); timeline.newLine()
                                         lastSnapshot = snapshot; lastTime = time; frames++
                                     }
