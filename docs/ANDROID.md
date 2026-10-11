@@ -314,6 +314,13 @@ This diagnostic runs the same Mac, mechanics and real-Vision suites with unchang
 fixtures, color assertions, test deadlines and fatal exit status. It cannot replace
 the required baseline or qualify the missing capabilities before those results pass.
 
+The synthetic replay timing callback now snapshots events on the native worker
+and publishes them in order on a separate logging queue. Successful playback
+flushes that queue asynchronously after its assertions. This prevents a slow test
+log pipe from blocking a measured native stage; scheduling and callback overhead
+still remain in elapsed timings. The change improves diagnostic isolation and does
+not establish the cause or repair of the earlier native read failure.
+
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;
 it contains the pinned Heavy pose model and needs no model download at runtime.

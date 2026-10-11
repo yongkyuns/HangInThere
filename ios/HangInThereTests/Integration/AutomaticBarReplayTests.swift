@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreGraphics
+import Dispatch
 import Testing
 @testable import HangInThere
 
@@ -76,14 +77,22 @@ private actor TestDipRailDetector: BarEdgeDetector {
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = TestBarDetector()
         let started = ContinuousClock.now
+        let traceOutput = DispatchQueue(label: "dev.hanginthere.tests.replay-trace")
+        let processID = ProcessInfo.processInfo.processIdentifier
         let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: { event in
-            print("Replay stage: pid=\(ProcessInfo.processInfo.processIdentifier), " +
-                  "wallMilliseconds=\(ReplayTrace.milliseconds(since: started)), " +
-                  "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
-                  "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
-                  "stageMilliseconds=\(event.milliseconds?.description ?? "none")")
+            // Snapshot on the native worker, publish in order elsewhere. A
+            // slow test-log pipe must not block the stage being measured.
+            let wallMilliseconds = ReplayTrace.milliseconds(since: started)
+            traceOutput.async {
+                print("Replay stage: pid=\(processID), " +
+                      "wallMilliseconds=\(wallMilliseconds), " +
+                      "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
+                      "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
+                      "stageMilliseconds=\(event.milliseconds?.description ?? "none")")
+            }
         })
-        defer { model.close() }
+        // Success closes before draining the log; failures still clean up.
+        defer { if model.phase != .idle { model.close() } }
         model.open(url)
         try await wait(model, for: "initial opening") { model.phase == .paused }
         #expect(model.bar == nil)
@@ -97,6 +106,11 @@ private actor TestDipRailDetector: BarEdgeDetector {
         model.close()
         #expect(model.bar == nil)
         #expect(model.automaticBarState == .lookingForGrip)
+        // Preserve the successful test's complete stage log before its verdict,
+        // without blocking the main actor or changing playback's deadline.
+        await withCheckedContinuation { completion in
+            traceOutput.async { completion.resume() }
+        }
     }
     @Test func manualSetupCancelsAnAutomaticResultAlreadyInFlight() async throws {
         let url = try await video()
