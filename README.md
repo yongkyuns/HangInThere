@@ -1,6 +1,6 @@
 # HangInThere
 
-A lean, on-device iPhone app in development for pull-up and parallel-bar dip
+A lean, on-device iPhone app in development for pull-up and dip
 counting and camera-view-specific range-of-motion analysis.
 
 An Android client is under qualification on `codex/android-parity`: native
@@ -42,8 +42,8 @@ reps or form scores. Inference may slow replay;
 frames are processed sequentially instead of silently skipped. Audio is not played.
 
 The replay screen now adds **bar-relative timestamp-based movement counting** for
-pull-ups and parallel-bar dips. Pull-up setup finds a visible gripping edge near
-both raised hands and locks it after at least four consistent observations over
+pull-ups and dips on parallel rails or a shared straight bar. Pull-up setup finds
+a visible gripping edge near both raised hands and locks it after at least four consistent observations over
 0.9 seconds. Live workouts default to **Auto** exercise selection: a stable
 starting hang identifies pull-ups and top support identifies dips, with actual
 bar/rail contours required before the countdown. The header shows the detected
@@ -54,8 +54,10 @@ arms for pull-ups, or hold top support with steady hands for dips, through the
 spoken **3, 2, 1, go** countdown. Crossing the legs is optional. Counting starts
 automatically on a fresh frame; lost grip, unstable setup, or missing frames cancel
 the countdown. Disable the toggle to use **Start set** manually. Video review automatically
-rewinds and resumes so earlier movements are counted too. Dips automatically find a rail beside each visible hand during top support,
-then use the same countdown. Manual setup remains available for unclear views. Pull-ups use both measurable arms,
+rewinds and resumes so earlier movements are counted too. Dip setup observes
+separate rails beside both hands or a paired straight bar shared by both grips,
+then uses the same countdown. Manual setup remains available for unclear views.
+Pull-ups use both measurable arms,
 each with its own extended-hang baseline; one arm can continue when the other is
 obscured. Both available arms must meet the endpoint gates. Dips retain an
 anatomical arm selector for the confirmed grip, with opposite-arm evidence checked

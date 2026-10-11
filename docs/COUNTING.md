@@ -29,7 +29,8 @@ counts: chin clearance and exercise form are not verified.
 
 ## Dip support and movement
 
-A manually confirmed finite rail segment remains mandatory. One athlete's selected
+A confirmed finite support segment remains mandatory; automatic contour setup
+or manual confirmation can supply it. One athlete's selected
 shoulder and wrist must be unique, in bounds, and meet the existing 0.3 joint-score
 gate; the wrist must be within 12% of the image short side of that segment. This
 is image proximity evidence, not verified physical hand contact.
@@ -68,7 +69,7 @@ must be evaluated separately rather than treated as qualified.
 
 ## Hands-free dip starting
 
-After rail confirmation and stable phone/scene setup, fresh eligible frames earn
+After support acquisition and stable phone/scene setup, fresh eligible frames earn
 a visible and spoken **3, 2, 1, go** countdown. During the hold, the selected hand
 must remain within 12% of acquired arm length of its initial grip and the shoulder
 within 8% of that length of its initial position. Moving, losing support, missing
@@ -78,9 +79,10 @@ before live counting, matching pull-up start behavior.
 
 No knee or ankle observations are required. Crossed legs are optional; this policy
 does not implement a crossed-leg classifier. Disabling hands-free start exposes
-the manual Start set control. Dip rail acquisition is automatic when both grips
-and paired handle edges are visible and stable. Manual setup remains available
-for unclear rails; acquisition does not change the movement-counting thresholds.
+the manual Start set control. Dip support acquisition is automatic when both grips
+and either separate paired handles or a shared paired straight bar are visible
+and stable. Manual setup remains available for unclear support; acquisition does
+not change the movement-counting thresholds.
 
 The policy-v2 evidence below is retained as historical evaluation context.
 

@@ -6,14 +6,14 @@ the evidence needed to understand tracking failures.
 
 ## Product promise for the current POC
 
-HangInThere supports live pull-up / parallel-bar-dip movement counting and recorded-video review on device.
+HangInThere supports live pull-up and dip movement counting on parallel rails or a shared straight bar, plus recorded-video review on device.
 
 The current customer-facing promise is deliberately narrow:
 
 - show the athlete's detected body joints over the video;
-- let the athlete choose pull-up or parallel-bar dip;
+- let the athlete choose pull-up or dip;
 - use both measurable arms for pull-ups, with one-arm fallback when obscured;
-- let the athlete choose the anatomical arm/rail for parallel-bar dips;
+- let the athlete choose the anatomical grip for dips;
 - establish fixed grip references automatically for pull-ups and dips, with manual fallback;
 - count observed movement cycles when the supported evidence is available;
 - clearly distinguish movement counting from form validation.
@@ -130,8 +130,9 @@ source so every counted frame uses the same reference.
 
 Pull-up setup runs automatically during playback. One athlete with both raised
 hands guides image-edge detection; a stable observed gripping edge locks and the
-video rewinds once, then continues counting from the start. Dip rails and ambiguous
-pull-up views use the short manual flow:
+video rewinds once, then continues counting from the start. Dip setup also acquires
+observed support automatically. Views without clear automatic apparatus evidence
+use the short manual flow:
 
 1. pause where the bar is clear;
 2. drag a tight region over one gripping edge;
@@ -286,7 +287,7 @@ missing frames, unstable calibration, manual setup,
 or camera changes cancel the countdown. Turning off **Hands-free start** restores
 the **Start set** button. Finished sets require **Next set** before arming again.
 **Set bar manually** freezes the latest analyzed frame and opens the same guided/manual
-`BarSetupView` used by recorded replay. Dips first attempt automatic rail setup.
+`BarSetupView` used by recorded replay. Dips first attempt automatic support setup.
 
 A compact camera-switch button sits inside the lower-right of the live preview,
 beside the setup cue, without adding a row above the video. It toggles rear
@@ -531,7 +532,7 @@ Measurement gates:
 The engineering diagnostics remain valuable throughout development, but they should
 stay behind progressive disclosure in the customer experience.
 
-### Automatic dip rails
+### Automatic dip support
 
 Holding top support with both arms and hands visible triggers local contour
 searches beside each hand. The policy first requires two distinct observed
@@ -541,5 +542,10 @@ observations must stay stable for at least four observations across 0.9 seconds.
 It retains the selected anatomical rail as a fixed reference; it never draws a
 rail between wrists or uses a rack bounding box. Phone/scene calibration and
 freshness checks are shared with automatic pull-up setup. A three-second top-hold
-countdown starts after setup becomes ready. No manual confirmation is required
-when acquisition succeeds; unclear views retain the manual settings fallback.
+countdown starts after setup becomes ready. A separate common crop also permits
+a shared straight bar: every sample must observe a fresh paired silhouette with
+finite support near both hands, its center on/below both wrists, and no distinct
+eligible alternative. Losing that pair restarts dwell. Independent rail acquisition
+keeps priority; both modes retain an actual observed edge for the selected grip.
+No manual confirmation is required when acquisition succeeds; unclear views
+retain the manual settings fallback.

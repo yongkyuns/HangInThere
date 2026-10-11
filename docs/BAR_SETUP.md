@@ -26,13 +26,23 @@ replacement, and exercise changes discard acquisition history.
 In video review, press **Play** to acquire the bar. A successful lock automatically
 rewinds once and resumes with that fixed edge, including movements before lock.
 This assumes a fixed-camera recording, as the existing manual review workflow does.
-Dips also acquire grip rails automatically while the athlete holds top support
-with both hands visible. Separate local contour searches require paired visible
-handle edges, then stable grip/rail evidence before calibrating the selected
+Dips also acquire observed support automatically while the athlete holds top
+support with both hands visible. Separate local contour searches require paired
+visible handle edges, then stable grip/rail evidence before calibrating the selected
 anatomical rail. A fresh matching edge can maintain an already witnessed handle
-through partial occlusion. The rails may project vertically. Pose guides the
-search; it never creates the apparatus line. Live then waits for the three-second
-top-support countdown. Recorded review rewinds once with the acquired fixed rail.
+through partial occlusion. The rails may project vertically.
+
+A third bounded crop searches for a straight bar shared by both hands. Every
+sample must supply a fresh paired silhouette with finite overlapping support
+across at least half the grip span. Its near-horizontal upper observed edge must
+reach near both hands, and the paired centerline must lie on/below both wrists.
+Distinct eligible bars remain ambiguous. Missing paired evidence resets dwell;
+an old pair or an inferred between-wrists line cannot qualify shared support.
+Independent rail acquisition keeps priority. Both modes require four consistent
+observations over 0.9 source seconds and retain the selected anatomical grip role.
+Pose guides the search; it never creates the apparatus line. Live then waits for
+the three-second top-support countdown. Recorded review rewinds once with the
+acquired fixed reference.
 
 Use **Set bar manually** for unclear pull-up or dip views.
 

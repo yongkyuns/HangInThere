@@ -15,12 +15,17 @@ remain unchanged.
 
 | Scope | Latest demonstrated limitation | Required qualification |
 | --- | --- | --- |
-| Native dip setup, API29/API35 | Held public pixels show a shared straight bar; the last qualified parallel-only selector cannot acquire it | The unchanged held positive must acquire observed support and complete native Auto/live countdown with the new shared-bar selector |
 | Original public accuracy | Cropped pull-up0/1; panning dip0/9 | Qualification of occluded poses and camera-relative references before claiming these captures are supported |
-| Original phone HDR imports | Both APIs now count2/2 pull-ups and4/4 dips in Auto and fixed modes, for both sides | Preserve the full-source results after the shared-bar setup change; qualify physical-device performance separately |
 | iOS simulator Vision | Apple body-pose weights fail to load | Real inference in a supported simulator runtime; native Mac and physical iPhone results remain separate |
 | iOS simulator decoder | Pinned H264 green/yellow samples have incorrect native chroma | Correct native decoding of the immutable fixture, with existing color tolerances |
-| iOS replay latency | Hosted replay intermittently exceeds the unchanged completion deadline | Repeat hosted replay after the dedicated executor change; a local pass is insufficient |
+| iOS replay latency | Hosted replay or synthetic-fixture finalization intermittently exceeds unchanged deadlines | Evidence from the failing native operation and a demonstrated repair; successful reruns alone are insufficient |
+| Physical Android parity | No Android device evaluation | Camera/sensor timing, sustained throughput, thermal/battery and strict-form qualification on representative hardware |
+
+At implementation `04c80b7c690e52581acd9d0ea5c9d4763cf7612a`, both Android APIs
+pass the unchanged held pull-up and dip setup/countdown cases. All 16 authorized
+phone-video cases also pass: original HDR and frozen SDR, both anatomical sides,
+2/2 pull-ups and 4/4 dips in Auto and fixed modes through every source frame.
+The native checkpoints below distinguish those results from the remaining blockers.
 
 iOS replay now uses a dedicated serial Dispatch executor for blocking native
 decoding, rendering and inference. Swift still checks actor isolation and fresh
@@ -122,12 +127,12 @@ The clearer Commons pull-up window/full visible bar annotation was frozen before
 its new Android inference; prior iOS source exposure is disclosed in its recipe.
 The public dynamic dip cases remain unqualified: three additional public candidates
 reviewed before inference had moving cameras, held-only motion or bench dips.
-The authored static dip Auto/countdown test currently fails: exercise identity is
-recognized, but the partly occluded grip does not provide two independently eligible
-observed rails. Both API29/API35 required native jobs fail this setup assertion, independently
-of the original capture accuracy jobs. Swift and Kotlin reject the same rail
-geometry; no thresholds or fixture labels were changed to bypass the failure.
-Static dip Auto/countdown and generalized dynamic dip accuracy therefore remain unqualified. Strict chin
+The authored static dip Auto/countdown test now passes on API29/API35 using
+observed shared straight-bar support. The original parallel-only selector rejected
+this apparatus because it could not establish two independent rails. The new
+selector keeps those rejection rules and requires a separate fresh paired bar near
+both hands; fixture labels and countdown thresholds are unchanged. Static setup
+does not establish generalized dynamic dip accuracy. Strict chin
 clearance and dip depth remain unverified on both platforms. No user recordings or local predictions are
 published. Source recordings and test APKs are excluded from CI artifacts.
 
@@ -148,9 +153,10 @@ still needs two fresh matching observed edges. Losing either paired witness rese
 both witnesses and dwell; reacquisition requires two fresh pairs. The original
 below-hand, grip, countdown and counting gates remain in place. This conservative
 ambiguity check can reject physically separate rails whose projections overlap.
-It corrects a false-positive path; it does not recover an occluded rail or qualify
-the held-dip setup fixture. Core tests and the per-frame Swift/Kotlin CI oracle cover
-fragment identity, perspective-separated rails, partial occlusion and reacquisition.
+It corrects a false-positive path; it does not recover an occluded rail. Shared
+straight-bar support has its own selector and qualification. Core tests and the
+per-frame Swift/Kotlin CI oracle cover fragment identity, perspective-separated
+rails, partial occlusion and reacquisition.
 
 Rail selection applies every eligibility gate before ranking tube pairs. A pair
 whose fitted centerline is near the hand can still have its selected observed edge
@@ -186,6 +192,41 @@ is tested. Do not describe green core or emulator checks as proof of that parity
 
 
 ## Native evaluation checkpoint
+
+[Android CI run38114689771](https://github.com/yongkyuns/HangInThere/actions/runs/38114689771)
+evaluates implementation `04c80b7c690e52581acd9d0ea5c9d4763cf7612a` through PR
+merge `95790417e415a463a2efe83cf301d61a5f40ca36`. Their Android, shared, iOS,
+script and workflow trees match. On each API29/API35 emulator, all 19 applicable
+instrumentation methods pass with zero failures/errors and one intentional
+private-only skip. Four-ABI build/lint/unit/APK gates, all 3 HDR JNI methods,
+software HDR contracts, noisy-contour regressions and replay UI/EOF/retry checks
+pass. Both held fixtures acquire observed support at 1.0 s, complete 3/2/1 over
+3.083333 s and enter running with zero false movements. The positive pull-up counts
+1/1 in Auto and fixed modes through all 108 frames. The original cropped pull-up
+and panning dip remain 0/1 and 0/9; their fatal accuracy jobs keep the workflow red.
+
+All 116 shared tests pass with zero failures/skips. Production Kotlin matches
+Swift across 72 setup cases/4,022 frames and 17 geometry cases, and the static KMP
+iOS framework compiles. All 3 complete fixed native counter traces on each API
+match Swift counts, events, reasons and source PTS within 1e-9. Same-host core
+p95 remains below 1 ms; camera and model work are excluded. Positive-pull-up Auto
+pipeline p95 is 161.4 ms on API29 and 132.2 ms on API35, with Auto peak PSS
+306.6 MiB and 291.5 MiB. These are measurements on separate emulator hosts,
+not phone parity.
+
+[Apple CI run38114689774](https://github.com/yongkyuns/HangInThere/actions/runs/38114689774)
+passes 271/271 native Mac tests and 269/271 simulator mechanics methods. Both
+shared-bar replay sides pass. One test fails while finalizing its synthetic video,
+before exercising the manual/automatic race; the pinned H264 test fails 8 color
+assertions. All 8 simulator Vision methods fail because Apple body-pose weights
+cannot load. The unchanged-source
+[native sampling run38115368961](https://github.com/yongkyuns/HangInThere/actions/runs/38115368961)
+passes 271/271 Mac tests and 270/271 mechanics methods, including every fixture
+creation/replay check; only H264 color assertions fail. All 8 Vision failures
+remain. Sampling a successful attempt does not explain or repair the preceding
+timeout. Native Mac success remains separate from iOS simulator inference.
+
+### Historical native checkpoint
 
 [Android CI run38098329024](https://github.com/yongkyuns/HangInThere/actions/runs/38098329024)
 evaluates branch `30126227f0416efaa1f2d6fe0a21b49d251df09f` through PR merge
@@ -248,6 +289,31 @@ closed. Temporary input secrets and ciphertext release assets are removed after 
 evaluation jobs terminate. None of this qualifies physical live-camera performance.
 
 ### Authorized recording checkpoint
+
+[Original HDR run38114714796](https://github.com/yongkyuns/HangInThere/actions/runs/38114714796)
+and [frozen SDR run38114721723](https://github.com/yongkyuns/HangInThere/actions/runs/38114721723)
+at `04c80b7c690e52581acd9d0ea5c9d4763cf7612a` pass all 16 cases across
+API29/API35. Both sides count 2/2 pull-ups and 4/4 dips with Auto and fixed
+references through all 690/1,124 source frames. Original pins, reviewed edges,
+labels and exact source PTS are unchanged. All 16 fixed native traces match
+production Swift counts, event reasons and source timestamps within 1e-9; each
+Swift executable is rebuilt from the same immutable implementation revision.
+
+| Input | API | Maximum Auto pipeline p95 | Maximum Auto process PSS |
+| --- | --- | ---: | ---: |
+| Original HDR | 29 | 250.3 ms | 401.0 MiB |
+| Original HDR | 35 | 217.2 ms | 385.4 MiB |
+| Frozen SDR | 29 | 182.8 ms | 317.4 MiB |
+| Frozen SDR | 35 | 172.6 ms | 294.9 MiB |
+
+These satisfy emulator regression budgets; they do not qualify physical live
+performance, strict form or unseen videos. All 27 authorized private runs are
+terminal and their available evidence has been recovered. The temporary input
+environment secret, local input identity, ciphertext releases/assets and tags are removed and
+verified absent. Original recordings and frozen manifests retain their pins.
+The local report identity and encrypted evaluation evidence are retained.
+
+### Historical recording and implementation checkpoints
 
 [Private CI run38096344678](https://github.com/yongkyuns/HangInThere/actions/runs/38096344678)
 evaluates `130b2dfe8cc976f07a42d14ea397f9cf386cb455`. On both API29 and API35,
@@ -354,13 +420,12 @@ Local qualification of this selector includes223 Swift core tests,116 Kotlin
 tests,31 Android app unit tests, actual-source instrumentation compilation,
 and72 setup cases/4,022 frames plus17 geometry cases matched against production
 Swift. Cases cover both anatomical sides, fresh-pair loss, ambiguous bars,
-short support, above-grip stripes, forearms and parallel-rail priority. The iOS app compiles with
-the new source registered. Fresh native held-pixel/countdown and full-source
-original/SDR runs must qualify the additional crop and setup mode; the earlier
-`d0d843c` results do not establish this new mode's accuracy or performance.
-The271 native macOS tests pass, including shared-bar acquisition/rewind through
-all source frames for either tracked hand. This is host integration evidence;
-simulator Vision, color and hosted replay-latency gates remain separate.
+short support, above-grip stripes, forearms and parallel-rail priority. The iOS app
+compiles with the new source registered. The native Android and authorized
+recording checkpoints above qualify the additional crop/setup mode at `04c80b7`.
+The 271 native macOS tests also pass, including shared-bar acquisition/rewind
+through all source frames for either tracked hand. Simulator Vision, color and
+hosted replay-latency gates remain separate.
 
 Completed replay state is retained until the user starts another evaluation.
 Manual-reference controls cannot mutate a replay after EOF or replace its
