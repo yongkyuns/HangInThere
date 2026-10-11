@@ -19,6 +19,8 @@ import sys
 import tempfile
 import urllib.request
 
+import fixture_encoding as encoding
+
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = ROOT / "ios/HangInThereTests/Fixtures/source.json"
 DESTINATION = ROOT / "ios/HangInThereTests/Fixtures/generated"
@@ -67,7 +69,7 @@ def run(command: list[str]) -> str:
     return result.stdout
 
 
-def prepare(source: Path, destination: Path, spec: dict) -> dict:
+def prepare(source: Path, destination: Path, spec: dict, *, reproducible=False) -> dict:
     verify_source(source, spec)
     for tool in ("ffmpeg", "ffprobe"):
         if not shutil.which(tool):
@@ -79,11 +81,12 @@ def prepare(source: Path, destination: Path, spec: dict) -> dict:
         video = work / "pullup-smoke.mp4"
         still = work / "pullup-smoke.png"
         command = [
-            "ffmpeg", "-v", "error", "-y", "-ss", str(recipe["source_start_seconds"]),
+            "ffmpeg", "-v", "error", "-y", *encoding.input_options(reproducible),
+            "-ss", str(recipe["source_start_seconds"]),
             "-i", str(source), "-t", str(recipe["duration_seconds"]), "-map", "0:v:0",
-            "-vf", f"fps={recipe['frames_per_second']},scale={recipe['width']}:-2:flags=lanczos,setsar=1",
+            "-vf", f"fps={recipe['frames_per_second']},scale={recipe['width']}:-2:flags={encoding.scale_flags(reproducible)},setsar=1",
             "-an", "-c:v", "libx264", "-preset", "fast", "-crf", "18", "-pix_fmt", "yuv420p",
-            "-movflags", "+faststart", str(video)
+            "-movflags", "+faststart", *encoding.output_options(reproducible), str(video)
         ]
         run(command)
         run(["ffmpeg", "-v", "error", "-y", "-ss", str(recipe["still_seconds"]),
@@ -108,6 +111,7 @@ def prepare(source: Path, destination: Path, spec: dict) -> dict:
             "image_sha256": digest(still),
             "recipe": recipe,
             "ffmpeg_version": run(["ffmpeg", "-version"]).splitlines()[0],
+            "encoding": encoding.provenance(reproducible),
             "frame_pts_seconds": timestamps
         }
         (work / "prepared.json").write_text(json.dumps(metadata, indent=2) + "\n")

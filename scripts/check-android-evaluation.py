@@ -8,6 +8,7 @@ import argparse
 import json
 import math
 from pathlib import Path
+import re
 
 CASES = {'pullup_margin': ('positive', 108, 1),
          'pullup_smoke': ('diagnostic', 40, 1),
@@ -105,10 +106,39 @@ def setup(path):
     print('Authored held-frame setup only; excludes dynamic movement and physical-phone qualification.')
 
 
+def matching_inputs(paths):
+    """Compare actual native-verified media, independently of pose/count agreement."""
+    reports = [json.loads(path.read_text()) for path in paths]
+    assert {report['sdk'] for report in reports} == {29, 35}, 'Need distinct API29/API35 results'
+    native_cases = [{case['id']: case for case in cases(report)} for report in reports]
+    setup_reports = [json.loads(path.with_name('setup-report.json').read_text()) for path in paths]
+    assert {report['apiLevel'] for report in setup_reports} == {29, 35}, 'Missing setup API pair'
+    for native_report, setup_report in zip(reports, setup_reports):
+        assert native_report['sdk'] == setup_report['apiLevel'], 'Setup/native API mismatch'
+    for key in ('modelSha256', 'poseArtifactSha256'):
+        values = [report[key] for report in reports]
+        assert all(isinstance(value, str) and re.fullmatch('[0-9a-f]{64}', value) for value in values), 'Missing model/runtime checksum'
+        assert values[0] == values[1], 'Model/runtime inputs differ: ' + key
+        setup_key = 'backendAarSha256' if key == 'poseArtifactSha256' else key
+        assert all(report[setup_key] == values[0] for report in setup_reports), 'Setup model/runtime inputs differ'
+    setup_cases = [{case['id']: case for case in report['cases']} for report in setup_reports]
+    for report, entries in zip(setup_reports, setup_cases):
+        assert len(report['cases']) == 2 and set(entries) == {'pullup_held_start', 'dip_held_start'}, 'Missing or duplicate setup input'
+        assert all(case['expectedFrames'] == case['decodedFrames'] == 72 for case in entries.values()), 'Setup input timeline changed'
+    for pair in (native_cases, setup_cases):
+        for identifier in sorted(pair[0]):
+            hashes = [entries[identifier]['sha256'] for entries in pair]
+            assert all(isinstance(value, str) and re.fullmatch('[0-9a-f]{64}', value) for value in hashes), 'Missing video checksum: ' + identifier
+            print(f'{identifier}: API29/API35 derivative checksums {hashes[0]} / {hashes[1]}', flush=True)
+            assert hashes[0] == hashes[1], 'Native evaluation video inputs differ: ' + identifier
+    print('Both APIs evaluated identical dynamic/setup media and model/runtime bytes. This does not establish identical decoded pixels or vision outputs.')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     for name in ('core', 'native', 'setup', 'accuracy'):
         parser.add_argument('--' + name, type=Path)
+    parser.add_argument('--matching-inputs', type=Path, nargs=2, metavar=('API29_REPORT', 'API35_REPORT'))
     args = parser.parse_args()
     assert any(vars(args).values())
     for name, path in vars(args).items():

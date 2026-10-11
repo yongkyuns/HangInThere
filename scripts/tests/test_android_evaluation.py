@@ -1,4 +1,5 @@
 import importlib.util
+import copy
 import json
 from pathlib import Path
 import tempfile
@@ -126,5 +127,66 @@ class AndroidSetupEvidenceTests(unittest.TestCase):
     def test_static_setup_cannot_earn_a_rep(self):
         r=self.report();r['cases'][0]['observedMovements']=1
         with self.assertRaises(AssertionError):self.check(r)
+
+
+class AndroidMatchingInputsTests(unittest.TestCase):
+    def reports(self):
+        native = AndroidEvaluationEvidenceTests().report()
+        native.update(sdk=29, modelSha256='a' * 64, poseArtifactSha256='b' * 64)
+        for index, case in enumerate(native['cases']): case['sha256'] = str(index) * 64
+        held = AndroidSetupEvidenceTests().report()
+        held.update(apiLevel=29, modelSha256='a' * 64, backendAarSha256='b' * 64)
+        for index, case in enumerate(held['cases']):
+            case.update(sha256=str(index + 3) * 64, expectedFrames=72)
+        other_native = copy.deepcopy(native); other_native['sdk'] = 35
+        other_held = copy.deepcopy(held); other_held['apiLevel'] = 35
+        return [(native, held), (other_native, other_held)]
+
+    def check(self, reports):
+        with tempfile.TemporaryDirectory() as directory:
+            paths = []
+            for index, (native, held) in enumerate(reports):
+                folder = Path(directory) / str(index); folder.mkdir()
+                (folder / 'report.json').write_text(json.dumps(native))
+                (folder / 'setup-report.json').write_text(json.dumps(held))
+                paths.append(folder / 'report.json')
+            CHECK.matching_inputs(paths)
+
+    def test_identical_media_passes_without_requiring_identical_predictions(self):
+        reports = self.reports()
+        reports[1][0]['cases'][2]['observedMovements'] = 0
+        self.check(reports)
+
+    def test_changed_dynamic_derivative_rejects_even_when_counts_match(self):
+        reports = self.reports(); reports[1][0]['cases'][2]['sha256'] = 'f' * 64
+        with self.assertRaisesRegex(AssertionError, 'video inputs differ'): self.check(reports)
+
+    def test_changed_held_setup_derivative_rejects(self):
+        reports = self.reports(); reports[1][1]['cases'][1]['sha256'] = 'f' * 64
+        with self.assertRaisesRegex(AssertionError, 'video inputs differ'): self.check(reports)
+
+    def test_empty_checksum_cannot_certify_identical_inputs(self):
+        reports = self.reports()
+        for native, _ in reports: native['cases'][2]['sha256'] = ''
+        with self.assertRaisesRegex(AssertionError, 'Missing video checksum'): self.check(reports)
+
+    def test_two_results_from_one_api_cannot_certify_the_matrix(self):
+        reports = self.reports(); reports[1][0]['sdk'] = 29
+        with self.assertRaisesRegex(AssertionError, 'distinct API'): self.check(reports)
+
+    def test_setup_report_must_belong_to_its_native_api(self):
+        reports = self.reports(); reports[0][1]['apiLevel'], reports[1][1]['apiLevel'] = 35, 29
+        with self.assertRaisesRegex(AssertionError, 'Setup/native API mismatch'): self.check(reports)
+
+    def test_matching_videos_cannot_hide_different_model_inputs(self):
+        reports = self.reports(); reports[1][0]['modelSha256'] = 'c' * 64
+        with self.assertRaisesRegex(AssertionError, 'Model/runtime inputs differ'): self.check(reports)
+
+    def test_missing_or_duplicate_setup_input_rejects(self):
+        for duplicate in (False, True):
+            reports = self.reports()
+            if duplicate: reports[1][1]['cases'][1] = reports[1][1]['cases'][0]
+            else: reports[1][1]['cases'].pop()
+            with self.assertRaisesRegex(AssertionError, 'Missing or duplicate setup'): self.check(reports)
 
 if __name__=='__main__':unittest.main()

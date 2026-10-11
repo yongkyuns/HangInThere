@@ -87,9 +87,9 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - name: Prepare pinned public media and model
         run: |
-          python3 -m unittest discover -s scripts/tests -p 'test_android*.py' -v
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg autoconf automake libtool pkg-config
+          python3 -m unittest discover -s scripts/tests -p 'test_android*.py' -v
           python3 scripts/prepare-android-fixtures.py
       - name: Compile APK, check lint and host regressions
         run: ./gradlew :android:app:assembleDebug :android:app:assembleDebugAndroidTest :android:app:lintDebug :android:app:testDebugUnitTest --console=plain
@@ -150,6 +150,24 @@ jobs:
             android/app/src/main/cpp/*
             android/app/src/main/assets/licenses/*
             docs/ANDROID-HDR.md
+  fixture-inputs:
+    name: Identical public evaluation inputs
+    needs: emulator
+    if: ${{ !cancelled() && needs.emulator.result != 'cancelled' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          pattern: android-api-*
+          path: build/fixture-inputs
+      - name: Compare native-verified dynamic and held-setup media
+        run: |
+          python3 scripts/check-android-evaluation.py --matching-inputs \
+            build/fixture-inputs/android-api-29/build/android-evaluation/report.json \
+            build/fixture-inputs/android-api-35/build/android-evaluation/report.json
+
   native-policy-parity:
     name: Swift replay of Android model observations
     needs: emulator

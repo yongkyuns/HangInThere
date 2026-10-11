@@ -16,6 +16,7 @@ import urllib.parse
 import urllib.request
 
 import evaluation as ev
+import fixture_encoding as encoding
 
 SPEC = ev.ROOT / 'Evaluation/fixtures/temporal-pilot.json'
 ALLOWED_HOSTS = {'upload.wikimedia.org', 'd34w7g4gy10iej.cloudfront.net', 'www.pexels.com', 'videos.pexels.com'}
@@ -64,7 +65,7 @@ def source_file(row, cache, fetch):
     return path
 
 
-def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
+def prepare(cache, output, fetch=False, spec_path=SPEC, only=None, *, reproducible=False):
     spec = ev.read_json(spec_path)
     ev.require(spec['schema_version'] == 1 and spec['sources'], 'Missing temporal recipe')
     rows = spec['sources']
@@ -91,10 +92,11 @@ def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
         # Encode using the reviewed stream's nominal time base. Input millisecond
         # PTS may quantize by <0.5 ms; both PTS arrays and the maximum error survive.
         # The counter consumes decoded MP4 PTS, never an invented frame-index clock.
-        command(['ffmpeg', '-v', 'error', '-i', str(source), '-map', '0:v:0', '-vf',
-                 f'trim=start_frame={first}:end_frame={end},setpts=PTS-STARTPTS,scale=960:-2:flags=lanczos',
+        command(['ffmpeg', '-v', 'error', *encoding.input_options(reproducible), '-i', str(source), '-map', '0:v:0', '-vf',
+                 f'trim=start_frame={first}:end_frame={end},setpts=PTS-STARTPTS,scale=960:-2:flags={encoding.scale_flags(reproducible)}',
                  '-an', '-c:v', 'libx264', '-crf', '18', '-preset', 'veryfast',
-                 '-fps_mode', 'passthrough', '-enc_time_base', row['encoder_time_base'], '-video_track_timescale', '90000', str(video)])
+                 '-fps_mode', 'passthrough', '-enc_time_base', row['encoder_time_base'], '-video_track_timescale', '90000',
+                 *encoding.output_options(reproducible), str(video)])
         derived, derived_size = probe(video)
         ev.require(len(derived) == len(selected) and all(abs(a - (b - selected[0])) <= .0005 for a, b in zip(derived, selected)),
                    'Transcode changed frame count or timing')
@@ -143,6 +145,7 @@ def prepare(cache, output, fetch=False, spec_path=SPEC, only=None):
     (output / 'ATTRIBUTION.txt').write_text('\n'.join(credits))
     ev.write_json(output / 'prepared.json', {'recipe_sha256': ev.digest(spec_path), 'scope': spec['scope'],
                                            'ffmpeg': command(['ffmpeg', '-version']).splitlines()[0],
+                                           'encoding': encoding.provenance(reproducible),
                                            'clips': len(clips), 'frames': sum(len(r['frame_pts_seconds']) for r in refs)})
 
 
@@ -151,7 +154,8 @@ if __name__ == '__main__':
     p.add_argument('--cache', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
     p.add_argument('--fetch', action='store_true')
     p.add_argument('--only', action='append', default=[], help='Prepare only this frozen clip ID; repeatable')
+    p.add_argument('--reproducible', action='store_true', help='Use fixed threads and CPU-independent test encoding')
     a = p.parse_args()
-    try: prepare(a.cache.resolve(), a.output.resolve(), a.fetch, only=a.only or None)
+    try: prepare(a.cache.resolve(), a.output.resolve(), a.fetch, only=a.only or None, reproducible=a.reproducible)
     except (ValueError, KeyError, OSError, subprocess.CalledProcessError) as error:
         print(f'Temporal preparation incomplete: {error}', file=sys.stderr); raise SystemExit(2)

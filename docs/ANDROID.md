@@ -110,6 +110,30 @@ Setup tests also exercise the composed runtime rather than only isolated gates.
    Swift. It compares count and event outcomes/reasons/times on identical poses,
    independently of Apple Vision versus MediaPipe accuracy differences.
 
+Android's public test transcodes use a shared `reproducible-h264-v1` encoding
+profile: fixed decoder/filter/encoder/lookahead threads, CPU-independent x264,
+and bit-exact scaling/codec/muxer options. This affects test preparation only.
+The original source pins, selected frames, reviewed labels and timestamps stay
+in force; iOS and temporal preparation keep their existing default profile.
+Android smoke derivatives live in `build/android-fixtures/smoke`, independently
+of the iOS generated-fixture directory.
+The FFmpeg build, profile options and derivative hashes are retained in
+`fixture-preparation.json`. Library upgrades still require fresh qualification.
+
+The separate `Identical public evaluation inputs` job compares the actual
+native-verified video checksums for all three dynamic and both held-setup cases
+across API29/API35, along with model/runtime pins. Missing, malformed or different
+inputs fail this gate independently of count agreement. Equal encoded inputs do
+not prove identical decoded pixels or repeatable vision outputs.
+
+Runs38136231261 and38139855741 used two different dip transcodes, with SHA-256
+prefixes `5a392915` and `0131cee0`, despite unchanged original/source recipes.
+The two native dip observation/event trajectories followed those derivative
+variants as they swapped APIs; both movement results remained0/9. A local encoder
+thread sweep also changed decoded pixel hashes. Those runs cannot establish
+same-input vision nondeterminism or its cause. The preparation profile and new
+gate address that confound; they do not repair the dip accuracy failure.
+
 The public clips are development smoke cases, not a held-out accuracy benchmark.
 Separate authored setup videos repeat a source-only reviewed starting frame for
 six seconds. Native tests use the real decoder, pose model, contours and background
