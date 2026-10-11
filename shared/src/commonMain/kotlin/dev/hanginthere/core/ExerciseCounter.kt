@@ -286,6 +286,11 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         if (pose.people.size > 1) return interrupt("multiplePeople")
         if (pose.people.isEmpty()) return dipObservationUnavailable("noPerson", time)
         val support = DipSupportMeasurement.create(pose, side, referenceEdge) ?: return dipObservationUnavailable("dipSupportUnclear", time)
+        // Shoulders/wrists can outlast the initial elbow witness. An expired
+        // candidate must reacquire extension and its grip axis, not remain stuck.
+        if (phase == Phase.seekingStart && dipSupportCandidateSince?.let {
+                time - it > maximumDipObservationOutageSeconds
+            } == true) interrupt("dipSupportNeeded")
         if (dipSupportAxis == null) {
             val axis = DipSupportMeasurement.Anchor.create(support)
             if (!support.isStartingSupport || axis == null) { trackingIssue = "dipSupportNeeded"; return null }

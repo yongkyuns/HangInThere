@@ -258,6 +258,59 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 0)
     }
 
+    @Test func dipStartRecoversAfterExpiredElbowConfidenceHole() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            feed(&c, [(0,140)])
+            for tick in 1...9 {
+                c.consume(Self.poseWithLowConfidenceElbow(Double(tick) / 10, degrees: 140,
+                    exercise: .dip, side: side), referenceEdge: Self.referenceEdge)
+                #expect(c.phase == .seekingStart)
+                #expect(c.observedMovements == 0)
+            }
+            feed(&c, [(1,140)])
+            #expect(c.phase == .seekingStart)
+            feed(&c, [(1.15,140)])
+            #expect(c.phase == .ready)
+            feed(&c, [(1.3,70),(1.45,70),(1.6,140),(1.75,140)])
+            #expect(c.observedMovements == 1)
+            #expect(c.lastEvent?.sourceSeconds == 1.75)
+            #expect(c.interruptedAttempts == 0)
+        }
+    }
+
+    @Test func expiredDipStartCannotReuseItsOldExtensionWitness() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            feed(&c, [(0,140)])
+            for tick in 1...9 {
+                c.consume(Self.poseWithLowConfidenceElbow(Double(tick) / 10, degrees: 140,
+                    exercise: .dip, side: side), referenceEdge: Self.referenceEdge)
+            }
+            feed(&c, [(1,130),(1.15,130),(1.3,130)])
+            #expect(c.phase == .seekingStart)
+            #expect(c.observedMovements == 0)
+            feed(&c, [(1.45,140),(1.6,140)])
+            #expect(c.phase == .ready)
+            #expect(c.events.isEmpty)
+        }
+    }
+
+    @Test func dipStartKeepsItsWitnessAtTheAllowedOutageBoundary() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            feed(&c, [(0,140)])
+            for tick in 1...7 {
+                c.consume(Self.poseWithLowConfidenceElbow(Double(tick) / 10, degrees: 140,
+                    exercise: .dip, side: side), referenceEdge: Self.referenceEdge)
+            }
+            feed(&c, [(0.75,140)])
+            #expect(c.phase == .ready)
+            #expect(c.observedMovements == 0)
+            #expect(c.events.isEmpty)
+        }
+    }
+
     @Test func dipPartialRecoveryRequiresReturningNearStartingTop() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         feed(&c, [(0,140),(0.15,140),(0.3,70),(0.45,70),(0.6,110),(0.75,110)])

@@ -34,7 +34,8 @@ def prepare(output):
         c,s=math.cos(rotation),math.sin(rotation)
         def pt(x,y):return dict(x=(c*(x-500)-s*(y-500)+500)*scale,y=(s*(x-500)+c*(y-500)+500)*scale)
         edge = dict(a=pt(100,500),b=pt(900,500)) if exercise=='pullUp' else dict(a=pt(300,480),b=pt(300,620))
-        steps = [dict(interrupt=f) if isinstance(f,str) else dict(pose=pose(f[0],f[1],exercise=exercise,**kw)) for f in frames]
+        steps = [dict(interrupt=f) if isinstance(f,str) else
+                 dict(pose=f if isinstance(f,dict) else pose(f[0],f[1],exercise=exercise,**kw)) for f in frames]
         cases.append(dict(id=name,exercise=exercise,side='left',referenceEdge=edge,expectedMovements=expected,steps=steps))
     cycle=[(0,170),(.15,170),(.3,120),(.45,80),(.6,80),(.75,170),(.9,170)]
     for ex in ['pullUp','dip']:
@@ -53,6 +54,22 @@ def prepare(output):
     add('pullUp-opposite-still', 'pullUp', cycle,0,right=170)
     add('pullUp-single-visible', 'pullUp',cycle,1,missing=True)
     add('dip-opposite-still', 'dip',cycle,0,right=170)
+    # Reliable shoulders/wrists do not keep an expired extension witness alive.
+    # Explicit one-cycle labels prevent two engines from sharing a recovery bug.
+    def elbow_hole(t):
+        frame = pose(t,140,exercise='dip')
+        for landmark in frame['people'][0]['landmarks']:
+            if landmark['joint'].endswith('Elbow'): landmark['confidence'] = .1
+        return frame
+    expired_start = [(0,140)] + [elbow_hole(i / 10) for i in range(1,10)]
+    add('dip-start-expired-elbow-recovery','dip',expired_start +
+        [(1,140),(1.15,140),(1.3,70),(1.45,70),(1.6,140),(1.75,140)],1)
+    add('dip-start-expired-witness-needs-extension','dip',expired_start +
+        [(1,130),(1.15,130),(1.3,130),(1.45,140),(1.6,140),
+         (1.75,70),(1.9,70),(2.05,140),(2.2,140)],1)
+    add('dip-start-elbow-outage-boundary','dip',[(0,140)] +
+        [elbow_hole(i / 10) for i in range(1,8)] +
+        [(.75,140),(.9,70),(1.05,70),(1.2,140),(1.35,140)],1)
     output.mkdir(parents=True,exist_ok=True)
     inputs=output/'inputs.json';inputs.write_text(json.dumps(cases,allow_nan=False))
     binary=output/'swift-workout-oracle'

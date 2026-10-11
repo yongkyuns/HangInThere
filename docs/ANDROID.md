@@ -27,6 +27,26 @@ phone-video cases also pass: original HDR and frozen SDR, both anatomical sides,
 2/2 pull-ups and 4/4 dips in Auto and fixed modes through every source frame.
 The native checkpoints below distinguish those results from the remaining blockers.
 
+Both counter implementations now discard an expired dip starting witness even
+when visible shoulders and wrists keep support geometry available during an
+elbow-confidence gap. Previously, the stale witness could leave the counter
+seeking a start indefinitely. Recovery reacquires an extended arm and a fresh
+grip axis, then requires the existing 0.12 s support dwell. A 130-degree arm
+cannot reuse the expired extension witness; the existing inclusive 0.75 s outage
+boundary and all movement gates remain unchanged. This repairs policy-v8
+recovery rather than changing its thresholds.
+
+Local qualification passes all277 native Mac tests and all119 shared Kotlin
+tests. Three bilateral regressions protect recovery, extension reacquisition
+and the outage boundary; the per-frame Swift/Kotlin oracle includes30 cases and
+259 frames. Replaying saved native observations also preserves counts and every
+event outcome, reason and source PTS within 1e-9 across32 private Auto/fixed
+trajectories and six public fixed-reference trajectories in both engines.
+These are counter-only replays with no new model inference or private transfer.
+The phone-video counts remain2/2 pull-ups and4/4 dips, and the public misses
+remain0/1 and0/9. Native CI must qualify the new counter implementation separately
+from the earlier `04c80b7` acquisition/model evidence.
+
 iOS replay now uses a dedicated serial Dispatch executor for blocking native
 decoding, rendering and inference. Its Core Image context is created lazily on
 that executor at first render and reused by later frames and rewinds. Construction

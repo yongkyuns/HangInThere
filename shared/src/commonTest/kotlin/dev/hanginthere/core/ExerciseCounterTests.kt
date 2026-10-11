@@ -143,6 +143,51 @@ class ExerciseCounterTests {
         CounterFixtures.feed(c, 0.25 to 140.0)
         assertEquals(ExerciseCounter.Phase.ready, c.phase); assertEquals(0, c.interruptedAttempts)
     }
+    @Test fun dipStartRecoversAfterExpiredElbowConfidenceHole() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 140.0)
+            for (tick in 1..9) {
+                c.consume(CounterFixtures.lowJoint(tick / 10.0, 140.0, c.exercise, side, 1), CounterFixtures.edge)
+                assertEquals(ExerciseCounter.Phase.seekingStart, c.phase)
+                assertEquals(0, c.observedMovements)
+            }
+            CounterFixtures.feed(c, 1.0 to 140.0)
+            assertEquals(ExerciseCounter.Phase.seekingStart, c.phase)
+            CounterFixtures.feed(c, 1.15 to 140.0)
+            assertEquals(ExerciseCounter.Phase.ready, c.phase)
+            CounterFixtures.feed(c, 1.3 to 70.0, 1.45 to 70.0, 1.6 to 140.0, 1.75 to 140.0)
+            assertEquals(1, c.observedMovements)
+            assertEquals(1.75, c.lastEvent?.sourceSeconds)
+            assertEquals(0, c.interruptedAttempts)
+        }
+    }
+    @Test fun expiredDipStartCannotReuseItsOldExtensionWitness() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 140.0)
+            for (tick in 1..9)
+                c.consume(CounterFixtures.lowJoint(tick / 10.0, 140.0, c.exercise, side, 1), CounterFixtures.edge)
+            CounterFixtures.feed(c, 1.0 to 130.0, 1.15 to 130.0, 1.3 to 130.0)
+            assertEquals(ExerciseCounter.Phase.seekingStart, c.phase)
+            assertEquals(0, c.observedMovements)
+            CounterFixtures.feed(c, 1.45 to 140.0, 1.6 to 140.0)
+            assertEquals(ExerciseCounter.Phase.ready, c.phase)
+            assertTrue(c.events.isEmpty())
+        }
+    }
+    @Test fun dipStartKeepsItsWitnessAtTheAllowedOutageBoundary() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 140.0)
+            for (tick in 1..7)
+                c.consume(CounterFixtures.lowJoint(tick / 10.0, 140.0, c.exercise, side, 1), CounterFixtures.edge)
+            CounterFixtures.feed(c, 0.75 to 140.0)
+            assertEquals(ExerciseCounter.Phase.ready, c.phase)
+            assertEquals(0, c.observedMovements)
+            assertTrue(c.events.isEmpty())
+        }
+    }
     @Test fun partialDipRecoveryCannotCount() {
         val c = dip()
         CounterFixtures.feed(c, 0.0 to 140.0, 0.15 to 140.0, 0.3 to 70.0, 0.45 to 70.0, 0.6 to 110.0, 0.75 to 110.0)

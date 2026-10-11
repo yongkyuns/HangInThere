@@ -420,6 +420,13 @@ struct ExerciseCounter: Sendable {
         guard let support = DipSupportMeasurement(pose: pose, side: side, referenceEdge: referenceEdge) else {
             return dipObservationUnavailable(reason: "dipSupportUnclear", at: time)
         }
+        // Visible shoulders/wrists can outlast the initial elbow witness. Once
+        // its allowed outage expires, reacquire extension and a fresh grip axis
+        // instead of leaving an expired candidate unable to arm indefinitely.
+        if phase == .seekingStart, let since = dipSupportCandidateSince,
+           time - since > Self.maximumDipObservationOutageSeconds {
+            interrupt(reason: "dipSupportNeeded")
+        }
         if dipSupportAxis == nil {
             guard support.isStartingSupport, let axis = DipSupportMeasurement.Anchor(support) else {
                 trackingIssue = "dipSupportNeeded"
