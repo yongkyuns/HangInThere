@@ -15,9 +15,9 @@ remain unchanged.
 
 | Scope | Latest demonstrated limitation | Required qualification |
 | --- | --- | --- |
-| Native dip setup, API29/API35 | Held public pixels resolve Dip but provide no independent second rail; no countdown | A clear, prospectively reviewed bilateral rail view through native Auto and live countdown |
+| Native dip setup, API29/API35 | Held public pixels show a shared straight bar; the last qualified parallel-only selector cannot acquire it | The unchanged held positive must acquire observed support and complete native Auto/live countdown with the new shared-bar selector |
 | Original public accuracy | Cropped pull-up0/1; panning dip0/9 | Qualification of occluded poses and camera-relative references before claiming these captures are supported |
-| Original phone HDR imports | Both APIs count original pull-ups2/2 in Auto and original dips4/4 with a fixed reference; automatic dip acquisition fails | Complete automatic dip setup/counting and physical-device performance |
+| Original phone HDR imports | Both APIs now count2/2 pull-ups and4/4 dips in Auto and fixed modes, for both sides | Preserve the full-source results after the shared-bar setup change; qualify physical-device performance separately |
 | iOS simulator Vision | Apple body-pose weights fail to load | Real inference in a supported simulator runtime; native Mac and physical iPhone results remain separate |
 | iOS simulator decoder | Pinned H264 green/yellow samples have incorrect native chroma | Correct native decoding of the immutable fixture, with existing color tolerances |
 | iOS replay latency | Hosted replay intermittently exceeds the unchanged completion deadline | Repeat hosted replay after the dedicated executor change; a local pass is insufficient |
@@ -324,11 +324,43 @@ kernel before Canny. Pose inference and display retain the original pixels;
 shared fitting, candidate limits, body exclusion, bilateral witnesses and dwell
 remain unchanged. A local host diagnostic recovered original HDR setup and
 counted all four dips with the same complete native poses on both APIs/sides.
-This is not native qualification: host OpenCV4.13 differs from Android4.12, and
-fresh full-source native Auto/performance evaluation must validate this adapter
-change and preserve every SDR case. Native synthetic regressions cover changing
+That host diagnostic used OpenCV4.13 rather than Android4.12. Fresh native
+[original run38111525602](https://github.com/yongkyuns/HangInThere/actions/runs/38111525602)
+and [SDR run38111531369](https://github.com/yongkyuns/HangInThere/actions/runs/38111531369)
+at `d0d843c` now pass all16 cases across API29/API35: both sides count2/2
+pull-ups and4/4 dips with Auto and fixed references through every690/1,124
+source frame. Original Auto pipeline p95 reaches260.9ms and peak PSS395.4MiB;
+SDR reaches181.3ms and309.5MiB. These satisfy the emulator regression budgets,
+not a physical-camera or strict-form claim. All16 complete fixed traces match
+Swift movement counts, event reasons and source PTS to1e-9; the Swift executable
+is rebuilt from the same immutable implementation revision. Native synthetic regressions cover changing
 pixel noise, thin/wide rails, source-pixel preservation, dwell, and rejection of
 texture and forearm-like silhouettes; they do not claim pose-model accuracy.
+
+Straight-bar dips now have a separate shared support selector beside the existing
+parallel-rail selector in both Swift and Kotlin. Dip acquisition adds one bounded
+common crop to the two local grip crops. A fresh paired tube must share at least
+half the bilateral grip span, expose a finite near-horizontal upper edge near
+both hands, have its center on/below each wrist in upright pixels, and have no
+distinct eligible alternative. A nearby paired stripe above either grip cannot
+start setup. Missing paired support
+restarts acquisition; pose alone never supplies a reference. Parallel-rail dwell
+keeps priority, and its independent-witness rejection rules remain unchanged.
+Both modes use the existing source-time dwell and complete live countdown.
+The reference role retains the tracked anatomical hand for counter compatibility;
+both hands witness the shared edge. User guidance now describes dip support.
+
+Local qualification of this selector includes223 Swift core tests,116 Kotlin
+tests,31 Android app unit tests, actual-source instrumentation compilation,
+and72 setup cases/4,022 frames plus17 geometry cases matched against production
+Swift. Cases cover both anatomical sides, fresh-pair loss, ambiguous bars,
+short support, above-grip stripes, forearms and parallel-rail priority. The iOS app compiles with
+the new source registered. Fresh native held-pixel/countdown and full-source
+original/SDR runs must qualify the additional crop and setup mode; the earlier
+`d0d843c` results do not establish this new mode's accuracy or performance.
+The271 native macOS tests pass, including shared-bar acquisition/rewind through
+all source frames for either tracked hand. This is host integration evidence;
+simulator Vision, color and hosted replay-latency gates remain separate.
 
 Completed replay state is retained until the user starts another evaluation.
 Manual-reference controls cannot mutate a replay after EOF or replace its

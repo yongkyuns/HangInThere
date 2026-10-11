@@ -235,6 +235,7 @@ struct AutomaticApparatusReference: Sendable {
     }
     private var pullUp = AutomaticPullUpBar()
     private var dip = AutomaticDipRails()
+    private var sharedDipBar = AutomaticDipBar()
     private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
     mutating func reset() { self = Self() }
     static func search(pose: PoseResult, exercise: ExerciseCounter.Exercise) -> Search? {
@@ -244,7 +245,8 @@ struct AutomaticApparatusReference: Sendable {
             return Search(hands: [grip.left, grip.right], regions: [grip.region])
         case .dip:
             guard let grip = AutomaticDipRails.grip(in: pose) else { return nil }
-            return Search(hands: grip.hands, regions: grip.regions)
+            let shared = AutomaticDipBar.region(grip: grip, size: pose.imageSize)
+            return Search(hands: grip.hands, regions: grip.regions + (shared.map { [$0] } ?? []))
         }
     }
     mutating func observe(pose: PoseResult, exercise: ExerciseCounter.Exercise,
@@ -252,7 +254,20 @@ struct AutomaticApparatusReference: Sendable {
         let bar: ConfirmedBar?
         switch exercise {
         case .pullUp: bar = pullUp.observe(pose: pose, candidates: candidates.first ?? []); state = pullUp.state
-        case .dip: bar = dip.observe(pose: pose, side: side, candidates: candidates); state = dip.state
+        case .dip:
+            guard candidates.count == 2 || candidates.count == 3 else {
+                dip.reset(); sharedDipBar.reset(); state = .lookingForGrip; return nil
+            }
+            bar = dip.observe(pose: pose, side: side, candidates: Array(candidates.prefix(2)))
+            if dip.state == .holding || dip.state == .locked {
+                // Preserve an independently witnessed parallel-rail dwell.
+                sharedDipBar.reset(); state = dip.state
+            } else {
+                let shared = sharedDipBar.observe(pose: pose, side: side,
+                    candidates: candidates.count == 3 ? candidates[2] : [])
+                state = sharedDipBar.state == .holding || sharedDipBar.state == .locked ? sharedDipBar.state : dip.state
+                return shared
+            }
         }
         return bar
     }

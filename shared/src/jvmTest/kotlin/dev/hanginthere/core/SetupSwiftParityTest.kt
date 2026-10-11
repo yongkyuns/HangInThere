@@ -81,16 +81,25 @@ class SetupSwiftParityTest {
         val path=System.getenv("SETUP_ORACLE") ?: "../build/setup-oracle/oracle.json"
         val oracle=json.parseToJsonElement(File(path).readText()).jsonObject
         val cases=oracle.getValue("cases").jsonArray
-        assertTrue(cases.size>=56,"Setup parity cases reduced")
+        assertTrue(cases.size>=72,"Setup parity cases reduced")
         val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
         assertTrue(ids.containsAll(listOf("dip-native-overlap-left","dip-native-overlap-right",
-            "dip-wrist-aligned-before-longer-clutter-left","dip-wrist-aligned-before-longer-clutter-right")),
+            "dip-wrist-aligned-before-longer-clutter-left","dip-wrist-aligned-before-longer-clutter-right") +
+            listOf("observed","single-edge","short-pair","ambiguous","above-grip","forearm","missing-pair").flatMap { kind ->
+                listOf("left","right").map { side -> "dip-shared-bar-$kind-$side" }
+            } + listOf("dip-parallel-before-shared-bar-left","dip-parallel-before-shared-bar-right")),
             "Required setup regressions must execute; regenerate a stale setup oracle")
         var frames=0
         cases.forEach {value ->
             val row=value.jsonObject;val input=json.decodeFromJsonElement<Input>(row.getValue("input"))
             val actual=run(input);frames+=actual.size
             equivalent(row.getValue("snapshots"),json.encodeToJsonElement(actual),input.id)
+            if(input.id.startsWith("dip-parallel-before-shared-bar-")) {
+                val x=if(input.side==ArmMeasurement.Side.left) 300.0 else 700.0
+                assertTrue(actual.filter { it.referenceEdge!=null }.all {
+                    it.referenceEdge==BarSegment(Point2D(x,545.0),Point2D(x,660.0))
+                },input.id+" parallel reference priority")
+            }
             if(input.id.startsWith("dip-native-overlap-")) {
                 // Same captured native samples also pass through the shipping
                 // runtime, including issue priority and automatic start gating.

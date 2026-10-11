@@ -14,6 +14,36 @@ class SetupPoliciesTest {
     }
     private fun line(x:Double,y0:Double=590.0,y1:Double=700.0)=BarLineCandidate(BarSegment(Point2D(x,y0),Point2D(x,y1)),y1-y0)
     private fun rails()=listOf(listOf(line(250.0),line(258.0)),listOf(line(750.0),line(758.0)))
+    private fun sharedBar() = listOf(555.0,575.0).map { y ->
+        BarLineCandidate(BarSegment(Point2D(200.0,y),Point2D(800.0,y)),600.0)
+    }
+    @Test fun sharedDipBarAcquiresThroughCommonAdapterForEitherHand() {
+        for (side in ArmMeasurement.Side.entries) {
+            val adapter = AutomaticApparatusReference()
+            assertEquals(3, assertNotNull(AutomaticApparatusReference.search(pose(0.0),ExerciseCounter.Exercise.dip)).regions.size)
+            for (time in listOf(0.0,.3,.6)) assertNull(adapter.observe(pose(time),ExerciseCounter.Exercise.dip,side,listOf(emptyList(),emptyList(),sharedBar())))
+            val bar = assertNotNull(adapter.observe(pose(1.0),ExerciseCounter.Exercise.dip,side,listOf(emptyList(),emptyList(),sharedBar())))
+            assertEquals(sharedBar()[0].edge,bar.referenceEdge)
+            assertEquals(if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail,bar.role)
+            assertEquals(AutomaticPullUpBar.State.locked,adapter.state)
+        }
+    }
+    @Test fun sharedDipBarRequiresFreshPairAndFiniteBilateralSupport() {
+        val shortened = listOf(sharedBar()[0],BarLineCandidate(BarSegment(Point2D(280.0,575.0),Point2D(400.0,575.0)),120.0))
+        val distant = sharedBar().map { BarLineCandidate(BarSegment(Point2D(it.edge.a.x,it.edge.a.y+150),Point2D(it.edge.b.x,it.edge.b.y+150)),600.0) }
+        val ambiguous = sharedBar() + sharedBar().map { BarLineCandidate(BarSegment(Point2D(it.edge.a.x,it.edge.a.y+50),Point2D(it.edge.b.x,it.edge.b.y+50)),600.0) }
+        val aboveGrip = sharedBar().map { BarLineCandidate(BarSegment(Point2D(it.edge.a.x,it.edge.a.y-65),Point2D(it.edge.b.x,it.edge.b.y-65)),600.0) }
+        for (candidates in listOf(listOf(sharedBar()[0]),shortened,distant,ambiguous,aboveGrip,listOf(line(250.0),line(260.0)))) {
+            val policy = AutomaticDipBar()
+            for (time in listOf(0.0,.3,.6,1.0,1.3)) assertNull(policy.observe(pose(time),ArmMeasurement.Side.left,candidates))
+            assertNotEquals(AutomaticPullUpBar.State.locked,policy.state)
+        }
+        val policy = AutomaticDipBar()
+        for (time in listOf(0.0,.3,.6)) assertNull(policy.observe(pose(time),ArmMeasurement.Side.left,sharedBar()))
+        assertNull(policy.observe(pose(.9),ArmMeasurement.Side.left,listOf(sharedBar()[0])))
+        for (time in listOf(1.2,1.5,1.8)) assertNull(policy.observe(pose(time),ArmMeasurement.Side.left,sharedBar()))
+        assertEquals(sharedBar()[0].edge,assertNotNull(policy.observe(pose(2.2),ArmMeasurement.Side.left,sharedBar())).referenceEdge)
+    }
     // A high-scoring pair has an eligible center but an unreachable longer edge.
     private fun unreachableTube(hand:Point2D,reversed:Boolean=false,outward:Double=-1.0)=listOf(118.0 to 150.0,88.0 to 140.0).map { (offset,length) ->
         val a=Point2D(hand.x+outward*offset,hand.y+40);val b=Point2D(a.x,a.y+length)
@@ -302,7 +332,7 @@ class SetupPoliciesTest {
         val apparatus=assertNotNull(WorkoutSetupGuidance.message("barReferenceNeeded"))
         assertTrue(apparatus.contains("bar or rails"));assertTrue(apparatus.contains("beside your hands"))
         assertFalse(apparatus.contains("settings"));assertNull(WorkoutSetupGuidance.message("unknown"))
-        assertEquals("Change the camera angle so both grip rails are clearly separated",WorkoutSetupGuidance.message("dipRailsUnclear"))
+        assertEquals("Show the bar at both hands, or two clearly separated rails",WorkoutSetupGuidance.message("dipRailsUnclear"))
         assertTrue(assertNotNull(WorkoutSetupGuidance.message("pullUpBarUnclear")).contains("camera angle"))
     }
     @Test fun ambiguousDipApparatusReportsReframingAndCannotStartCountdown() {
@@ -327,6 +357,21 @@ class SetupPoliciesTest {
         assertTrue(runtime.session.analyzedFrames>0)
         runtime.observe(frame(5.6,false));assertEquals(ExerciseCounter.Exercise.dip,runtime.snapshot.exercise)
         runtime.stop();runtime.nextSet();assertEquals(LiveSetSession.Phase.idle,runtime.snapshot.phase);assertNull(runtime.snapshot.exercise);assertNull(runtime.snapshot.referenceEdge)
+    }
+    @Test fun sharedDipBarStartsRuntimeWithCompleteCountdownForEitherHand() {
+        for(side in ArmMeasurement.Side.entries) {
+            val runtime=WorkoutRuntime(side=side)
+            val countdown=mutableSetOf<Int>()
+            for(i in 0..55) {
+                val snapshot=runtime.observe(frame(i*.1,candidates=listOf(emptyList(),emptyList(),sharedBar())))
+                snapshot.countdownSeconds?.let { countdown+=it }
+                assertEquals(0,snapshot.observedMovements)
+            }
+            assertEquals(setOf(3,2,1),countdown)
+            assertEquals(LiveSetSession.Phase.running,runtime.snapshot.phase)
+            assertEquals(sharedBar()[0].edge,runtime.snapshot.referenceEdge)
+            assertNull(runtime.snapshot.setupIssue)
+        }
     }
     @Test fun runtimeRejectsUnavailableCameraEvidenceAndInterruptsChangedGeometry() {
         val runtime=WorkoutRuntime()

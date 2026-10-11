@@ -177,10 +177,10 @@ struct LiveSetupView: View {
             if exercise == .dip {
                 switch camera.automaticBarState {
                 case .lookingForGrip: return "Hold top support · show both hands"
-                case .findingEdge: return "Finding dip rails…"
-                case .holding: return "Hold still · checking rails"
-                case .ambiguous: return "Rails unclear · change the camera angle"
-                case .locked: return "Rails found"
+                case .findingEdge: return "Finding dip support…"
+                case .holding: return "Hold still · checking support"
+                case .ambiguous: return "Support unclear · change the camera angle"
+                case .locked: return "Dip support found"
                 }
             }
             switch camera.automaticBarState {
@@ -534,7 +534,7 @@ struct LiveSetupView: View {
                         ? "Hold a hang or top support with both hands visible. Once the exercise and apparatus are detected, listen for 3, 2, 1, go."
                         : exercise == .pullUp
                         ? "After bar setup, hang with extended arms. Listen for 3, 2, 1, go—counting starts automatically."
-                        : "Show both grips and hold top support. Rails are found automatically; keep your arms extended and hands steady. Listen for 3, 2, 1, go. Crossed legs are optional.")
+                        : "Show both grips and hold top support. Dip support is found automatically; keep your arms extended and hands steady. Listen for 3, 2, 1, go. Crossed legs are optional.")
                      : "Tap Start set when ready, or enable hands-free start for a countdown.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -866,7 +866,7 @@ struct LiveSetupView: View {
         if isDetectingExercise { return automaticExerciseGuidance }
         if let bar = camera.currentBar {
             return bar.method == .automaticContours
-                ? "\(exercise == .dip ? "Rails" : "Bar") found automatically. Keep the phone fixed. \(liveStartHelp)"
+                ? "\(exercise == .dip ? "Dip support" : "Bar") found automatically. Keep the phone fixed. \(liveStartHelp)"
                 : "\(camera.barRole.title) confirmed. Keep the phone fixed."
         }
         if !camera.framing.state.isReady {
@@ -879,10 +879,10 @@ struct LiveSetupView: View {
         if exercise == .dip {
             switch camera.automaticBarState {
             case .lookingForGrip: return "Hold top support with both hands visible. Setup is automatic."
-            case .findingEdge: return "Looking for a visible rail beside each hand. Manual setup is available if needed."
-            case .ambiguous: return "Change the camera angle so both grip rails are clearly separated and both hands are visible. Setup is automatic."
-            case .holding: return "Checking that both rails and hands stay still…"
-            case .locked: return "Rails found automatically. \(liveStartHelp)"
+            case .findingEdge: return "Looking for visible dip support near both hands. Manual setup is available if needed."
+            case .ambiguous: return "Show the bar at both hands, or two clearly separated rails. Setup is automatic."
+            case .holding: return "Checking that the support and both hands stay still…"
+            case .locked: return "Dip support found automatically. \(liveStartHelp)"
             }
         }
         switch camera.automaticBarState {

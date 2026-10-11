@@ -199,7 +199,7 @@ object WorkoutSetupGuidance {
         "framingIncomplete" -> "Show both arms and hands clearly"
         "exerciseIdentityNeeded" -> "Hold a clear hang or top support with both arms and hands visible"
         "barReferenceNeeded", "barReferenceUnavailable" -> "Show the gripping bar or rails beside your hands"
-        "dipRailsUnclear" -> "Change the camera angle so both grip rails are clearly separated"
+        "dipRailsUnclear" -> "Show the bar at both hands, or two clearly separated rails"
         "pullUpBarUnclear" -> "Change the camera angle so the gripping bar is clearly visible"
         "phoneMoved" -> "Phone moved · set it down and start again"
         "sceneShifted", "sceneScaled" -> "Camera view changed · start again"

@@ -5,6 +5,8 @@
 	};
 	objectVersion = 56;
 	objects = {
+		ADC000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipBar.swift; sourceTree = "<group>";};
+		ADC000000000000000000002 = {isa = PBXBuildFile; fileRef = ADC000000000000000000001;};
 		AEB000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetection.swift; sourceTree = "<group>";};
 		AEB000000000000000000002 = {isa = PBXBuildFile; fileRef = AEB000000000000000000001;};
 		AEB000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetectionTests.swift; sourceTree = "<group>";};
@@ -172,6 +174,7 @@
 				A91000000000000000000001,
 				AD9000000000000000000001,
 				ADA000000000000000000001,
+				ADC000000000000000000001,
 				AEB000000000000000000001,
 			);
 			path = Analysis;
@@ -643,6 +646,7 @@
 				A91000000000000000000002,
 				AD9000000000000000000002,
 				ADA000000000000000000002,
+				ADC000000000000000000002,
 				AEB000000000000000000002,
 				4FCAF8DC138451CD331D2CBA,
 				9D3E611A749B44DBBE2C91D5,

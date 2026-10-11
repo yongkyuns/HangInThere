@@ -41,12 +41,22 @@ private struct DipSupportEstimator: PoseEstimator {
 private actor TestDipRailDetector: BarEdgeDetector {
     private(set) var requests=0
     let delay:Duration
-    init(delay:Duration = .zero){self.delay=delay}
+    let sharedBar:Bool
+    init(delay:Duration = .zero,sharedBar:Bool = false){self.delay=delay;self.sharedBar=sharedBar}
     func detect(image:CGImage,region:BarRegion) async throws -> [BarLineCandidate] {
         requests+=1
         if delay > .zero {try await Task.sleep(for:delay)}
         let x=(region.minX+region.maxX)/2
         let scale=Double(image.height)/96
+        if sharedBar {
+            // Only the common crop observes this tube; independent local
+            // handles are absent. Coordinates remain finite observed edges.
+            guard region.maxX-region.minX > Double(image.width)*0.5 else {return []}
+            let sx=Double(image.width)/160
+            return [64.0,69.0].map { y in
+                .init(edge:.init(a:.init(x:37.5*sx,y:y*scale),b:.init(x:122.5*sx,y:y*scale)),geometryScore:85*sx)
+            }
+        }
         return [x-4*scale,x+4*scale].map {
             .init(edge:.init(a:.init(x:$0,y:64*scale),b:.init(x:$0,y:78*scale)),geometryScore:28)
         }
@@ -155,7 +165,27 @@ private actor TestDipRailDetector: BarEdgeDetector {
         #expect(model.currentBar?.role == .rightDipRail)
         #expect(model.currentBar?.sourceTime.seconds == 1.4)
         #expect(model.countingFrames == 6)
-        #expect(await detector.requests == 8, "Both handles are checked at each of four acquisition observations.")
+        #expect(await detector.requests == 12, "Both local handles and shared-bar support are checked at each of four acquisition observations.")
+    }
+    @Test func sharedDipBarAcquiresAndRewindsForEitherTrackedHand() async throws {
+        let url=try await VideoTestSupport.makeVideo(timestamps:[0,35,70,105,140,175].map {CMTime(value:$0,timescale:100)},width:320,height:192)
+        defer {try? FileManager.default.removeItem(at:url)}
+        for side in ArmMeasurement.Side.allCases {
+            let detector=TestDipRailDetector(sharedBar:true)
+            let model=ReplayController(estimator:DipSupportEstimator(),barDetector:detector)
+            defer {model.close()}
+            model.configureCounting(exercise:.dip,side:side)
+            model.open(url)
+            try await wait(model, for:"shared-bar opening") {model.phase == .paused}
+            model.play()
+            try await wait(model, for:"shared-bar playback completion") {model.phase == .finished}
+            #expect(model.currentBar?.method == .automaticContours)
+            #expect(model.currentBar?.role == (side == .left ? .leftDipRail : .rightDipRail))
+            #expect(model.currentBar?.referenceEdge == .init(a:.init(x:75,y:128),b:.init(x:245,y:128)))
+            #expect(model.currentBar?.sourceTime.seconds == 1.4)
+            #expect(model.countingFrames == 6)
+            #expect(await detector.requests == 12)
+        }
     }
 
     @Test func changingDipSideCannotPublishAnOldRailAcquisition() async throws {

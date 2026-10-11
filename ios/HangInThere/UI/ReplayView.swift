@@ -218,7 +218,7 @@ struct ReplayView: View {
                             Label("Bar reference set", systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(.white)
                         } else {
-                            Label(model.barRole == .pullUpGrip ? "Looking for bar" : "Looking for dip rails", systemImage: "viewfinder")
+                            Label(model.barRole == .pullUpGrip ? "Looking for bar" : "Looking for dip support", systemImage: "viewfinder")
                                 .foregroundStyle(.white)
                         }
 

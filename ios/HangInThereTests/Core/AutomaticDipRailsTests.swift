@@ -12,6 +12,50 @@ import Testing
     }
     var rails: [[BarLineCandidate]] { [[rail(490),rail(500)], [rail(690),rail(700)]] }
 
+    var sharedBar: [BarLineCandidate] { [505.0,515.0].map { y in
+        .init(edge:.init(a:.init(x:450,y:y),b:.init(x:750,y:y)),geometryScore:300)
+    } }
+
+    @Test func sharedDipBarAcquiresThroughCommonAdapterForEitherHand() throws {
+        for side in ArmMeasurement.Side.allCases {
+            var adapter = AutomaticApparatusReference()
+            let search = try #require(AutomaticApparatusReference.search(pose:pose(0),exercise:.dip))
+            #expect(search.regions.count == 3)
+            for time in [0.0,0.3,0.6] {
+                #expect(adapter.observe(pose:pose(time),exercise:.dip,side:side,candidates:[[],[],sharedBar]) == nil)
+            }
+            let proposal = adapter.observe(pose:pose(1),exercise:.dip,side:side,candidates:[[],[],sharedBar])
+            let bar = try #require(proposal)
+            #expect(bar.referenceEdge == sharedBar[0].edge)
+            #expect(bar.role == (side == .left ? .leftDipRail : .rightDipRail))
+            #expect(adapter.state == .locked)
+        }
+    }
+
+    @Test func sharedDipBarRequiresFreshPairAndFiniteBilateralSupport() throws {
+        let shortened = [sharedBar[0],BarLineCandidate(edge:.init(a:.init(x:480,y:515),b:.init(x:560,y:515)),geometryScore:80)]
+        let distant = sharedBar.map { BarLineCandidate(edge:.init(a:.init(x:$0.edge.a.x,y:$0.edge.a.y+150),
+            b:.init(x:$0.edge.b.x,y:$0.edge.b.y+150)),geometryScore:300) }
+        let ambiguous = sharedBar + sharedBar.map { BarLineCandidate(edge:.init(a:.init(x:$0.edge.a.x,y:$0.edge.a.y+50),
+            b:.init(x:$0.edge.b.x,y:$0.edge.b.y+50)),geometryScore:300) }
+        let aboveGrip = sharedBar.map { BarLineCandidate(edge:.init(a:.init(x:$0.edge.a.x,y:$0.edge.a.y-65),
+            b:.init(x:$0.edge.b.x,y:$0.edge.b.y-65)),geometryScore:300) }
+        for candidates in [[sharedBar[0]],shortened,distant,ambiguous,aboveGrip,[rail(500,y:420),rail(510,y:420)]] {
+            var policy = AutomaticDipBar()
+            for time in [0.0,0.3,0.6,1,1.3] {
+                #expect(policy.observe(pose:pose(time),side:.left,candidates:candidates) == nil)
+            }
+            #expect(policy.state != .locked)
+        }
+        var policy = AutomaticDipBar()
+        for time in [0.0,0.3,0.6] { #expect(policy.observe(pose:pose(time),side:.left,candidates:sharedBar) == nil) }
+        #expect(policy.observe(pose:pose(0.9),side:.left,candidates:[sharedBar[0]]) == nil)
+        for time in [1.2,1.5,1.8] { #expect(policy.observe(pose:pose(time),side:.left,candidates:sharedBar) == nil) }
+        let proposal = policy.observe(pose:pose(2.2),side:.left,candidates:sharedBar)
+        let bar = try #require(proposal)
+        #expect(bar.referenceEdge == sharedBar[0].edge)
+    }
+
     // The paired center is close enough, but its longer selected silhouette
     // lies beyond the grip-distance limit. Its score exceeds the valid rail.
     func unreachableTube(hand: Point2D, outward: Double = -1, reversed: Bool = false) -> [BarLineCandidate] {

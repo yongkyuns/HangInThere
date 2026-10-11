@@ -59,6 +59,28 @@ def prepare(output):
         add(ex+'-scene-outlier',ex,frames(translations=outlier),True,True)
     add('dip-crossed-legs-optional','dip',[step(i/10,'dip',crossed_legs=True) for i in range(56)],True,True)
     add('dip-right-reference','dip',[step(i/10,'dip') for i in range(56)],True,True,side='right')
+    shared=[candidate(200,y,800,y) for y in [505,515]]
+    shared_cases=[
+        ('observed',shared,True),
+        ('single-edge',shared[:1],False),
+        ('short-pair',[shared[0],candidate(280,515,400,515)],False),
+        ('ambiguous',shared+[candidate(200,y,800,y) for y in [555,565]],False),
+        ('above-grip',[candidate(200,y-65,800,y-65) for y in [505,515]],False),
+        ('forearm',[candidate(300,480,300,660),candidate(310,480,310,660)],False),
+    ]
+    for side in ['left','right']:
+        for name,edges,accepted in shared_cases:
+            add('dip-shared-bar-'+name+'-'+side,'dip',
+                [step(i/10,'dip',candidates=[[],[],edges]) for i in range(56)],accepted,accepted,side=side)
+        # Alternating a lone silhouette with a pair cannot accumulate fresh
+        # paired support. The ordinary two-rail dwell retains priority when
+        # both modes are visible; its selected reference must remain unchanged.
+        add('dip-shared-bar-missing-pair-'+side,'dip',
+            [step(i/10,'dip',candidates=[[],[],shared if i%2 else shared[:1]]) for i in range(56)],
+            False,False,side=side)
+        add('dip-parallel-before-shared-bar-'+side,'dip',
+            [step(i/10,'dip',candidates=step(0,'dip')['candidates']+[shared]) for i in range(56)],
+            True,True,side=side)
     single=[[candidate(x,545,x,660)] for x in [300,700]]
     add('dip-single-edges-are-not-rails','dip',[step(i/10,'dip',candidates=single) for i in range(56)],False,False)
     forearms=[[candidate(x,480,x,660),candidate(x+8,480,x+8,660)] for x in [300,700]]
@@ -154,7 +176,7 @@ def prepare(output):
     geo('noisy-disjoint-fragments',[[(20,100),(200,100)],[(210,104),(470,104)]],region=(0,0,500,500),size=(500,500))
     geometry_inputs=output/'geometry-inputs.json';geometry_inputs.write_text(json.dumps(geometry_cases,allow_nan=False))
     names=['PoseObservation' ,'Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement','DipSupportMeasurement',
-        'PullUpProgress','DipProgress','ExerciseCounter','AutomaticPullUpBar','AutomaticDipRails','AutomaticExerciseDetection',
+        'PullUpProgress','DipProgress','ExerciseCounter','AutomaticPullUpBar','AutomaticDipRails','AutomaticDipBar','AutomaticExerciseDetection',
         'HandsFreeSetStart','PhoneOrientationStability','StaticSceneStability']
     binary=output/'swift-setup-oracle'
     subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'ios/HangInThere/Analysis'/f'{name}.swift') for name in names]+[str(ROOT/'Evaluation/SetupOracle.swift')],check=True)

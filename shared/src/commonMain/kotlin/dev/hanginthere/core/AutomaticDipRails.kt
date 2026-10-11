@@ -125,11 +125,22 @@ class AutomaticApparatusReference {
     @Serializable data class Search(val hands:List<Point2D>,val regions:List<BarRegion>) {
         fun matches(other:Search,size:ImageSize)=hands.size==other.hands.size && hands.zip(other.hands).all{hypot(it.first.x-it.second.x,it.first.y-it.second.y)<=min(size.width,size.height)*.02}
     }
-    private var pullUp=AutomaticPullUpBar();private var dip=AutomaticDipRails()
+    private var pullUp=AutomaticPullUpBar();private var dip=AutomaticDipRails();private var sharedDipBar=AutomaticDipBar()
     var state=AutomaticPullUpBar.State.lookingForGrip;private set
-    fun reset(){pullUp=AutomaticPullUpBar();dip=AutomaticDipRails();state=AutomaticPullUpBar.State.lookingForGrip}
-    fun observe(pose:PoseResult,exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side,candidates:List<List<BarLineCandidate>>):ConfirmedBar? = when(exercise){ExerciseCounter.Exercise.pullUp -> pullUp.observe(pose,candidates.firstOrNull() ?: emptyList()).also{state=pullUp.state};ExerciseCounter.Exercise.dip -> dip.observe(pose,side,candidates).also{state=dip.state}}
+    fun reset(){pullUp=AutomaticPullUpBar();dip=AutomaticDipRails();sharedDipBar=AutomaticDipBar();state=AutomaticPullUpBar.State.lookingForGrip}
+    fun observe(pose:PoseResult,exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side,candidates:List<List<BarLineCandidate>>):ConfirmedBar? {
+        if(exercise==ExerciseCounter.Exercise.pullUp) return pullUp.observe(pose,candidates.firstOrNull() ?: emptyList()).also{state=pullUp.state}
+        if(candidates.size!=2 && candidates.size!=3){dip.reset();sharedDipBar.reset();state=AutomaticPullUpBar.State.lookingForGrip;return null}
+        val rails=dip.observe(pose,side,candidates.take(2))
+        if(dip.state==AutomaticPullUpBar.State.holding || dip.state==AutomaticPullUpBar.State.locked){
+            // Preserve an independently witnessed parallel-rail dwell.
+            sharedDipBar.reset();state=dip.state;return rails
+        }
+        val shared=sharedDipBar.observe(pose,side,candidates.getOrNull(2) ?: emptyList())
+        state=if(sharedDipBar.state==AutomaticPullUpBar.State.holding || sharedDipBar.state==AutomaticPullUpBar.State.locked) sharedDipBar.state else dip.state
+        return shared
+    }
     companion object {
-        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region))};ExerciseCounter.Exercise.dip -> AutomaticDipRails.grip(pose)?.let{Search(it.hands,it.regions)}}
+        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region))};ExerciseCounter.Exercise.dip -> AutomaticDipRails.grip(pose)?.let{Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)))}}
     }
 }
