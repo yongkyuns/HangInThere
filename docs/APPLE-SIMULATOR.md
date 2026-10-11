@@ -28,6 +28,14 @@ do not qualify simulator inference or repair production replay latency.
 
 ## Runtime evidence
 
+[CI after the fixture repair at `2bf303c`](https://github.com/yongkyuns/HangInThere/actions/runs/38161936276)
+passes all 282 Mac tests and the unsigned Release iPhone build. Simulator
+mechanics passes 281/282 methods; its only failure is the original eight H264
+color assertions. All eight simulator Vision methods still fail model startup.
+The first native read in the automatic replay takes 15.28 seconds and its
+first render takes 3.85 seconds, approaching the unchanged 20-second opening
+deadline. This successful attempt does not close the intermittent latency gate.
+
 [Baseline CI at `d627f2a`](https://github.com/yongkyuns/HangInThere/actions/runs/38160017838)
 predates the fixture repair: 277/277 Mac tests passed, 276/277 simulator mechanics
 methods passed with only the eight H264 color assertions failing, and all eight
@@ -42,6 +50,31 @@ On that simulator, compute-stage discovery itself cannot load the model, so
 this is not evidence of successful CPU/GPU execution. The equivalent Mac
 requests detect the pinned human image. No model assets are copied between OSes
 and no backend is substituted to make the simulator check pass.
+
+Additional local decoder trials preserve the original/control bytes and all
+four native frames, PTS and color checks. Setting VideoToolbox thread count to
+one, disabling real-time priority, or combining non-real-time priority with
+maximum power efficiency is accepted by both Mac and simulator sessions but
+does not change the result: each original clip still has eight Cr failures,
+while every control passes. No production setting is changed on this evidence.
+
+The newer Swift `DetectHumanBodyPoseRequest` revision 2 also fails on the local
+Mac with Vision Code 12, "No available compute device for VNComputeStageMain,"
+with hands enabled and disabled. Its fresh simulator trials time out during
+boot, so there is no simulator inference result for that request. The revision
+1 production backend remains unchanged.
+
+## Capture interpretation
+
+The opt-in replay profiler stops the sampler when the selected test's explicit
+completion marker is delivered, including failure cleanup. If entry and
+completion arrive in the same log poll, it refuses to attach to the next test.
+The full mechanics suite continues independently with its original exit status.
+Stage and test-boundary timestamps are recorded at their source; sampler launch
+and stop requests have separate observer timestamps. Log delivery and sampler
+startup can still lag. Compare those timestamps before attributing aggregate
+stacks to a replay stage; a sample report's header is not proof of capture start
+or exact scope. This diagnostic change does not repair a native wait.
 
 ## Reproduce
 

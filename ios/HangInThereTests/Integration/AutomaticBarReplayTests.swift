@@ -147,20 +147,25 @@ private actor TestDipRailDetector: BarEdgeDetector {
     }
 
     // Identify the actual test process before native fixture creation. Stage
-    // logs include the test name so a sample's window cannot be attributed to
-    // an adjacent replay. Drain on success and failure without blocking work.
+    // logs include source wall-clock timestamps and an explicit completion
+    // marker. Log delivery/sampler startup can lag; don't infer capture scope
+    // from a report's finalization timestamp. Drain on success and failure.
     private func withNativeTrace(test: String, _ work: (@escaping ReplayTrace.Handler) async throws -> Void) async throws {
         let processID = ProcessInfo.processInfo.processIdentifier
         // Bypass buffered stdout: attaching after a failed test returns would
         // sample an adjacent test instead of the operation being diagnosed.
         FileHandle.standardOutput.write(Data("Replay profile target: pid=\(processID), test=\(test)\n".utf8))
         let started = ContinuousClock.now
+        FileHandle.standardOutput.write(Data(("Replay profile entry: pid=\(processID), test=\(test), " +
+            "unixSeconds=\(Date().timeIntervalSince1970)\n").utf8))
         let traceOutput = DispatchQueue(label: "dev.hanginthere.tests.replay-trace")
         let handler: ReplayTrace.Handler = { event in
             let wallMilliseconds = ReplayTrace.milliseconds(since: started)
+            let unixSeconds = Date().timeIntervalSince1970
             traceOutput.async {
                 let line = "Replay stage: pid=\(processID), test=\(test), " +
                       "wallMilliseconds=\(wallMilliseconds), " +
+                      "unixSeconds=\(unixSeconds), " +
                       "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
                       "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
                       "stageMilliseconds=\(event.milliseconds?.description ?? "none")\n"
@@ -168,8 +173,15 @@ private actor TestDipRailDetector: BarEdgeDetector {
             }
         }
         func drain() async {
+            let unixSeconds = Date().timeIntervalSince1970
+            let wallMilliseconds = ReplayTrace.milliseconds(since: started)
             await withCheckedContinuation { completion in
-                traceOutput.async { completion.resume() }
+                traceOutput.async {
+                    let line = "Replay profile complete: pid=\(processID), test=\(test), " +
+                        "unixSeconds=\(unixSeconds), wallMilliseconds=\(wallMilliseconds)\n"
+                    FileHandle.standardOutput.write(Data(line.utf8))
+                    completion.resume()
+                }
             }
         }
         do {

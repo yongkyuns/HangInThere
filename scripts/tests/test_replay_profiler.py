@@ -1,5 +1,7 @@
 """Diagnostic process routing/lifecycle contracts; no Apple decoder is mocked."""
 import importlib.util
+import contextlib
+import io
 from pathlib import Path
 import select
 import signal
@@ -32,6 +34,80 @@ class ReplayProfilerTests(unittest.TestCase):
 
     def start_line(self, replay_test="automatic"):
         return f"◇ Test {profiler.REPLAY_TESTS[replay_test]}() started.\n"
+
+    def completion(self, pid=1234, replay_test="automatic"):
+        return (f"Replay profile complete: pid={pid}, test={profiler.REPLAY_TESTS[replay_test]}, "
+                "unixSeconds=1791742800.25, wallMilliseconds=14325.5\n")
+
+    def test_completion_delivered_with_entry_does_not_sample_an_adjacent_test(self):
+        self.log.write_text(self.marker() + self.completion())
+        with patch.object(profiler.subprocess, "Popen") as launch:
+            self.assertEqual(profiler.profile(self.log, self.output, self.stopped), 1)
+        launch.assert_not_called()
+        self.assertFalse(self.output.exists())
+
+    def test_only_complete_selected_test_marker_stops_capture(self):
+        self.log.write_text(self.marker(4321))
+        self.output.write_text("Call graph:\n    1 Thread_1: sample stack\n")
+        child = Mock(returncode=0)
+        child.poll.return_value = None
+        polls = []
+
+        def advance(_):
+            polls.append(True)
+            with self.log.open("a") as stream:
+                if len(polls) == 1:
+                    stream.write(self.completion(9999) + self.completion(4321, "manual") +
+                                 self.completion(4321)[:-1])
+                elif len(polls) == 2:
+                    # A partial selected line and unrelated complete lines
+                    # must not stop the active sampler.
+                    child.send_signal.assert_not_called()
+                    stream.write("\n")
+                else:
+                    self.fail("Completion should stop capture on its first complete poll.")
+
+        messages = io.StringIO()
+        with patch.object(profiler.subprocess, "Popen", return_value=child), \
+             patch.object(self.stopped, "wait", side_effect=advance), \
+             contextlib.redirect_stdout(messages):
+            self.assertEqual(profiler.profile(self.log, self.output, self.stopped), 0)
+        child.send_signal.assert_called_once_with(signal.SIGINT)
+        self.assertEqual(len(polls), 2)
+        self.assertFalse(self.stopped.is_set(), "The full test runner should remain active.")
+        self.assertIn("capture stop requested: selected replay completed", messages.getvalue())
+
+    def test_actual_child_flushes_when_selected_test_finishes_before_the_runner(self):
+        self.log.write_text(self.marker(4321))
+        sampler = self.root / "fake-sample"
+        sampler.write_text(f"#!{sys.executable}\n" + '''import signal, sys, time
+from pathlib import Path
+report = Path(sys.argv[-1])
+def finish(*_):
+    report.write_text('Call graph:\\n    1 Thread_1: selected test stack\\n')
+    raise SystemExit(0)
+signal.signal(signal.SIGINT, finish)
+report.with_suffix('.ready').touch()
+while True: time.sleep(0.01)
+''')
+        sampler.chmod(0o755)
+        timer = threading.Timer(3, self.stopped.set)
+        timer.start()
+        self.addCleanup(timer.cancel)
+
+        def finish_test():
+            ready = self.output.with_suffix(".ready")
+            while not ready.exists() and not self.stopped.wait(0.01):
+                pass
+            with self.log.open("a") as stream:
+                stream.write(self.completion(4321))
+
+        worker = threading.Thread(target=finish_test)
+        worker.start()
+        self.addCleanup(lambda: worker.join(timeout=3))
+        self.assertEqual(profiler.profile(self.log, self.output, self.stopped, sampler=str(sampler)), 0)
+        self.assertFalse(self.stopped.is_set(), "Completion should stop only the sampler.")
+        self.assertIn("selected test stack", self.output.read_text())
 
     def test_manual_target_ignores_automatic_pid_and_its_timeout(self):
         self.log.write_text(self.start_line() + self.marker(1111))
