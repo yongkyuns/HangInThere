@@ -21,7 +21,9 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: private-android-${{ github.ref }}-${{ github.sha }}
+  # Independent frozen input batches have isolated runners/artifacts. Serialize
+  # equivalent evaluations while allowing original and SDR batches together.
+  group: private-android-${{ github.ref }}-${{ github.sha }}-${{ inputs.encrypted_sha256 }}
   cancel-in-progress: false
 jobs:
   imported:

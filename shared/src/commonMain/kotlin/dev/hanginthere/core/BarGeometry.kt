@@ -121,7 +121,10 @@ object BarLineFitter {
         segments.subList(BarFitter.maximumSegments, segments.size).clear()
     }
 
-    private data class Fit(val ux:Double,val uy:Double,val offset:Double,val t0:Double,val t1:Double)
+    private data class Fit(val ux:Double,val uy:Double,val offset:Double,val t0:Double,val t1:Double) {
+        val edge get()=BarSegment(Point2D(t0*ux-offset*uy,t0*uy+offset*ux),
+                                 Point2D(t1*ux-offset*uy,t1*uy+offset*ux)).ordered
+    }
     private data class Group(val points:MutableList<Point2D>,var fit:Fit)
     private fun fit(points:List<Point2D>):Fit? {
         if(points.size<2 || points.any{!it.isFinite}) return null
@@ -172,11 +175,14 @@ object BarLineFitter {
                 val f=g.fit;val dot=abs(ux*f.ux+uy*f.uy).coerceIn(0.0,1.0)
                 val offset=points.sumOf{it.x*(-f.uy)+it.y*f.ux}/2
                 val ts=points.map{it.x*f.ux+it.y*f.uy};val gap=max(0.0,max(f.t0-ts.max(),ts.min()-f.t1))
-                acos(dot)<=8*PI/180 && abs(offset-f.offset)<=5 && gap<=gapLimit
+                // Preserve tube silhouettes using finite shared support, width,
+                // taper and crossing checks; noisy disjoint fragments still join.
+                acos(dot)<=8*PI/180 && abs(offset-f.offset)<=5 && gap<=gapLimit &&
+                    BarFitter.pair(f.edge,e,2.0)==null
             }
             if(group!=null){group.points.addAll(points);fit(group.points)?.let{group.fit=it}} else fit(points)?.let{groups.add(Group(points.toMutableList(),it))}
         }
-        val results=groups.mapNotNull{g -> val f=g.fit;val edge=BarSegment(Point2D(f.t0*f.ux-f.offset*f.uy,f.t0*f.uy+f.offset*f.ux),Point2D(f.t1*f.ux-f.offset*f.uy,f.t1*f.uy+f.offset*f.ux)).ordered;if(edge.isValid && edge.length>=.25*major && !BarFitter.cropBorder(edge,region,2.0,true)) BarLineCandidate(edge,edge.length) else null}.sortedWith(compareByDescending<BarLineCandidate>{it.geometryScore}.thenBy{it.edge.midpoint.y}.thenBy{it.edge.midpoint.x})
+        val results=groups.mapNotNull{g -> val edge=g.fit.edge;if(edge.isValid && edge.length>=.25*major && !BarFitter.cropBorder(edge,region,2.0,true)) BarLineCandidate(edge,edge.length) else null}.sortedWith(compareByDescending<BarLineCandidate>{it.geometryScore}.thenBy{it.edge.midpoint.y}.thenBy{it.edge.midpoint.x})
         val unique=mutableListOf<BarLineCandidate>();results.forEach{c -> if(unique.none{it.edge.distance(c.edge.midpoint)<2 && c.edge.distance(it.edge.midpoint)<2}) unique.add(c)}
         return unique.take(12)
     }

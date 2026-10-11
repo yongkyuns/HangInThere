@@ -274,9 +274,21 @@ opposite sides of vertical previously failed the signed direction comparison.
 Pair endpoints are aligned before projecting their finite shared support;
 crossing, width, taper and length checks remain intact. Mirrored rotation and
 endpoint-order regressions run in Swift/Kotlin, and both new cases are required
-in the14-case geometry oracle. Replay of the exact captured Android apparatus
+in the 14-case geometry oracle. Replay of the exact captured Android apparatus
 candidates now finds a dip lock missed by the old geometry. A fresh native
 video run is required to qualify the changed contour grouping and full setup.
+
+Contour grouping also preserves thin tube silhouettes. Its 5px fragment-noise
+tolerance previously collapsed supported 2–5px parallel edges before pairing.
+The fitter now reuses the tube-pairing predicate to keep edges separate when
+their finite shared support qualifies; disjoint noisy fragments still join.
+Width, taper, crossing and support checks remain unchanged. Mirrored tests cover
+thin tubes at rotated orientations, endpoint/contour reversal, duplicate edges,
+and tapered overlap whose full-edge mean separation is below 2px. All 220 local
+Swift and 112 Kotlin tests pass; 54 setup cases, 3,014 frames and 17 geometry
+cases match production Swift. Fresh native video evaluation remains required.
+Private CI serializes identical revision/input batches while allowing independent
+frozen original and SDR batches on isolated runners with run-scoped artifacts.
 
 Completed replay state is retained until the user starts another evaluation.
 Manual-reference controls cannot mutate a replay after EOF or replace its
@@ -285,6 +297,15 @@ stamp also protects the worker-to-UI handoff and background interruption from
 obsolete commands. The native UI regression covers both a rejected Auto
 reference and a reference that an explicitly selected exercise would accept;
 neither submission may hide `Evaluate again` or change the completed result.
+The regression passes on API29 and API35 in
+[run38102543956](https://github.com/yongkyuns/HangInThere/actions/runs/38102543956)
+at `50751a3`. The only instrumentation failure on either API is held-dip Auto
+acquisition; the private-only recording test is intentionally skipped publicly.
+At the same revision,
+[Apple run38102543963](https://github.com/yongkyuns/HangInThere/actions/runs/38102543963)
+passes 264 native Mac tests. Simulator mechanics pass 263/264, with eight color
+assertions in the pinned H264 decoder test failing; all eight simulator Vision
+tests fail with the unavailable model weights. These gates remain red.
 
 These recordings are development evidence, not a held-out benchmark. Successful
 HDR decoding or fixed-reference counting does not qualify automatic setup.

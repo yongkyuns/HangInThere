@@ -136,6 +136,9 @@ def prepare(output):
     geo('crossing-contours',[[(20,20),(170,30)],[(20,30),(170,20)]])
     geo('near-vertical-tube-directions',[[(100,20),(102,180),(106,180),(108,20)]])
     geo('near-vertical-fragment-noise',[[(100,20),(101,90)],[(101,100),(100,180)]])
+    geo('thin-observed-tube',[[(20,50),(470,50)],[(20,52.5),(470,52.5)]],region=(0,0,500,500),size=(500,500))
+    geo('tapered-shared-support',[[(20,50),(320,50)],[(270,53.2),(470,49.2)]],region=(0,0,500,500),size=(500,500))
+    geo('noisy-disjoint-fragments',[[(20,100),(200,100)],[(210,104),(470,104)]],region=(0,0,500,500),size=(500,500))
     geometry_inputs=output/'geometry-inputs.json';geometry_inputs.write_text(json.dumps(geometry_cases,allow_nan=False))
     names=['PoseObservation' ,'Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement','DipSupportMeasurement',
         'PullUpProgress','DipProgress','ExerciseCounter','AutomaticPullUpBar','AutomaticDipRails','AutomaticExerciseDetection',

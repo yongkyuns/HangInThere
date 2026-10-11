@@ -82,6 +82,60 @@ import Testing
             }
         }
     }
+    @Test func singleEdgeGroupingPreservesThinObservedTubeSilhouettes() throws {
+        let region = BarRegion(.init(x: 0, y: 0), .init(x: 1000, y: 1000))
+        let size = ImageSize(width: 1000, height: 1000)
+        for width in [1.99, 2.0, 2.5, 5.0] {
+            // Exact 2px is the pairing boundary; oblique cases use widths
+            // separated from it so floating-point rounding cannot select policy.
+            let angles = width == 2 ? [0.0] : Array(stride(from: 0.0, to: 360.0, by: 45.0))
+            for degrees in angles {
+                let angle = degrees * .pi / 180
+                let ux = cos(angle), uy = sin(angle)
+                let contours: [[Point2D]] = [0.0, width].map { offset in [-400.0, 400.0].map { t in
+                    let x: Double = 500 + t * ux - offset * uy
+                    let y: Double = 500 + t * uy + offset * ux
+                    return Point2D(x: x, y: y)
+                } }
+                for input in [contours, contours.reversed().map { Array($0.reversed()) }] {
+                    let result = try BarLineFitter.candidates(contours: input, region: region, size: size)
+                    try #require(result.count == (width < 2 ? 1 : 2))
+                    if width >= 2 {
+                        let pair = try #require(BarFitter.pair(result[0].edge, result[1].edge, minimumLength: 24))
+                        #expect(abs(pair.centerline.length - 800) < 1e-8)
+                        #expect(abs(pair.firstEdge.perpendicularDistance(to: pair.secondEdge.midpoint) - width) < 1e-8)
+                    }
+                }
+            }
+        }
+    }
+    @Test func singleEdgeGroupingUsesSharedSupportForTaperedTube() throws {
+        // Mean separation over the entire second edge is only 1.2px, but its
+        // actual 50px overlap with the first has two supported 2.2–3.2px edges.
+        let contours = [[Point2D(x: 20, y: 50), Point2D(x: 320, y: 50)],
+                        [Point2D(x: 270, y: 53.2), Point2D(x: 470, y: 49.2)]]
+        for input in [contours, contours.reversed().map { Array($0.reversed()) }] {
+            let result = try BarLineFitter.candidates(contours: input,
+                region: BarRegion(.init(x: 0, y: 0), .init(x: 500, y: 500)),
+                size: ImageSize(width: 500, height: 500))
+            try #require(result.count == 2)
+            let pair = try #require(BarFitter.pair(result[0].edge, result[1].edge, minimumLength: 24))
+            #expect(abs(pair.geometryScore - 50 / sqrt(1.0004)) < 1e-8)
+        }
+    }
+    @Test func singleEdgeGroupingStillJoinsNoisyDisjointFragments() throws {
+        let contours = [[Point2D(x: 20, y: 100), Point2D(x: 200, y: 100)],
+                        [Point2D(x: 210, y: 104), Point2D(x: 470, y: 104)]]
+        #expect(BarFitter.pair(BarSegment(a: contours[0][0], b: contours[0][1]),
+                             BarSegment(a: contours[1][0], b: contours[1][1]), minimumLength: 2) == nil)
+        for input in [contours, contours.reversed().map { Array($0.reversed()) }] {
+            let result = try BarLineFitter.candidates(contours: input,
+                region: BarRegion(.init(x: 0, y: 0), .init(x: 500, y: 500)),
+                size: ImageSize(width: 500, height: 500))
+            #expect(result.count == 1)
+            #expect(try #require(result.first).edge.length > 449)
+        }
+    }
     @Test func invalidSegmentsNeverProduceGeometry() {
         #expect(BarFitter.pair(line(0,0,0,0),line(10,10,100,10),minimumLength:24) == nil)
         #expect(BarFitter.pair(line(.nan,0,100,0),line(10,10,100,10),minimumLength:24) == nil)

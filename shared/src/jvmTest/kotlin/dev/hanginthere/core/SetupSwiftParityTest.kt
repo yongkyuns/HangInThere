@@ -109,10 +109,11 @@ class SetupSwiftParityTest {
         }
         assertTrue(frames>=2000)
         val geometries=oracle.getValue("geometries").jsonArray
-        assertTrue(geometries.size>=14,"Setup geometry parity cases reduced")
+        assertTrue(geometries.size>=17,"Setup geometry parity cases reduced")
         val geometryIds=geometries.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
-        assertTrue(geometryIds.containsAll(listOf("near-vertical-tube-directions","near-vertical-fragment-noise")),
-            "The undirected geometry regressions must execute; regenerate a stale setup oracle")
+        assertTrue(geometryIds.containsAll(listOf("near-vertical-tube-directions","near-vertical-fragment-noise",
+            "thin-observed-tube","tapered-shared-support","noisy-disjoint-fragments")),
+            "The observed geometry regressions must execute; regenerate a stale setup oracle")
         geometries.forEach {value ->
             val row=value.jsonObject;val input=json.decodeFromJsonElement<GeometryInput>(row.getValue("input"))
             var lines:List<BarLineCandidate>?=null;var pairs:List<BarCandidate>?=null

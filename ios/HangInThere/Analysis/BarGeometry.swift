@@ -86,6 +86,10 @@ enum BarLineFitter {
         var offset: Double
         var t0: Double
         var t1: Double
+        var edge: BarSegment {
+            BarSegment(a: Point2D(x: t0 * ux - offset * uy, y: t0 * uy + offset * ux),
+                       b: Point2D(x: t1 * ux - offset * uy, y: t1 * uy + offset * ux)).ordered
+        }
     }
 
     // Guided single-edge recovery. It can bridge short gaps between collinear
@@ -146,6 +150,10 @@ enum BarLineFitter {
                 let gap = max(groups[index].t0 - r1, r0 - groups[index].t1, 0)
                 guard abs(candidateOffset - groups[index].offset) <= 5,
                       gap <= maximumGap else { continue }
+                // Preserve two supported tube silhouettes before noise grouping
+                // can collapse them. Pairing checks their finite shared support,
+                // width, taper and crossings; disjoint fragments can still join.
+                guard BarFitter.pair(groups[index].edge, edge, minimumLength: 2) == nil else { continue }
                 groups[index].points.append(contentsOf: points)
                 if let fitted = fit(groups[index].points) {
                     groups[index].ux = fitted.ux
@@ -165,12 +173,7 @@ enum BarLineFitter {
 
         var result: [BarLineCandidate] = []
         for group in groups {
-            let nx = -group.uy, ny = group.ux
-            let a = Point2D(x: group.t0 * group.ux + group.offset * nx,
-                            y: group.t0 * group.uy + group.offset * ny)
-            let b = Point2D(x: group.t1 * group.ux + group.offset * nx,
-                            y: group.t1 * group.uy + group.offset * ny)
-            let edge = BarSegment(a: a, b: b).ordered
+            let edge = group.edge
             guard edge.isValid, edge.length >= 0.25 * major,
                   !isCropBorder(edge, region: region) else { continue }
             result.append(BarLineCandidate(edge: edge, geometryScore: edge.length))
