@@ -165,6 +165,16 @@ MediaPipe's [Android guide](https://developers.google.com/edge/mediapipe/solutio
 documents IMAGE detection and VIDEO tracking; the latter avoids detection on
 every frame to reduce latency.
 
+[The complete mode comparison at `d627f2a`](https://github.com/yongkyuns/HangInThere/actions/runs/38160044968)
+passes native execution, evidence validation and Swift counter replay on both
+APIs. Both modes count the positive pull-up 1/1, cropped pull-up 0/1 and panning
+dip 0/9 through all 108/40/300 frames. The cropped clip has 32 left-arm and 25
+right-arm usable frames in each mode. The dip has 300/34 usable left/right frames
+in VIDEO and 299/33 in IMAGE. Per-frame redetection therefore does not repair
+these original misses. Inference-only p95 is 55.7–58.4 ms on API29 and 90.5–94.8 ms
+on API35 in this two-model experiment; these are separate emulator hosts. The
+original fatal accuracy jobs remain red, and production continues to use VIDEO.
+
 Android's public test transcodes use a shared `reproducible-h264-v1` encoding
 profile: fixed decoder/filter/encoder/lookahead threads, CPU-independent x264,
 and bit-exact scaling/codec/muxer options. This affects test preparation only.

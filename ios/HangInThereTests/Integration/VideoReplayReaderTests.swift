@@ -150,6 +150,77 @@ struct VideoReplayReaderTests {
                               colors: [green, yellow, red, blue])
     }
 
+    @Test(arguments: [false, true])
+    func rawFixturesPreserveMixedTimebasesAndNonzeroFirstPTS(nonzeroStart: Bool) async throws {
+        let times = nonzeroStart
+            ? [CMTime(value: 1, timescale: 3), CMTime(value: 1, timescale: 2), CMTime(value: 3, timescale: 4)]
+            : [CMTime(value: 0, timescale: 100), CMTime(value: 1, timescale: 30),
+               CMTime(value: 7, timescale: 100), CMTime(value: 11, timescale: 60)]
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        try await checkFrames(url, times: times.map(\.seconds), width: 160, height: 96,
+                              colors: [red, green, blue, yellow])
+    }
+
+    @Test func rawFixtureBytesAreDeterministicAndRetainEveryFrame() async throws {
+        let first = try await VideoTestSupport.makeVideo(cyclingQuadrants: true)
+        let second = try await VideoTestSupport.makeVideo(cyclingQuadrants: true)
+        defer { try? FileManager.default.removeItem(at: first); try? FileManager.default.removeItem(at: second) }
+        #expect(try Data(contentsOf: first) == Data(contentsOf: second))
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
+        _ = try await reader.open(first)
+        var index = 0
+        while let frame = try await reader.nextFrame() {
+            #expect(index < VideoTestSupport.timestamps.count)
+            let colors = [red, green, blue, yellow]
+            let shifted = (0..<4).map { colors[($0 + index) % 4] }
+            try checkFrame(frame, width: 160, height: 96, colors: shifted)
+            index += 1
+        }
+        await reader.close()
+        #expect(index == VideoTestSupport.timestamps.count)
+    }
+
+    @Test func rawFixtureRejectsInvalidGeometryOrTimeline() async throws {
+        for times in [[], [.invalid], [CMTime(value: -1, timescale: 100)],
+                      [.zero, .zero], [CMTime(value: 2, timescale: 100), CMTime(value: 1, timescale: 100)]] as [[CMTime]] {
+            do {
+                let url = try await VideoTestSupport.makeVideo(timestamps: times)
+                try? FileManager.default.removeItem(at: url)
+                Issue.record("Invalid fixture timestamps must be rejected before writing samples.")
+            } catch FixtureError.failed { }
+        }
+        do {
+            let url = try await VideoTestSupport.makeVideo(width: 0)
+            try? FileManager.default.removeItem(at: url)
+            Issue.record("Invalid fixture dimensions must be rejected.")
+        } catch FixtureError.failed { }
+    }
+
+    @Test func rawFixtureRejectsOversizedWorkBeforeAllocatingPixels() async throws {
+        let cases = [(65_535, 65_535, 1), (1, 1, 513), (1024, 1024, 17)]
+        for (width, height, count) in cases {
+            do {
+                let times = (0..<count).map { CMTime(value: Int64($0), timescale: 30) }
+                let url = try await VideoTestSupport.makeVideo(timestamps: times, width: width, height: height)
+                try? FileManager.default.removeItem(at: url)
+                Issue.record("Oversized fixture work must fail before allocating pixels or sample tables.")
+            } catch FixtureError.failed { }
+        }
+    }
+
+    @Test func cancelledFixtureRequestDoesNotReturnAFile() async throws {
+        let request = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await VideoTestSupport.makeVideo()
+        }
+        do {
+            let url = try await request.value
+            try? FileManager.default.removeItem(at: url)
+            Issue.record("A cancelled fixture request must throw CancellationError.")
+        } catch is CancellationError { }
+    }
+
     @Test func decodedFramesKeepActualVariableRateTimestamps() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }

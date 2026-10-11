@@ -125,8 +125,10 @@ The iOS mechanics tests exercise actual AVFoundation decoding, variable
 timestamps, portrait orientation, decoder replacement/recovery, and controller
 lifecycle with an explicitly injected, test-only pose estimator. They also assert
 that inference errors propagate instead of becoming successful empty frames.
-Runtime synthetic fixtures store uncompressed BGRA samples; a small committed
-H.264/BT.709 fixture separately checks compressed decoding, rotation, every
+Runtime synthetic fixtures directly write bounded, deterministic QuickTime
+containers with uncompressed BGRA samples, avoiding native writer startup and
+finalization in test preparation. Cancellation and a ten-second deadline cover
+queued generation. A small committed H.264/BT.709 fixture separately checks compressed decoding, rotation, every
 quadrant's color and variable timestamps without requiring a runtime encoder.
 Production reader/controller defaults remain real Apple Vision; there is no
 runtime fallback. The separate `VisionSmokeTests` use the production defaults
@@ -156,6 +158,8 @@ native Mac integration, iOS simulator mechanics (including the unsigned Release
 device build), and actual iOS simulator Vision. A failing job does not cancel
 the others. **All are required for the declared P0 qualification:** a green
 mechanics or native-Mac job does not resolve a red simulator-Vision job.
+See [simulator blockers and repair scope](docs/APPLE-SIMULATOR.md) for fixture,
+model, compressed-decoder and replay-latency evidence.
 The runner rejects an empty test selection and keeps separate result bundles.
 It uses a pinned Xcode, read-only repository permissions and no Apple credentials. Retained artifacts contain
 results/provenance and a separately named, approved smoke clip/still for review;
