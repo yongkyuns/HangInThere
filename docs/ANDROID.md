@@ -17,10 +17,10 @@ remain unchanged.
 | --- | --- | --- |
 | Native dip setup, API29/API35 | Held public pixels resolve Dip but provide no independent second rail; no countdown | A clear, prospectively reviewed bilateral rail view through native Auto and live countdown |
 | Original public accuracy | Cropped pull-up0/1; panning dip0/9 | Qualification of occluded poses and camera-relative references before claiming these captures are supported |
-| Original phone HDR imports | Prior MediaCodec-only results reject originals on API29/API35; new bounded software HDR path awaits native qualification | Full-source Main10 decoding, SDR pixels, counts and performance on both APIs |
+| Original phone HDR imports | Software decoding qualifies authored HLG/PQ on both APIs; API35 original pull-ups count2/2 in Auto, original dips count4/4 only with a fixed reference | Automatic rail acquisition and complete original-source counts/performance on both APIs |
 | iOS simulator Vision | Apple body-pose weights fail to load | Real inference in a supported simulator runtime; native Mac and physical iPhone results remain separate |
 | iOS simulator decoder | Pinned H264 green/yellow samples have incorrect native chroma | Correct native decoding of the immutable fixture, with existing color tolerances |
-| iOS replay latency | Hosted native reads intermittently exceed the unchanged completion deadline | Repeat hosted replay after the dedicated executor change; a local pass is insufficient |
+| iOS replay latency | Hosted replay intermittently exceeds the unchanged completion deadline | Repeat hosted replay after the dedicated executor change; a local pass is insufficient |
 
 iOS replay now uses a dedicated serial Dispatch executor for blocking native
 decoding, rendering and inference. Swift still checks actor isolation and fresh
@@ -45,7 +45,7 @@ strict chin clearance and dip depth still need separate device/form qualificatio
 
 | Boundary | Generalized policy | Android adapter |
 | --- | --- | --- |
-| Observations | Upright, unmirrored pixel coordinates, anatomical joint names, rational source timestamps | CameraX/MediaCodec canonical pixels and MediaPipe Heavy CPU |
+| Observations | Upright, unmirrored pixel coordinates, anatomical joint names, rational source timestamps | CameraX, MediaCodec SDR/software HEVC HDR canonical pixels and MediaPipe Heavy CPU |
 | Apparatus | Observed contour fitting, grip identity, acquisition continuity | OpenCV pixel contours in pose-guided crops |
 | Stability | Quaternion delta, background translation/scale gates, freshness | Rotation-vector sensor and background image registration |
 | Workout | Auto exercise identity, countdown, set lifecycle, bilateral evidence, policy-v8 events and progress | Serial analysis owner, generation invalidation and Compose overlay |
@@ -62,11 +62,12 @@ MediaPipe or OpenCV imports. Source PTS advances dwell; display timers cannot ea
 a movement. Real pixels must support an apparatus edge, and missing scene evidence
 cannot certify a fixed camera. Front preview stays unmirrored, matching analysis.
 
-Recorded pixels honor actual decoder BT.601/BT.709 and full/limited-range metadata.
-Known HDR asks API31+ decoders for SDR tone mapping and requires verified SDR output
-before analysis; unsupported HDR, high-bit-depth or unconverted BT.2020 is an
-actionable import failure. An SDR conversion succeeding does not qualify the
-original HDR container. Camera pixels retain the explicit legacy BT.601 assumption.
+Recorded SDR pixels honor actual decoder BT.601/BT.709 and full/limited-range
+metadata. Complete Main10-family BT.2020 HLG/PQ inputs use the bounded software
+HEVC decoder and independently checked HDR-to-SDR mapping documented in
+[Android HDR imports](ANDROID-HDR.md). Every native input/output frame must prove
+its declared format and color metadata. Inputs that cannot produce verified supported pixels fail
+explicitly. Camera pixels retain the explicit legacy BT.601 assumption.
 
 The adapter gives MediaPipe its own bitmap because closing its image recycles
 that input. The canonical frame remains available to contour extraction, scene
@@ -158,23 +159,16 @@ eligible rail. Matching Swift/Kotlin tests and52 per-frame setup oracle cases in
 this clutter case for both anatomical reference sides and an unreachable-only
 negative. Grip thresholds, bilateral tube identity and acquisition dwell are unchanged.
 
-Decoder selection distinguishes container codec compatibility from pixel color
-conversion. A declared Dolby Vision profile8 with HLG/BT.2020 may use its compatible
-HEVC **Main10** base layer when no suitable Dolby decoder is available on API31+.
-Other Dolby profiles or incomplete color metadata cannot use that fallback. HDR
-selection queries the complete final format and creates the returned codec by name;
-it never substitutes a MIME-only default that may support only Main8. Adaptation
-removes the incompatible Dolby level but preserves source CSD, geometry, HDR metadata
-and the SDR tone-map request. After configuration, an explicitly rejected conversion
-request fails before the codec starts. A missing negotiation key is not proof of
-conversion: every output buffer must still prove SDR transfer, gamut and range.
-A selected Main10 decoder does not qualify HDR import. Native Auto/fixed-reference
-reports retain the required MIME/profile, codec name, negotiation value and failure
-stage, including constructor failures; private details remain encrypted. This path follows
-[Android's format guidance](https://developer.android.com/media/platform/supported-formats)
-[format-based codec selection](https://developer.android.com/reference/android/media/MediaCodec#creation),
-[transfer-request negotiation](https://developer.android.com/reference/android/media/MediaFormat#KEY_COLOR_TRANSFER_REQUEST)
-and [Media3's compatible decoder selection](https://github.com/androidx/media/blob/release/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/mediacodec/MediaCodecUtil.java).
+Replay selects the HDR adapter from complete MIME, profile and color metadata.
+Main10, Main10HDR10 and Main10HDR10Plus are exact accepted Android profile values;
+unknown or combined profiles are rejected. Dolby Vision profile8 with complete
+HLG/BT.2020 metadata may use its compatible HEVC base layer. The native reader
+verifies actual 10-bit pixels rather than trusting the extractor classification.
+SDR still uses the existing MIME-selected MediaCodec path. Its strict SDR negotiation/output
+checks remain in place if a known HDR stream reaches that path; a codec selection
+or requested conversion never proves that converted pixels were delivered.
+Native reports retain decoder backend, declared mapping and failure stage;
+private diagnostic details remain encrypted.
 
 ## Performance evidence
 
@@ -193,45 +187,41 @@ is tested. Do not describe green core or emulator checks as proof of that parity
 
 ## Native evaluation checkpoint
 
-[CI run38042305300](https://github.com/yongkyuns/HangInThere/actions/runs/38042305300)
-evaluates the rail-ranking fix at `845bd961c586e3ce195be67e22d76c280a72665a` on both
-API29 and API35. The recorded PR merge commit is
-`4e2b31e0065eb7cff79c40f4e4b5fbe3f4dbe1f8`; its Android, shared, iOS, script and
-workflow trees match that branch revision. Its native reports show:
+[Android CI run38098329024](https://github.com/yongkyuns/HangInThere/actions/runs/38098329024)
+evaluates branch `30126227f0416efaa1f2d6fe0a21b49d251df09f` through PR merge
+`01114525df8d8221db78fde1eea81e67e4e696b3`. Their Android, shared, iOS,
+script and workflow trees match. Both API29/API35 native reports show:
 
 | Check | Both emulator results |
 | --- | --- |
+| Four-ABI build, lint, unit and APK gate | Pass, including exact pinned NDK C++ runtime bytes and ABI-specific load alignment |
+| Authored HLG/PQ/color HDR JNI contracts | All3 methods pass: VFR PTS, B-frame drain, colors, resize, rotation, rewind and cancellation |
 | Positive pull-up, fixed observed edge | 1/1 movements |
 | Positive pull-up, production Auto replay | 1/1, complete108-frame counting pass |
 | Rendered replay UI, Auto and explicit Pull-up/right-side settings | 1 movement, completed |
-| Authored held pull-up, Auto setup | Observed bar,3/2/1 countdown, running after3.083333s |
+| Authored held pull-up, Auto setup | Observed bar and3/2/1 countdown |
 | Authored held dip, Auto setup | Dip identified; rail acquisition and countdown fail |
-| Original pull-up/dip captures | 0/1 and0/9; accuracy jobs fail |
+| Original public pull-up/dip captures | 0/1 and0/9; accuracy jobs fail |
 
-The same run passed all106 shared tests,52 setup cases with2,870 per-frame
-snapshots,12 geometry cases, the iOS simulator framework build and Swift replay
-of both emulators' native pose observations. Same-host core
-p95 was4.2µs for Kotlin and7.4µs for Swift, below the1ms budget. These core-only
-times exclude camera and pose inference.
+All107 shared tests pass with zero failures/skips. The54 setup cases and12
+geometry cases match Swift, the iOS framework compiles, and Swift reproduces
+both emulators' native count/events. Same-host core p95 is4.9µs for Kotlin and
+7.4µs for Swift, below1ms; these times exclude camera and model work.
+Decode-inclusive Auto pipeline p95 across the three public clips is68.5–128.0ms
+on API29 and105.3–183.3ms on API35. Peak process PSS is303.4–312.7MiB and
+292.4–295.4MiB respectively. These are emulator regression measurements on
+different hosts. Native jobs remain red because of the held-dip setup assertion.
 
-Decode-inclusive production pipeline p95 across the three clips was89.7–153.7ms
-on API29 and102.8–165.5ms on API35. Peak process PSS was299.1–309.8MiB and
-286.9–291.7MiB respectively. These are emulator regression measurements with
-different runner hosts, not a phone comparison or a real-time guarantee. The native
-jobs remain red because of the dip setup assertion; this checkpoint does not
-establish full functional or performance parity.
-
-[iOS/Mac CI run38044082120](https://github.com/yongkyuns/HangInThere/actions/runs/38044082120)
-passed all260 native macOS tests and259/260 simulator mechanics tests. All seven
-automatic replay tests passed on the hosted simulator; the strict pinned H.264
-color test still failed. An earlier run at `845bd96` hit an uninformative automatic
-pull-up replay timeout. The replay helper now reports the awaited
-transition, controller phase/error, source PTS, frame counts, apparatus state and
-processing duration, and immediately exposes a failed reader. Its20-second
-deadline and replay assertions remain unchanged. Passing this rerun does not
-establish a fix for the earlier timeout.
-Simulator Vision still fails all eight tests because the runtime cannot load
-`cnn_human_pose.espresso.weights`.
+[Baseline Apple CI run38098329031](https://github.com/yongkyuns/HangInThere/actions/runs/38098329031)
+uses Xcode26.3/iOS26.2; [current-runtime qualification run38098374076](https://github.com/yongkyuns/HangInThere/actions/runs/38098374076)
+uses Xcode26.6/iOS26.5 on the branch directly. Both pass262/262 native Mac tests
+and261/262 simulator mechanics tests; the same pinned H264 color assertions
+fail on both runtimes. All8 simulator Vision tests fail on both because Apple
+body-pose weights cannot load. The current runtime therefore does not resolve
+those failures and is an explicit dispatch diagnostic, not a replacement baseline.
+All7 automatic replay tests pass in both runs, but earlier hosted replay exceeded
+the unchanged20-second completion deadline after the dedicated executor change.
+Those passes do not establish that the intermittent native stall is fixed.
 
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;
@@ -259,21 +249,26 @@ evaluation jobs terminate. None of this qualifies physical live-camera performan
 
 ### Authorized recording checkpoint
 
-[Private CI run37998132925](https://github.com/yongkyuns/HangInThere/actions/runs/37998132925)
-evaluates commit `46903641818fa54dfec2c5ba165088ce3cb40408`. On both API29 and API35,
-the complete SDR derivatives count 2/2 pull-ups and 4/4 dips in production Auto,
-for both arm selections. Counting covers all690 and1124 source frames respectively;
-actual contours acquire the apparatus before the counting pass rewinds. The separate
-frozen fixed-edge diagnostics give the same totals, and production Swift reproduces
-all count/event outcomes, reasons and timestamps from the identical Android poses.
-These two recordings are development evidence, not a held-out accuracy benchmark.
+[Private CI run38096344678](https://github.com/yongkyuns/HangInThere/actions/runs/38096344678)
+evaluates `130b2dfe8cc976f07a42d14ea397f9cf386cb455`. On both API29 and API35,
+all4 SDR cases count2/2 pull-ups and4/4 dips with Auto and fixed references,
+for either anatomical side. Counting covers every690/1124 source frame.
+On API35, the software HDR path also counts both original pull-up sides2/2
+through all690 frames. Original dips count4/4 with the fixed reference through
+all1124 frames, but Auto fails rail acquisition. The8 fixed-reference native
+pose traces reproduce the same Swift events, reasons and timestamps.
+API29 originals were rejected before decoding because MediaExtractor classified
+them as Main10HDR10 (4096); the exact Main10-family classification fix is in301.
+[Original-only follow-up38098398872](https://github.com/yongkyuns/HangInThere/actions/runs/38098398872)
+uses the4 unchanged original-format rows from the frozen8-case manifest at301;
+its native results must be reported separately from the earlier SDR cases.
 
-Both unchanged HDR originals fail import on both emulators before analysis. API35
-cannot initialize their Dolby Vision decoder; an SDR derivative passing does not
-qualify the original container. Consequently both private jobs remain red despite
-all four SDR cases passing. No private poses, source images or detailed reports are
-published. Optimization and contour changes require their own native reruns before
-these counts can be attributed to a later implementation.
+These recordings are development evidence, not a held-out benchmark. Successful
+HDR decoding or fixed-reference counting does not qualify automatic setup.
+Private poses, images and detailed reports remain local/encrypted. Replay traces
+retain the exact apparatus observations consumed by policy outside the timed
+pipeline, so subsequent native failures can be replayed without reconstructing
+pixels or inventing candidate rails. A null observation means no detector call ran.
 
 The attempted direct8-bit color transform at `f123466` was discarded: despite
 exhaustive host pixel differences bounded by one channel level, native API29

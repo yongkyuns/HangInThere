@@ -128,6 +128,9 @@ internal class NativeReplayEvaluator(private val app: Context) {
                                         put("frameIndex", passFrames); put("sourcePtsMicroseconds", it.presentationTimeUs)
                                         put("pose", Json.encodeToJsonElement(result.pose))
                                         put("snapshot", Json.encodeToJsonElement(result.snapshot))
+                                        // Preserve the exact observations consumed by Auto so a setup
+                                        // failure can be replayed without reconstructing native pixels.
+                                        put("apparatus", result.apparatus?.let { Json.encodeToJsonElement(it) } ?: JsonNull)
                                     }.toString()); trace.newLine()
                                     passFrames++; decodedFrames++
                                     if (result.pose.people.size == 1) peopleFrames++ else if (result.pose.people.size > 1) multiplePeopleFrames++

@@ -88,8 +88,18 @@ containers explicitly carry the independently verified matrix; their encoded
 packet hashes, source PTS and expected color values are unchanged. The provenance
 records that correction, and the authoring recipe now verifies the actual matrix.
 
-Host decoder contracts are separate from API29/API35 JNI tests and the
-authorized full-original phone recording evaluation. Full-source counts and
-performance must be reported from that native evaluation before claiming phone
-video parity. Emulator throughput does not qualify physical-device thermals,
-battery consumption or sustained live-camera frame rates.
+[Android CI run38098329024](https://github.com/yongkyuns/HangInThere/actions/runs/38098329024)
+passes all3 authored HDR JNI test methods on API29 and API35, together with
+four-ABI builds and exact pinned-runtime APK checks. These fixture contracts
+remain separate from human-video accuracy and automatic apparatus acquisition.
+
+[Authorized native run38096344678](https://github.com/yongkyuns/HangInThere/actions/runs/38096344678)
+on130b2df qualifies both original pull-up sides on API35: Auto and fixed
+references give2/2 movements through all690 frames. The original dip gives4/4
+with either fixed reference through all1124 frames, but Auto cannot acquire
+the rails. API29 originally rejected the extractor's Main10HDR10 classification
+before native decoding;301 accepts that exact classification, with a separate
+original-only follow-up. Successful decoding/fixed-reference counts therefore
+do not establish full phone-video parity. See [the current checkpoint](ANDROID.md#authorized-recording-checkpoint).
+Emulator throughput does not qualify physical-device thermals, battery
+consumption or sustained live-camera frame rates.
