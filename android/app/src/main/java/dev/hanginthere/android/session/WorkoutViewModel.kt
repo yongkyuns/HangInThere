@@ -29,6 +29,9 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     val inferenceExecutor = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private val generation = AtomicLong(0)
+    // EOF can precede the main-thread publication. Keep controls from replacing
+    // a terminal replay with an idle snapshot during that handoff.
+    private val terminalReplayGeneration = AtomicLong(-1)
     private var pipeline: AnalysisPipeline? = null
     private val pendingUI = AtomicReference<Pair<Long, State>?>(null)
     private val uiScheduled = AtomicBoolean(false)
@@ -40,8 +43,12 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     private val controlLock = Any()
     private var replayRunning = false
     private var replayUri: Uri? = null
+    private fun markReplayTerminal(token: Long) {
+        terminalReplayGeneration.updateAndGet { maxOf(it, token) }
+    }
     private fun control(action: (AnalysisPipeline) -> Unit) {
         val command = Control(generation.get(), action)
+        if (terminalReplayGeneration.get() == command.token) return
         val queued = synchronized(controlLock) {
             if (replayRunning) {
                 if (!controls.offer(command)) mutableState.value = state.value.copy(error = "Too many pending workout actions")
@@ -59,11 +66,12 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     private fun applyControl(command: Control, active: AnalysisPipeline) {
+        if (terminalReplayGeneration.get() == command.token) return
         command.action(active)
         val current = state.value
         val snapshot = active.runtime.snapshot
         publish(command.token, current.copy(result = current.result?.copy(snapshot = snapshot),
-            finished = current.replay && snapshot.phase == LiveSetSession.Phase.finished))
+            finished = current.replay && (current.finished || snapshot.phase == LiveSetSession.Phase.finished)))
     }
     private fun publish(token: Long, value: State) {
         pendingUI.set(token to value)
@@ -103,6 +111,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     }
     fun confirmManual(a: Point2D, b: Point2D) {
         val token = generation.get(); val current = state.value; val pose = current.result?.pose ?: return
+        if (current.replay && current.finished) return
         control { active ->
             if (generation.get() != token) return@control
             val role = if (current.result?.snapshot?.exercise == ExerciseCounter.Exercise.dip || current.selection == WorkoutExerciseSelection.dip) {
@@ -186,6 +195,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                     val outcome = ReplayOutcome.atEnd(active.runtime.session.analyzedFrames, acquired, countingSourceEnded,
                         active.runtime.snapshot.setupIssue, active.runtime.session.endReason)
                     active.runtime.stop()
+                    markReplayTerminal(token)
                     latest = latest.copy(result = latest.result?.copy(snapshot = active.runtime.snapshot), finished = true,
                         error = outcome.message, interrupted = outcome.kind == ReplayOutcome.Kind.interrupted, replayOutcome = outcome.kind)
                     publish(token, latest)
@@ -193,6 +203,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
             } catch (error: Throwable) {
                 val active = pipeline
                 val outcome = ReplayOutcome.analysisFailure(active?.runtime, error.message)
+                markReplayTerminal(token)
                 publish(token, latest.copy(result = latest.result?.let { result -> active?.runtime?.snapshot?.let { result.copy(snapshot = it) } ?: result },
                     error = outcome.message, replay = true, finished = true, interrupted = true, replayOutcome = outcome.kind))
             }
@@ -210,6 +221,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     fun suspendForBackground() {
         val token = generation.incrementAndGet(); attitude.close()
         val last = state.value
+        if (last.replay) markReplayTerminal(token)
         mutableState.value = last.copy(interrupted = true, finished = true, error = if (last.replay) "Video evaluation interrupted · open the video again" else null)
         inferenceExecutor.execute {
             val active = pipeline

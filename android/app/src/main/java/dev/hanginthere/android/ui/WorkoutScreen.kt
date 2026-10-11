@@ -159,7 +159,9 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             Row { listOf(WorkoutExerciseSelection.automatic to "Auto", WorkoutExerciseSelection.pullUp to "Pull-up", WorkoutExerciseSelection.dip to "Dip").forEach { (choice, title) -> TextButton(onClick = { selection = choice; if (state.replay) model.changeReplaySelection(choice, side) }, enabled = state.replay || state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text(if (selection == choice) "✓ $title" else title) } } }
             Text("Reference grip")
             Row { ArmMeasurement.Side.entries.forEach { choice -> TextButton(onClick = { side = choice; if (state.replay) model.changeReplaySelection(selection, choice) }, enabled = state.replay || state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text(if (side == choice) "✓ ${choice.name}" else choice.name) } } }
-            TextButton(onClick = { settings = false; firstTap = null; manual = true }) { Text("Set visible reference edge") }
+            TextButton(onClick = { settings = false; firstTap = null; manual = true },
+                enabled = !state.replay || !state.finished) { Text("Set visible reference edge") }
+            if (state.replay && state.finished) Text("Evaluate again to set a reference during playback.")
             TextButton(onClick = { settings = false; videoPicker.launch(arrayOf("video/*")) }) { Text("Evaluate a video") }
             if (state.replay) TextButton(onClick = { settings = false; model.startLive(selection, side) }) { Text("Return to live camera") }
             Text("Counts are observed movements. Depth and lockout form are not yet verified.")

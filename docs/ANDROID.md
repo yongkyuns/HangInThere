@@ -278,6 +278,14 @@ in the14-case geometry oracle. Replay of the exact captured Android apparatus
 candidates now finds a dip lock missed by the old geometry. A fresh native
 video run is required to qualify the changed contour grouping and full setup.
 
+Completed replay state is retained until the user starts another evaluation.
+Manual-reference controls cannot mutate a replay after EOF or replace its
+terminal failure/retry action with an idle snapshot. A monotonic generation
+stamp also protects the worker-to-UI handoff and background interruption from
+obsolete commands. The native UI regression covers both a rejected Auto
+reference and a reference that an explicitly selected exercise would accept;
+neither submission may hide `Evaluate again` or change the completed result.
+
 These recordings are development evidence, not a held-out benchmark. Successful
 HDR decoding or fixed-reference counting does not qualify automatic setup.
 Private poses, images and detailed reports remain local/encrypted. Replay traces
