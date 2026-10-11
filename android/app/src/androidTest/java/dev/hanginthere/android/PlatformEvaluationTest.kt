@@ -144,7 +144,9 @@ class PlatformEvaluationTest {
         android.graphics.Canvas(source).drawRect(20f, 100f, 300f, 121f,
             android.graphics.Paint().apply { color = Color.WHITE })
         try {
-            PoseEstimator(app).use { estimator ->
+            for (createEstimator in listOf<() -> PoseEstimator>(
+                { PoseEstimator(app) }, { PoseEstimator.independentFramesForDiagnostic(app) }
+            )) createEstimator().use { estimator ->
                 estimator.estimate(source, 0)
                 assertFalse("SDK must only recycle its own input copy", source.isRecycled)
                 assertEquals(Color.WHITE, source.getPixel(50, 110))

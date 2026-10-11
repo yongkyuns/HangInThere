@@ -147,6 +147,24 @@ Setup tests also exercise the composed runtime rather than only isolated gates.
    Swift. It compares count and event outcomes/reasons/times on identical poses,
    independently of Apple Vision versus MediaPipe accuracy differences.
 
+The optional `pose_mode_diagnostic` Android workflow-dispatch input compares
+production VIDEO tracking against IMAGE redetection on all three public clips.
+Both estimators consume the same decoded bitmap before release, alternate
+inference order, preserve the caller's pixel checksum, and keep the pinned Heavy
+CPU model, two-person limit, raw visibility/presence minimum, source timestamps,
+reviewed fixed reference, bilateral geometry and policy-v8 count gates unchanged.
+The app continues to use VIDEO; the internal IMAGE factory is diagnostic only.
+Per-frame reports retain both poses, current arm availability, counter state and
+timing. The host evidence check requires complete coverage and agreement with
+the original native source/labels/reference; count misses remain explicit.
+Inference timing excludes decoding, model initialization, hashing and counter
+work, and combined PSS retains two models. This comparison provides no Auto,
+production pipeline, physical-device or strict-form qualification. The original
+accuracy jobs still run and fail whenever their original labels are missed.
+MediaPipe's [Android guide](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker/android)
+documents IMAGE detection and VIDEO tracking; the latter avoids detection on
+every frame to reduce latency.
+
 Android's public test transcodes use a shared `reproducible-h264-v1` encoding
 profile: fixed decoder/filter/encoder/lookahead threads, CPU-independent x264,
 and bit-exact scaling/codec/muxer options. This affects test preparation only.

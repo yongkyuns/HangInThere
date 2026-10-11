@@ -90,6 +90,63 @@ def accuracy(path):
     assert not failures, 'Original capture detection accuracy remains failed: ' + ', '.join(failures)
 
 
+def pose_modes(path):
+    """Validate the experiment against the unchanged native run, without grading it as parity."""
+    report = json.loads(path.read_text())
+    baseline = json.loads(path.with_name('report.json').read_text())
+    baseline_cases = {case['id']: case for case in cases(baseline)}
+    assert report['schemaVersion'] == 1 and report['policyVersion'] == 8 and not report['failures'], 'Pose-mode native execution failed'
+    for key in ('sdk', 'modelSha256', 'poseArtifactSha256'):
+        assert report[key] == baseline[key], 'Pose-mode inputs differ: ' + key
+    assert len(report['cases']) == len(CASES) and {case['id'] for case in report['cases']} == set(CASES), 'Missing or duplicate pose-mode fixture'
+    names = {'video', 'image'}
+    for case in report['cases']:
+        identifier = case['id']; original = baseline_cases[identifier]
+        _, frames, expected = CASES[identifier]
+        assert 'error' not in case, 'Pose-mode native exception'
+        assert case['frames'] == case['expectedFrames'] == frames and case['expectedMovements'] == expected, 'Pose-mode source/label changed'
+        assert re.fullmatch('[0-9a-f]{64}', case['sha256']) and case['sha256'] == original['sha256'], 'Pose-mode video bytes differ'
+        assert case['exercise'] == original['exercise'] and case['side'] == original['side'], 'Pose-mode exercise/side changed'
+        source = [json.loads(line) for line in path.with_name(identifier + '-observations.jsonl').read_text().splitlines()]
+        trace = [json.loads(line) for line in path.with_name(identifier + '-pose-modes.jsonl').read_text().splitlines()]
+        assert len(source) == len(trace) == frames, 'Incomplete pose-mode observations'
+        pts = case['sourcePtsMicroseconds']
+        assert len(pts) == frames and all(isinstance(value, int) and not isinstance(value, bool) and value >= 0 for value in pts)
+        assert all(a < b for a, b in zip(pts, pts[1:])), 'Non-increasing pose-mode PTS'
+        assert set(case['modes']) == names, 'Missing comparison mode'
+        single = dict.fromkeys(names, 0)
+        arms = {name: dict(left=0, right=0) for name in names}
+        for index, (row, native_pose) in enumerate(zip(trace, source)):
+            assert row['frameIndex'] == index and row['sourcePtsMicroseconds'] == pts[index], 'Pose-mode PTS/order mismatch'
+            timestamp = dict(value=pts[index], timescale=1_000_000)
+            assert native_pose['timestamp'] == timestamp, 'Pose-mode timeline differs from required native run'
+            assert re.fullmatch('[0-9a-f]{64}', row['pixelSha256']), 'Missing shared pixel checksum'
+            assert row['referenceEdge'] == original['referenceEdge'], 'Frozen reference edge changed'
+            assert row['inferenceOrder'] == (['video', 'image'] if index % 2 == 0 else ['image', 'video']), 'Comparison order changed'
+            assert set(row['modes']) == names
+            for name in names:
+                observation = row['modes'][name]; pose = observation['pose']
+                assert pose['timestamp'] == timestamp and pose['imageSize'] == native_pose['imageSize'], 'Mode source geometry/PTS changed'
+                backend = 'MediaPipe Heavy CPU IMAGE visibility/presence minimum' if name == 'image' else 'MediaPipe Heavy CPU visibility/presence minimum'
+                assert pose['backend'] == backend and pose['requestRevision'] == 1, 'Unexpected pose backend'
+                assert observation['counter']['policyVersion'] == 8, 'Comparison count policy changed'
+                assert finite_positive(observation['inferenceMillis']), 'Missing inference timing'
+                single[name] += len(pose['people']) == 1
+                assert len(observation['arms']) == 2 and {arm['side'] for arm in observation['arms']} == {'left', 'right'}
+                for arm in observation['arms']:
+                    arms[name][arm['side']] += arm.get('estimate') is not None
+        for name, summary in case['modes'].items():
+            assert summary['singlePersonFrames'] == single[name] and summary['usableArmFrames'] == arms[name], 'Mode coverage summary differs from trace'
+            count = summary['observedMovements']
+            assert isinstance(count, int) and not isinstance(count, bool) and count >= 0
+            assert count == trace[-1]['modes'][name]['counter']['observedMovements'], 'Mode count summary differs from trace'
+            assert count == sum(event['outcome'] == 'movement' for event in summary['events']), 'Mode count events incomplete'
+            latency = summary['inferenceLatencyMillis']
+            assert latency['samples'] == frames and finite_positive(latency['p95'])
+            print(f"{identifier} {name}: fixed-edge {count}/{expected}; usable arms {arms[name]}; inference p95 {latency['p95']:.1f}ms", flush=True)
+    print('Complete identical-pixel mode comparison collected. Diagnostic counts do not qualify Auto, full pipeline performance or physical parity.')
+
+
 def setup(path):
     report = json.loads(path.read_text())
     assert report['schemaVersion'] == 1 and not report['failures'], 'Native setup integration failed'
@@ -136,8 +193,8 @@ def matching_inputs(paths):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    for name in ('core', 'native', 'setup', 'accuracy'):
-        parser.add_argument('--' + name, type=Path)
+    for name in ('core', 'native', 'setup', 'accuracy', 'pose_modes'):
+        parser.add_argument('--' + name.replace('_', '-'), type=Path)
     parser.add_argument('--matching-inputs', type=Path, nargs=2, metavar=('API29_REPORT', 'API35_REPORT'))
     args = parser.parse_args()
     assert any(vars(args).values())

@@ -1,5 +1,7 @@
 import importlib.util
 import copy
+import contextlib
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -94,6 +96,102 @@ class AndroidEvaluationEvidenceTests(unittest.TestCase):
     def test_missing_explicit_accuracy_evidence_fails(self):
         report = self.failing_diagnostic(); report['accuracyFailures'] = []
         with self.assertRaises(AssertionError): self.check(report)
+
+
+class AndroidPoseModeEvidenceTests(unittest.TestCase):
+    def evidence(self):
+        baseline = AndroidEvaluationEvidenceTests().report()
+        baseline.update(sdk=35, modelSha256='a' * 64, poseArtifactSha256='b' * 64)
+        report = {key: baseline[key] for key in ('sdk', 'modelSha256', 'poseArtifactSha256', 'policyVersion')}
+        report.update(schemaVersion=1, failures=[], cases=[])
+        files = {}
+        for index, native in enumerate(baseline['cases']):
+            native.update(sha256=str(index) * 64, exercise='dip' if index == 2 else 'pullUp', side='left',
+                          referenceEdge={'a': {'x': 2, 'y': 3}, 'b': {'x': 200, 'y': 3}})
+            frames = native['frames']; identifier = native['id']
+            pts = [i * 100_000 for i in range(frames)]
+            # The experiment may still fail the original label; evidence collection is not an accuracy verdict.
+            count = 1 if index == 0 else 0
+            summaries = {name: dict(observedMovements=count, singlePersonFrames=frames,
+                usableArmFrames=dict(left=frames, right=0),
+                events=[dict(outcome='movement')] * count,
+                inferenceLatencyMillis=dict(samples=frames, p95=100)) for name in ('video', 'image')}
+            report['cases'].append(dict(id=identifier, sha256=native['sha256'], exercise=native['exercise'], side='left',
+                frames=frames, expectedFrames=frames, expectedMovements=native['expectedMovements'],
+                sourcePtsMicroseconds=pts, modes=summaries))
+            source = [dict(timestamp=dict(value=value, timescale=1_000_000), imageSize=dict(width=640, height=480)) for value in pts]
+            trace = []
+            for i, pose in enumerate(source):
+                modes = {}
+                for name in ('video', 'image'):
+                    backend = 'MediaPipe Heavy CPU IMAGE visibility/presence minimum' if name == 'image' else 'MediaPipe Heavy CPU visibility/presence minimum'
+                    modes[name] = dict(pose=dict(**pose, people=[{}], backend=backend, requestRevision=1),
+                        arms=[dict(side='left', estimate={}), dict(side='right', unavailableReason='lowConfidence')],
+                        counter=dict(policyVersion=8, observedMovements=count if i == frames - 1 else 0), inferenceMillis=100)
+                trace.append(dict(frameIndex=i, sourcePtsMicroseconds=pts[i], pixelSha256='c' * 64,
+                    referenceEdge=native['referenceEdge'], modes=modes,
+                    inferenceOrder=['video', 'image'] if i % 2 == 0 else ['image', 'video']))
+            files[identifier + '-observations.jsonl'] = source
+            files[identifier + '-pose-modes.jsonl'] = trace
+        return baseline, report, files
+
+    def check(self, change=lambda baseline, report, files: None):
+        baseline, report, files = self.evidence()
+        change(baseline, report, files)
+        with tempfile.TemporaryDirectory() as directory, contextlib.redirect_stdout(io.StringIO()):
+            folder = Path(directory)
+            (folder / 'report.json').write_text(json.dumps(baseline))
+            path = folder / 'pose-mode-report.json'; path.write_text(json.dumps(report))
+            for name, rows in files.items():
+                (folder / name).write_text(''.join(json.dumps(row) + '\n' for row in rows))
+            CHECK.pose_modes(path)
+
+    def test_complete_comparison_with_failed_original_counts_is_diagnostic_only(self):
+        self.check()
+
+    def test_original_label_cannot_be_relaxed(self):
+        with self.assertRaisesRegex(AssertionError, 'source/label changed'):
+            self.check(lambda baseline, report, files: report['cases'][2].update(expectedMovements=0))
+
+    def test_incomplete_source_is_rejected(self):
+        with self.assertRaisesRegex(AssertionError, 'Incomplete'):
+            self.check(lambda baseline, report, files: files['pullup_smoke-pose-modes.jsonl'].pop())
+
+    def test_mode_must_use_original_pts_and_geometry(self):
+        with self.assertRaisesRegex(AssertionError, 'geometry/PTS changed'):
+            self.check(lambda baseline, report, files: files['pullup_smoke-pose-modes.jsonl'][0]['modes']['image']['pose'].update(timestamp=dict(value=1, timescale=1_000_000)))
+
+    def test_missing_shared_pixel_evidence_is_rejected(self):
+        with self.assertRaisesRegex(AssertionError, 'pixel checksum'):
+            self.check(lambda baseline, report, files: files['pullup_smoke-pose-modes.jsonl'][0].update(pixelSha256=''))
+
+    def test_changed_video_or_model_is_rejected(self):
+        with self.assertRaisesRegex(AssertionError, 'video bytes differ'):
+            self.check(lambda baseline, report, files: report['cases'][0].update(sha256='f' * 64))
+        with self.assertRaisesRegex(AssertionError, 'inputs differ'):
+            self.check(lambda baseline, report, files: report.update(modelSha256='f' * 64))
+
+    def test_original_reference_edge_is_retained(self):
+        with self.assertRaisesRegex(AssertionError, 'reference edge changed'):
+            self.check(lambda baseline, report, files: files['pullup_smoke-pose-modes.jsonl'][0].update(referenceEdge={}))
+
+    def test_native_failure_or_missing_mode_is_rejected(self):
+        with self.assertRaisesRegex(AssertionError, 'native execution failed'):
+            self.check(lambda baseline, report, files: report.update(failures=['model failed']))
+        with self.assertRaisesRegex(AssertionError, 'Missing comparison mode'):
+            self.check(lambda baseline, report, files: report['cases'][0]['modes'].pop('image'))
+
+    def test_summary_cannot_hide_count_or_confidence_coverage(self):
+        with self.assertRaisesRegex(AssertionError, 'count summary differs'):
+            self.check(lambda baseline, report, files: report['cases'][2]['modes']['image'].update(observedMovements=9))
+        with self.assertRaisesRegex(AssertionError, 'coverage summary differs'):
+            self.check(lambda baseline, report, files: report['cases'][2]['modes']['image'].update(usableArmFrames=dict(left=300, right=300)))
+
+    def test_missing_timing_or_count_event_is_rejected(self):
+        with self.assertRaises(AssertionError):
+            self.check(lambda baseline, report, files: report['cases'][0]['modes']['image']['inferenceLatencyMillis'].update(samples=1))
+        with self.assertRaisesRegex(AssertionError, 'events incomplete'):
+            self.check(lambda baseline, report, files: report['cases'][0]['modes']['image'].update(events=[]))
 
 
 class AndroidSetupEvidenceTests(unittest.TestCase):

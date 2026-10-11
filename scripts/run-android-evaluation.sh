@@ -3,8 +3,12 @@ set -euo pipefail
 mkdir -p build/android-evaluation
 cp android/app/src/androidTest/assets/generated/ATTRIBUTION.txt build/android-evaluation/ATTRIBUTION.txt
 # Retain diagnostics even when an accuracy assertion fails. No media/test APK uploads.
+diagnostic_arguments=()
+if [[ "${POSE_MODE_DIAGNOSTIC:-false}" == "true" ]]; then
+  diagnostic_arguments+=("-Pandroid.testInstrumentationRunnerArguments.poseModeDiagnostic=true")
+fi
 set +e
-./gradlew :android:app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true --console=plain
+./gradlew :android:app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true "${diagnostic_arguments[@]}" --console=plain
 test_status=$?
 set -e
 adb pull /sdcard/Android/data/dev.hanginthere.android/files/evaluation/. build/android-evaluation/ || true

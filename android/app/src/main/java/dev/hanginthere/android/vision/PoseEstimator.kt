@@ -13,7 +13,8 @@ import java.io.Closeable
 import java.security.MessageDigest
 
 /** Own on one inference executor; VIDEO tracking timestamps are monotonic source milliseconds. */
-class PoseEstimator(context: Context) : Closeable {
+class PoseEstimator private constructor(context: Context, private val mode: RunningMode) : Closeable {
+    constructor(context: Context) : this(context, RunningMode.VIDEO)
     private val detector: PoseLandmarker
     private var lastTimestampMs = -1L
     init {
@@ -26,7 +27,7 @@ class PoseEstimator(context: Context) : Closeable {
         check(hash == MODEL_SHA256) { "Pose model checksum mismatch" }
         detector = PoseLandmarker.createFromOptions(context, PoseLandmarker.PoseLandmarkerOptions.builder()
             .setBaseOptions(BaseOptions.builder().setModelAssetPath(MODEL).setDelegate(Delegate.CPU).build())
-            .setRunningMode(RunningMode.VIDEO).setNumPoses(2)
+            .setRunningMode(mode).setNumPoses(2)
             .setMinPoseDetectionConfidence(0.5f).setMinPosePresenceConfidence(0.5f)
             .setMinTrackingConfidence(0.5f).build())
     }
@@ -39,7 +40,9 @@ class PoseEstimator(context: Context) : Closeable {
         val sdkBitmap = checkNotNull(bitmap.copy(Bitmap.Config.ARGB_8888, false)) { "Unable to allocate pose input" }
         val image = try { BitmapImageBuilder(sdkBitmap).build() }
         catch (error: Throwable) { sdkBitmap.recycle(); throw error }
-        val result = try { detector.detectForVideo(image, milliseconds) } finally { image.close() }
+        val result = try {
+            if (mode == RunningMode.IMAGE) detector.detect(image) else detector.detectForVideo(image, milliseconds)
+        } finally { image.close() }
         val people = result.landmarks().map { points ->
             val landmarks = JOINTS.map { (joint, index) ->
                 val point = points[index]
@@ -55,10 +58,14 @@ class PoseEstimator(context: Context) : Closeable {
             middle(PoseJoint.root, PoseJoint.leftHip, PoseJoint.rightHip)
             PoseObservation(landmarks)
         }
-        return PoseResult(PresentationTime(presentationTimeUs, 1_000_000), ImageSize(bitmap.width.toDouble(), bitmap.height.toDouble()), people, "MediaPipe Heavy CPU visibility/presence minimum", 1)
+        val backend = if (mode == RunningMode.IMAGE) "MediaPipe Heavy CPU IMAGE visibility/presence minimum"
+            else "MediaPipe Heavy CPU visibility/presence minimum"
+        return PoseResult(PresentationTime(presentationTimeUs, 1_000_000), ImageSize(bitmap.width.toDouble(), bitmap.height.toDouble()), people, backend, 1)
     }
     override fun close() = detector.close()
     companion object {
+        /** Controlled comparison only; production keeps VIDEO tracking until native accuracy/latency are qualified. */
+        internal fun independentFramesForDiagnostic(context: Context) = PoseEstimator(context, RunningMode.IMAGE)
         const val ARTIFACT = "com.google.mediapipe:tasks-vision:${BuildConfig.POSE_RUNTIME_VERSION}"
         const val ARTIFACT_SHA256 = BuildConfig.POSE_RUNTIME_AAR_SHA256
         const val MODEL = "pose_landmarker_heavy.task"

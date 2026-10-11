@@ -4,6 +4,11 @@ on:
     branches: [main, 'codex/android-parity']
   pull_request:
   workflow_dispatch:
+    inputs:
+      pose_mode_diagnostic:
+        description: Compare VIDEO tracking and IMAGE redetection on identical public pixels
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -102,6 +107,8 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Run actual decoder, MediaPipe CPU and OpenCV evaluation
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        env:
+          POSE_MODE_DIAGNOSTIC: ${{ inputs.pose_mode_diagnostic == true && 'true' || 'false' }}
         with:
           api-level: ${{ matrix.api }}
           arch: x86_64
@@ -116,6 +123,9 @@ jobs:
       - name: Check required positive, native mechanics and emulator budgets
         if: always()
         run: python3 scripts/check-android-evaluation.py --native build/android-evaluation/report.json
+      - name: Verify identical-pixel pose comparison evidence
+        if: ${{ always() && inputs.pose_mode_diagnostic == true }}
+        run: python3 scripts/check-android-evaluation.py --pose-modes build/android-evaluation/pose-mode-report.json
       - name: Check real-pixel Auto acquisition and live countdown
         if: always()
         run: python3 scripts/check-android-evaluation.py --setup build/android-evaluation/setup-report.json
