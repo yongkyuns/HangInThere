@@ -290,6 +290,28 @@ cases match production Swift. Fresh native video evaluation remains required.
 Private CI serializes identical revision/input batches while allowing independent
 frozen original and SDR batches on isolated runners with run-scoped artifacts.
 
+The complete native follow-ups at `354721d` are terminal on both API29 and API35:
+[four originals](https://github.com/yongkyuns/HangInThere/actions/runs/38104081270)
+and [four SDR cases](https://github.com/yongkyuns/HangInThere/actions/runs/38104082785).
+Both sides still count pull-ups 2/2 with Auto and fixed references, and dips 4/4
+with fixed references, through every 690/1,124 source frame. Automatic dips fail
+in both formats. This regresses the previously passing SDR automatic setup;
+every fixed native trace still matches Swift events, reasons and timestamps.
+
+Dip rail selection now prefers the eligible tube whose supporting line aligns
+with the wrist, followed by observed support and finite distance. A grasp may
+hide the handle's top, so either length or endpoint distance alone can favor
+offset clutter. References remain actual finite image edges; grip/body bounds,
+distinct bilateral rails, witness continuity and acquisition dwell still apply.
+Mirrored regressions cover longer eligible clutter, both sides, reversed inputs
+and dwell. All 221 Swift and 113 Kotlin tests pass with zero failures/skips;
+56 setup cases, 3,126 frames and 17 geometry cases match production Swift.
+Both added setup cases must execute in the oracle. Replaying captured SDR native
+observations recovers setup; the proposed edge also counts four movements when
+used with the same complete native pose trace on both APIs/sides. This diagnostic is separate
+from fresh native inference, full-source automatic counting and performance
+qualification, which remain required at the final vision implementation.
+
 Completed replay state is retained until the user starts another evaluation.
 Manual-reference controls cannot mutate a replay after EOF or replace its
 terminal failure/retry action with an idle snapshot. A monotonic generation

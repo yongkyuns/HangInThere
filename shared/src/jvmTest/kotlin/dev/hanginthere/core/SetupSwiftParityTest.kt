@@ -81,10 +81,11 @@ class SetupSwiftParityTest {
         val path=System.getenv("SETUP_ORACLE") ?: "../build/setup-oracle/oracle.json"
         val oracle=json.parseToJsonElement(File(path).readText()).jsonObject
         val cases=oracle.getValue("cases").jsonArray
-        assertTrue(cases.size>=54,"Setup parity cases reduced")
+        assertTrue(cases.size>=56,"Setup parity cases reduced")
         val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
-        assertTrue(ids.containsAll(listOf("dip-native-overlap-left","dip-native-overlap-right")),
-            "The frozen native regressions must execute; regenerate a stale setup oracle")
+        assertTrue(ids.containsAll(listOf("dip-native-overlap-left","dip-native-overlap-right",
+            "dip-wrist-aligned-before-longer-clutter-left","dip-wrist-aligned-before-longer-clutter-right")),
+            "Required setup regressions must execute; regenerate a stale setup oracle")
         var frames=0
         cases.forEach {value ->
             val row=value.jsonObject;val input=json.decodeFromJsonElement<Input>(row.getValue("input"))

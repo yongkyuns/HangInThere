@@ -133,7 +133,13 @@ struct AutomaticDipRails: Sendable {
                 tubes.append((pair, edge))
             }
         }
+        // A grasp can occlude the handle's upper end. Prefer alignment with
+        // the hand over longer offset clutter or a closer visible endpoint.
+        // Eligibility above still requires finite, observed support near it.
         tubes.sort {
+            let a = $0.pair.centerline.perpendicularDistance(to: hand)
+            let b = $1.pair.centerline.perpendicularDistance(to: hand)
+            if a != b { return a < b }
             if $0.pair.geometryScore != $1.pair.geometryScore { return $0.pair.geometryScore > $1.pair.geometryScore }
             return $0.pair.centerline.distance(to: hand) < $1.pair.centerline.distance(to: hand)
         }

@@ -80,6 +80,19 @@ def prepare(output):
             [step(i/10,'dip',candidates=mixed) for i in range(56)],True,True,side=side)
     add('dip-unreachable-selected-edges','dip',
         [step(i/10,'dip',candidates=unreachable) for i in range(56)],False,False)
+    # A grasp can hide the top of the handle. Longer offset tubes also have
+    # closer endpoints; finite supporting-line alignment must rank the grasp.
+    wrists=[landmark['position'] for landmark in step(0,'dip')['pose']['people'][0]['landmarks']
+            if landmark['joint'] in ['leftWrist','rightWrist']]
+    aligned=[]
+    for hand in wrists:
+        x,y=hand['x'],hand['y']
+        clutter=[candidate(px,y+40,px,y+190) for px in [x-40,x-30]]
+        handle=[candidate(px,y+70,px,y+190) for px in [x-10,x]]
+        aligned.append(clutter+handle)
+    for side in ['left','right']:
+        add('dip-wrist-aligned-before-longer-clutter-'+side,'dip',
+            [step(i/10,'dip',candidates=aligned) for i in range(56)],True,True,side=side)
     def transverse(slope=0, offset=0, opposite=False, reversed=False, right_slope=None):
         rails=[]
         for index,x in enumerate([300,700]):

@@ -41,6 +41,35 @@ import Testing
         }
     }
 
+    @Test func wristAlignedRailOutranksLongerOffsetClutter() throws {
+        // Occlusion can hide the top of the actual handle. A longer nearby tube
+        // is closer to the wrist by finite endpoint distance, but its supporting
+        // line is offset from the grasp. Ranking must not extend either edge.
+        let valid = [500.0,700.0].map { x in [rail(x-10,y:570),rail(x,y:570)] }
+        let clutter = [500.0,700.0].map { x in [x-40,x-30].map { px in
+            BarLineCandidate(edge:.init(a:.init(x:px,y:540),b:.init(x:px,y:690)),geometryScore:150)
+        } }
+        for reversed in [false,true] {
+            let candidates = zip(clutter,valid).map { bad, good in
+                let input = bad + good
+                return reversed ? input.reversed().map {
+                    BarLineCandidate(edge:.init(a:$0.edge.b,b:$0.edge.a),geometryScore:$0.geometryScore)
+                } : input
+            }
+            for side in ArmMeasurement.Side.allCases {
+                let index = side == .left ? 0 : 1, hand = Point2D(x:side == .left ? 500 : 700,y:500)
+                #expect(AutomaticDipRails.select(candidates:candidates[index],hand:hand,size:pose(0).imageSize)
+                    == valid[index][1].edge)
+                var policy = AutomaticDipRails()
+                for time in [0.0,0.3,0.6] { #expect(policy.observe(pose:pose(time),side:side,candidates:candidates) == nil) }
+                let proposal = policy.observe(pose:pose(1),side:side,candidates:candidates)
+                let bar = try #require(proposal)
+                #expect(bar.referenceEdge == valid[index][1].edge)
+                #expect(bar.role == (side == .left ? .leftDipRail : .rightDipRail))
+            }
+        }
+    }
+
     @Test func unreachableSelectedSilhouetteCannotAcquireByItsCloserCenterline() {
         let hand = Point2D(x:500,y:500), size = pose(0).imageSize
         for reversed in [false,true] {

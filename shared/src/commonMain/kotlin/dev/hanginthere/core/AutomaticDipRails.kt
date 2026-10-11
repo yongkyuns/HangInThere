@@ -113,7 +113,10 @@ class AutomaticDipRails {
                 if(!(edge.distance(hand)<=short*.12)) continue
                 tubes.add(pair to edge)
             }
-            val tube=tubes.sortedWith(compareByDescending<Pair<BarCandidate,BarSegment>>{it.first.geometryScore}.thenBy{it.first.centerline.distance(hand)}).firstOrNull() ?: return null
+            // A grasp can hide the handle's upper end. Prefer hand alignment
+            // over offset clutter; eligibility still requires finite support.
+            val tube=tubes.sortedWith(compareBy<Pair<BarCandidate,BarSegment>>{it.first.centerline.perpendicularDistance(hand)}
+                .thenByDescending{it.first.geometryScore}.thenBy{it.first.centerline.distance(hand)}).firstOrNull() ?: return null
             return ObservedRail(tube.first,tube.second.ordered)
         }
     }

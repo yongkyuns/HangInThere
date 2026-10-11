@@ -99,6 +99,28 @@ class SetupPoliciesTest {
             }
         }
     }
+    @Test fun wristAlignedRailOutranksLongerOffsetClutter() {
+        // The visible handle starts lower after occlusion; an offset tube has
+        // longer support and a closer endpoint, but poorer grasp alignment.
+        val valid=listOf(250.0,750.0).map{x -> listOf(line(x-10,620.0,740.0),line(x,620.0,740.0))}
+        val clutter=listOf(250.0,750.0).map{x -> listOf(line(x-40,590.0,740.0),line(x-30,590.0,740.0))}
+        for(reversed in listOf(false,true)) {
+            val candidates=clutter.zip(valid).map{(bad,good) ->
+                val input=bad+good
+                if(reversed) input.reversed().map{it.copy(edge=BarSegment(it.edge.b,it.edge.a))} else input
+            }
+            for(side in ArmMeasurement.Side.entries) {
+                val index=if(side==ArmMeasurement.Side.left) 0 else 1
+                val hand=Point2D(if(index==0) 250.0 else 750.0,550.0)
+                assertEquals(valid[index][1].edge,AutomaticDipRails.select(candidates[index],hand,size))
+                val policy=AutomaticDipRails()
+                for(time in listOf(0.0,.3,.6)) assertNull(policy.observe(pose(time),side,candidates))
+                val bar=assertNotNull(policy.observe(pose(1.0),side,candidates))
+                assertEquals(valid[index][1].edge,bar.referenceEdge)
+                assertEquals(if(index==0) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail,bar.role)
+            }
+        }
+    }
     @Test fun finiteOversizedGeometryCannotAcquireWithNonFiniteGripDistance() {
         val hand=Point2D(500.0,5e154)
         val oversized=listOf(line(490.0,1e155,2e155),line(500.0,1e155,2e155))
