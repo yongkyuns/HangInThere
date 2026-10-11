@@ -20,7 +20,7 @@ def version(binary):
     return subprocess.check_output([binary, '-version'], text=True).splitlines()[0]
 
 
-def author(name, width, height, colors, transfer, ffmpeg, reference):
+def author(name, width, height, colors, transfer, ffmpeg, reference, ffprobe):
     work = ROOT / 'build/hdr-fixture-authoring'; work.mkdir(parents=True, exist_ok=True)
     output = ROOT / 'android/app/src/androidTest/assets/hdr'; output.mkdir(parents=True, exist_ok=True)
     values = []
@@ -39,8 +39,14 @@ def author(name, width, height, colors, transfer, ffmpeg, reference):
                     '-fps_mode', 'passthrough', '-c:v', 'libx265', '-x265-params', codec, '-profile:v', 'main10',
                     '-pix_fmt', 'yuv420p10le', '-color_primaries', 'bt2020', '-color_trc', trc,
                     '-colorspace', 'bt2020nc', '-color_range', 'tv', '-video_track_timescale', '1000', str(encoded)], check=True)
-    subprocess.run([ffmpeg, '-v', 'error', '-y', '-i', str(encoded), '-map', '0:v:0', '-c', 'copy',
-                    '-metadata:s:v:0', 'rotate=90', str(target)], check=True)
+    # Current FFmpeg ignores the old rotate metadata command during remux.
+    # Write the display matrix explicitly, and verify the container independently.
+    subprocess.run([ffmpeg, '-v', 'error', '-y', '-display_rotation:v:0', '90', '-i', str(encoded),
+                    '-map', '0:v:0', '-c', 'copy', str(target)], check=True)
+    streams = json.loads(subprocess.check_output([ffprobe, '-v', 'error', '-select_streams', 'v:0',
+        '-show_entries', 'stream_side_data=rotation', '-of', 'json', str(target)], text=True))['streams']
+    rotations = [entry['rotation'] for stream in streams for entry in stream.get('side_data_list', []) if 'rotation' in entry]
+    assert rotations == [90], 'Authored source must carry a counterclockwise 90-degree display matrix'
     factor = min(1.0, 1280 / max(width, height))
     out_width, out_height = int(width * factor / 2) * 2, int(height * factor / 2) * 2
     data = subprocess.check_output([reference, '-v', 'error', '-noautorotate', '-i', str(target), '-vf',
@@ -63,8 +69,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--ffmpeg', default='ffmpeg', help='Encoder with libx265')
     parser.add_argument('--reference-ffmpeg', default='ffmpeg', help='Independent reference CLI with zscale')
+    parser.add_argument('--ffprobe', default='ffprobe', help='Independent container rotation verification')
     args = parser.parse_args()
     neutral = [(64, 512, 512), (502, 512, 512), (940, 512, 512)]
     for name, transfer in [('hlg', 18), ('pq', 16)]:
-        author(name, 128, 96, neutral, transfer, args.ffmpeg, args.reference_ffmpeg)
-    author('color-hlg', 1600, 96, [(259, 498, 799), (398, 342, 277), (255, 774, 460)], 18, args.ffmpeg, args.reference_ffmpeg)
+        author(name, 128, 96, neutral, transfer, args.ffmpeg, args.reference_ffmpeg, args.ffprobe)
+    author('color-hlg', 1600, 96, [(259, 498, 799), (398, 342, 277), (255, 774, 460)], 18, args.ffmpeg, args.reference_ffmpeg, args.ffprobe)

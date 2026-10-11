@@ -80,6 +80,10 @@ The sources and reference observations have SHA256 provenance; their authoring
 recipe is `scripts/author-hdr-fixtures.py`. Reference pixels came from the FFmpeg
 9.0.2 CLI, separately from the production 8.1.3 reader, with a small integer
 rounding tolerance. These fixtures contain neutral/colored panels, not human footage.
+The initial fixture remux omitted its declared display rotation. The corrected
+containers explicitly carry the independently verified matrix; their encoded
+packet hashes, source PTS and expected color values are unchanged. The provenance
+records that correction, and the authoring recipe now verifies the actual matrix.
 
 Host decoder contracts are separate from API29/API35 JNI tests and the
 authorized full-original phone recording evaluation. Full-source counts and
