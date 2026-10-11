@@ -28,13 +28,14 @@ class IOSRunnerTests(unittest.TestCase):
         self.log = self.root / "commands.jsonl"
         self.env = {**os.environ, "PATH": str(self.tools) + os.pathsep + os.environ["PATH"],
                     "COMMAND_LOG": str(self.log), "TEST_EXIT": "0", "TEST_COUNT": "46",
-                    "BUILD_EXIT": "0", "NO_SIMULATOR": "0", "SIMULATOR_SDK": "26.2"}
+                    "BUILD_EXIT": "0", "BUILD_FOR_TESTING_EXIT": "0",
+                    "NO_SIMULATOR": "0", "SIMULATOR_SDK": "26.2"}
         self.tool("xcodebuild", '''import json, os, sys
 from pathlib import Path
 args = sys.argv[1:]
 with Path(os.environ['COMMAND_LOG']).open('a') as log:
     log.write(json.dumps(args) + '\\n')
-if args[0] == 'test':
+if args[0] in {'test', 'test-without-building'}:
     if os.environ.get('WAIT_FOR_PROFILE') == '1':
         import time
         deadline = time.monotonic() + 5
@@ -45,6 +46,11 @@ if args[0] == 'test':
     sys.exit(int(os.environ['TEST_EXIT']))
 if args[0] == 'build':
     sys.exit(int(os.environ['BUILD_EXIT']))
+if args[0] == 'build-for-testing':
+    assert not Path('watcher-ready').exists(), 'Compilation must precede the PID watcher.'
+    status = int(os.environ['BUILD_FOR_TESTING_EXIT'])
+    if status == 0: Path('simulator-built').touch()
+    sys.exit(status)
 print('Test-only Xcode driver')
 ''')
         self.tool("xcrun", '''import json, os, sys
@@ -121,9 +127,10 @@ else:
         result, _ = self.run_script('vision', TEST_EXIT='65')
         self.assertEqual(result.returncode, 65, result.stderr)
 
-    def test_opt_in_profiler_is_stopped_without_masking_test_failure(self):
+    def profile_watcher(self):
         (self.root / 'scripts/profile-replay.py').write_text('''import json, signal, sys, time
 from pathlib import Path
+assert Path('simulator-built').exists(), 'Watcher started before simulator compilation finished.'
 def stop(*_):
     Path('watcher-stopped').touch()
     raise SystemExit(0)
@@ -132,18 +139,62 @@ Path('watcher-args.json').write_text(json.dumps(sys.argv[1:]))
 Path('watcher-ready').touch()
 while True: time.sleep(0.01)
 ''')
+
+    def test_opt_in_profiler_builds_first_and_preserves_test_failure(self):
+        self.profile_watcher()
         (self.root / 'build').mkdir()
         (self.root / 'build/replay-native-threads.txt').write_text('stale profile')
         (self.root / 'build/simulator-mechanics-tests.txt').write_text('stale PID')
-        result, _ = self.run_script('mechanics', TEST_EXIT='65', WAIT_FOR_PROFILE='1',
+        result, commands = self.run_script('mechanics', TEST_EXIT='65', WAIT_FOR_PROFILE='1',
                                     HANGINTHERE_REPLAY_THREAD_PROFILE='1')
         self.assertEqual(result.returncode, 65, result.stderr)
+        self.assertEqual([c[0] for c in commands],
+                         ['-version', 'build', 'build-for-testing', 'test-without-building'])
+        for option in ('-project', '-scheme', '-configuration', '-destination', '-derivedDataPath'):
+            self.assertEqual(commands[-2][commands[-2].index(option) + 1],
+                             commands[-1][commands[-1].index(option) + 1])
+        self.assertEqual(commands[-1][commands[-1].index('-parallel-testing-enabled') + 1], 'NO')
+        self.assertIn('-skip-testing:HangInThereTests/VisionSmokeTests', commands[-1])
+        self.assertIn('-skip-testing:HangInThereTests/RealVideoCorpusTests', commands[-1])
+        self.assertIn('build/Simulator-mechanics.xcresult', commands[-1])
+        self.assertTrue((self.root / 'build/simulator-mechanics-build.txt').exists())
         self.assertTrue((self.root / 'watcher-stopped').exists())
         self.assertEqual(json.loads((self.root / 'watcher-args.json').read_text()),
                          ['--log', str(self.root / 'build/simulator-mechanics-tests.txt'),
                           '--output', str(self.root / 'build/replay-native-threads.txt')])
         self.assertFalse((self.root / 'build/replay-native-threads.txt').exists())
         self.assertNotIn('stale PID', (self.root / 'build/simulator-mechanics-tests.txt').read_text())
+
+    def test_profile_compilation_failure_stops_before_watcher_or_tests(self):
+        self.profile_watcher()
+        (self.root / 'build').mkdir()
+        for name in ('replay-native-threads.txt', 'replay-native-sampler.txt',
+                     'simulator-mechanics-tests.txt'):
+            (self.root / 'build' / name).write_text('stale evidence')
+        result, commands = self.run_script('mechanics', BUILD_FOR_TESTING_EXIT='66',
+                                           HANGINTHERE_REPLAY_THREAD_PROFILE='1')
+        self.assertEqual(result.returncode, 66, result.stderr)
+        self.assertEqual([c[0] for c in commands], ['-version', 'build', 'build-for-testing'])
+        self.assertFalse((self.root / 'watcher-ready').exists())
+        self.assertFalse((self.root / 'build/replay-native-threads.txt').exists())
+        self.assertFalse((self.root / 'build/replay-native-sampler.txt').exists())
+        self.assertEqual((self.root / 'build/simulator-mechanics-tests.txt').read_text(), '')
+
+    def test_profile_zero_selected_tests_still_fails(self):
+        self.profile_watcher()
+        result, commands = self.run_script('mechanics', TEST_COUNT='0', WAIT_FOR_PROFILE='1',
+                                           HANGINTHERE_REPLAY_THREAD_PROFILE='1')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('refusing an empty green check', result.stderr)
+        self.assertEqual(commands[-1][0], 'test-without-building')
+        self.assertTrue((self.root / 'watcher-stopped').exists())
+
+    def test_profile_flag_keeps_vision_execution_unchanged(self):
+        result, commands = self.run_script('vision', HANGINTHERE_REPLAY_THREAD_PROFILE='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual([c[0] for c in commands], ['-version', 'test'])
+        self.assertIn('-only-testing:HangInThereTests/VisionSmokeTests', commands[-1])
+        self.assertIn('-only-testing:HangInThereTests/RealVideoCorpusTests', commands[-1])
 
     def test_device_build_failure_stops_mechanical_job(self):
         result, commands = self.run_script('mechanics', BUILD_EXIT='65')

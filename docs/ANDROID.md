@@ -321,6 +321,14 @@ log pipe from blocking a measured native stage; scheduling and callback overhead
 still remain in elapsed timings. The change improves diagnostic isolation and does
 not establish the cause or repair of the earlier native read failure.
 
+Opt-in simulator thread profiling compiles the test host before starting the
+five-minute PID watcher, then uses `test-without-building` with the same scheme,
+configuration, destination and test partition. Compilation has its own retained
+log; a build failure stops before profiling or testing and clears stale profile
+evidence. The watcher timeout, job timeout, assertions, test deadlines and test
+failure propagation remain unchanged. This repairs diagnostic startup, not a
+native replay or model failure.
+
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;
 it contains the pinned Heavy pose model and needs no model download at runtime.

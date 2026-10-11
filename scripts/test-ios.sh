@@ -53,10 +53,11 @@ RESULT_BUNDLE="build/Simulator-${SUITE}.xcresult"
 TEST_LOG="build/simulator-${SUITE}-tests.txt"
 # Xcode refuses to overwrite an existing result bundle. Delete this output only.
 rm -rf "$RESULT_BUNDLE"
-test_command=(xcodebuild test
+simulator_options=(
   -project ios/HangInThere.xcodeproj -scheme HangInThere -configuration Debug
   -destination "platform=iOS Simulator,id=${SIMULATOR_UDID}"
-  -derivedDataPath build/DerivedData -resultBundlePath "$RESULT_BUNDLE"
+  -derivedDataPath build/DerivedData)
+test_command=(xcodebuild test "${simulator_options[@]}" -resultBundlePath "$RESULT_BUNDLE"
   -parallel-testing-enabled NO)
 case "$SUITE" in
   mechanics) test_command+=(
@@ -84,7 +85,12 @@ trap stop_replay_sampler EXIT
 if [[ "$SUITE" == mechanics && "${HANGINTHERE_REPLAY_THREAD_PROFILE:-0}" == 1 ]]; then
   # Prevent a previous run's PID or profile from being mistaken for this run.
   : > "$TEST_LOG"
-  rm -f build/replay-native-threads.txt
+  rm -f build/replay-native-threads.txt build/replay-native-sampler.txt
+  # Compilation can outlast the watcher's bounded PID wait. Build first, then
+  # arm it for the same test selection without spending that wait on compilation.
+  xcodebuild build-for-testing "${simulator_options[@]}" 2>&1 \
+    | tee build/simulator-mechanics-build.txt
+  test_command[1]=test-without-building
   python3 scripts/profile-replay.py --log "$ROOT/$TEST_LOG" \
     --output "$ROOT/build/replay-native-threads.txt" \
     > "$ROOT/build/replay-native-sampler.txt" 2>&1 &
