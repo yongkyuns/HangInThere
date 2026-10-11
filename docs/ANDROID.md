@@ -21,6 +21,23 @@ remain unchanged.
 | iOS replay latency | Hosted replay or synthetic-fixture finalization intermittently exceeds unchanged deadlines | Evidence from the failing native operation and a demonstrated repair; successful reruns alone are insufficient |
 | Physical Android parity | No Android device evaluation | Camera/sensor timing, sustained throughput, thermal/battery and strict-form qualification on representative hardware |
 
+The H264 investigation now includes a strict direct-VideoToolbox probe and a
+separately pinned synthetic control. On local macOS 15.5/Xcode 16.4, the original
+has correct native I420 pixels with hardware enabled; explicitly disabling
+hardware saturates green/yellow Cr from 33/137 to 255 in every frame, before Core
+Image or display rotation. All four PTS and native decode/drain statuses pass.
+The same recipe with x264 `8x8dct=0` decodes correctly in both configurations.
+The fresh local iOS 18.6 simulator, explicitly selected with the 18.5 SDK,
+reproduces the original's eight Cr failures with hardware allowed or disabled;
+both control cases pass with complete PTS/status evidence. Its optional
+hardware-use query remains unsupported rather than reported as a known value.
+That comparison localizes the discrepancy to native decoding and narrows the
+bitstream trigger; it does not prove an internal transform defect or repair.
+Changing quantization/transform settings also changes encoded coefficients.
+The original bytes, existing RGB assertions and accuracy gates remain intact.
+See the [decoder reproduction](../ios/HangInThereTests/Fixtures/decoder/README.md)
+and `native_decoder_diagnostic` dispatch for separate Mac/simulator reports.
+
 At implementation `04c80b7c690e52581acd9d0ea5c9d4763cf7612a`, both Android APIs
 pass the unchanged held pull-up and dip setup/countdown cases. All 16 authorized
 phone-video cases also pass: original HDR and frozen SDR, both anatomical sides,
