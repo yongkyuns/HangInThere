@@ -28,7 +28,11 @@ phone-video cases also pass: original HDR and frozen SDR, both anatomical sides,
 The native checkpoints below distinguish those results from the remaining blockers.
 
 iOS replay now uses a dedicated serial Dispatch executor for blocking native
-decoding, rendering and inference. Swift still checks actor isolation and fresh
+decoding, rendering and inference. Its Core Image context is created lazily on
+that executor at first render and reused by later frames and rewinds. Construction
+of the reader on the presentation actor does no native context work; disposal is
+also checked after context creation. First-frame processing time now includes
+context creation. Swift still checks actor isolation and fresh
 decoder ownership. This prevents that actor from occupying a cooperative worker;
 it is not yet evidence that the hosted native stall has been eliminated.
 
@@ -254,14 +258,14 @@ Source disposal now has a separate, thread-safe signal for each replay session.
 Close, source replacement and restart discard that session's pending frame work;
 the reader checks between native stages and releases obsolete results without
 starting subsequent processing. Pause cancels pacing without discarding an
-already consumed frame, preserving it for resume. Five real-decoder checkpoint
+already consumed frame, preserving it for resume. Six real-decoder checkpoint
 cases verify that disposal prevents later stages without corrupting source PTS;
 a separately cancelled task must still return its frame with an undiscarded
 signal. Native objects remain actor-owned. This cannot interrupt a native call
 that is already blocked and does not establish a repair of the hosted read
 stall. Decoder copying policy, color tolerances and completion deadlines remain
 unchanged.
-Local validation passes all 274 native Mac tests. On iOS18.6, the reader,
+At `1e4aa92`, local validation passes all 274 native Mac tests. On iOS18.6, the reader,
 controller and automatic-setup partition passes 30/31 methods; only the existing
 8 pinned H264 color assertions fail. The final reader-only rerun also passes
 all disposal checkpoints and the strengthened pause case, leaving that same

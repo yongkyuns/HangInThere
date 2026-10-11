@@ -10,9 +10,7 @@ struct VideoReplayReaderTests {
         defer { try? FileManager.default.removeItem(at: url) }
         let (events, continuation) = AsyncStream.makeStream(of: Bool.self)
         let reader = VideoReplayReader(estimator: TestPoseEstimator(), trace: { event in
-            if event.stage != .context {
-                continuation.yield(Thread.isMainThread)
-            }
+            continuation.yield(Thread.isMainThread)
         })
         _ = try await reader.open(url)
         var timestamps: [Double] = []
@@ -22,7 +20,7 @@ struct VideoReplayReaderTests {
         var stages: [Bool] = []
         for await isMain in events { stages.append(isMain) }
         #expect(!stages.isEmpty && stages.allSatisfy { !$0 },
-                "Native preparation, decode, render and inference must leave the presentation actor.")
+                "Native context creation, preparation, decode, render and inference must leave the presentation actor.")
         #expect(timestamps == VideoTestSupport.timestamps.map(\.seconds))
     }
 
@@ -46,9 +44,12 @@ struct VideoReplayReaderTests {
         continuation.finish()
         var recorded: [ReplayTrace] = []
         for await event in events { recorded.append(event) }
-        #expect(recorded.map(\.stage) == [.context, .context, .preparation, .preparation] +
-                Array(repeating: [.decoding, .decoding, .geometry, .geometry,
-                                  .rendering, .rendering, .estimation, .estimation], count: 2).flatMap { $0 })
+        #expect(recorded.map(\.stage) == [.preparation, .preparation,
+                .decoding, .decoding, .geometry, .geometry, .context, .context,
+                .rendering, .rendering, .estimation, .estimation,
+                .decoding, .decoding, .geometry, .geometry,
+                .rendering, .rendering, .estimation, .estimation],
+                "Create the context lazily on first render, then reuse it on later frames.")
         for index in stride(from: 0, to: recorded.count - 1, by: 2) {
             let begin = recorded[index], end = recorded[index + 1]
             #expect(begin.stage == end.stage && begin.sourceSeconds == end.sourceSeconds)
@@ -60,7 +61,7 @@ struct VideoReplayReaderTests {
         #expect(recorded.filter { $0.stage == .estimation && $0.boundary == .ended }.map(\.sourceSeconds) == [0, 0.1])
     }
 
-    @Test(arguments: [nil, .decoding, .geometry, .rendering, .estimation] as [ReplayTrace.Stage?])
+    @Test(arguments: [nil, .decoding, .geometry, .context, .rendering, .estimation] as [ReplayTrace.Stage?])
     func discardedRequestsStopBetweenStagesWithoutCorruptingTheTimeline(after stage: ReplayTrace.Stage?) async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
@@ -88,10 +89,12 @@ struct VideoReplayReaderTests {
         continuation.finish()
         var recorded: [ReplayTrace.Stage] = []
         for await event in events where event.boundary == .began { recorded.append(event.stage) }
-        let nativeStages: [ReplayTrace.Stage] = [.decoding, .geometry, .rendering, .estimation]
+        let nativeStages: [ReplayTrace.Stage] = [.decoding, .geometry, .context, .rendering, .estimation]
         let stop = stage.flatMap { nativeStages.firstIndex(of: $0) }
         let abandonedStages = stop.map { Array(nativeStages.prefix($0 + 1)) } ?? []
-        #expect(recorded == [.context, .preparation] + abandonedStages + nativeStages,
+        let continuedStages = abandonedStages.contains(.context)
+            ? nativeStages.filter { $0 != .context } : nativeStages
+        #expect(recorded == [.preparation] + abandonedStages + continuedStages,
                 "Discard must prevent every native stage after its checkpoint.")
     }
 

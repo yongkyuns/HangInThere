@@ -95,7 +95,9 @@ actor VideoReplayReader {
     private var transform = Affine2D()
     private var timeline = ReplayTimeline()
     private var generation: UInt64 = 0
-    private let context: CIContext
+    // Create once on this actor's executor at first render. Actor initializers
+    // run on their caller, which may be the presentation actor.
+    private var context: CIContext?
     private let estimator: any PoseEstimator
     private let trace: ReplayTrace.Handler?
     private let maximumDimension = 1280.0
@@ -103,11 +105,6 @@ actor VideoReplayReader {
     init(estimator: any PoseEstimator = VisionPoseEstimator(), trace: ReplayTrace.Handler? = nil) {
         self.estimator = estimator
         self.trace = trace
-        let started = ContinuousClock.now
-        trace?(.init(stage: .context, boundary: .began, sourceSeconds: nil, milliseconds: nil))
-        context = CIContext(options: [.cacheIntermediates: false])
-        trace?(.init(stage: .context, boundary: .ended, sourceSeconds: nil,
-                     milliseconds: ReplayTrace.milliseconds(since: started)))
     }
 
     func open(_ source: URL) async throws -> VideoInfo {
@@ -254,8 +251,10 @@ actor VideoReplayReader {
                 return (pixels, rect)
             }
             try discard?.check()
+            let renderingContext = imageContext()
+            try discard?.check()
             guard let image = measure(.rendering, sourceSeconds: timestamp.seconds, {
-                context.createCGImage(pixels, from: rect)
+                renderingContext.createCGImage(pixels, from: rect)
             }) else {
                 throw ReplayError.decoding("The oriented image could not be rendered.")
             }
@@ -267,6 +266,13 @@ actor VideoReplayReader {
             let milliseconds = ReplayTrace.milliseconds(since: started)
             return ProcessedFrame(image: image, pose: pose, processingMilliseconds: milliseconds)
         }
+    }
+
+    private func imageContext() -> CIContext {
+        if let context { return context }
+        let created = measure(.context) { CIContext(options: [.cacheIntermediates: false]) }
+        context = created
+        return created
     }
 
     private func measure<Result>(_ stage: ReplayTrace.Stage, sourceSeconds: Double? = nil,
