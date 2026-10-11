@@ -95,6 +95,21 @@ class RuntimeSelection(unittest.TestCase):
 
 
 class Cancellation(unittest.TestCase):
+    def test_completed_command_does_not_wait_for_detached_descendant_output(self):
+        with tempfile.TemporaryDirectory() as work:
+            marker = Path(work) / 'descendant-pid'
+            child = ('import subprocess,sys; from pathlib import Path; '
+                     'p=subprocess.Popen([sys.executable,"-c","import time; time.sleep(10)"],start_new_session=True); '
+                     f'Path({str(marker)!r}).write_text(str(p.pid)); print("command complete",flush=True)')
+            try:
+                result = probe.run([sys.executable, '-c', child], timeout=2)
+                self.assertEqual(result.returncode, 0)
+                self.assertEqual(result.stdout.strip(), 'command complete')
+            finally:
+                if marker.exists():
+                    try: os.kill(int(marker.read_text()), signal.SIGKILL)
+                    except ProcessLookupError: pass
+
     def test_sigterm_and_sigint_kill_and_reap_child(self):
         for signum in (signal.SIGTERM, signal.SIGINT):
             with self.subTest(signum=signum), tempfile.TemporaryDirectory() as work:

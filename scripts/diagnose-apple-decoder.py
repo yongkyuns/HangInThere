@@ -8,6 +8,7 @@ import platform
 import signal
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ('quadrants-h264-vfr-portrait.mp4', 'quadrants-h264-4x4-vfr-portrait.mp4')
@@ -24,26 +25,27 @@ def cancel(signum, _frame):
 
 
 def run(command, *, timeout=60, check=True):
-    process = subprocess.Popen(command, text=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, start_new_session=True)
-    try:
-        stdout, stderr = process.communicate(timeout=timeout)
-        result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
-    except BaseException as error:
+    # Simulator daemons can inherit output descriptors outside this process
+    # group. Waiting for pipe EOF can hang after the direct command has exited.
+    # Files let us wait/reap the command itself without trusting descendant EOF.
+    with tempfile.TemporaryFile(mode='w+t') as output, tempfile.TemporaryFile(mode='w+t') as errors:
+        process = subprocess.Popen(command, text=True, stdout=output, stderr=errors, start_new_session=True)
         try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        try:
-            process.communicate(timeout=5)
-        except subprocess.TimeoutExpired:
-            raise RuntimeError('Child did not terminate after bounded cancellation') from error
-        if isinstance(error, subprocess.TimeoutExpired):
-            raise RuntimeError(f'Timed out after {timeout}s: {" ".join(command[:3])}') from None
-        raise
-    finally:
-        process.stdout.close()
-        process.stderr.close()
+            process.wait(timeout=timeout)
+        except BaseException as error:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(f'Child did not terminate after cancellation: {" ".join(command[:4])}') from error
+            if isinstance(error, subprocess.TimeoutExpired):
+                raise RuntimeError(f'Timed out after {timeout}s: {" ".join(command[:4])}') from None
+            raise
+        output.seek(0); errors.seek(0)
+        result = subprocess.CompletedProcess(command, process.returncode, output.read(), errors.read())
     if check and result.returncode:
         raise RuntimeError(f'Command failed ({result.returncode}): {command[0]}\n{result.stderr}')
     return result
