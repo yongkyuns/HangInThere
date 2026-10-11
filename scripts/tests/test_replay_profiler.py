@@ -30,6 +30,9 @@ class ReplayProfilerTests(unittest.TestCase):
         return (f"Replay profile target: pid={pid}, "
                 "test=automaticLockRewindsOnceAndResumesWithoutManualSetup\n")
 
+    def start_line(self):
+        return "◇ Test automaticLockRewindsOnceAndResumesWithoutManualSetup() started.\n"
+
     def test_waits_for_real_test_entry_and_complete_log_line(self):
         self.log.write_text("HangInThere[999:99] starting discovery\n" +
                             self.marker(0) + self.marker().replace("test=automatic", "test=unrelated") +
@@ -52,6 +55,63 @@ class ReplayProfilerTests(unittest.TestCase):
         self.log.write_text("HangInThere[999:99] starting discovery\n")
         with self.assertRaises(TimeoutError):
             profiler.wait_for_replay_pid(self.log, self.stopped, timeout=0.01)
+
+    def test_cold_launch_does_not_spend_the_real_test_pid_timeout(self):
+        now, polls = [0.0], []
+
+        def advance(_):
+            polls.append(True)
+            if len(polls) == 1:
+                now[0] = 600
+                self.log.write_text("HangInThere[999:99] starting discovery\n" +
+                                    self.start_line().replace("automaticLock", "unrelatedLock"))
+            elif len(polls) == 2:
+                now[0] = 1200
+                with self.log.open("a") as stream:
+                    stream.write(self.start_line() + self.marker(4321)[:-1])
+            elif len(polls) == 3:
+                now[0] += 0.1
+                with self.log.open("a") as stream:
+                    stream.write("\n")
+            else:
+                self.fail("The real PID must be accepted once its log line completes.")
+
+        with patch.object(profiler.time, "monotonic", side_effect=lambda: now[0]), \
+             patch.object(self.stopped, "wait", side_effect=advance):
+            self.assertEqual(profiler.wait_for_replay_pid(
+                self.log, self.stopped, wait_for_test_start=True), 4321)
+        self.assertEqual(len(polls), 3)
+
+    def test_real_test_start_keeps_the_existing_five_minute_pid_timeout(self):
+        self.log.write_text(self.start_line())
+        now = [0.0]
+
+        def advance(_):
+            now[0] += 300
+
+        with patch.object(profiler.time, "monotonic", side_effect=lambda: now[0]), \
+             patch.object(self.stopped, "wait", side_effect=advance):
+            with self.assertRaisesRegex(TimeoutError, "within 300 seconds"):
+                profiler.wait_for_replay_pid(self.log, self.stopped, wait_for_test_start=True)
+        self.assertEqual(now[0], 300)
+
+    def test_duplicate_start_line_cannot_reset_the_pid_deadline(self):
+        self.log.write_text(self.start_line())
+        now = [0.0]
+
+        def advance(_):
+            if now[0] == 0:
+                now[0] = 299
+                with self.log.open("a") as stream:
+                    stream.write(self.start_line())
+            else:
+                now[0] += 1
+
+        with patch.object(profiler.time, "monotonic", side_effect=lambda: now[0]), \
+             patch.object(self.stopped, "wait", side_effect=advance):
+            with self.assertRaisesRegex(TimeoutError, "within 300 seconds"):
+                profiler.wait_for_replay_pid(self.log, self.stopped, wait_for_test_start=True)
+        self.assertEqual(now[0], 300)
 
     def test_cancelled_wait_does_not_start_a_sampler(self):
         self.stopped.set()
@@ -118,10 +178,12 @@ while True: time.sleep(0.01)
         # Exercise signals immediately after readiness and during the poll's
         # sleep. threading.Event.set() in a signal handler can deadlock if the
         # interrupted wait holds its internal non-reentrant condition lock.
-        for delay in (0, 0.01, 0.05, 0.1):
-            with self.subTest(delay=delay):
+        for wait_for_start, delay in [(mode, delay) for mode in (False, True)
+                                      for delay in (0, 0.01, 0.05, 0.1)]:
+            with self.subTest(wait_for_start=wait_for_start, delay=delay):
+                launch_options = ["--wait-for-test-start"] if wait_for_start else []
                 child = subprocess.Popen([sys.executable, str(ROOT / "scripts/profile-replay.py"),
-                                          "--log", str(self.log), "--output", str(self.output)],
+                                          *launch_options, "--log", str(self.log), "--output", str(self.output)],
                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 try:
                     self.assertTrue(select.select([child.stdout], [], [], 3)[0], "Watcher never became ready.")

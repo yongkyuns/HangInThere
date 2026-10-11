@@ -87,11 +87,12 @@ if [[ "$SUITE" == mechanics && "${HANGINTHERE_REPLAY_THREAD_PROFILE:-0}" == 1 ]]
   : > "$TEST_LOG"
   rm -f build/replay-native-threads.txt build/replay-native-sampler.txt
   # Compilation can outlast the watcher's bounded PID wait. Build first, then
-  # arm it for the same test selection without spending that wait on compilation.
+  # watch the same selection without spending its PID timeout on compilation
+  # or cold simulator launch. The EXIT trap bounds the pre-test watcher lifetime.
   xcodebuild build-for-testing "${simulator_options[@]}" 2>&1 \
     | tee build/simulator-mechanics-build.txt
   test_command[1]=test-without-building
-  python3 scripts/profile-replay.py --log "$ROOT/$TEST_LOG" \
+  python3 scripts/profile-replay.py --wait-for-test-start --log "$ROOT/$TEST_LOG" \
     --output "$ROOT/build/replay-native-threads.txt" \
     > "$ROOT/build/replay-native-sampler.txt" 2>&1 &
   REPLAY_SAMPLER_PID=$!

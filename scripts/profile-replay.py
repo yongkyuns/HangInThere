@@ -17,6 +17,9 @@ REPLAY_START = re.compile(
     r"Replay profile target: pid=([1-9][0-9]*), "
     r"test=automaticLockRewindsOnceAndResumesWithoutManualSetup$"
 )
+REPLAY_TEST_START = re.compile(
+    r"Test automaticLockRewindsOnceAndResumesWithoutManualSetup\(\) started\.$"
+)
 
 
 class SignalCancellation:
@@ -36,10 +39,15 @@ class SignalCancellation:
         return self.requested
 
 
-def wait_for_replay_pid(log, stopped, timeout=300):
-    deadline = time.monotonic() + timeout
+def wait_for_replay_pid(log, stopped, timeout=300, wait_for_test_start=False):
+    # Cold simulator launch/discovery can outlast the PID timeout even after
+    # compilation. The runner owns this pre-test wait and cancels us on exit;
+    # arm the same bounded PID wait only when the selected test actually starts.
+    deadline = None if wait_for_test_start else time.monotonic() + timeout
     position, pending = 0, ""
-    while not stopped.is_set() and time.monotonic() < deadline:
+    while not stopped.is_set():
+        if deadline is not None and time.monotonic() >= deadline:
+            raise TimeoutError(f"No replay test PID appeared within {timeout:g} seconds.")
         try:
             with log.open(encoding="utf-8", errors="replace") as stream:
                 stream.seek(position)
@@ -53,9 +61,9 @@ def wait_for_replay_pid(log, stopped, timeout=300):
             match = REPLAY_START.search(line)
             if match:
                 return int(match[1])
+            if deadline is None and REPLAY_TEST_START.search(line):
+                deadline = time.monotonic() + timeout
         stopped.wait(0.1)
-    if not stopped.is_set():
-        raise TimeoutError(f"No replay test PID appeared within {timeout:g} seconds.")
     return None
 
 
@@ -75,8 +83,9 @@ def stop_sample(child):
                 child.wait(timeout=5)
 
 
-def profile(log, output, stopped, sampler="/usr/bin/sample", timeout=300):
-    pid = wait_for_replay_pid(log, stopped, timeout)
+def profile(log, output, stopped, sampler="/usr/bin/sample", timeout=300,
+            wait_for_test_start=False):
+    pid = wait_for_replay_pid(log, stopped, timeout, wait_for_test_start)
     if pid is None or stopped.is_set():
         return 0
     print(f"{datetime.now(timezone.utc).isoformat()} Replay test entry observed; "
@@ -99,13 +108,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--log", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--wait-for-test-start", action="store_true",
+                        help="Start the five-minute PID timeout at the real test entry; "
+                             "the test runner bounds cold simulator startup.")
     args = parser.parse_args()
     stopped = SignalCancellation()
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, lambda *_: stopped.set())
     try:
         print("Waiting for the synthetic replay test PID.", flush=True)
-        return profile(args.log, args.output, stopped)
+        return profile(args.log, args.output, stopped,
+                       wait_for_test_start=args.wait_for_test_start)
     except (OSError, TimeoutError) as error:
         print(f"Native replay profile unavailable: {error}", flush=True)
         return 1

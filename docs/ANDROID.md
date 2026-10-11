@@ -325,13 +325,16 @@ log pipe from blocking a measured native stage; scheduling and callback overhead
 still remain in elapsed timings. The change improves diagnostic isolation and does
 not establish the cause or repair of the earlier native read failure.
 
-Opt-in simulator thread profiling compiles the test host before starting the
-five-minute PID watcher, then uses `test-without-building` with the same scheme,
-configuration, destination and test partition. Compilation has its own retained
-log; a build failure stops before profiling or testing and clears stale profile
-evidence. The watcher timeout, job timeout, assertions, test deadlines and test
-failure propagation remain unchanged. This repairs diagnostic startup, not a
-native replay or model failure.
+Opt-in simulator thread profiling compiles the test host first, then uses
+`test-without-building` with the same scheme, configuration, destination and test
+partition. Its log watcher arms the existing five-minute PID timeout when the
+actual replay test starts. Cold simulator launch and discovery remain bounded by
+the unchanged job timeout; the runner cancels and reaps the watcher on every exit.
+Compilation has its own retained log; a build failure stops before profiling or
+testing and clears stale profile evidence. Assertions, test deadlines and failure
+propagation remain unchanged. These changes address diagnostic startup; hosted
+stack capture still requires qualification and cannot establish a native replay
+or model repair by itself.
 
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;

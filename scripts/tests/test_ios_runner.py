@@ -160,7 +160,7 @@ while True: time.sleep(0.01)
         self.assertTrue((self.root / 'build/simulator-mechanics-build.txt').exists())
         self.assertTrue((self.root / 'watcher-stopped').exists())
         self.assertEqual(json.loads((self.root / 'watcher-args.json').read_text()),
-                         ['--log', str(self.root / 'build/simulator-mechanics-tests.txt'),
+                         ['--wait-for-test-start', '--log', str(self.root / 'build/simulator-mechanics-tests.txt'),
                           '--output', str(self.root / 'build/replay-native-threads.txt')])
         self.assertFalse((self.root / 'build/replay-native-threads.txt').exists())
         self.assertNotIn('stale PID', (self.root / 'build/simulator-mechanics-tests.txt').read_text())
