@@ -151,6 +151,24 @@ means the overall workflow may remain red even if the named policy/native jobs
 pass. Those job names distinguish engineering qualification from original capture
 accuracy; no branch protection requirements are changed here.
 
+At `7f42c3d`, the public dip has identical video bytes and all 300 fixed-reference
+pose observations on both APIs. Replaying these observations through production
+Swift leaves 270 frames seeking a start. The counter first arms at 5.72 s, reaches
+its bottom state at 6.04 s, and interrupts at 6.92 s with `dipGripMoved`, without a
+movement event. The selected wrist has moved 39.00 px from its acquired position,
+exceeding the unchanged 38.00 px arm-scaled continuity limit. Separately, the right
+arm is unavailable because of low confidence in 266/300 frames; production Auto
+never identifies the exercise or searches for an apparatus. These are observed
+policy gates, not a calibrated diagnosis of model error.
+
+A source-only re-review confirms progressive image zoom, with approximately 2x
+background scale by EOF. The temporal recipe's earlier fixed-camera description
+has been corrected. This makes the whole-clip fixed image reference unsuitable
+as fixed-phone qualification evidence. It does not establish that zoom alone
+caused every missed event. The reviewed nine-rep label, original source pin,
+all 300 frames, reference coordinates and fatal accuracy checks remain intact;
+dynamic dip accuracy is still unqualified.
+
 The clearer Commons pull-up window/full visible bar annotation was frozen before
 its new Android inference; prior iOS source exposure is disclosed in its recipe.
 The public dynamic dip cases remain unqualified: three additional public candidates

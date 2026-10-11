@@ -11,8 +11,9 @@ stress diagnostics rather than falling back to pose-derived bar geometry.
 
 `fixtures/temporal-pilot.json` freezes source hashes, contiguous native frame
 ranges, event uncertainty windows, selected anatomical arm and excluded initial
-intervals **before running the counter on these sequences**. A single assistant
-reviewed the footage without counter output; this is not expert adjudication.
+intervals. The recipe records when each review preceded inference and discloses
+later development corrections after counter exposure. A single assistant
+reviewed the source footage; this is not expert adjudication.
 The pull-up source was previously used for pose-only comparison, so this is not
 a held-out trial. The two dip shots share one publisher/session. No subject
 independence or pretrained-model training-data independence is established.
@@ -22,6 +23,7 @@ independence or pretrained-model training-data independence is established.
 | Pull-up demonstration | [0,180) | 1 | Opening ascent's start hidden; final descent cut |
 | Rear-view parallel-bar dips | [8682,9471) | 10 | Opening effort already underway; spectators and dismount remain |
 | Side-view parallel-bar dips | [9940,10537) | 6 | Opening effort already underway; spectators and partial head crop remain |
+| Pexels parallel-bar dips | [0,300) | 9 | Progressive image zoom; development corrections after prior counter exposure |
 
 These are continuous clips with observable full movement cycles, **not complete
 uncensored workout sets**. Pull-ups are labelled at the top of a visible ascent
@@ -29,6 +31,17 @@ from a visible extended start. Dips are labelled on return to the local upper
 endpoint after a visible descent/ascent. Neither label asserts chin clearance,
 required dip depth, lockout, safety or valid form. The background is not cropped
 away and the scorer never selects the person nearest a reference.
+
+The Pexels dip's earlier fixed-camera description was incorrect. A source-only
+re-review on 2026-10-11 found progressive enlargement of the background and
+apparatus. Adjacent background registrations at 0.4-second intervals estimated
+approximately twice the initial image scale by EOF. This does not identify
+whether physical movement, optical zoom or digital processing caused the change.
+Its rail annotation is a reference from one frame near 3 seconds; it does not
+establish a stationary image edge across the whole recording. The nine movement
+windows and full scored coverage remain unchanged. This clip remains a dynamic
+capture diagnostic, and its fixed-reference count cannot qualify fixed-phone
+accuracy.
 
 Dip source: *AAW23 - Fittest All American Challenge*, U.S. Army video by Sgt. Jacob
 Moir / 49th Public Affairs Detachment, DVIDS 884241, VIRIN 230523-A-JM069-001.

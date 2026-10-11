@@ -1,9 +1,9 @@
 {
-  "annotation_provenance": "Single-assistant visual temporal review on raw/source-only media. Pull-up and DVIDS dip windows were frozen before their counter runs; prior pose-only pull-up exposure is disclosed. The controlled Pexels dip was initially reviewed at 2 FPS before Vision/counter execution, then re-reviewed from the pinned source-only 8 FPS artifact after earlier counter failures exposed insufficient temporal review resolution. That development-only re-review corrected the controlled clip from seven to nine complete top-return cycles; no model-derived timestamps were used for the corrected windows. The separate held-out dip fixture remains outside this development corpus.",
+  "annotation_provenance": "Single-assistant visual temporal review on raw/source-only media. Pull-up and DVIDS dip windows were frozen before their counter runs; prior pose-only pull-up exposure is disclosed. The controlled Pexels dip was initially reviewed at 2 FPS before Vision/counter execution, then re-reviewed from the pinned source-only 8 FPS artifact after earlier counter failures exposed insufficient temporal review resolution. That development-only re-review corrected the controlled clip from seven to nine complete top-return cycles; no model-derived timestamps were used for the corrected windows. The separate held-out dip fixture remains outside this development corpus. A source-only capture re-review on 2026-10-11 after Android accuracy failures found progressive image zoom in the Pexels dip; the earlier fixed-camera description was incorrect. This correction changes no event windows, selected frames, source pin, apparatus coordinates or scored coverage.",
   "review_artifact_sha256": "3a85ad57dc18da66189f733caf4dd94d54753fe363c12fbd9cfaec7f0772234f",
   "schema_version": 1,
   "counter_policy_version": 8,
-  "scope": "Four continuously decoded clips: one controlled fixed-camera pull-up, one controlled fixed-camera parallel-bar dip, and two crowded/moving-camera dip stress diagnostics. Model-independent approximate single-reviewer temporal labels; no strict-form verdict.",
+  "scope": "Four continuously decoded clips: one fixed-camera pull-up, one single-athlete parallel-bar dip with progressive image zoom, and two crowded/moving-camera dip stress diagnostics. Model-independent approximate single-reviewer temporal labels; no strict-form verdict.",
   "sources": [
     {
       "bar_reference_edge": [
@@ -267,9 +267,9 @@
         900,
         1059
       ],
-      "bar_reference_provenance": "Single-assistant visual review of the source-resolution near-hand rail on a clear fixed-camera frame at ~3 s, frozen before Apple Vision pose inference or policy-v2 counter execution. The line is an observed image reference, not proof of physical contact.",
+      "bar_reference_provenance": "Single-assistant visual review of the source-resolution near-hand rail on a clear frame at ~3 s, frozen before Apple Vision pose inference or policy-v2 counter execution. The line is an observed image reference, not proof of physical contact. Source-only re-review on 2026-10-11 found progressive image zoom; this single-frame reference does not establish a fixed image edge throughout the clip.",
       "ungradable_source_intervals": [],
-      "review_notes": "One athlete, fixed camera, stable parallel bars. Source-only 8 FPS re-review confirms nine complete top-bottom-top cycles from the visible initial support through a final return by EOF. The earlier 2 FPS development review missed two cycles and placed several top-return windows late. This corrected clip is explicitly development-exposed, not held-out. No dip-depth/lockout/form validity label.",
+      "review_notes": "One athlete with progressive image zoom; the earlier fixed-camera/stable-image description was incorrect. Source-only 8 FPS re-review confirms nine complete top-bottom-top cycles from the visible initial support through a final return by EOF. The earlier 2 FPS development review missed two cycles and placed several top-return windows late. Source-only background registration at 0.4 s intervals on 2026-10-11 estimated approximately 2x image scale by EOF; it does not distinguish physical camera movement, optical zoom or digital processing. This corrected clip is explicitly development-exposed, not held-out or a fixed-phone accuracy positive. No dip-depth/lockout/form validity label.",
       "development_after_prior_counter_exposure": true
     }
   ],
