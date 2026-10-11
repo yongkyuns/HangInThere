@@ -6,6 +6,11 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      apple_runtime:
+        description: Apple runtime qualification (baseline remains the required PR check)
+        type: choice
+        options: [baseline, current]
+        default: baseline
       native_replay_profile:
         description: Sample native threads during the synthetic simulator mechanics run
         type: boolean
@@ -15,16 +20,18 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.apple_runtime || 'baseline' }}
   cancel-in-progress: true
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  # A diagnostic dispatch may qualify the newer installed runtime. PR/push
+  # checks retain the baseline until unchanged tests establish a replacement.
+  DEVELOPER_DIR: ${{ inputs.apple_runtime == 'current' && '/Applications/Xcode_26.6.app/Contents/Developer' || '/Applications/Xcode_26.3.app/Contents/Developer' }}
 
 jobs:
   apple-host:
-    name: Native macOS real-Vision and replay integration
-    runs-on: macos-15
+    name: Native macOS real-Vision and replay integration${{ inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
+    runs-on: ${{ inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
     timeout-minutes: 30
     steps:
       - name: Checkout exact revision
@@ -84,8 +91,8 @@ jobs:
             ios/HangInThereTests/Fixtures/generated/corpus/*.mp4
 
   simulator:
-    name: iOS simulator ${{ matrix.suite }}
-    runs-on: macos-15
+    name: iOS simulator ${{ matrix.suite }}${{ inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
+    runs-on: ${{ inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
     timeout-minutes: 30
     strategy:
       # A backend failure must not cancel independent decoder/controller tests.
