@@ -5,6 +5,9 @@ explicit BT.2020 HLG or PQ metadata, including Dolby Vision profile 8's compatib
 HLG base layer. Other Dolby profiles are excluded. SDR continues through the
 existing MediaExtractor/MediaCodec adapter. This capability does not change the
 camera, pose engine, apparatus policy or movement counter.
+Android's Main10, Main10HDR10 and Main10HDR10Plus classifications are accepted
+as exact profile values. Native decoding still verifies the actual 10-bit
+bitstream and complete color metadata; a profile name never proves SDR conversion.
 
 The reader streams a duplicated seekable AssetFileDescriptor, respects its
 offset/length, selects the first video track, drains delayed decoder frames, and

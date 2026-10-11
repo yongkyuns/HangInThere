@@ -19,6 +19,25 @@ class VideoDecoderPolicyTest {
         assertFalse(VideoDecoderPolicy.supportsSoftwareHdr(VideoDecoderRequirement("video/dolby-vision", 256), hlg.copy(transfer = 6)))
     }
 
+    @Test fun extractorHdrClassificationsStillSelectVerifiedMain10Software() {
+        // The unchanged phone originals are classified as profile4096 by API29.
+        // Do not interpret these mutually exclusive profile values as bit flags.
+        listOf(2, 4096, 8192).forEach { profile ->
+            val source = VideoDecoderRequirement("video/hevc", profile)
+            listOf(hlg, hlg.copy(transfer = 6, range = 1)).forEach { color ->
+                assertTrue(VideoDecoderPolicy.supportsSoftwareHdr(source, color))
+            }
+            listOf(hlg.copy(standard = null), hlg.copy(transfer = null), hlg.copy(range = null),
+                hlg.copy(transfer = 3), hlg.copy(standard = 1)).forEach { color ->
+                assertFalse(VideoDecoderPolicy.supportsSoftwareHdr(source, color))
+            }
+            assertFalse(VideoDecoderPolicy.supportsSoftwareHdr(source.copy(mimeType = "video/avc"), hlg))
+        }
+        listOf(null, 0, 1, 4, 4097, 8193, 12288, -1).forEach { profile ->
+            assertFalse(VideoDecoderPolicy.supportsSoftwareHdr(VideoDecoderRequirement("video/hevc", profile), hlg))
+        }
+    }
+
     @Test fun compatibleDolbyHlgUsesHevcWithoutClaimingSdrConversion() {
         assertEquals(VideoDecoderRequirement("video/hevc", 2), VideoDecoderPolicy.compatibleBaseLayer(
             "video/dolby-vision", VideoDecoderPolicy.DOLBY_VISION_PROFILE_8, hlg))

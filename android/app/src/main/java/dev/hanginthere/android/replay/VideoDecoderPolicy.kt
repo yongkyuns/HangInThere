@@ -30,11 +30,16 @@ object VideoDecoderPolicy {
     const val DOLBY_VISION_PROFILE_8 = 256
     // MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10.
     const val HEVC_PROFILE_MAIN10 = 2
+    // Android also classifies Main10 streams by HDR metadata. These retain
+    // the Main10 bitstream; actual decoded format/color is verified natively.
+    const val HEVC_PROFILE_MAIN10_HDR10 = 4096
+    const val HEVC_PROFILE_MAIN10_HDR10_PLUS = 8192
 
     /** Software support is explicit; unknown Dolby profiles/color never enter it. */
     fun supportsSoftwareHdr(source: VideoDecoderRequirement, color: VideoColorMetadata): Boolean =
         color.standard == 6 && color.range in listOf(1, 2) && color.transfer in listOf(6, 7) &&
-            (source == VideoDecoderRequirement(HEVC_MIME, HEVC_PROFILE_MAIN10) ||
+            (source.mimeType == HEVC_MIME && source.profile in listOf(
+                HEVC_PROFILE_MAIN10, HEVC_PROFILE_MAIN10_HDR10, HEVC_PROFILE_MAIN10_HDR10_PLUS) ||
                 compatibleBaseLayer(source.mimeType, source.profile, color) != null)
 
     /**
