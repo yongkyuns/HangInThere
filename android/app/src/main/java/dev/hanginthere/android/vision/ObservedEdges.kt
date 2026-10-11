@@ -22,6 +22,10 @@ class ObservedEdges {
         val contours = ArrayList<MatOfPoint>()
         try {
             Utils.bitmapToMat(crop, pixels); Imgproc.cvtColor(pixels, gray, Imgproc.COLOR_RGBA2GRAY)
+            // Decode/sensor noise fragments silhouettes and changes their fitted
+            // lines between frames. Smooth only the bounded contour crop; pose
+            // inference and display retain the original canonical pixels.
+            Imgproc.GaussianBlur(gray, gray, Size(5.0, 5.0), 0.0)
             Imgproc.Canny(gray, edges, 40.0, 120.0)
             Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE)
             require(contours.sumOf { it.rows() } <= 80_000) { "Contour complexity limit" }

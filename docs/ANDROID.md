@@ -308,9 +308,27 @@ and dwell. All 221 Swift and 113 Kotlin tests pass with zero failures/skips;
 56 setup cases, 3,126 frames and 17 geometry cases match production Swift.
 Both added setup cases must execute in the oracle. Replaying captured SDR native
 observations recovers setup; the proposed edge also counts four movements when
-used with the same complete native pose trace on both APIs/sides. This diagnostic is separate
-from fresh native inference, full-source automatic counting and performance
-qualification, which remain required at the final vision implementation.
+used with the same complete native pose trace on both APIs/sides. Fresh native
+[SDR run38106794698](https://github.com/yongkyuns/HangInThere/actions/runs/38106794698)
+at `956d17b` verifies all four cases on API29/API35: both sides count 2/2 pull-ups
+and 4/4 dips automatically and with fixed references through all 690/1,124 source
+frames. Maximum Auto pipeline p95 is 153.4ms and peak PSS is 314.9MiB; these are
+emulator regression budgets. The unchanged
+[original HDR run38106793078](https://github.com/yongkyuns/HangInThere/actions/runs/38106793078)
+still counts 2/2 pull-ups automatically and 4/4 fixed-reference dips, but fails
+automatic dip acquisition on both APIs/sides. All 16 original/SDR fixed native
+traces match Swift counts, event reasons and source timestamps.
+
+Android now smooths the bounded grayscale contour crop with a 5x5 Gaussian
+kernel before Canny. Pose inference and display retain the original pixels;
+shared fitting, candidate limits, body exclusion, bilateral witnesses and dwell
+remain unchanged. A local host diagnostic recovered original HDR setup and
+counted all four dips with the same complete native poses on both APIs/sides.
+This is not native qualification: host OpenCV4.13 differs from Android4.12, and
+fresh full-source native Auto/performance evaluation must validate this adapter
+change and preserve every SDR case. Native synthetic regressions cover changing
+pixel noise, thin/wide rails, source-pixel preservation, dwell, and rejection of
+texture and forearm-like silhouettes; they do not claim pose-model accuracy.
 
 Completed replay state is retained until the user starts another evaluation.
 Manual-reference controls cannot mutate a replay after EOF or replace its
