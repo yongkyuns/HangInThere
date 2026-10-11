@@ -9,7 +9,7 @@ on:
       apple_runtime:
         description: Apple runtime qualification (baseline remains the required PR check)
         type: choice
-        options: [baseline, current]
+        options: [baseline, current, xcode27]
         default: baseline
       native_replay_profile:
         description: Sample native threads during the synthetic simulator mechanics run
@@ -24,14 +24,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # A diagnostic dispatch may qualify the newer installed runtime. PR/push
-  # checks retain the baseline until unchanged tests establish a replacement.
-  DEVELOPER_DIR: ${{ inputs.apple_runtime == 'current' && '/Applications/Xcode_26.6.app/Contents/Developer' || '/Applications/Xcode_26.3.app/Contents/Developer' }}
+  # Diagnostic dispatches qualify explicitly selected toolchains. Xcode 27
+  # has its own preview runner image; PR/push checks retain the baseline.
+  DEVELOPER_DIR: ${{ inputs.apple_runtime == 'xcode27' && '/Applications/Xcode_27.app/Contents/Developer' || inputs.apple_runtime == 'current' && '/Applications/Xcode_26.6.app/Contents/Developer' || '/Applications/Xcode_26.3.app/Contents/Developer' }}
 
 jobs:
   apple-host:
-    name: Native macOS real-Vision and replay integration${{ inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
-    runs-on: ${{ inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
+    name: Native macOS real-Vision and replay integration${{ inputs.apple_runtime == 'xcode27' && ' [Xcode27 qualification]' || inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
+    runs-on: ${{ inputs.apple_runtime == 'xcode27' && 'xcode-27' || inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
     timeout-minutes: 30
     steps:
       - name: Checkout exact revision
@@ -91,8 +91,8 @@ jobs:
             ios/HangInThereTests/Fixtures/generated/corpus/*.mp4
 
   simulator:
-    name: iOS simulator ${{ matrix.suite }}${{ inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
-    runs-on: ${{ inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
+    name: iOS simulator ${{ matrix.suite }}${{ inputs.apple_runtime == 'xcode27' && ' [Xcode27 qualification]' || inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
+    runs-on: ${{ inputs.apple_runtime == 'xcode27' && 'xcode-27' || inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
     timeout-minutes: 30
     strategy:
       # A backend failure must not cancel independent decoder/controller tests.

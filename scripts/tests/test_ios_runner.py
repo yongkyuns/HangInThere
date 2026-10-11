@@ -28,7 +28,7 @@ class IOSRunnerTests(unittest.TestCase):
         self.log = self.root / "commands.jsonl"
         self.env = {**os.environ, "PATH": str(self.tools) + os.pathsep + os.environ["PATH"],
                     "COMMAND_LOG": str(self.log), "TEST_EXIT": "0", "TEST_COUNT": "46",
-                    "BUILD_EXIT": "0", "NO_SIMULATOR": "0"}
+                    "BUILD_EXIT": "0", "NO_SIMULATOR": "0", "SIMULATOR_SDK": "26.2"}
         self.tool("xcodebuild", '''import json, os, sys
 from pathlib import Path
 args = sys.argv[1:]
@@ -52,9 +52,15 @@ args = sys.argv[1:]
 if args[:2] == ['simctl', 'list']:
     devices = [] if os.environ['NO_SIMULATOR'] == '1' else [
         {'isAvailable': True, 'name': 'iPhone test fixture', 'state': 'Shutdown', 'udid': 'TEST-UDID'}]
-    print(json.dumps({'devices': {'com.apple.CoreSimulator.SimRuntime.iOS-26-2': devices}}))
+    runtime = 'com.apple.CoreSimulator.SimRuntime.iOS-' + os.environ['SIMULATOR_SDK'].replace('.', '-')
+    inventory = {runtime: devices}
+    if os.environ['SIMULATOR_SDK'] != '26.2':
+        inventory = {'com.apple.CoreSimulator.SimRuntime.iOS-26-2': [
+            {'isAvailable': True, 'name': 'iPhone earlier runtime', 'state': 'Booted', 'udid': 'OLD-UDID'}],
+            **inventory}
+    print(json.dumps({'devices': inventory}))
 elif args[0] == '--sdk':
-    print('26.2')
+    print(os.environ['SIMULATOR_SDK'])
 else:
     print('Test-only Swift driver')
 ''')
@@ -159,6 +165,15 @@ while True: time.sleep(0.01)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('No available iPhone simulator', result.stderr)
         self.assertFalse(any(c[0] == 'test' for c in commands))
+
+    def test_sdk27_selects_matching_runtime_and_keeps_real_vision_tests(self):
+        result, commands = self.run_script('vision', SIMULATOR_SDK='27.0')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        test = commands[-1]
+        self.assertEqual(test[test.index('-destination') + 1],
+                         'platform=iOS Simulator,id=TEST-UDID')
+        self.assertIn('-only-testing:HangInThereTests/VisionSmokeTests', test)
+        self.assertIn('-only-testing:HangInThereTests/RealVideoCorpusTests', test)
 
 
 if __name__ == '__main__':

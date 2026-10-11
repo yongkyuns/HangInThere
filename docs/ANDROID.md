@@ -306,6 +306,14 @@ All7 automatic replay tests pass in both runs, but earlier hosted replay exceede
 the unchanged20-second completion deadline after the dedicated executor change.
 Those passes do not establish that the intermittent native stall is fixed.
 
+The explicit `xcode27` dispatch option selects stable Xcode27/iOS27 on GitHub's
+separate `xcode-27` preview runner image. Its installed toolchain path and iOS27
+runtime are listed in the [runner inventory](https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md);
+Apple lists the stable toolchain in its [SDK requirements](https://developer.apple.com/xcode/system-requirements/).
+This diagnostic runs the same Mac, mechanics and real-Vision suites with unchanged
+fixtures, color assertions, test deadlines and fatal exit status. It cannot replace
+the required baseline or qualify the missing capabilities before those results pass.
+
 See [Android build and ownership details](../android/README.md) and the
 [CI workflow](../.github/workflows/android.yml). The APK artifact is for evaluation;
 it contains the pinned Heavy pose model and needs no model download at runtime.
