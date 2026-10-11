@@ -49,6 +49,22 @@ class SetupPoliciesTest {
         assertEquals(Point2D(20.0,25.0),edge.a);assertEquals(Point2D(170.0,25.0),edge.b)
         assertFailsWith<BarFitException>{BarLineFitter.candidates(contours,BarRegion(0.0,0.0,300.0,100.0),ImageSize(200.0,100.0))}
     }
+    @Test fun tubePairingIsUndirectedAcrossVerticalEndpointOrder() {
+        val edges=listOf(BarSegment(Point2D(100.0,80.0),Point2D(102.0,180.0)),BarSegment(Point2D(108.0,80.0),Point2D(106.0,180.0)))
+        for(degrees in 0 until 360 step 45) {
+            val angle=degrees*kotlin.math.PI/180
+            fun rotate(p:Point2D)=Point2D(200+p.x*kotlin.math.cos(angle)-p.y*kotlin.math.sin(angle),200+p.x*kotlin.math.sin(angle)+p.y*kotlin.math.cos(angle))
+            val rotated=edges.map{BarSegment(rotate(it.a),rotate(it.b))}
+            for(swap in listOf(false,true)) for(reverseP in listOf(false,true)) for(reverseQ in listOf(false,true)) {
+                val p=rotated[if(swap) 1 else 0];val q=rotated[if(swap) 0 else 1]
+                val pair=assertNotNull(BarFitter.pair(if(reverseP) BarSegment(p.b,p.a) else p,if(reverseQ) BarSegment(q.b,q.a) else q,24.0))
+                assertTrue(pair.geometryScore>98)
+                for(point in listOf(pair.firstEdge.a,pair.firstEdge.b)) assertTrue(p.distance(point)<1e-8)
+                for(point in listOf(pair.secondEdge.a,pair.secondEdge.b)) assertTrue(q.distance(point)<1e-8)
+            }
+        }
+        assertNull(BarFitter.pair(edges[0],BarSegment(Point2D(104.0,80.0),Point2D(99.0,180.0)),24.0))
+    }
     @Test fun dipRequiresBothActuallyObservedRailSilhouettes() {
         val policy=AutomaticDipRails()
         for(t in listOf(0.0,.3,.6,.9,1.2)) assertNull(policy.observe(pose(t),ArmMeasurement.Side.left,listOf(listOf(line(250.0)),listOf(line(750.0)))))

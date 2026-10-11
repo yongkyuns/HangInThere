@@ -17,7 +17,7 @@ remain unchanged.
 | --- | --- | --- |
 | Native dip setup, API29/API35 | Held public pixels resolve Dip but provide no independent second rail; no countdown | A clear, prospectively reviewed bilateral rail view through native Auto and live countdown |
 | Original public accuracy | Cropped pull-up0/1; panning dip0/9 | Qualification of occluded poses and camera-relative references before claiming these captures are supported |
-| Original phone HDR imports | Software decoding qualifies authored HLG/PQ on both APIs; API35 original pull-ups count2/2 in Auto, original dips count4/4 only with a fixed reference | Automatic rail acquisition and complete original-source counts/performance on both APIs |
+| Original phone HDR imports | Both APIs count original pull-ups2/2 in Auto and original dips4/4 with a fixed reference; automatic dip acquisition fails | Complete automatic dip setup/counting and physical-device performance |
 | iOS simulator Vision | Apple body-pose weights fail to load | Real inference in a supported simulator runtime; native Mac and physical iPhone results remain separate |
 | iOS simulator decoder | Pinned H264 green/yellow samples have incorrect native chroma | Correct native decoding of the immutable fixture, with existing color tolerances |
 | iOS replay latency | Hosted replay intermittently exceeds the unchanged completion deadline | Repeat hosted replay after the dedicated executor change; a local pass is insufficient |
@@ -261,7 +261,22 @@ API29 originals were rejected before decoding because MediaExtractor classified
 them as Main10HDR10 (4096); the exact Main10-family classification fix is in301.
 [Original-only follow-up38098398872](https://github.com/yongkyuns/HangInThere/actions/runs/38098398872)
 uses the4 unchanged original-format rows from the frozen8-case manifest at301;
-its native results must be reported separately from the earlier SDR cases.
+both API29 and API35 count both original pull-up sides2/2 in Auto and with fixed
+references, through all690 source frames. Both original dip sides count4/4 with
+fixed references through all1124 frames, but Auto cannot acquire the rails.
+All4 fixed-reference traces on each API reproduce the Swift events, reasons and
+timestamps. Both native jobs therefore fail automatic dip qualification. These
+results remain separate from the earlier SDR cases.
+
+The subsequent geometry correction makes line grouping and tube pairing
+independent of endpoint direction. Nearly vertical edges with small slopes on
+opposite sides of vertical previously failed the signed direction comparison.
+Pair endpoints are aligned before projecting their finite shared support;
+crossing, width, taper and length checks remain intact. Mirrored rotation and
+endpoint-order regressions run in Swift/Kotlin, and both new cases are required
+in the14-case geometry oracle. Replay of the exact captured Android apparatus
+candidates now finds a dip lock missed by the old geometry. A fresh native
+video run is required to qualify the changed contour grouping and full setup.
 
 These recordings are development evidence, not a held-out benchmark. Successful
 HDR decoding or fixed-reference counting does not qualify automatic setup.

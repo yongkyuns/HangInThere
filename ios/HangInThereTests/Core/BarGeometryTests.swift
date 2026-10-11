@@ -36,6 +36,52 @@ import Testing
         #expect(BarFitter.pair(line(50,100,550,100),line(50,110,550,116),minimumLength:24) != nil)
         #expect(BarFitter.pair(line(50,100,550,100),line(50,110,550,90),minimumLength:24) == nil)
     }
+    @Test func tubePairingIsUndirectedAcrossVerticalEndpointOrder() throws {
+        // Perspective/noise can put nearly vertical silhouettes on opposite
+        // sides of 90 degrees. Sorting by x then gives opposite directions.
+        let edges = [line(100, 80, 102, 180), line(108, 80, 106, 180)]
+        for degrees in stride(from: 0.0, to: 360.0, by: 45.0) {
+            let angle = degrees * .pi / 180
+            func rotate(_ p: Point2D) -> Point2D {
+                Point2D(x: 200 + p.x * cos(angle) - p.y * sin(angle),
+                        y: 200 + p.x * sin(angle) + p.y * cos(angle))
+            }
+            let rotated = edges.map { BarSegment(a: rotate($0.a), b: rotate($0.b)) }
+            for swap in [false, true] {
+                for reverseP in [false, true] {
+                    for reverseQ in [false, true] {
+                        let p = rotated[swap ? 1 : 0], q = rotated[swap ? 0 : 1]
+                        let pair = try #require(BarFitter.pair(
+                            reverseP ? BarSegment(a: p.b, b: p.a) : p,
+                            reverseQ ? BarSegment(a: q.b, b: q.a) : q, minimumLength: 24))
+                        #expect(pair.geometryScore > 98)
+                        for point in [pair.firstEdge.a, pair.firstEdge.b] { #expect(p.distance(to: point) < 1e-8) }
+                        for point in [pair.secondEdge.a, pair.secondEdge.b] { #expect(q.distance(to: point) < 1e-8) }
+                    }
+                }
+            }
+        }
+        // Aligning directions must never turn crossing silhouettes into a tube.
+        #expect(BarFitter.pair(edges[0], line(104, 80, 99, 180), minimumLength: 24) == nil)
+    }
+    @Test func fragmentedLineGroupingIsUndirectedAcrossVerticalNoise() throws {
+        let fragments = [[Point2D(x: 100, y: 20), Point2D(x: 101, y: 90)],
+                         [Point2D(x: 101, y: 100), Point2D(x: 100, y: 180)]]
+        for degrees in stride(from: 0.0, to: 360.0, by: 45.0) {
+            let angle = degrees * .pi / 180
+            let rotated = fragments.map { points in points.map { p in
+                Point2D(x: 100 + (p.x - 100) * cos(angle) - (p.y - 100) * sin(angle),
+                        y: 100 + (p.x - 100) * sin(angle) + (p.y - 100) * cos(angle))
+            } }
+            for contours in [rotated, rotated.reversed().map { Array($0.reversed()) }] {
+                let candidates = try BarLineFitter.candidates(contours: contours,
+                    region: BarRegion(.init(x: 0, y: 0), .init(x: 200, y: 200)),
+                    size: ImageSize(width: 200, height: 200))
+                #expect(candidates.count == 1)
+                #expect(try #require(candidates.first).edge.length > 159)
+            }
+        }
+    }
     @Test func invalidSegmentsNeverProduceGeometry() {
         #expect(BarFitter.pair(line(0,0,0,0),line(10,10,100,10),minimumLength:24) == nil)
         #expect(BarFitter.pair(line(.nan,0,100,0),line(10,10,100,10),minimumLength:24) == nil)

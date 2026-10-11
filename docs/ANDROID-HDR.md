@@ -98,8 +98,12 @@ on130b2df qualifies both original pull-up sides on API35: Auto and fixed
 references give2/2 movements through all690 frames. The original dip gives4/4
 with either fixed reference through all1124 frames, but Auto cannot acquire
 the rails. API29 originally rejected the extractor's Main10HDR10 classification
-before native decoding;301 accepts that exact classification, with a separate
-original-only follow-up. Successful decoding/fixed-reference counts therefore
+before native decoding;301 accepts that exact classification.
+[Original-only follow-up38098398872](https://github.com/yongkyuns/HangInThere/actions/runs/38098398872)
+qualifies both original pull-up sides on both APIs in Auto and with fixed
+references through all690 frames. Both original dip sides count4/4 with fixed
+references through all1124 frames, but automatic rail acquisition still fails.
+Successful decoding/fixed-reference counts therefore
 do not establish full phone-video parity. See [the current checkpoint](ANDROID.md#authorized-recording-checkpoint).
 Emulator throughput does not qualify physical-device thermals, battery
 consumption or sustained live-camera frame rates.

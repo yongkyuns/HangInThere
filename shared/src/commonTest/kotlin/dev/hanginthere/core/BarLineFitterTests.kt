@@ -22,6 +22,19 @@ class BarLineFitterTests {
     private fun candidates(contours: List<List<Point2D>>) =
         BarLineFitter.candidates(contours, region, size)
 
+    @Test fun fragmentedLineGroupingIsUndirectedAcrossVerticalNoise() {
+        val fragments=listOf(listOf(Point2D(100.0,20.0),Point2D(101.0,90.0)),listOf(Point2D(101.0,100.0),Point2D(100.0,180.0)))
+        for(degrees in 0 until 360 step 45) {
+            val angle=degrees*kotlin.math.PI/180
+            val rotated=fragments.map{points -> points.map{p -> Point2D(100+(p.x-100)*kotlin.math.cos(angle)-(p.y-100)*kotlin.math.sin(angle),100+(p.x-100)*kotlin.math.sin(angle)+(p.y-100)*kotlin.math.cos(angle))}}
+            for(contours in listOf(rotated,rotated.reversed().map{it.reversed()})) {
+                val result=BarLineFitter.candidates(contours,BarRegion(0.0,0.0,200.0,200.0),ImageSize(200.0,200.0))
+                assertEquals(1,result.size)
+                assertTrue(result.single().edge.length>159)
+            }
+        }
+    }
+
     @Test fun retainsActualTubeAmidEligibleClutterWithoutExtrapolation() {
         val expected = candidates(tube)
         val actual = candidates(clutter() + tube)

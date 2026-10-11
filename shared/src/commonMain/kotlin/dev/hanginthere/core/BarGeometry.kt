@@ -48,11 +48,13 @@ object BarFitter {
     const val maximumSegments=512
     fun pair(pOriginal:BarSegment,qOriginal:BarSegment,minimumLength:Double):BarCandidate? {
         if(!pOriginal.isValid || !qOriginal.isValid || !minimumLength.isFinite() || minimumLength<2) return null
-        val p=pOriginal.ordered; val q=qOriginal.ordered
+        val p=pOriginal.ordered; var q=qOriginal.ordered
         val ux=(p.b.x-p.a.x)/p.length; val uy=(p.b.y-p.a.y)/p.length
         val vx=(q.b.x-q.a.x)/q.length; val vy=(q.b.y-q.a.y)/q.length
         val dot=ux*vx+uy*vy
-        if(dot<cos(5*PI/180)) return null
+        if(abs(dot)<cos(5*PI/180)) return null
+        // Align the undirected edge before projecting shared observed support.
+        if(dot<0) q=BarSegment(q.b,q.a)
         fun projection(r:Point2D)=(r.x-p.a.x)*ux+(r.y-p.a.y)*uy
         val q0=projection(q.a);val q1=projection(q.b);val lo=max(0.0,q0);val hi=min(p.length,q1)
         if(hi-lo<minimumLength || q1-q0<=0) return null
@@ -62,7 +64,7 @@ object BarFitter {
         val w0=(c.x-a.x)*(-uy)+(c.y-a.y)*ux;val w1=(d.x-b.x)*(-uy)+(d.y-b.y)*ux
         val narrow=min(abs(w0),abs(w1));val wide=max(abs(w0),abs(w1))
         if(w0*w1<=0 || narrow<2 || wide>40 || narrow<.4*wide || hi-lo<wide) return null
-        return BarCandidate(BarSegment(a,b),BarSegment(c,d),(hi-lo)*dot)
+        return BarCandidate(BarSegment(a,b),BarSegment(c,d),(hi-lo)*abs(dot))
     }
     fun candidates(contours:List<List<Point2D>>,region:BarRegion,size:ImageSize):List<BarCandidate> {
         requireComplexity(contours,region,size)
@@ -166,7 +168,8 @@ object BarLineFitter {
             if(ux<0 || (abs(ux)<1e-12 && uy<0)){ux=-ux;uy=-uy}
             val points=listOf(e.a,e.b)
             val group=groups.firstOrNull {g->
-                val f=g.fit;val dot=(ux*f.ux+uy*f.uy).coerceIn(-1.0,1.0)
+                // Lines are undirected; x ordering flips direction around vertical.
+                val f=g.fit;val dot=abs(ux*f.ux+uy*f.uy).coerceIn(0.0,1.0)
                 val offset=points.sumOf{it.x*(-f.uy)+it.y*f.ux}/2
                 val ts=points.map{it.x*f.ux+it.y*f.uy};val gap=max(0.0,max(f.t0-ts.max(),ts.min()-f.t1))
                 acos(dot)<=8*PI/180 && abs(offset-f.offset)<=5 && gap<=gapLimit

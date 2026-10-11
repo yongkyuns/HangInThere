@@ -134,7 +134,8 @@ enum BarLineFitter {
             let points = [edge.a, edge.b]
             var placed = false
             for index in groups.indices {
-                let dot = max(-1.0, min(1.0, unit.0 * groups[index].ux + unit.1 * groups[index].uy))
+                // Lines are undirected; x ordering flips direction around vertical.
+                let dot = min(1.0, abs(unit.0 * groups[index].ux + unit.1 * groups[index].uy))
                 guard acos(dot) <= 8 * .pi / 180 else { continue }
                 let gnx = -groups[index].uy, gny = groups[index].ux
                 let candidateOffset = points.reduce(0.0) {
@@ -330,11 +331,14 @@ enum BarFitter {
 
     static func pair(_ p: BarSegment, _ q: BarSegment, minimumLength: Double) -> BarCandidate? {
         guard p.isValid, q.isValid, minimumLength.isFinite, minimumLength >= 2 else { return nil }
-        let p = p.ordered, q = q.ordered
+        let p = p.ordered
+        var q = q.ordered
         let ux = (p.b.x-p.a.x)/p.length, uy = (p.b.y-p.a.y)/p.length
         let vx = (q.b.x-q.a.x)/q.length, vy = (q.b.y-q.a.y)/q.length
         let dot = ux*vx + uy*vy
-        guard dot >= cos(5 * .pi / 180) else { return nil }
+        guard abs(dot) >= cos(5 * .pi / 180) else { return nil }
+        // Align q with p before projecting their shared observed support.
+        if dot < 0 { q = BarSegment(a: q.b, b: q.a) }
         func projection(_ r: Point2D) -> Double { (r.x-p.a.x)*ux + (r.y-p.a.y)*uy }
         let q0 = projection(q.a), q1 = projection(q.b)
         let lo = max(0, q0), hi = min(p.length, q1)
@@ -354,7 +358,7 @@ enum BarFitter {
         guard w0*w1 > 0, narrow >= 2, wide <= 40,
               narrow >= 0.4*wide, hi-lo >= wide else { return nil }
         return BarCandidate(firstEdge: BarSegment(a: a, b: b), secondEdge: BarSegment(a: c, b: d),
-                            geometryScore: (hi-lo)*dot)
+                            geometryScore: (hi-lo)*abs(dot))
     }
 
     private static func simplify(_ points: [Point2D], tolerance: Double, budget: inout Int) throws -> [Point2D] {
