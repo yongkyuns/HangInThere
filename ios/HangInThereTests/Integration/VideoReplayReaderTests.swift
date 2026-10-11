@@ -60,6 +60,61 @@ struct VideoReplayReaderTests {
         #expect(recorded.filter { $0.stage == .estimation && $0.boundary == .ended }.map(\.sourceSeconds) == [0, 0.1])
     }
 
+    @Test(arguments: [nil, .decoding, .geometry, .rendering, .estimation] as [ReplayTrace.Stage?])
+    func discardedRequestsStopBetweenStagesWithoutCorruptingTheTimeline(after stage: ReplayTrace.Stage?) async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let discard = ReplayFrameDiscardSignal()
+        let (events, continuation) = AsyncStream.makeStream(of: ReplayTrace.self)
+        let reader = VideoReplayReader(estimator: TestPoseEstimator(), trace: { event in
+            continuation.yield(event)
+            if event.boundary == .ended && event.stage == stage { discard.discard() }
+        })
+        _ = try await reader.open(url)
+        if stage == nil { discard.discard() }
+        do {
+            _ = try await reader.nextFrame(discard: discard)
+            Issue.record("A discarded frame request must throw instead of returning obsolete pixels.")
+        } catch is CancellationError {
+            // Source disposal intentionally abandons this consumed frame.
+        }
+        // A new request can continue the reader. No native read took place if
+        // disposal preceded decoding; otherwise exactly one frame was consumed.
+        let next = try await reader.nextFrame()
+        let frame = try #require(next)
+        #expect(frame.pose.timestamp.seconds == (stage == nil ? 0 : 0.1))
+        try checkFrame(frame, width: 160, height: 96, colors: [red, green, blue, yellow])
+        await reader.close()
+        continuation.finish()
+        var recorded: [ReplayTrace.Stage] = []
+        for await event in events where event.boundary == .began { recorded.append(event.stage) }
+        let nativeStages: [ReplayTrace.Stage] = [.decoding, .geometry, .rendering, .estimation]
+        let stop = stage.flatMap { nativeStages.firstIndex(of: $0) }
+        let abandonedStages = stop.map { Array(nativeStages.prefix($0 + 1)) } ?? []
+        #expect(recorded == [.context, .preparation] + abandonedStages + nativeStages,
+                "Discard must prevent every native stage after its checkpoint.")
+    }
+
+    @Test func cancelledPauseTaskStillReturnsItsConsumedFrameWithoutDisposal() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
+        _ = try await reader.open(url)
+        let discard = ReplayFrameDiscardSignal()
+        let task = Task {
+            // Cancel only this task, exactly as pause does. Disposal is a
+            // separate signal and must not be inferred from Task.isCancelled.
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await reader.nextFrame(discard: discard)
+        }
+        let next = try await task.value
+        let frame = try #require(next)
+        #expect(task.isCancelled)
+        #expect(frame.pose.timestamp.seconds == 0)
+        try checkFrame(frame, width: 160, height: 96, colors: [red, green, blue, yellow])
+        await reader.close()
+    }
+
     @Test(arguments: [false, true])
     func rawFixturesRoundTripFractionalPTSAndAllQuadrants(portrait: Bool) async throws {
         let times = [0, 1, 3, 7].map { CMTime(value: $0, timescale: 30) }

@@ -2,6 +2,7 @@ import AVFoundation
 import CoreImage
 import Dispatch
 import Foundation
+import os
 
 struct VideoInfo: Sendable {
     let durationSeconds: Double
@@ -11,6 +12,20 @@ struct ProcessedFrame: Sendable {
     let image: CGImage
     let pose: PoseResult
     let processingMilliseconds: Double
+}
+
+// A playback pause cancels its task but must preserve an already consumed frame
+// for resume. Source disposal instead marks this session's frames obsolete.
+// Only the flag crosses executors; decoder objects remain actor-owned. Never
+// hold the lock while calling a native API or awaiting another actor.
+struct ReplayFrameDiscardSignal: Sendable {
+    private let state = OSAllocatedUnfairLock(initialState: false)
+
+    func discard() { state.withLock { $0 = true } }
+
+    func check() throws {
+        if state.withLock({ $0 }) { throw CancellationError() }
+    }
 }
 
 // Opt-in native-stage diagnostics contain only timing and source time. The
@@ -193,11 +208,16 @@ actor VideoReplayReader {
         )
     }
 
-    func nextFrame() throws -> ProcessedFrame? {
+    func nextFrame(discard: ReplayFrameDiscardSignal? = nil) throws -> ProcessedFrame? {
         guard let reader, let output else { throw ReplayError.notOpen }
+        try discard?.check()
         return try autoreleasepool {
             let started = ContinuousClock.now
-            guard let sample = measure(.decoding, { output.copyNextSampleBuffer() }) else {
+            let decoded = measure(.decoding, { output.copyNextSampleBuffer() })
+            // A blocking native read cannot observe disposal until it returns.
+            // Avoid rendering/inference for that obsolete session afterwards.
+            try discard?.check()
+            guard let sample = decoded else {
                 if reader.status == .completed { return nil }
                 throw ReplayError.decoding(reader.error?.localizedDescription ?? "The decoder stopped unexpectedly.")
             }
@@ -233,14 +253,17 @@ actor VideoReplayReader {
                                   height: max(1, (geometry.outputSize.height * scale).rounded()))
                 return (pixels, rect)
             }
+            try discard?.check()
             guard let image = measure(.rendering, sourceSeconds: timestamp.seconds, {
                 context.createCGImage(pixels, from: rect)
             }) else {
                 throw ReplayError.decoding("The oriented image could not be rendered.")
             }
+            try discard?.check()
             let pose = try measure(.estimation, sourceSeconds: timestamp.seconds) {
                 try estimator.estimate(image: image, timestamp: timestamp)
             }
+            try discard?.check()
             let milliseconds = ReplayTrace.milliseconds(since: started)
             return ProcessedFrame(image: image, pose: pose, processingMilliseconds: milliseconds)
         }

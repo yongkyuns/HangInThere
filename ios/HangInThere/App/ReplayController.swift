@@ -37,6 +37,7 @@ final class ReplayController {
     @ObservationIgnored private var reader: VideoReplayReader
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private var pending: ProcessedFrame?
+    @ObservationIgnored private var frameDiscardSignal = ReplayFrameDiscardSignal()
     @ObservationIgnored private var session: UInt64 = 0 {
         didSet { resetAutomaticBarSetup() }
     }
@@ -118,6 +119,7 @@ final class ReplayController {
     func open(_ url: URL) {
         let previous = operation
         previous?.cancel()
+        let discard = beginFrameSession()
         session &+= 1
         playback &+= 1
         let token = session
@@ -141,7 +143,7 @@ final class ReplayController {
             guard session == token, !Task.isCancelled else { return }
             do {
                 let info = try await nextReader.open(url)
-                let first = try await nextReader.nextFrame()
+                let first = try await nextReader.nextFrame(discard: discard)
                 guard session == token, !Task.isCancelled else { await nextReader.close(); return }
                 try showFirst(first, info: info)
             } catch {
@@ -154,6 +156,7 @@ final class ReplayController {
     func close() {
         let previous = operation
         previous?.cancel()
+        frameDiscardSignal.discard()
         session &+= 1
         playback &+= 1
         let token = session
@@ -181,6 +184,7 @@ final class ReplayController {
         guard canRestart else { return }
         let previous = operation
         previous?.cancel()
+        let discard = beginFrameSession()
         session &+= 1
         playback &+= 1
         let token = session
@@ -197,7 +201,7 @@ final class ReplayController {
             guard session == token, !Task.isCancelled else { return }
             do {
                 let info = try await currentReader.rewind()
-                let first = try await currentReader.nextFrame()
+                let first = try await currentReader.nextFrame(discard: discard)
                 guard session == token, !Task.isCancelled else { return }
                 try showFirst(first, info: info)
                 if resumePlayback { play() }
@@ -205,6 +209,12 @@ final class ReplayController {
                 if session == token, !Task.isCancelled { fail(error) }
             }
         }
+    }
+
+    private func beginFrameSession() -> ReplayFrameDiscardSignal {
+        frameDiscardSignal.discard()
+        frameDiscardSignal = ReplayFrameDiscardSignal()
+        return frameDiscardSignal
     }
 
     private func showFirst(_ first: ProcessedFrame?, info: VideoInfo) throws {
@@ -232,6 +242,7 @@ final class ReplayController {
         guard canPlay, let frame else { return }
         let previous = operation
         let currentReader = reader
+        let discard = frameDiscardSignal
         let token = session
         playback &+= 1
         let playToken = playback
@@ -245,7 +256,7 @@ final class ReplayController {
             do {
                 while isCurrent(token, playToken) {
                     let next: ProcessedFrame?
-                    if let pending { next = pending } else { next = try await currentReader.nextFrame() }
+                    if let pending { next = pending } else { next = try await currentReader.nextFrame(discard: discard) }
                     // Save a consumed result even if pause cancelled this task.
                     // Replacing/restarting the source, however, invalidates it.
                     guard session == token else { return }

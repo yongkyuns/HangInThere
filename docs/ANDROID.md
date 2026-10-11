@@ -245,8 +245,28 @@ geometry, sentinel pose data and exact source timestamps. Locally, all 272 nativ
 Mac tests pass. Both orientation cases also pass in the iOS18.6 simulator; its
 reader suite passes 10/11 methods, with only the unchanged 8 pinned H264 color
 assertions failing. This protects image ownership; it does not resolve the
-hosted latency gate. No decoder copying policy, production source, color
-tolerance or completion deadline changed.
+hosted latency gate. [Ownership-regression CI at `1ca59ee`](https://github.com/yongkyuns/HangInThere/actions/runs/38132248801)
+also passes all 272 native Mac tests and 271/272 simulator mechanics methods,
+including both new orientation cases. Only pinned H264 color assertions fail
+in mechanics; all 8 simulator Vision failures remain.
+
+Source disposal now has a separate, thread-safe signal for each replay session.
+Close, source replacement and restart discard that session's pending frame work;
+the reader checks between native stages and releases obsolete results without
+starting subsequent processing. Pause cancels pacing without discarding an
+already consumed frame, preserving it for resume. Five real-decoder checkpoint
+cases verify that disposal prevents later stages without corrupting source PTS;
+a separately cancelled task must still return its frame with an undiscarded
+signal. Native objects remain actor-owned. This cannot interrupt a native call
+that is already blocked and does not establish a repair of the hosted read
+stall. Decoder copying policy, color tolerances and completion deadlines remain
+unchanged.
+Local validation passes all 274 native Mac tests. On iOS18.6, the reader,
+controller and automatic-setup partition passes 30/31 methods; only the existing
+8 pinned H264 color assertions fail. The final reader-only rerun also passes
+all disposal checkpoints and the strengthened pause case, leaving that same
+single H264 failure across 13 methods. These local checks do not replace the
+hosted latency or Vision qualification gates.
 
 ### Historical native checkpoint
 
