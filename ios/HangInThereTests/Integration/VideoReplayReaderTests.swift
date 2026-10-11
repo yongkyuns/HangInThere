@@ -149,6 +149,42 @@ struct VideoReplayReaderTests {
         }
     }
 
+    @Test(arguments: [false, true])
+    func retainedFramesKeepChangingPixelsAcrossEarlyRewindEOFAndClose(portrait: Bool) async throws {
+        let times = [0, 1, 3, 7].map { CMTime(value: $0, timescale: 30) }
+        let transform = portrait ? CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: 192, ty: 0) : .identity
+        let url = try await VideoTestSupport.makeVideo(
+            transform: transform, timestamps: times, width: 320, height: 192, cyclingQuadrants: true)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let reader = VideoReplayReader(estimator: TestPoseEstimator())
+        _ = try await reader.open(url)
+        var retained: [(frame: ProcessedFrame, sourceIndex: Int)] = []
+        // Automatic setup rewinds before EOF while the UI retains prior images.
+        for index in 0..<3 {
+            let next = try await reader.nextFrame()
+            retained.append((try #require(next), index))
+        }
+        for _ in 0..<2 {
+            _ = try await reader.rewind()
+            var count = 0
+            while let frame = try await reader.nextFrame() {
+                retained.append((frame, count))
+                count += 1
+            }
+            #expect(count == times.count, "Each rewind must read the entire source timeline.")
+        }
+        await reader.close()
+        #expect(retained.count == 3 + 2 * times.count)
+        let palette = [red, green, blue, yellow]
+        let cornerIndices = portrait ? [2, 0, 3, 1] : [0, 1, 2, 3]
+        for (frame, index) in retained {
+            let sourceIndex = try #require(times.indices.contains(index) ? index : nil)
+            #expect(frame.pose.timestamp.seconds == times[sourceIndex].seconds)
+            try checkFrame(frame, width: portrait ? 192 : 320, height: portrait ? 320 : 192,
+                       colors: cornerIndices.map { palette[($0 + sourceIndex) % palette.count] })
+        }
+    }
+
     @Test func replacingVideoTransfersFreshDecoderGeometryAndTimeline() async throws {
         let landscape = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: landscape) }
@@ -231,22 +267,26 @@ struct VideoReplayReaderTests {
         var actualTimes: [Double] = []
         while let frame = try await reader.nextFrame() {
             actualTimes.append(frame.pose.timestamp.seconds)
-            #expect(frame.image.width == width && frame.image.height == height)
-            #expect(frame.pose.imageSize == ImageSize(width: Double(width), height: Double(height)))
-            let expectedPose = try TestPoseEstimator().estimate(image: frame.image, timestamp: frame.pose.timestamp)
-            #expect(frame.pose == expectedPose)
-            let points = [Point2D(x: 0.25, y: 0.25), Point2D(x: 0.75, y: 0.25),
-                          Point2D(x: 0.25, y: 0.75), Point2D(x: 0.75, y: 0.75)]
-            for (point, expected) in zip(points, colors) {
-                let actual = VideoTestSupport.rgb(frame.image, normalizedTopLeft: point)
-                #expect(zip(actual, expected).allSatisfy { abs(Int($0.0) - Int($0.1)) < 50 },
-                        "Unexpected quadrant pixels at \(point): \(actual), expected \(expected).")
-            }
+            try checkFrame(frame, width: width, height: height, colors: colors)
         }
         await reader.close()
         #expect(actualTimes.count == times.count)
         for (actual, expected) in zip(actualTimes, times) {
             #expect(abs(actual - expected) < 1e-6)
+        }
+    }
+
+    private func checkFrame(_ frame: ProcessedFrame, width: Int, height: Int, colors: [[UInt8]]) throws {
+        #expect(frame.image.width == width && frame.image.height == height)
+        #expect(frame.pose.imageSize == ImageSize(width: Double(width), height: Double(height)))
+        let expectedPose = try TestPoseEstimator().estimate(image: frame.image, timestamp: frame.pose.timestamp)
+        #expect(frame.pose == expectedPose)
+        let points = [Point2D(x: 0.25, y: 0.25), Point2D(x: 0.75, y: 0.25),
+                      Point2D(x: 0.25, y: 0.75), Point2D(x: 0.75, y: 0.75)]
+        for (point, expected) in zip(points, colors) {
+            let actual = VideoTestSupport.rgb(frame.image, normalizedTopLeft: point)
+            #expect(zip(actual, expected).allSatisfy { abs(Int($0.0) - Int($0.1)) < 50 },
+                    "Unexpected quadrant pixels at \(point): \(actual), expected \(expected).")
         }
     }
 

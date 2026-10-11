@@ -51,7 +51,8 @@ enum VideoTestSupport {
     // fixture in VideoReplayReaderTests; there is no silent codec fallback here.
     static func makeVideo(transform: CGAffineTransform = .identity,
                           timestamps: [CMTime] = VideoTestSupport.timestamps,
-                          width: Int = 160, height: Int = 96) async throws -> URL {
+                          width: Int = 160, height: Int = 96,
+                          cyclingQuadrants: Bool = false) async throws -> URL {
         let firstBuffer = try quadrantBuffer(width: width, height: height)
         var optionalFormat: CMVideoFormatDescription?
         let formatStatus = CMVideoFormatDescriptionCreateForImageBuffer(
@@ -78,7 +79,8 @@ enum VideoTestSupport {
                     }
                     try await Task.sleep(for: .milliseconds(5))
                 }
-                let buffer = index == 0 ? firstBuffer : try quadrantBuffer(width: width, height: height)
+                let buffer = index == 0 ? firstBuffer : try quadrantBuffer(
+                    width: width, height: height, phase: cyclingQuadrants ? index % 4 : 0)
                 var timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: pts, decodeTimeStamp: .invalid)
                 var optionalSample: CMSampleBuffer?
                 let status = CMSampleBufferCreateReadyWithImageBuffer(
@@ -113,7 +115,7 @@ enum VideoTestSupport {
         }
     }
 
-    private static func quadrantBuffer(width: Int, height: Int) throws -> CVPixelBuffer {
+    private static func quadrantBuffer(width: Int, height: Int, phase: Int = 0) throws -> CVPixelBuffer {
         var optionalBuffer: CVPixelBuffer?
         let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA,
                                         [kCVPixelBufferIOSurfacePropertiesKey as String: [:]] as CFDictionary,
@@ -130,17 +132,21 @@ enum VideoTestSupport {
         }
         let bytes = base.assumingMemoryBound(to: UInt8.self)
         let stride = CVPixelBufferGetBytesPerRow(buffer)
+        // Frame-specific colours make aliases observable after a decoder rewind
+        // or close. Existing fixtures keep their original static pixels.
+        let colors: [(UInt8, UInt8, UInt8)] = [(240, 0, 0), (0, 240, 0), (0, 0, 240), (240, 240, 0)]
         for y in 0..<height {
             for x in 0..<width {
                 let offset = y * stride + x * 4
                 let top = y < height / 2, left = x < width / 2
-                let rgb: (UInt8, UInt8, UInt8)
+                let quadrant: Int
                 switch (top, left) {
-                case (true, true): rgb = (240, 0, 0)
-                case (true, false): rgb = (0, 240, 0)
-                case (false, true): rgb = (0, 0, 240)
-                case (false, false): rgb = (240, 240, 0)
+                case (true, true): quadrant = 0
+                case (true, false): quadrant = 1
+                case (false, true): quadrant = 2
+                case (false, false): quadrant = 3
                 }
+                let rgb = colors[(quadrant + phase) % colors.count]
                 bytes[offset] = rgb.2; bytes[offset + 1] = rgb.1
                 bytes[offset + 2] = rgb.0; bytes[offset + 3] = 255
             }

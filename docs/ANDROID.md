@@ -226,6 +226,28 @@ creation/replay check; only H264 color assertions fail. All 8 Vision failures
 remain. Sampling a successful attempt does not explain or repair the preceding
 timeout. Native Mac success remains separate from iOS simulator inference.
 
+The application sources at documentation-only head `879cca8` still match
+`04c80b7`. [Apple run38117769404](https://github.com/yongkyuns/HangInThere/actions/runs/38117769404)
+captures a different failure: automatic setup completes its rewind, then native
+`copyNextSampleBuffer()` reads take 12.072 s and 9.143 s, exceeding the unchanged
+playback deadline. Geometry, rendering, estimation and counting return between
+those reads. These elapsed timings include scheduling delays; they locate the
+stall without establishing its cause. The subsequent unchanged-source
+[profile38131051256](https://github.com/yongkyuns/HangInThere/actions/runs/38131051256)
+passes the replay in 6.101 s, leaving only the H264 color failure in mechanics
+and all 8 missing-weight Vision failures. Its successful thread samples cannot
+explain the failing read or qualify a repair.
+
+The retained-frame regression now uses distinct source pixels in every frame.
+It keeps 11 decoded images alive across a rewind before EOF, another rewind after
+EOF and reader closure, then verifies all four quadrants, portrait/landscape
+geometry, sentinel pose data and exact source timestamps. Locally, all 272 native
+Mac tests pass. Both orientation cases also pass in the iOS18.6 simulator; its
+reader suite passes 10/11 methods, with only the unchanged 8 pinned H264 color
+assertions failing. This protects image ownership; it does not resolve the
+hosted latency gate. No decoder copying policy, production source, color
+tolerance or completion deadline changed.
+
 ### Historical native checkpoint
 
 [Android CI run38098329024](https://github.com/yongkyuns/HangInThere/actions/runs/38098329024)
