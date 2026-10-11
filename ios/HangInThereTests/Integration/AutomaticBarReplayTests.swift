@@ -69,70 +69,116 @@ private actor TestDipRailDetector: BarEdgeDetector {
         try await VideoTestSupport.makeVideo(timestamps: [0, 35, 70, 105, 140, 175].map { CMTime(value: $0, timescale: 100) })
     }
     @Test func automaticLockRewindsOnceAndResumesWithoutManualSetup() async throws {
-        // Native attachment can take seconds. Identify the real test process
-        // before fixture creation, while keeping the replay's clock/deadline.
-        print("Replay profile target: pid=\(ProcessInfo.processInfo.processIdentifier), " +
-              "test=automaticLockRewindsOnceAndResumesWithoutManualSetup")
-        let url = try await video()
-        defer { try? FileManager.default.removeItem(at: url) }
-        let detector = TestBarDetector()
-        let started = ContinuousClock.now
-        let traceOutput = DispatchQueue(label: "dev.hanginthere.tests.replay-trace")
-        let processID = ProcessInfo.processInfo.processIdentifier
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: { event in
-            // Snapshot on the native worker, publish in order elsewhere. A
-            // slow test-log pipe must not block the stage being measured.
-            let wallMilliseconds = ReplayTrace.milliseconds(since: started)
-            traceOutput.async {
-                print("Replay stage: pid=\(processID), " +
-                      "wallMilliseconds=\(wallMilliseconds), " +
-                      "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
-                      "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
-                      "stageMilliseconds=\(event.milliseconds?.description ?? "none")")
-            }
-        })
-        // Success closes before draining the log; failures still clean up.
-        defer { if model.phase != .idle { model.close() } }
-        model.open(url)
-        try await wait(model, for: "initial opening") { model.phase == .paused }
-        #expect(model.bar == nil)
-        model.play()
-        try await wait(model, for: "playback completion") { model.phase == .finished }
-        #expect(model.currentBar?.method == .automaticContours)
-        #expect(model.currentBar?.sourceTime.seconds == 1.4)
-        #expect(model.displayedFrames == 6)
-        #expect(model.countingFrames == 6)
-        #expect(await detector.requests == 4, "A locked bar is never redetected during counting.")
-        model.close()
-        #expect(model.bar == nil)
-        #expect(model.automaticBarState == .lookingForGrip)
-        // Preserve the successful test's complete stage log before its verdict,
-        // without blocking the main actor or changing playback's deadline.
-        await withCheckedContinuation { completion in
-            traceOutput.async { completion.resume() }
+        try await withNativeTrace(test: "automaticLockRewindsOnceAndResumesWithoutManualSetup") { trace in
+            let url = try await video()
+            defer { try? FileManager.default.removeItem(at: url) }
+            let detector = TestBarDetector()
+            let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: trace)
+            defer { if model.phase != .idle { model.close() } }
+            model.open(url)
+            try await wait(model, for: "initial opening") { model.phase == .paused }
+            #expect(model.bar == nil)
+            model.play()
+            try await wait(model, for: "playback completion") { model.phase == .finished }
+            #expect(model.currentBar?.method == .automaticContours)
+            #expect(model.currentBar?.sourceTime.seconds == 1.4)
+            #expect(model.displayedFrames == 6)
+            #expect(model.countingFrames == 6)
+            #expect(await detector.requests == 4, "A locked bar is never redetected during counting.")
+            model.close()
+            #expect(model.bar == nil)
+            #expect(model.automaticBarState == .lookingForGrip)
         }
     }
     @Test func manualSetupCancelsAnAutomaticResultAlreadyInFlight() async throws {
-        let url = try await video()
-        defer { try? FileManager.default.removeItem(at: url) }
-        let detector = TestBarDetector(delay: .milliseconds(300))
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
-        defer { model.close() }
-        model.open(url)
-        try await wait(model, for: "initial opening") { model.phase == .paused }
-        model.play()
-        try await waitForRequest(detector)
-        let setup = try #require(model.beginBarSetup())
-        let manual = ConfirmedBar(role: .pullUpGrip, method: .manualEdge,
-                                  referenceEdge: .init(a: .init(x: 30, y: 15), b: .init(x: 130, y: 15)),
-                                  oppositeEdge: nil, imageSize: setup.frame.pose.imageSize, sourceTime: setup.frame.pose.timestamp)
-        #expect(model.confirmBar(manual, for: setup))
-        try await wait(model, for: "manual-reference rewind") { model.phase == .paused }
-        #expect(model.currentBar == manual)
-        model.play()
-        try await wait(model, for: "playback completion") { model.phase == .finished }
-        #expect(model.currentBar == manual)
-        #expect(await detector.requests == 1)
+        try await withNativeTrace(test: "manualSetupCancelsAnAutomaticResultAlreadyInFlight") { trace in
+            let url = try await video()
+            defer { try? FileManager.default.removeItem(at: url) }
+            let detector = TestBarDetector(delay: .milliseconds(300))
+            let (events, continuation) = AsyncStream.makeStream(of: ReplayTrace.self)
+            defer { continuation.finish() }
+            let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: {
+                continuation.yield($0)
+                trace($0)
+            })
+            defer { model.close() }
+            model.open(url)
+            try await wait(model, for: "initial opening") { model.phase == .paused }
+            model.play()
+            try await waitForRequest(detector)
+            let setup = try #require(model.beginBarSetup())
+            let manual = ConfirmedBar(role: .pullUpGrip, method: .manualEdge,
+                                      referenceEdge: .init(a: .init(x: 30, y: 15), b: .init(x: 130, y: 15)),
+                                      oppositeEdge: nil, imageSize: setup.frame.pose.imageSize, sourceTime: setup.frame.pose.timestamp)
+            #expect(model.confirmBar(manual, for: setup))
+            try await wait(model, for: "manual-reference rewind") { model.phase == .paused }
+            #expect(model.currentBar == manual)
+            // Protect attribution through the real cancellation and native
+            // rewind path, including the reused context and source-time reset.
+            continuation.finish()
+            var recorded: [ReplayTrace] = []
+            for await event in events { recorded.append(event) }
+            // An old native read may end while the controller waits for its
+            // cancelled operation. Validate that wait separately from the
+            // reader sequence, which starts only after the old task returns.
+            let waitSpan = recorded.filter { $0.stage == .operationWait }
+            try #require(waitSpan.count == 2)
+            #expect(recorded.filter { $0.stage == .operationWait || $0.stage == .rewindCancellation }
+                .map(\.stage) == [.operationWait, .operationWait, .rewindCancellation, .rewindCancellation])
+            let rewind = Array(recorded.drop(while: { $0.stage != .rewindCancellation }))
+            try #require(rewind.count == 14, "Each of the seven reader/counting stages must close before publishing its first frame.")
+            #expect(rewind.filter { $0.boundary == .began }.map(\.stage) == [
+                .rewindCancellation, .preparation, .decoding,
+                .geometry, .rendering, .estimation, .counting
+            ])
+            #expect(rewind.filter { $0.stage == .estimation }.map(\.sourceSeconds) == [0, 0])
+            let spans = waitSpan + rewind
+            for index in stride(from: 0, to: spans.count - 1, by: 2) {
+                let begin = spans[index], end = spans[index + 1]
+                #expect(begin.stage == end.stage && begin.boundary == .began && end.boundary == .ended)
+                let elapsed = try #require(end.milliseconds)
+                #expect(elapsed.isFinite && elapsed >= 0)
+            }
+            model.play()
+            try await wait(model, for: "playback completion") { model.phase == .finished }
+            #expect(model.currentBar == manual)
+            #expect(await detector.requests == 1)
+        }
+    }
+
+    // Identify the actual test process before native fixture creation. Stage
+    // logs include the test name so a sample's window cannot be attributed to
+    // an adjacent replay. Drain on success and failure without blocking work.
+    private func withNativeTrace(test: String, _ work: (@escaping ReplayTrace.Handler) async throws -> Void) async throws {
+        let processID = ProcessInfo.processInfo.processIdentifier
+        // Bypass buffered stdout: attaching after a failed test returns would
+        // sample an adjacent test instead of the operation being diagnosed.
+        FileHandle.standardOutput.write(Data("Replay profile target: pid=\(processID), test=\(test)\n".utf8))
+        let started = ContinuousClock.now
+        let traceOutput = DispatchQueue(label: "dev.hanginthere.tests.replay-trace")
+        let handler: ReplayTrace.Handler = { event in
+            let wallMilliseconds = ReplayTrace.milliseconds(since: started)
+            traceOutput.async {
+                let line = "Replay stage: pid=\(processID), test=\(test), " +
+                      "wallMilliseconds=\(wallMilliseconds), " +
+                      "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
+                      "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
+                      "stageMilliseconds=\(event.milliseconds?.description ?? "none")\n"
+                FileHandle.standardOutput.write(Data(line.utf8))
+            }
+        }
+        func drain() async {
+            await withCheckedContinuation { completion in
+                traceOutput.async { completion.resume() }
+            }
+        }
+        do {
+            try await work(handler)
+        } catch {
+            await drain()
+            throw error
+        }
+        await drain()
     }
     @Test func replacingSourceCannotPublishOldAutomaticGeometry() async throws {
         let url = try await video()

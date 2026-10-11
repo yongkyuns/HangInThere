@@ -15,6 +15,11 @@ on:
         description: Sample native threads during the synthetic simulator mechanics run
         type: boolean
         default: false
+      replay_profile_test:
+        description: Synthetic replay test to attach the native sampler to (all mechanics tests still run)
+        type: choice
+        options: [automatic, manual]
+        default: automatic
 
 permissions:
   contents: read
@@ -120,6 +125,7 @@ jobs:
         if: ${{ !cancelled() }}
         env:
           HANGINTHERE_REPLAY_THREAD_PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.native_replay_profile && matrix.suite == 'mechanics' && '1' || '0' }}
+          HANGINTHERE_REPLAY_PROFILE_TEST: ${{ inputs.replay_profile_test || 'automatic' }}
         run: ./scripts/test-ios.sh "${{ matrix.suite }}"
       - name: Retain simulator results and provenance
         if: always()

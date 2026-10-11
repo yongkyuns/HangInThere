@@ -28,13 +28,16 @@ struct ReplayFrameDiscardSignal: Sendable {
     }
 }
 
-// Opt-in native-stage diagnostics contain only timing and source time. The
+// Opt-in pipeline-stage diagnostics contain only timing and source time. The
 // callback runs on the worker executing the stage; it must not block that work.
 // Begin/end pairs also identify a native call that has not returned yet.
 // End marks return or throw, not success. Durations include callback overhead
 // and scheduler delays, so these are diagnostics rather than throughput budgets.
 struct ReplayTrace: Sendable {
-    enum Stage: String, Sendable { case context, preparation, decoding, geometry, rendering, estimation, counting }
+    enum Stage: String, Sendable {
+        case operationWait, rewindCancellation
+        case context, preparation, decoding, geometry, rendering, estimation, counting
+    }
     enum Boundary: String, Sendable { case began, ended }
     typealias Handler = @Sendable (ReplayTrace) -> Void
 
@@ -135,10 +138,12 @@ actor VideoReplayReader {
         guard let localURL else { throw ReplayError.notOpen }
         generation &+= 1
         let token = generation
-        reader?.cancelReading()
-        reader = nil
-        output = nil
-        timeline = ReplayTimeline()
+        measure(.rewindCancellation) {
+            reader?.cancelReading()
+            reader = nil
+            output = nil
+            timeline = ReplayTimeline()
+        }
         do {
             return try await prepare(localURL, token: token)
         } catch {

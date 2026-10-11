@@ -160,10 +160,24 @@ while True: time.sleep(0.01)
         self.assertTrue((self.root / 'build/simulator-mechanics-build.txt').exists())
         self.assertTrue((self.root / 'watcher-stopped').exists())
         self.assertEqual(json.loads((self.root / 'watcher-args.json').read_text()),
-                         ['--wait-for-test-start', '--log', str(self.root / 'build/simulator-mechanics-tests.txt'),
+                         ['--wait-for-test-start', '--replay-test', 'automatic',
+                          '--log', str(self.root / 'build/simulator-mechanics-tests.txt'),
                           '--output', str(self.root / 'build/replay-native-threads.txt')])
         self.assertFalse((self.root / 'build/replay-native-threads.txt').exists())
         self.assertNotIn('stale PID', (self.root / 'build/simulator-mechanics-tests.txt').read_text())
+
+    def test_manual_profile_target_keeps_full_mechanics_selection(self):
+        self.profile_watcher()
+        result, commands = self.run_script('mechanics', WAIT_FOR_PROFILE='1',
+                                           HANGINTHERE_REPLAY_THREAD_PROFILE='1',
+                                           HANGINTHERE_REPLAY_PROFILE_TEST='manual')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = json.loads((self.root / 'watcher-args.json').read_text())
+        self.assertEqual(args[args.index('--replay-test') + 1], 'manual')
+        self.assertFalse(any('only-testing:' in a for a in commands[-1]))
+        self.assertIn('-skip-testing:HangInThereTests/VisionSmokeTests', commands[-1])
+        self.assertIn('-skip-testing:HangInThereTests/RealVideoCorpusTests', commands[-1])
+        self.assertTrue((self.root / 'watcher-stopped').exists())
 
     def test_profile_compilation_failure_stops_before_watcher_or_tests(self):
         self.profile_watcher()

@@ -92,7 +92,8 @@ if [[ "$SUITE" == mechanics && "${HANGINTHERE_REPLAY_THREAD_PROFILE:-0}" == 1 ]]
   xcodebuild build-for-testing "${simulator_options[@]}" 2>&1 \
     | tee build/simulator-mechanics-build.txt
   test_command[1]=test-without-building
-  python3 scripts/profile-replay.py --wait-for-test-start --log "$ROOT/$TEST_LOG" \
+  python3 scripts/profile-replay.py --wait-for-test-start \
+    --replay-test "${HANGINTHERE_REPLAY_PROFILE_TEST:-automatic}" --log "$ROOT/$TEST_LOG" \
     --output "$ROOT/build/replay-native-threads.txt" \
     > "$ROOT/build/replay-native-sampler.txt" 2>&1 &
   REPLAY_SAMPLER_PID=$!

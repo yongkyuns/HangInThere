@@ -13,13 +13,10 @@ import signal
 import subprocess
 import time
 
-REPLAY_START = re.compile(
-    r"Replay profile target: pid=([1-9][0-9]*), "
-    r"test=automaticLockRewindsOnceAndResumesWithoutManualSetup$"
-)
-REPLAY_TEST_START = re.compile(
-    r"Test automaticLockRewindsOnceAndResumesWithoutManualSetup\(\) started\.$"
-)
+REPLAY_TESTS = {
+    "automatic": "automaticLockRewindsOnceAndResumesWithoutManualSetup",
+    "manual": "manualSetupCancelsAnAutomaticResultAlreadyInFlight",
+}
 
 
 class SignalCancellation:
@@ -39,7 +36,11 @@ class SignalCancellation:
         return self.requested
 
 
-def wait_for_replay_pid(log, stopped, timeout=300, wait_for_test_start=False):
+def wait_for_replay_pid(log, stopped, timeout=300, wait_for_test_start=False,
+                        replay_test="automatic"):
+    name = re.escape(REPLAY_TESTS[replay_test])
+    replay_start = re.compile(r"Replay profile target: pid=([1-9][0-9]*), test=" + name + r"$")
+    test_start = re.compile(r"Test " + name + r"\(\) started\.$")
     # Cold simulator launch/discovery can outlast the PID timeout even after
     # compilation. The runner owns this pre-test wait and cancels us on exit;
     # arm the same bounded PID wait only when the selected test actually starts.
@@ -58,10 +59,10 @@ def wait_for_replay_pid(log, stopped, timeout=300, wait_for_test_start=False):
         lines = pending.split("\n")
         pending = lines.pop()
         for line in lines:
-            match = REPLAY_START.search(line)
+            match = replay_start.search(line)
             if match:
                 return int(match[1])
-            if deadline is None and REPLAY_TEST_START.search(line):
+            if deadline is None and test_start.search(line):
                 deadline = time.monotonic() + timeout
         stopped.wait(0.1)
     return None
@@ -84,11 +85,11 @@ def stop_sample(child):
 
 
 def profile(log, output, stopped, sampler="/usr/bin/sample", timeout=300,
-            wait_for_test_start=False):
-    pid = wait_for_replay_pid(log, stopped, timeout, wait_for_test_start)
+            wait_for_test_start=False, replay_test="automatic"):
+    pid = wait_for_replay_pid(log, stopped, timeout, wait_for_test_start, replay_test)
     if pid is None or stopped.is_set():
         return 0
-    print(f"{datetime.now(timezone.utc).isoformat()} Replay test entry observed; "
+    print(f"{datetime.now(timezone.utc).isoformat()} {REPLAY_TESTS[replay_test]} entry observed; "
           f"sampling test PID {pid}.", flush=True)
     # Collect stacks immediately; -mayDie first resolves all loaded images,
     # which can consume the short replay window before any stack is sampled.
@@ -108,6 +109,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--log", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--replay-test", choices=REPLAY_TESTS, default="automatic",
+                        help="Select the diagnostic attachment target; all mechanics tests still run.")
     parser.add_argument("--wait-for-test-start", action="store_true",
                         help="Start the five-minute PID timeout at the real test entry; "
                              "the test runner bounds cold simulator startup.")
@@ -118,7 +121,7 @@ def main():
     try:
         print("Waiting for the synthetic replay test PID.", flush=True)
         return profile(args.log, args.output, stopped,
-                       wait_for_test_start=args.wait_for_test_start)
+                       wait_for_test_start=args.wait_for_test_start, replay_test=args.replay_test)
     except (OSError, TimeoutError) as error:
         print(f"Native replay profile unavailable: {error}", flush=True)
         return 1

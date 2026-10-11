@@ -26,12 +26,53 @@ class ReplayProfilerTests(unittest.TestCase):
         self.output = self.root / "profile.txt"
         self.stopped = threading.Event()
 
-    def marker(self, pid=1234):
+    def marker(self, pid=1234, replay_test="automatic"):
         return (f"Replay profile target: pid={pid}, "
-                "test=automaticLockRewindsOnceAndResumesWithoutManualSetup\n")
+                f"test={profiler.REPLAY_TESTS[replay_test]}\n")
 
-    def start_line(self):
-        return "◇ Test automaticLockRewindsOnceAndResumesWithoutManualSetup() started.\n"
+    def start_line(self, replay_test="automatic"):
+        return f"◇ Test {profiler.REPLAY_TESTS[replay_test]}() started.\n"
+
+    def test_manual_target_ignores_automatic_pid_and_its_timeout(self):
+        self.log.write_text(self.start_line() + self.marker(1111))
+        now, polls = [0.0], []
+
+        def advance(_):
+            polls.append(True)
+            if len(polls) == 1:
+                now[0] = 600
+                with self.log.open("a") as stream:
+                    stream.write(self.start_line("manual") + self.marker(4321, "manual")[:-1])
+            elif len(polls) == 2:
+                now[0] += 0.1
+                with self.log.open("a") as stream:
+                    stream.write("\n")
+            else:
+                self.fail("Only the selected test's completed PID marker should attach.")
+
+        with patch.object(profiler.time, "monotonic", side_effect=lambda: now[0]), \
+             patch.object(self.stopped, "wait", side_effect=advance):
+            self.assertEqual(profiler.wait_for_replay_pid(
+                self.log, self.stopped, wait_for_test_start=True, replay_test="manual"), 4321)
+        self.assertEqual(len(polls), 2)
+
+    def test_manual_test_entry_arms_the_same_bounded_pid_timeout(self):
+        self.log.write_text(self.start_line("manual"))
+        now = [0.0]
+        with patch.object(profiler.time, "monotonic", side_effect=lambda: now[0]), \
+             patch.object(self.stopped, "wait", side_effect=lambda _: now.__setitem__(0, now[0] + 300)):
+            with self.assertRaisesRegex(TimeoutError, "within 300 seconds"):
+                profiler.wait_for_replay_pid(self.log, self.stopped,
+                                             wait_for_test_start=True, replay_test="manual")
+        self.assertEqual(now[0], 300)
+
+    def test_cli_rejects_unknown_attachment_targets(self):
+        result = subprocess.run([sys.executable, str(ROOT / "scripts/profile-replay.py"),
+                                 "--replay-test", "unknown", "--log", str(self.log),
+                                 "--output", str(self.output)], capture_output=True, text=True, timeout=3)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("invalid choice", result.stderr)
+        self.assertFalse(self.output.exists())
 
     def test_waits_for_real_test_entry_and_complete_log_line(self):
         self.log.write_text("HangInThere[999:99] starting discovery\n" +

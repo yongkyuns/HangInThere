@@ -197,7 +197,7 @@ final class ReplayController {
         resetAnalysisMetrics()
         if !preserveBar { bar = nil }
         operation = Task {
-            await previous?.value
+            await waitForPreviousOperation(previous)
             guard session == token, !Task.isCancelled else { return }
             do {
                 let info = try await currentReader.rewind()
@@ -209,6 +209,19 @@ final class ReplayController {
                 if session == token, !Task.isCancelled { fail(error) }
             }
         }
+    }
+
+    // This wait runs on the presentation actor. Trace it separately from
+    // reader work so an in-flight detector cannot look like a decoder stall.
+    private func waitForPreviousOperation(_ previous: Task<Void, Never>?) async {
+        guard let trace else { await previous?.value; return }
+        let started = ContinuousClock.now
+        trace(.init(stage: .operationWait, boundary: .began, sourceSeconds: nil, milliseconds: nil))
+        defer {
+            trace(.init(stage: .operationWait, boundary: .ended, sourceSeconds: nil,
+                        milliseconds: ReplayTrace.milliseconds(since: started)))
+        }
+        await previous?.value
     }
 
     private func beginFrameSession() -> ReplayFrameDiscardSignal {
