@@ -240,6 +240,24 @@ while True: time.sleep(0.01)
         self.assertIn('-only-testing:HangInThereTests/VisionSmokeTests', test)
         self.assertIn('-only-testing:HangInThereTests/RealVideoCorpusTests', test)
 
+    def test_explicit_destination_keeps_full_mechanics_and_selects_that_device(self):
+        result, commands = self.run_script('mechanics', HANGINTHERE_TEST_SIMULATOR_UDID='TEST-UDID')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        test = commands[-1]
+        self.assertEqual(test[test.index('-destination') + 1], 'platform=iOS Simulator,id=TEST-UDID')
+        self.assertFalse(any('only-testing:' in a for a in test))
+        self.assertIn('-skip-testing:HangInThereTests/VisionSmokeTests', test)
+        self.assertIn('-skip-testing:HangInThereTests/RealVideoCorpusTests', test)
+
+    def test_invalid_or_wrong_runtime_destination_never_falls_back(self):
+        for requested in ('UNKNOWN-UDID', 'OLD-UDID'):
+            with self.subTest(requested=requested):
+                result, commands = self.run_script('vision', SIMULATOR_SDK='27.0',
+                                                    HANGINTHERE_TEST_SIMULATOR_UDID=requested)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('requested destination', result.stderr)
+                self.assertFalse(any(c[0] == 'test' for c in commands))
+
 
 if __name__ == '__main__':
     unittest.main()

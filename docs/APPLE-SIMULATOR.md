@@ -76,6 +76,30 @@ startup can still lag. Compare those timestamps before attributing aggregate
 stacks to a replay stage; a sample report's header is not proof of capture start
 or exact scope. This diagnostic change does not repair a native wait.
 
+## Physical-device and rendering evidence
+
+At source `3de67b2`, an iPhone 14 Pro on iOS 26.6.2 built with Xcode 16.4/SDK
+18.5 passes all 290 tests with no skips in a full followup. Real revision 1
+Vision smoke/corpus, pinned H264 VFR/portrait colors and both automatic dip
+replays pass. The first full run passed 288/290 with two runner exits reported
+as code 0; both methods then passed alone and in the full rerun. The initial
+exit cause remains unknown. These are native fixture engineering checks,
+not live camera/sensor, sustained throughput, thermal/battery, physical Android
+or strict-form accuracy qualification.
+
+Default and software-rendered temporary Mac source copies each pass all 282
+tests. Neither reproduces the hosted stall, and those concurrent functional
+trials do not qualify a speed comparison or a production repair.
+
+The optional CI `replay_render_comparison` dispatch runs each renderer on a
+fresh SDK-matched simulator and committed source copy. Only the software
+copy changes the one Core Image context option; source hashes verify that all
+tests and fixtures remain unchanged. The full mechanics selection, original
+color failures and replay deadlines stay active. Native failures propagate to
+the job, even when the other variant succeeds. Sampling is disabled in both
+trials. Separate hosted runs can expose associated failures but their timings
+alone do not establish a cause or device performance parity.
+
 ## Reproduce
 
 Run `./scripts/test-apple-host.sh` for the Mac suite and
@@ -84,6 +108,12 @@ independent simulator partitions. The iOS runner requires a runtime matching
 the selected SDK; `./scripts/test-ios.sh` runs all tests and the unsigned Release
 device build. New fixture regressions are included automatically in both native
 CI suites. The original Vision checks and replay deadlines are unchanged.
+
+Run `python3 scripts/diagnose-replay-render.py --renderer automatic` or
+`--renderer software` for the isolated full-mechanics trial. `--prepare-only`
+verifies the committed source copy without claiming native execution. The
+driver copies only Git-tracked iOS files and test runners, preserves results,
+and cleans up its own simulator on completion, failure or cancellation.
 
 For the direct decoder comparison, see the
 [strict native probe instructions](../ios/HangInThereTests/Fixtures/decoder/README.md).

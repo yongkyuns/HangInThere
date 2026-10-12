@@ -41,8 +41,11 @@ items = json.loads(Path('build/simulators.json').read_text())['devices']
 candidates = [d for runtime, devices in items.items()
               if runtime == wanted or runtime.startswith(wanted + '-')
               for d in devices if d.get('isAvailable') and d['name'].startswith('iPhone')]
+requested = os.environ.get('HANGINTHERE_TEST_SIMULATOR_UDID')
+if requested:
+    candidates = [d for d in candidates if d['udid'] == requested]
 if not candidates:
-    sys.exit('No available iPhone simulator for the selected SDK. Install that runtime in Xcode; see build/simulators.json.')
+    sys.exit('No available iPhone simulator for the selected SDK and requested destination. Install that runtime in Xcode; see build/simulators.json.')
 candidates.sort(key=lambda d: (d['state'] != 'Booted', d['name']))
 print(candidates[0]['udid'])
 PY

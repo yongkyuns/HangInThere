@@ -24,6 +24,10 @@ on:
         description: Strict synthetic native H264 original/control probe (corrupt pixels remain failures)
         type: boolean
         default: false
+      replay_render_comparison:
+        description: Compare default/software Core Image on committed source copies with the full mechanics suite
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -38,6 +42,31 @@ env:
   DEVELOPER_DIR: ${{ inputs.apple_runtime == 'xcode27' && '/Applications/Xcode_27.app/Contents/Developer' || inputs.apple_runtime == 'current' && '/Applications/Xcode_26.6.app/Contents/Developer' || '/Applications/Xcode_26.3.app/Contents/Developer' }}
 
 jobs:
+  replay-render-comparison:
+    if: github.event_name == 'workflow_dispatch' && inputs.replay_render_comparison
+    name: Replay render comparison ${{ matrix.renderer }}
+    runs-on: ${{ inputs.apple_runtime == 'xcode27' && 'xcode-27' || inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        renderer: [automatic, software]
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run full mechanics suite on a fresh source copy and simulator
+        run: python3 scripts/diagnose-replay-render.py --renderer '${{ matrix.renderer }}'
+      - name: Retain synthetic trial results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-render-${{ matrix.renderer }}-results
+          retention-days: 7
+          if-no-files-found: error
+          path: build/apple-replay-render/${{ matrix.renderer }}/
+
   native-decoder-diagnostic:
     if: github.event_name == 'workflow_dispatch' && inputs.native_decoder_diagnostic
     name: Native decoder diagnostic ${{ matrix.platform }}
