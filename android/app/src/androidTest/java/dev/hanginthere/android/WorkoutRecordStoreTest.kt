@@ -24,6 +24,39 @@ class WorkoutRecordStoreTest {
         analysis.finish("trackingLost")
         return WorkoutSetRecord(id,ExerciseCounter.Exercise.pullUp,0.0,.4,"trackingLost",analysis.records,"authored storage test",0)
     }
+    @Test fun backupOnlyCurrentJournalRecoversBeforeHistoryPagination() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val directory=File(context.cacheDir,"backup-page-test-${UUID.randomUUID()}")
+        val store=WorkoutRecordStore(context,directory)
+        try {
+            repeat(50) { index ->
+                val old=record();store.save(old)
+                assertTrue(File(directory,"${old.id}.json").setLastModified(index.toLong()+1))
+            }
+            val current=record();store.saveDraft(current)
+            val pending=File(directory,"${current.id}.pending.json")
+            assertTrue(pending.setLastModified(1000))
+            assertTrue(pending.renameTo(File(pending.path+".bak"))) // Power loss before replacement base creation.
+            val recovered=store.recent()
+            assertEquals(50,recovered.size);assertEquals(current.id,recovered.first().id)
+            assertEquals(1,recovered.first().acceptedCount)
+            assertEquals("recoveredInterruption",recovered.first().endReason)
+        } finally { directory.deleteRecursively() }
+    }
+    @Test fun backupOnlyJournalMergePreservesPreviouslyAcceptedReps() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val directory=File(context.cacheDir,"backup-merge-test-${UUID.randomUUID()}")
+        val store=WorkoutRecordStore(context,directory)
+        try {
+            val first=record();store.saveDraft(first)
+            val pending=File(directory,"${first.id}.pending.json")
+            assertTrue(pending.renameTo(File(pending.path+".bak")))
+            val second=first.copy(endedAt=.8,reps=first.reps.map{it.copy(id="${first.id}:rep:2",ordinal=2,startedAt=.6,acceptedAt=.8,closedAt=.8)})
+            store.saveDraft(second)
+            assertEquals(2,store.recent().single().acceptedCount)
+            assertFalse(File(pending.path+".bak").exists())
+        } finally { directory.deleteRecursively() }
+    }
     @Test fun overlappingSerialOwnersCannotLoseQueuedWrites() {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val directory=File(context.cacheDir,"concurrent-test-${UUID.randomUUID()}")

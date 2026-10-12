@@ -88,6 +88,8 @@ newer records can complete a return but cannot erase accepted evidence. A launch
 can recover an unfinished set with its counts and metrics as an interruption.
 Reordered deltas union distinct reps; terminal evidence dominates queued in-progress
 updates. Idempotent final retries still finish journal cleanup and feature pruning.
+Android restores committed atomic backups before merging, sorting or paginating
+history, including a backup-only latest journal after older-device power loss.
 Completed summaries are immutable/idempotent; finalized evidence wins over stale
 queued drafts. Imported replay evaluation does not automatically enter the live
 workout history.
