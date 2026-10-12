@@ -44,6 +44,11 @@ struct WorkoutAnalysisBridgeCheck {
             guard set.completedCount == 1, set.completedReps == [rep], rep.isCompleteForAnalytics else {
                 fatalError("Shipping Apple analytics omitted a completed rep")
             }
+            let evidence = try rep.evidenceAssessment(setEndReason: set.endReason)
+            guard evidence.status == "completed", evidence.angleComparisonEligible,
+                  evidence.leftCoverage == 1, evidence.rightCoverage == 1 else {
+                fatalError("Shipping Apple evidence differs from shared completed-cycle assessment")
+            }
 
             // A final attempt is retained as evidence but never appears in
             // timing/angle analytics, including a pull-up accepted before return.
@@ -63,6 +68,17 @@ struct WorkoutAnalysisBridgeCheck {
                       saved.completedReps == [saved.reps[0]], !saved.reps[1].isCompleteForAnalytics,
                       partialAnalysis.reps.filter(\.isCompleteForAnalytics) == saved.completedReps else {
                     fatalError("Shipping Apple analytics included an unfinished final \(exercise)")
+                }
+                let attempt = saved.reps[1]
+                let assessment = try attempt.evidenceAssessment(setEndReason: saved.endReason)
+                guard assessment.status == (exercise == .pullUp ? "returnNotRecorded" : ending == "trackingLost" ? "interrupted" : "ended"),
+                      ending != "trackingLost" || !assessment.angleComparisonEligible else {
+                    fatalError("Shipping Apple evidence mislabeled an unfinished/interrupted attempt")
+                }
+                let summaryJSON = try WorkoutRecordCodec().summaryJson(input: String(decoding: JSONEncoder().encode(saved), as: UTF8.self))
+                let summary = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(summaryJSON.utf8))
+                guard try summary.reps[1].evidenceAssessment(setEndReason: summary.endReason) == assessment else {
+                    fatalError("Curve retirement changed Apple attempt evidence")
                 }
                 let recoveredJSON = try WorkoutRecordCodec().recoveryJson(input: String(decoding: JSONEncoder().encode(saved), as: UTF8.self))
                 let recovered = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(recoveredJSON.utf8))
@@ -99,6 +115,22 @@ struct WorkoutAnalysisBridgeCheck {
                     fatalError("Bridge changed rejected-frame source bounds or accepted evidence")
                 }
             }
+        }
+        // A recovered journal may retain inProgress in the raw attempt. Its
+        // saved review must never imply the camera is still tracking it.
+        let recoveryAnalysis = WorkoutAnalysisAdapter(); recoveryAnalysis.start(exercise: .pullUp)
+        var recoveryCounter = ExerciseCounter(exercise: .pullUp, side: .left)
+        for (time, angle) in [(0.0,170.0),(0.15,170.0),(0.3,120.0)] {
+            let p = pose(time,angle,exercise: .pullUp)
+            recoveryCounter.consume(p,referenceEdge: reference)
+            _ = recoveryAnalysis.consume(p,reference: reference,counter: recoveryCounter,event: nil,automaticFinish: false)
+        }
+        let live = recoveryAnalysis.reviewRecord()!
+        let recoveredJSON = try WorkoutRecordCodec().recoveryJson(input: String(decoding: JSONEncoder().encode(live),as: UTF8.self))
+        let recoveredDraft = try JSONDecoder().decode(WorkoutSetRecord.self,from: Data(recoveredJSON.utf8))
+        guard let recoveredAttempt = recoveredDraft.reps.first, recoveredAttempt.closeReason == "inProgress",
+              try recoveredAttempt.evidenceAssessment(setEndReason: recoveredDraft.endReason).status == "interrupted" else {
+            fatalError("Recovered Apple attempt still claims to be tracked")
         }
         // Shipping native ownership: failed starts cannot show feedback, repeated
         // frames cannot announce again, and ending a set cancels its UI timer.

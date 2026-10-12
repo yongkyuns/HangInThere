@@ -50,10 +50,10 @@ struct WorkoutReviewView: View {
                 }
                 if let selected { repDetails(selected) }
                 if !attempts.isEmpty {
-                    DisclosureGroup("Practice attempts · \(attempts.count) incomplete") {
-                        Text("These attempts are preserved for progress and coaching. They are excluded from completed-rep statistics.").font(.caption)
+                    DisclosureGroup("Practice attempts · \(attempts.count)") {
+                        Text("Review what was observed and why a completed cycle was not recorded. These attempts are excluded from completed-rep statistics.").font(.caption)
                         ForEach(attempts) { attempt in
-                            Button("Attempt \(attempt.ordinal) · incomplete") { selectedAttempt = attempt.id }
+                            Button("Attempt \(attempt.ordinal) · \((try? attempt.evidenceAssessment(setEndReason: endReason(for: attempt)))?.title ?? "Evidence unavailable")") { selectedAttempt = attempt.id }
                                 .padding(.vertical, 4)
                         }
                         if let attempt = attempts.first(where: { $0.id == selectedAttempt }) { repDetails(attempt) }
@@ -155,9 +155,15 @@ struct WorkoutReviewView: View {
             }
         }
     }
+    private func endReason(for rep: WorkoutRepRecord) -> String? {
+        if currentSet?.id == rep.setId { return currentSet?.endReason }
+        return sets.first { $0.id == rep.setId }?.endReason
+    }
     private func repDetails(_ rep: WorkoutRepRecord) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let assessment = try? rep.evidenceAssessment(setEndReason: endReason(for: rep))
+        return VStack(alignment: .leading, spacing: 12) {
             Text(rep.isCompleteForAnalytics ? "Rep \(rep.ordinal) · \(rep.outcome)" : "Attempt \(rep.ordinal) · incomplete").font(.title3.bold())
+            WorkoutEvidenceView(assessment: assessment)
             if rep.samples.isEmpty {
                 Text("Detailed motion is unavailable. The rep summary is preserved.").foregroundStyle(.secondary)
             } else { angleChart(rep) }
@@ -166,7 +172,6 @@ struct WorkoutReviewView: View {
                 GridRow { Text("Return"); Text(seconds(rep.returnSeconds)).monospacedDigit() }
                 GridRow { Text("Left mean / range"); Text(angleText(rep.left)).monospacedDigit() }
                 GridRow { Text("Right mean / range"); Text(angleText(rep.right)).monospacedDigit() }
-                GridRow { Text("Observed duration"); Text(rep.durationCoverage.map { "\(Int($0 * 100))%" } ?? "Unavailable") }
             }.font(.subheadline)
             if rep.curveTruncated && !rep.samples.isEmpty { Text("The chart shows the most recent motion; averages include all observed intervals.").font(.caption) }
         }

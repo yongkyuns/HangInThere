@@ -27,7 +27,7 @@ import kotlin.math.ceil
     val partialAttempts: Int, val completedReps: Int, val bestElbowExcursionDegrees: Double?,
     val goal: WorkoutGoal, val goalBest: Double?, val goalFraction: Double?, val goalAchieved: Boolean,
     val coaching: String, val milestones: List<WorkoutMilestone>, val trend: List<WorkoutProgressPoint>,
-    val policyVersion: Int = 1)
+    val policyVersion: Int = 2)
 
 /** Evidence-based feedback, not a form/strength assessment. Source clocks never
  * become calendar dates. Suggested targets are editable app defaults, not a
@@ -37,12 +37,7 @@ object WorkoutProgression {
     private fun hold(record: WorkoutSetRecord): Double? = record.activity?.let {
         if (record.exercise == ExerciseCounter.Exercise.pullUp) it.longestHangSeconds else it.longestSupportSeconds
     }
-    private fun excursion(record: WorkoutSetRecord): Double? = record.reps.mapNotNull { rep ->
-        val arms = listOf(rep.left, rep.right).mapNotNull { arm ->
-            if ((arm.coverage ?: 0.0) >= .8 && arm.minimum != null && arm.maximum != null) arm.maximum-arm.minimum else null
-        }
-        arms.takeIf { it.size == 2 }?.average()
-    }.maxOrNull()
+    private fun excursion(record: WorkoutSetRecord): Double? = record.reps.mapNotNull(WorkoutEvidence::comparableElbowExcursion).maxOrNull()
     fun evidence(record: WorkoutSetRecord) = WorkoutProgressEvidence(record.id, record.exercise,record.trackedAtEpochMilliseconds,
         record.endReason,record.hasPractice,hold(record),record.activity?.seconds(if(record.exercise==ExerciseCounter.Exercise.pullUp)WorkoutMotionPhase.hang else WorkoutMotionPhase.support),
         excursion(record),record.completedCount,record.reps.count { !it.isCompleteForAnalytics },record.reps.size)
@@ -79,7 +74,7 @@ object WorkoutProgression {
             goalBest != null && goalBest >= goalValue.target -> "Goal reached. Review your recent sets, then choose your next target when you are ready."
             sets.first().holdSeconds == null -> "This older set has no phase measurements. Track a new set to establish your hold baseline."
             best == null || best <= 0 -> "Keep both arms and your grip visible to measure ${holdTitle.lowercase()} time. Tracking gaps never add hold time."
-            completed == 0 && partial > 0 -> "Your ${holdTitle.lowercase()} and partial attempts are recorded. Compare hold time and elbow range; only a completed return adds a rep."
+            completed == 0 && partial > 0 -> "Your ${holdTitle.lowercase()} and movement attempts are recorded. Review each attempt's evidence; an unrecorded return or tracking interruption cannot establish a completed cycle."
             completed == 0 -> "You have a ${format(best)} second ${holdTitle.lowercase()} baseline. Use an adjustable hold target to track your next improvement."
             else -> "Compare completed reps, hold time and both-arm range across sets. Increase your target when you are ready."
         }
