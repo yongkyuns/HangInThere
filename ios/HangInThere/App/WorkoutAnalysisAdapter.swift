@@ -5,6 +5,14 @@ import WorkoutCore
 // Native records use the same shared eligibility rule for current and legacy
 // history. No new serialized flag or migration can misclassify an old attempt.
 extension WorkoutRepRecord {
+    /// Review actions transfer only the summary, independent of curve retention.
+    func evidenceAssessment(setEndReason: String? = nil) throws -> WorkoutAttemptAssessmentRecord {
+        var summary = self
+        summary.samples = []
+        let input = String(decoding: try JSONEncoder().encode(summary), as: UTF8.self)
+        let output = try WorkoutEvidenceBridge().assessmentJson(recordJson: input, setEndReason: setEndReason)
+        return try JSONDecoder().decode(WorkoutAttemptAssessmentRecord.self, from: Data(output.utf8))
+    }
     var isCompleteForAnalytics: Bool {
         WorkoutAnalytics.shared.isCompletedRep(hasAcceptance: acceptedAt != nil,
             hasReturn: returnedAt != nil, closeReason: closeReason)

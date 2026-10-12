@@ -92,12 +92,35 @@ class WorkoutActionsTest {
         compose.onAllNodesWithText("Rep 1", substring = true).assertCountEquals(0)
         compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertDoesNotExist()
         compose.onNodeWithText("Saved sets").assertExists()
-        compose.onNodeWithText("Practice attempts · 1 incomplete").assertExists()
+        compose.onNodeWithText("Practice attempts · 1").assertExists()
+        compose.onNodeWithText("Practice attempts · 1").performScrollTo().performClick()
+        compose.onNodeWithText("Attempt 1 · Return not recorded").performScrollTo().performClick()
+        compose.onNodeWithText("Return not recorded").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("The movement reached the counting position, but its return was not recorded. A completed rep cannot be confirmed.").assertExists()
         compose.onNodeWithText("Done").performClick()
         assertTrue(closed)
     }
 
     @Test fun pullUpReviewIncludesOnlyCompletedCycles() = assertCompletedReview(ExerciseCounter.Exercise.pullUp)
+
+    @Test fun recoveredActiveAttemptExplainsAnInterruptionInsteadOfLiveTracking() {
+        val analysis=WorkoutAnalysis("recovered-ui",ExerciseCounter.Exercise.pullUp)
+        analysis.observe(MotionSample(0.0,170.0,170.0,.2,true,false),ExerciseCounter.Phase.ready,null)
+        analysis.observe(MotionSample(.2,120.0,120.0,.1,true,false),ExerciseCounter.Phase.outbound,null)
+        val raw=WorkoutSetRecord("recovered-ui",ExerciseCounter.Exercise.pullUp,0.0,.2,"running",
+            listOf(requireNotNull(analysis.activeRecord)),"authored recovery UI test",0)
+        val recovered=WorkoutRecordCodec.recover(WorkoutRecordCodec.summary(raw))
+        compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+            WorkoutReviewDialog(emptyList(),listOf(recovered),null,goalsEnabled=false) {}
+        } } }
+        compose.onNodeWithText("Practice attempts · 1").performScrollTo().performClick()
+        compose.onNodeWithText("Attempt 1 · Observation interrupted").performScrollTo().performClick()
+        compose.onNodeWithText("Observation interrupted").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Interrupted recording recovered").assertExists()
+        compose.onNodeWithText("In progress").assertDoesNotExist()
+        compose.onNodeWithText("A return was observed",substring=true).assertDoesNotExist()
+        assertTrue(recovered.reps.single().closeReason=="inProgress")
+    }
     @Test fun dipReviewIncludesOnlyCompletedCycles() = assertCompletedReview(ExerciseCounter.Exercise.dip)
 
     private fun assertCompletedReview(exercise: ExerciseCounter.Exercise) {

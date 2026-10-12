@@ -2,6 +2,35 @@ import SwiftUI
 import Charts
 import WorkoutCore
 
+/// Uses the same evidence policy as Android; percentages describe source time.
+struct WorkoutEvidenceView: View {
+    let assessment: WorkoutAttemptAssessmentRecord?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let assessment {
+                Text(assessment.title).font(.headline)
+                Text(assessment.explanation).font(.subheadline)
+                if let reason = assessment.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
+                Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 4) {
+                    GridRow { Text("Observed time"); Text(coverage(assessment.durationCoverage)) }
+                    GridRow { Text("Left-arm time"); Text(coverage(assessment.leftCoverage)) }
+                    GridRow { Text("Right-arm time"); Text(coverage(assessment.rightCoverage)) }
+                }.font(.caption).monospacedDigit()
+                ForEach(assessment.notes, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+                if !assessment.angleComparisonEligible {
+                    Text("Range is excluded from progress comparisons.").font(.caption).foregroundStyle(.secondary)
+                }
+            } else {
+                Text("Attempt evidence could not be loaded. No completion or form judgment is available.").font(.subheadline)
+            }
+        }.padding().frame(maxWidth: .infinity, alignment: .leading)
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+    }
+    private func coverage(_ value: Double?) -> String {
+        value.map { String(format: "%.0f%%", $0 * 100) } ?? "Unavailable"
+    }
+}
+
 /// Practice phases are useful even when a set has zero completed reps.
 struct WorkoutPracticeView: View {
     let set: WorkoutSetRecord

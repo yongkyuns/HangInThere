@@ -28,6 +28,26 @@ import Vision
         let emptySet = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: fixture))
         precondition(emptySet.completedReps.isEmpty)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
+        var interrupted = partial
+        interrupted["closeReason"] = "inferenceFailure"; interrupted["outcome"] = "interrupted"
+        for (name, data, expected) in [("completed", completed, "completedcycle"),
+            ("return", unfinished, "returnnotrecorded"), ("partial", partial, "partialmovementobserved"),
+            ("interrupted", interrupted, "observationinterrupted")] {
+            let rep = try JSONDecoder().decode(WorkoutRepRecord.self,from: JSONSerialization.data(withJSONObject: data))
+            let assessment = try rep.evidenceAssessment(setEndReason: "manual")
+            for dark in [false,true] {
+                for width in [320.0,430.0] {
+                    let content = WorkoutEvidenceView(assessment: assessment).padding()
+                        .environment(\.colorScheme,dark ? .dark : .light)
+                        .frame(width: width,height: 560).background(dark ? Color.black : Color.white)
+                    let text = try render(content,width: width,height: 560,
+                        filename: "evidence-\(name)-\(dark ? "dark" : "light")-\(Int(width)).png")
+                    precondition(text.contains { $0.contains(expected) },"Attempt evidence title missing")
+                    precondition(text.contains { $0.contains("leftarmtime") } && text.contains { $0.contains("rightarmtime") },"Independent arm coverage missing")
+                    precondition(!text.contains { $0.contains("failedrep") },"Tracking failure became a strength judgment")
+                }
+            }
+        }
         for (prefix, records, current) in [("", [set], set.reps),
             ("unfinished-", [emptySet], emptySet.reps), ("history-", [set], emptySet.reps)] {
             for dark in [true, false] {

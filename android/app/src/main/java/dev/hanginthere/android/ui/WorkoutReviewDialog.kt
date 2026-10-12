@@ -82,20 +82,24 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
             }
             rep?.let { item ->
                 Text("Rep ${item.ordinal} · ${item.outcome}", style = MaterialTheme.typography.titleMedium)
+                AttemptEvidence(item, if(currentSet?.id==item.setId) currentSet?.endReason else history.firstOrNull { it.id==item.setId }?.endReason)
                 if(item.samples.isEmpty()) Text("Detailed motion is unavailable. The rep summary is preserved.") else AnglePlot(item)
                 Text("Time to extreme: ${seconds(item.outboundSeconds)}\nReturn: ${seconds(item.returnSeconds)}\n" +
-                    "Left mean / range: ${angles(item.left)}\nRight mean / range: ${angles(item.right)}\n" +
-                    "Observed duration: ${item.durationCoverage?.let { "${(it * 100).toInt()}%" } ?: "Unavailable"}")
+                    "Left mean / range: ${angles(item.left)}\nRight mean / range: ${angles(item.right)}")
                 if (item.curveTruncated && item.samples.isNotEmpty()) Text("The curve shows recent motion; averages use all observed intervals.")
             }
             if(attempts.isNotEmpty()) {
                 var expanded by remember { mutableStateOf(false) }
-                TextButton(onClick={expanded=!expanded}) { Text("Practice attempts · ${attempts.size} incomplete") }
+                TextButton(onClick={expanded=!expanded}) { Text("Practice attempts · ${attempts.size}") }
                 if(expanded) {
-                    Text("Preserved for coaching; excluded from completed-rep statistics.")
-                    attempts.forEach { item -> TextButton(onClick={selectedAttempt=item.id}) { Text("Attempt ${item.ordinal} · incomplete") } }
+                    Text("Review what was observed and why a completed cycle was not recorded. These attempts are excluded from completed-rep statistics.")
+                    attempts.forEach { item ->
+                        val evidence=remember(item,practice?.endReason) { WorkoutEvidence.assess(item,practice?.endReason) }
+                        TextButton(onClick={selectedAttempt=item.id}) { Text("Attempt ${item.ordinal} · ${evidence.title}") }
+                    }
                     attempts.firstOrNull { it.id==selectedAttempt }?.let { item ->
                         Text("Attempt ${item.ordinal} · incomplete",style=MaterialTheme.typography.titleMedium)
+                        AttemptEvidence(item,practice?.endReason)
                         if(item.samples.isNotEmpty())AnglePlot(item)
                         Text("Left mean / range: ${angles(item.left)}\nRight mean / range: ${angles(item.right)}")
                     }
@@ -123,6 +127,21 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
         WorkoutGoalEditor(report,onSave={metric,target -> goalStore.setGoal(report.exercise,metric,target);goalRevision++},onClose={editingGoal=false})
     }
 }
+@Composable
+private fun AttemptEvidence(rep: RepRecord, setEndReason: String?) {
+    val evidence=remember(rep,setEndReason) { WorkoutEvidence.assess(rep,setEndReason) }
+    Surface(shape=MaterialTheme.shapes.medium, color=MaterialTheme.colorScheme.surfaceVariant) {
+        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement=Arrangement.spacedBy(6.dp)) {
+            Text(evidence.title,style=MaterialTheme.typography.titleSmall)
+            Text(evidence.explanation)
+            evidence.reason?.let { Text(it,style=MaterialTheme.typography.bodySmall) }
+            Text("Observed time: ${coverage(evidence.durationCoverage)}\nLeft-arm time: ${coverage(evidence.leftCoverage)}\nRight-arm time: ${coverage(evidence.rightCoverage)}",style=MaterialTheme.typography.bodySmall)
+            evidence.notes.forEach { Text(it,style=MaterialTheme.typography.bodySmall) }
+            if(!evidence.angleComparisonEligible)Text("Range is excluded from progress comparisons.",style=MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+private fun coverage(value: Double?): String = value?.let { String.format(Locale.ROOT,"%.0f%%",it*100) } ?: "Unavailable"
 @Composable
 private fun AnglePlot(rep: RepRecord) {
     Text("Elbow angle (0–180°) over seconds · left blue / right orange")

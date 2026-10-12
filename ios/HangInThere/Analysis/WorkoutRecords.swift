@@ -70,6 +70,20 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     var acceptedCount: Int { reps.filter { $0.acceptedAt != nil }.count }
 }
 
+// A review projection of shared policy, never a persisted confidence/form score.
+struct WorkoutAttemptAssessmentRecord: Codable, Equatable, Sendable {
+    let status: String
+    let title: String
+    let explanation: String
+    let reason: String?
+    let durationCoverage: Double?
+    let leftCoverage: Double?
+    let rightCoverage: Double?
+    let angleComparisonEligible: Bool
+    let notes: [String]
+    let policyVersion: Int
+}
+
 struct WorkoutPhaseSpan: Codable, Equatable, Identifiable, Sendable {
     let id: String
     let phase: String

@@ -12,6 +12,30 @@ counter's phase/event stream. Existing per-frame parity oracles continue protect
 this interface. Moving the remaining counter/setup facade to Kotlin is a separate
 migration; this change does not claim that either pose SDK is shared.
 
+## Attempt evidence and uncertainty
+
+Roadmap [#31](https://github.com/yongkyuns/HangInThere/issues/31) begins with
+`WorkoutEvidence`, a shared, versioned review projection. Both apps distinguish
+completed cycles, active attempts, counter-observed partial movements, acceptance
+without a recorded return, voluntary endings and interrupted observations.
+An interruption describes recording evidence, never a strength/form failure.
+Counter acceptance and completed-cycle eligibility remain unchanged.
+
+Observed-time and each arm's coverage are independent source-time fractions, not
+calibrated confidence scores. Missing/invalid values stay unavailable. Assessment
+uses full-resolution summary integrals and close reasons; downsampled or expired
+curves cannot invent return evidence. It is recomputed for older summaries and
+recovered journals without a storage migration. Apple transfers only the bounded
+rep summary on review actions; Android calls the same policy directly.
+
+Range comparisons require both arm ranges and the established 80% arm-time
+coverage gate. Active attempts and interrupted prefixes are excluded from best
+range, while their observed measurements remain inspectable. Camera projections
+do not verify chin clearance, dip depth or anatomical form. The coverage gate is
+an engineering rule pending held-out measurement validation, not a quality score.
+Native goal persistence/FFI belongs in `App/`; Swift `Analysis/` remains free of
+`WorkoutCore` imports for the production policy/replay tools on Linux and macOS.
+
 ## Lifecycle and evidence
 
 - Start observing after actual apparatus, exercise identity, camera motion and
@@ -35,7 +59,7 @@ migration; this change does not claim that either pose SDK is shared.
   distinct records; they do not contribute to accepted counts. Analytics use the
   shared `WorkoutAnalytics` rule: a rep must be accepted and close with an
   observed return to its starting position. Unfinished attempts, including an
-  accepted pull-up without its return, are excluded from charts, metric details,
+  accepted pull-up without its return, are excluded from completed-rep charts and metrics,
   saved-set rep totals and future aggregates. Raw counter evidence remains in the
   journal; older saved sets use the same rule without a schema migration.
 - A set completes after one second of continuous **bilateral visible grip
