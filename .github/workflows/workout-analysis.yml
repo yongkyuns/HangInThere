@@ -43,4 +43,5 @@ jobs:
           path: |
             build/workout-analysis/apple-bridge-check.json
             build/workout-analysis/render/*.png
+            build/workout-analysis/render/*.ocr.json
             shared/build/test-results/jvmTest/*.xml

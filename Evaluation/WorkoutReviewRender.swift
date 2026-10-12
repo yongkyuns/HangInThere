@@ -116,7 +116,10 @@ import Vision
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate; request.recognitionLanguages = ["en-US"]
         try VNImageRequestHandler(cgImage: image).perform([request])
-        return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-            .map { $0.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression).lowercased() }
+        let recognized = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+        let normalized = recognized.map { $0.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression).lowercased() }
+        let diagnostics = try JSONSerialization.data(withJSONObject: ["file": filename, "recognized": recognized, "normalized": normalized], options: [.prettyPrinted, .sortedKeys])
+        try diagnostics.write(to: URL(fileURLWithPath: "build/workout-analysis/render/\(filename).ocr.json"))
+        return normalized
     }
 }

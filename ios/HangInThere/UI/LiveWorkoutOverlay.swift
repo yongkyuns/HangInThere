@@ -91,7 +91,7 @@ struct LiveWorkoutOverlay: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 6) {
             iconButton("xmark", label: "Close live workout", action: onClose)
                 .disabled(!canClose)
             VStack(alignment: .leading, spacing: 4) {
@@ -99,9 +99,10 @@ struct LiveWorkoutOverlay: View {
                     .font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
                 if session.phase == .running {
                     Label(session.trackingIssue == nil ? "TRACKING" : "PAUSED", systemImage: "circle.fill")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(session.trackingIssue == nil ? .green : .orange)
                         .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
                         .accessibilityIdentifier("liveTrackingStatus")
                 }
             }
@@ -110,7 +111,7 @@ struct LiveWorkoutOverlay: View {
                 VStack(spacing: 0) {
                     Text("\(session.phase == .idle ? latestCompletedSet?.acceptedCount ?? 0 : session.observedMovements)")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .monospacedDigit()
+                        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
                         .contentTransition(.numericText())
                     Text(session.phase == .idle ? "last set" : "reps").font(.caption2.weight(.medium))
                 }
