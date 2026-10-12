@@ -37,6 +37,7 @@ __pycache__/
 # Android/Kotlin machine state, pinned downloaded assets and prepared test media
 .gradle/
 .kotlin/
+.cxx/
 local.properties
 android/app/src/main/assets/*.task
 android/app/src/androidTest/assets/generated/

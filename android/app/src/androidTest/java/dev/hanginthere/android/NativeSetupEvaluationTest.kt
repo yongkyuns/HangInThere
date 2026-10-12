@@ -46,6 +46,9 @@ class NativeSetupEvaluationTest {
             var firstReference: Double? = null
             var firstCountdown: Double? = null
             var firstRunning: Double? = null
+            var automaticFirstRunning: Double? = null
+            var automaticLastSnapshot: WorkoutRuntime.Snapshot? = null
+            val legacy = WorkoutRuntime()
             var lastTime: Double? = null
             val countdownValues = linkedSetOf<Int>()
             var lastSnapshot: WorkoutRuntime.Snapshot? = null
@@ -80,7 +83,10 @@ class NativeSetupEvaluationTest {
                                         }
                                         val sample = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
                                         val result = pipeline.process(it.bitmap, it.presentationTimeUs, sample)
-                                        val snapshot = result.snapshot
+                                        automaticLastSnapshot = result.snapshot
+                                        if(result.snapshot.phase == LiveSetSession.Phase.running && automaticFirstRunning == null) automaticFirstRunning = time
+                                        // Retain the original 3/2/1 gate on the identical native observations.
+                                        val snapshot = legacy.observe(requireNotNull(result.input))
                                         check(!snapshot.isReplayReview) { "Live setup test must never bypass countdown through rewind" }
                                         if (snapshot.referenceEdge != null && firstReference == null) firstReference = time
                                         snapshot.countdownSeconds?.let { remaining ->
@@ -99,6 +105,7 @@ class NativeSetupEvaluationTest {
                                     }
                                 }
                             }
+                            legacy.stop()
                             pipeline.runtime.stop() // Finish actual counter events before releasing native ownership.
                             check(pipeline.runtime.snapshot.observedMovements == 0) { "Held pixels produced a false movement after finishing" }
                         }
@@ -110,6 +117,8 @@ class NativeSetupEvaluationTest {
             val passed = error == null && frames == expectedFrames && lastSnapshot?.exercise == expected && firstReference != null
                 && countdownValues.containsAll(listOf(3, 2, 1)) && countdownDuration?.let { it >= 3.0 - 1e-6 } == true
                 && lastSnapshot?.phase == LiveSetSession.Phase.running && lastSnapshot?.observedMovements == 0
+                && automaticFirstRunning != null && automaticLastSnapshot?.phase == LiveSetSession.Phase.running
+                && automaticLastSnapshot?.observedMovements == 0 && automaticFirstRunning!! <= firstRunning!!
             if (!passed) failures += "$id: Auto/setup/countdown/no-false-count qualification failed; inspect setup timeline"
             reports += buildJsonObject {
                 put("id", id); put("asset", asset); put("sha256", sourceHash?.let(::JsonPrimitive) ?: JsonNull)
@@ -118,6 +127,9 @@ class NativeSetupEvaluationTest {
                 put("acquiredActualContours", firstReference != null); put("firstReferenceSeconds", firstReference?.let(::JsonPrimitive) ?: JsonNull)
                 put("firstCountdownSeconds", firstCountdown?.let(::JsonPrimitive) ?: JsonNull)
                 put("countdownValues", JsonArray(countdownValues.map(::JsonPrimitive)))
+                put("automaticFirstRunningSeconds", automaticFirstRunning?.let(::JsonPrimitive) ?: JsonNull)
+                put("automaticFinalPhase", automaticLastSnapshot?.phase?.name ?: "unknown")
+                put("automaticObservedMovements", automaticLastSnapshot?.observedMovements ?: -1)
                 put("firstRunningSeconds", firstRunning?.let(::JsonPrimitive) ?: JsonNull)
                 put("countdownDurationSeconds", countdownDuration?.let(::JsonPrimitive) ?: JsonNull)
                 put("lastSourceSeconds", lastTime?.let(::JsonPrimitive) ?: JsonNull)
@@ -128,7 +140,7 @@ class NativeSetupEvaluationTest {
             }
         }
         File(output, "setup-report.json").writeText(buildJsonObject {
-            put("schemaVersion", 1); put("scope", "Authored repeated public-source pixels: Auto apparatus acquisition, live 3-second countdown and zero false counts; no dynamic accuracy or naturally observed user hold claim")
+            put("schemaVersion", 1); put("scope", "Authored repeated public-source pixels: Auto apparatus acquisition, production automatic readiness plus unchanged legacy 3-second countdown and zero false counts; no dynamic accuracy or naturally observed user hold claim")
             put("attitudeScope", "virtual fixed recording quaternion at exact source PTS; actual OpenCV scene registration required")
             put("rewindUsed", false); put("backend", PoseEstimator.ARTIFACT); put("backendAarSha256", PoseEstimator.ARTIFACT_SHA256)
             put("modelSha256", PoseEstimator.MODEL_SHA256); put("apiLevel", Build.VERSION.SDK_INT)

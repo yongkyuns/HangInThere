@@ -70,7 +70,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         command.action(active)
         val current = state.value
         val snapshot = active.runtime.snapshot
-        publish(command.token, current.copy(result = current.result?.copy(snapshot = snapshot),
+        publish(command.token, current.copy(result = current.result?.let { active.refreshRecords(it) },
             finished = current.replay && (current.finished || snapshot.phase == LiveSetSession.Phase.finished)))
     }
     private fun publish(token: Long, value: State) {
@@ -95,8 +95,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                 if (result == null || active == null) {
                     return@execute
                 }
-                active.runtime.tick(sourceNow)
-                publish(token, state.value.copy(result = result.copy(snapshot = active.runtime.snapshot)))
+                publish(token, state.value.copy(result = active.tick(sourceNow, result)))
             } finally { tickScheduled.set(false) }
         }
     }
@@ -165,7 +164,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
             if (token != generation.get()) return@execute
             var latest = State(replay = true, selection = selection, side = side)
             try {
-                pipeline = AnalysisPipeline(getApplication(), selection, side)
+                pipeline = AnalysisPipeline(getApplication(), selection, side, persistWorkouts = false)
                 val active = requireNotNull(pipeline)
                 var acquired = false
                 fun runPass(acquireOnly: Boolean): Boolean {
@@ -196,7 +195,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                         active.runtime.snapshot.setupIssue, active.runtime.session.endReason)
                     active.runtime.stop()
                     markReplayTerminal(token)
-                    latest = latest.copy(result = latest.result?.copy(snapshot = active.runtime.snapshot), finished = true,
+                    latest = latest.copy(result = latest.result?.let { active.refreshRecords(it) }, finished = true,
                         error = outcome.message, interrupted = outcome.kind == ReplayOutcome.Kind.interrupted, replayOutcome = outcome.kind)
                     publish(token, latest)
                 }
@@ -227,7 +226,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
             val active = pipeline
             if (active != null) {
                 active.runtime.interrupt(LiveSetSession.EndReason.appInactive)
-                publish(token, last.copy(result = last.result?.copy(snapshot = active.runtime.snapshot), interrupted = true, finished = true,
+                publish(token, last.copy(result = last.result?.let { active.refreshRecords(it) }, interrupted = true, finished = true,
                     error = if (last.replay) "Video evaluation interrupted · open the video again" else null))
                 active.close(); pipeline = null
             }

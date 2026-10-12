@@ -20,6 +20,9 @@ struct BarSetupFrame: Identifiable, Sendable {
 @MainActor @Observable
 final class ReplayController {
     private(set) var counter = ExerciseCounter()
+    private let workoutAnalysis = WorkoutAnalysisAdapter()
+    private(set) var analysisRecord: WorkoutSetRecord?
+    var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
     private(set) var bar: ConfirmedBar?
     private(set) var automaticBarState: AutomaticPullUpBar.State = .lookingForGrip
     private(set) var phase: ReplayPhase = .idle
@@ -277,6 +280,7 @@ final class ReplayController {
                     guard isCurrent(token, playToken) else { return }
                     guard let next else {
                         counter.finish()
+                        analysisRecord = workoutAnalysis.finish(reason: "endOfInput")
                         phase = .finished
                         operation = nil
                         return
@@ -318,7 +322,10 @@ final class ReplayController {
         }
         let referenceEdge = currentBar?.referenceEdge
         if referenceEdge != nil { countingFrames += 1 }
+        let eventCount = counter.events.count
         counter.consume(pose, referenceEdge: referenceEdge)
+        _ = workoutAnalysis.consume(pose, reference: referenceEdge, counter: counter,
+            event: counter.events.count > eventCount ? counter.events.last : nil, automaticFinish: false)
         if referenceEdge != nil, counter.trackingIssue == nil { analyzableFrames += 1 }
     }
 
@@ -363,6 +370,8 @@ final class ReplayController {
     }
 
     private func resetAnalysisMetrics() {
+        workoutAnalysis.start(exercise: counter.exercise)
+        analysisRecord = nil
         countingFrames = 0
         analyzableFrames = 0
     }
@@ -379,6 +388,8 @@ final class ReplayController {
 
     private func fail(_ error: Error) {
         counter.interrupt()
+        workoutAnalysis.interrupt(reason: "analysisFailure")
+        analysisRecord = workoutAnalysis.finish(reason: "analysisFailure")
         phase = .failed
         errorMessage = error.localizedDescription
         failureReport = makeFailureReport(error, operation: "replay")

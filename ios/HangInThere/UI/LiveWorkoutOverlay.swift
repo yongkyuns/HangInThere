@@ -4,6 +4,7 @@ import SwiftUI
 // owner supplies current session evidence and handles camera/presentation work.
 struct LiveWorkoutOverlay: View {
     let session: LiveSetSession
+    var latestCompletedSet: WorkoutSetRecord? = nil
     var exerciseTitle: String? = nil
     let cameraReady: Bool
     let status: String
@@ -77,23 +78,24 @@ struct LiveWorkoutOverlay: View {
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Spacer(minLength: 4)
-            if session.phase != .idle {
+            if session.phase != .idle || latestCompletedSet != nil {
                 VStack(spacing: 0) {
-                    Text("\(session.observedMovements)")
+                    Text("\(session.phase == .idle ? latestCompletedSet?.acceptedCount ?? 0 : session.observedMovements)")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .contentTransition(.numericText())
-                    Text("reps").font(.caption2.weight(.medium))
+                    Text(session.phase == .idle ? "last set" : "reps").font(.caption2.weight(.medium))
                 }
                 .foregroundStyle(.white)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(session.observedMovements) counted reps")
+                .accessibilityLabel("\(session.phase == .idle ? latestCompletedSet?.acceptedCount ?? 0 : session.observedMovements) counted reps\(session.phase == .idle ? " in the last set" : "")")
                 .accessibilityIdentifier("liveMovementCount")
             }
             if isRecording {
                 Circle().fill(.red).frame(width: 9, height: 9)
                     .accessibilityLabel("Debug video recording active")
             }
+            iconButton("chart.xyaxis.line", label: "Workout analysis", action: onResults)
             iconButton("slider.horizontal.3", label: "Workout settings and details", action: onOptions)
                 .accessibilityIdentifier("liveWorkoutOptions")
         }

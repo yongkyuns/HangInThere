@@ -27,3 +27,11 @@ own evaluation.
 The project and shared scheme retain relative paths within this directory.
 Historical result JSON and frozen evaluation specifications retain the paths
 recorded at their original revisions, before the move under `ios/`.
+
+## Shared workout analysis
+
+Install JDK 17 and keep it available to Xcode (`JAVA_HOME` when building from the
+shell). The Xcode build phase runs the repository Gradle wrapper and links the
+static `WorkoutCore` framework for its SDK/architecture. It uses Apple-only
+configuration and does not require an Android SDK. See
+[automatic workout analysis](../docs/workout/AUTOMATIC_ANALYSIS.md).

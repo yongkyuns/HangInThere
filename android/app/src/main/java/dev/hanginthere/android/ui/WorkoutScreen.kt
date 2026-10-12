@@ -48,6 +48,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
     val context = LocalContext.current; val owner = LocalLifecycleOwner.current
     var front by remember { mutableStateOf(false) }
     var settings by remember { mutableStateOf(false) }
+    var analysis by remember { mutableStateOf(false) }
     var licenses by remember { mutableStateOf(false) }
     var selection by remember { mutableStateOf(WorkoutExerciseSelection.automatic) }
     var side by remember { mutableStateOf(ArmMeasurement.Side.left) }
@@ -130,9 +131,11 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
         }
         Column(Modifier.align(Alignment.TopStart).statusBarsPadding().padding(16.dp).background(Color.Black.copy(alpha = 0.5f))) {
             Text(state.result?.snapshot?.exercise?.title ?: if (selection == WorkoutExerciseSelection.automatic) "Auto" else if (selection == WorkoutExerciseSelection.dip) "Dips" else "Pull-ups", Modifier.padding(horizontal = 12.dp, vertical = 6.dp), color = Color.White)
-            Text("${state.result?.snapshot?.observedMovements ?: 0}", Modifier.padding(horizontal = 12.dp), fontSize = 42.sp, color = Color.White)
+            Text("${state.result?.snapshot?.let { if(it.phase == LiveSetSession.Phase.idle) it.latestCompletedSet?.acceptedCount ?: it.observedMovements else it.observedMovements } ?: 0}", Modifier.padding(horizontal = 12.dp), fontSize = 42.sp, color = Color.White)
+            if(state.result?.snapshot?.phase == LiveSetSession.Phase.idle && state.result?.snapshot?.latestCompletedSet != null) Text("Last set", Modifier.padding(horizontal = 12.dp), color = Color.White)
         }
         Column(Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(12.dp)) {
+            FilledTonalButton(onClick = { analysis = true }) { Text("Analysis") }
             FilledTonalButton(onClick = { settings = true }) { Text("Settings") }
             if (allowCamera && !state.replay) FilledTonalButton(onClick = { front = !front }, enabled = state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text("Flip") }
         }
@@ -168,6 +171,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             TextButton(onClick = { settings = false; licenses = true }) { Text("Open-source licenses") }
         }
     }, confirmButton = { TextButton(onClick = { settings = false }) { Text("Done") } })
+    if (analysis) WorkoutReviewDialog(state.result?.reps.orEmpty(), state.result?.history.orEmpty(), state.result?.storageError) { analysis = false }
     if (licenses) AlertDialog(onDismissRequest = { licenses = false }, title = { Text("Open-source licenses") }, text = {
         val notice = remember { listOf("hdr-notice.txt", "ffmpeg-LGPL-2.1.txt", "zimg-WTFPL.txt").joinToString("\n\n") {
             context.assets.open("licenses/$it").bufferedReader().use { reader -> reader.readText() }

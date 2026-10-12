@@ -9,7 +9,7 @@ import java.io.Closeable
 import kotlinx.serialization.Serializable
 
 /** One serial owner connects platform observations to the platform-independent workout policy. */
-class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseSelection, side: ArmMeasurement.Side) : Closeable {
+class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseSelection, side: ArmMeasurement.Side, automaticWorkouts: Boolean = true, private val persistWorkouts: Boolean = true, recordStoreOverride: WorkoutRecordStore? = null) : Closeable {
     /** The exact bounded detector output consumed by policy, without retaining frame pixels. */
     @Serializable
     data class ApparatusObservation(
@@ -18,8 +18,42 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
         val errors: List<String?>,
     )
     data class Result(val pose: PoseResult, val snapshot: WorkoutRuntime.Snapshot, val progress: Double, val cue: String,
-                      val analysisMillis: Double, val apparatus: ApparatusObservation? = null)
-    val runtime = WorkoutRuntime(selection, side)
+                      val analysisMillis: Double, val apparatus: ApparatusObservation? = null,
+                      val reps: List<RepRecord> = emptyList(), val history: List<WorkoutSetRecord> = emptyList(),
+                      val storageError: String? = null, val input: WorkoutRuntime.FrameInput? = null)
+    val runtime = WorkoutRuntime(selection, side, automaticWorkouts = automaticWorkouts)
+    private val recordStore = recordStoreOverride ?: WorkoutRecordStore.live(context)
+    private var storageError: String? = null
+    private var history = runCatching { recordStore.recent() }.getOrElse { storageError = it.message; emptyList() }
+    private var draftRevision = -1
+    private var draftSetId: String? = null
+    private var queuedSetId: String? = null
+    private var retryAfterNanos = 0L
+    private fun persistRecords() {
+        if(!persistWorkouts) return
+        if(runtime.session.phase==LiveSetSession.Phase.running && (draftSetId!=runtime.session.setId || draftRevision!=runtime.session.analysis.revision)) {
+            runtime.session.draftDelta?.let { delta ->
+                recordStore.enqueue(delta, finalized = false)
+            }
+            draftSetId=runtime.session.setId;draftRevision=runtime.session.analysis.revision
+        }
+        runtime.latestCompletedSet?.takeIf { it.id != queuedSetId && it.reps.isNotEmpty() }?.let { record ->
+            recordStore.enqueue(record, finalized = true)
+            queuedSetId = record.id
+            history = (listOf(record) + history.filter { it.id != record.id }).take(50)
+        }
+        if (System.nanoTime() >= retryAfterNanos) runCatching { recordStore.flushPending() }
+            .onSuccess { storageError = null; retryAfterNanos = 0L }
+            .onFailure { storageError = "Workout save will retry: ${it.message}"; retryAfterNanos = System.nanoTime() + 1_000_000_000L }
+    }
+    fun refreshRecords(result: Result): Result {
+        persistRecords()
+        return result.copy(snapshot = runtime.snapshot, reps = runtime.session.analysis.records, history = history, storageError = storageError)
+    }
+    fun tick(sourceNow: Double, result: Result): Result {
+        runtime.tick(sourceNow)
+        return refreshRecords(result)
+    }
     private val edges = ObservedEdges()
     private val scene = SceneRegistration()
     private var poses = PoseEstimator(context)
@@ -48,10 +82,11 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
             lastSceneSeconds = seconds
         }
         val evidence = sceneEvidence
-        val snapshot = runtime.observe(WorkoutRuntime.FrameInput(pose = pose, candidates = candidates,
+        val input = WorkoutRuntime.FrameInput(pose = pose, candidates = candidates,
             attitude = attitude?.quaternion, motionTimestamp = attitude?.seconds,
             translations = evidence.translations, globalScaleFraction = evidence.scaleFraction,
-            sceneTimestamp = lastSceneSeconds, paused = paused))
+            sceneTimestamp = lastSceneSeconds, paused = paused)
+        val snapshot = runtime.observe(input)
         if (snapshot.setupGeneration != setupGeneration || snapshot.referenceEdge != reference) {
             setupGeneration = snapshot.setupGeneration
             reference = snapshot.referenceEdge
@@ -61,7 +96,8 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
         val counter = runtime.session.counter
         val progress = counter.dipProgress?.fraction ?: counter.pullUpProgress?.fraction ?: 0.0
         val cue = counter.dipProgress?.cue?.name?.let(::cueText) ?: counter.pullUpProgress?.cue?.name?.let(::cueText) ?: snapshot.setupIssue.orEmpty()
-        return Result(pose, snapshot, progress, cue, (System.nanoTime() - started) / 1e6, apparatus)
+        val result = refreshRecords(Result(pose, snapshot, progress, cue, 0.0, apparatus, input = input))
+        return result.copy(analysisMillis = (System.nanoTime() - started) / 1e6)
     }
     private fun cueText(name: String): String = when(name) {
         "hang", "reacquireHang" -> "Hold a full hang"
@@ -83,5 +119,5 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
         // Preserve fixed reference grayscale pixels; never relabel the rewound camera as stable.
         return true
     }
-    override fun close() { poses.close(); scene.close() }
+    override fun close() { runtime.stop();retryAfterNanos=0L;persistRecords();poses.close();scene.close() }
 }

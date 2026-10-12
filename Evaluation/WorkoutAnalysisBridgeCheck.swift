@@ -1,0 +1,150 @@
+import Foundation
+
+/// A contract/performance check of the shipping FFI, with synthetic observations.
+/// This does not measure Vision/camera latency or qualify a physical device.
+@main
+struct WorkoutAnalysisBridgeCheck {
+    @MainActor static func main() async throws {
+        if CommandLine.arguments.count > 1 { try checkSavedObservations(); return }
+        var completed: [WorkoutSetRecord] = []
+        let reference = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
+        func pose(_ time: Double, _ angle: Double, exercise: ExerciseCounter.Exercise) -> PoseResult {
+            let half = angle * .pi / 360
+            let y = 120 * sin(half) * (exercise == .pullUp ? 1.0 : -1.0)
+            var landmarks: [Landmark] = []
+            for side in ArmMeasurement.Side.allCases {
+                let x = side == .left ? 300.0 : 700.0
+                let joints: [PoseJoint] = side == .left ? [.leftShoulder, .leftElbow, .leftWrist] : [.rightShoulder, .rightElbow, .rightWrist]
+                let points = [Point2D(x: x, y: 500 + 2 * y), Point2D(x: x + 120 * cos(half), y: 500 + y), Point2D(x: x, y: 500)]
+                landmarks += zip(joints, points).map { Landmark(joint: $0, position: $1, confidence: 1) }
+            }
+            return PoseResult(timestamp: PresentationTime(value: Int64((time * 1000).rounded()), timescale: 1000),
+                imageSize: ImageSize(width: 1000, height: 1000), people: [PoseObservation(landmarks: landmarks)], backend: "synthetic bridge check", requestRevision: 0)
+        }
+        for exercise in ExerciseCounter.Exercise.allCases {
+            let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
+            var counter = ExerciseCounter(exercise: exercise, side: .left)
+            for (time, angle) in [(0.0, 170.0), (0.15, 170.0), (0.30, 80.0), (0.45, 80.0), (0.60, 170.0), (0.75, 170.0)] {
+                let p = pose(time, angle, exercise: exercise)
+                let count = counter.events.count
+                counter.consume(p, referenceEdge: reference)
+                _ = analysis.consume(p, reference: reference, counter: counter,
+                    event: counter.events.count > count ? counter.events.last : nil, automaticFinish: false)
+            }
+            guard let set = analysis.finish(reason: "manual"), set.acceptedCount == counter.observedMovements,
+                  set.acceptedCount == 1, set.reps.count == 1, set.reps[0].returnedAt == 0.75 else {
+                fatalError("Bridge changed \(exercise) count/return contract")
+            }
+            completed.append(set)
+            let rep = set.reps[0]
+            guard rep.left.mean != nil, rep.right.mean != nil,
+                  rep.durationCoverage == 1, rep.countPolicyVersion == 8 else { fatalError("Bridge lost metric validity") }
+        }
+        // Baseline acquisition and steady poses exercise allocation/FFI hot path.
+        let engine = WorkoutAnalysisAdapter(); engine.start(exercise: .pullUp)
+        var counter = ExerciseCounter(); var latencies: [Double] = []
+        for i in 0..<2000 {
+            let angles = [170.0, 170, 170, 80, 80, 80, 170, 170, 170]
+            let p = pose(Double(i) * 0.1, angles[i % angles.count], exercise: .pullUp)
+            let eventCount = counter.events.count
+            counter.consume(p, referenceEdge: reference)
+            let start = ContinuousClock.now
+            _ = engine.consume(p, reference: reference, counter: counter, event: counter.events.count > eventCount ? counter.events.last : nil, automaticFinish: true)
+            let duration = start.duration(to: .now).components
+            latencies.append(Double(duration.seconds) * 1000 + Double(duration.attoseconds) / 1e15)
+        }
+        latencies.sort()
+        let p95 = latencies[Int(Double(latencies.count - 1) * 0.95)]
+        guard p95 < 5 else { fatalError("Host FFI p95 exceeds 5 ms budget: \(p95)") }
+        guard let activeSet = engine.finish(reason: "manual"), activeSet.acceptedCount == counter.observedMovements,
+              activeSet.acceptedCount > 200 else { fatalError("Active rep bridge lost or duplicated records") }
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("workout-store-check-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = WorkoutRecordStore(directory: directory)
+        for _ in 0..<55 {
+            let id = UUID().uuidString
+            var object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(completed[0])) as! [String: Any]
+            object["id"] = id
+            object["reps"] = (object["reps"] as! [[String: Any]]).map { original in
+                var rep = original; rep["setId"] = id; rep["id"] = id + ":rep:1"; return rep
+            }
+            let record = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: object))
+            try await store.save(record)
+            try await store.save(record) // Idempotent, including after motion expiry.
+        }
+        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+        guard files.filter({ $0.lastPathComponent.hasSuffix(".motion.json") }).count == 50,
+              files.filter({ !$0.lastPathComponent.hasSuffix(".motion.json") }).count == 55 else { fatalError("Motion retention discarded summaries or exceeded bounds") }
+        let recent = try await store.recent()
+        guard recent.count == 50, recent.allSatisfy({ $0.acceptedCount == 1 }) else { fatalError("Stored records do not recover") }
+        let pending = completed[1]
+        try await store.saveDraft(pending)
+        let recovered = try await store.recent()
+        guard recovered.contains(where: { $0.id == pending.id && $0.endReason == "recoveredInterruption" && $0.acceptedCount == 1 }) else {
+            fatalError("Accepted rep journal was not recovered")
+        }
+        try await store.save(pending)
+        try await store.saveDraft(pending)
+        guard !FileManager.default.fileExists(atPath: directory.appendingPathComponent(pending.id + ".pending.json").path) else {
+            fatalError("A stale draft replaced finalized evidence")
+        }
+        // A real first-write failure leaves immutable evidence in the shared
+        // outbox. Repair the directory, retry, and reload through a new store.
+        let blocked = directory.appendingPathComponent("blocked")
+        try Data([0]).write(to: blocked)
+        let retryStore = WorkoutRecordStore(directory: blocked)
+        try await retryStore.enqueue(pending, finalized: true)
+        do { try await retryStore.flushPending(); fatalError("Expected blocked-directory write failure") }
+        catch { /* The failed write remains queued. */ }
+        try FileManager.default.removeItem(at: blocked)
+        try await retryStore.flushPending()
+        let reloaded = try await WorkoutRecordStore(directory: blocked).recent()
+        guard reloaded == [pending] else { fatalError("Retry lost finalized evidence") }
+        // Simulate termination after summary publication but before journal
+        // cleanup/retention. Idempotent retries must finish that work too.
+        let orphan = blocked.appendingPathComponent(pending.id + ".pending.json")
+        try JSONEncoder().encode(pending).write(to: orphan)
+        for i in 0..<55 { try JSONEncoder().encode(pending).write(to: blocked.appendingPathComponent("extra-\(i).motion.json")) }
+        try await retryStore.save(pending)
+        let cleaned = try FileManager.default.contentsOfDirectory(at: blocked, includingPropertiesForKeys: nil)
+        guard !FileManager.default.fileExists(atPath: orphan.path), cleaned.filter({$0.lastPathComponent.hasSuffix(".motion.json")}).count == 50 else {
+            fatalError("Idempotent retry skipped post-commit cleanup")
+        }
+        let result: [String: Any] = ["passed": true, "cases": 2, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+            "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
+        let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
+        try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)
+        print(String(decoding: data, as: UTF8.self))
+    }
+    @MainActor private static func checkSavedObservations() throws {
+        let args = CommandLine.arguments
+        guard args.count == 9, let exercise = ExerciseCounter.Exercise(rawValue: args[1]),
+              let side = ArmMeasurement.Side(rawValue: args[2]), let expected = Int(args[7]) else {
+            fatalError("Usage: apple-bridge-check exercise side ax ay bx by expected observations.jsonl")
+        }
+        let coords = args[3...6].map { Double($0)! }
+        let reference = BarSegment(a: Point2D(x: coords[0], y: coords[1]), b: Point2D(x: coords[2], y: coords[3]))
+        precondition(reference.isValid)
+        let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
+        var counter = ExerciseCounter(exercise: exercise, side: side)
+        var frames = 0
+        for line in try String(contentsOfFile: args[8], encoding: .utf8).split(separator: "\n") {
+            let data = Data(line.utf8)
+            let metadata = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+            precondition(metadata["frameIndex"] as? Int == frames && metadata["timebase"] as? String == "source_pts")
+            let pose = try JSONDecoder().decode(PoseResult.self, from: data)
+            let count = counter.events.count
+            counter.consume(pose, referenceEdge: reference)
+            _ = analysis.consume(pose, reference: reference, counter: counter,
+                event: counter.events.count > count ? counter.events.last : nil, automaticFinish: false)
+            frames += 1
+        }
+        _ = counter.finish()
+        guard let set = analysis.finish(reason: "endOfInput"), frames > 0,
+              counter.observedMovements == expected, set.acceptedCount == expected else {
+            fatalError("Saved-observation count changed or accepted records were lost")
+        }
+        print("Saved-observation regression: \(exercise), \(frames) frames, \(set.acceptedCount)/\(expected) accepted records. No new inference or form qualification.")
+    }
+
+}

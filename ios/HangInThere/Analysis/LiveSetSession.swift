@@ -16,8 +16,10 @@ struct LiveSetSession: Sendable {
         case phoneMoved
         case sceneShifted
         case sceneScaled
+        case disengaged
+        case trackingLost
 
-        var isInterruption: Bool { self != .manual }
+        var isInterruption: Bool { self != .manual && self != .disengaged }
     }
 
     private(set) var phase: Phase = .idle
