@@ -1,6 +1,9 @@
 import Foundation
 import WorkoutCore
 
+// Native persistence and the shared-framework adapter belong to the app layer.
+// Analysis remains framework-free for Swift policy/replay tools on Linux/macOS.
+
 struct WorkoutGoalRecord: Codable, Equatable, Sendable {
     let exercise: ExerciseCounter.Exercise
     let metric: String

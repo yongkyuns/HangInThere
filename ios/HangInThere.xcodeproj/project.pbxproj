@@ -5,7 +5,7 @@
 	};
 	objectVersion = 56;
 	objects = {
-		AAA100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutProgression.swift"; sourceTree = "<group>";};
+		AAA100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/WorkoutProgression.swift"; sourceTree = "<group>";};
 		AAA200000000000000000004 = {isa = PBXBuildFile; fileRef = AAA100000000000000000004;};
 		AAA100000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutPracticeView.swift"; sourceTree = "<group>";};
 		AAA200000000000000000005 = {isa = PBXBuildFile; fileRef = AAA100000000000000000005;};

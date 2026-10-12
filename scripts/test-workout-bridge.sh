@@ -8,5 +8,6 @@ FRAMEWORK="$ROOT/build/WorkoutCore/macosx/Debug"
 mkdir -p build/workout-analysis
 swiftc -swift-version 6 -parse-as-library -O -F "$FRAMEWORK" -framework WorkoutCore -lc++ \
   ios/HangInThere/Analysis/*.swift ios/HangInThere/App/WorkoutAnalysisAdapter.swift \
+  ios/HangInThere/App/WorkoutProgression.swift \
   Evaluation/WorkoutAnalysisBridgeCheck.swift -o build/workout-analysis/apple-bridge-check
 build/workout-analysis/apple-bridge-check "$@"
