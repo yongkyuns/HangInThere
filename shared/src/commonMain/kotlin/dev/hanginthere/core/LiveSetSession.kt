@@ -25,8 +25,9 @@ class LiveSetSession {
     var counter=ExerciseCounter();private set
     var analyzedFrames=0;private set
     var usableFrames=0;private set
-    var firstSourceSeconds:Double?=null;private set
-    var lastSourceSeconds:Double?=null;private set
+    private val sourceTimeline=WorkoutSourceTimeline()
+    val firstSourceSeconds get()=sourceTimeline.firstSeconds
+    val lastSourceSeconds get()=sourceTimeline.lastSeconds
     val exercise get()=counter.exercise
     val side get()=counter.side
     val observedMovements get()=counter.observedMovements
@@ -40,7 +41,7 @@ class LiveSetSession {
     fun consume(pose:PoseResult,referenceEdge:BarSegment?) {
         if(phase!=Phase.running) return
         val time=pose.timestamp.seconds
-        if(time.isFinite()){if(firstSourceSeconds==null) firstSourceSeconds=time;lastSourceSeconds=time}
+        sourceTimeline.observe(time)
         if(imageSize==null) imageSize=pose.imageSize
         if(reference==null) reference=referenceEdge
         backend=pose.backend;modelRevision=pose.requestRevision
@@ -51,10 +52,10 @@ class LiveSetSession {
         if(automaticFinishEnabled) boundary.observe(features,counter.observedMovements+counter.partialAttempts+counter.interruptedAttempts>0 || counter.phase in listOf(ExerciseCounter.Phase.ready,ExerciseCounter.Phase.outbound,ExerciseCounter.Phase.returning))?.let { finish(EndReason.valueOf(it)) }
         if(referenceEdge!=null && counter.trackingIssue==null) usableFrames++
     }
-    fun interrupt(reason:String){if(phase==Phase.running) {counter.interrupt(reason);analysis.interrupt(reason)}}
+    fun interrupt(reason:String){if(phase==Phase.running) {counter.interrupt(reason);analysis.interrupt(reason);boundary.breakContinuity()}}
     fun finish(reason:EndReason=EndReason.manual){if(phase!=Phase.running) return;counter.finish();analysis.finish(reason.name);endReason=reason;phase=Phase.finished}
     fun interruptAndFinish(reason:String,endReason:EndReason){if(phase!=Phase.running) return;counter.interrupt(reason);counter.finish();analysis.finish(reason);this.endReason=endReason;phase=Phase.finished}
     fun prepareNextSet(){if(phase==Phase.finished) reset(counter.exercise,counter.side)}
-    fun reset(exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side){setId=newSetId();analysis=WorkoutAnalysis(setId,exercise);boundary.reset();motionFeatures.reset();imageSize=null;reference=null;backend=null;modelRevision=null;trackedAtEpochMilliseconds=null;counter=ExerciseCounter(exercise,side);phase=Phase.idle;endReason=null;analyzedFrames=0;usableFrames=0;firstSourceSeconds=null;lastSourceSeconds=null}
+    fun reset(exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side){setId=newSetId();analysis=WorkoutAnalysis(setId,exercise);boundary.reset();motionFeatures.reset();imageSize=null;reference=null;backend=null;modelRevision=null;trackedAtEpochMilliseconds=null;counter=ExerciseCounter(exercise,side);phase=Phase.idle;endReason=null;analyzedFrames=0;usableFrames=0;sourceTimeline.reset()}
     companion object { fun newSetId()=Random.nextLong().toULong().toString(16).padStart(16,'0')+Random.nextLong().toULong().toString(16).padStart(16,'0') }
 }

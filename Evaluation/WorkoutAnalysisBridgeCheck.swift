@@ -40,6 +40,35 @@ struct WorkoutAnalysisBridgeCheck {
             let rep = set.reps[0]
             guard rep.left.mean != nil, rep.right.mean != nil,
                   rep.durationCoverage == 1, rep.countPolicyVersion == 8 else { fatalError("Bridge lost metric validity") }
+
+            // Retained accepted evidence must fit within the set's source bounds
+            // even after the real Swift counter rejects an out-of-order frame.
+            for inferenceFailure in [false, true] {
+                let timelineAnalysis = WorkoutAnalysisAdapter(); timelineAnalysis.start(exercise: exercise)
+                var timelineCounter = ExerciseCounter(exercise: exercise, side: .left)
+                let timelineFrames = [(10.0, 170.0), (10.15, 170.0), (10.30, 80.0), (10.45, 80.0),
+                    (10.60, 170.0), (10.75, 170.0), (10.90, 80.0), (11.05, 80.0)] +
+                    (2...42).map { (Double($0) / 10, 80.0) }
+                for (index, entry) in timelineFrames.enumerated() {
+                    if index == 8, inferenceFailure {
+                        timelineCounter.interrupt(reason: "inferenceFailure")
+                        timelineAnalysis.interrupt(reason: "inferenceFailure")
+                    }
+                    let (time, angle) = entry
+                    let p = pose(time, angle, exercise: exercise)
+                    let before = timelineCounter.events.count
+                    timelineCounter.consume(p, referenceEdge: reference)
+                    let ended = timelineAnalysis.consume(p, reference: reference, counter: timelineCounter,
+                        event: timelineCounter.events.count > before ? timelineCounter.events.last : nil, automaticFinish: true)
+                    guard ended == nil else { fatalError("Rejected source frames earned an automatic set boundary") }
+                }
+                guard let set = timelineAnalysis.finish(reason: "manual"), set.startedAt == 10, set.endedAt == 11.05,
+                      set.acceptedCount == timelineCounter.observedMovements,
+                      set.reps.allSatisfy({ $0.closedAt <= 11.05 }),
+                      set.reps.last?.closeReason == (inferenceFailure ? "inferenceFailure" : "nonIncreasingTimestamp") else {
+                    fatalError("Bridge changed rejected-frame source bounds or accepted evidence")
+                }
+            }
         }
         // Baseline acquisition and steady poses exercise allocation/FFI hot path.
         let engine = WorkoutAnalysisAdapter(); engine.start(exercise: .pullUp)
@@ -111,7 +140,7 @@ struct WorkoutAnalysisBridgeCheck {
         guard !FileManager.default.fileExists(atPath: orphan.path), cleaned.filter({$0.lastPathComponent.hasSuffix(".motion.json")}).count == 50 else {
             fatalError("Idempotent retry skipped post-commit cleanup")
         }
-        let result: [String: Any] = ["passed": true, "cases": 2, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+        let result: [String: Any] = ["passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)

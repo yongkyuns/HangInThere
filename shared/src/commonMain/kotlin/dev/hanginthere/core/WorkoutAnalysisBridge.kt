@@ -9,8 +9,7 @@ import kotlinx.serialization.encodeToString
  */
 class WorkoutAnalysisBridge(setId: String, exercise: String, private val trackedAtEpochMilliseconds: Long) {
     private val setId=setId
-    private var first:Double?=null
-    private var last:Double?=null
+    private val sourceTimeline=WorkoutSourceTimeline()
     private var backend:String?=null
     private var trackingSide:ArmMeasurement.Side?=null
     private var imageSize:ImageSize?=null
@@ -29,7 +28,7 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
                 joints: IntArray, triples: DoubleArray, reference: DoubleArray,
                 phase: String, usable: Boolean, backend: String, modelRevision: Int, trackingSide: String, eventOutcome: String?, eventTime: Double,
                 eventReason: String?, hasActivity: Boolean, automaticFinish: Boolean): String? {
-        if(seconds.isFinite() && (last==null || seconds>last!!)){if(first==null) first=seconds;last=seconds}
+        sourceTimeline.observe(seconds)
         this.backend=backend;this.modelRevision=modelRevision
         val pose = pose(seconds, width, height, peopleCount, joints, triples)
         val bar = if (reference.size == 4) BarSegment(Point2D(reference[0], reference[1]), Point2D(reference[2], reference[3])) else null
@@ -43,12 +42,12 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
     }
     fun ready(seconds: Double, eligible: Boolean) = start.observe(seconds, eligible)
     fun resetReadiness() = start.reset()
-    fun interrupt(reason: String) { analysis.interrupt(reason); boundary.reset() }
+    fun interrupt(reason: String) { analysis.interrupt(reason); boundary.breakContinuity() }
     fun finish(reason: String) { analysis.finish(reason);endReason=reason }
     fun draftDeltaJson():String? = (analysis.activeRecord ?: analysis.records.lastOrNull())?.let{
-        WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,first,last,"running",listOf(it),backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
+        WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,sourceTimeline.firstSeconds,sourceTimeline.lastSeconds,"running",listOf(it),backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
     }
-    fun setJson() = WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,first,last,endReason,analysis.records,backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
+    fun setJson() = WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,sourceTimeline.firstSeconds,sourceTimeline.lastSeconds,endReason,analysis.records,backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
     fun recordsJson() = analysis.recordsJson()
     fun lastClosedRecordJson():String? = analysis.records.lastOrNull()?.let{WorkoutAnalysis.json.encodeToString(it)}
     private fun pose(seconds: Double, width: Double, height: Double, peopleCount: Int, joints: IntArray, triples: DoubleArray): PoseResult {

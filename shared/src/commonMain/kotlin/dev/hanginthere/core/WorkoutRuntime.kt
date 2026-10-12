@@ -50,7 +50,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     var confirmedBar:ConfirmedBar?=null;private set
     private var activeExercise=selection.exercise ?: ExerciseCounter.Exercise.pullUp
     private var discardNextSetFrame=false
-    private var lastFrameAt:Double?=null
+    private val sourceTimeline=WorkoutSourceTimeline()
+    private val lastFrameAt get()=sourceTimeline.lastSeconds
     private var lastAcquisitionSeconds:Double?=null
     private var replayExercise:ExerciseCounter.Exercise?=null
     private var replayReview=false
@@ -122,7 +123,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
                 }
             }
         }
-        lastFrameAt=seconds.takeIf{it.isFinite()}
+        sourceTimeline.observe(seconds)
         val bar=confirmedBar
         val sceneFresh=isFresh(seconds,input.sceneTimestamp,sceneMaximumAgeSeconds)
         issue=when {
@@ -192,7 +193,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     fun rewindReplay(attitude:PhoneOrientationStability.Quaternion,motionTimestamp:Double):Boolean {
         val bar=confirmedBar ?: return false;val exercise=resolvedExercise ?: return false
         if(!phoneOrientation.calibrate(attitude,motionTimestamp) || !staticScene.calibrate(bar.imageSize)) return false
-        replayExercise=exercise;replayReview=true;activeExercise=exercise;identity.reset();handsFreeStart.reset();session.reset(exercise,side);lastFrameAt=null;lastAcquisitionSeconds=null;discardNextSetFrame=false;generation++;return true
+        replayExercise=exercise;replayReview=true;activeExercise=exercise;identity.reset();handsFreeStart.reset();session.reset(exercise,side);sourceTimeline.reset();lastAcquisitionSeconds=null;discardNextSetFrame=false;generation++;return true
     }
     private fun expectedRole()=if(activeExercise==ExerciseCounter.Exercise.pullUp) ConfirmedBar.Role.pullUpGrip else if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail
     private fun clearAcquisition(){apparatus.reset();lastAcquisitionSeconds=null;handsFreeStart.reset();automaticStart.reset()}

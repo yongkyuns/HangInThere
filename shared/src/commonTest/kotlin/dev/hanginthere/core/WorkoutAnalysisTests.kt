@@ -93,6 +93,34 @@ class WorkoutAnalysisTests {
         for(i in 0..29) assertNull(b.observe(frame(i*.1,null,usable=false),true))
         assertEquals("trackingLost",b.observe(frame(3.1,null,usable=false),true))
     }
+    @Test fun rejectedTimestampsCannotRebaseReleaseOrOutageDwell() {
+        for (release in listOf(false, true)) {
+            val boundary = AutomaticSetBoundary()
+            assertNull(boundary.observe(frame(10.0,170.0),true))
+            assertNull(boundary.observe(frame(Double.NaN,null,usable=false),true))
+            for (i in 0..40) {
+                assertNull(boundary.observe(frame(i*.1,160.0,usable=false,released=release),true))
+            }
+            val frames = if (release) 10 else 30
+            for (i in 0 until frames) {
+                assertNull(boundary.observe(frame(10.1+i*.1,160.0,usable=false,released=release),true))
+            }
+            assertEquals(if (release) "disengaged" else "trackingLost",
+                boundary.observe(frame(10.1+frames*.1,160.0,usable=false,released=release),true))
+        }
+    }
+    @Test fun interruptionBreaksReleaseContinuityWhileNewSetCanResetTheClock() {
+        val boundary = AutomaticSetBoundary()
+        assertNull(boundary.observe(frame(10.0,170.0),true))
+        for (i in 1..9) assertNull(boundary.observe(frame(10.0+i*.1,160.0,released=true),true))
+        boundary.breakContinuity()
+        for (i in 0 until 10) assertNull(boundary.observe(frame(11.0+i*.1,160.0,released=true),true))
+        assertEquals("disengaged",boundary.observe(frame(12.0,160.0,released=true),true))
+        boundary.reset()
+        assertNull(boundary.observe(frame(0.0,170.0),true))
+        for (i in 1..10) assertNull(boundary.observe(frame(i*.1,160.0,released=true),true))
+        assertEquals("disengaged",boundary.observe(frame(1.2,160.0,released=true),true))
+    }
     @Test fun readinessCannotEarnTimeFromDuplicatesOrMissingEvidence() {
         val start=AutomaticWorkoutStart()
         assertFalse(start.observe(0.0,true));assertFalse(start.observe(0.0,true))
@@ -115,6 +143,67 @@ class WorkoutAnalysisTests {
         s.finish();assertEquals(1,s.observedMovements)
         assertEquals(s.observedMovements,s.record.acceptedCount)
         assertEquals(.75,s.record.reps.single().returnedAt)
+    }
+    @Test fun rejectedFramesCannotMoveSetBoundsBehindRetainedRepEvidence() {
+        for (exercise in ExerciseCounter.Exercise.entries) {
+            val session = LiveSetSession()
+            session.start(exercise, ArmMeasurement.Side.left)
+            for ((time, angle) in listOf(0.0 to 170.0, .15 to 170.0, .3 to 80.0,
+                .45 to 80.0, .6 to 170.0, .75 to 170.0, .9 to 80.0, 1.05 to 80.0)) {
+                session.consume(CounterFixtures.bilateral(time, angle, angle, exercise = exercise), CounterFixtures.edge)
+            }
+            val accepted = session.observedMovements
+            for (time in listOf(.2, 1.05, .1)) {
+                session.consume(CounterFixtures.bilateral(time, 80.0, 80.0, exercise = exercise), CounterFixtures.edge)
+                assertEquals(0.0, session.firstSourceSeconds)
+                assertEquals(1.05, session.lastSourceSeconds)
+                assertEquals(1.05, session.durationSeconds)
+                assertTrue(session.analysis.records.all { it.closedAt <= session.record.endedAt!! })
+                assertEquals(accepted, session.observedMovements)
+                assertEquals(accepted, session.record.acceptedCount)
+            }
+            session.finish()
+            assertEquals(1.05, session.record.endedAt)
+            assertEquals("nonIncreasingTimestamp", session.record.reps.last().closeReason)
+        }
+    }
+}
+
+class WorkoutSourceTimelineTests {
+    @Test fun appleBridgeInterruptionCannotRebaseBoundaryWithOlderFrames() {
+        val bridge = WorkoutAnalysisBridge("bounds", "pullUp", 0)
+        fun observe(time: Double, usable: Boolean): String? {
+            val pose = CounterFixtures.bilateral(time,170.0,170.0)
+            val points = pose.people.single().landmarks
+            return bridge.observe(time,pose.imageSize.width,pose.imageSize.height,1,
+                points.map { PoseJoint.entries.indexOf(it.joint) }.toIntArray(),
+                points.flatMap { listOf(it.position.x,it.position.y,it.confidence) }.toDoubleArray(),
+                doubleArrayOf(CounterFixtures.edge.a.x,CounterFixtures.edge.a.y,CounterFixtures.edge.b.x,CounterFixtures.edge.b.y),
+                if (usable) "ready" else "seekingStart",usable,pose.backend,pose.requestRevision,"left",
+                null,0.0,null,true,true)
+        }
+        assertNull(observe(10.0,true)); assertNull(observe(10.15,true))
+        bridge.interrupt("inferenceFailure")
+        for (i in 2..42) assertNull(observe(i/10.0,false))
+        for (i in 0 until 30) assertNull(observe(10.3+i*.1,false))
+        assertEquals("trackingLost",observe(13.3,false))
+    }
+    @Test fun invalidDuplicateAndOlderTimesCannotChangeSourceBounds() {
+        val timeline = WorkoutSourceTimeline()
+        for (time in listOf(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)) timeline.observe(time)
+        assertNull(timeline.firstSeconds); assertNull(timeline.lastSeconds)
+        timeline.observe(5.0); timeline.observe(5.5)
+        for (time in listOf(1.0, 5.5, Double.NaN, Double.POSITIVE_INFINITY)) timeline.observe(time)
+        assertEquals(5.0, timeline.firstSeconds); assertEquals(5.5, timeline.lastSeconds)
+        timeline.observe(5.6)
+        assertEquals(5.0, timeline.firstSeconds); assertEquals(5.6, timeline.lastSeconds)
+    }
+    @Test fun newTimelineCanStartEarlierAfterExplicitReset() {
+        val timeline = WorkoutSourceTimeline()
+        timeline.observe(100.0); timeline.reset()
+        assertNull(timeline.firstSeconds); assertNull(timeline.lastSeconds)
+        timeline.observe(0.0)
+        assertEquals(0.0, timeline.firstSeconds); assertEquals(0.0, timeline.lastSeconds)
     }
 }
 
@@ -177,6 +266,17 @@ class AutomaticWorkoutIntegrationTests {
         val saved=assertNotNull(r.latestCompletedSet)
         assertEquals("trackingLost",saved.endReason);assertEquals(1,saved.acceptedCount)
         assertEquals(.45,saved.endedAt);assertNull(saved.reps.single().returnSeconds)
+    }
+    @Test fun staleSourceFrameCannotMakeWatchdogEndSetEarly() {
+        val runtime = ready(ExerciseCounter.Exercise.pullUp)
+        runtime.observe(input(.3,80.0)); runtime.observe(input(.45,80.0))
+        runtime.observe(input(.2,80.0))
+        runtime.tick(3.3) // 2.85 s since the latest source frame, not 3.1 s.
+        assertEquals(LiveSetSession.Phase.running, runtime.session.phase)
+        runtime.tick(3.46)
+        assertEquals(LiveSetSession.EndReason.trackingLost, runtime.session.endReason)
+        assertEquals(.45, assertNotNull(runtime.latestCompletedSet).endedAt)
+        assertEquals(1, runtime.latestCompletedSet!!.acceptedCount)
     }
 }
 

@@ -60,6 +60,15 @@ the wall clock never advances counting, readiness or duration metrics. This addi
 nullable field preserves older records. Replay tracking time does not claim the
 original video's capture date.
 
+One shared source timeline retains the first finite timestamp and the latest
+increasing timestamp for session bounds and the Android source-clock watchdog.
+Out-of-order, duplicate and invalid timestamps still reach the existing counting
+error path; they cannot shorten retained rep evidence or move the watchdog behind
+a newer frame. The automatic boundary clears dwell on rejected timestamps while
+preserving its latest source time, so older frames cannot rebase release/outage
+dwell. Within-set inference interruptions also break continuity while retaining
+that time. Replay rewind and a new session explicitly reset their timelines.
+
 Metrics include:
 
 - Observed start, angle extreme, acceptance, completed return and close times.
@@ -131,7 +140,7 @@ configuration; a generic simulator build combines both supported architectures.
 Shared tests cover milestones, incomplete returns, actual extrema after acceptance,
 time weighting, occlusion/gaps, long holds, bounded curves, automatic start→rep→
 release→next set for both exercises, missing motion, watchdogs, reordered journal
-recovery and acknowledgement races.
+recovery, rejected-frame source bounds and acknowledgement races.
 The shipping Apple bridge checks both counters, active rep deltas, serialization,
 atomic recovery/idempotence/feature retention, and a **5 ms synthetic host p95**
 budget. This excludes camera/model/device performance. Android CI additionally

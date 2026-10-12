@@ -2,10 +2,12 @@
 
 The Android client uses native Kotlin/Compose and CameraX. Its production camera
 and recorded-video adapters feed a Kotlin Multiplatform workout core. The core
-exports JVM, Android and static iOS frameworks; the shipping Swift client remains
-the reference implementation during this port. It does **not** yet link that
-framework. CI compiles the framework and compares the two engines before a future
-iOS adapter migration can replace the reference.
+exports JVM, Android and static iOS frameworks. Both shipping apps use it for
+automatic workout analysis, readiness, set boundaries and recovery/storage policy;
+Xcode links the static framework. The established Swift counter/setup remains
+the iOS policy-v8 reference, protected by per-frame Swift/Kotlin parity tests.
+Camera and pose inference remain native. See
+[automatic workout analysis](workout/AUTOMATIC_ANALYSIS.md) for the shared boundary.
 
 ## Current merge blockers
 

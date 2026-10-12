@@ -197,8 +197,13 @@ class AutomaticSetBoundary {
     private var engaged=false
     fun observe(sample: MotionSample, hasActivity: Boolean): String? {
         val time = sample.seconds
-        if (!time.isFinite() || (last != null && time <= last!!)) { reset(); return null }
-        if (last != null && time - last!! > ExerciseCounter.maximumGapSeconds) { releaseSince = null; unavailableSince = null }
+        if (!time.isFinite() || (last != null && time <= last!!)) {
+            // Break continuity without forgetting the source high-water mark.
+            // Otherwise a run of rejected older frames can earn fresh dwell.
+            breakContinuity()
+            return null
+        }
+        if (last != null && time - last!! > ExerciseCounter.maximumGapSeconds) breakContinuity()
         last = time
         if(hasActivity) engaged=true
         if (!engaged) { releaseSince = null; unavailableSince = null; return null }
@@ -215,7 +220,9 @@ class AutomaticSetBoundary {
         }
         return null
     }
-    fun reset() { last = null; releaseSince = null; unavailableSince = null; engaged=false }
+    /** Within-set faults cannot earn dwell or erase the latest source time. */
+    fun breakContinuity() { releaseSince = null; unavailableSince = null }
+    fun reset() { last = null; breakContinuity(); engaged=false }
     companion object { const val releaseDwellSeconds = 1.0; const val outageSeconds = 3.0 }
 }
 
