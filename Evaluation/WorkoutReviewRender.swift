@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import SwiftUI
+import Vision
 
 /// Render the shipping SwiftUI/Charts view; no screenshot of the user's desktop.
 @main struct WorkoutReviewRender {
@@ -11,25 +12,56 @@ import SwiftUI
         NSApplication.shared.setActivationPolicy(.prohibited)
         var fixture = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
         fixture["trackedAtEpochMilliseconds"] = 1_791_784_800_000 as Int64
+        let completed = (fixture["reps"] as! [[String: Any]])[0]
+        var unfinished = completed
+        unfinished["id"] = "preview:rep:2"; unfinished["ordinal"] = 2
+        unfinished["returnedAt"] = NSNull(); unfinished["returnSeconds"] = NSNull()
+        unfinished["closeReason"] = "disengaged"
+        var partial = unfinished
+        partial["id"] = "preview:rep:3"; partial["ordinal"] = 3
+        partial["acceptedAt"] = NSNull(); partial["outcome"] = "partial"
+        partial["closeReason"] = "partial"
+        fixture["reps"] = [completed, unfinished, partial]
         let set = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: fixture))
+        precondition(set.reps.count == 3 && set.acceptedCount == 2 && set.completedCount == 1)
+        fixture["reps"] = [unfinished, partial]
+        let emptySet = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: fixture))
+        precondition(emptySet.completedReps.isEmpty)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
-        for dark in [true, false] {
-            for width in [320.0, 430.0] {
-                let content = WorkoutReviewView(sets: [set], currentReps: set.reps, storageError: nil)
-                    .environment(\.colorScheme, dark ? .dark : .light)
-                    .frame(width: width, height: 1000)
-                    .background(dark ? Color.black : Color.white)
-                let host = NSHostingView(rootView: content)
-                let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: 1000),
-                    styleMask: [.borderless], backing: .buffered, defer: false)
-                window.isReleasedWhenClosed = false; window.contentView = host; window.orderFront(nil)
-                host.layoutSubtreeIfNeeded()
-                RunLoop.current.run(until: Date().addingTimeInterval(0.3))
-                guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { fatalError("Chart rendering failed") }
-                host.cacheDisplay(in: host.bounds, to: bitmap)
-                guard let data = bitmap.representation(using: .png, properties: [:]) else { fatalError("Chart pixels failed") }
-                window.close()
-                try data.write(to: URL(fileURLWithPath: "build/workout-analysis/render/\(dark ? "dark" : "light")-\(Int(width)).png"))
+        for (prefix, records, current) in [("", [set], set.reps),
+            ("unfinished-", [emptySet], emptySet.reps), ("history-", [set], emptySet.reps)] {
+            for dark in [true, false] {
+                for width in [320.0, 430.0] {
+                    let content = WorkoutReviewView(sets: records, currentReps: current, storageError: nil,
+                        selectedRepId: prefix == "history-" ? set.completedReps.first?.id : nil)
+                        .environment(\.colorScheme, dark ? .dark : .light)
+                        .frame(width: width, height: 1000)
+                        .background(dark ? Color.black : Color.white)
+                    let host = NSHostingView(rootView: content)
+                    let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: 1000),
+                        styleMask: [.borderless], backing: .buffered, defer: false)
+                    window.isReleasedWhenClosed = false; window.contentView = host; window.orderFront(nil)
+                    host.layoutSubtreeIfNeeded()
+                    RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+                    guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { fatalError("Chart rendering failed") }
+                    host.cacheDisplay(in: host.bounds, to: bitmap)
+                    // Check the actual rendered shipping view, including historical
+                    // selection when the current set has no completed timing bars.
+                    guard let image = bitmap.cgImage else { fatalError("Chart image unavailable") }
+                    let textRequest = VNRecognizeTextRequest()
+                    textRequest.recognitionLevel = .accurate
+                    textRequest.recognitionLanguages = ["en-US"]
+                    try VNImageRequestHandler(cgImage: image).perform([textRequest])
+                    let text = (textRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+                        .map { $0.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression).lowercased() }
+                    precondition(!text.contains { $0.contains("rep2") || $0.contains("rep3") }, "Unfinished reps appeared in analytics")
+                    if prefix == "history-" {
+                        precondition(text.contains { $0.contains("rep1accepted") }, "Completed history selection must reveal its details independently of the current timing chart")
+                    }
+                    guard let data = bitmap.representation(using: .png, properties: [:]) else { fatalError("Chart pixels failed") }
+                    window.close()
+                    try data.write(to: URL(fileURLWithPath: "build/workout-analysis/render/\(prefix)\(dark ? "dark" : "light")-\(Int(width)).png"))
+                }
             }
         }
     }

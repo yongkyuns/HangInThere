@@ -63,6 +63,49 @@ class SetupPoliciesTest {
     private val stablePatches=listOf(StaticSceneStability.PatchTranslation(0.0,0.0),StaticSceneStability.PatchTranslation(.1,.1),StaticSceneStability.PatchTranslation(-.1,-.1))
     private fun frame(seconds:Double,dip:Boolean=true,candidates:List<List<BarLineCandidate>> = rails(),paused:Boolean=false)=WorkoutRuntime.FrameInput(pose(seconds,dip),candidates,identity,seconds,stablePatches,0.0,seconds,paused)
 
+    @Test fun parallelDipAutomaticallyAcquiresStartsCompletesAndRearmsWithoutManualSetup() {
+        for (side in ArmMeasurement.Side.entries) {
+            val runtime = WorkoutRuntime(side = side, automaticWorkouts = true)
+            var time = 0.0
+            fun observe(angle: Double = 170.0, releaseLeft: Boolean = false, releaseRight: Boolean = false) {
+                val raw = CounterFixtures.bilateral(time, angle, angle, exercise = ExerciseCounter.Exercise.dip)
+                val adjusted = raw.copy(people = raw.people.map { person ->
+                    PoseObservation(person.landmarks.map { landmark ->
+                        val left = landmark.joint in ArmMeasurement.Side.left.joints
+                        val release = if (left) releaseLeft else releaseRight
+                        val x = (if (left) -50.0 else 50.0) + if (release) (if (left) -150.0 else 150.0) else 0.0
+                        landmark.copy(position = Point2D(landmark.position.x + x, landmark.position.y + 50.0))
+                    })
+                })
+                assertEquals(2, PullUpArmMeasurement(adjusted).arms.size, "Release requires both arms to remain visible")
+                runtime.observe(WorkoutRuntime.FrameInput(adjusted, rails(), identity, time, stablePatches, 0.0, time))
+                time += .15
+            }
+            repeat(35) { if (runtime.session.phase != LiveSetSession.Phase.running) observe() }
+            assertEquals(ExerciseCounter.Exercise.dip, runtime.snapshot.exercise)
+            assertEquals(ConfirmedBar.Method.automaticContours, runtime.confirmedBar?.method)
+            assertEquals(if (side == ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail, runtime.confirmedBar?.role)
+            assertEquals(LiveSetSession.Phase.running, runtime.session.phase)
+            assertEquals(ExerciseCounter.Phase.ready, runtime.session.counter.phase)
+            for (angle in listOf(80.0, 80.0, 170.0, 170.0, 80.0, 80.0)) observe(angle)
+            assertEquals(1, runtime.session.observedMovements)
+            repeat(9) { observe(80.0, releaseLeft = true) }
+            assertEquals(LiveSetSession.Phase.running, runtime.session.phase, "One hand still holding its rail cannot end a dip set")
+            assertEquals(1, runtime.session.observedMovements)
+            repeat(9) { if (runtime.latestCompletedSet == null) observe(80.0, releaseLeft = true, releaseRight = true) }
+            val saved = assertNotNull(runtime.latestCompletedSet)
+            assertEquals("disengaged", saved.endReason)
+            assertEquals(1, saved.completedCount)
+            assertEquals(2, saved.reps.size)
+            assertFalse(saved.reps.last().isCompleteForAnalytics)
+            repeat(35) { if (runtime.session.phase != LiveSetSession.Phase.running) observe() }
+            assertEquals(LiveSetSession.Phase.running, runtime.session.phase)
+            assertNotEquals(saved.id, runtime.session.setId)
+            assertEquals(0, runtime.session.observedMovements)
+            assertEquals(saved, runtime.latestCompletedSet)
+        }
+    }
+
     @Test fun geometryPreservesObservedSupportAndRejectsCrossingEdges() {
         val p=BarSegment(Point2D(20.0,10.0),Point2D(100.0,10.0));val q=BarSegment(Point2D(40.0,16.0),Point2D(90.0,16.0))
         val pair=assertNotNull(BarFitter.pair(p,q,24.0))

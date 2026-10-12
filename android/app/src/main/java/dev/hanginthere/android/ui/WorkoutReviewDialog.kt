@@ -23,16 +23,19 @@ import java.text.DateFormat
 @Composable
 fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord>, error: String?, onClose: () -> Unit) {
     var selected by remember { mutableStateOf<String?>(null) }
-    val reps = current.ifEmpty { history.firstOrNull()?.reps.orEmpty() }
-    val all = (current + history.flatMap { it.reps }).distinctBy { it.id }
+    val completedCurrent = current.filter { it.isCompleteForAnalytics }
+    val completedHistory = history.filter { it.completedCount > 0 }
+    val reps = if (current.isEmpty()) completedHistory.firstOrNull()?.completedReps.orEmpty() else completedCurrent
+    val all = (completedCurrent + completedHistory.flatMap { it.completedReps }).distinctBy { it.id }
     val rep = all.firstOrNull { it.id == selected } ?: reps.lastOrNull()
     AlertDialog(onDismissRequest = onClose, title = { Text("Workout analysis") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            if (reps.isEmpty()) Text("Complete a pull-up or dip to see its timing and angle measurements.")
+            if (reps.isEmpty() && rep == null) Text("Complete a pull-up or dip to see its timing and angle measurements.")
             if (reps.isNotEmpty()) {
                 Text("Rep timing", style = MaterialTheme.typography.titleMedium)
                 Text("Blue: outward · orange: return · tap a rep to inspect")
+                Text("Only completed reps are included; unfinished attempts are excluded.")
                 val maximum = maxOf(1.0, reps.maxOf { (it.outboundSeconds ?: 0.0) + (it.returnSeconds ?: 0.0) })
                 reps.forEach { item ->
                     Text("Rep ${item.ordinal} · ${seconds(item.outboundSeconds)} / ${seconds(item.returnSeconds)}",
@@ -53,17 +56,16 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
                 Text("Time to extreme: ${seconds(item.outboundSeconds)}\nReturn: ${seconds(item.returnSeconds)}\n" +
                     "Left mean / range: ${angles(item.left)}\nRight mean / range: ${angles(item.right)}\n" +
                     "Observed duration: ${item.durationCoverage?.let { "${(it * 100).toInt()}%" } ?: "Unavailable"}")
-                if (item.returnedAt == null) Text("The complete return was not observed.")
                 if (item.curveTruncated && item.samples.isNotEmpty()) Text("The curve shows recent motion; averages use all observed intervals.")
             }
-            if (history.isNotEmpty()) Text("Saved sets", style = MaterialTheme.typography.titleMedium)
-            history.forEach { set ->
+            if (completedHistory.isNotEmpty()) Text("Saved sets", style = MaterialTheme.typography.titleMedium)
+            completedHistory.forEach { set ->
                 val ending=when(set.endReason){"disengaged" -> "Automatically completed";"manual" -> "Ended manually";else -> "Interrupted"}
-                Text("${set.exercise.title} · ${set.acceptedCount} ${if(set.acceptedCount==1) "rep" else "reps"} · $ending", style = MaterialTheme.typography.titleSmall)
+                Text("${set.exercise.title} · ${set.completedCount} ${if(set.completedCount==1) "rep" else "reps"} · $ending", style = MaterialTheme.typography.titleSmall)
                 set.trackedAtEpochMilliseconds?.let { time ->
                     Text(remember(time) { DateFormat.getDateTimeInstance(DateFormat.MEDIUM,DateFormat.SHORT).format(Date(time)) }, style = MaterialTheme.typography.bodySmall)
                 }
-                set.reps.forEach { item -> Text("Rep ${item.ordinal} · ${seconds(item.outboundSeconds)} / ${seconds(item.returnSeconds)}",
+                set.completedReps.forEach { item -> Text("Rep ${item.ordinal} · ${seconds(item.outboundSeconds)} / ${seconds(item.returnSeconds)}",
                     Modifier.clickable { selected = item.id }) }
             }
             Text("Angles are projected camera measurements. Depth, lockout and exercise form are not verified.")

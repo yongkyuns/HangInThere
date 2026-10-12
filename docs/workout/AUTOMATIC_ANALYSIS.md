@@ -25,7 +25,12 @@ migration; this change does not claim that either pose SDK is shared.
   policy, geometry gates and confidence thresholds remain version 8.
 - Preserve an accepted rep even when its full return is unavailable. Missing
   return/peak measurements are null. Partial and interrupted attempts remain
-  distinct records; they do not contribute to accepted counts.
+  distinct records; they do not contribute to accepted counts. Analytics use the
+  shared `WorkoutAnalytics` rule: a rep must be accepted and close with an
+  observed return to its starting position. Unfinished attempts, including an
+  accepted pull-up without its return, are excluded from charts, metric details,
+  saved-set rep totals and future aggregates. Raw counter evidence remains in the
+  journal; older saved sets use the same rule without a schema migration.
 - A set completes after one second of continuous **bilateral visible grip
   release**, measured against the fixed observed apparatus and each hand's
   observed grip at the acquired start. A hand remaining on its separate dip rail

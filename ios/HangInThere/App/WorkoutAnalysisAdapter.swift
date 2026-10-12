@@ -2,6 +2,19 @@ import Foundation
 import Observation
 import WorkoutCore
 
+// Native records use the same shared eligibility rule for current and legacy
+// history. No new serialized flag or migration can misclassify an old attempt.
+extension WorkoutRepRecord {
+    var isCompleteForAnalytics: Bool {
+        WorkoutAnalytics.shared.isCompletedRep(hasAcceptance: acceptedAt != nil,
+            hasReturn: returnedAt != nil, closeReason: closeReason)
+    }
+}
+extension WorkoutSetRecord {
+    var completedReps: [WorkoutRepRecord] { reps.filter(\.isCompleteForAnalytics) }
+    var completedCount: Int { completedReps.count }
+}
+
 /// The native session's serial actor owns the Kotlin engine. Views receive only
 /// immutable records. There is no unchecked Sendable handle or cross-actor FFI.
 @MainActor @Observable

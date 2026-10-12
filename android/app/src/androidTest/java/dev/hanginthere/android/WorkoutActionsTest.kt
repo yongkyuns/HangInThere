@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.assertCountEquals
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.hanginthere.android.session.AnalysisPipeline
 import dev.hanginthere.android.session.ReplayOutcome
@@ -24,7 +26,7 @@ import org.junit.runner.RunWith
 class WorkoutActionsTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
 
-    @Test fun analysisDistinguishesAcceptedCountFromUnobservedReturn() {
+    @Test fun analysisExcludesAcceptedPullUpWithUnobservedReturn() {
         val analysis=WorkoutAnalysis("ui-test",ExerciseCounter.Exercise.pullUp)
         analysis.observe(MotionSample(0.0,170.0,170.0,.2,true,false),ExerciseCounter.Phase.ready,null)
         analysis.observe(MotionSample(.2,80.0,80.0,.1,true,false),ExerciseCounter.Phase.outbound,null)
@@ -34,14 +36,55 @@ class WorkoutActionsTest {
         var closed=false
         compose.runOnUiThread {
             compose.activity.setContent { MaterialTheme {
-                WorkoutReviewDialog(analysis.records,emptyList(),null) { closed=true }
+                val set = WorkoutSetRecord("ui-test", ExerciseCounter.Exercise.pullUp, 0.0, .4,
+                    "trackingLost", analysis.records, "authored UI test", 0)
+                WorkoutReviewDialog(analysis.records,listOf(set),null) { closed=true }
             } }
         }
-        compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertExists()
-        compose.onNodeWithText("The complete return was not observed.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Complete a pull-up or dip to see its timing and angle measurements.").assertIsDisplayed()
+        compose.onAllNodesWithText("Rep 1", substring = true).assertCountEquals(0)
+        compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertDoesNotExist()
+        compose.onNodeWithText("Saved sets").assertDoesNotExist()
         compose.onNodeWithText("Done").performClick()
         assertTrue(closed)
+    }
+
+    @Test fun pullUpReviewIncludesOnlyCompletedCycles() = assertCompletedReview(ExerciseCounter.Exercise.pullUp)
+    @Test fun dipReviewIncludesOnlyCompletedCycles() = assertCompletedReview(ExerciseCounter.Exercise.dip)
+
+    private fun assertCompletedReview(exercise: ExerciseCounter.Exercise) {
+        val analysis = WorkoutAnalysis("ui-test", exercise)
+        fun frame(time: Double, angle: Double, phase: ExerciseCounter.Phase, accepted: Boolean = false) {
+            analysis.observe(MotionSample(time,angle,angle,.2,true,false),phase,
+                if (accepted) ExerciseCounter.Event(ExerciseCounter.Outcome.movement,time,"authored UI test") else null)
+        }
+        frame(0.0,170.0,ExerciseCounter.Phase.ready)
+        frame(.2,100.0,ExerciseCounter.Phase.outbound)
+        frame(.4,80.0,ExerciseCounter.Phase.returning,exercise == ExerciseCounter.Exercise.pullUp)
+        frame(.6,170.0,ExerciseCounter.Phase.ready,exercise == ExerciseCounter.Exercise.dip)
+        frame(.8,100.0,ExerciseCounter.Phase.outbound)
+        frame(1.0,80.0,ExerciseCounter.Phase.returning,exercise == ExerciseCounter.Exercise.pullUp)
+        analysis.finish("trackingLost")
+        val partial = analysis.records.last().copy(id="ui-test:rep:3",ordinal=3,acceptedAt=null,
+            outcome="partial",closeReason="partial")
+        val set = WorkoutSetRecord("ui-test",exercise,0.0,1.0,"trackingLost",analysis.records+partial,"authored UI test",0)
+        compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+            WorkoutReviewDialog(set.reps,listOf(set),null) {}
+        } } }
+        compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertExists()
+        compose.onNodeWithText("${exercise.title} · 1 rep · Interrupted").performScrollTo().assertIsDisplayed()
+        compose.onAllNodesWithText("Rep 2", substring = true).assertCountEquals(0)
+        compose.onAllNodesWithText("Rep 3", substring = true).assertCountEquals(0)
+        // Completed history remains selectable while the current set contains
+        // only unfinished attempts and therefore has no timing bars.
+        compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+            WorkoutReviewDialog(set.reps.drop(1),listOf(set),null) {}
+        } } }
+        compose.onNodeWithText("Rep 1 ·", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
+        compose.onAllNodesWithText("Rep 2", substring = true).assertCountEquals(0)
+        compose.onAllNodesWithText("Rep 3", substring = true).assertCountEquals(0)
     }
 
     @Test fun terminalReplayFailureCannotRenderStaleEndSetAction() {

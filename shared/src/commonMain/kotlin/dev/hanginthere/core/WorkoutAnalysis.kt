@@ -53,6 +53,12 @@ class WorkoutMotionFeatures {
     val minimum: Double?, val maximum: Double?, val mean: Double?,
     val observedSeconds: Double, val coverage: Double?,
 )
+/** Completed-cycle analytics are separate from the counter's acceptance milestone.
+ * Raw attempts stay in journals so recovery cannot invent or erase evidence. */
+object WorkoutAnalytics {
+    fun isCompletedRep(hasAcceptance: Boolean, hasReturn: Boolean, closeReason: String): Boolean =
+        hasAcceptance && hasReturn && closeReason == "returned"
+}
 @Serializable data class RepRecord(
     val id: String, val setId: String, val ordinal: Int, val exercise: ExerciseCounter.Exercise,
     val startedAt: Double, val extremeAt: Double?, val acceptedAt: Double?,
@@ -64,7 +70,9 @@ class WorkoutMotionFeatures {
     val samples: List<MotionSample>, val curveTruncated: Boolean,
     val countPolicyVersion: Int = ExerciseCounter.policyVersion, val metricVersion: Int = 1,
     val acceptanceReason: String? = null, val formVerification: String = "unverified",
-)
+) {
+    val isCompleteForAnalytics get() = WorkoutAnalytics.isCompletedRep(acceptedAt != null, returnedAt != null, closeReason)
+}
 @Serializable data class WorkoutSetRecord(
     val id: String, val exercise: ExerciseCounter.Exercise, val startedAt: Double?,
     val endedAt: Double?, val endReason: String, val reps: List<RepRecord>,
@@ -74,6 +82,8 @@ class WorkoutMotionFeatures {
     val trackedAtEpochMilliseconds: Long? = null,
 ) {
     val acceptedCount get() = reps.count { it.acceptedAt != null }
+    val completedReps get() = reps.filter { it.isCompleteForAnalytics }
+    val completedCount get() = completedReps.size
 }
 
 /** Incremental integration, independent of frame rate. No integration across a gap. */

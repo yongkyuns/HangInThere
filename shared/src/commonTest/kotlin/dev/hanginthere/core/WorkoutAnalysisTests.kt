@@ -144,6 +144,52 @@ class WorkoutAnalysisTests {
         assertEquals(s.observedMovements,s.record.acceptedCount)
         assertEquals(.75,s.record.reps.single().returnedAt)
     }
+    @Test fun analyticsExcludeUnfinishedLastRepForBothExercisesAndAllSetEndings() {
+        for (exercise in ExerciseCounter.Exercise.entries) {
+            for (ending in listOf(LiveSetSession.EndReason.manual, LiveSetSession.EndReason.disengaged, LiveSetSession.EndReason.trackingLost)) {
+                val session = LiveSetSession()
+                session.start(exercise, ArmMeasurement.Side.left)
+                for ((time, angle) in listOf(0.0 to 170.0, .15 to 170.0, .3 to 80.0,
+                    .45 to 80.0, .6 to 170.0, .75 to 170.0, .9 to 80.0, 1.05 to 80.0)) {
+                    session.consume(CounterFixtures.bilateral(time, angle, angle, exercise = exercise), CounterFixtures.edge)
+                }
+                session.finish(ending)
+                val record = session.record
+                assertEquals(2, record.reps.size, "Raw attempts remain recoverable")
+                assertEquals(if (exercise == ExerciseCounter.Exercise.pullUp) 2 else 1, record.acceptedCount)
+                assertEquals(1, record.completedCount)
+                assertEquals(listOf(record.reps.first()), record.completedReps)
+                assertTrue(record.reps.first().isCompleteForAnalytics)
+                assertFalse(record.reps.last().isCompleteForAnalytics)
+                assertNull(record.reps.last().returnedAt)
+                val recovered = WorkoutRecordCodec.recover(WorkoutRecordCodec.summary(record))
+                assertEquals(1, recovered.completedCount)
+                assertEquals(record.completedReps.map { it.id }, recovered.completedReps.map { it.id })
+                assertEquals(record.acceptedCount, recovered.acceptedCount)
+            }
+        }
+    }
+    @Test fun incompleteOnlySetHasNoAnalyticsEvenIfPullUpMilestoneWasAccepted() {
+        for (exercise in ExerciseCounter.Exercise.entries) {
+            val session = LiveSetSession()
+            session.start(exercise, ArmMeasurement.Side.left)
+            for ((time, angle) in listOf(0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0)) {
+                session.consume(CounterFixtures.bilateral(time, angle, angle, exercise = exercise), CounterFixtures.edge)
+            }
+            session.finish()
+            assertEquals(1, session.record.reps.size)
+            assertEquals(0, session.record.completedCount)
+            assertTrue(session.record.completedReps.isEmpty())
+        }
+    }
+    @Test fun completedAnalyticsRequireAcceptanceAndPositiveReturnEvidence() {
+        assertTrue(WorkoutAnalytics.isCompletedRep(true, true, "returned"))
+        for (reason in listOf("inProgress", "partial", "trackingLost", "disengaged", "manual")) {
+            assertFalse(WorkoutAnalytics.isCompletedRep(true, true, reason))
+        }
+        assertFalse(WorkoutAnalytics.isCompletedRep(false, true, "returned"))
+        assertFalse(WorkoutAnalytics.isCompletedRep(true, false, "returned"))
+    }
     @Test fun rejectedFramesCannotMoveSetBoundsBehindRetainedRepEvidence() {
         for (exercise in ExerciseCounter.Exercise.entries) {
             val session = LiveSetSession()

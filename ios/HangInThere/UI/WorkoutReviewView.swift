@@ -7,28 +7,36 @@ struct WorkoutReviewView: View {
     let currentReps: [WorkoutRepRecord]
     let storageError: String?
     @State private var selectedRep: String?
-    private var reps: [WorkoutRepRecord] { currentReps.isEmpty ? sets.first?.reps ?? [] : currentReps }
-    private var selected: WorkoutRepRecord? { (currentReps + sets.flatMap(\.reps)).first { $0.id == selectedRep } ?? reps.last }
+    init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil) {
+        self.sets = sets; self.currentReps = currentReps; self.storageError = storageError
+        _selectedRep = State(initialValue: selectedRepId)
+    }
+    private var completedSets: [WorkoutSetRecord] { sets.filter { $0.completedCount > 0 } }
+    private var completedCurrent: [WorkoutRepRecord] { currentReps.filter(\.isCompleteForAnalytics) }
+    private var reps: [WorkoutRepRecord] { currentReps.isEmpty ? completedSets.first?.completedReps ?? [] : completedCurrent }
+    private var selected: WorkoutRepRecord? { (completedCurrent + completedSets.flatMap(\.completedReps)).first { $0.id == selectedRep } ?? reps.last }
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 if let storageError { Text(storageError).foregroundStyle(.orange) }
                 if reps.isEmpty {
-                    ContentUnavailableView("Your motion, rep by rep", systemImage: "chart.xyaxis.line",
-                        description: Text("Complete a pull-up or dip to see its timing and angle measurements here."))
+                    if selected == nil {
+                        ContentUnavailableView("Your motion, rep by rep", systemImage: "chart.xyaxis.line",
+                            description: Text("Complete a pull-up or dip to see its timing and angle measurements here."))
+                    }
                 } else {
                     Text("Rep timing").font(.title2.bold())
-                    Text("Tap a rep to inspect it. A count may be accepted before the return motion finishes.")
+                    Text("Tap a rep to inspect it. Only completed reps are included; unfinished attempts are excluded.")
                         .font(.subheadline).foregroundStyle(.secondary)
                     timingChart
-                    if let selected { repDetails(selected) }
                 }
-                if !sets.isEmpty {
+                if let selected { repDetails(selected) }
+                if !completedSets.isEmpty {
                     Text("Saved sets").font(.title2.bold())
-                    ForEach(sets) { set in
+                    ForEach(completedSets) { set in
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("\(set.exercise.title) · \(set.acceptedCount) \(set.acceptedCount == 1 ? "rep" : "reps")").font(.headline)
+                            Text("\(set.exercise.title) · \(set.completedCount) \(set.completedCount == 1 ? "rep" : "reps")").font(.headline)
                             if let time = set.trackedAtEpochMilliseconds {
                                 Text(Date(timeIntervalSince1970: Double(time) / 1000).formatted(date: .abbreviated, time: .shortened))
                                     .font(.caption).foregroundStyle(.secondary)
@@ -36,7 +44,7 @@ struct WorkoutReviewView: View {
                             Text(set.endReason == "disengaged" ? "Automatically completed" :
                                  set.endReason == "manual" ? "Ended manually" : "Interrupted")
                                 .font(.caption).foregroundStyle(.secondary)
-                            ForEach(set.reps) { rep in
+                            ForEach(set.completedReps) { rep in
                                 Button("Rep \(rep.ordinal) · \(seconds(rep.outboundSeconds)) outward / \(seconds(rep.returnSeconds)) return") {
                                     // History is shown below, without reconfiguring active tracking.
                                     selectedRep = rep.id
@@ -92,7 +100,6 @@ struct WorkoutReviewView: View {
                 GridRow { Text("Right mean / range"); Text(angleText(rep.right)).monospacedDigit() }
                 GridRow { Text("Observed duration"); Text(rep.durationCoverage.map { "\(Int($0 * 100))%" } ?? "Unavailable") }
             }.font(.subheadline)
-            if rep.returnedAt == nil { Text("The complete return was not observed.").font(.caption).foregroundStyle(.orange) }
             if rep.curveTruncated && !rep.samples.isEmpty { Text("The chart shows the most recent motion; averages include all observed intervals.").font(.caption) }
         }
     }

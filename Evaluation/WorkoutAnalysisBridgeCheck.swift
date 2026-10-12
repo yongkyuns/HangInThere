@@ -1,4 +1,5 @@
 import Foundation
+import WorkoutCore
 
 /// A contract/performance check of the shipping FFI, with synthetic observations.
 /// This does not measure Vision/camera latency or qualify a physical device.
@@ -40,6 +41,35 @@ struct WorkoutAnalysisBridgeCheck {
             let rep = set.reps[0]
             guard rep.left.mean != nil, rep.right.mean != nil,
                   rep.durationCoverage == 1, rep.countPolicyVersion == 8 else { fatalError("Bridge lost metric validity") }
+            guard set.completedCount == 1, set.completedReps == [rep], rep.isCompleteForAnalytics else {
+                fatalError("Shipping Apple analytics omitted a completed rep")
+            }
+
+            // A final attempt is retained as evidence but never appears in
+            // timing/angle analytics, including a pull-up accepted before return.
+            for ending in ["manual", "disengaged", "trackingLost"] {
+                let partialAnalysis = WorkoutAnalysisAdapter(); partialAnalysis.start(exercise: exercise)
+                var partialCounter = ExerciseCounter(exercise: exercise, side: .left)
+                for (time, angle) in [(0.0, 170.0), (0.15, 170.0), (0.30, 80.0), (0.45, 80.0),
+                    (0.60, 170.0), (0.75, 170.0), (0.90, 80.0), (1.05, 80.0)] {
+                    let p = pose(time, angle, exercise: exercise)
+                    let before = partialCounter.events.count
+                    partialCounter.consume(p, referenceEdge: reference)
+                    _ = partialAnalysis.consume(p, reference: reference, counter: partialCounter,
+                        event: partialCounter.events.count > before ? partialCounter.events.last : nil, automaticFinish: false)
+                }
+                guard let saved = partialAnalysis.finish(reason: ending), saved.reps.count == 2,
+                      saved.acceptedCount == (exercise == .pullUp ? 2 : 1), saved.completedCount == 1,
+                      saved.completedReps == [saved.reps[0]], !saved.reps[1].isCompleteForAnalytics,
+                      partialAnalysis.reps.filter(\.isCompleteForAnalytics) == saved.completedReps else {
+                    fatalError("Shipping Apple analytics included an unfinished final \(exercise)")
+                }
+                let recoveredJSON = try WorkoutRecordCodec().recoveryJson(input: String(decoding: JSONEncoder().encode(saved), as: UTF8.self))
+                let recovered = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(recoveredJSON.utf8))
+                guard recovered.completedCount == 1, recovered.reps.count == 2 else {
+                    fatalError("Recovered Apple history included an unfinished rep in analytics")
+                }
+            }
 
             // Retained accepted evidence must fit within the set's source bounds
             // even after the real Swift counter rejects an out-of-order frame.
