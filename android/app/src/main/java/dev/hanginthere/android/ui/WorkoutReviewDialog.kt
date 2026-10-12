@@ -58,7 +58,8 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
             }
             if (history.isNotEmpty()) Text("Saved sets", style = MaterialTheme.typography.titleMedium)
             history.forEach { set ->
-                Text("${set.exercise.title} · ${set.acceptedCount} reps · ${set.endReason}", style = MaterialTheme.typography.titleSmall)
+                val ending=when(set.endReason){"disengaged" -> "Automatically completed";"manual" -> "Ended manually";else -> "Interrupted"}
+                Text("${set.exercise.title} · ${set.acceptedCount} ${if(set.acceptedCount==1) "rep" else "reps"} · $ending", style = MaterialTheme.typography.titleSmall)
                 set.trackedAtEpochMilliseconds?.let { time ->
                     Text(remember(time) { DateFormat.getDateTimeInstance(DateFormat.MEDIUM,DateFormat.SHORT).format(Date(time)) }, style = MaterialTheme.typography.bodySmall)
                 }

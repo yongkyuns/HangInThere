@@ -34,7 +34,7 @@ struct WorkoutReviewView: View {
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Text(set.endReason == "disengaged" ? "Automatically completed" :
-                                 set.endReason == "manual" ? "Manually completed" : "Interrupted · \(set.endReason)")
+                                 set.endReason == "manual" ? "Ended manually" : "Interrupted")
                                 .font(.caption).foregroundStyle(.secondary)
                             ForEach(set.reps) { rep in
                                 Button("Rep \(rep.ordinal) · \(seconds(rep.outboundSeconds)) outward / \(seconds(rep.returnSeconds)) return") {
