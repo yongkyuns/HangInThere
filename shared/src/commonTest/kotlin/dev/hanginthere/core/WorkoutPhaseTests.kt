@@ -79,6 +79,7 @@ class WorkoutPhaseTests {
         a.observe(frame(1.2,90.0),ExerciseCounter.Phase.returning)
         a.observe(frame(1.3,90.0),ExerciseCounter.Phase.returning)
         a.observe(frame(1.4,130.0),ExerciseCounter.Phase.returning)
+        a.observe(frame(1.5,150.0),ExerciseCounter.Phase.returning)
         assertEquals(1.0,a.activity.longestSupportSeconds,1e-9)
         assertEquals(0.0,a.activity.longestHangSeconds)
         assertTrue(a.activity.phases.any { it.phase == WorkoutMotionPhase.lowering })
@@ -132,5 +133,20 @@ class WorkoutPhaseTests {
         assertEquals(record,WorkoutRecordCodec.json.decodeFromString(WorkoutRecordCodec().summaryJson(json)))
         val legacy=WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(json.replace(Regex(",\"activity\":.*}$"),"}"))
         assertNull(legacy.activity)
+    }
+    @Test fun historicalPhaseVersionIsPreservedWithoutReclassification() {
+        val analysis=WorkoutPhaseAnalysis("historical",ExerciseCounter.Exercise.pullUp)
+        analysis.observe(frame(0.0),ExerciseCounter.Phase.ready)
+        analysis.observe(frame(.1),ExerciseCounter.Phase.ready)
+        val current=analysis.activity
+        assertEquals(2,current.metricVersion)
+        val historical=current.copy(metricVersion=1)
+        val json=WorkoutRecordCodec.json.encodeToString(historical)
+        assertEquals(historical,WorkoutRecordCodec.json.decodeFromString<WorkoutActivity>(json))
+        assertEquals(historical,WorkoutRecordCodec.json.decodeFromString<WorkoutActivity>(json.replace(",\"metricVersion\":1","")))
+        val record=WorkoutSetRecord("historical",ExerciseCounter.Exercise.pullUp,0.0,.1,"disengaged",emptyList(),null,null,activity=historical)
+        val stored=WorkoutRecordCodec().summaryJson(WorkoutRecordCodec.json.encodeToString(record))
+        assertEquals(record,WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(stored))
+        assertFailsWith<IllegalArgumentException> { WorkoutRecordCodec.mergeActivity(historical,current) }
     }
 }
