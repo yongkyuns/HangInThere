@@ -5,6 +5,7 @@ import SwiftUI
 struct LiveWorkoutOverlay: View {
     let session: LiveSetSession
     var latestCompletedSet: WorkoutSetRecord? = nil
+    var showsSetStarted = false
     var exerciseTitle: String? = nil
     let cameraReady: Bool
     let status: String
@@ -48,7 +49,26 @@ struct LiveWorkoutOverlay: View {
             .allowsHitTesting(false)
         }
         .overlay {
-            if let countdown {
+            if showsSetStarted, session.phase == .running {
+                VStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill").font(.system(size: 40))
+                    Text("SET STARTED")
+                        .font(.system(size: 42, weight: .heavy, design: .rounded))
+                        .minimumScaleFactor(0.65).lineLimit(1)
+                    Text(session.trackingIssue == nil ? "Tracking your reps" : "Reacquiring your pose")
+                        .font(.headline).foregroundStyle(session.trackingIssue == nil ? .white : .orange)
+                }
+                .foregroundStyle(.green)
+                .padding(24)
+                .frame(maxWidth: 420)
+                .background(.black.opacity(0.85), in: RoundedRectangle(cornerRadius: 24))
+                .overlay(RoundedRectangle(cornerRadius: 24).stroke(.green.opacity(0.7), lineWidth: 2))
+                .padding(.horizontal, 24)
+                .allowsHitTesting(false)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(session.trackingIssue == nil ? "Set started. Tracking your reps." : "Set started. Reacquiring your pose.")
+                .accessibilityIdentifier("liveSetStarted")
+            } else if let countdown {
                 VStack(spacing: 4) {
                     Text("Starting in").font(.headline)
                     Text("\(countdown)")
@@ -73,10 +93,17 @@ struct LiveWorkoutOverlay: View {
         HStack(alignment: .center, spacing: 10) {
             iconButton("xmark", label: "Close live workout", action: onClose)
                 .disabled(!canClose)
-            Text(exerciseTitle ?? (session.exercise == .pullUp ? "Pull-up" : "Dips"))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(exerciseTitle ?? (session.exercise == .pullUp ? "Pull-up" : "Dips"))
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
+                if session.phase == .running {
+                    Label(session.trackingIssue == nil ? "TRACKING" : "PAUSED", systemImage: "circle.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(session.trackingIssue == nil ? .green : .orange)
+                        .lineLimit(1)
+                        .accessibilityIdentifier("liveTrackingStatus")
+                }
+            }
             Spacer(minLength: 4)
             if session.phase != .idle || latestCompletedSet != nil {
                 VStack(spacing: 0) {

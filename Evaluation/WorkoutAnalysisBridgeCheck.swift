@@ -100,6 +100,18 @@ struct WorkoutAnalysisBridgeCheck {
                 }
             }
         }
+        // Shipping native ownership: failed starts cannot show feedback, repeated
+        // frames cannot announce again, and ending a set cancels its UI timer.
+        let feedback = WorkoutAnalysisAdapter(); feedback.start(exercise: .pullUp)
+        guard !feedback.beginStartFeedback(isRunning: false), !feedback.showsSetStarted,
+              feedback.beginStartFeedback(isRunning: true), feedback.showsSetStarted,
+              !feedback.beginStartFeedback(isRunning: true) else { fatalError("Apple start feedback contract failed") }
+        _ = feedback.finish(reason: "disengaged")
+        guard !feedback.showsSetStarted else { fatalError("Ended Apple set retained its start cue") }
+        feedback.start(exercise: .dip)
+        guard feedback.beginStartFeedback(isRunning: true), feedback.showsSetStarted else { fatalError("Next Apple set lost its start cue") }
+        try await Task.sleep(for: .seconds(2.1))
+        guard !feedback.showsSetStarted else { fatalError("Apple start cue did not expire") }
         // Baseline acquisition and steady poses exercise allocation/FFI hot path.
         let engine = WorkoutAnalysisAdapter(); engine.start(exercise: .pullUp)
         var counter = ExerciseCounter(); var latencies: [Double] = []

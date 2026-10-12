@@ -276,11 +276,15 @@ class AutomaticWorkoutIntegrationTests {
     @Test fun automaticStartCountReleaseAndNextSetWorkForBothExercises() {
         for(exercise in ExerciseCounter.Exercise.entries) {
             val r=ready(exercise)
+            val activeId = r.snapshot.activeSetId
+            assertEquals(r.session.setId, activeId)
             for((t,a) in listOf(.3 to 80.0,.45 to 80.0,.6 to 170.0,.75 to 170.0)) r.observe(input(t,a,exercise))
             assertEquals(1,r.session.observedMovements)
+            assertEquals(activeId, r.snapshot.activeSetId)
             var releasedAt=.9
             for(i in 0..12){releasedAt=.9+i*.1;r.observe(input(releasedAt,160.0,exercise,release=true));if(r.latestCompletedSet!=null) break}
             assertEquals(LiveSetSession.EndReason.disengaged,r.session.endReason)
+            assertNull(r.snapshot.activeSetId)
             val saved=assertNotNull(r.latestCompletedSet)
             assertEquals(1,saved.acceptedCount);assertEquals(1,saved.reps.size)
             r.observe(input(releasedAt+.15,exercise=exercise));r.observe(input(releasedAt+.3,exercise=exercise))
@@ -288,6 +292,28 @@ class AutomaticWorkoutIntegrationTests {
             assertEquals(0,r.session.observedMovements);assertNotEquals(saved.id,r.session.setId)
             assertEquals(saved,r.latestCompletedSet)
         }
+    }
+    @Test fun runningSnapshotExposesCounterInterruptionEvenWhenSetupRemainsValid() {
+        for (exercise in ExerciseCounter.Exercise.entries) {
+            val runtime = ready(exercise)
+            runtime.session.interrupt("sourceTimeGap")
+            assertEquals(LiveSetSession.Phase.running,runtime.snapshot.phase)
+            assertNull(runtime.snapshot.setupIssue)
+            assertEquals("sourceTimeGap",runtime.snapshot.trackingIssue)
+            assertEquals(runtime.session.trackingIssue,runtime.snapshot.trackingIssue)
+            runtime.observe(input(.3,170.0,exercise))
+            assertNull(runtime.snapshot.trackingIssue, "Fresh usable observations can resume pose tracking")
+        }
+        val runtime = ready(ExerciseCounter.Exercise.dip)
+        val original = input(.3,170.0,ExerciseCounter.Exercise.dip)
+        val moved = original.pose.copy(people = original.pose.people.map { person ->
+            PoseObservation(person.landmarks.map { point ->
+                if (point.joint in ArmMeasurement.Side.left.joints) point.copy(position=Point2D(point.position.x+60,point.position.y)) else point
+            })
+        })
+        runtime.observe(original.copy(pose=moved))
+        assertNull(runtime.snapshot.setupIssue)
+        assertEquals("dipGripMoved",runtime.snapshot.trackingIssue)
     }
     @Test fun acquiredStartWithoutAnyRepCanDisengageAndRearm() {
         val r=ready(ExerciseCounter.Exercise.pullUp)

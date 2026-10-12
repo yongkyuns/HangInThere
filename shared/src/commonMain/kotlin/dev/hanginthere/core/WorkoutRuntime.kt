@@ -34,6 +34,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         val setupGeneration:Int,
         val isReplayReview:Boolean=false,
         val latestCompletedSet:WorkoutSetRecord?=null,
+        val activeSetId:String?=null,
+        val trackingIssue:String?=null,
     )
     var selection=selection;private set
     var side=side;private set
@@ -61,7 +63,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     val resolvedExercise get()=selection.exercise ?: replayExercise ?: identity.exercise
     /** Apparatus can precede stable Auto identity; recorded acquisition must await both. */
     val isReplayAcquisitionReady get() = confirmedBar != null && resolvedExercise != null
-    val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview,latestCompletedSet)
+    val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview,latestCompletedSet,session.setId.takeIf { session.phase==LiveSetSession.Phase.running },session.trackingIssue)
 
     fun configure(selection:WorkoutExerciseSelection,side:ArmMeasurement.Side=this.side) {
         if(session.phase==LiveSetSession.Phase.running || (this.selection==selection && this.side==side)) return

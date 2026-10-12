@@ -215,6 +215,7 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var workoutHistory: [WorkoutSetRecord] = []
     private(set) var workoutStorageError: String?
     var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
+    var showsSetStarted: Bool { workoutAnalysis.showsSetStarted }
     private var archivedSetId: String?
     @ObservationIgnored private var workoutWriteTask: Task<Void, Never>?
     private var qualifiedStartPose: PoseResult?
@@ -704,7 +705,7 @@ final class LiveCameraPreviewController: NSObject {
         countdownSpeech.stopSpeaking(at: .immediate)
     }
 
-    private func speakCountdown(_ text: String) {
+    private func speakWorkoutCue(_ text: String) {
         countdownSpeech.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
@@ -866,6 +867,9 @@ final class LiveCameraPreviewController: NSObject {
         workoutAnalysis.start(exercise: exercise)
         archivedSetId = nil
         liveSet.start(exercise: exercise, side: trackingSide)
+        if workoutAnalysis.beginStartFeedback(isRunning: liveSet.phase == .running) {
+            speakWorkoutCue(workoutAnalysis.startSpokenMessage)
+        }
         // The bounded analysis stream may already contain one pre-start event.
         // Drop exactly the next delivered frame so a new set cannot begin from
         // a queued observation preceding the tap or spoken start cue.

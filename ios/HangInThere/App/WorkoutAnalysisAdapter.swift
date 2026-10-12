@@ -26,12 +26,34 @@ final class WorkoutAnalysisAdapter {
     private(set) var reps: [WorkoutRepRecord] = []
     private(set) var error: String?
     @ObservationIgnored private var pendingDraft: WorkoutSetRecord?
+    @ObservationIgnored private let startFeedback = WorkoutStartFeedback()
+    @ObservationIgnored private var startFeedbackTask: Task<Void, Never>?
+    private(set) var showsSetStarted = false
+    var startSpokenMessage: String { WorkoutStartFeedback.companion.spokenMessage }
+    @discardableResult
+    func beginStartFeedback(isRunning: Bool, nowSeconds: Double = ProcessInfo.processInfo.systemUptime) -> Bool {
+        guard startFeedback.begin(setId: setId, live: true, running: isRunning, nowSeconds: nowSeconds) else { return false }
+        startFeedbackTask?.cancel()
+        showsSetStarted = true
+        let duration = startFeedback.remainingSeconds(nowSeconds: nowSeconds)
+        startFeedbackTask = Task { [weak self] in
+            do { try await Task.sleep(for: .seconds(duration)) } catch { return }
+            self?.showsSetStarted = false
+            self?.startFeedbackTask = nil
+        }
+        return true
+    }
+    private func clearStartFeedback() {
+        startFeedbackTask?.cancel(); startFeedbackTask = nil
+        startFeedback.clear(); showsSetStarted = false
+    }
     func drainDraft() -> WorkoutSetRecord? { defer { pendingDraft = nil }; return pendingDraft }
     private func makeEngine(exercise: ExerciseCounter.Exercise) -> WorkoutAnalysisBridge {
         WorkoutAnalysisBridge(setId: setId, exercise: exercise.rawValue,
             trackedAtEpochMilliseconds: Int64((Date().timeIntervalSince1970 * 1000).rounded()))
     }
     func start(exercise: ExerciseCounter.Exercise) {
+        clearStartFeedback()
         setId = UUID().uuidString
         engine = makeEngine(exercise: exercise)
         precondition(engine.policyVersion == ExerciseCounter.policyVersion, "Counting policy versions differ")
@@ -74,8 +96,9 @@ final class WorkoutAnalysisAdapter {
         refreshRecords()
         return end.flatMap(LiveSetSession.EndReason.init(rawValue:))
     }
-    func interrupt(reason: String) { engine.interrupt(reason: reason); refreshRecords() }
+    func interrupt(reason: String) { clearStartFeedback(); engine.interrupt(reason: reason); refreshRecords() }
     func finish(reason: String) -> WorkoutSetRecord? {
+        clearStartFeedback()
         engine.finish(reason: reason); refreshRecords()
         do { return try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(engine.setJson().utf8)) }
         catch { self.error = "Workout analysis could not be read: \(error.localizedDescription)"; return nil }

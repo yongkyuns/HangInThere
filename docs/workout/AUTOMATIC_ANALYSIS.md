@@ -19,6 +19,13 @@ migration; this change does not claim that either pose SDK is shared.
   source frames; a qualified prior frame seeds the counter's existing starting
   baseline. No three-second countdown or leg gesture is required. Frames before
   apparatus/camera qualification cannot retrospectively earn a baseline.
+- On the actual live-set start, show a large **SET STARTED** overlay for two
+  seconds and speak "Set started" once. A persistent tracking indicator remains
+  during the set. Shared feedback identity/timing policy prevents duplicate cues;
+  native adapters own drawing, speech and cancellation. This UI monotonic clock
+  never advances counting/readiness/set boundaries, and feedback never delays the
+  first rep. Replay does not announce live starts; ended/background sets cancel
+  feedback, including late Android speech initialization.
 - A rep opens on departure from the acquired start. An accepted pull-up reaches
   its counting milestone at the upper endpoint; it closes its motion record on
   the observed return. A dip is accepted on the return to top support. The count

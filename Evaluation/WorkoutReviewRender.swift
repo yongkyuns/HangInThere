@@ -37,32 +37,56 @@ import Vision
                         .environment(\.colorScheme, dark ? .dark : .light)
                         .frame(width: width, height: 1000)
                         .background(dark ? Color.black : Color.white)
-                    let host = NSHostingView(rootView: content)
-                    let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: 1000),
-                        styleMask: [.borderless], backing: .buffered, defer: false)
-                    window.isReleasedWhenClosed = false; window.contentView = host; window.orderFront(nil)
-                    host.layoutSubtreeIfNeeded()
-                    RunLoop.current.run(until: Date().addingTimeInterval(0.3))
-                    guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { fatalError("Chart rendering failed") }
-                    host.cacheDisplay(in: host.bounds, to: bitmap)
-                    // Check the actual rendered shipping view, including historical
-                    // selection when the current set has no completed timing bars.
-                    guard let image = bitmap.cgImage else { fatalError("Chart image unavailable") }
-                    let textRequest = VNRecognizeTextRequest()
-                    textRequest.recognitionLevel = .accurate
-                    textRequest.recognitionLanguages = ["en-US"]
-                    try VNImageRequestHandler(cgImage: image).perform([textRequest])
-                    let text = (textRequest.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-                        .map { $0.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression).lowercased() }
+                    let text = try render(content, width: width, height: 1000,
+                        filename: "\(prefix)\(dark ? "dark" : "light")-\(Int(width)).png")
                     precondition(!text.contains { $0.contains("rep2") || $0.contains("rep3") }, "Unfinished reps appeared in analytics")
                     if prefix == "history-" {
                         precondition(text.contains { $0.contains("rep1accepted") }, "Completed history selection must reveal its details independently of the current timing chart")
                     }
-                    guard let data = bitmap.representation(using: .png, properties: [:]) else { fatalError("Chart pixels failed") }
-                    window.close()
-                    try data.write(to: URL(fileURLWithPath: "build/workout-analysis/render/\(prefix)\(dark ? "dark" : "light")-\(Int(width)).png"))
                 }
             }
         }
+        for exercise in ExerciseCounter.Exercise.allCases {
+            var running = LiveSetSession(); running.start(exercise: exercise, side: .left)
+            var ended = running; ended.finish()
+            var reacquiring = running; reacquiring.interrupt(reason: "sourceTimeGap")
+            for (name, session, cue) in [("idle", LiveSetSession(), true), ("started", running, true),
+                ("tracking", running, false), ("reacquiring", reacquiring, false), ("finished", ended, true)] {
+                for width in [320.0, 430.0] {
+                    let content = LiveWorkoutOverlay(session: session, showsSetStarted: cue,
+                        cameraReady: true, status: "Hold a hang or top support", statusSymbol: "figure.strengthtraining.traditional",
+                        needsAttention: false, showsManualStart: false, canStart: true, canSwitchCamera: true,
+                        nextCameraName: "front", isRecording: false, countdown: nil, canClose: true,
+                        onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                        .frame(width: width, height: 760).background(Color(white: 0.18))
+                    let text = try render(content, width: width, height: 760,
+                        filename: "live-\(exercise.rawValue)-\(name)-\(Int(width)).png")
+                    precondition(text.contains { $0.contains("setstarted") } == (name == "started"), "Live start cue does not match the actual running set")
+                    // Match the header badge, rather than the separate progress
+                    // guidance (which can correctly say "Tracking paused").
+                    precondition(text.contains("tracking") == (session.phase == .running && session.trackingIssue == nil), "Persistent live tracking state is unavailable or stale")
+                    precondition(text.contains("paused") == (name == "reacquiring"), "Counter interruption is not reflected in the live indicator")
+                }
+            }
+        }
+    }
+
+    @MainActor private static func render<V: View>(_ content: V, width: Double, height: Double, filename: String) throws -> [String] {
+        let host = NSHostingView(rootView: content)
+        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: width, height: height),
+            styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false; window.contentView = host; window.orderFront(nil)
+        defer { window.close() }
+        host.layoutSubtreeIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+        guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { fatalError("View rendering failed") }
+        host.cacheDisplay(in: host.bounds, to: bitmap)
+        guard let image = bitmap.cgImage, let data = bitmap.representation(using: .png, properties: [:]) else { fatalError("View pixels unavailable") }
+        try data.write(to: URL(fileURLWithPath: "build/workout-analysis/render/\(filename)"))
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate; request.recognitionLanguages = ["en-US"]
+        try VNImageRequestHandler(cgImage: image).perform([request])
+        return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+            .map { $0.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression).lowercased() }
     }
 }

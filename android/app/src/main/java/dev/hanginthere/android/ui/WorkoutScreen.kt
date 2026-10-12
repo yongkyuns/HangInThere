@@ -131,6 +131,11 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
         }
         Column(Modifier.align(Alignment.TopStart).statusBarsPadding().padding(16.dp).background(Color.Black.copy(alpha = 0.5f))) {
             Text(state.result?.snapshot?.exercise?.title ?: if (selection == WorkoutExerciseSelection.automatic) "Auto" else if (selection == WorkoutExerciseSelection.dip) "Dips" else "Pull-ups", Modifier.padding(horizontal = 12.dp, vertical = 6.dp), color = Color.White)
+            if (!state.replay && resumed && !state.interrupted && state.result?.snapshot?.phase == LiveSetSession.Phase.running) {
+                val healthy = state.result?.snapshot?.let { it.setupIssue == null && it.trackingIssue == null } == true
+                Text(if (healthy) "● TRACKING" else "● PAUSED",
+                    Modifier.padding(horizontal = 12.dp), color = if (healthy) Color(0xFF69F0AE) else Color(0xFFFFB74D), fontSize = 11.sp)
+            }
             Text("${state.result?.snapshot?.let { if(it.phase == LiveSetSession.Phase.idle) it.latestCompletedSet?.acceptedCount ?: it.observedMovements else it.observedMovements } ?: 0}", Modifier.padding(horizontal = 12.dp), fontSize = 42.sp, color = Color.White)
             if(state.result?.snapshot?.phase == LiveSetSession.Phase.idle && state.result?.snapshot?.latestCompletedSet != null) Text("Last set", Modifier.padding(horizontal = 12.dp), color = Color.White)
         }
@@ -140,6 +145,8 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             if (allowCamera && !state.replay) FilledTonalButton(onClick = { front = !front }, enabled = state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text("Flip") }
         }
         state.result?.snapshot?.countdownSeconds?.let { Text("$it", Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = 0.5f)).padding(24.dp), fontSize = 72.sp, color = Color.White) }
+        WorkoutStartFeedbackOverlay(state.result?.snapshot, live = !state.replay,
+            foreground = resumed && !state.interrupted, policy = model.startFeedback)
         Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             val snapshot = state.result?.snapshot
             val running = snapshot?.phase == LiveSetSession.Phase.running

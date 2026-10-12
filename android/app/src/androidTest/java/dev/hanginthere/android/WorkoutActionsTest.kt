@@ -10,6 +10,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.runtime.mutableStateOf
+import dev.hanginthere.android.ui.WorkoutStartFeedbackOverlay
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.hanginthere.android.session.AnalysisPipeline
 import dev.hanginthere.android.session.ReplayOutcome
@@ -25,6 +28,50 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WorkoutActionsTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+
+    @Test fun liveStartCueAnnouncesOnceExpiresAndRearmsForNextSet() {
+        val runtime = WorkoutRuntime()
+        val snapshot = mutableStateOf(runtime.snapshot)
+        val live = mutableStateOf(true)
+        val foreground = mutableStateOf(true)
+        val now = mutableStateOf(10.0)
+        val policy = WorkoutStartFeedback()
+        val spoken = mutableListOf<String>()
+        compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+            WorkoutStartFeedbackOverlay(snapshot.value, live.value, foreground.value, policy,
+                announce = { spoken.add(it) }, nowSeconds = { now.value })
+        } } }
+        compose.onNodeWithTag("liveSetStarted").assertDoesNotExist()
+        compose.runOnUiThread {
+            runtime.session.start(ExerciseCounter.Exercise.dip,ArmMeasurement.Side.left)
+            snapshot.value = runtime.snapshot
+        }
+        compose.onNodeWithText("SET STARTED").assertIsDisplayed()
+        compose.runOnUiThread { snapshot.value = snapshot.value.copy(observedMovements = 1); now.value = 11.0 }
+        compose.onNodeWithText("SET STARTED").assertIsDisplayed()
+        compose.runOnUiThread { assertTrue(spoken == listOf("Set started")); now.value = 12.1 }
+        compose.onNodeWithTag("liveSetStarted").assertDoesNotExist()
+        compose.runOnUiThread {
+            runtime.session.finish(); snapshot.value = runtime.snapshot
+        }
+        compose.onNodeWithTag("liveSetStarted").assertDoesNotExist()
+        compose.runOnUiThread {
+            runtime.session.start(ExerciseCounter.Exercise.pullUp,ArmMeasurement.Side.left)
+            snapshot.value = runtime.snapshot
+        }
+        compose.onNodeWithText("SET STARTED").assertIsDisplayed()
+        compose.runOnUiThread { assertTrue(spoken.size == 2); foreground.value = false }
+        compose.onNodeWithTag("liveSetStarted").assertDoesNotExist()
+        compose.runOnUiThread { foreground.value = true }
+        compose.onNodeWithTag("liveSetStarted").assertDoesNotExist()
+        compose.runOnUiThread {
+            live.value = false
+            runtime.session.start(ExerciseCounter.Exercise.dip,ArmMeasurement.Side.left)
+            snapshot.value = runtime.snapshot
+        }
+        compose.onNodeWithTag("liveSetStarted").assertDoesNotExist()
+        compose.runOnUiThread { assertTrue(spoken.size == 2) }
+    }
 
     @Test fun analysisExcludesAcceptedPullUpWithUnobservedReturn() {
         val analysis=WorkoutAnalysis("ui-test",ExerciseCounter.Exercise.pullUp)
