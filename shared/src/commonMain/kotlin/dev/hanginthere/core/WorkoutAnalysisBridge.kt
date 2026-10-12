@@ -20,6 +20,7 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
     private val exercise = ExerciseCounter.Exercise.valueOf(exercise)
     private val analysis = WorkoutAnalysis(setId, this.exercise)
     private val boundary = AutomaticSetBoundary()
+    private val motionFeatures = WorkoutMotionFeatures()
     private val start = AutomaticWorkoutStart()
     val jointNames get() = PoseJoint.entries.map{it.name}
     val policyVersion get() = ExerciseCounter.policyVersion
@@ -35,7 +36,7 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
         this.trackingSide=ArmMeasurement.Side.valueOf(trackingSide)
         if(imageSize==null) imageSize=pose.imageSize
         if(referenceEdge==null) referenceEdge=bar
-        val sample = MotionFeatureExtractor.extract(pose, bar, usable).copy(seconds=seconds)
+        val sample = motionFeatures.extract(pose, bar, usable,ExerciseCounter.Phase.valueOf(phase)).copy(seconds=seconds)
         val event = eventOutcome?.let { ExerciseCounter.Event(ExerciseCounter.Outcome.valueOf(it), eventTime, eventReason.orEmpty()) }
         analysis.observe(sample, ExerciseCounter.Phase.valueOf(phase), event)
         return if (automaticFinish) boundary.observe(sample, hasActivity || ExerciseCounter.Phase.valueOf(phase) in listOf(ExerciseCounter.Phase.ready,ExerciseCounter.Phase.outbound,ExerciseCounter.Phase.returning)) else null

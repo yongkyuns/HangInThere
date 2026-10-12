@@ -13,7 +13,7 @@ import kotlin.math.*
 
 /** Camera/model adapters provide poses; all analysis geometry lives here. */
 object MotionFeatureExtractor {
-    fun extract(pose: PoseResult, reference: BarSegment?, policyUsable: Boolean): MotionSample {
+    fun extract(pose: PoseResult, reference: BarSegment?, policyUsable: Boolean, heldGrips: List<Point2D>? = null): MotionSample {
         val left = ArmMeasurement(pose, ArmMeasurement.Side.left).estimate
         val right = ArmMeasurement(pose, ArmMeasurement.Side.right).estimate
         val person = pose.people.singleOrNull()
@@ -24,11 +24,29 @@ object MotionFeatureExtractor {
         // Only positive, bilateral current-frame evidence can end a set. Missing
         // joints, empty frames and crowd ambiguity are never a release gesture.
         val hands = listOf(PoseJoint.leftWrist, PoseJoint.rightWrist).mapNotNull { person?.landmark(it)?.position }
-        val released = reference?.isValid == true && left != null && right != null && hands.size == 2 &&
+        val released = reference?.isValid == true && left != null && right != null && hands.size == 2 && heldGrips?.size == 2 &&
+            hands.zip(heldGrips).all { (hand, grip) -> hypot(hand.x-grip.x,hand.y-grip.y) > max(short * .12, (left.upperArmPixels + left.forearmPixels + right.upperArmPixels + right.forearmPixels) * .125) } &&
             hands.all { reference.distance(it) > max(short * .12, (left.upperArmPixels + left.forearmPixels + right.upperArmPixels + right.forearmPixels) * .125) }
         return MotionSample(pose.timestamp.seconds, left?.elbowDegrees, right?.elbowDegrees, height,
             policyUsable && (left != null || right != null), released)
     }
+}
+
+/** Freeze both observed hand locations at the acquired start. A dip's selected
+ * rail cannot alone describe the other hand's contact with its separate rail. */
+class WorkoutMotionFeatures {
+    private var heldGrips: List<Point2D>? = null
+    private var imageSize: ImageSize? = null
+    fun extract(pose: PoseResult, reference: BarSegment?, usable: Boolean, phase: ExerciseCounter.Phase): MotionSample {
+        if (heldGrips == null && phase == ExerciseCounter.Phase.ready && usable && reference?.isValid == true && pose.imageSize.isValid &&
+            ArmMeasurement(pose,ArmMeasurement.Side.left).estimate != null && ArmMeasurement(pose,ArmMeasurement.Side.right).estimate != null) {
+            val person = pose.people.singleOrNull()
+            val hands = listOf(PoseJoint.leftWrist,PoseJoint.rightWrist).mapNotNull { person?.landmark(it)?.position }
+            if (hands.size == 2) { heldGrips=hands; imageSize=pose.imageSize }
+        }
+        return MotionFeatureExtractor.extract(pose,reference,usable,heldGrips.takeIf { imageSize==pose.imageSize })
+    }
+    fun reset() { heldGrips=null;imageSize=null }
 }
 
 @Serializable data class AngleMetrics(

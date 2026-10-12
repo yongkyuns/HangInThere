@@ -11,6 +11,7 @@ class LiveSetSession {
     var setId=newSetId();private set
     var analysis=WorkoutAnalysis(setId,ExerciseCounter.Exercise.pullUp);private set
     private var boundary=AutomaticSetBoundary()
+    private val motionFeatures=WorkoutMotionFeatures()
     var automaticFinishEnabled=false
     private var backend:String?=null
     private var modelRevision:Int?=null
@@ -45,7 +46,7 @@ class LiveSetSession {
         backend=pose.backend;modelRevision=pose.requestRevision
         val eventCount=counter.events.size
         analyzedFrames++;counter.consume(pose,referenceEdge)
-        val features=MotionFeatureExtractor.extract(pose,referenceEdge,counter.trackingIssue==null && referenceEdge!=null)
+        val features=motionFeatures.extract(pose,referenceEdge,counter.trackingIssue==null && referenceEdge!=null,counter.phase)
         analysis.observe(features,counter.phase,counter.events.drop(eventCount).lastOrNull())
         if(automaticFinishEnabled) boundary.observe(features,counter.observedMovements+counter.partialAttempts+counter.interruptedAttempts>0 || counter.phase in listOf(ExerciseCounter.Phase.ready,ExerciseCounter.Phase.outbound,ExerciseCounter.Phase.returning))?.let { finish(EndReason.valueOf(it)) }
         if(referenceEdge!=null && counter.trackingIssue==null) usableFrames++
@@ -54,6 +55,6 @@ class LiveSetSession {
     fun finish(reason:EndReason=EndReason.manual){if(phase!=Phase.running) return;counter.finish();analysis.finish(reason.name);endReason=reason;phase=Phase.finished}
     fun interruptAndFinish(reason:String,endReason:EndReason){if(phase!=Phase.running) return;counter.interrupt(reason);counter.finish();analysis.finish(reason);this.endReason=endReason;phase=Phase.finished}
     fun prepareNextSet(){if(phase==Phase.finished) reset(counter.exercise,counter.side)}
-    fun reset(exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side){setId=newSetId();analysis=WorkoutAnalysis(setId,exercise);boundary.reset();imageSize=null;reference=null;backend=null;modelRevision=null;trackedAtEpochMilliseconds=null;counter=ExerciseCounter(exercise,side);phase=Phase.idle;endReason=null;analyzedFrames=0;usableFrames=0;firstSourceSeconds=null;lastSourceSeconds=null}
+    fun reset(exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side){setId=newSetId();analysis=WorkoutAnalysis(setId,exercise);boundary.reset();motionFeatures.reset();imageSize=null;reference=null;backend=null;modelRevision=null;trackedAtEpochMilliseconds=null;counter=ExerciseCounter(exercise,side);phase=Phase.idle;endReason=null;analyzedFrames=0;usableFrames=0;firstSourceSeconds=null;lastSourceSeconds=null}
     companion object { fun newSetId()=Random.nextLong().toULong().toString(16).padStart(16,'0')+Random.nextLong().toULong().toString(16).padStart(16,'0') }
 }

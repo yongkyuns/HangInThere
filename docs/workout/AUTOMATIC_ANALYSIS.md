@@ -27,7 +27,10 @@ migration; this change does not claim that either pose SDK is shared.
   return/peak measurements are null. Partial and interrupted attempts remain
   distinct records; they do not contribute to accepted counts.
 - A set completes after one second of continuous **bilateral visible grip
-  release**, measured against the fixed observed apparatus. This is conservative
+  release**, measured against the fixed observed apparatus and each hand's
+  observed grip at the acquired start. A hand remaining on its separate dip rail
+  cannot be treated as released merely because it is far from the selected rail.
+  This is conservative
   disengagement evidence, not a claim that a static posture means rest. Long
   holds do not split sets.
 - Three seconds of unavailable tracking or missing observations ends a set as

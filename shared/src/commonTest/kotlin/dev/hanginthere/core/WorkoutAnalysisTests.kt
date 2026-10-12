@@ -180,6 +180,24 @@ class AutomaticWorkoutIntegrationTests {
     }
 }
 
+class WorkoutGripReleaseTests {
+    @Test fun separateDipRailsRequireBothHandsToLeaveTheirOwnStartingGrips() {
+        val features=WorkoutMotionFeatures()
+        val pose=CounterFixtures.bilateral(0.0,170.0,170.0,exercise=ExerciseCounter.Exercise.dip)
+        val rail=BarSegment(Point2D(300.0,550.0),Point2D(300.0,850.0))
+        assertFalse(features.extract(pose,rail,true,ExerciseCounter.Phase.ready).released)
+        fun shifted(both:Boolean)=pose.copy(people=pose.people.map { person -> PoseObservation(person.landmarks.map { point ->
+            if(both || point.joint in listOf(PoseJoint.leftShoulder,PoseJoint.leftElbow,PoseJoint.leftWrist)) point.copy(position=Point2D(point.position.x-200,point.position.y)) else point
+        }) })
+        assertFalse(features.extract(shifted(false),rail,true,ExerciseCounter.Phase.seekingStart).released)
+        assertTrue(features.extract(shifted(true),rail,true,ExerciseCounter.Phase.seekingStart).released)
+        val missing=shifted(true).copy(people=shifted(true).people.map { PoseObservation(it.landmarks.filter { point->point.joint!=PoseJoint.rightWrist }) })
+        assertFalse(features.extract(missing,rail,false,ExerciseCounter.Phase.seekingStart).released)
+        features.reset()
+        assertFalse(features.extract(shifted(true),rail,true,ExerciseCounter.Phase.seekingStart).released)
+    }
+}
+
 class WorkoutRecoveryTests {
     @Test fun calendarTimestampIsStableAndIndependentOfSourceTime() {
         val session=LiveSetSession()
