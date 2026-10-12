@@ -79,6 +79,7 @@ class WorkoutRecordStoreTest {
             assertTrue(recovered.hasPractice)
             assertEquals(0,recovered.completedCount)
             assertEquals(.3,recovered.activity!!.longestHangSeconds,1e-9)
+            assertEquals(2,recovered.activity!!.metricVersion)
         } finally { directory.deleteRecursively() }
     }
     @Test fun goalsPersistAndRemainIndependentForEachExercise() {

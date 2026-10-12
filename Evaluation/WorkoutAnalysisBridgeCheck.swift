@@ -40,7 +40,8 @@ struct WorkoutAnalysisBridgeCheck {
             completed.append(set)
             let rep = set.reps[0]
             guard rep.left.mean != nil, rep.right.mean != nil,
-                  rep.durationCoverage == 1, rep.countPolicyVersion == 8 else { fatalError("Bridge lost metric validity") }
+                  rep.durationCoverage == 1, rep.countPolicyVersion == 8, rep.metricVersion == 1,
+                  set.activity?.metricVersion == 2 else { fatalError("Bridge lost metric validity or phase version") }
             guard set.completedCount == 1, set.completedReps == [rep], rep.isCompleteForAnalytics else {
                 fatalError("Shipping Apple analytics omitted a completed rep")
             }

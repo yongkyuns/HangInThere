@@ -38,6 +38,26 @@ Native goal persistence/FFI belongs in `App/`; Swift `Analysis/` remains free of
 
 ## Lifecycle and evidence
 
+Phase direction uses shared source-time stabilization (activity metric version 2).
+A bounded 64-sample, 0.24-second window fits the observed piecewise-linear elbow
+trajectory with time weighting, so redundant samples do not change a linear
+motion's rate. Motion/hold thresholds have hysteresis, and reversals require
+0.08 seconds plus 3 degrees of coherent observed travel. Confirmation anchors
+are independent of the window so slow movement can eventually qualify.
+Fitted confirmation starts at its first observed candidate, never retroactively
+at the preceding frame; one low-frame-rate outlier cannot earn a hold/reversal.
+Brief observed stationary intervals can establish holds without waiting for an
+older moving window to decay. Changing visible arms, unusable input, release,
+timestamp faults and source gaps reset this evidence.
+
+These are descriptive engineering defaults pending annotated phase validation.
+Transitions can lag while evidence accumulates; the timeline is not backdated
+across that delay. Raw angles, peak/return timing, policy-v8 counter inputs and
+completed-cycle eligibility are unchanged. Hang/top-support credit still uses
+the existing bilateral endpoint checks on fresh source intervals, independently
+of the direction fit. Saved activity version 1 remains readable; its measurements
+are preserved rather than silently reclassified.
+
 - Start observing after actual apparatus, exercise identity, camera motion and
   scene checks qualify. The new readiness gate uses 0.12 seconds of consecutive
   source frames; a qualified prior frame seeds the counter's existing starting
