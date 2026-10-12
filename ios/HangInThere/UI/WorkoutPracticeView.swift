@@ -15,7 +15,7 @@ struct WorkoutEvidenceView: View {
                     GridRow { Text("Observed time"); Text(coverage(assessment.durationCoverage)) }
                     GridRow { Text("Left-arm time"); Text(coverage(assessment.leftCoverage)) }
                     GridRow { Text("Right-arm time"); Text(coverage(assessment.rightCoverage)) }
-                }.font(.caption).monospacedDigit()
+                }.font(.body).monospacedDigit()
                 ForEach(assessment.notes, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
                 if !assessment.angleComparisonEligible {
                     Text("Range is excluded from progress comparisons.").font(.caption).foregroundStyle(.secondary)

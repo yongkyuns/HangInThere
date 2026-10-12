@@ -42,9 +42,10 @@ import Vision
                         .frame(width: width,height: 560).background(dark ? Color.black : Color.white)
                     let text = try render(content,width: width,height: 560,
                         filename: "evidence-\(name)-\(dark ? "dark" : "light")-\(Int(width)).png")
-                    precondition(text.contains { $0.contains(expected) },"Attempt evidence title missing")
-                    precondition(text.contains { $0.contains("leftarmtime") } && text.contains { $0.contains("rightarmtime") },"Independent arm coverage missing")
-                    precondition(!text.contains { $0.contains("failedrep") },"Tracking failure became a strength judgment")
+                    let filename = "evidence-\(name)-\(dark ? "dark" : "light")-\(Int(width)).png"
+                    verify(text.contains { $0.contains(expected) },"Attempt evidence title missing",filename: filename)
+                    verify(text.contains { $0.contains("leftarmtime") } && text.contains { $0.contains("rightarmtime") },"Independent arm coverage missing",filename: filename)
+                    verify(!text.contains { $0.contains("failedrep") },"Tracking failure became a strength judgment",filename: filename)
                 }
             }
         }
@@ -118,6 +119,15 @@ import Vision
                     precondition(text.contains("paused") == (name == "reacquiring"), "Counter interruption is not reflected in the live indicator")
                 }
             }
+        }
+    }
+
+    /// Optimized preconditions trap without a useful CI message. Print the
+    /// failing artifact before retaining the same fatal verification boundary.
+    private static func verify(_ condition: Bool, _ message: String, filename: String) {
+        guard condition else {
+            FileHandle.standardError.write(Data("Render verification failed [\(filename)]: \(message)\n".utf8))
+            preconditionFailure(message)
         }
     }
 
