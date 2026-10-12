@@ -6,6 +6,7 @@ struct LiveWorkoutOverlay: View {
     let session: LiveSetSession
     var latestCompletedSet: WorkoutSetRecord? = nil
     var showsSetStarted = false
+    var activity: WorkoutActivity? = nil
     var exerciseTitle: String? = nil
     let cameraReady: Bool
     let status: String
@@ -153,6 +154,13 @@ struct LiveWorkoutOverlay: View {
                         .accessibilityIdentifier("liveCameraSelection")
                 }
             case .running:
+                if let span = activity?.phases.last, span.phase == "hang" || span.phase == "support" {
+                    Text("\(span.phase == "hang" ? "Hang" : "Top support") · \(String(format: "%.1f s", span.observedSeconds))")
+                        .font(.headline.monospacedDigit()).foregroundStyle(.mint)
+                        .padding(.horizontal, 14).padding(.vertical, 8)
+                        .background(.black.opacity(0.7), in: Capsule())
+                        .accessibilityIdentifier("liveHoldTime")
+                }
                 ExerciseProgressView(counter: session.counter)
                 actionButton("Finish set", symbol: "stop.fill", action: onFinish)
                     .accessibilityIdentifier("stopLiveSet")

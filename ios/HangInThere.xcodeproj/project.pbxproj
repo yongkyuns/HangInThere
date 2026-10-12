@@ -5,6 +5,11 @@
 	};
 	objectVersion = 56;
 	objects = {
+		AAA100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutProgression.swift"; sourceTree = "<group>";};
+		AAA200000000000000000004 = {isa = PBXBuildFile; fileRef = AAA100000000000000000004;};
+		AAA100000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutPracticeView.swift"; sourceTree = "<group>";};
+		AAA200000000000000000005 = {isa = PBXBuildFile; fileRef = AAA100000000000000000005;};
+
 		AAA300000000000000000001 = {isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "\"$SRCROOT/../scripts/build-workout-core.sh\""; name = "Build shared WorkoutCore";};
 		AAA100000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutReviewView.swift"; sourceTree = "<group>";};
 		AAA200000000000000000003 = {isa = PBXBuildFile; fileRef = AAA100000000000000000003;};
@@ -298,6 +303,8 @@
 		3AA483116254740FBE6590D1 = {
 			isa = PBXGroup;
 			children = (
+				AAA100000000000000000004,
+				AAA100000000000000000005,
 				AAA100000000000000000003,
 				AAA100000000000000000002,
 				AAA100000000000000000001,
@@ -650,6 +657,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AAA200000000000000000004,
+				AAA200000000000000000005,
 				AAA200000000000000000003,
 				AAA200000000000000000002,
 				AAA200000000000000000001,

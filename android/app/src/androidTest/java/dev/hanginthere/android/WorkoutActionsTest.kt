@@ -85,13 +85,14 @@ class WorkoutActionsTest {
             compose.activity.setContent { MaterialTheme {
                 val set = WorkoutSetRecord("ui-test", ExerciseCounter.Exercise.pullUp, 0.0, .4,
                     "trackingLost", analysis.records, "authored UI test", 0)
-                WorkoutReviewDialog(analysis.records,listOf(set),null) { closed=true }
+                WorkoutReviewDialog(analysis.records,listOf(set),null,goalsEnabled=false) { closed=true }
             } }
         }
-        compose.onNodeWithText("Complete a pull-up or dip to see its timing and angle measurements.").assertIsDisplayed()
+        compose.onNodeWithText("Hangs, support holds and partial attempts are practice. Completed cycles appear in rep timing.").assertIsDisplayed()
         compose.onAllNodesWithText("Rep 1", substring = true).assertCountEquals(0)
         compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertDoesNotExist()
-        compose.onNodeWithText("Saved sets").assertDoesNotExist()
+        compose.onNodeWithText("Saved sets").assertExists()
+        compose.onNodeWithText("Practice attempts · 1 incomplete").assertExists()
         compose.onNodeWithText("Done").performClick()
         assertTrue(closed)
     }
@@ -116,7 +117,7 @@ class WorkoutActionsTest {
             outcome="partial",closeReason="partial")
         val set = WorkoutSetRecord("ui-test",exercise,0.0,1.0,"trackingLost",analysis.records+partial,"authored UI test",0)
         compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
-            WorkoutReviewDialog(set.reps,listOf(set),null) {}
+            WorkoutReviewDialog(set.reps,listOf(set),null,goalsEnabled=false) {}
         } } }
         compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
         compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertExists()
@@ -126,7 +127,7 @@ class WorkoutActionsTest {
         // Completed history remains selectable while the current set contains
         // only unfinished attempts and therefore has no timing bars.
         compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
-            WorkoutReviewDialog(set.reps.drop(1),listOf(set),null) {}
+            WorkoutReviewDialog(set.reps.drop(1),listOf(set),null,goalsEnabled=false) {}
         } } }
         compose.onNodeWithText("Rep 1 ·", substring = true).performScrollTo().performClick()
         compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
@@ -134,6 +135,26 @@ class WorkoutActionsTest {
         compose.onAllNodesWithText("Rep 3", substring = true).assertCountEquals(0)
     }
 
+    @Test fun zeroRepCurrentSetCannotBorrowOlderRepTiming() {
+        val analysis=WorkoutAnalysis("older",ExerciseCounter.Exercise.pullUp)
+        analysis.observe(MotionSample(0.0,170.0,170.0,.2,true,false),ExerciseCounter.Phase.ready,null)
+        analysis.observe(MotionSample(.2,100.0,100.0,.15,true,false),ExerciseCounter.Phase.outbound,null)
+        analysis.observe(MotionSample(.4,80.0,80.0,.1,true,false),ExerciseCounter.Phase.returning,
+            ExerciseCounter.Event(ExerciseCounter.Outcome.movement,.4,"authored review test"))
+        analysis.observe(MotionSample(.6,170.0,170.0,.2,true,false),ExerciseCounter.Phase.ready,null)
+        val older=WorkoutSetRecord("older",ExerciseCounter.Exercise.pullUp,0.0,.6,"manual",analysis.records,null,null,activity=analysis.activity)
+        val hold=WorkoutSetRecord("new-hang",ExerciseCounter.Exercise.pullUp,0.0,5.0,"running",emptyList(),null,null,
+            activity=WorkoutActivity(emptyList(),listOf(WorkoutPhaseTotal(WorkoutMotionPhase.hang,5.0)),5.0,0.0,5.0,5.0,false))
+        compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+            WorkoutReviewDialog(emptyList(),listOf(older),null,currentSet=hold,goalsEnabled=false) {}
+        } } }
+        compose.onNodeWithText("Set phases").assertIsDisplayed()
+        compose.onNodeWithText("Rep timing").assertDoesNotExist()
+        compose.onNodeWithText("Rep 1 · accepted").assertDoesNotExist()
+        compose.onNodeWithText("Pull-up · 1 rep · Ended manually").performScrollTo().performClick()
+        compose.onNodeWithText("Rep timing").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
+    }
     @Test fun terminalReplayFailureCannotRenderStaleEndSetAction() {
         val runtime = WorkoutRuntime()
         runtime.session.start(ExerciseCounter.Exercise.dip, ArmMeasurement.Side.left)

@@ -215,6 +215,8 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var workoutHistory: [WorkoutSetRecord] = []
     private(set) var workoutStorageError: String?
     var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
+    var activeWorkoutRecord: WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.currentRecord : nil }
+    func workoutRecordForReview() -> WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.reviewRecord() : nil }
     var showsSetStarted: Bool { workoutAnalysis.showsSetStarted }
     private var archivedSetId: String?
     @ObservationIgnored private var workoutWriteTask: Task<Void, Never>?
@@ -887,7 +889,7 @@ final class LiveCameraPreviewController: NSObject {
               let record = workoutAnalysis.finish(reason: liveSet.endReason?.rawValue ?? "manual"),
               archivedSetId != record.id else { return }
         archivedSetId = record.id
-        guard !record.reps.isEmpty else { return }
+        guard record.hasPractice else { return }
         latestCompletedWorkout = record
         workoutHistory.insert(record, at: 0)
         workoutHistory = Array(workoutHistory.prefix(50))

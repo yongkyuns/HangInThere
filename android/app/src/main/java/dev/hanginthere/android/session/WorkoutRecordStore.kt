@@ -6,6 +6,8 @@ import dev.hanginthere.core.WorkoutAnalysis
 import dev.hanginthere.core.WorkoutSetRecord
 import dev.hanginthere.core.WorkoutRecordCodec
 import dev.hanginthere.core.WorkoutWriteQueue
+import dev.hanginthere.core.WorkoutProgressEvidence
+import dev.hanginthere.core.WorkoutProgression
 import java.io.File
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
@@ -17,6 +19,7 @@ class WorkoutRecordStore(context: Context, private val directory: File = File(co
         @Synchronized fun live(context: Context): WorkoutRecordStore = liveStore ?: WorkoutRecordStore(context).also { liveStore = it }
     }
     private val writes = WorkoutWriteQueue()
+    private val activeJournalIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
     @Synchronized fun enqueue(record: WorkoutSetRecord, finalized: Boolean) = writes.enqueue(record, finalized)
     @Synchronized fun flushPending() {
         while (true) {
@@ -37,6 +40,7 @@ class WorkoutRecordStore(context: Context, private val directory: File = File(co
             writeAtomic(file, WorkoutAnalysis.json.encodeToString(summary))
         }
         deleteAtomic(File(directory,"${record.id}.pending.json"))
+        activeJournalIds.remove(record.id)
         var bytes = 0L
         committedFiles().filter { it.name.endsWith(".motion.json") }.sortedByDescending { it.lastModified() }
             .forEachIndexed { index, motion ->
@@ -49,6 +53,7 @@ class WorkoutRecordStore(context: Context, private val directory: File = File(co
         require(delta.id.matches(Regex("[A-Za-z0-9-]{1,64}")))
         check(directory.isDirectory || directory.mkdirs())
         if(restoreAtomic(File(directory,"${delta.id}.json"))) return
+        activeJournalIds.add(delta.id)
         val file=File(directory,"${delta.id}.pending.json")
         val old=if(restoreAtomic(file)) WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(readAtomic(file)) else null
         writeAtomic(file,WorkoutRecordCodec.json.encodeToString(WorkoutRecordCodec.mergeDraft(old,delta)))
@@ -70,6 +75,19 @@ class WorkoutRecordStore(context: Context, private val directory: File = File(co
         try { output.write(text.toByteArray()); atomic.finishWrite(output) }
         catch (error: Throwable) { atomic.failWrite(output); throw error }
     }
+    /** Read only immutable published summaries; no inference lock or motion
+     * sidecars. UI loads on Dispatchers.IO, keeping camera delivery independent. */
+    fun progressEvidence(excludingSetId: String? = null): List<WorkoutProgressEvidence> = directory.listFiles().orEmpty()
+        .filter { file ->
+            if(file.extension!="json" || file.name.endsWith(".motion.json")) false
+            else if(file.name.endsWith(".pending.json")) {
+                val id=file.name.removeSuffix(".pending.json")
+                id!=excludingSetId && !activeJournalIds.contains(id) && !File(directory,"$id.json").exists()
+            } else true
+        }.map { file ->
+            val record=WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(file.readText())
+            WorkoutProgression.evidence(if(file.name.endsWith(".pending.json"))WorkoutRecordCodec.recover(record) else record)
+        }
     @Synchronized fun recent(): List<WorkoutSetRecord> = committedFiles()
         .filter { it.extension == "json" && !it.name.endsWith(".motion.json") &&
             !(it.name.endsWith(".pending.json") && File(directory,it.name.removeSuffix(".pending.json")+".json").exists()) }

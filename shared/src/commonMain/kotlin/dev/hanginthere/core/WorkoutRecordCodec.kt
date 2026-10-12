@@ -32,7 +32,21 @@ class WorkoutRecordCodec {
                 }
             }
             val newest = if ((delta.endedAt ?: Double.NEGATIVE_INFINITY) >= (previous.endedAt ?: Double.NEGATIVE_INFINITY)) delta else previous
-            return summary(newest.copy(startedAt=listOfNotNull(previous.startedAt,delta.startedAt).minOrNull(),reps=reps.values.sortedBy{it.ordinal}))
+            return summary(newest.copy(startedAt=listOfNotNull(previous.startedAt,delta.startedAt).minOrNull(),reps=reps.values.sortedBy{it.ordinal},activity=if(newest===delta) mergeActivity(previous.activity,delta.activity) else previous.activity))
+        }
+        /** Small live deltas retain the full bounded timeline in the journal. */
+        fun mergeActivity(previous: WorkoutActivity?, delta: WorkoutActivity?): WorkoutActivity? {
+            if(delta==null) return previous
+            if(previous==null) return delta
+            require(previous.metricVersion==delta.metricVersion)
+            val spans=previous.phases.associateBy { it.id }.toMutableMap()
+            delta.phases.forEach { span ->
+                val old=spans[span.id]
+                if(old==null || span.endedAt>=old.endedAt) spans[span.id]=span
+            }
+            val ordered=spans.values.sortedBy { it.startedAt }
+            return delta.copy(phases=ordered.takeLast(WorkoutPhaseAnalysis.maximumSpans),
+                timelineTruncated=previous.timelineTruncated || delta.timelineTruncated || ordered.size>WorkoutPhaseAnalysis.maximumSpans)
         }
         fun recover(record:WorkoutSetRecord)=record.copy(endReason="recoveredInterruption")
 

@@ -24,6 +24,7 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
     val jointNames get() = PoseJoint.entries.map{it.name}
     val policyVersion get() = ExerciseCounter.policyVersion
     val revision get() = analysis.revision
+    val closedRecordCount get() = analysis.records.size
     fun observe(seconds: Double, width: Double, height: Double, peopleCount: Int,
                 joints: IntArray, triples: DoubleArray, reference: DoubleArray,
                 phase: String, usable: Boolean, backend: String, modelRevision: Int, trackingSide: String, eventOutcome: String?, eventTime: Double,
@@ -44,10 +45,16 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
     fun resetReadiness() = start.reset()
     fun interrupt(reason: String) { analysis.interrupt(reason); boundary.breakContinuity() }
     fun finish(reason: String) { analysis.finish(reason);endReason=reason }
-    fun draftDeltaJson():String? = (analysis.activeRecord ?: analysis.records.lastOrNull())?.let{
-        WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,sourceTimeline.firstSeconds,sourceTimeline.lastSeconds,"running",listOf(it),backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
-    }
-    fun setJson() = WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,sourceTimeline.firstSeconds,sourceTimeline.lastSeconds,endReason,analysis.records,backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
+    fun draftDeltaJson():String? = if(analysis.activity.hasPractice || analysis.activeRecord != null || analysis.records.isNotEmpty())
+        recordJson(listOfNotNull(analysis.activeRecord ?: analysis.records.lastOrNull()),analysis.activityDelta) else null
+    // Native clients already cache closed reps. Only the bounded active attempt
+    // and timeline cross FFI when review opens, regardless of past rep count.
+    fun reviewDeltaJson():String = recordJson(listOfNotNull(analysis.activeRecord),analysis.activity)
+    fun setJson():String = recordJson(analysis.records,analysis.activity)
+    private fun recordJson(reps:List<RepRecord>,activity:WorkoutActivity) = WorkoutAnalysis.json.encodeToString(
+        WorkoutSetRecord(setId,exercise,sourceTimeline.firstSeconds,sourceTimeline.lastSeconds,endReason,reps,backend,modelRevision,
+            trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,
+            trackedAtEpochMilliseconds=trackedAtEpochMilliseconds,activity=activity))
     fun recordsJson() = analysis.recordsJson()
     fun lastClosedRecordJson():String? = analysis.records.lastOrNull()?.let{WorkoutAnalysis.json.encodeToString(it)}
     private fun pose(seconds: Double, width: Double, height: Double, peopleCount: Int, joints: IntArray, triples: DoubleArray): PoseResult {

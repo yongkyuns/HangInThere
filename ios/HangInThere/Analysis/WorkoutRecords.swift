@@ -37,7 +37,7 @@ struct WorkoutRepRecord: Codable, Equatable, Identifiable, Sendable {
     let bilateralExtremeOffsetSeconds: Double?
     let usableDurationSeconds: Double
     let durationCoverage: Double?
-    let samples: [WorkoutMotionSample]
+    var samples: [WorkoutMotionSample]
     let curveTruncated: Bool
     let countPolicyVersion: Int
     let metricVersion: Int
@@ -50,7 +50,7 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let startedAt: Double?
     let endedAt: Double?
     let endReason: String
-    let reps: [WorkoutRepRecord]
+    var reps: [WorkoutRepRecord]
     let backend: String?
     let modelRevision: Int?
     let schemaVersion: Int
@@ -59,5 +59,35 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let imageSize: ImageSize?
     let referenceEdge: BarSegment?
     let trackedAtEpochMilliseconds: Int64?
+    var activity: WorkoutActivity? = nil
+    var hasPractice: Bool { !reps.isEmpty || (activity?.observedSeconds ?? 0) > 0 }
+    var progressInput: WorkoutSetRecord {
+        var result = self
+        result.reps = reps.map { rep in var summary = rep; summary.samples = []; return summary }
+        if var activity = result.activity { activity.phases = []; result.activity = activity }
+        return result
+    }
     var acceptedCount: Int { reps.filter { $0.acceptedAt != nil }.count }
+}
+
+struct WorkoutPhaseSpan: Codable, Equatable, Identifiable, Sendable {
+    let id: String
+    let phase: String
+    let startedAt: Double
+    let endedAt: Double
+    let observedSeconds: Double
+}
+struct WorkoutPhaseTotal: Codable, Equatable, Sendable {
+    let phase: String
+    let observedSeconds: Double
+}
+struct WorkoutActivity: Codable, Equatable, Sendable {
+    var phases: [WorkoutPhaseSpan]
+    let totals: [WorkoutPhaseTotal]
+    let longestHangSeconds: Double
+    let longestSupportSeconds: Double
+    let observedSeconds: Double
+    let elapsedSeconds: Double
+    let timelineTruncated: Bool
+    let metricVersion: Int
 }

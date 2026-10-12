@@ -43,7 +43,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private val automaticStart=AutomaticWorkoutStart()
     private var qualifiedStartPose:PoseResult?=null
     var latestCompletedSet:WorkoutSetRecord?=null;private set
-    private fun captureCompletedSet(){if(session.phase==LiveSetSession.Phase.finished && session.analysis.records.isNotEmpty()) latestCompletedSet=session.record}
+    private fun captureCompletedSet(){if(session.phase==LiveSetSession.Phase.finished && session.record.hasPractice) latestCompletedSet=session.record}
     val phoneOrientation=PhoneOrientationStability()
     val staticScene=StaticSceneStability()
     val handsFreeStart=HandsFreeSetStart()

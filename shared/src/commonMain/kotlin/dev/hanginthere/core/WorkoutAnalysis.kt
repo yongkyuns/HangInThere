@@ -80,10 +80,12 @@ object WorkoutAnalytics {
     val schemaVersion: Int = 1, val lifecycleVersion: Int = 1,
     val trackingSide: ArmMeasurement.Side? = null, val imageSize: ImageSize? = null, val referenceEdge: BarSegment? = null,
     val trackedAtEpochMilliseconds: Long? = null,
+    val activity: WorkoutActivity? = null,
 ) {
     val acceptedCount get() = reps.count { it.acceptedAt != null }
     val completedReps get() = reps.filter { it.isCompleteForAnalytics }
     val completedCount get() = completedReps.size
+    val hasPractice get() = reps.isNotEmpty() || activity?.hasPractice == true
 }
 
 /** Incremental integration, independent of frame rate. No integration across a gap. */
@@ -153,6 +155,9 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
                 samples.toList(), truncated, acceptanceReason=acceptanceReason)
         }
     }
+    private val phases = WorkoutPhaseAnalysis(setId, exercise)
+    val activity get() = phases.activity
+    val activityDelta get() = activity.let { it.copy(phases=it.phases.takeLast(3)) }
     private var attempt: Attempt? = null
     private var previous: MotionSample? = null
     private var lastPhase = ExerciseCounter.Phase.seekingStart
@@ -169,6 +174,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
         val old = previous
         if (old != null && sample.seconds <= old.seconds) { interrupt("nonIncreasingTimestamp"); return }
         if (old != null && sample.seconds - old.seconds > ExerciseCounter.maximumGapSeconds) interrupt("sourceTimeGap")
+        if (phases.observe(sample, phase)) revision++
         if (attempt == null && phase == ExerciseCounter.Phase.outbound && lastPhase != phase) {
             attempt = Attempt(old?.seconds ?: sample.seconds, ++ordinal)
             old?.let { attempt!!.observe(it, measureExtreme=false) }
@@ -187,7 +193,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
         }
         previous = sample; lastPhase = phase
     }
-    fun interrupt(reason: String) { previous?.seconds?.let { close(it, reason, false) }; lastPhase = ExerciseCounter.Phase.seekingStart; previous = null }
+    fun interrupt(reason: String) { phases.interrupt(); previous?.seconds?.let { close(it, reason, false) }; lastPhase = ExerciseCounter.Phase.seekingStart; previous = null }
     fun finish(reason: String) { previous?.seconds?.let { close(it, reason, false) } }
     private fun close(time: Double, reason: String, returned: Boolean) {
         attempt?.let { closed += it.record(setId, exercise, time, reason, returned); revision++ }; attempt = null

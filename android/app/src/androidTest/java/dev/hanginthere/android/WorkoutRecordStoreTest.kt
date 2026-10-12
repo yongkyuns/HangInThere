@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.hanginthere.android.session.WorkoutRecordStore
 import dev.hanginthere.android.session.AnalysisPipeline
+import dev.hanginthere.android.session.WorkoutGoalStore
 import dev.hanginthere.core.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -23,6 +24,74 @@ class WorkoutRecordStoreTest {
         analysis.observe(MotionSample(.4,80.0,80.0,.1,true,false),ExerciseCounter.Phase.returning,ExerciseCounter.Event(ExerciseCounter.Outcome.movement,.4,"authored test"))
         analysis.finish("trackingLost")
         return WorkoutSetRecord(id,ExerciseCounter.Exercise.pullUp,0.0,.4,"trackingLost",analysis.records,"authored storage test",0)
+    }
+    @Test fun zeroRepPracticeJournalsAndAllTimeEvidenceSurviveRetention() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val directory=File(context.cacheDir,"hold-history-${UUID.randomUUID()}")
+        val store=WorkoutRecordStore(context,directory)
+        try {
+            val phase=WorkoutMotionPhase.hang
+            fun held(index: Int,seconds: Double)=WorkoutSetRecord("hold-$index",ExerciseCounter.Exercise.pullUp,0.0,seconds,"disengaged",emptyList(),"authored hold test",0,
+                trackedAtEpochMilliseconds=index.toLong(),activity=WorkoutActivity(emptyList(),listOf(WorkoutPhaseTotal(phase,seconds)),seconds,0.0,seconds,seconds,false))
+            val recoveredHold=held(0,40.0)
+            store.saveDraft(recoveredHold.copy(endReason="running"))
+            val first=held(1,30.0)
+            store.saveDraft(first.copy(endReason="running",endedAt=10.0,activity=first.activity!!.copy(longestHangSeconds=10.0)))
+            store.saveDraft(first.copy(endReason="running"))
+            store.save(first)
+            repeat(55) { store.save(held(it+2,2.0)) }
+            val evidence=WorkoutRecordStore(context,directory).progressEvidence()
+            assertEquals(57,evidence.size)
+            assertFalse(store.progressEvidence().any { it.id=="hold-0" })
+            assertFalse(WorkoutRecordStore(context,directory).progressEvidence(excludingSetId="hold-0").any { it.id=="hold-0" })
+            val report=WorkoutProgression.reportEvidence(evidence,ExerciseCounter.Exercise.pullUp)
+            assertEquals(40.0,report.bestHoldSeconds!!,1e-9)
+            assertEquals(0,report.completedReps)
+            assertEquals(20,report.trend.size)
+            assertTrue(report.milestones.first { it.id=="hold:30" }.achieved)
+            assertEquals(50,store.recent().size)
+            assertFalse(File(directory,"hold-1.pending.json").exists())
+        } finally { directory.deleteRecursively() }
+    }
+    @Test fun firstObservedHoldInitializesMetadataBeforeJournalPublication() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val directory=File(context.cacheDir,"first-hold-${UUID.randomUUID()}")
+        val store=WorkoutRecordStore(context,directory)
+        val session=LiveSetSession();session.start(ExerciseCounter.Exercise.pullUp,ArmMeasurement.Side.left)
+        val bar=BarSegment(Point2D(100.0,500.0),Point2D(900.0,500.0))
+        fun pose(time: Double): PoseResult {
+            val points=ArmMeasurement.Side.entries.flatMap { side ->
+                val x=if(side==ArmMeasurement.Side.left)300.0 else 700.0
+                val joints=if(side==ArmMeasurement.Side.left)listOf(PoseJoint.leftShoulder,PoseJoint.leftElbow,PoseJoint.leftWrist)
+                    else listOf(PoseJoint.rightShoulder,PoseJoint.rightElbow,PoseJoint.rightWrist)
+                joints.zip(listOf(Point2D(x,740.0),Point2D(x+10,620.0),Point2D(x,500.0))).map { (joint,point)->Landmark(joint,point,1.0) }
+            }
+            return PoseResult(PresentationTime((time*1000).toLong(),1000),ImageSize(1000.0,1000.0),listOf(PoseObservation(points)),"authored first-frame test",0)
+        }
+        try {
+            assertNull(session.draftDelta)
+            session.consume(pose(0.0),bar);assertNull(session.draftDelta)
+            session.consume(pose(.15),bar);store.saveDraft(requireNotNull(session.draftDelta))
+            session.consume(pose(.3),bar);store.saveDraft(requireNotNull(session.draftDelta))
+            val recovered=WorkoutRecordStore(context,directory).recent().single()
+            assertEquals(ImageSize(1000.0,1000.0),recovered.imageSize)
+            assertEquals(bar,recovered.referenceEdge)
+            assertTrue(recovered.hasPractice)
+            assertEquals(0,recovered.completedCount)
+            assertEquals(.3,recovered.activity!!.longestHangSeconds,1e-9)
+        } finally { directory.deleteRecursively() }
+    }
+    @Test fun goalsPersistAndRemainIndependentForEachExercise() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val name="test-goals-${UUID.randomUUID()}"
+        try {
+            val store=WorkoutGoalStore(context,name)
+            val initial=store.report(emptyList(),ExerciseCounter.Exercise.pullUp)
+            assertEquals(initial.goal,WorkoutGoalStore(context,name).report(emptyList(),ExerciseCounter.Exercise.pullUp).goal)
+            store.setGoal(ExerciseCounter.Exercise.pullUp,WorkoutGoalMetric.holdSeconds,8.0)
+            assertEquals(8.0,store.report(emptyList(),ExerciseCounter.Exercise.pullUp).goal.target,1e-9)
+            assertEquals(5.0,store.report(emptyList(),ExerciseCounter.Exercise.dip).goal.target,1e-9)
+        } finally { context.deleteSharedPreferences(name) }
     }
     @Test fun backupOnlyCurrentJournalRecoversBeforeHistoryPagination() {
         val context=InstrumentationRegistry.getInstrumentation().targetContext

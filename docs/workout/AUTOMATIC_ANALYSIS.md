@@ -172,3 +172,66 @@ into qualified accuracy. Physical Android camera, thermal, memory and energy par
 remain unqualified without hardware. Further releases need frozen full-session
 annotations, athlete continuity/crowd tests, deliberate exercise switches, cold
 partial starts, user corrections, richer history/trend views and device profiling.
+
+
+## Practice phases and progressive goals
+
+The shared journal now preserves practice even with zero completed reps. Each set
+includes an optional versioned `activity` record: a bounded phase timeline,
+full-duration phase totals, longest bilateral hang/top-support hold, observed
+seconds, elapsed source time and a timeline-retention flag. Old records decode
+with `activity = null`; an absent measurement is not interpreted as a zero hold.
+
+Phases describe hang/top support, pulling, lowering, rising, top/bottom or
+mid-range holds, release, acquisition and tracking gaps. Movement labels use
+current/previous projected elbow angles and the established counter phase; they
+are descriptive measurements, not a form/depth assessment. Counter policy and
+completed-rep eligibility are unchanged. An accepted pull-up without an observed
+return remains an incomplete practice attempt and never earns a completed-rep
+metric, target or milestone.
+
+Only increasing, consecutive usable source observations within the existing
+counter gap budget earn time. Hangs/support additionally require both visible
+arm chains and the existing endpoint angle threshold. Missing arms, invalid or
+out-of-order timestamps, interruption, source gaps and observed release split
+continuous holds. Disengaging ends the set; holding still does not. The live
+feed shows a compact current-hold timer; it is updated on source-time journal
+checkpoints rather than a wall-clock timer that could count invisible motion.
+
+The display timeline retains 256 spans, while totals and longest holds include
+all observed intervals. Drafts are checkpointed at phase changes and at one
+source-second intervals during holds. Pre-frame/no-practice drafts are omitted,
+so immutable camera metadata is initialized before a journal can be published.
+Live deltas include only the latest three changed spans; shared journal merging
+preserves the full bounded timeline. The Apple adapter reads only the bounded current timeline/active attempt
+once when review opens and reuses its cached closed reps. Summary projection preserves phase metrics when
+angle curves expire.
+
+`WorkoutProgression` owns compact history projection, suggested targets,
+measurement-based coaching, progress calculations and milestones for both apps.
+Native apps persist the target separately per exercise, render charts and own
+background reads. Targets default to an adjustable hold goal for beginners or
+a completed-rep goal after a completed cycle. A saved target remains fixed until
+edited; its progress uses only sets with a calendar start at/after target
+creation. Suggested target increments are app defaults, not a training
+prescription. Hold, movement-attempt and completed-rep milestones are independent.
+Projected elbow range is shown only with bilateral observed coverage; range is
+not a percentage of rep validity.
+
+All-time progress loads compact evidence from every immutable saved summary and non-active recovered journal,
+independently of the 50-set detail window and motion-sidecar retention. Reports
+retain only the latest 20 dated trend points, while totals, personal bests,
+first-achievement dates and goal achievements use all available summaries.
+Undated legacy records can contribute observed evidence but never invent dates
+or earn targets created at a known calendar time. Recovered journals retain
+practice, while replay review does not create/edit live goals. History/goal
+review never sends pause/reset commands to camera analysis.
+
+Validation covers zero-rep hanging/support, direction and holds, missing-arm
+and timestamp continuity, curve/timeline retention, legacy decoding, compact
+all-time history, target validation/fixed ownership, incomplete-rep exclusions,
+native journal merges/reload, and rendered beginner/active/history review states.
+Recovered journals are distinguished from currently active journals by each
+store's process-local active-set registry (plus the review's current set ID).
+Active journal bytes never become completed history evidence.
+The existing shared/Apple and Android CI workflows execute these checks.

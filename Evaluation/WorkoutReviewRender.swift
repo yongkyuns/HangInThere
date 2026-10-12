@@ -33,7 +33,7 @@ import Vision
             for dark in [true, false] {
                 for width in [320.0, 430.0] {
                     let content = WorkoutReviewView(sets: records, currentReps: current, storageError: nil,
-                        selectedRepId: prefix == "history-" ? set.completedReps.first?.id : nil)
+                        selectedRepId: prefix == "history-" ? set.completedReps.first?.id : nil, goalsEnabled: false)
                         .environment(\.colorScheme, dark ? .dark : .light)
                         .frame(width: width, height: 1000)
                         .background(dark ? Color.black : Color.white)
@@ -42,6 +42,36 @@ import Vision
                     precondition(!text.contains { $0.contains("rep2") || $0.contains("rep3") }, "Unfinished reps appeared in analytics")
                     if prefix == "history-" {
                         precondition(text.contains { $0.contains("rep1accepted") }, "Completed history selection must reveal its details independently of the current timing chart")
+                    }
+                }
+            }
+        }
+        // Beginner analytics must remain useful with zero completed reps.
+        for exercise in ExerciseCounter.Exercise.allCases {
+            let phase = exercise == .pullUp ? "hang" : "support"
+            var practiceFixture = fixture
+            practiceFixture["exercise"] = exercise.rawValue
+            practiceFixture["reps"] = []
+            practiceFixture["endedAt"] = 8.0
+            practiceFixture["activity"] = ["phases": [["id":"preview:phase:1","phase":phase,"startedAt":0,"endedAt":8,"observedSeconds":8]],
+                "totals":[["phase":phase,"observedSeconds":8]],"longestHangSeconds":exercise == .pullUp ? 8 : 0,
+                "longestSupportSeconds":exercise == .dip ? 8 : 0,"observedSeconds":8,"elapsedSeconds":8,
+                "timelineTruncated":false,"metricVersion":1] as [String:Any]
+            let practiceSet = try JSONDecoder().decode(WorkoutSetRecord.self,from: JSONSerialization.data(withJSONObject: practiceFixture))
+            precondition(practiceSet.hasPractice && practiceSet.completedCount == 0)
+            for live in [false,true] {
+                for dark in [true,false] {
+                    for width in [320.0,430.0] {
+                        let content = WorkoutReviewView(sets: live ? [set] : [practiceSet],currentReps: [],storageError: nil,
+                            currentSet: live ? practiceSet : nil,goalsEnabled: false)
+                            .environment(\.colorScheme,dark ? .dark : .light)
+                            .frame(width: width,height: 1100).background(dark ? Color.black : Color.white)
+                        let text = try render(content,width: width,height: 1100,
+                            filename: "practice-\(exercise.rawValue)-\(live ? "active" : "saved")-\(dark ? "dark" : "light")-\(Int(width)).png")
+                        precondition(text.contains { $0.contains("setphases") },"Beginner set phases missing")
+                        precondition(text.contains { $0.contains("0completedreps") },"Zero-rep practice borrowed another set's reps")
+                        precondition(!text.contains { $0.contains("reptiming") || $0.contains("rep1accepted") },"Hang-only current set borrowed saved rep timing")
+                        precondition(text.contains { $0.contains("80s") },"Observed hold time missing")
                     }
                 }
             }

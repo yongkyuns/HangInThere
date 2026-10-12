@@ -319,7 +319,8 @@ class AutomaticWorkoutIntegrationTests {
         val r=ready(ExerciseCounter.Exercise.pullUp)
         for(i in 0..12){r.observe(input(.3+i*.1,160.0,release=true));if(r.session.phase==LiveSetSession.Phase.finished) break}
         assertEquals(LiveSetSession.EndReason.disengaged,r.session.endReason)
-        assertNull(r.latestCompletedSet)
+        assertTrue(assertNotNull(r.latestCompletedSet).hasPractice)
+        assertEquals(0,r.latestCompletedSet!!.completedCount)
         r.observe(input(1.7));r.observe(input(1.85))
         assertEquals(LiveSetSession.Phase.running,r.session.phase)
         assertEquals(0,r.session.observedMovements)

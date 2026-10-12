@@ -20,7 +20,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
     data class Result(val pose: PoseResult, val snapshot: WorkoutRuntime.Snapshot, val progress: Double, val cue: String,
                       val analysisMillis: Double, val apparatus: ApparatusObservation? = null,
                       val reps: List<RepRecord> = emptyList(), val history: List<WorkoutSetRecord> = emptyList(),
-                      val storageError: String? = null, val input: WorkoutRuntime.FrameInput? = null)
+                      val storageError: String? = null, val currentSet: WorkoutSetRecord? = null, val input: WorkoutRuntime.FrameInput? = null)
     val runtime = WorkoutRuntime(selection, side, automaticWorkouts = automaticWorkouts, nowEpochMilliseconds = { System.currentTimeMillis() })
     private val recordStore = recordStoreOverride ?: WorkoutRecordStore.live(context)
     private var storageError: String? = null
@@ -37,7 +37,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
             }
             draftSetId=runtime.session.setId;draftRevision=runtime.session.analysis.revision
         }
-        runtime.latestCompletedSet?.takeIf { it.id != queuedSetId && it.reps.isNotEmpty() }?.let { record ->
+        runtime.latestCompletedSet?.takeIf { it.id != queuedSetId && it.hasPractice }?.let { record ->
             recordStore.enqueue(record, finalized = true)
             queuedSetId = record.id
             history = (listOf(record) + history.filter { it.id != record.id }).take(50)
@@ -48,7 +48,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
     }
     fun refreshRecords(result: Result): Result {
         persistRecords()
-        return result.copy(snapshot = runtime.snapshot, reps = runtime.session.analysis.records, history = history, storageError = storageError)
+        return result.copy(snapshot = runtime.snapshot, reps = runtime.session.analysis.records, history = history, storageError = storageError, currentSet = runtime.session.record.takeIf { runtime.session.phase != LiveSetSession.Phase.idle })
     }
     fun tick(sourceNow: Double, result: Result): Result {
         runtime.tick(sourceNow)

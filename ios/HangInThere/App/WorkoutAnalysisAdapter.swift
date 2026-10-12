@@ -24,6 +24,7 @@ final class WorkoutAnalysisAdapter {
     @ObservationIgnored private var jointIndices: [PoseJoint: Int32] = [:]
     @ObservationIgnored private var revision: Int32 = -1
     private(set) var reps: [WorkoutRepRecord] = []
+    private(set) var currentRecord: WorkoutSetRecord?
     private(set) var error: String?
     @ObservationIgnored private var pendingDraft: WorkoutSetRecord?
     @ObservationIgnored private let startFeedback = WorkoutStartFeedback()
@@ -62,7 +63,7 @@ final class WorkoutAnalysisAdapter {
             guard let index = names.firstIndex(of: joint.rawValue) else { preconditionFailure("Unsupported pose joint: \(joint)") }
             return (joint, Int32(index))
         })
-        revision = -1; reps = []; error = nil; pendingDraft = nil
+        revision = -1; reps = []; currentRecord = nil; error = nil; pendingDraft = nil
     }
     func shouldResume(reason: LiveSetSession.EndReason?) -> Bool { WorkoutLifecycle.shared.shouldResume(endReason: reason?.rawValue) }
     func observationOutage(elapsed: Double) -> Bool { WorkoutLifecycle.shared.observationOutage(elapsedSeconds: elapsed) }
@@ -96,6 +97,15 @@ final class WorkoutAnalysisAdapter {
         refreshRecords()
         return end.flatMap(LiveSetSession.EndReason.init(rawValue:))
     }
+    /// Full records are read once when review opens, outside the frame path.
+    func reviewRecord() -> WorkoutSetRecord? {
+        do {
+            var record = try JSONDecoder().decode(WorkoutSetRecord.self,from: Data(engine.reviewDeltaJson().utf8))
+            record.reps = reps + record.reps.filter { active in !reps.contains { $0.id == active.id } }
+            return record
+        }
+        catch { self.error = "Workout analysis could not be read: \(error.localizedDescription)"; return nil }
+    }
     func interrupt(reason: String) { clearStartFeedback(); engine.interrupt(reason: reason); refreshRecords() }
     func finish(reason: String) -> WorkoutSetRecord? {
         clearStartFeedback()
@@ -106,12 +116,20 @@ final class WorkoutAnalysisAdapter {
     private func refreshRecords() {
         guard revision != engine.revision else { return }
         do {
-            if let json = engine.lastClosedRecordJson() {
+            if Int(engine.closedRecordCount) > reps.count, let json = engine.lastClosedRecordJson() {
                 let record = try JSONDecoder().decode(WorkoutRepRecord.self, from: Data(json.utf8))
                 if reps.last?.id != record.id { reps.append(record) }
             }
             if let json = engine.draftDeltaJson() {
                 pendingDraft = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(json.utf8))
+                if let delta = pendingDraft {
+                    let record = WorkoutSetRecord(id: delta.id, exercise: delta.exercise, startedAt: delta.startedAt,
+                        endedAt: delta.endedAt, endReason: delta.endReason, reps: reps, backend: delta.backend,
+                        modelRevision: delta.modelRevision, schemaVersion: delta.schemaVersion, lifecycleVersion: delta.lifecycleVersion,
+                        trackingSide: delta.trackingSide, imageSize: delta.imageSize, referenceEdge: delta.referenceEdge,
+                        trackedAtEpochMilliseconds: delta.trackedAtEpochMilliseconds, activity: delta.activity)
+                    currentRecord = record
+                }
             }
             revision = engine.revision
         } catch { self.error = "Rep analysis could not be read: \(error.localizedDescription)" }
@@ -123,6 +141,7 @@ actor WorkoutRecordStore {
     static let shared = WorkoutRecordStore()
     private let directory: URL
     private let writes = WorkoutWriteQueue()
+    private var activeJournalIds: Set<String> = []
     init(directory: URL? = nil) {
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Workouts", isDirectory: true)
@@ -161,6 +180,7 @@ actor WorkoutRecordStore {
         }
         let pending = directory.appendingPathComponent(record.id + ".pending.json")
         if FileManager.default.fileExists(atPath: pending.path) { try FileManager.default.removeItem(at: pending) }
+        activeJournalIds.remove(record.id)
         try pruneMotion()
     }
     func saveDraft(_ delta: WorkoutSetRecord) throws {
@@ -169,6 +189,7 @@ actor WorkoutRecordStore {
             throw CocoaError(.fileWriteInvalidFileName)
         }
         if FileManager.default.fileExists(atPath: directory.appendingPathComponent(delta.id + ".json").path) { return }
+        activeJournalIds.insert(delta.id)
         let file = directory.appendingPathComponent(delta.id + ".pending.json")
         let previous = FileManager.default.fileExists(atPath: file.path) ? try String(contentsOf: file, encoding: .utf8) : nil
         let data = try JSONEncoder().encode(delta)
@@ -188,6 +209,25 @@ actor WorkoutRecordStore {
             .sorted {
                 (try $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate ?? .distantPast) >
                 (try $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate ?? .distantPast)
+            }
+    }
+    /// Scan immutable compact summaries off the camera actor. All-time records
+    /// survive the 50-set detail window; motion sidecars are never loaded here.
+    func progressEvidence(excludingSetId: String? = nil) throws -> [WorkoutProgressEvidence] {
+        guard FileManager.default.fileExists(atPath: directory.path) else { return [] }
+        let bridge = WorkoutProgressBridge()
+        return try orderedFiles().filter { file in
+                guard file.pathExtension == "json", !file.lastPathComponent.hasSuffix(".motion.json") else { return false }
+                if file.lastPathComponent.hasSuffix(".pending.json") {
+                    let id = String(file.lastPathComponent.dropLast(".pending.json".count))
+                    return id != excludingSetId && !activeJournalIds.contains(id) &&
+                        !FileManager.default.fileExists(atPath: directory.appendingPathComponent(id + ".json").path)
+                }
+                return true
+            }.map { file in
+                var json = try String(contentsOf: file, encoding: .utf8)
+                if file.lastPathComponent.hasSuffix(".pending.json") { json = try WorkoutRecordCodec().recoveryJson(input: json) }
+                return try JSONDecoder().decode(WorkoutProgressEvidence.self, from: Data(try bridge.evidenceJson(recordJson: json).utf8))
             }
     }
     func recent() throws -> [WorkoutSetRecord] {

@@ -158,6 +158,12 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 snapshot?.setupIssue != null -> setupText(snapshot.setupIssue!!)
                 else -> "Hold a hang or top support · show both hands"
             }
+            if(running && !state.interrupted) state.result?.currentSet?.activity?.phases?.lastOrNull()?.takeIf {
+                it.phase==WorkoutMotionPhase.hang || it.phase==WorkoutMotionPhase.support
+            }?.let { span ->
+                Text(String.format(java.util.Locale.ROOT,"%s · %.1f s",span.phase.title,span.observedSeconds),
+                    Modifier.background(Color.Black.copy(alpha=.7f)).padding(8.dp),color=Color(0xFF80CBC4))
+            }
             Text(message, Modifier.background(Color.Black.copy(alpha = 0.6f)).padding(10.dp), color = Color.White)
             WorkoutActions(state, onFinish = model::finishSet, onNext = model::nextSet,
                 onRestart = { model.startLive(selection, side) })
@@ -178,7 +184,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             TextButton(onClick = { settings = false; licenses = true }) { Text("Open-source licenses") }
         }
     }, confirmButton = { TextButton(onClick = { settings = false }) { Text("Done") } })
-    if (analysis) WorkoutReviewDialog(state.result?.reps.orEmpty(), state.result?.history.orEmpty(), state.result?.storageError) { analysis = false }
+    if (analysis) WorkoutReviewDialog(state.result?.reps.orEmpty(), state.result?.history.orEmpty(), state.result?.storageError, currentSet=state.result?.currentSet, goalsEnabled=!state.replay) { analysis = false }
     if (licenses) AlertDialog(onDismissRequest = { licenses = false }, title = { Text("Open-source licenses") }, text = {
         val notice = remember { listOf("hdr-notice.txt", "ffmpeg-LGPL-2.1.txt", "zimg-WTFPL.txt").joinToString("\n\n") {
             context.assets.open("licenses/$it").bufferedReader().use { reader -> reader.readText() }

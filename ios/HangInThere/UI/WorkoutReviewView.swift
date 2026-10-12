@@ -1,29 +1,46 @@
 import SwiftUI
 import Charts
+import WorkoutCore
 
 /// Read-only presentation: opening this view never pauses or resets the camera.
 struct WorkoutReviewView: View {
     let sets: [WorkoutSetRecord]
     let currentReps: [WorkoutRepRecord]
     let storageError: String?
+    let currentSet: WorkoutSetRecord?
+    let goalsEnabled: Bool
+    @State private var selectedSet: String?
+    @State private var selectedAttempt: String?
+    @State private var progressExercise = ExerciseCounter.Exercise.pullUp
+    @State private var progressReport: WorkoutProgressReport?
+    @State private var progressError: String?
+    @State private var editingGoal = false
+    @State private var goalRevision = 0
     @State private var selectedRep: String?
-    init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil) {
+    init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil, currentSet: WorkoutSetRecord? = nil, goalsEnabled: Bool = true) {
         self.sets = sets; self.currentReps = currentReps; self.storageError = storageError
+        self.currentSet = currentSet; self.goalsEnabled = goalsEnabled
+        _progressExercise = State(initialValue: currentSet?.exercise ?? sets.first?.exercise ?? .pullUp)
         _selectedRep = State(initialValue: selectedRepId)
     }
+    private var progressKey: String { progressExercise.rawValue + ":" + String(goalRevision) + ":" + sets.map { $0.id + $0.endReason }.joined(separator: ",") }
+    private var practiceSets: [WorkoutSetRecord] { sets.filter(\.hasPractice) }
+    private var practice: WorkoutSetRecord? { practiceSets.first { $0.id == selectedSet } ?? currentSet ?? practiceSets.first }
+    private var attempts: [WorkoutRepRecord] { (practice?.reps ?? currentReps).filter { !$0.isCompleteForAnalytics } }
     private var completedSets: [WorkoutSetRecord] { sets.filter { $0.completedCount > 0 } }
     private var completedCurrent: [WorkoutRepRecord] { currentReps.filter(\.isCompleteForAnalytics) }
-    private var reps: [WorkoutRepRecord] { currentReps.isEmpty ? completedSets.first?.completedReps ?? [] : completedCurrent }
+    private var reps: [WorkoutRepRecord] { (selectedSet != nil || currentSet != nil || currentReps.isEmpty) ? practice?.completedReps ?? [] : completedCurrent }
     private var selected: WorkoutRepRecord? { (completedCurrent + completedSets.flatMap(\.completedReps)).first { $0.id == selectedRep } ?? reps.last }
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 if let storageError { Text(storageError).foregroundStyle(.orange) }
+                if let practice { WorkoutPracticeView(set: practice) }
                 if reps.isEmpty {
-                    if selected == nil {
+                    if selected == nil && practice == nil && currentReps.isEmpty {
                         ContentUnavailableView("Your motion, rep by rep", systemImage: "chart.xyaxis.line",
-                            description: Text("Complete a pull-up or dip to see its timing and angle measurements here."))
+                            description: Text("Hangs, support holds and partial attempts are practice. Completed cycles appear in rep timing."))
                     }
                 } else {
                     Text("Rep timing").font(.title2.bold())
@@ -32,11 +49,32 @@ struct WorkoutReviewView: View {
                     timingChart
                 }
                 if let selected { repDetails(selected) }
-                if !completedSets.isEmpty {
+                if !attempts.isEmpty {
+                    DisclosureGroup("Practice attempts · \(attempts.count) incomplete") {
+                        Text("These attempts are preserved for progress and coaching. They are excluded from completed-rep statistics.").font(.caption)
+                        ForEach(attempts) { attempt in
+                            Button("Attempt \(attempt.ordinal) · incomplete") { selectedAttempt = attempt.id }
+                                .padding(.vertical, 4)
+                        }
+                        if let attempt = attempts.first(where: { $0.id == selectedAttempt }) { repDetails(attempt) }
+                    }
+                }
+                Picker("Exercise progress", selection: $progressExercise) {
+                    Text("Pull-up").tag(ExerciseCounter.Exercise.pullUp)
+                    Text("Dip").tag(ExerciseCounter.Exercise.dip)
+                }.pickerStyle(.segmented)
+                if let progressReport {
+                    WorkoutProgressView(report: progressReport, onEditGoal: goalsEnabled ? { editingGoal = true } : nil)
+                }
+                if let progressError { Text(progressError).foregroundStyle(.orange) }
+                else if progressReport == nil { ProgressView("Loading progress history…") }
+                if !practiceSets.isEmpty {
                     Text("Saved sets").font(.title2.bold())
-                    ForEach(completedSets) { set in
+                    ForEach(practiceSets) { set in
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("\(set.exercise.title) · \(set.completedCount) \(set.completedCount == 1 ? "rep" : "reps")").font(.headline)
+                            Button("\(set.exercise.title) · \(set.completedCount) \(set.completedCount == 1 ? "rep" : "reps")") {
+                                selectedSet = set.id; selectedAttempt = nil; selectedRep = set.completedReps.last?.id
+                            }.font(.headline).buttonStyle(.plain)
                             if let time = set.trackedAtEpochMilliseconds {
                                 Text(Date(timeIntervalSince1970: Double(time) / 1000).formatted(date: .abbreviated, time: .shortened))
                                     .font(.caption).foregroundStyle(.secondary)
@@ -47,7 +85,7 @@ struct WorkoutReviewView: View {
                             ForEach(set.completedReps) { rep in
                                 Button("Rep \(rep.ordinal) · \(seconds(rep.outboundSeconds)) outward / \(seconds(rep.returnSeconds)) return") {
                                     // History is shown below, without reconfiguring active tracking.
-                                    selectedRep = rep.id
+                                    selectedRep = rep.id; selectedSet = set.id
                                 }.buttonStyle(.plain)
                             }
                         }.padding().frame(maxWidth: .infinity, alignment: .leading)
@@ -58,6 +96,36 @@ struct WorkoutReviewView: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }.padding()
         }.navigationTitle("Workout analysis")
+            .task(id: progressKey) { await refreshProgress() }
+            .sheet(isPresented: $editingGoal) {
+                if let progressReport {
+                    WorkoutGoalEditor(report: progressReport) { metric, target in
+                        try WorkoutGoalStore.shared.setGoal(exercise: progressReport.exercise, metric: metric, target: target)
+                        goalRevision += 1
+                    }
+                }
+            }
+    }
+    private func refreshProgress() async {
+        let exercise = progressExercise
+        progressReport = nil
+        do {
+            if goalsEnabled {
+                let archive = try await WorkoutRecordStore.shared.progressEvidence(excludingSetId: currentSet?.endReason == "running" ? currentSet?.id : nil)
+                let bridge = WorkoutProgressBridge()
+                let recent = try sets.map { record in
+                    let input = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
+                    return try JSONDecoder().decode(WorkoutProgressEvidence.self, from: Data(try bridge.evidenceJson(recordJson: input).utf8))
+                }
+                guard !Task.isCancelled, exercise == progressExercise else { return }
+                progressReport = try WorkoutGoalStore.shared.report(evidence: recent + archive.filter { archived in !recent.contains { $0.id == archived.id } }, exercise: exercise)
+            } else {
+                let history = String(decoding: try JSONEncoder().encode(sets.map(\.progressInput)), as: UTF8.self)
+                let json = try WorkoutProgressBridge().reportJson(historyJson: history, exercise: progressExercise.rawValue, goalJson: nil)
+                progressReport = try JSONDecoder().decode(WorkoutProgressReport.self, from: Data(json.utf8))
+            }
+            progressError = nil
+        } catch { progressError = "Progress could not be loaded: \(error.localizedDescription)" }
     }
     private var timingChart: some View {
         Chart(Array(reps.suffix(12))) { rep in
@@ -89,7 +157,7 @@ struct WorkoutReviewView: View {
     }
     private func repDetails(_ rep: WorkoutRepRecord) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Rep \(rep.ordinal) · \(rep.outcome)").font(.title3.bold())
+            Text(rep.isCompleteForAnalytics ? "Rep \(rep.ordinal) · \(rep.outcome)" : "Attempt \(rep.ordinal) · incomplete").font(.title3.bold())
             if rep.samples.isEmpty {
                 Text("Detailed motion is unavailable. The rep summary is preserved.").foregroundStyle(.secondary)
             } else { angleChart(rep) }

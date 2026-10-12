@@ -364,7 +364,7 @@ struct ReplayView: View {
                 .sheet(isPresented: $showingAnalysis) {
                     NavigationStack {
                         WorkoutReviewView(sets: model.analysisRecord.map { [$0] } ?? [],
-                            currentReps: model.repAnalysis, storageError: nil)
+                            currentReps: model.repAnalysis, storageError: nil, goalsEnabled: false)
                             .toolbar { Button("Done") { showingAnalysis = false } }
                     }
                 }

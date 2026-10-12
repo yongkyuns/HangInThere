@@ -128,8 +128,46 @@ struct WorkoutAnalysisBridgeCheck {
         latencies.sort()
         let p95 = latencies[Int(Double(latencies.count - 1) * 0.95)]
         guard p95 < 5 else { fatalError("Host FFI p95 exceeds 5 ms budget: \(p95)") }
+        guard let review = engine.reviewRecord(), review.reps.count == engine.reps.count,
+              (review.activity?.phases.count ?? 1000) <= 256 else { fatalError("Bounded review lost cached reps or phase limits") }
         guard let activeSet = engine.finish(reason: "manual"), activeSet.acceptedCount == counter.observedMovements,
               activeSet.acceptedCount > 200 else { fatalError("Active rep bridge lost or duplicated records") }
+        // A zero-rep hold has durable source-time evidence on the real FFI.
+        for exercise in ExerciseCounter.Exercise.allCases {
+            let holdAnalysis = WorkoutAnalysisAdapter(); holdAnalysis.start(exercise: exercise)
+            guard holdAnalysis.drainDraft() == nil else { fatalError("Pre-frame journal emitted") }
+            var holdCounter = ExerciseCounter(exercise: exercise, side: .left)
+            let holdDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            defer { try? FileManager.default.removeItem(at: holdDirectory) }
+            let holdStore = WorkoutRecordStore(directory: holdDirectory)
+            for i in 0...30 {
+                let p = pose(Double(i)*0.1,170,exercise: exercise)
+                holdCounter.consume(p,referenceEdge: reference)
+                _ = holdAnalysis.consume(p,reference: reference,counter: holdCounter,event: nil,automaticFinish: false)
+                if let draft = holdAnalysis.drainDraft() { try await holdStore.saveDraft(draft) }
+            }
+            guard let hold = holdAnalysis.finish(reason: "disengaged"), hold.hasPractice,
+                  hold.reps.isEmpty, hold.completedCount == 0,
+                  let activity = hold.activity, activity.observedSeconds > 2.8 else {
+                fatalError("Zero-rep hold lost practice evidence")
+            }
+            try await holdStore.save(hold)
+            let history = try await holdStore.recent()
+            guard history == [hold] else { fatalError("Hang-only saved history lost") }
+            let evidence = try await holdStore.progressEvidence()
+            guard evidence.count == 1, evidence[0].completedCount == 0, (evidence[0].holdSeconds ?? 0) > 2.8 else {
+                fatalError("Compact Apple hold history lost")
+            }
+            let suite = "WorkoutGoals-" + UUID().uuidString
+            let defaults = UserDefaults(suiteName: suite)!
+            defer { defaults.removePersistentDomain(forName: suite) }
+            let goals = WorkoutGoalStore(defaults: defaults)
+            let initial = try goals.report(evidence: evidence,exercise: exercise)
+            let repeated = try goals.report(evidence: evidence,exercise: exercise)
+            guard initial.goal == repeated.goal, !repeated.goalAchieved else { fatalError("Goal did not stay fixed") }
+            try goals.setGoal(exercise: exercise,metric: "holdSeconds",target: 4)
+            guard try goals.report(evidence: evidence,exercise: exercise).goal.target == 4 else { fatalError("Goal edit did not persist") }
+        }
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("workout-store-check-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let store = WorkoutRecordStore(directory: directory)
@@ -149,11 +187,20 @@ struct WorkoutAnalysisBridgeCheck {
               files.filter({ !$0.lastPathComponent.hasSuffix(".motion.json") }).count == 55 else { fatalError("Motion retention discarded summaries or exceeded bounds") }
         let recent = try await store.recent()
         guard recent.count == 50, recent.allSatisfy({ $0.acceptedCount == 1 }) else { fatalError("Stored records do not recover") }
+        let allEvidence = try await store.progressEvidence()
+        guard allEvidence.count == 55 else { fatalError("All-time history was limited to detail retention") }
         let pending = completed[1]
         try await store.saveDraft(pending)
         let recovered = try await store.recent()
         guard recovered.contains(where: { $0.id == pending.id && $0.endReason == "recoveredInterruption" && $0.acceptedCount == 1 }) else {
             fatalError("Accepted rep journal was not recovered")
+        }
+        let recoveredEvidence = try await WorkoutRecordStore(directory: directory).progressEvidence()
+        guard recoveredEvidence.contains(where: { $0.id == pending.id && $0.endReason == "recoveredInterruption" }) else {
+            fatalError("Recovered journals missing from all-time progress")
+        }
+        guard !(try await store.progressEvidence()).contains(where: { $0.id == pending.id }) else {
+            fatalError("Active journal credited as recovered history")
         }
         try await store.save(pending)
         try await store.saveDraft(pending)
@@ -182,7 +229,7 @@ struct WorkoutAnalysisBridgeCheck {
         guard !FileManager.default.fileExists(atPath: orphan.path), cleaned.filter({$0.lastPathComponent.hasSuffix(".motion.json")}).count == 50 else {
             fatalError("Idempotent retry skipped post-commit cleanup")
         }
-        let result: [String: Any] = ["passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+        let result: [String: Any] = ["practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)

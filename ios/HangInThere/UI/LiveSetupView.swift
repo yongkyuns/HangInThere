@@ -39,6 +39,7 @@ struct LiveSetupView: View {
         case diagnostics = "Diagnostics"
     }
     @State private var showingAnalysis = false
+    @State private var reviewRecord: WorkoutSetRecord?
     @State private var showingDetails = false
     @State private var detailsTab: DetailsTab = .workout
     @State private var camera = LiveCameraPreviewController()
@@ -83,6 +84,7 @@ struct LiveSetupView: View {
                     session: camera.liveSet,
                     latestCompletedSet: camera.latestCompletedWorkout,
                     showsSetStarted: camera.showsSetStarted,
+                    activity: camera.activeWorkoutRecord?.activity,
                     exerciseTitle: camera.workoutTitle,
                     cameraReady: camera.isCameraReady,
                     status: overlayStatus,
@@ -119,9 +121,12 @@ struct LiveSetupView: View {
             .sheet(isPresented: $showingAnalysis) {
                 NavigationStack {
                     WorkoutReviewView(sets: camera.workoutHistory, currentReps: camera.repAnalysis,
-                                      storageError: camera.workoutStorageError)
+                                      storageError: camera.workoutStorageError, currentSet: reviewRecord)
                         .toolbar { Button("Done") { showingAnalysis = false } }
                 }
+            }
+            .onChange(of: showingAnalysis) { _, visible in
+                if visible { reviewRecord = camera.workoutRecordForReview() }
             }
             .task {
                 await camera.loadWorkoutHistory()
