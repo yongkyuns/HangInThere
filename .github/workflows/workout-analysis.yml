@@ -20,8 +20,18 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Generate production Swift policy and setup oracles
+        run: |
+          python3 scripts/prepare-workout-oracle.py
+          python3 scripts/prepare-setup-oracle.py
       - name: Shared metrics, lifecycle and persistence contract tests
+        env:
+          WORKOUT_ORACLE: ${{ github.workspace }}/build/workout-oracle/oracle.json
+          WORKOUT_PARITY_REPORT: ${{ github.workspace }}/build/workout-oracle/kotlin-parity.json
+          SETUP_ORACLE: ${{ github.workspace }}/build/setup-oracle/oracle.json
         run: ./gradlew -Pworkout.appleOnly=true :shared:jvmTest --console=plain
+      - name: Check common counting performance budget
+        run: python3 scripts/check-android-evaluation.py --core build/workout-oracle/kotlin-parity.json
       - name: Shipping Kotlin to Swift bridge and host performance budget
         run: ./scripts/test-workout-bridge.sh
       - name: Render shipping Swift Charts view in narrow/wide and light/dark layouts

@@ -106,6 +106,8 @@ unavailable message while retaining the timing/angle summary.
 Run:
 
 ```sh
+python3 scripts/prepare-workout-oracle.py
+python3 scripts/prepare-setup-oracle.py
 ./gradlew -Pworkout.appleOnly=true :shared:jvmTest
 ./scripts/test-workout-bridge.sh
 ./scripts/render-workout-review.sh
