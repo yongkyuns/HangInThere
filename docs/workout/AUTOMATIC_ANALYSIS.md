@@ -51,7 +51,11 @@ Immutable `RepRecord` and `WorkoutSetRecord` carry stable IDs, source timestamps
 backend/model revision, selected side, source image/reference geometry, acceptance
 reason, count policy version, metric version, schema version and
 lifecycle version. Native views/storage receive values, not a mutable engine.
-Source times describe the recording/camera timeline, not calendar workout dates.
+`trackedAtEpochMilliseconds` captures tracking start once from an injected native
+wall clock, for dated history. Source times describe the recording/camera timeline;
+the wall clock never advances counting, readiness or duration metrics. This additive
+nullable field preserves older records. Replay tracking time does not claim the
+original video's capture date.
 
 Metrics include:
 
@@ -90,7 +94,7 @@ observed motion. Only record changes cross the JSON bridge, with constant-size
 rep deltas during tracking. The active set retains one compact record per attempt.
 No video/frame pixels are retained by analytics. Completed detailed curves expire
 at 50 sets or 50 MiB; compact rep summaries remain durable. The review loads the
-most recent 50 sets. A database/index with pagination and calendar metadata can
+most recent 50 sets. A database/index with pagination and calendar grouping can
 replace the native store without changing analysis or the versioned JSON records.
 
 ## Review UI

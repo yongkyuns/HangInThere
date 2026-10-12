@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * [search] does not mutate setup. [observe] consumes detections synchronously from
  * that same pose, so adapters must reject canceled or stale inference completions.
  */
-class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection.automatic,side:ArmMeasurement.Side=ArmMeasurement.Side.left, val automaticWorkouts:Boolean=false) {
+class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection.automatic,side:ArmMeasurement.Side=ArmMeasurement.Side.left, val automaticWorkouts:Boolean=false, private val nowEpochMilliseconds:()->Long?={null}) {
     @Serializable data class FrameInput(
         val pose:PoseResult,
         val candidates:List<List<BarLineCandidate>> = emptyList(),
@@ -143,7 +143,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             val cameraQualified=bar!=null && motionFresh && phoneOrientation.state.allowsLiveSet
                 && sceneFresh && staticScene.state.allowsLiveSet
             if(cameraQualified && !input.paused) {
-                handsFreeStart.reset();session.automaticFinishEnabled=false;session.start(activeExercise,side)
+                handsFreeStart.reset();session.automaticFinishEnabled=false;session.start(activeExercise,side,nowEpochMilliseconds())
                 discardNextSetFrame=false;session.consume(pose,bar?.referenceEdge)
             }
             return snapshot
@@ -156,7 +156,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             val began=if(automaticWorkouts) automaticStart.observe(seconds,eligible && !input.paused) else if(activeExercise==ExerciseCounter.Exercise.dip) handsFreeStart.observeDip(pose,side,bar?.referenceEdge,eligible,input.paused) else handsFreeStart.observe(seconds,eligible,input.paused)
             if(began) {
                 if(resolvedExercise!=null && (selection!=WorkoutExerciseSelection.automatic || replayExercise!=null || identity.lock())) {
-                    session.automaticFinishEnabled=automaticWorkouts;session.start(activeExercise,side);discardNextSetFrame=!automaticWorkouts
+                    session.automaticFinishEnabled=automaticWorkouts;session.start(activeExercise,side,nowEpochMilliseconds());discardNextSetFrame=!automaticWorkouts
                     if(automaticWorkouts){baseline?.let{session.consume(it,bar?.referenceEdge)};session.consume(pose,bar?.referenceEdge);qualifiedStartPose=null}
                 } else handsFreeStart.reset()
                 return snapshot

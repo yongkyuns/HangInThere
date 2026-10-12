@@ -21,7 +21,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
                       val analysisMillis: Double, val apparatus: ApparatusObservation? = null,
                       val reps: List<RepRecord> = emptyList(), val history: List<WorkoutSetRecord> = emptyList(),
                       val storageError: String? = null, val input: WorkoutRuntime.FrameInput? = null)
-    val runtime = WorkoutRuntime(selection, side, automaticWorkouts = automaticWorkouts)
+    val runtime = WorkoutRuntime(selection, side, automaticWorkouts = automaticWorkouts, nowEpochMilliseconds = { System.currentTimeMillis() })
     private val recordStore = recordStoreOverride ?: WorkoutRecordStore.live(context)
     private var storageError: String? = null
     private var history = runCatching { recordStore.recent() }.getOrElse { storageError = it.message; emptyList() }

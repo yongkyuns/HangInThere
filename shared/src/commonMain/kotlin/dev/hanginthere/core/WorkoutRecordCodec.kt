@@ -18,6 +18,7 @@ class WorkoutRecordCodec {
             require(delta.schemaVersion==1 && delta.lifecycleVersion==1)
             if(previous==null) return summary(delta)
             require(previous.id==delta.id && previous.exercise==delta.exercise && previous.schemaVersion==delta.schemaVersion && previous.lifecycleVersion==delta.lifecycleVersion && previous.trackingSide==delta.trackingSide && previous.imageSize==delta.imageSize && previous.referenceEdge==delta.referenceEdge)
+            require(previous.trackedAtEpochMilliseconds==delta.trackedAtEpochMilliseconds) { "Workout calendar timestamp is immutable" }
             val reps=previous.reps.associateBy{it.id}.toMutableMap()
             delta.reps.forEach { next ->
                 require(next.setId==delta.id)

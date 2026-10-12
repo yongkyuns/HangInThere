@@ -58,5 +58,6 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let trackingSide: ArmMeasurement.Side?
     let imageSize: ImageSize?
     let referenceEdge: BarSegment?
+    let trackedAtEpochMilliseconds: Int64?
     var acceptedCount: Int { reps.filter { $0.acceptedAt != nil }.count }
 }

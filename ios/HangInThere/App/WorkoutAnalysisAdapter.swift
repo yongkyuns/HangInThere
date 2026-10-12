@@ -7,16 +7,20 @@ import WorkoutCore
 @MainActor @Observable
 final class WorkoutAnalysisAdapter {
     private(set) var setId = UUID().uuidString
-    @ObservationIgnored private lazy var engine = WorkoutAnalysisBridge(setId: setId, exercise: "pullUp")
+    @ObservationIgnored private lazy var engine = makeEngine(exercise: .pullUp)
     @ObservationIgnored private var jointIndices: [PoseJoint: Int32] = [:]
     @ObservationIgnored private var revision: Int32 = -1
     private(set) var reps: [WorkoutRepRecord] = []
     private(set) var error: String?
     @ObservationIgnored private var pendingDraft: WorkoutSetRecord?
     func drainDraft() -> WorkoutSetRecord? { defer { pendingDraft = nil }; return pendingDraft }
+    private func makeEngine(exercise: ExerciseCounter.Exercise) -> WorkoutAnalysisBridge {
+        WorkoutAnalysisBridge(setId: setId, exercise: exercise.rawValue,
+            trackedAtEpochMilliseconds: Int64((Date().timeIntervalSince1970 * 1000).rounded()))
+    }
     func start(exercise: ExerciseCounter.Exercise) {
         setId = UUID().uuidString
-        engine = WorkoutAnalysisBridge(setId: setId, exercise: exercise.rawValue)
+        engine = makeEngine(exercise: exercise)
         precondition(engine.policyVersion == ExerciseCounter.policyVersion, "Counting policy versions differ")
         let names = engine.jointNames
         jointIndices = Dictionary(uniqueKeysWithValues: PoseJoint.allCases.map { joint in

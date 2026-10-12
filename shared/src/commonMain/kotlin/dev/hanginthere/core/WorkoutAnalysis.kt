@@ -53,6 +53,7 @@ object MotionFeatureExtractor {
     val backend: String?, val modelRevision: Int?,
     val schemaVersion: Int = 1, val lifecycleVersion: Int = 1,
     val trackingSide: ArmMeasurement.Side? = null, val imageSize: ImageSize? = null, val referenceEdge: BarSegment? = null,
+    val trackedAtEpochMilliseconds: Long? = null,
 ) {
     val acceptedCount get() = reps.count { it.acceptedAt != null }
 }

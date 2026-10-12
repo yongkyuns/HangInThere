@@ -181,6 +181,24 @@ class AutomaticWorkoutIntegrationTests {
 }
 
 class WorkoutRecoveryTests {
+    @Test fun calendarTimestampIsStableAndIndependentOfSourceTime() {
+        val session=LiveSetSession()
+        val epoch=1_790_000_000_000L
+        session.start(ExerciseCounter.Exercise.pullUp,ArmMeasurement.Side.left,epoch)
+        session.consume(CounterFixtures.bilateral(.0,170.0,170.0),CounterFixtures.edge)
+        session.consume(CounterFixtures.bilateral(.15,170.0,170.0),CounterFixtures.edge)
+        assertEquals(epoch,session.record.trackedAtEpochMilliseconds)
+        assertEquals(.15,session.record.endedAt)
+        val serialized=WorkoutRecordCodec.json.encodeToString(WorkoutSetRecord.serializer(),session.record)
+        assertEquals(epoch,WorkoutRecordCodec.json.decodeFromString(WorkoutSetRecord.serializer(),serialized).trackedAtEpochMilliseconds)
+        val oldFields=(WorkoutRecordCodec.json.parseToJsonElement(serialized) as kotlinx.serialization.json.JsonObject).filterKeys{it!="trackedAtEpochMilliseconds"}
+        assertNull(WorkoutRecordCodec.json.decodeFromString(WorkoutSetRecord.serializer(),kotlinx.serialization.json.JsonObject(oldFields).toString()).trackedAtEpochMilliseconds)
+        assertFailsWith<IllegalArgumentException> { WorkoutRecordCodec.mergeDraft(session.record,session.record.copy(trackedAtEpochMilliseconds=epoch+1)) }
+        session.finish();session.prepareNextSet()
+        assertNull(session.record.trackedAtEpochMilliseconds)
+        session.start(ExerciseCounter.Exercise.dip,ArmMeasurement.Side.left,epoch+60_000)
+        assertEquals(epoch+60_000,session.record.trackedAtEpochMilliseconds)
+    }
     private fun record(): WorkoutSetRecord {
         val session=LiveSetSession();session.start(ExerciseCounter.Exercise.pullUp,ArmMeasurement.Side.left)
         for((t,a) in listOf(0.0 to 170.0,.15 to 170.0,.3 to 80.0,.45 to 80.0)) session.consume(CounterFixtures.bilateral(t,a,a),CounterFixtures.edge)

@@ -7,7 +7,7 @@ import kotlinx.serialization.encodeToString
  * native adapters do not implement measurements, metrics, or lifecycle rules.
  * JSON is produced only when rep/set records change, never for camera pixels.
  */
-class WorkoutAnalysisBridge(setId: String, exercise: String) {
+class WorkoutAnalysisBridge(setId: String, exercise: String, private val trackedAtEpochMilliseconds: Long) {
     private val setId=setId
     private var first:Double?=null
     private var last:Double?=null
@@ -45,9 +45,9 @@ class WorkoutAnalysisBridge(setId: String, exercise: String) {
     fun interrupt(reason: String) { analysis.interrupt(reason); boundary.reset() }
     fun finish(reason: String) { analysis.finish(reason);endReason=reason }
     fun draftDeltaJson():String? = (analysis.activeRecord ?: analysis.records.lastOrNull())?.let{
-        WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,first,last,"running",listOf(it),backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge))
+        WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,first,last,"running",listOf(it),backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
     }
-    fun setJson() = WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,first,last,endReason,analysis.records,backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge))
+    fun setJson() = WorkoutAnalysis.json.encodeToString(WorkoutSetRecord(setId,exercise,first,last,endReason,analysis.records,backend,modelRevision,trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds))
     fun recordsJson() = analysis.recordsJson()
     fun lastClosedRecordJson():String? = analysis.records.lastOrNull()?.let{WorkoutAnalysis.json.encodeToString(it)}
     private fun pose(seconds: Double, width: Double, height: Double, peopleCount: Int, joints: IntArray, triples: DoubleArray): PoseResult {

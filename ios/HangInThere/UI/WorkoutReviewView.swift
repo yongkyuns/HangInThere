@@ -29,6 +29,10 @@ struct WorkoutReviewView: View {
                     ForEach(sets) { set in
                         VStack(alignment: .leading, spacing: 4) {
                             Text("\(set.exercise.title) · \(set.acceptedCount) \(set.acceptedCount == 1 ? "rep" : "reps")").font(.headline)
+                            if let time = set.trackedAtEpochMilliseconds {
+                                Text(Date(timeIntervalSince1970: Double(time) / 1000).formatted(date: .abbreviated, time: .shortened))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
                             Text(set.endReason == "disengaged" ? "Automatically completed" :
                                  set.endReason == "manual" ? "Manually completed" : "Interrupted · \(set.endReason)")
                                 .font(.caption).foregroundStyle(.secondary)

@@ -35,6 +35,7 @@ struct WorkoutAnalysisBridgeCheck {
                   set.acceptedCount == 1, set.reps.count == 1, set.reps[0].returnedAt == 0.75 else {
                 fatalError("Bridge changed \(exercise) count/return contract")
             }
+            guard let trackedAt = set.trackedAtEpochMilliseconds, trackedAt > 1_000_000_000_000 else { fatalError("Bridge lost calendar timestamp") }
             completed.append(set)
             let rep = set.reps[0]
             guard rep.left.mean != nil, rep.right.mean != nil,

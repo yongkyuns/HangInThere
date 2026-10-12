@@ -16,6 +16,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.hanginthere.core.*
 import java.util.Locale
+import java.util.Date
+import java.text.DateFormat
 
 /** Read-only: presentation does not send pause/configuration controls to inference. */
 @Composable
@@ -57,6 +59,9 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
             if (history.isNotEmpty()) Text("Saved sets", style = MaterialTheme.typography.titleMedium)
             history.forEach { set ->
                 Text("${set.exercise.title} · ${set.acceptedCount} reps · ${set.endReason}", style = MaterialTheme.typography.titleSmall)
+                set.trackedAtEpochMilliseconds?.let { time ->
+                    Text(remember(time) { DateFormat.getDateTimeInstance(DateFormat.MEDIUM,DateFormat.SHORT).format(Date(time)) }, style = MaterialTheme.typography.bodySmall)
+                }
                 set.reps.forEach { item -> Text("Rep ${item.ordinal} · ${seconds(item.outboundSeconds)} / ${seconds(item.returnSeconds)}",
                     Modifier.clickable { selected = item.id }) }
             }
