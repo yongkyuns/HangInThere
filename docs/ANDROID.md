@@ -201,6 +201,34 @@ thread sweep also changed decoded pixel hashes. Those runs cannot establish
 same-input vision nondeterminism or its cause. The preparation profile and new
 gate address that confound; they do not repair the dip accuracy failure.
 
+The opt-in `pose_crop_diagnostic` dispatch adds one independent IMAGE model to
+the existing VIDEO/IMAGE comparison. A shared, SDK-independent region recipe
+uses the current VIDEO prediction's single athlete, at least eight visible
+landmarks and both shoulder/hip anchors. Its rectangle adds 15% padding (at least
+16 pixels), rounds outward and clips to genuine source pixels. The recipe is
+fixed before native inference evaluation. No padding pixels, resizing, reflection,
+apparatus inference, confidence adjustment or cached joint coordinates are added.
+The diagnostic verifies every crop pixel against the canonical source rectangle,
+retains native crop predictions, and restores them to original image coordinates.
+Out-of-crop predictions remain unavailable; crop detections preserve all people.
+Unavailable regions explicitly skip inference and deliver missing observations to
+the unchanged counter. Production continues to use its existing full-frame VIDEO
+model. This does not qualify athlete identity or a moving/zooming camera.
+
+Schema-2 reports/traces retain region witnesses, source/crop pixel hashes, original
+source PTS/geometry, unchanged labels/reference edges, confidence coverage,
+skips, count events, inference latency and combined memory for all three models.
+Host checks independently verify region selection and coordinate/score restoration;
+the Mac parity jobs replay all three modes through the Swift counter. Crop timing
+includes SDK copy/inference/close and restoration, but excludes region selection,
+crop allocation, pixel verification, hashes and trace writing. Crop inference
+runs after its VIDEO witness; its timing is not randomized. These measurements
+are diagnostic costs rather than production, Auto, physical-device or form
+qualification. The original fatal accuracy jobs remain active during dispatch.
+The collector clears only generated public evaluation outputs before each run,
+so old crop evidence cannot enter a normal or failed rerun. Private evaluation
+outputs and workout history remain in separate directories.
+
 The public clips are development smoke cases, not a held-out accuracy benchmark.
 Separate authored setup videos repeat a source-only reviewed starting frame for
 six seconds. Native tests use the real decoder, pose model, contours and background
