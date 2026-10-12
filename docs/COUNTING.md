@@ -67,22 +67,25 @@ guards remain. These engineering gates count movement, not strict dip depth/form
 Projected arm scale can be unreliable under foreshortening; unsupported views
 must be evaluated separately rather than treated as qualified.
 
-## Hands-free dip starting
+## Automatic workout starting and completion
 
-After support acquisition and stable phone/scene setup, fresh eligible frames earn
-a visible and spoken **3, 2, 1, go** countdown. During the hold, the selected hand
-must remain within 12% of acquired arm length of its initial grip and the shoulder
-within 8% of that length of its initial position. Moving, losing support, missing
-frames, or opening workout details cancels the countdown. Details dismissal requires
-three fresh seconds. The countdown frame and the next queued frame are discarded
-before live counting, matching pull-up start behavior.
+Both shipping apps use common automatic readiness after genuine support/bar
+acquisition and stable phone/scene setup. At least 0.12 seconds of consecutive
+eligible source frames starts tracking; a qualified prior frame seeds the
+counter's existing starting baseline. The default flow requires no gesture or
+spoken countdown. Interrupted readiness restarts on fresh evidence. The legacy
+three-second countdown remains covered by policy/native regression tests.
 
 No knee or ankle observations are required. Crossed legs are optional; this policy
 does not implement a crossed-leg classifier. Disabling hands-free start exposes
 the manual Start set control. Dip support acquisition is automatic when both grips
 and either separate paired handles or a shared paired straight bar are visible
 and stable. Manual setup remains available for unclear support; acquisition does
-not change the movement-counting thresholds.
+not change the movement-counting thresholds. A one-second observed bilateral
+release completes a set; a three-second tracking outage interrupts it. Static
+holds alone never end a set. The shared analysis retains accepted reps even
+without an observed return. See
+[motion records, metrics and lifecycle contracts](workout/AUTOMATIC_ANALYSIS.md).
 
 The policy-v2 evidence below is retained as historical evaluation context.
 

@@ -4,6 +4,9 @@ import SwiftUI
 // owner supplies current session evidence and handles camera/presentation work.
 struct LiveWorkoutOverlay: View {
     let session: LiveSetSession
+    var latestCompletedSet: WorkoutSetRecord? = nil
+    var showsSetStarted = false
+    var activity: WorkoutActivity? = nil
     var exerciseTitle: String? = nil
     let cameraReady: Bool
     let status: String
@@ -47,7 +50,26 @@ struct LiveWorkoutOverlay: View {
             .allowsHitTesting(false)
         }
         .overlay {
-            if let countdown {
+            if showsSetStarted, session.phase == .running {
+                VStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill").font(.system(size: 40))
+                    Text("SET STARTED")
+                        .font(.system(size: 42, weight: .heavy, design: .rounded))
+                        .minimumScaleFactor(0.65).lineLimit(1)
+                    Text(session.trackingIssue == nil ? "Tracking your reps" : "Reacquiring your pose")
+                        .font(.headline).foregroundStyle(session.trackingIssue == nil ? .white : .orange)
+                }
+                .foregroundStyle(.green)
+                .padding(24)
+                .frame(maxWidth: 420)
+                .background(.black.opacity(0.85), in: RoundedRectangle(cornerRadius: 24))
+                .overlay(RoundedRectangle(cornerRadius: 24).stroke(.green.opacity(0.7), lineWidth: 2))
+                .padding(.horizontal, 24)
+                .allowsHitTesting(false)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(session.trackingIssue == nil ? "Set started. Tracking your reps." : "Set started. Reacquiring your pose.")
+                .accessibilityIdentifier("liveSetStarted")
+            } else if let countdown {
                 VStack(spacing: 4) {
                     Text("Starting in").font(.headline)
                     Text("\(countdown)")
@@ -69,31 +91,40 @@ struct LiveWorkoutOverlay: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 6) {
             iconButton("xmark", label: "Close live workout", action: onClose)
                 .disabled(!canClose)
-            Text(exerciseTitle ?? (session.exercise == .pullUp ? "Pull-up" : "Dips"))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(exerciseTitle ?? (session.exercise == .pullUp ? "Pull-up" : "Dips"))
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
+                if session.phase == .running {
+                    Label(session.trackingIssue == nil ? "TRACKING" : "PAUSED", systemImage: "circle.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(session.trackingIssue == nil ? .green : .orange)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .accessibilityIdentifier("liveTrackingStatus")
+                }
+            }
             Spacer(minLength: 4)
-            if session.phase != .idle {
+            if session.phase != .idle || latestCompletedSet != nil {
                 VStack(spacing: 0) {
-                    Text("\(session.observedMovements)")
+                    Text("\(session.phase == .idle ? latestCompletedSet?.acceptedCount ?? 0 : session.observedMovements)")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .monospacedDigit()
+                        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
                         .contentTransition(.numericText())
-                    Text("reps").font(.caption2.weight(.medium))
+                    Text(session.phase == .idle ? "last set" : "reps").font(.caption2.weight(.medium))
                 }
                 .foregroundStyle(.white)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(session.observedMovements) counted reps")
+                .accessibilityLabel("\(session.phase == .idle ? latestCompletedSet?.acceptedCount ?? 0 : session.observedMovements) counted reps\(session.phase == .idle ? " in the last set" : "")")
                 .accessibilityIdentifier("liveMovementCount")
             }
             if isRecording {
                 Circle().fill(.red).frame(width: 9, height: 9)
                     .accessibilityLabel("Debug video recording active")
             }
+            iconButton("chart.xyaxis.line", label: "Workout analysis", action: onResults)
             iconButton("slider.horizontal.3", label: "Workout settings and details", action: onOptions)
                 .accessibilityIdentifier("liveWorkoutOptions")
         }
@@ -124,6 +155,13 @@ struct LiveWorkoutOverlay: View {
                         .accessibilityIdentifier("liveCameraSelection")
                 }
             case .running:
+                if let span = activity?.phases.last, span.phase == "hang" || span.phase == "support" {
+                    Text("\(span.phase == "hang" ? "Hang" : "Top support") · \(String(format: "%.1f s", span.observedSeconds))")
+                        .font(.headline.monospacedDigit()).foregroundStyle(.mint)
+                        .padding(.horizontal, 14).padding(.vertical, 8)
+                        .background(.black.opacity(0.7), in: Capsule())
+                        .accessibilityIdentifier("liveHoldTime")
+                }
                 ExerciseProgressView(counter: session.counter)
                 actionButton("Finish set", symbol: "stop.fill", action: onFinish)
                     .accessibilityIdentifier("stopLiveSet")

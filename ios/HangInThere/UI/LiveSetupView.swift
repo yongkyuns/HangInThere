@@ -38,6 +38,8 @@ struct LiveSetupView: View {
         case workout = "Workout"
         case diagnostics = "Diagnostics"
     }
+    @State private var showingAnalysis = false
+    @State private var reviewRecord: WorkoutSetRecord?
     @State private var showingDetails = false
     @State private var detailsTab: DetailsTab = .workout
     @State private var camera = LiveCameraPreviewController()
@@ -80,6 +82,9 @@ struct LiveSetupView: View {
                 cameraSurface.ignoresSafeArea()
                 LiveWorkoutOverlay(
                     session: camera.liveSet,
+                    latestCompletedSet: camera.latestCompletedWorkout,
+                    showsSetStarted: camera.showsSetStarted,
+                    activity: camera.activeWorkoutRecord?.activity,
                     exerciseTitle: camera.workoutTitle,
                     cameraReady: camera.isCameraReady,
                     status: overlayStatus,
@@ -101,7 +106,7 @@ struct LiveSetupView: View {
                     onStart: { _ = camera.startSet() },
                     onFinish: { camera.stopSet() },
                     onNextSet: { camera.prepareNextSet() },
-                    onResults: { openDetails(tab: .workout) }
+                    onResults: { showingAnalysis = true }
                 )
             }
             .background(.black)
@@ -113,7 +118,18 @@ struct LiveSetupView: View {
             }) {
                 detailsPanel
             }
+            .sheet(isPresented: $showingAnalysis) {
+                NavigationStack {
+                    WorkoutReviewView(sets: camera.workoutHistory, currentReps: camera.repAnalysis,
+                                      storageError: camera.workoutStorageError, currentSet: reviewRecord)
+                        .toolbar { Button("Done") { showingAnalysis = false } }
+                }
+            }
+            .onChange(of: showingAnalysis) { _, visible in
+                if visible { reviewRecord = camera.workoutRecordForReview() }
+            }
             .task {
+                await camera.loadWorkoutHistory()
                 camera.configureWorkout(selection: exerciseSelection, side: side)
                 await camera.start()
             }
@@ -193,7 +209,7 @@ struct LiveSetupView: View {
         }
         if !camera.setupReadiness.state.isReady { return "Keep the phone still · checking setup" }
         if camera.handsFreeStartEnabled {
-            return exercise == .pullUp ? "Hang for the countdown" : "Hold top support for the countdown"
+            return exercise == .pullUp ? "Show a full hang · tracking starts automatically" : "Show top support · tracking starts automatically"
         }
         return "Ready to start"
     }
@@ -381,7 +397,7 @@ struct LiveSetupView: View {
 
             if exerciseSelection == .automatic {
                 Text(camera.resolvedExercise == nil
-                     ? "Hold a hang or top support with both hands visible. The exercise and apparatus are detected before the countdown."
+                     ? "Hold a hang or top support with both hands visible. Tracking starts once the exercise, apparatus and camera are ready."
                      : "\(camera.workoutTitle). The exercise stays fixed throughout the set.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -531,11 +547,11 @@ struct LiveSetupView: View {
                 .accessibilityIdentifier("handsFreeLiveStart")
                 Text(camera.handsFreeStartEnabled
                      ? (isDetectingExercise
-                        ? "Hold a hang or top support with both hands visible. Once the exercise and apparatus are detected, listen for 3, 2, 1, go."
+                        ? "Hold a hang or top support with both hands visible. Tracking starts once the exercise, apparatus and camera are ready."
                         : exercise == .pullUp
-                        ? "After bar setup, hang with extended arms. Listen for 3, 2, 1, go—counting starts automatically."
-                        : "Show both grips and hold top support. Dip support is found automatically; keep your arms extended and hands steady. Listen for 3, 2, 1, go. Crossed legs are optional.")
-                     : "Tap Start set when ready, or enable hands-free start for a countdown.")
+                        ? "Show a full hang after bar setup. Tracking begins automatically."
+                        : "Show both grips and hold top support. Dip support is found automatically; keep your arms extended and hands steady. Tracking begins automatically. Crossed legs are optional.")
+                     : "Tap Start set when ready, or enable automatic start.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -741,8 +757,10 @@ struct LiveSetupView: View {
             return "The set ended because static background structure translated relative to the bar-calibration frame. Re-check framing and set the bar again."
         case .sceneScaled:
             return "The set ended because the static background expanded or contracted relative to calibration, consistent with camera distance/zoom change."
-        case .manual:
+        case .manual, .disengaged:
             return nil
+        case .trackingLost:
+            return "Tracking was unavailable for too long. The set was saved as interrupted."
         }
     }
 
@@ -855,8 +873,8 @@ struct LiveSetupView: View {
         if isDetectingExercise { return automaticExerciseGuidance }
         if camera.handsFreeStartEnabled {
             return exercise == .pullUp
-                ? "Hang from the bar with extended arms. Hold still through the spoken countdown, then begin on ‘go’."
-                : "Hold top support with extended arms and steady hands. Wait for the spoken countdown, then begin on ‘go’. Crossed legs are optional."
+                ? "Hang from the bar with extended arms. Tracking begins once setup is ready."
+                : "Hold top support with extended arms and steady hands. Tracking begins once setup is ready. Crossed legs are optional."
         }
         return exercise == .pullUp ? "Camera, arms, and fixed bar reference are ready."
             : "Camera, selected arm, and fixed bar reference are ready."

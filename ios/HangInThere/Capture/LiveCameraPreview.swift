@@ -210,6 +210,18 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var handsFreeStartEnabled = true
     private(set) var handsFreeStart = HandsFreeSetStart()
     private(set) var liveSet = LiveSetSession()
+    private let workoutAnalysis = WorkoutAnalysisAdapter()
+    private(set) var latestCompletedWorkout: WorkoutSetRecord?
+    private(set) var workoutHistory: [WorkoutSetRecord] = []
+    private(set) var workoutStorageError: String?
+    var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
+    var activeWorkoutRecord: WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.currentRecord : nil }
+    func workoutRecordForReview() -> WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.reviewRecord() : nil }
+    var showsSetStarted: Bool { workoutAnalysis.showsSetStarted }
+    private var archivedSetId: String?
+    @ObservationIgnored private var workoutWriteTask: Task<Void, Never>?
+    private var qualifiedStartPose: PoseResult?
+    private var lastAnalyzedFrameUptime: Double?
     private(set) var phoneOrientation = PhoneOrientationStability()
     private(set) var motionSampleAvailable = false
     private(set) var sceneTranslation = StaticSceneStability()
@@ -689,11 +701,13 @@ final class LiveCameraPreviewController: NSObject {
 
     private func resetHandsFreeStart() {
         handsFreeStart.reset()
+        workoutAnalysis.resetReadiness()
+        qualifiedStartPose = nil
         lastHandsFreeFrameUptime = nil
         countdownSpeech.stopSpeaking(at: .immediate)
     }
 
-    private func speakCountdown(_ text: String) {
+    private func speakWorkoutCue(_ text: String) {
         countdownSpeech.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
@@ -702,7 +716,6 @@ final class LiveCameraPreviewController: NSObject {
 
     private func updateHandsFreeStart(_ frame: ProcessedFrame) {
         guard handsFreeStartEnabled, liveSet.phase == .idle else { return }
-        let oldState = handsFreeStart.state
         var eligible = false
         if setupReadiness.state.isReady, pendingBarMotionSample == nil,
            debugCaptureAllowsBarSetup, currentPhoneMotionSample() != nil,
@@ -711,23 +724,22 @@ final class LiveCameraPreviewController: NSObject {
                 pose: frame.pose, referenceEdge: bar.referenceEdge
             )
         }
-        lastHandsFreeFrameUptime = ProcessInfo.processInfo.systemUptime
-        let began: Bool
-        if exercise == .dip {
-            began = handsFreeStart.observeDip(pose: frame.pose, side: trackingSide,
-                referenceEdge: currentBar?.referenceEdge, eligible: eligible, paused: workoutDetailsPresented)
-        } else {
-            began = handsFreeStart.observe(timestamp: frame.pose.timestamp.seconds, eligible: eligible,
-                                          paused: workoutDetailsPresented)
+        // Shared readiness uses only fresh source frames after real apparatus,
+        // motion and scene qualification. No gesture or countdown is required.
+        if !eligible || workoutDetailsPresented { qualifiedStartPose = nil }
+        if let previous = qualifiedStartPose,
+           frame.pose.timestamp.seconds <= previous.timestamp.seconds ||
+           frame.pose.timestamp.seconds - previous.timestamp.seconds > ExerciseCounter.maximumGapSeconds {
+            qualifiedStartPose = nil
         }
-        if began {
-            if startSet() { speakCountdown("Go") }
-            else { resetHandsFreeStart() }
-        } else if oldState != handsFreeStart.state {
-            if case .countdown(let seconds) = handsFreeStart.state {
-                speakCountdown(String(seconds))
-            } else {
-                countdownSpeech.stopSpeaking(at: .immediate)
+        let baseline = qualifiedStartPose
+        if eligible && qualifiedStartPose == nil { qualifiedStartPose = frame.pose }
+        if workoutAnalysis.ready(seconds: frame.pose.timestamp.seconds,
+            eligible: eligible && !workoutDetailsPresented) {
+            if startSet(discardQueuedFrame: false), let baseline, let reference = currentBar?.referenceEdge {
+                liveSet.consume(baseline, referenceEdge: reference)
+                _ = workoutAnalysis.consume(baseline, reference: reference, counter: liveSet.counter,
+                    event: nil, automaticFinish: true)
             }
         }
     }
@@ -846,7 +858,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     @discardableResult
-    func startSet() -> Bool {
+    func startSet(discardQueuedFrame: Bool = true) -> Bool {
         guard setupReadiness.state.isReady,
               resolvedExercise != nil,
               liveSet.phase != .running
@@ -854,24 +866,78 @@ final class LiveCameraPreviewController: NSObject {
 
         if exerciseSelection == .automatic, !automaticExercise.lock() { return false }
         resetHandsFreeStart()
+        workoutAnalysis.start(exercise: exercise)
+        archivedSetId = nil
         liveSet.start(exercise: exercise, side: trackingSide)
+        if workoutAnalysis.beginStartFeedback(isRunning: liveSet.phase == .running) {
+            speakWorkoutCue(workoutAnalysis.startSpokenMessage)
+        }
         // The bounded analysis stream may already contain one pre-start event.
         // Drop exactly the next delivered frame so a new set cannot begin from
         // a queued observation preceding the tap or spoken start cue.
-        discardNextSetFrame = true
+        discardNextSetFrame = discardQueuedFrame
         return true
+    }
+
+    func loadWorkoutHistory() async {
+        do { workoutHistory = try await WorkoutRecordStore.shared.recent() }
+        catch { workoutStorageError = error.localizedDescription }
+    }
+
+    private func archiveWorkoutSet() {
+        guard liveSet.phase == .finished, archivedSetId != workoutAnalysis.setId,
+              let record = workoutAnalysis.finish(reason: liveSet.endReason?.rawValue ?? "manual"),
+              archivedSetId != record.id else { return }
+        archivedSetId = record.id
+        guard record.hasPractice else { return }
+        latestCompletedWorkout = record
+        workoutHistory.insert(record, at: 0)
+        workoutHistory = Array(workoutHistory.prefix(50))
+        persistWorkout(record, finalized: true)
+    }
+
+    private func persistWorkout(_ record: WorkoutSetRecord, finalized: Bool) {
+        Task {
+            do {
+                try await WorkoutRecordStore.shared.enqueue(record, finalized: finalized)
+                try await WorkoutRecordStore.shared.flushPending()
+                workoutStorageError = nil
+            } catch {
+                workoutStorageError = "Workout save will retry: \(error.localizedDescription)"
+                retryWorkoutWrites()
+            }
+        }
+    }
+
+    private func retryWorkoutWrites() {
+        guard workoutWriteTask == nil else { return }
+        workoutWriteTask = Task { [weak self] in
+            while !Task.isCancelled {
+                do {
+                    try await WorkoutRecordStore.shared.flushPending()
+                    self?.workoutStorageError = nil
+                    break
+                } catch {
+                    self?.workoutStorageError = "Workout save will retry: \(error.localizedDescription)"
+                    try? await Task.sleep(for: .seconds(1))
+                }
+            }
+            self?.workoutWriteTask = nil
+        }
     }
 
     func stopSet() {
         resetHandsFreeStart()
         discardNextSetFrame = false
         liveSet.finish()
+        archiveWorkoutSet()
         finishDebugCaptureIfNeeded()
     }
 
     func prepareNextSet() {
         guard liveSet.phase == .finished else { return }
         resetHandsFreeStart()
+        if liveSet.phase == .finished { archiveWorkoutSet() }
         finishDebugCaptureIfNeeded()
         discardNextSetFrame = false
         liveSet.prepareNextSet()
@@ -1004,6 +1070,7 @@ final class LiveCameraPreviewController: NSObject {
     func stop() {
         if liveSet.phase == .running {
             liveSet.finish()
+            archiveWorkoutSet()
         }
         discardDebugCaptureOnExit()
         discardNextSetFrame = false
@@ -1176,6 +1243,7 @@ final class LiveCameraPreviewController: NSObject {
                 endReason: endReason
             )
         }
+        if liveSet.phase == .finished { archiveWorkoutSet() }
         finishDebugCaptureIfNeeded()
 
         discardNextSetFrame = false
@@ -1263,6 +1331,7 @@ final class LiveCameraPreviewController: NSObject {
                 reason: "phoneMoved",
                 endReason: .phoneMoved
             )
+            if liveSet.phase == .finished { archiveWorkoutSet() }
             finishDebugCaptureIfNeeded()
         }
 
@@ -1285,6 +1354,7 @@ final class LiveCameraPreviewController: NSObject {
                 reason: "phoneOrientationUnavailable",
                 endReason: .setupInvalidated
             )
+            if liveSet.phase == .finished { archiveWorkoutSet() }
             finishDebugCaptureIfNeeded()
         }
 
@@ -1371,6 +1441,7 @@ final class LiveCameraPreviewController: NSObject {
                 reason: reason,
                 endReason: endReason
             )
+            if liveSet.phase == .finished { archiveWorkoutSet() }
             finishDebugCaptureIfNeeded()
         }
 
@@ -1427,6 +1498,12 @@ final class LiveCameraPreviewController: NSObject {
                       self.state == .ready else { continue }
 
                 self.pollPhoneOrientation()
+                if self.liveSet.phase == .running, let last = self.lastAnalyzedFrameUptime,
+                   self.workoutAnalysis.observationOutage(elapsed: ProcessInfo.processInfo.systemUptime - last) {
+                    self.liveSet.interruptAndFinish(reason: "sourceFramesUnavailable", endReason: .trackingLost)
+                    self.archiveWorkoutSet()
+                    self.finishDebugCaptureIfNeeded()
+                }
                 if case .countdown = self.handsFreeStart.state {
                     let stale = self.lastHandsFreeFrameUptime.map {
                         ProcessInfo.processInfo.systemUptime - $0 > HandsFreeSetStart.maximumFrameGap
@@ -1487,9 +1564,11 @@ final class LiveCameraPreviewController: NSObject {
                         reason: "barReferenceUnavailable",
                         endReason: .setupInvalidated
                     )
+                    if liveSet.phase == .finished { archiveWorkoutSet() }
                     finishDebugCaptureIfNeeded()
                 }
             }
+            lastAnalyzedFrameUptime = ProcessInfo.processInfo.systemUptime
             latestFrame = frame
             analyzedFrames += 1
             lastProcessingMilliseconds = frame.processingMilliseconds
@@ -1499,21 +1578,40 @@ final class LiveCameraPreviewController: NSObject {
             maybeFindAutomaticBar(frame)
             maybeCheckSceneTranslation(frame)
             recordQualificationSample()
+            if liveSet.phase == .finished, workoutAnalysis.shouldResume(reason: liveSet.endReason) {
+                archiveWorkoutSet()
+                let lost = liveSet.endReason == .trackingLost
+                prepareNextSet()
+                if lost { clearBar() }
+            }
             let wasRunning = liveSet.phase == .running
             updateHandsFreeStart(frame)
 
-            // Automatic start happened inside this frame's callback: skip its
-            // countdown pixels and retain the discard flag for the queued frame.
-            if liveSet.phase == .running, wasRunning {
+            // Manual starts reject queued pixels. Automatic starts consume the
+            // qualified source frame immediately and seed its observed baseline.
+            if liveSet.phase == .running, wasRunning || !discardNextSetFrame {
                 if discardNextSetFrame {
                     discardNextSetFrame = false
                 } else if let referenceEdge = currentBar?.referenceEdge {
+                    let eventCount = liveSet.counter.events.count
                     liveSet.consume(frame.pose, referenceEdge: referenceEdge)
+                    let event = liveSet.counter.events.count > eventCount ? liveSet.counter.events.last : nil
+                    let automaticEnd = workoutAnalysis.consume(frame.pose, reference: referenceEdge,
+                        counter: liveSet.counter, event: event, automaticFinish: true)
+                    if let draft = workoutAnalysis.drainDraft() {
+                        persistWorkout(draft, finalized: false)
+                    }
+                    if let reason = automaticEnd {
+                        liveSet.finish(reason: reason)
+                        archiveWorkoutSet()
+                        finishDebugCaptureIfNeeded()
+                    }
                 } else {
                     liveSet.interruptAndFinish(
                         reason: "barReferenceUnavailable",
                         endReason: .setupInvalidated
                     )
+                    if liveSet.phase == .finished { archiveWorkoutSet() }
                     finishDebugCaptureIfNeeded()
                 }
             }
@@ -1532,6 +1630,7 @@ final class LiveCameraPreviewController: NSObject {
             lastProcessingMilliseconds = nil
             framing = LiveFramingAssessment(state: .analysisUnavailable)
             liveSet.interrupt(reason: "inferenceFailure")
+            workoutAnalysis.interrupt(reason: "inferenceFailure")
         }
     }
 }

@@ -9,6 +9,10 @@ on:
         description: Compare VIDEO tracking and IMAGE redetection on identical public pixels
         type: boolean
         default: false
+      pose_crop_diagnostic:
+        description: Compare the pinned model on full frames and bounded person crops (includes VIDEO/IMAGE comparison)
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -109,6 +113,7 @@ jobs:
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         env:
           POSE_MODE_DIAGNOSTIC: ${{ inputs.pose_mode_diagnostic == true && 'true' || 'false' }}
+          POSE_CROP_DIAGNOSTIC: ${{ inputs.pose_crop_diagnostic == true && 'true' || 'false' }}
         with:
           api-level: ${{ matrix.api }}
           arch: x86_64
@@ -124,8 +129,11 @@ jobs:
         if: always()
         run: python3 scripts/check-android-evaluation.py --native build/android-evaluation/report.json
       - name: Verify identical-pixel pose comparison evidence
-        if: ${{ always() && inputs.pose_mode_diagnostic == true }}
+        if: ${{ always() && inputs.pose_mode_diagnostic == true && inputs.pose_crop_diagnostic != true }}
         run: python3 scripts/check-android-evaluation.py --pose-modes build/android-evaluation/pose-mode-report.json
+      - name: Verify bounded-crop inference evidence in original coordinates
+        if: ${{ always() && inputs.pose_crop_diagnostic == true }}
+        run: python3 scripts/check-android-evaluation.py --pose-modes build/android-evaluation/pose-crop-report.json
       - name: Check real-pixel Auto acquisition and live countdown
         if: always()
         run: python3 scripts/check-android-evaluation.py --setup build/android-evaluation/setup-report.json
@@ -201,7 +209,9 @@ jobs:
         with:
           name: android-swift-api-${{ matrix.api }}
           if-no-files-found: error
-          path: build/android-native/build/android-evaluation/swift-native-parity.json
+          path: |
+            build/android-native/build/android-evaluation/swift-native-parity.json
+            build/android-native/build/android-evaluation/swift-crop-parity.json
 
   original-capture-accuracy:
     name: Original capture accuracy diagnostics

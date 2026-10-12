@@ -194,6 +194,86 @@ class AndroidPoseModeEvidenceTests(unittest.TestCase):
             self.check(lambda baseline, report, files: report['cases'][0]['modes']['image'].update(events=[]))
 
 
+class AndroidCropEvidenceTests(unittest.TestCase):
+    def evidence(self, skipped=False):
+        baseline, report, files = AndroidPoseModeEvidenceTests().evidence()
+        report.update(schemaVersion=2,regionRecipeVersion=1,paddingFraction=.15,minimumPaddingPixels=16)
+        joints = ['leftShoulder','rightShoulder','leftHip','rightHip','nose','leftElbow','rightElbow','leftAnkle']
+        positions = [(100,100),(300,100),(120,300),(280,300),(100,50),(80,150),(320,150),(200,400)]
+        witness = [dict(joint=j,position=dict(x=x,y=y),confidence=.8) for j,(x,y) in zip(joints,positions)]
+        for case in report['cases']:
+            identifier = case['id']; frames = case['frames']
+            summary=copy.deepcopy(case['modes']['image'])
+            summary.update(skippedFrames=frames if skipped else 0)
+            if skipped:
+                summary.update(observedMovements=0,events=[],singlePersonFrames=0,usableArmFrames=dict(left=0,right=0),inferenceLatencyMillis=dict(samples=0))
+            case['modes']['crop']=summary
+            trace=files.pop(identifier+'-pose-modes.jsonl')
+            for row in trace:
+                row['inferenceOrder'].append('crop')
+                row['modes']['video']['pose']['people'] = [dict(landmarks=[] if skipped else witness)]
+                observation=copy.deepcopy(row['modes']['image'])
+                observation.update(region=None,rawPose=None,cropPixelSha256=None,inferencePerformed=not skipped)
+                if skipped:
+                    observation.update(inferenceMillis=None,arms=[dict(side=s,unavailableReason='noPerson') for s in ['left','right']])
+                    observation['pose'].update(people=[],backend='Diagnostic crop unavailable')
+                    observation['counter']['observedMovements']=0
+                else:
+                    region=CHECK.crop_region(row['modes']['video']['pose'])
+                    raw_point=dict(joint='leftWrist',position=dict(x=20.25,y=30.5),confidence=.4)
+                    raw=dict(timestamp=row['modes']['video']['pose']['timestamp'],imageSize=dict(width=region['width'],height=region['height']),
+                        backend='MediaPipe Heavy CPU IMAGE visibility/presence minimum',requestRevision=1,people=[dict(landmarks=[raw_point])])
+                    mapped=dict(raw_point,position=dict(x=20.25+region['left'],y=30.5+region['top']))
+                    observation.update(region=region,rawPose=raw,cropPixelSha256='d'*64)
+                    observation['pose'].update(backend='MediaPipe Heavy CPU IMAGE person crop visibility/presence minimum',people=[dict(landmarks=[mapped])])
+                row['modes']['crop']=observation
+            files[identifier+'-pose-crops.jsonl']=trace
+        return baseline,report,files
+
+    def check(self, change=lambda b,r,f: None, skipped=False):
+        baseline,report,files=self.evidence(skipped)
+        change(baseline,report,files)
+        with tempfile.TemporaryDirectory() as directory,contextlib.redirect_stdout(io.StringIO()):
+            folder=Path(directory);(folder/'report.json').write_text(json.dumps(baseline))
+            path=folder/'pose-crop-report.json';path.write_text(json.dumps(report))
+            for name,rows in files.items(): (folder/name).write_text(''.join(json.dumps(row)+'\n' for row in rows))
+            CHECK.pose_modes(path)
+
+    def test_complete_cropped_and_explicitly_skipped_evidence_pass(self):
+        self.check();self.check(skipped=True)
+
+    def test_fixed_recipe_and_same_frame_witness_are_required(self):
+        with self.assertRaisesRegex(AssertionError,'Frozen crop recipe'):
+            self.check(lambda b,r,f:r.update(paddingFraction=.2))
+        with self.assertRaisesRegex(AssertionError,'current VIDEO witness'):
+            self.check(lambda b,r,f:f['pullup_smoke-pose-crops.jsonl'][0]['modes']['crop']['region'].update(left=0))
+
+    def test_original_source_labels_and_pixels_remain_required(self):
+        with self.assertRaisesRegex(AssertionError,'source/label'):
+            self.check(lambda b,r,f:r['cases'][2].update(expectedMovements=0))
+        with self.assertRaisesRegex(AssertionError,'pixel checksum'):
+            self.check(lambda b,r,f:f['pullup_smoke-pose-crops.jsonl'][0]['modes']['crop'].update(cropPixelSha256=''))
+
+    def test_coordinate_scores_and_people_cannot_change_in_restoration(self):
+        for field,value in [('confidence',.9),('position',dict(x=0,y=0))]:
+            with self.assertRaisesRegex(AssertionError,'restoration changed'):
+                self.check(lambda b,r,f:f['pullup_smoke-pose-crops.jsonl'][0]['modes']['crop']['pose']['people'][0]['landmarks'][0].update({field:value}))
+        with self.assertRaisesRegex(AssertionError,'restoration changed'):
+            self.check(lambda b,r,f:f['pullup_smoke-pose-crops.jsonl'][0]['modes']['crop']['pose'].update(people=[]))
+
+    def test_outside_crop_prediction_cannot_be_translated_into_source(self):
+        with self.assertRaisesRegex(AssertionError,'restoration changed'):
+            self.check(lambda b,r,f:f['pullup_smoke-pose-crops.jsonl'][0]['modes']['crop']['rawPose']['people'][0]['landmarks'][0]['position'].update(x=-1))
+
+    def test_skipped_crop_cannot_claim_native_inference(self):
+        with self.assertRaisesRegex(AssertionError,'claims inference'):
+            self.check(lambda b,r,f:f['pullup_smoke-pose-crops.jsonl'][0]['modes']['crop'].update(inferenceMillis=100),skipped=True)
+        with self.assertRaisesRegex(AssertionError,'skip summary'):
+            self.check(lambda b,r,f:r['cases'][0]['modes']['crop'].update(skippedFrames=0),skipped=True)
+        with self.assertRaisesRegex(AssertionError,'unperformed calls'):
+            self.check(lambda b,r,f:r['cases'][0]['modes']['crop']['inferenceLatencyMillis'].update(samples=108),skipped=True)
+
+
 class AndroidSetupEvidenceTests(unittest.TestCase):
     def report(self):
         return {'schemaVersion': 1, 'failures': [], 'cases': [

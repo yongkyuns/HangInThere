@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
-mkdir -p build/android-evaluation
+# Public generated diagnostics only. Never mix reports/traces from a previous
+# opt-in experiment into a normal or failed run. Private outputs and workout
+# history are different directories and are not touched.
+python3 - <<'PY'
+from pathlib import Path
+import shutil
+output=Path('build/android-evaluation')
+if output.exists(): shutil.rmtree(output)
+output.mkdir(parents=True)
+PY
+adb shell rm -rf /sdcard/Android/data/dev.hanginthere.android/files/evaluation
 cp android/app/src/androidTest/assets/generated/ATTRIBUTION.txt build/android-evaluation/ATTRIBUTION.txt
 # Retain diagnostics even when an accuracy assertion fails. No media/test APK uploads.
-diagnostic_arguments=()
+instrumentation_arguments=("--console=plain")
 if [[ "${POSE_MODE_DIAGNOSTIC:-false}" == "true" ]]; then
-  diagnostic_arguments+=("-Pandroid.testInstrumentationRunnerArguments.poseModeDiagnostic=true")
+  instrumentation_arguments+=("-Pandroid.testInstrumentationRunnerArguments.poseModeDiagnostic=true")
+fi
+if [[ "${POSE_CROP_DIAGNOSTIC:-false}" == "true" ]]; then
+  instrumentation_arguments+=("-Pandroid.testInstrumentationRunnerArguments.poseCropDiagnostic=true")
 fi
 set +e
-./gradlew :android:app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true "${diagnostic_arguments[@]}" --console=plain
+./gradlew :android:app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true "${instrumentation_arguments[@]}"
 test_status=$?
 set -e
 adb pull /sdcard/Android/data/dev.hanginthere.android/files/evaluation/. build/android-evaluation/ || true

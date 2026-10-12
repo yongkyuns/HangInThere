@@ -135,16 +135,19 @@ ios/
     Integration/
     Fixtures/                  # reviewed specifications; generated media ignored
 android/app/                   # native Android client and platform tests
-shared/                        # Kotlin workout policies used by Android
+shared/                        # common analysis/app policy; Android counting/setup
 Evaluation/                    # offline runners, reviewed specifications, evidence
 scripts/                       # build, fixture preparation, evaluation commands
 docs/                          # design and qualification records
 .github/workflows/             # platform and evaluation CI
 ```
 
-The iOS app currently uses the Swift reference, while Android uses the Kotlin
-core. Shared-framework compilation and parity tests precede any future iOS
-integration; they do not establish identical vision predictions.
+Both apps use the Kotlin core for motion analysis, automatic readiness/set
+boundaries and recovery/storage policy. iOS links its static framework and
+retains the established Swift counter/setup as the policy-v8 reference; Android
+uses the matching Kotlin implementation. Parity tests protect those contracts,
+but do not establish identical vision predictions. See
+[the current analysis architecture](workout/AUTOMATIC_ANALYSIS.md).
 
 Both adapters call the same processing entry point:
 

@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 @MainActor
 struct ReplayView: View {
+    @State private var showingAnalysis = false
     @State private var model = ReplayController()
     @State private var importing = false
     @State private var showingLiveWorkout = false
@@ -359,6 +360,14 @@ struct ReplayView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+            Button("Analyze rep motion", systemImage: "chart.xyaxis.line") { showingAnalysis = true }
+                .sheet(isPresented: $showingAnalysis) {
+                    NavigationStack {
+                        WorkoutReviewView(sets: model.analysisRecord.map { [$0] } ?? [],
+                            currentReps: model.repAnalysis, storageError: nil, goalsEnabled: false)
+                            .toolbar { Button("Done") { showingAnalysis = false } }
+                    }
+                }
             if !model.movementTimes.isEmpty {
                 Divider()
 

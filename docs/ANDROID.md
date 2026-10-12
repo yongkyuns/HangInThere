@@ -2,10 +2,12 @@
 
 The Android client uses native Kotlin/Compose and CameraX. Its production camera
 and recorded-video adapters feed a Kotlin Multiplatform workout core. The core
-exports JVM, Android and static iOS frameworks; the shipping Swift client remains
-the reference implementation during this port. It does **not** yet link that
-framework. CI compiles the framework and compares the two engines before a future
-iOS adapter migration can replace the reference.
+exports JVM, Android and static iOS frameworks. Both shipping apps use it for
+automatic workout analysis, readiness, set boundaries and recovery/storage policy;
+Xcode links the static framework. The established Swift counter/setup remains
+the iOS policy-v8 reference, protected by per-frame Swift/Kotlin parity tests.
+Camera and pose inference remain native. See
+[automatic workout analysis](workout/AUTOMATIC_ANALYSIS.md) for the shared boundary.
 
 ## Current merge blockers
 
@@ -198,6 +200,34 @@ variants as they swapped APIs; both movement results remained0/9. A local encode
 thread sweep also changed decoded pixel hashes. Those runs cannot establish
 same-input vision nondeterminism or its cause. The preparation profile and new
 gate address that confound; they do not repair the dip accuracy failure.
+
+The opt-in `pose_crop_diagnostic` dispatch adds one independent IMAGE model to
+the existing VIDEO/IMAGE comparison. A shared, SDK-independent region recipe
+uses the current VIDEO prediction's single athlete, at least eight visible
+landmarks and both shoulder/hip anchors. Its rectangle adds 15% padding (at least
+16 pixels), rounds outward and clips to genuine source pixels. The recipe is
+fixed before native inference evaluation. No padding pixels, resizing, reflection,
+apparatus inference, confidence adjustment or cached joint coordinates are added.
+The diagnostic verifies every crop pixel against the canonical source rectangle,
+retains native crop predictions, and restores them to original image coordinates.
+Out-of-crop predictions remain unavailable; crop detections preserve all people.
+Unavailable regions explicitly skip inference and deliver missing observations to
+the unchanged counter. Production continues to use its existing full-frame VIDEO
+model. This does not qualify athlete identity or a moving/zooming camera.
+
+Schema-2 reports/traces retain region witnesses, source/crop pixel hashes, original
+source PTS/geometry, unchanged labels/reference edges, confidence coverage,
+skips, count events, inference latency and combined memory for all three models.
+Host checks independently verify region selection and coordinate/score restoration;
+the Mac parity jobs replay all three modes through the Swift counter. Crop timing
+includes SDK copy/inference/close and restoration, but excludes region selection,
+crop allocation, pixel verification, hashes and trace writing. Crop inference
+runs after its VIDEO witness; its timing is not randomized. These measurements
+are diagnostic costs rather than production, Auto, physical-device or form
+qualification. The original fatal accuracy jobs remain active during dispatch.
+The collector clears only generated public evaluation outputs before each run,
+so old crop evidence cannot enter a normal or failed rerun. Private evaluation
+outputs and workout history remain in separate directories.
 
 The public clips are development smoke cases, not a held-out accuracy benchmark.
 Separate authored setup videos repeat a source-only reviewed starting frame for

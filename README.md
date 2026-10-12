@@ -13,14 +13,17 @@ Compose/CameraX with a framework-free Kotlin Multiplatform workout core. See
 | --- | --- |
 | [`ios/`](ios/README.md) | Swift app, Xcode project, and iOS core/integration tests |
 | [`android/`](android/README.md) | Native Android app, platform adapters, and Android tests |
-| [`shared/`](shared/README.md) | Platform-independent Kotlin workout policies used by Android, with Swift parity tests |
+| [`shared/`](shared/README.md) | Common workout analysis/app policy used by both apps, plus Android counting/setup and Swift parity tests |
 | [`Evaluation/`](Evaluation/README.md) | Offline evaluators, reviewed fixture specifications, research, and historical evidence |
 | `scripts/` | Build, fixture preparation, evaluation, and qualification commands |
 | `docs/` | Product design, counting rules, architecture, and qualification limits |
 | `.github/workflows/` | Platform builds, policy parity, and native evaluation pipelines |
 
-iOS currently uses its own Swift workout core; it does not link the Kotlin
-framework. Camera capture, pose inference, and UI remain platform-specific.
+Both apps use the Kotlin core for motion analysis, automatic readiness/set
+boundaries and recovery/storage policy. iOS links the static `WorkoutCore`
+framework; its established Swift counter/setup remains the policy-v8 reference.
+Camera capture, pose inference and UI remain native. See
+[automatic workout analysis](docs/workout/AUTOMATIC_ANALYSIS.md).
 Private recordings and downloaded datasets stay in ignored `Data/` directories;
 generated build results stay in ignored `build/` directories.
 
@@ -46,17 +49,17 @@ pull-ups and dips on parallel rails or a shared straight bar. Pull-up setup find
 a visible gripping edge near both raised hands and locks it after at least four consistent observations over
 0.9 seconds. Live workouts default to **Auto** exercise selection: a stable
 starting hang identifies pull-ups and top support identifies dips, with actual
-bar/rail contours required before the countdown. The header shows the detected
-exercise; it remains fixed until the set ends and is detected again after
-**Next set**. Explicit exercise selection is available in settings.
+bar/rail contours required before tracking starts. The overlay shows the detected
+exercise; it remains fixed until the set ends and is detected again for the next
+set. Explicit exercise selection is available in settings.
 Both live exercises default to **Hands-free start**: hang with extended
-arms for pull-ups, or hold top support with steady hands for dips, through the
-spoken **3, 2, 1, go** countdown. Crossing the legs is optional. Counting starts
-automatically on a fresh frame; lost grip, unstable setup, or missing frames cancel
-the countdown. Disable the toggle to use **Start set** manually. Video review automatically
+arms for pull-ups, or hold top support with steady hands for dips. After genuine
+apparatus/camera qualification, 0.12 seconds of fresh eligible source frames
+starts tracking. No gesture or countdown is required. Disable the toggle to use
+**Start set** manually. Video review automatically
 rewinds and resumes so earlier movements are counted too. Dip setup observes
 separate rails beside both hands or a paired straight bar shared by both grips,
-then uses the same countdown. Manual setup remains available for unclear views.
+then uses the same readiness gate. Manual setup remains available for unclear views.
 Pull-ups use both measurable arms,
 each with its own extended-hang baseline; one arm can continue when the other is
 obscured. Both available arms must meet the endpoint gates. Dips retain an
@@ -74,20 +77,28 @@ and the bottom hold, then the second half through returning to top support and
 holding it. Both meters reserve completion for an actual count and turn green
 only then; missing tracking clears progress. They describe the counting criteria,
 not strict form.
-See [the counter policy](docs/COUNTING.md) and [bar setup](docs/BAR_SETUP.md).
+Sets automatically complete after a second of visible release by both hands;
+tracking loss closes them as interruptions. Long endpoint holds do not split
+sets. The analysis button shows per-rep phase timing, left/right angle curves,
+measurement coverage and dated local history. Accepted pull-up counts survive
+an unobserved return, with unavailable return metrics explicitly shown.
+See [the counter policy](docs/COUNTING.md), [bar setup](docs/BAR_SETUP.md) and
+[analysis contracts and qualification](docs/workout/AUTOMATIC_ANALYSIS.md).
 
 Live Workout is a **full-screen video canvas** with rep count, progress, brief
 setup cues, and start/finish controls over the feed. The settings button opens
 Workout options, detailed results, placement help, and Diagnostics in a separate
-panel. Opening it pauses the hands-free countdown until the panel closes.
+panel. Opening settings pauses readiness until the panel closes; opening the
+read-only workout analysis does not pause active tracking.
 A **camera-switch button inside the preview** toggles rear/front cameras before a
 set. Changing
 cameras clears framing and the fixed bar reference, so reacquire the bar before
 starting. Camera selection is locked during a set or debug recording. The front
 preview is unmirrored, matching analysis and recorded debug video.
 
-The iOS app uses SwiftUI, AVFoundation, Core Image, and Vision. There are no third-party
-runtime packages, backend services, accounts, model downloads, or analytics.
+The iOS app uses SwiftUI, AVFoundation, Core Image, Vision and the linked Kotlin
+core/runtime. There are no backend services, accounts, downloaded pose models or
+remote analytics in the iOS app.
 Imported files are copied into app-local temporary storage and removed on close
 or replacement; recordings are never uploaded by the app.
 
@@ -102,8 +113,11 @@ open ios/HangInThere.xcodeproj
 Choose the shared **HangInThere** scheme and an iPhone simulator, then Run.
 The app has a provisional iOS 17 deployment target and Swift 6 language mode.
 Use Xcode 16 or newer; the current workflow selects Xcode 26.3 explicitly. The project
-has no code-generation or dependency-install step. Test-fixture preparation is
-not needed to build/run the app and import your own video.
+requires JDK 17 available to Xcode (`JAVA_HOME` for command-line builds). Its build
+phase uses the checked-in Gradle wrapper to compile/link the shared framework;
+the first build downloads pinned dependencies and needs network access. No
+Android SDK is needed for the iOS build. Test-fixture preparation is not needed
+to build/run the app and import your own video.
 
 For a physical phone, use a local Xcode version that supports its installed iOS,
 select your Personal Team under Signing & Capabilities, and use your own unique

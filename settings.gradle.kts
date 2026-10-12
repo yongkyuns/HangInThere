@@ -4,4 +4,5 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = "HangInThere"
-include(":shared", ":android:app")
+include(":shared")
+if (providers.gradleProperty("workout.appleOnly").orNull != "true") include(":android:app")
