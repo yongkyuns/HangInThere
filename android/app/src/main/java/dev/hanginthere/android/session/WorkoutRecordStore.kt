@@ -36,15 +36,13 @@ class WorkoutRecordStore(context: Context, private val directory: File = File(co
             writeAtomic(File(directory, "${record.id}.motion.json"), WorkoutAnalysis.json.encodeToString(record))
             writeAtomic(file, WorkoutAnalysis.json.encodeToString(summary))
         }
-        val pending=File(directory,"${record.id}.pending.json")
-        AtomicFile(pending).delete()
-        check(!pending.exists() && !File(pending.path+".bak").exists() && !File(pending.path+".new").exists()) { "Cannot clean workout journal" }
+        deleteAtomic(File(directory,"${record.id}.pending.json"))
         var bytes = 0L
         committedFiles().filter { it.name.endsWith(".motion.json") }.sortedByDescending { it.lastModified() }
             .forEachIndexed { index, motion ->
                 bytes += motion.length()
                 if (index >= WorkoutRecordCodec.maximumFeatureSets || bytes > WorkoutRecordCodec.maximumFeatureBytes)
-                    check(motion.delete()) { "Cannot expire motion features" }
+                    deleteAtomic(motion)
             }
     }
     @Synchronized fun saveDraft(delta: WorkoutSetRecord) {
@@ -57,8 +55,12 @@ class WorkoutRecordStore(context: Context, private val directory: File = File(co
     }
     private fun readAtomic(file: File): String = AtomicFile(file).openRead().bufferedReader().use{it.readText()}
     private fun restoreAtomic(file: File): Boolean {
-        if(File(file.path+".bak").exists()) AtomicFile(file).openRead().use { }
+        if(File(file.path+".bak").exists() || (file.exists() && File(file.path+".new").exists())) AtomicFile(file).openRead().use { }
         return file.exists()
+    }
+    private fun deleteAtomic(file: File) {
+        AtomicFile(file).delete()
+        check(!file.exists() && !File(file.path+".bak").exists() && !File(file.path+".new").exists()) { "Cannot clean workout storage" }
     }
     private fun committedFiles(): List<File> = directory.listFiles().orEmpty()
         .map { if(it.name.endsWith(".bak")) File(directory,it.name.removeSuffix(".bak")) else it }
