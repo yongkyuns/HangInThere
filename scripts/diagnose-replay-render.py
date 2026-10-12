@@ -96,6 +96,41 @@ def recover_created_simulators(name, runtime, device_type):
     return identifiers
 
 
+def simulator_state(identifier):
+    inventory = json.loads(native.run(['xcrun', 'simctl', 'list', 'devices', '--json'], timeout=20).stdout)
+    matches = [device for devices in inventory['devices'].values() for device in devices
+               if device['udid'] == identifier]
+    if len(matches) > 1:
+        raise ValueError('Ambiguous owned simulator state')
+    return matches[0]['state'] if matches else None
+
+
+def cleanup_owned_simulator(identifier):
+    records, succeeded = [], True
+    for action in ('shutdown', 'delete'):
+        record = {'action': action}
+        try:
+            result = native.run(['xcrun', 'simctl', action, identifier], check=False)
+            record['exit_code'] = result.returncode
+            if result.returncode:
+                # Xcode can shut down or remove this device before cleanup.
+                # Confirm the target's state instead of interpreting stderr;
+                # an unknown state or failed deletion must still fail the job.
+                state = simulator_state(identifier)
+                record['state_after'] = state
+                released = state is None or (action == 'shutdown' and state == 'Shutdown')
+                record['already_released'] = released
+                if not released:
+                    print(f'Owned simulator {action} failed: {result.stderr}', file=sys.stderr)
+                    succeeded = False
+        except (RuntimeError, ValueError, KeyError, OSError) as error:
+            record['error'] = str(error)
+            print(str(error), file=sys.stderr)
+            succeeded = False
+        records.append(record)
+    return succeeded, {'owned_simulator': identifier, 'actions': records}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--renderer', choices=('automatic', 'software'), required=True)
@@ -142,8 +177,8 @@ def main():
                 result = native.run(command, timeout=25 * 60, check=False)
                 (directory / 'runner-stdout.txt').write_text(result.stdout)
                 (directory / 'runner-stderr.txt').write_text(result.stderr)
-                verify_snapshot(checkout, provenance['variant_sha256'])
                 native_exit_code = result.returncode
+                verify_snapshot(checkout, provenance['variant_sha256'])
                 exit_code = result.returncode
         except (RuntimeError, ValueError, OSError, subprocess.SubprocessError) as error:
             (directory / 'driver-error.txt').write_text(str(error) + '\n')
@@ -169,16 +204,13 @@ def main():
                 except (RuntimeError, ValueError, OSError) as error:
                     print(f'Owned simulator recovery failed: {error}', file=sys.stderr)
                     exit_code = 1
+            cleanup = []
             for owned in targets:
-                for action in ('shutdown', 'delete'):
-                    try:
-                        result = native.run(['xcrun', 'simctl', action, owned], check=False)
-                        if result.returncode:
-                            print(f'Owned simulator {action} failed: {result.stderr}', file=sys.stderr)
-                            exit_code = 1
-                    except (RuntimeError, OSError) as error:
-                        print(str(error), file=sys.stderr)
-                        exit_code = 1
+                succeeded, record = cleanup_owned_simulator(owned)
+                cleanup.append(record)
+                if not succeeded:
+                    exit_code = 1
+            (directory / 'cleanup.json').write_text(json.dumps(cleanup, indent=2) + '\n')
     (directory / 'result.json').write_text(json.dumps({'driver_exit_code': exit_code,
         'native_tests_exit_code': native_exit_code,
         'prepare_only': args.prepare_only, 'renderer_requested': args.renderer}) + '\n')

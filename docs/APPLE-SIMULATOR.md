@@ -87,8 +87,8 @@ exit cause remains unknown. These are native fixture engineering checks,
 not live camera/sensor, sustained throughput, thermal/battery, physical Android
 or strict-form accuracy qualification.
 
-Default and software-rendered temporary Mac source copies each pass all 282
-tests. Neither reproduces the hosted stall, and those concurrent functional
+The default and temporary Mac copy requesting software rendering each pass
+all 282 tests. Neither reproduces the hosted stall, and those concurrent functional
 trials do not qualify a speed comparison or a production repair.
 
 The optional CI `replay_render_comparison` dispatch runs each renderer on a
@@ -97,8 +97,24 @@ copy changes the one Core Image context option; source hashes verify that all
 tests and fixtures remain unchanged. The full mechanics selection, original
 color failures and replay deadlines stay active. Native failures propagate to
 the job, even when the other variant succeeds. Sampling is disabled in both
-trials. Separate hosted runs can expose associated failures but their timings
-alone do not establish a cause or device performance parity.
+trials. Apple documents that [`useSoftwareRenderer`](https://developer.apple.com/documentation/coreimage/cicontextoption/usesoftwarerenderer)
+has no effect on platforms without OpenCL. The trial records the requested
+option; it does not verify which renderer actually executes. Separate hosted
+runs can expose associated failures but their timings alone do not establish
+a cause or device performance parity.
+
+[Hosted trials at `42a2196`](https://github.com/yongkyuns/HangInThere/actions/runs/38195510298)
+each run all 282 mechanics tests and pass 281, retaining the same eight H264
+color assertions. Both replay opening tests and unsigned Release builds pass;
+neither trial reproduces the intermittent stall. All 82 copied source hashes
+match the committed baseline, with only the requested option changed in the
+software variant. These passing replay attempts do not qualify a repair.
+
+A separate 64×64 synthetic context probe on local iOS 18.6/SDK 18.5
+reports a Metal context and Metal program graph with either setting. The
+equivalent Mac probe reports Metal for the default and CPU for the software
+request. This rules out the flag as a CPU workaround on that simulator; it
+does not verify the hosted runtime or the renderer used in the full suite.
 
 ## Reproduce
 

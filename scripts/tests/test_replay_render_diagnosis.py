@@ -82,6 +82,51 @@ class SnapshotContracts(unittest.TestCase):
 
 
 class DriverContracts(unittest.TestCase):
+    def test_cleanup_confirms_shutdown_or_deletion_without_hiding_other_errors(self):
+        for state, expected in (('Shutdown', True), (None, True), ('Booted', False)):
+            with self.subTest(state=state):
+                def run(command, **kwargs):
+                    status = 149 if 'shutdown' in command or state is None else 0
+                    return subprocess.CompletedProcess(command, status, '', 'shutdown unavailable')
+                with patch.object(probe.native, 'run', side_effect=run) as commands, \
+                     patch.object(probe, 'simulator_state', return_value=state):
+                    passed, record = probe.cleanup_owned_simulator(OWNED)
+                self.assertEqual(passed, expected)
+                self.assertEqual([call.args[0][2:] for call in commands.call_args_list],
+                                 [['shutdown', OWNED], ['delete', OWNED]])
+                self.assertEqual(record['actions'][0]['state_after'], state)
+                self.assertEqual(record['actions'][0]['already_released'], expected)
+        with patch.object(probe.native, 'run', return_value=subprocess.CompletedProcess([], 149, '', 'error')), \
+             patch.object(probe, 'simulator_state', side_effect=RuntimeError('inventory unavailable')):
+            passed, record = probe.cleanup_owned_simulator(OWNED)
+        self.assertFalse(passed)
+        self.assertTrue(all(action['error'] == 'inventory unavailable' for action in record['actions']))
+
+    def test_native_failure_remains_recorded_and_propagated_with_idempotent_cleanup(self):
+        for source_changed in (False, True):
+            with self.subTest(source_changed=source_changed), tempfile.TemporaryDirectory() as work:
+                root = Path(work)
+                def run(command, **kwargs):
+                    text, status = '', 0
+                    if '--show-sdk-version' in command: text = '26.3'
+                    elif command[:4] == ['xcrun', 'simctl', 'list', 'devices']: text = '{}'
+                    elif command[:3] == ['xcrun', 'simctl', 'create']: text = OWNED
+                    elif command[0] == '/usr/bin/env': status = 65
+                    elif command[:3] == ['xcrun', 'simctl', 'shutdown']: status = 149
+                    return subprocess.CompletedProcess(command, status, text, '')
+                validation = [None, ValueError('Unexpected source changes')] if source_changed else [None, None]
+                with patch.object(probe, 'ROOT', root), patch.object(probe, 'snapshot', return_value={'variant_sha256': {}}), \
+                     patch.object(probe, 'verify_snapshot', side_effect=validation), \
+                     patch.object(probe.native, 'run', side_effect=run), \
+                     patch.object(probe.native, 'select_simulator', return_value=('runtime26.3', 'type')), \
+                     patch.object(probe, 'simulator_state', return_value='Shutdown'), \
+                     patch.object(probe.signal, 'signal'), patch.object(sys, 'argv', ['probe', '--renderer', 'automatic']):
+                    self.assertEqual(probe.main(), 1 if source_changed else 65)
+                report = json.loads(next(root.glob('build/apple-replay-render/automatic/*/result.json')).read_text())
+                self.assertEqual(report['native_tests_exit_code'], 65)
+                cleanup = json.loads(next(root.glob('build/apple-replay-render/automatic/*/cleanup.json')).read_text())
+                self.assertTrue(cleanup[0]['actions'][0]['already_released'])
+
     def test_native_failure_and_owned_cleanup_survive_result_copy_failure(self):
         with tempfile.TemporaryDirectory() as work:
             root = Path(work)
