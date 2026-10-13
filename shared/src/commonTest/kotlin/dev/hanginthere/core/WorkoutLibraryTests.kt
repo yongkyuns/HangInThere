@@ -264,6 +264,14 @@ class WorkoutLibraryTests {
         val backup = WorkoutLibraryBackup.export(state(measured), listOf(measured))
         assertEquals(2.0, WorkoutLibraryBackup.decode(backup).measuredSummaries.single().activity!!.phases.single().observedStartedAt)
     }
+    @Test fun feedbackCannotAnnounceAnEmptySaveOrIgnoreCorrections() {
+        val empty = record("empty").copy(reps = emptyList(), activity = null)
+        val report = WorkoutFeedback.summary(empty)
+        assertEquals("No measurable practice", report.title); assertFalse(report.spokenCue.contains("saved", ignoreCase = true))
+        val corrected = edit(state(record("a")), "a", WorkoutReviewCorrection(attempts = listOf(WorkoutAttemptCorrection("a:rep:1", WorkoutAttemptClassification.practice))))
+        val feedback = WorkoutFeedback.summary(corrected, "a")
+        assertEquals(0, feedback.measuredCompletedReps); assertEquals(1, feedback.practiceAttempts)
+    }
     @Test fun replayBridgeDoesNotAssignAnEvaluationDateAsAWorkoutDate() {
         val bridge = WorkoutAnalysisBridge("replay", "pullUp", 0)
         val record = WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(bridge.setJson())

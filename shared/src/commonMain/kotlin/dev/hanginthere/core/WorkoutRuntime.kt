@@ -43,7 +43,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private val automaticStart=AutomaticWorkoutStart()
     private var qualifiedStartPose:PoseResult?=null
     var latestCompletedSet:WorkoutSetRecord?=null;private set
-    private fun captureCompletedSet(){if(session.phase==LiveSetSession.Phase.finished && session.record.hasPractice && latestCompletedSet?.id != session.setId) {
+    private fun captureCompletedSet(){if(session.phase==LiveSetSession.Phase.finished && !session.record.hasPractice) latestCompletedSet=null
+        else if(session.phase==LiveSetSession.Phase.finished && session.record.hasPractice && latestCompletedSet?.id != session.setId) {
         val record = session.record
         val end = nowEpochMilliseconds()?.takeIf { start -> record.trackedAtEpochMilliseconds?.let { start >= it } == true }
         latestCompletedSet = record.copy(trackedEndedAtEpochMilliseconds = end)

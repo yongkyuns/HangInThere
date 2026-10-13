@@ -903,8 +903,8 @@ final class LiveCameraPreviewController: NSObject {
             latestAfterSetReport = report
             speakWorkoutCue(report.spokenCue)
         }
+        latestCompletedWorkout = record.hasPractice ? record : nil
         guard record.hasPractice else { return }
-        latestCompletedWorkout = record
         workoutHistory.insert(record, at: 0)
         workoutHistory = Array(workoutHistory.prefix(50))
         persistWorkout(record, finalized: true)
