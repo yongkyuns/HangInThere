@@ -14,18 +14,20 @@ import java.io.Closeable
 import java.security.MessageDigest
 import java.util.concurrent.Executors
 
+/** Internal call diagnostics; no SDK handle or pixel ownership escapes. */
+internal data class GripHandInferenceResult(val hands:List<GripHandObservation>,val modelCalls:Int)
 /** The caller owns the SDK handle and source bitmap. Each wrist gets at most
  * two crop calls and one identity-valid result; valid hands skip the fallback. */
-internal fun inferGripHandCrops(bitmap:Bitmap,pose:PoseResult,hand:HandLandmarker,bodyPoints:List<GripBodyPoint>):List<GripHandObservation> {
+internal fun inferGripHandCrops(bitmap:Bitmap,pose:PoseResult,hand:HandLandmarker,context:GripObservation):GripHandInferenceResult {
     val hands=mutableListOf<GripHandObservation>()
-    val context=GripObservation(pose.timestamp.seconds,pose.imageSize,emptyList(),bodyPoints,emptyList(),WorkoutGripInference.modelId,"candidate identity")
-    for(request in WorkoutGripInference.handRequests(pose).take(2)) {
+    var modelCalls=0
+    for(request in WorkoutGripInference.handStageRequests(pose,context).take(2)) {
         for(region in request.regions.take(2)) {
             val cropped=Bitmap.createBitmap(bitmap,region.left,region.top,region.width,region.height)
             // createBitmap may return its input for a full-image rectangle.
             val owned=if(cropped===bitmap)checkNotNull(cropped.copy(Bitmap.Config.ARGB_8888,false)) else cropped
             val image=try { BitmapImageBuilder(owned).build() } catch(error:Exception) { owned.recycle();throw error }
-            val h=try { hand.detect(image) } finally { image.close() }
+            val h=try { modelCalls++;hand.detect(image) } finally { image.close() }
             val candidate=h.landmarks().mapIndexedNotNull { i,points ->
                 if(points.size!=21 || h.worldLandmarks().getOrNull(i)?.size!=21)return@mapIndexedNotNull null
                 val side=h.handedness().getOrNull(i)?.firstOrNull()
@@ -38,7 +40,7 @@ internal fun inferGripHandCrops(bitmap:Bitmap,pose:PoseResult,hand:HandLandmarke
             if(candidate!=null) { hands+=candidate;break }
         }
     }
-    return hands
+    return GripHandInferenceResult(hands,modelCalls)
 }
 private val GRIP_HAND_JOINTS=listOf(GripHandJoint.wrist to 0,GripHandJoint.indexMCP to 5,GripHandJoint.middleMCP to 9,GripHandJoint.pinkyMCP to 17,GripHandJoint.thumbCMC to 1,GripHandJoint.thumbTip to 4)
 
@@ -98,7 +100,7 @@ class GripInference(context: Context) : Closeable {
             GripBodyJoint.entries.firstOrNull { it.name==p.joint.name }?.let { GripTrackedPoint(it,p.position,p.confidence) }
         } ?: emptyList()
         val base=GripObservation(pose.timestamp.seconds,pose.imageSize,tracked,emptyList(),emptyList(),WorkoutGripInference.modelId,
-            "MediaPipe Android ${BuildConfig.POSE_RUNTIME_VERSION} CPU IMAGE crops_v${WorkoutGripInference.cropPolicyVersion}")
+            "MediaPipe Android ${BuildConfig.POSE_RUNTIME_VERSION} CPU IMAGE crops_v${WorkoutGripInference.cropPolicyVersion} body_preflight_v${WorkoutGripInference.bodyPreflightVersion}")
         if(tracked.size !in 4..6)return base.copy(failure="bodyTrackingUnavailable")
         return try {
             load();val body=body ?: return base.copy(failure="gripModelUnavailable");val hand=hand!!
@@ -111,8 +113,9 @@ class GripInference(context: Context) : Closeable {
                 GripBodyPoint(joint,Point2D(p.x().toDouble()*bitmap.width,p.y().toDouble()*bitmap.height),
                     GripVector3(w.x().toDouble(),w.y().toDouble(),w.z().toDouble()),minOf(p.visibility().orElse(0f),p.presence().orElse(0f)).toDouble())
             }
-            val hands=inferGripHandCrops(bitmap,pose,hand,bodyPoints)
-            base.copy(body=bodyPoints,hands=hands)
+            val context=base.copy(body=bodyPoints)
+            val hands=inferGripHandCrops(bitmap,pose,hand,context)
+            context.copy(hands=hands.hands)
         } catch(error:Exception) { if(hand==null || body==null)unavailable=true;base.copy(failure="gripInferenceUnavailable") }
     }
     fun reset() = synchronized(lock) { generation++;latest=null;lastSeconds=null }
