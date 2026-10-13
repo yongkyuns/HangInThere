@@ -19,7 +19,22 @@
 		ACB200000000000000000005 = {isa = PBXBuildFile; fileRef = ACB100000000000000000005;};
 		ACB100000000000000000006 = {isa = PBXFileReference; lastKnownFileType = file; path = "../models/grip/pose_landmarker_lite.task"; sourceTree = SOURCE_ROOT;};
 		ACB200000000000000000006 = {isa = PBXBuildFile; fileRef = ACB100000000000000000006;};
-		ACB300000000000000000001 = {isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "\"$SRCROOT/../scripts/prepare-grip-sdk.sh\""; name = "Prepare pinned grip SDK";};
+		ACB300000000000000000001 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			inputPaths = ();
+			outputPaths = (
+				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a",
+				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/MediaPipeTasksCommon.framework",
+				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/MediaPipeTasksVision.framework",
+			);
+			alwaysOutOfDate = 1;
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "\"$SRCROOT/../scripts/prepare-grip-sdk.sh\"";
+			name = "Prepare pinned grip SDK";
+		};
 		AAA100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/WorkoutProgression.swift"; sourceTree = "<group>";};
 		AAA200000000000000000004 = {isa = PBXBuildFile; fileRef = AAA100000000000000000004;};
 		AAA100000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutPracticeView.swift"; sourceTree = "<group>";};
