@@ -13,7 +13,7 @@ object WorkoutFeedback {
         val hold = record.activity?.let { if (record.exercise == ExerciseCounter.Exercise.pullUp) it.longestHangSeconds else it.longestSupportSeconds }
         val incomplete = record.reps.count { !it.isCompleteForAnalytics }
         val interrupted = record.endReason !in listOf("manual", "disengaged", "sourceEnded")
-        val title = if (interrupted) "Tracking stopped" else if (record.hasPractice) "Set recorded" else "No measurable practice"
+        val title = if (interrupted) "Tracking stopped" else if (record.hasPractice) "Set ended" else "No measurable practice"
         val message = when {
             interrupted -> "Available practice is captured. Missing observations do not establish a completed cycle."
             record.completedCount > 0 -> "Review measured return timing and both-arm evidence in your results."
@@ -28,16 +28,17 @@ object WorkoutFeedback {
     fun summary(state: WorkoutLibraryState, id: String): WorkoutAfterSetReport {
         WorkoutLibrary.validate(state)
         val record = requireNotNull(state.entries.firstOrNull { it.measured.id == id }?.measured)
-        val sets = WorkoutLibrary.sourceSets(state).filter { it.sourceSetId == id }
+        val sources = WorkoutLibrary.sourceSets(state)
+        val sets = sources.filter { it.sourceSetId == id }
         val key = sets.mapNotNull { it.comparisonKey }.distinct().singleOrNull()
         val goal = state.goals.firstOrNull { it.comparisonKey == key }?.goal?.takeIf { chosen ->
             record.trackedAtEpochMilliseconds?.let { time -> time >= (chosen.createdAtEpochMilliseconds ?: Long.MAX_VALUE) } == true }
-        val sources = WorkoutLibrary.sourceSets(state)
         val session = WorkoutInsights.sessions(sources).first { item -> item.setIds.any { part -> sets.any { it.id == part } } }
         val value = goal?.let { WorkoutInsights.goalValue(it, sources.filter { it.id in session.setIds && it.comparisonKey == key }) }
         val measured = sets.sumOf { it.measuredCompletedReps }; val practice = sets.sumOf { it.practiceAttempts }
         val raw = summary(record)
-        return raw.copy(measuredCompletedReps = measured, practiceAttempts = practice, observedHoldSeconds = sets.mapNotNull { it.holdSeconds }.maxOrNull(),
+        return raw.copy(title = if (raw.title == "Set ended") "Set recorded" else raw.title,
+            measuredCompletedReps = measured, practiceAttempts = practice, observedHoldSeconds = sets.mapNotNull { it.holdSeconds }.maxOrNull(),
             observation = if (measured != raw.measuredCompletedReps || practice != raw.practiceAttempts) "Review your corrected classification in the workout library; original measurements are preserved." else raw.observation,
             spokenCue = if (measured != raw.measuredCompletedReps || practice != raw.practiceAttempts) "$measured measured completed cycles. Results include your reviews." else raw.spokenCue,
             goalTarget = goal?.target, goalValue = value, goalMetric = goal?.metric)

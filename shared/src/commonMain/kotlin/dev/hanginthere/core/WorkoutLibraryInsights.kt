@@ -75,6 +75,7 @@ object WorkoutInsights {
         WorkoutLibrary.validate(state); require(now > 0 && offset in -840..840)
         val sets = WorkoutLibrary.sourceSets(state)
         val sessions = sessions(sets)
+        val sessionBySetId = buildMap { sessions.forEach { session -> session.setIds.forEach { put(it, session.id) } } }
         val keys = sets.mapNotNull { it.comparisonKey }.distinct().sorted()
         if (key != null) {
             require(key.length <= 1024)
@@ -84,8 +85,9 @@ object WorkoutInsights {
         val selected = key?.takeIf { it in keys } ?: keys.firstOrNull()
         val comparable = sets.filter { selected != null && it.comparisonKey == selected &&
             it.trackedAtEpochMilliseconds != null && it.trackedAtEpochMilliseconds <= now && (it.trackingCoverage ?: 0.0) >= .8 }
+        val comparableBySession = comparable.groupBy { sessionBySetId.getValue(it.id) }
         val points = sessions.mapNotNull { session ->
-            val members = comparable.filter { it.id in session.setIds }
+            val members = comparableBySession[session.id].orEmpty()
             if (members.isEmpty() || session.startedAtEpochMilliseconds == null) null else WorkoutComparablePoint(session.id,
                 members.minOf { it.trackedAtEpochMilliseconds!! }, members.mapNotNull { it.holdSeconds }.maxOrNull(),
                 members.sumOf { it.measuredCompletedReps }, members.mapNotNull { it.elbowExcursionDegrees }.maxOrNull(),
@@ -101,7 +103,7 @@ object WorkoutInsights {
         val suggestion = if (exercise != null && latest.size >= 3 && baseline != null && baseline > 0) WorkoutGoal(exercise, metric,
             if (metric == WorkoutGoalMetric.completedReps) ceil(baseline + 1).coerceAtMost(1000.0) else ceil(baseline + maxOf(1.0, baseline * .1)).coerceAtMost(3600.0), now) else null
         val chosen = state.goals.firstOrNull { it.comparisonKey == selected }?.goal
-        val goalValues = sessions.mapNotNull { session -> chosen?.let { goal -> goalValue(goal, comparable.filter { it.id in session.setIds }) } }
+        val goalValues = comparableBySession.values.mapNotNull { members -> chosen?.let { goal -> goalValue(goal, members) } }
         val goalBest = goalValues.maxOrNull()
         val plateau = if (latest.size >= 5 && baseline != null && baseline > 0) {
             val values = if (metric == WorkoutGoalMetric.completedReps) latest.map { it.measuredCompletedReps.toDouble() } else latest.mapNotNull { it.longestHoldSeconds }
@@ -134,16 +136,16 @@ object WorkoutInsights {
         val milestones = listOf(milestone("practice", "First recorded practice") { (it.totalHoldSeconds ?: 0.0) > 0 || it.practiceAttempts > 0 || it.measuredCompletedReps > 0 },
             milestone("rep", "First measured completed cycle") { it.measuredCompletedReps > 0 }) +
             listOf(5, 10, 20, 30).map { value -> milestone("hold-$value", "$value seconds of observed hold") { (it.holdSeconds ?: 0.0) >= value } }
-        val sessionMembers = sessions.associate { session -> session.id to session.setIds.toSet() }
-        val setsById = sets.associateBy { it.id }
+        val sessionsById = sessions.associateBy { it.id }
+        val sessionOrder = sessions.mapIndexed { index, session -> session.id to index }.toMap()
+        val eligibleByDay = sets.filter { (it.trackingCoverage ?: 0.0) >= .8 && it.trackedAtEpochMilliseconds?.let { time -> time <= now } == true }
+            .groupBy { localDay(it.trackedAtEpochMilliseconds!!, offset) }
         val plans = state.plans.map { plan ->
             fun matches(set: WorkoutReviewedSet, item: WorkoutPlanItem): Boolean =
                 set.comparisonKey != null && set.comparisonKey == item.context.comparisonKey(item.exercise, set.metricVersion, set.countPolicyVersion)
-            val eligibleBySession = sessionMembers.mapValues { (_, ids) -> ids.mapNotNull(setsById::get).filter { set ->
-                (set.trackingCoverage ?: 0.0) >= .8 && set.trackedAtEpochMilliseconds?.let { it <= now && localDay(it, offset) == plan.scheduledDay } == true &&
-                    plan.items.any { matches(set, it) }
-            } }
-            val candidateSessions = sessions.filter { eligibleBySession[it.id].orEmpty().isNotEmpty() }
+            val eligibleBySession = eligibleByDay[plan.scheduledDay].orEmpty().filter { set -> plan.items.any { matches(set, it) } }
+                .groupBy { sessionBySetId.getValue(it.id) }
+            val candidateSessions = eligibleBySession.keys.sortedBy { sessionOrder.getValue(it) }.map { sessionsById.getValue(it) }
             // A workout may satisfy one plan only when explicitly linked; unlinked plans remain descriptive previews.
             val session = if (plan.workoutId != null) candidateSessions.firstOrNull { it.id == plan.workoutId }
                 else candidateSessions.firstOrNull()

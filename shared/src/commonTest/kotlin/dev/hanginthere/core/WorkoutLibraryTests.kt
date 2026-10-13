@@ -46,6 +46,25 @@ class WorkoutLibraryTests {
         assertNull(projected.meanReturnSeconds)
         assertFalse(WorkoutInsights.report(edited, null, 200000, 0).milestones.single { it.id == "rep" }.achieved)
     }
+    @Test fun transientFeedbackDoesNotClaimDurablePublication() {
+        val original = record("one")
+        assertEquals("Set ended", WorkoutFeedback.summary(original).title)
+        assertEquals("Set recorded", WorkoutFeedback.summary(state(original), original.id).title)
+    }
+    @Test fun longHistoryKeepsGoalAndLinkedPlanEvidenceBeyondTheDisplayWindow() {
+        val records = (1..1000).map { record("set-$it", it * 86400000L) }
+        val indexed = state(*records.toTypedArray())
+        val reviews = WorkoutReviewLedger(records.mapIndexed { index, row -> WorkoutReviewEvent(index + 1, row.id, WorkoutReviewCorrection(context = context), 1001 * 86400000L) })
+        val key = context.comparisonKey(ExerciseCounter.Exercise.pullUp, 2, 8)!!
+        val goal = WorkoutLibraryGoal(key, WorkoutGoal(ExerciseCounter.Exercise.pullUp, WorkoutGoalMetric.holdSeconds, 8.0, 1))
+        val plan = WorkoutPlan("plan", "First recorded practice", 1, listOf(WorkoutPlanItem("item", ExerciseCounter.Exercise.pullUp, WorkoutGoalMetric.holdSeconds, 8.0, 1, context)), "session-set-1")
+        val library = indexed.copy(reviews = reviews, goals = listOf(goal), plans = listOf(plan))
+        val report = WorkoutInsights.report(library, key, 1001 * 86400000L, 0)
+        assertEquals(100, report.sessions.size); assertEquals(100, report.trend.size)
+        assertEquals(1000, report.practiceDays); assertEquals(8.0, report.goalBest); assertTrue(report.goalAchieved)
+        assertEquals("completed", report.plans.single().status); assertEquals(listOf("session-set-1"), report.plans.single().candidateWorkoutIds)
+        assertEquals(86400000L, report.milestones.single { it.id == "rep" }.achievedAtEpochMilliseconds)
+    }
     @Test fun userReportedClassificationNeverKeepsMeasuredCompletion() {
         val original = record("one")
         val edited = edit(state(original), "one", WorkoutReviewCorrection(context = context,
