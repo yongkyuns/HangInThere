@@ -152,6 +152,31 @@ class WorkoutGripTests {
         assertEquals(GripOrientation.unknown,WorkoutGripAnalysis.summary(record,0.0,3.0).orientation)
         assertEquals(GripWidth.unknown,WorkoutGripAnalysis.summary(record,0.0,2.0).width)
     }
+    @Test fun boundedJournalDeltasPreserveFullGripHistoryAndRejectChangedEvidence() {
+        val a=WorkoutGripAnalysis("set")
+        var journal:WorkoutGripRecord?=null
+        for(i in 0..100) {
+            a.observe(pose(i*.05,if(i%5==0)i*.05 else null),bar,ExerciseCounter.Phase.ready,true)
+            journal=WorkoutRecordCodec.mergeGrip(journal,a.delta)
+        }
+        a.observe(pose(6.0,null),bar,ExerciseCounter.Phase.ready,false)
+        journal=WorkoutRecordCodec.mergeGrip(journal,a.delta)
+        for(i in 0..50) {
+            val time=6.1+i*.05
+            a.observe(pose(time,if(i%5==0)time else null),bar,ExerciseCounter.Phase.ready,true)
+            journal=WorkoutRecordCodec.mergeGrip(journal,a.delta)
+        }
+        val merged=requireNotNull(journal)
+        assertEquals(a.record,merged)
+        assertEquals(merged,WorkoutRecordCodec.json.decodeFromString<WorkoutGripRecord>(WorkoutRecordCodec.json.encodeToString(merged)))
+        val span=merged.orientationSpans.first()
+        assertFailsWith<IllegalArgumentException> {
+            WorkoutRecordCodec.mergeGrip(merged,merged.copy(orientationSpans=listOf(span.copy(modelId="changed-model"))))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            WorkoutRecordCodec.mergeGrip(merged,merged.copy(orientationSpans=listOf(span.copy(observedSeconds=1000.0))))
+        }
+    }
     private fun record():WorkoutSetRecord {
         val a=WorkoutAnalysis("set",ExerciseCounter.Exercise.pullUp)
         a.observe(MotionSample(0.0,170.0,170.0,null,true,false),ExerciseCounter.Phase.ready,null)
