@@ -22,6 +22,32 @@ struct WorkoutAnalysisBridgeCheck {
             return PoseResult(timestamp: PresentationTime(value: Int64((time * 1000).rounded()), timescale: 1000),
                 imageSize: ImageSize(width: 1000, height: 1000), people: [PoseObservation(landmarks: landmarks)], backend: "synthetic bridge check", requestRevision: 0)
         }
+        let framingAdapter = WorkoutAnalysisAdapter()
+        let clearFraming = pose(0, 170, exercise: .pullUp)
+        let unclearPoints = clearFraming.people[0].landmarks.map { point in
+            Landmark(joint: point.joint, position: point.position, confidence: point.joint == .rightWrist ? 0.01 : point.confidence)
+        }
+        let unclearFraming = PoseResult(timestamp: clearFraming.timestamp, imageSize: clearFraming.imageSize,
+            people: [PoseObservation(landmarks: unclearPoints)], backend: clearFraming.backend, requestRevision: 0)
+        let duplicateFraming = PoseResult(timestamp: clearFraming.timestamp, imageSize: clearFraming.imageSize,
+            people: [PoseObservation(landmarks: clearFraming.people[0].landmarks + [clearFraming.people[0].landmarks[0]])],
+            backend: clearFraming.backend, requestRevision: 0)
+        guard framingAdapter.framingMessage(clearFraming, requireBothArms: true, side: .left) == nil,
+              framingAdapter.framingMessage(unclearFraming, requireBothArms: true, side: .left) == "Angle camera so both arms and hands are clear",
+              framingAdapter.framingMessage(unclearFraming, requireBothArms: false, side: .left) == nil,
+              framingAdapter.framingMessage(duplicateFraming, requireBothArms: true, side: .left) == "Pose unavailable · retry the camera" else {
+            fatalError("Shipping Apple framing transport changed geometry, duplicates or selected-arm fallback")
+        }
+        guard framingAdapter.setupFramingMessage(unclearFraming, idle: true, barConfirmed: true,
+                  automatic: false, pullUp: false, side: .right) == "Improve lighting · keep the selected arm and hand clear",
+              framingAdapter.setupFramingMessage(unclearFraming, idle: true, barConfirmed: true,
+                  automatic: false, pullUp: false, side: .left) == nil,
+              framingAdapter.setupFramingMessage(unclearFraming, idle: true, barConfirmed: true,
+                  automatic: true, pullUp: false, side: .left) == "Angle camera so both arms and hands are clear",
+              framingAdapter.setupFramingMessage(unclearFraming, idle: false, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .right) == nil else {
+            fatalError("Shipping Apple framing advice lost confirmed-dip fallback or leaked into a running set")
+        }
         for exercise in ExerciseCounter.Exercise.allCases {
             let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
             var counter = ExerciseCounter(exercise: exercise, side: .left)
@@ -349,7 +375,19 @@ struct WorkoutAnalysisBridgeCheck {
               gripAnalysis.gripLabel == "Underhand · Shoulder-width", gripSet.completedCount == 0 else {
             fatalError("Native Swift/shared grip transport or confirmation changed")
         }
-        let result: [String: Any] = ["gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+        var framingLatencies: [Double] = []
+        for _ in 0..<2000 {
+            let started = ContinuousClock.now
+            let message = framingAdapter.setupFramingMessage(unclearFraming, idle: true, barConfirmed: false,
+                automatic: true, pullUp: true, side: .left)
+            let elapsed = started.duration(to: .now).components
+            framingLatencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
+            guard message == "Angle camera so both arms and hands are clear" else { fatalError("Framing result was not consumed") }
+        }
+        framingLatencies.sort()
+        let framingP95 = framingLatencies[Int(Double(framingLatencies.count - 1) * 0.95)]
+        guard framingP95 < 5 else { fatalError("Framing host FFI p95 exceeds 5 ms budget: \(framingP95)") }
+        let result: [String: Any] = ["framingCases": 8, "framingFrames": 2000, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         // Actual shipping Swift → Kotlin normalization, checked again by the

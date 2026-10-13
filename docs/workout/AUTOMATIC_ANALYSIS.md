@@ -14,6 +14,20 @@ migration; this change does not claim that either pose SDK is shared.
 
 ## Attempt evidence and uncertainty
 
+Live setup uses shared `WorkoutFramingGuidance` in the existing video caption.
+It distinguishes clipped/missing arm joints, a poor view of one arm, weak pose
+visibility, and malformed SDK evidence. A 3% margin of the image's shorter side
+suggests more room around measurable arms; it is a presentation default, not an
+eligibility threshold. Native Apple transport and Android use the same raw-joint
+policy, preserving duplicate joints and scores rather than sanitizing them.
+Advice clears on fresh usable framing and camera/selection invalidation, and is
+hidden during running or finished sets. A confirmed manual dip still permits
+the selected arm; automatic acquisition still needs both arms. Advice never
+changes setup, count, phase-credit or camera-stability gates and cannot repair
+an obscured arm in a saved video. The original failed evaluation clips remain
+fatal accuracy checks. Common tests, shipping Apple FFI contracts/performance,
+and narrow/wide overlay renders cover this path in CI.
+
 Roadmap [#31](https://github.com/yongkyuns/HangInThere/issues/31) begins with
 `WorkoutEvidence`, a shared, versioned review projection. Both apps distinguish
 completed cycles, active attempts, counter-observed partial movements, acceptance

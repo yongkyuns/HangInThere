@@ -170,7 +170,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 manual -> if (firstTap == null) "Tap one end of the visible edge" else "Tap the other end"
                 state.finished -> "Video evaluated · ${snapshot?.observedMovements ?: 0} movements"
                 running -> state.result?.cue.orEmpty()
-                snapshot?.setupIssue != null -> setupText(snapshot.setupIssue!!)
+                snapshot?.setupIssue != null -> snapshot.framingHint ?: setupText(snapshot.setupIssue!!)
                 else -> "Hold a hang or top support · show both hands"
             }
             if(running && !state.interrupted) state.result?.currentSet?.grip?.latest?.let { grip ->

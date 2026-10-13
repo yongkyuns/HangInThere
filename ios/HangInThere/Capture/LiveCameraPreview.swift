@@ -204,6 +204,10 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var cameraPosition: LiveCameraPosition = .rear
     private(set) var isSwitchingCamera = false
     private(set) var framing = LiveFramingAssessment()
+    private var latestFramingHint: String?
+    var framingHint: String? {
+        liveSet.phase == .idle ? latestFramingHint : nil
+    }
     private(set) var analyzedFrames = 0
     private(set) var droppedFrames = 0
     private(set) var analysisFailures = 0
@@ -314,6 +318,7 @@ final class LiveCameraPreviewController: NSObject {
         clearBar()
         latestFrame = nil
         framing = LiveFramingAssessment()
+        latestFramingHint = nil
 
         // Also tear down a stopped session so a later start uses the new input.
         // Selecting before opening setup must not request permission or start capture.
@@ -619,12 +624,20 @@ final class LiveCameraPreviewController: NSObject {
         trackingSide = side
         clearBar()
         liveSet.reset(exercise: exercise, side: side)
-        if let latestFrame {
-            framing = LiveFramingAssessment(pose: latestFrame.pose, side: side,
-                usesBothArms: exerciseSelection == .automatic || exercise == .pullUp)
-        } else {
+        updateFraming(latestFrame?.pose)
+    }
+
+    private func updateFraming(_ pose: PoseResult?) {
+        guard let pose else {
             framing = LiveFramingAssessment()
+            latestFramingHint = nil
+            return
         }
+        framing = LiveFramingAssessment(pose: pose, side: trackingSide,
+            usesBothArms: exerciseSelection == .automatic || exercise == .pullUp)
+        latestFramingHint = workoutAnalysis.setupFramingMessage(pose, idle: liveSet.phase == .idle,
+            barConfirmed: bar != nil, automatic: exerciseSelection == .automatic, pullUp: exercise == .pullUp,
+            side: trackingSide)
     }
 
     // Also exercised without starting capture in controller regression tests.
@@ -846,6 +859,7 @@ final class LiveCameraPreviewController: NSObject {
         sceneRegistrationTask = nil
         lastSceneRegistrationSeconds = nil
         self.bar = bar
+        updateFraming(latestFrame?.pose)
         if debugCaptureState.isActive {
             debugCaptureBarSnapshot = bar
         }
@@ -1066,6 +1080,7 @@ final class LiveCameraPreviewController: NSObject {
         discardNextSetFrame = false
         liveSet.reset(exercise: exercise, side: trackingSide)
         framing = LiveFramingAssessment()
+        latestFramingHint = nil
 
         do {
             try configureIfNeeded()
@@ -1083,6 +1098,7 @@ final class LiveCameraPreviewController: NSObject {
 
         startMotionMonitoring()
         framing = LiveFramingAssessment()
+        latestFramingHint = nil
         state = .starting
         await setCaptureRunning(true)
         guard startRequested else { return }
@@ -1112,6 +1128,7 @@ final class LiveCameraPreviewController: NSObject {
             state = .idle
         }
         framing = LiveFramingAssessment()
+        latestFramingHint = nil
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
@@ -1282,6 +1299,7 @@ final class LiveCameraPreviewController: NSObject {
         suspended = true
         state = .interrupted(message)
         framing = LiveFramingAssessment()
+        latestFramingHint = nil
         latestFrame = nil
         setupGeneration &+= 1
         bar = nil
@@ -1607,8 +1625,7 @@ final class LiveCameraPreviewController: NSObject {
             if let cue = workoutAnalysis.trackingSpokenCue(isRunning: liveSet.phase == .running, issue: liveSet.trackingIssue) { speakWorkoutCue(cue) }
             lastProcessingMilliseconds = frame.processingMilliseconds
             observeExerciseSelection(frame.pose)
-            framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide,
-                usesBothArms: exerciseSelection == .automatic || exercise == .pullUp)
+            updateFraming(frame.pose)
             maybeFindAutomaticBar(frame)
             maybeCheckSceneTranslation(frame)
             recordQualificationSample()
@@ -1663,6 +1680,7 @@ final class LiveCameraPreviewController: NSObject {
             latestFrame = nil
             lastProcessingMilliseconds = nil
             framing = LiveFramingAssessment(state: .analysisUnavailable)
+            latestFramingHint = nil
             liveSet.interrupt(reason: "inferenceFailure")
             analyzer?.resetGripInference()
             workoutAnalysis.interrupt(reason: "inferenceFailure")

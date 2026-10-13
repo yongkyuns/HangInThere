@@ -66,6 +66,7 @@ struct LiveSetupView: View {
     // Auto needs both starting chains to identify the exercise. This is display
     // guidance only; an obscured arm may still fall back during a running set.
     private var automaticExerciseGuidance: String {
+        if let hint = camera.framingHint { return hint }
         if let pose = camera.latestPose, PullUpArmMeasurement(pose: pose).arms.count != 2 {
             return "Show both arms and hands clearly"
         }
@@ -91,7 +92,7 @@ struct LiveSetupView: View {
                     cameraReady: camera.isCameraReady,
                     status: overlayStatus,
                     statusSymbol: overlayStatusSymbol,
-                    needsAttention: camera.liveSet.trackingIssue != nil || camera.automaticBarState == .ambiguous,
+                    needsAttention: camera.framingHint != nil || camera.liveSet.trackingIssue != nil || camera.automaticBarState == .ambiguous,
                     showsManualStart: !camera.handsFreeStartEnabled,
                     canStart: camera.setupReadiness.state.isReady,
                     canSwitchCamera: camera.canSwitchCamera,
@@ -190,6 +191,7 @@ struct LiveSetupView: View {
             case .finished: return "Set complete"
             }
         }
+        if let hint = camera.framingHint { return hint }
         if !camera.framing.state.isReady { return camera.framing.title }
         if isDetectingExercise { return automaticExerciseGuidance }
         if camera.currentBar == nil {

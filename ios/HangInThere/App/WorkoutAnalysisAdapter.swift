@@ -30,6 +30,7 @@ final class WorkoutAnalysisAdapter {
     private(set) var setId = UUID().uuidString
     @ObservationIgnored private lazy var engine = makeEngine(exercise: .pullUp)
     @ObservationIgnored private var jointIndices: [PoseJoint: Int32] = [:]
+    @ObservationIgnored private lazy var framingBridge = WorkoutFramingBridge()
     @ObservationIgnored private var revision: Int32 = -1
     private(set) var reps: [WorkoutRepRecord] = []
     private(set) var currentRecord: WorkoutSetRecord?
@@ -72,11 +73,7 @@ final class WorkoutAnalysisAdapter {
         setId = UUID().uuidString
         engine = makeEngine(exercise: exercise, recordCalendarTime: recordCalendarTime)
         precondition(engine.policyVersion == ExerciseCounter.policyVersion, "Counting policy versions differ")
-        let names = engine.jointNames
-        jointIndices = Dictionary(uniqueKeysWithValues: PoseJoint.allCases.map { joint in
-            guard let index = names.firstIndex(of: joint.rawValue) else { preconditionFailure("Unsupported pose joint: \(joint)") }
-            return (joint, Int32(index))
-        })
+        jointIndices = makeJointIndices(engine.jointNames)
         gripTimestamp = nil
         revision = -1; reps = []; currentRecord = nil; error = nil; pendingDraft = nil
     }
@@ -84,15 +81,14 @@ final class WorkoutAnalysisAdapter {
     func observationOutage(elapsed: Double) -> Bool { WorkoutLifecycle.shared.observationOutage(elapsedSeconds: elapsed) }
     func ready(seconds: Double, eligible: Bool) -> Bool { engine.ready(seconds: seconds, eligible: eligible) }
     func resetReadiness() { engine.resetReadiness() }
-    func consume(_ pose: PoseResult, reference: BarSegment?, counter: ExerciseCounter,
-                 event: ExerciseCounter.Event?, automaticFinish: Bool) -> LiveSetSession.EndReason? {
-        if pose.gripObservation?.seconds != gripTimestamp {
-            do {
-                let json = try pose.gripObservation.map { String(decoding: try JSONEncoder().encode($0), as: UTF8.self) }
-                try engine.gripObservationJson(input: json)
-                gripTimestamp = pose.gripObservation?.seconds
-            } catch { try? engine.gripObservationJson(input: nil); gripTimestamp = nil }
-        }
+    private func makeJointIndices(_ names: [String]) -> [PoseJoint: Int32] {
+        Dictionary(uniqueKeysWithValues: PoseJoint.allCases.map { joint in
+            guard let index = names.firstIndex(of: joint.rawValue) else { preconditionFailure("Unsupported pose joint: \(joint)") }
+            return (joint, Int32(index))
+        })
+    }
+    private func poseTransport(_ pose: PoseResult) -> (joints: KotlinIntArray, triples: KotlinDoubleArray) {
+        if jointIndices.isEmpty { jointIndices = makeJointIndices(framingBridge.jointNames) }
         let points = pose.people.count == 1 ? pose.people[0].landmarks : []
         let joints = KotlinIntArray(size: Int32(points.count))
         let triples = KotlinDoubleArray(size: Int32(points.count * 3))
@@ -102,6 +98,36 @@ final class WorkoutAnalysisAdapter {
             triples.set(index: Int32(i * 3 + 1), value: point.position.y)
             triples.set(index: Int32(i * 3 + 2), value: point.confidence)
         }
+        return (joints, triples)
+    }
+    func framingMessage(_ pose: PoseResult, requireBothArms: Bool, side: ArmMeasurement.Side) -> String? {
+        let payload = poseTransport(pose)
+        do {
+            return try framingBridge.message(width: pose.imageSize.width, height: pose.imageSize.height,
+                peopleCount: Int32(pose.people.count), joints: payload.joints, triples: payload.triples,
+                requireBothArms: requireBothArms, side: side.rawValue)
+        } catch { return "Pose unavailable · retry the camera" }
+    }
+    func setupFramingMessage(_ pose: PoseResult, idle: Bool, barConfirmed: Bool, automatic: Bool,
+                             pullUp: Bool, side: ArmMeasurement.Side) -> String? {
+        let payload = poseTransport(pose)
+        do {
+            return try framingBridge.setupMessage(width: pose.imageSize.width, height: pose.imageSize.height,
+                peopleCount: Int32(pose.people.count), joints: payload.joints, triples: payload.triples,
+                idle: idle, barConfirmed: barConfirmed, automatic: automatic, pullUp: pullUp,
+                side: side.rawValue)
+        } catch { return "Pose unavailable · retry the camera" }
+    }
+    func consume(_ pose: PoseResult, reference: BarSegment?, counter: ExerciseCounter,
+                 event: ExerciseCounter.Event?, automaticFinish: Bool) -> LiveSetSession.EndReason? {
+        if pose.gripObservation?.seconds != gripTimestamp {
+            do {
+                let json = try pose.gripObservation.map { String(decoding: try JSONEncoder().encode($0), as: UTF8.self) }
+                try engine.gripObservationJson(input: json)
+                gripTimestamp = pose.gripObservation?.seconds
+            } catch { try? engine.gripObservationJson(input: nil); gripTimestamp = nil }
+        }
+        let payload = poseTransport(pose)
         let referenceArray = KotlinDoubleArray(size: reference == nil ? 0 : 4)
         if let reference {
             for (i, value) in [reference.a.x, reference.a.y, reference.b.x, reference.b.y].enumerated() {
@@ -109,8 +135,8 @@ final class WorkoutAnalysisAdapter {
             }
         }
         let end = engine.observe(seconds: pose.timestamp.seconds, width: pose.imageSize.width,
-            height: pose.imageSize.height, peopleCount: Int32(pose.people.count), joints: joints,
-            triples: triples, reference: referenceArray, phase: counter.phase.rawValue,
+            height: pose.imageSize.height, peopleCount: Int32(pose.people.count), joints: payload.joints,
+            triples: payload.triples, reference: referenceArray, phase: counter.phase.rawValue,
             usable: reference != nil && counter.trackingIssue == nil, backend: pose.backend,
             modelRevision: Int32(pose.requestRevision), trackingSide: counter.side.rawValue, eventOutcome: event?.outcome.rawValue,
             eventTime: event?.sourceSeconds ?? 0, eventReason: event?.reason,

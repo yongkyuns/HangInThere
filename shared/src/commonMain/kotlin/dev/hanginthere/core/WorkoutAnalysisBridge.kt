@@ -36,7 +36,7 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
                 eventReason: String?, hasActivity: Boolean, automaticFinish: Boolean): String? {
         sourceTimeline.observe(seconds)
         this.backend=backend;this.modelRevision=modelRevision
-        val pose = pose(seconds, width, height, peopleCount, joints, triples).copy(gripObservation=gripObservation)
+        val pose = workoutBridgePose(seconds, width, height, peopleCount, joints, triples).copy(gripObservation=gripObservation)
         val bar = if (reference.size == 4) BarSegment(Point2D(reference[0], reference[1]), Point2D(reference[2], reference[3])) else null
         this.trackingSide=ArmMeasurement.Side.valueOf(trackingSide)
         if(imageSize==null) imageSize=pose.imageSize
@@ -63,13 +63,14 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
             trackedAtEpochMilliseconds=trackedAtEpochMilliseconds.takeIf { it > 0 },activity=activity,grip=grip))
     fun recordsJson() = analysis.recordsJson()
     fun lastClosedRecordJson():String? = analysis.records.lastOrNull()?.let{WorkoutAnalysis.json.encodeToString(it)}
-    private fun pose(seconds: Double, width: Double, height: Double, peopleCount: Int, joints: IntArray, triples: DoubleArray): PoseResult {
-        require(triples.size == joints.size * 3)
-        val landmarks = joints.mapIndexed { i, joint ->
-            Landmark(PoseJoint.entries[joint], Point2D(triples[i * 3], triples[i * 3 + 1]), triples[i * 3 + 2])
-        }
-        return PoseResult(PresentationTime((seconds * 1_000_000).toLong(), 1_000_000), ImageSize(width, height),
-            when (peopleCount) { 0 -> emptyList(); 1 -> listOf(PoseObservation(landmarks)); else -> List(peopleCount.coerceAtMost(2)) { PoseObservation(emptyList()) } },
-            "native adapter", 0)
+}
+
+internal fun workoutBridgePose(seconds: Double, width: Double, height: Double, peopleCount: Int, joints: IntArray, triples: DoubleArray): PoseResult {
+    require(triples.size == joints.size * 3)
+    val landmarks = joints.mapIndexed { i, joint ->
+        Landmark(PoseJoint.entries[joint], Point2D(triples[i * 3], triples[i * 3 + 1]), triples[i * 3 + 2])
     }
+    return PoseResult(PresentationTime((seconds * 1_000_000).toLong(), 1_000_000), ImageSize(width, height),
+        when (peopleCount) { 0 -> emptyList(); 1 -> listOf(PoseObservation(landmarks)); else -> List(peopleCount.coerceAtMost(2)) { PoseObservation(emptyList()) } },
+        "native adapter", 0)
 }

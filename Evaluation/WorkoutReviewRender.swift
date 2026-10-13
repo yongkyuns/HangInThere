@@ -177,6 +177,27 @@ import WorkoutCore
                 }
             }
         }
+        for (name, message, token) in [
+            ("clipped", "Move phone back · keep shoulders, elbows and hands in frame", "movephoneback"),
+            ("margin", "Move phone back · leave room around arms and hands", "movephoneback"),
+            ("angle", "Angle camera so both arms and hands are clear", "anglecamera"),
+            ("selected", "Adjust the view so the selected arm and hand are clear", "adjusttheview"),
+            ("visibility", "Improve lighting · keep arms and hands clear", "improvelighting"),
+            ("visibility-selected", "Improve lighting · keep the selected arm and hand clear", "improvelighting"),
+            ("unavailable", "Pose unavailable · retry the camera", "poseunavailable")
+        ] {
+            for width in [320.0, 430.0] {
+                let content = LiveWorkoutOverlay(session: LiveSetSession(), cameraReady: true,
+                    status: message, statusSymbol: "viewfinder", needsAttention: true,
+                    showsManualStart: false, canStart: false, canSwitchCamera: true, nextCameraName: "front",
+                    isRecording: false, countdown: nil, canClose: true,
+                    onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                    .frame(width: width, height: 760).background(Color(white: 0.18))
+                let filename = "framing-\(name)-\(Int(width)).png"
+                let text = try render(content, width: width, height: 760, filename: filename)
+                verify(text.contains { $0.contains(token) }, "Actionable framing advice is missing", filename: filename)
+            }
+        }
         for exercise in ExerciseCounter.Exercise.allCases {
             var running = LiveSetSession(); running.start(exercise: exercise, side: .left)
             var ended = running; ended.finish()

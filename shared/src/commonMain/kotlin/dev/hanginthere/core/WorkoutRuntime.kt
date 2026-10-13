@@ -36,6 +36,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         val latestCompletedSet:WorkoutSetRecord?=null,
         val activeSetId:String?=null,
         val trackingIssue:String?=null,
+        val framingHint:String?=null,
     )
     var selection=selection;private set
     var side=side;private set
@@ -64,11 +65,12 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private var replayReview=false
     private var issue:String?="waitingForFrame"
     private var generation=0
+    private var framingHint:String?=null
     init {session.reset(activeExercise,side);session.automaticFinishEnabled=automaticWorkouts}
     val resolvedExercise get()=selection.exercise ?: replayExercise ?: identity.exercise
     /** Apparatus can precede stable Auto identity; recorded acquisition must await both. */
     val isReplayAcquisitionReady get() = confirmedBar != null && resolvedExercise != null
-    val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview,latestCompletedSet,session.setId.takeIf { session.phase==LiveSetSession.Phase.running },session.trackingIssue)
+    val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview,latestCompletedSet,session.setId.takeIf { session.phase==LiveSetSession.Phase.running },session.trackingIssue,framingHint.takeIf { session.phase==LiveSetSession.Phase.idle && issue in listOf("framingIncomplete", "barReferenceNeeded", "exerciseIdentityNeeded") })
 
     fun configure(selection:WorkoutExerciseSelection,side:ArmMeasurement.Side=this.side) {
         if(session.phase==LiveSetSession.Phase.running || (this.selection==selection && this.side==side)) return
@@ -83,6 +85,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     }
     fun observe(input:FrameInput):Snapshot {
         val pose=input.pose;val seconds=pose.timestamp.seconds
+        framingHint=null
         if(automaticWorkouts && !replayReview && session.phase==LiveSetSession.Phase.finished && WorkoutLifecycle.shouldResume(session.endReason?.name)){val lost=session.endReason==LiveSetSession.EndReason.trackingLost;captureCompletedSet();nextSet();if(lost) clearSetup()}
         if(!input.cameraReady){interrupt(LiveSetSession.EndReason.cameraFailure);issue="cameraUnavailable";return snapshot}
         if(confirmedBar!=null && confirmedBar!!.imageSize!=pose.imageSize){interrupt(LiveSetSession.EndReason.setupInvalidated);issue="barReferenceUnavailable";return snapshot}
@@ -144,6 +147,9 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             input.paused -> "paused"
             else -> null
         }
+        framingHint=WorkoutFramingGuidance.setupMessage(pose, idle=session.phase==LiveSetSession.Phase.idle,
+            barConfirmed=bar!=null, automatic=selection==WorkoutExerciseSelection.automatic,
+            pullUp=activeExercise==ExerciseCounter.Exercise.pullUp, side=side)
         if(replayReview && session.phase==LiveSetSession.Phase.idle) {
             // A recording has no spoken start cue. Preserve the entire source
             // timeline once its actual background registration qualifies. Even
@@ -204,7 +210,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     }
     private fun expectedRole()=if(activeExercise==ExerciseCounter.Exercise.pullUp) ConfirmedBar.Role.pullUpGrip else if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail
     private fun clearAcquisition(){apparatus.reset();lastAcquisitionSeconds=null;handsFreeStart.reset();automaticStart.reset()}
-    private fun clearSetup(){clearAcquisition();confirmedBar=null;phoneOrientation.reset();staticScene.reset();generation++;issue="barReferenceNeeded"}
+    private fun clearSetup(){clearAcquisition();confirmedBar=null;phoneOrientation.reset();staticScene.reset();generation++;issue="barReferenceNeeded";framingHint=null}
     companion object {
         const val motionMaximumAgeSeconds=.5
         const val sceneMaximumAgeSeconds=.8
