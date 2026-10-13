@@ -73,9 +73,10 @@ def prepare(output):
     output.mkdir(parents=True,exist_ok=True)
     inputs=output/'inputs.json';inputs.write_text(json.dumps(cases,allow_nan=False))
     binary=output/'swift-workout-oracle'
-    names=['PoseObservation','Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement',
-           'DipSupportMeasurement','PullUpProgress','DipProgress','ExerciseCounter']
-    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'ios/HangInThere/Analysis'/f'{x}.swift') for x in names]+[str(ROOT/'Evaluation/WorkoutOracle.swift')],check=True)
+    # Match the other native harnesses: this layer contains SDK-free policy and
+    # transport types, including optional metadata referenced by PoseResult.
+    sources=sorted((ROOT/'ios/HangInThere/Analysis').glob('*.swift'))
+    subprocess.run(['swiftc','-O','-o',str(binary)]+list(map(str,sources))+[str(ROOT/'Evaluation/WorkoutOracle.swift')],check=True)
     temporary=output/'oracle.json.tmp'
     with temporary.open('w') as out: subprocess.run([str(binary),str(inputs)],stdout=out,check=True)
     temporary.replace(output/'oracle.json')

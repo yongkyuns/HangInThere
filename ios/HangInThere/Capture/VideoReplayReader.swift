@@ -4,6 +4,12 @@ import Dispatch
 import Foundation
 import os
 
+protocol GripObservationScheduling: Sendable {
+    func observe(image: CGImage, pose: PoseResult) -> WorkoutGripObservation?
+    func reset()
+    func setEnabled(_ enabled: Bool)
+}
+
 struct VideoInfo: Sendable {
     let durationSeconds: Double
 }
@@ -73,8 +79,11 @@ enum ReplayError: LocalizedError {
 // a Swift cooperative worker while a framework waits for its own producer.
 // Dispatch owns thread scheduling; the actor still checks isolation and the
 // controller still requests one frame at a time.
-private final class ReplayExecutor: SerialExecutor {
-    private let queue = DispatchQueue(label: "dev.hanginthere.replay", qos: .userInitiated)
+final class NativeFrameExecutor: SerialExecutor {
+    private let queue: DispatchQueue
+    init(label: String = "dev.hanginthere.replay", qos: DispatchQoS = .userInitiated) {
+        queue = DispatchQueue(label: label, qos: qos)
+    }
 
     func enqueue(_ job: consuming ExecutorJob) {
         let unownedJob = UnownedJob(job)
@@ -89,7 +98,7 @@ private final class ReplayExecutor: SerialExecutor {
 // The main actor only receives immutable CGImages and Sendable observation data.
 // One nextFrame() call consumes exactly one source frame; no frame queue or timer.
 actor VideoReplayReader {
-    private nonisolated let executor = ReplayExecutor()
+    private nonisolated let executor = NativeFrameExecutor()
     nonisolated var unownedExecutor: UnownedSerialExecutor { executor.asUnownedSerialExecutor() }
 
     private var reader: AVAssetReader?
@@ -103,11 +112,13 @@ actor VideoReplayReader {
     private var context: CIContext?
     private let estimator: any PoseEstimator
     private let trace: ReplayTrace.Handler?
+    private let gripObserver: (any GripObservationScheduling)?
     private let maximumDimension = 1280.0
 
-    init(estimator: any PoseEstimator = VisionPoseEstimator(), trace: ReplayTrace.Handler? = nil) {
+    init(estimator: any PoseEstimator = VisionPoseEstimator(), trace: ReplayTrace.Handler? = nil, gripObserver: (any GripObservationScheduling)? = nil) {
         self.estimator = estimator
         self.trace = trace
+        self.gripObserver = gripObserver
     }
 
     func open(_ source: URL) async throws -> VideoInfo {
@@ -134,9 +145,14 @@ actor VideoReplayReader {
         return copy
     }
 
+    func setGripInferenceEnabled(_ enabled: Bool) {
+        gripObserver?.setEnabled(enabled)
+    }
+
     func rewind() async throws -> VideoInfo {
         guard let localURL else { throw ReplayError.notOpen }
         generation &+= 1
+        gripObserver?.reset()
         let token = generation
         measure(.rewindCancellation) {
             reader?.cancelReading()
@@ -264,10 +280,11 @@ actor VideoReplayReader {
                 throw ReplayError.decoding("The oriented image could not be rendered.")
             }
             try discard?.check()
-            let pose = try measure(.estimation, sourceSeconds: timestamp.seconds) {
+            var pose = try measure(.estimation, sourceSeconds: timestamp.seconds) {
                 try estimator.estimate(image: image, timestamp: timestamp)
             }
             try discard?.check()
+            pose.gripObservation = gripObserver?.observe(image: image, pose: pose)
             let milliseconds = ReplayTrace.milliseconds(since: started)
             return ProcessedFrame(image: image, pose: pose, processingMilliseconds: milliseconds)
         }
@@ -293,6 +310,7 @@ actor VideoReplayReader {
     }
 
     func close() {
+        gripObserver?.reset()
         generation &+= 1
         reader?.cancelReading()
         reader = nil

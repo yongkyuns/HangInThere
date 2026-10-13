@@ -47,4 +47,5 @@ data class PoseResult(
     val people: List<PoseObservation>,
     val backend: String,
     val requestRevision: Int,
+    val gripObservation: GripObservation? = null,
 )

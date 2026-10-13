@@ -8,6 +8,7 @@ struct LiveWorkoutOverlay: View {
     var showsSetStarted = false
     var activity: WorkoutActivity? = nil
     var exerciseTitle: String? = nil
+    var gripLabel: String? = nil
     let cameraReady: Bool
     let status: String
     let statusSymbol: String
@@ -155,6 +156,11 @@ struct LiveWorkoutOverlay: View {
                         .accessibilityIdentifier("liveCameraSelection")
                 }
             case .running:
+                if let gripLabel, session.exercise == .pullUp {
+                    Text("Estimated · " + gripLabel).font(.caption.weight(.medium)).foregroundStyle(.white)
+                        .padding(.horizontal, 12).padding(.vertical, 6)
+                        .background(.black.opacity(0.7), in: Capsule()).accessibilityIdentifier("liveGripLabel")
+                }
                 if let span = activity?.phases.last, span.phase == "hang" || span.phase == "support" {
                     Text("\(span.phase == "hang" ? "Hang" : "Top support") · \(String(format: "%.1f s", span.observedSeconds))")
                         .font(.headline.monospacedDigit()).foregroundStyle(.mint)

@@ -131,15 +131,21 @@ private enum LiveAnalyzerEvent: Sendable {
 private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let context = CIContext(options: [.cacheIntermediates: false])
     private let estimator: any PoseEstimator
+    private let gripInference = GripInferenceScheduler()
     private let publish: @Sendable (LiveAnalyzerEvent) -> Void
 
     init(
         estimator: any PoseEstimator = VisionPoseEstimator(),
+        gripEnabled: Bool = true,
         publish: @escaping @Sendable (LiveAnalyzerEvent) -> Void
     ) {
         self.estimator = estimator
+        gripInference.setEnabled(gripEnabled)
         self.publish = publish
     }
+
+    func setGripEnabled(_ enabled: Bool) { gripInference.setEnabled(enabled) }
+    func resetGripInference() { gripInference.reset() }
 
     func captureOutput(
         _ output: AVCaptureOutput,
@@ -163,10 +169,11 @@ private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleB
             }
 
             do {
-                let pose = try estimator.estimate(
+                var pose = try estimator.estimate(
                     image: image,
                     timestamp: PresentationTime(value: pts.value, timescale: pts.timescale)
                 )
+                pose.gripObservation = gripInference.observe(image: image, pose: pose)
                 let duration = started.duration(to: .now).components
                 let milliseconds = Double(duration.seconds) * 1_000
                     + Double(duration.attoseconds) / 1e15
@@ -215,6 +222,7 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var workoutHistory: [WorkoutSetRecord] = []
     private(set) var workoutStorageError: String?
     var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
+    var gripLabel: String? { liveSet.phase == .running ? workoutAnalysis.gripLabel : nil }
     var activeWorkoutRecord: WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.currentRecord : nil }
     func workoutRecordForReview() -> WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.reviewRecord() : nil }
     var showsSetStarted: Bool { workoutAnalysis.showsSetStarted }
@@ -680,6 +688,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func resetAutomaticBarSetup() {
+        analyzer?.resetGripInference()
         resetHandsFreeStart()
         automaticBarTask?.cancel()
         automaticBarTask = nil
@@ -1197,7 +1206,7 @@ final class LiveCameraPreviewController: NSObject {
         let eventStream = AsyncStream<LiveAnalyzerEvent>(
             bufferingPolicy: .bufferingNewest(1)
         ) { continuation in
-            let analyzer = LiveFrameAnalyzer { event in
+            let analyzer = LiveFrameAnalyzer(gripEnabled: resolvedExercise != .dip) { event in
                 continuation.yield(event)
             }
             self.analyzer = analyzer
@@ -1534,6 +1543,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func accept(_ event: LiveAnalyzerEvent) {
+        analyzer?.setGripEnabled(resolvedExercise != .dip)
         guard startRequested, !suspended, state == .ready else { return }
 
         switch event {
@@ -1630,6 +1640,7 @@ final class LiveCameraPreviewController: NSObject {
             lastProcessingMilliseconds = nil
             framing = LiveFramingAssessment(state: .analysisUnavailable)
             liveSet.interrupt(reason: "inferenceFailure")
+            analyzer?.resetGripInference()
             workoutAnalysis.interrupt(reason: "inferenceFailure")
         }
     }

@@ -37,6 +37,7 @@ final class ReplayController {
     @ObservationIgnored private var firstSourceTime = 0.0
     @ObservationIgnored private let estimator: any PoseEstimator
     @ObservationIgnored private let trace: ReplayTrace.Handler?
+    @ObservationIgnored private let gripObserverFactory: (@Sendable (ExerciseCounter.Exercise) -> any GripObservationScheduling)?
     @ObservationIgnored private var reader: VideoReplayReader
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private var pending: ProcessedFrame?
@@ -50,11 +51,12 @@ final class ReplayController {
     @ObservationIgnored private var lastAutomaticBarSeconds: Double?
 
     init(estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector(),
-         trace: ReplayTrace.Handler? = nil) {
+         trace: ReplayTrace.Handler? = nil, gripObserverFactory: (@Sendable (ExerciseCounter.Exercise) -> any GripObservationScheduling)? = nil) {
         self.estimator = estimator
         self.trace = trace
+        self.gripObserverFactory = gripObserverFactory
         self.barDetector = barDetector
-        self.reader = VideoReplayReader(estimator: estimator, trace: trace)
+        self.reader = VideoReplayReader(estimator: estimator, trace: trace, gripObserver: gripObserverFactory?(.pullUp))
     }
 
     var barRole: ConfirmedBar.Role {
@@ -127,7 +129,7 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        let nextReader = VideoReplayReader(estimator: estimator, trace: trace)
+        let nextReader = VideoReplayReader(estimator: estimator, trace: trace, gripObserver: gripObserverFactory?(counter.exercise))
         reader = nextReader
         frame = nil
         pending = nil
@@ -164,7 +166,7 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let oldReader = reader
-        reader = VideoReplayReader(estimator: estimator, trace: trace)
+        reader = VideoReplayReader(estimator: estimator, trace: trace, gripObserver: gripObserverFactory?(counter.exercise))
         frame = nil
         pending = nil
         sourceName = nil
@@ -192,6 +194,7 @@ final class ReplayController {
         playback &+= 1
         let token = session
         let currentReader = reader
+        let gripEnabled = counter.exercise == .pullUp
         pending = nil
         errorMessage = nil
         failureReport = nil
@@ -203,6 +206,7 @@ final class ReplayController {
             await waitForPreviousOperation(previous)
             guard session == token, !Task.isCancelled else { return }
             do {
+                await currentReader.setGripInferenceEnabled(gripEnabled)
                 let info = try await currentReader.rewind()
                 let first = try await currentReader.nextFrame(discard: discard)
                 guard session == token, !Task.isCancelled else { return }

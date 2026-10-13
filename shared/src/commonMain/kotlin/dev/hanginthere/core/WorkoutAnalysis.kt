@@ -70,6 +70,7 @@ object WorkoutAnalytics {
     val samples: List<MotionSample>, val curveTruncated: Boolean,
     val countPolicyVersion: Int = ExerciseCounter.policyVersion, val metricVersion: Int = 1,
     val acceptanceReason: String? = null, val formVerification: String = "unverified",
+    val grip: GripEstimate? = null,
 ) {
     val isCompleteForAnalytics get() = WorkoutAnalytics.isCompletedRep(acceptedAt != null, returnedAt != null, closeReason)
 }
@@ -81,6 +82,7 @@ object WorkoutAnalytics {
     val trackingSide: ArmMeasurement.Side? = null, val imageSize: ImageSize? = null, val referenceEdge: BarSegment? = null,
     val trackedAtEpochMilliseconds: Long? = null,
     val activity: WorkoutActivity? = null,
+    val grip: WorkoutGripRecord? = null,
 ) {
     val acceptedCount get() = reps.count { it.acceptedAt != null }
     val completedReps get() = reps.filter { it.isCompleteForAnalytics }
@@ -156,6 +158,18 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
         }
     }
     private val phases = WorkoutPhaseAnalysis(setId, exercise)
+    private val grips = WorkoutGripAnalysis(setId)
+    val gripRecord get() = if(exercise==ExerciseCounter.Exercise.pullUp && grips.hasObservation)grips.record else null
+    val gripDelta get() = if(exercise==ExerciseCounter.Exercise.pullUp && grips.hasObservation)grips.delta else null
+    val currentGrip get() = grips.current.takeIf { exercise==ExerciseCounter.Exercise.pullUp }
+    fun observeGrip(pose:PoseResult,reference:BarSegment?,phase:ExerciseCounter.Phase,usable:Boolean,sourceSeconds:Double=pose.timestamp.seconds) {
+        if(exercise==ExerciseCounter.Exercise.pullUp) {
+            val before=grips.current
+            grips.observe(pose,reference,phase,usable,sourceSeconds)
+            val after=grips.current
+            if(before.left!=after.left || before.right!=after.right || before.width!=after.width || before.reason!=after.reason)revision++
+        }
+    }
     val activity get() = phases.activity
     val activityDelta get() = activity.let { it.copy(phases=it.phases.takeLast(3)) }
     private var attempt: Attempt? = null
@@ -167,7 +181,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
     val records: List<RepRecord> get() = closed
     val activeAccepted get() = attempt?.accepted != null
     val lastSourceSeconds get() = previous?.seconds
-    val activeRecord get() = attempt?.let { it.record(setId, exercise, previous?.seconds ?: it.start, "inProgress", false) }
+    val activeRecord get() = attempt?.let { withGrip(it.record(setId, exercise, previous?.seconds ?: it.start, "inProgress", false)) }
 
     fun observe(sample: MotionSample, phase: ExerciseCounter.Phase, event: ExerciseCounter.Event?) {
         if (!sample.seconds.isFinite()) { interrupt("invalidTimestamp"); return }
@@ -193,11 +207,12 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
         }
         previous = sample; lastPhase = phase
     }
-    fun interrupt(reason: String) { phases.interrupt(); previous?.seconds?.let { close(it, reason, false) }; lastPhase = ExerciseCounter.Phase.seekingStart; previous = null }
+    fun interrupt(reason: String) { phases.interrupt(); previous?.seconds?.let { close(it, reason, false) };grips.interrupt(); lastPhase = ExerciseCounter.Phase.seekingStart; previous = null }
     fun finish(reason: String) { previous?.seconds?.let { close(it, reason, false) } }
     private fun close(time: Double, reason: String, returned: Boolean) {
-        attempt?.let { closed += it.record(setId, exercise, time, reason, returned); revision++ }; attempt = null
+        attempt?.let { closed += withGrip(it.record(setId, exercise, time, reason, returned)); revision++ }; attempt = null
     }
+    private fun withGrip(rep:RepRecord)=if(exercise==ExerciseCounter.Exercise.pullUp && grips.hasObservation)rep.copy(grip=grips.summarize(rep.startedAt,rep.closedAt)) else rep
     fun recordsJson(): String = json.encodeToString(records)
     companion object {
         const val maximumCurveSamples = 256

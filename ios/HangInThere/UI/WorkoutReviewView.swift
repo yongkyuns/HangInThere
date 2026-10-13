@@ -36,7 +36,10 @@ struct WorkoutReviewView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 if let storageError { Text(storageError).foregroundStyle(.orange) }
-                if let practice { WorkoutPracticeView(set: practice) }
+                if let practice {
+                    WorkoutPracticeView(set: practice)
+                    if practice.exercise == .pullUp { WorkoutGripView(set: practice, allowsCorrections: goalsEnabled) }
+                }
                 if reps.isEmpty {
                     if selected == nil && practice == nil && currentReps.isEmpty {
                         ContentUnavailableView("Your motion, rep by rep", systemImage: "chart.xyaxis.line",

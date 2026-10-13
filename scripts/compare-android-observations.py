@@ -26,9 +26,8 @@ def main(directory):
     r=json.loads((directory/'report.json').read_text())
     assert {c['id'] for c in r['cases']}=={'pullup_margin','pullup_smoke','dip_controlled_pexels'}
     binary=ROOT/'build/android-swift-counter';binary.parent.mkdir(parents=True,exist_ok=True)
-    names=['PoseObservation','Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement',
-           'DipSupportMeasurement','PullUpProgress','DipProgress','ExerciseCounter']
-    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'ios/HangInThere/Analysis'/f'{x}.swift') for x in names]+[str(ROOT/'Evaluation/CountReplay.swift')],check=True)
+    sources=sorted((ROOT/'ios/HangInThere/Analysis').glob('*.swift'))
+    subprocess.run(['swiftc','-O','-o',str(binary)]+list(map(str,sources))+[str(ROOT/'Evaluation/CountReplay.swift')],check=True)
     evidence=[]
     for case in r['cases']:
         poses=directory/(case['id']+'-observations.jsonl');lines=poses.read_text().splitlines()

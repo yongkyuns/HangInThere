@@ -175,11 +175,9 @@ def prepare(output):
     geo('tapered-shared-support',[[(20,50),(320,50)],[(270,53.2),(470,49.2)]],region=(0,0,500,500),size=(500,500))
     geo('noisy-disjoint-fragments',[[(20,100),(200,100)],[(210,104),(470,104)]],region=(0,0,500,500),size=(500,500))
     geometry_inputs=output/'geometry-inputs.json';geometry_inputs.write_text(json.dumps(geometry_cases,allow_nan=False))
-    names=['PoseObservation' ,'Geometry','BarGeometry','ArmMeasurement','PullUpArmMeasurement','DipSupportMeasurement',
-        'PullUpProgress','DipProgress','ExerciseCounter','AutomaticPullUpBar','AutomaticDipRails','AutomaticDipBar','AutomaticExerciseDetection',
-        'HandsFreeSetStart','PhoneOrientationStability','StaticSceneStability']
+    sources=sorted((ROOT/'ios/HangInThere/Analysis').glob('*.swift'))
     binary=output/'swift-setup-oracle'
-    subprocess.run(['swiftc','-O','-o',str(binary)]+[str(ROOT/'ios/HangInThere/Analysis'/f'{name}.swift') for name in names]+[str(ROOT/'Evaluation/SetupOracle.swift')],check=True)
+    subprocess.run(['swiftc','-O','-o',str(binary)]+list(map(str,sources))+[str(ROOT/'Evaluation/SetupOracle.swift')],check=True)
     pending=output/'oracle.json.pending'
     with pending.open('w') as out:subprocess.run([str(binary),str(inputs),str(geometry_inputs)],stdout=out,check=True)
     pending.replace(output/'oracle.json')

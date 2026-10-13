@@ -5,8 +5,9 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 
-/** Experimental input framing, independent of the pose SDK. It supplies no
- * apparatus or athlete identity. Production inference does not yet use it. */
+/** Source-pixel region geometry, independent of the pose SDK. Grip inference
+ * reuses this type; the full-person [select] recipe remains experimental.
+ * A region supplies no apparatus or athlete identity. */
 @Serializable
 data class PersonInferenceRegion(val left: Int, val top: Int, val width: Int, val height: Int) {
     fun isValidFor(source: ImageSize) = integerImage(source) && left >= 0 && top >= 0 && width > 0 && height > 0 &&

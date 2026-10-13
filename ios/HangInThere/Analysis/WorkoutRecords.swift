@@ -43,6 +43,7 @@ struct WorkoutRepRecord: Codable, Equatable, Identifiable, Sendable {
     let metricVersion: Int
     let acceptanceReason: String?
     let formVerification: String?
+    var grip: WorkoutGripEstimate? = nil
 }
 struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let id: String
@@ -60,10 +61,12 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let referenceEdge: BarSegment?
     let trackedAtEpochMilliseconds: Int64?
     var activity: WorkoutActivity? = nil
+    var grip: WorkoutGripRecord? = nil
     var hasPractice: Bool { !reps.isEmpty || (activity?.observedSeconds ?? 0) > 0 }
     var progressInput: WorkoutSetRecord {
         var result = self
         result.reps = reps.map { rep in var summary = rep; summary.samples = []; return summary }
+        result.grip = nil
         if var activity = result.activity { activity.phases = []; result.activity = activity }
         return result
     }

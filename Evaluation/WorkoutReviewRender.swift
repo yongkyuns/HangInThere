@@ -67,6 +67,21 @@ import Vision
                 }
             }
         }
+        var gripFixture = fixture
+        var gripReps = [completed]
+        gripReps[0]["grip"] = ["left":"underhand","right":"underhand","orientation":"underhand","width":"wide",
+            "orientationCoverage":0.95,"widthCoverage":0.97,"policyVersion":1,"inferenceBackend":"authored render"] as [String:Any]
+        gripFixture["reps"] = gripReps
+        let labelledSet = try JSONDecoder().decode(WorkoutSetRecord.self,from: JSONSerialization.data(withJSONObject: gripFixture))
+        for dark in [true,false] {
+            for width in [320.0,430.0] {
+                let content = WorkoutGripView(set: labelledSet,allowsCorrections: false)
+                    .environment(\.colorScheme,dark ? .dark : .light)
+                    .frame(width: width,height: 350).padding().background(dark ? Color.black : Color.white)
+                let text = try render(content,width: width,height: 380,filename: "grip-\(dark ? "dark" : "light")-\(Int(width)).png")
+                verify(text.contains { $0.contains("underhand") && $0.contains("wide") },"Grip variation labels missing",filename: "grip")
+            }
+        }
         // Beginner analytics must remain useful with zero completed reps.
         for exercise in ExerciseCounter.Exercise.allCases {
             let phase = exercise == .pullUp ? "hang" : "support"
