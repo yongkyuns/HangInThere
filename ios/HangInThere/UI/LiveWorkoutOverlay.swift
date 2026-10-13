@@ -29,6 +29,13 @@ struct LiveWorkoutOverlay: View {
     let onNextSet: () -> Void
     let onResults: () -> Void
 
+    var displayedCount: Int {
+        if session.phase == .idle || session.phase == .finished {
+            return afterSetReport?.measuredCompletedReps ?? latestCompletedSet?.completedCount ?? 0
+        }
+        return session.observedMovements
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -111,15 +118,15 @@ struct LiveWorkoutOverlay: View {
             Spacer(minLength: 4)
             if session.phase != .idle || latestCompletedSet != nil {
                 VStack(spacing: 0) {
-                    Text("\(session.phase == .idle ? latestCompletedSet?.acceptedCount ?? 0 : session.observedMovements)")
+                    Text("\(displayedCount)")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
                         .contentTransition(.numericText())
-                    Text(session.phase == .idle ? "last set" : "reps").font(.caption2.weight(.medium))
+                    Text(session.phase == .idle || session.phase == .finished ? "completed cycles" : "reps").font(.caption2.weight(.medium))
                 }
                 .foregroundStyle(.white)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(session.phase == .idle ? latestCompletedSet?.acceptedCount ?? 0 : session.observedMovements) counted reps\(session.phase == .idle ? " in the last set" : "")")
+                .accessibilityLabel("\(displayedCount) \(session.phase == .idle || session.phase == .finished ? "measured completed cycles in the last set" : "observed movements")")
                 .accessibilityIdentifier("liveMovementCount")
             }
             if isRecording {

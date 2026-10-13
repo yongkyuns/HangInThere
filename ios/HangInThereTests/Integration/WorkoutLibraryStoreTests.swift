@@ -14,6 +14,20 @@ final class WorkoutLibraryStoreTests: XCTestCase {
         var values = values; values["atEpochMilliseconds"] = 200_000
         return String(decoding: try JSONSerialization.data(withJSONObject: values), as: UTF8.self)
     }
+    func testAfterSetRefreshAppliesReviewsAndRecognizesDeletion() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = WorkoutRecordStore(directory: root); let original = record()
+        try await store.save(original)
+        let captured = try await store.libraryAfterSetIfNotDeleted(id: original.id)
+        XCTAssertEqual(captured?.observedHoldSeconds, 8)
+        _ = try await store.libraryCommand(command(["action": "review", "setId": original.id, "correction": ["exercise": "dip"]]))
+        let reviewed = try await store.libraryAfterSetIfNotDeleted(id: original.id)
+        XCTAssertNil(reviewed?.observedHoldSeconds)
+        _ = try await store.libraryCommand(command(["action": "delete", "setId": original.id]))
+        let deleted = try await store.libraryAfterSetIfNotDeleted(id: original.id)
+        XCTAssertNil(deleted)
+    }
     func testBatchDeletionErasesEverySourceAndSurvivesReloadAndRestore() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

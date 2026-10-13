@@ -129,6 +129,7 @@ struct LiveSetupView: View {
             }
             .onChange(of: showingAnalysis) { _, visible in
                 if visible { reviewRecord = camera.workoutRecordForReview() }
+                else { Task { await camera.loadWorkoutHistory() } }
             }
             .task {
                 await camera.loadWorkoutHistory()

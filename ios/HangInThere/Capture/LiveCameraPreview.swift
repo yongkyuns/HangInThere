@@ -890,7 +890,19 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     func loadWorkoutHistory() async {
-        do { workoutHistory = try await WorkoutRecordStore.shared.recent() }
+        let completedId = latestCompletedWorkout?.id
+        do {
+            let history = try await WorkoutRecordStore.shared.recent()
+            var report: WorkoutAfterSetReport?
+            if let completedId { report = try await WorkoutRecordStore.shared.libraryAfterSetIfNotDeleted(id: completedId) }
+            // A new set can finish while storage is being read.
+            guard latestCompletedWorkout?.id == completedId else { return }
+            workoutHistory = history
+            if completedId != nil {
+                latestAfterSetReport = report
+                if report == nil { latestCompletedWorkout = nil }
+            }
+        }
         catch { workoutStorageError = error.localizedDescription }
     }
 

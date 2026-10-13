@@ -9,6 +9,9 @@ import dev.hanginthere.android.ui.WorkoutLibraryDialog
 import dev.hanginthere.core.*
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Assert.assertEquals
+import android.util.Log
+import androidx.compose.ui.semantics.SemanticsNode
 import java.io.File
 import java.util.TimeZone
 import java.util.UUID
@@ -29,8 +32,20 @@ class WorkoutLibraryUiTest {
             WorkoutInsights.localDay(time, TimeZone.getDefault().getOffset(time) / 60000),
             listOf(WorkoutPlanItem("ui-item", ExerciseCounter.Exercise.pullUp, WorkoutGoalMetric.holdSeconds, 5.0, 2, context))), atEpochMilliseconds = time))
         try {
+            assertEquals("Build a repeatable baseline", WorkoutInsights.report(store.libraryState(), null,
+                System.currentTimeMillis(), TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 60000).focus.title)
             compose.runOnUiThread { compose.activity.setContent { MaterialTheme { WorkoutLibraryDialog(recordStore = store) {} } } }
-            compose.waitUntil(10000) { compose.onAllNodesWithText("Build a repeatable baseline").fetchSemanticsNodes().isNotEmpty() }
+            try { compose.waitUntil(10000) { compose.onAllNodesWithText("Build a repeatable baseline").fetchSemanticsNodes().isNotEmpty() } }
+            catch (failure: Throwable) {
+                var remaining = 128
+                fun dump(node: SemanticsNode) {
+                    if (remaining-- <= 0) return
+                    Log.e("WorkoutLibraryUi", node.config.toString())
+                    node.children.forEach(::dump)
+                }
+                compose.onAllNodes(isRoot(), useUnmergedTree = true).fetchSemanticsNodes().forEach(::dump)
+                throw failure
+            }
             compose.onNodeWithText("Build a repeatable baseline").assertIsDisplayed()
             compose.onNodeWithText("History").performClick()
             compose.onNodeWithText("Review and correct").assertIsDisplayed()

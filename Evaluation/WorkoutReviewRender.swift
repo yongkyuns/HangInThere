@@ -77,6 +77,22 @@ import WorkoutCore
         fixture["reps"] = [unfinished, partial]
         let emptySet = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: fixture))
         precondition(emptySet.completedReps.isEmpty)
+        precondition(set.acceptedCount > set.completedCount, "Display regression needs an accepted attempt without an observed return")
+        var feedbackLibrary = try libraryBridge.registerJson(stateJson: libraryBridge.emptyJson(), recordsJson: String(decoding: JSONEncoder().encode([set]), as: UTF8.self))
+        let correction: [String: Any] = ["action": "review", "setId": set.id, "atEpochMilliseconds": Int64(Date().timeIntervalSince1970 * 1000),
+            "correction": ["attempts": [["repId": set.completedReps.first!.id, "classification": "practice"]]]]
+        feedbackLibrary = try libraryBridge.applyJson(stateJson: feedbackLibrary, commandJson: String(decoding: JSONSerialization.data(withJSONObject: correction), as: UTF8.self))
+        let reviewedFeedback = try JSONDecoder().decode(WorkoutAfterSetReport.self, from: Data(try WorkoutFeedbackBridge().librarySummaryJson(stateJson: feedbackLibrary, setId: set.id).utf8))
+        func completedOverlay(_ report: WorkoutAfterSetReport?) -> LiveWorkoutOverlay {
+            LiveWorkoutOverlay(session: LiveSetSession(), latestCompletedSet: set, afterSetReport: report,
+                cameraReady: true, status: "Ready", statusSymbol: "checkmark", needsAttention: false,
+                showsManualStart: false, canStart: true, canSwitchCamera: true, nextCameraName: "front",
+                isRecording: false, countdown: nil, canClose: true, onClose: {}, onOptions: {},
+                onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+        }
+        verify(completedOverlay(nil).displayedCount == set.completedCount, "Finished overlay must exclude an unrecorded return", filename: "live-count-contract")
+        verify(reviewedFeedback.measuredCompletedReps == 0 && completedOverlay(reviewedFeedback).displayedCount == 0,
+            "Finished overlay must apply reviewed completion", filename: "live-count-contract")
         var interrupted = partial
         interrupted["closeReason"] = "inferenceFailure"; interrupted["outcome"] = "interrupted"
         for (name, data, expected) in [("completed", completed, "completedcycle"),

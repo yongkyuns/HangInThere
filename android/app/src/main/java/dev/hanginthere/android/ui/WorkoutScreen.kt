@@ -55,6 +55,20 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
     var resumed by remember { mutableStateOf(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
     var manual by remember { mutableStateOf(false) }
     var firstTap by remember { mutableStateOf<Point2D?>(null) }
+    val completedSet = state.result?.snapshot?.latestCompletedSet
+    var afterSetReport by remember(completedSet?.id) { mutableStateOf(completedSet?.let { WorkoutFeedback.summary(it) }) }
+    var completedDeleted by remember(completedSet?.id) { mutableStateOf(false) }
+    LaunchedEffect(completedSet?.id, analysis, state.result?.storageError) {
+        val completed = completedSet ?: return@LaunchedEffect
+        try {
+            val (deleted, report) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val library = dev.hanginthere.android.session.WorkoutRecordStore.live(context.applicationContext).libraryState()
+                val deleted = library.deletions.any { it.setId == completed.id }
+                deleted to if (deleted) null else WorkoutFeedback.summary(library, completed.id)
+            }
+            completedDeleted = deleted; afterSetReport = report
+        } catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure }
+    }
     val videoPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) model.replay(uri, selection, side) }
     DisposableEffect(owner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -136,8 +150,8 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 Text(if (healthy) "● TRACKING" else "● PAUSED",
                     Modifier.padding(horizontal = 12.dp), color = if (healthy) Color(0xFF69F0AE) else Color(0xFFFFB74D), fontSize = 11.sp)
             }
-            Text("${state.result?.snapshot?.let { if(it.phase == LiveSetSession.Phase.idle) it.latestCompletedSet?.acceptedCount ?: it.observedMovements else it.observedMovements } ?: 0}", Modifier.padding(horizontal = 12.dp), fontSize = 42.sp, color = Color.White)
-            if(state.result?.snapshot?.phase == LiveSetSession.Phase.idle && state.result?.snapshot?.latestCompletedSet != null) Text("Last set", Modifier.padding(horizontal = 12.dp), color = Color.White)
+            Text("${state.result?.snapshot?.let { if (it.phase == LiveSetSession.Phase.idle || it.phase == LiveSetSession.Phase.finished) { if (completedDeleted) 0 else afterSetReport?.measuredCompletedReps ?: completedSet?.completedCount ?: 0 } else it.observedMovements } ?: 0}", Modifier.padding(horizontal = 12.dp), fontSize = 42.sp, color = Color.White)
+            if (!completedDeleted && completedSet != null && state.result?.snapshot?.phase in listOf(LiveSetSession.Phase.idle, LiveSetSession.Phase.finished)) Text("Completed cycles", Modifier.padding(horizontal = 12.dp), color = Color.White)
         }
         Column(Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(12.dp)) {
             FilledTonalButton(onClick = { analysis = true }) { Text("Analysis") }
@@ -172,16 +186,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             Text(message, Modifier.background(Color.Black.copy(alpha = 0.6f)).padding(10.dp), color = Color.White)
             WorkoutActions(state, onFinish = model::finishSet, onNext = model::nextSet,
                 onRestart = { model.startLive(selection, side) })
-            if (!running) snapshot?.latestCompletedSet?.let { completed ->
-                var report by remember(completed.id) { mutableStateOf(WorkoutFeedback.summary(completed)) }
-                LaunchedEffect(completed.id) {
-                    try {
-                        report = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                            val library = dev.hanginthere.android.session.WorkoutRecordStore.live(context.applicationContext).libraryState()
-                            WorkoutFeedback.summary(library, completed.id)
-                        }
-                    } catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure }
-                }
+            if (!running && !completedDeleted) afterSetReport?.let { report ->
                 Text("${report.measuredCompletedReps} completed cycles · ${report.practiceAttempts} practice attempts", color = Color.White)
                 Text(report.observation, color = Color.White, style = MaterialTheme.typography.bodySmall)
                 val goalValue = report.goalValue; val goalTarget = report.goalTarget

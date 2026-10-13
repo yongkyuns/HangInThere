@@ -433,7 +433,16 @@ actor WorkoutRecordStore {
     }
     func libraryDiagnostics() throws -> String { try WorkoutLibraryBridge().diagnosticsJson(stateJson: libraryState()) }
     func libraryAfterSet(id: String) throws -> WorkoutAfterSetReport {
-        let json = try WorkoutFeedbackBridge().librarySummaryJson(stateJson: libraryState(), setId: id)
+        try decodeAfterSet(state: libraryState(), id: id)
+    }
+    /// Nil is an authoritative deletion; an unpublished/failed save still throws.
+    func libraryAfterSetIfNotDeleted(id: String) throws -> WorkoutAfterSetReport? {
+        let state = try libraryState()
+        if libraryDeletedIds.contains(id) { return nil }
+        return try decodeAfterSet(state: state, id: id)
+    }
+    private func decodeAfterSet(state: String, id: String) throws -> WorkoutAfterSetReport {
+        let json = try WorkoutFeedbackBridge().librarySummaryJson(stateJson: state, setId: id)
         return try JSONDecoder().decode(WorkoutAfterSetReport.self, from: Data(json.utf8))
     }
     func libraryDashboard(key: String?, cursor: String?, now: Int64, offset: Int32) throws -> String {
