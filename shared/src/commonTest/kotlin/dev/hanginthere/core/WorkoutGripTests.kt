@@ -187,6 +187,46 @@ class WorkoutGripTests {
         assertEquals(requests,WorkoutRecordCodec.json.decodeFromString<List<GripHandCropRequest>>(
             WorkoutGripInferenceBridge().handRequestsJson(WorkoutRecordCodec.json.encodeToString(p))))
     }
+    @Test fun handStageUsesExistingBodyValidationWithoutSearchingForAGrip() {
+        val p=pose(0.0);val o=observation();val expected=WorkoutGripInference.handRequests(p)
+        for(grip in listOf(HandGrip.underhand,HandGrip.overhand,HandGrip.neutral,HandGrip.unknown)) {
+            assertEquals(expected,WorkoutGripInference.handStageRequests(p,observation(left=grip,right=grip)))
+        }
+        val hips=setOf(GripBodyJoint.leftHip,GripBodyJoint.rightHip)
+        val weak=o.copy(trackedBody=o.trackedBody.map { if(it.joint in hips)it.copy(score=.49) else it })
+        val weakPose=p.copy(people=listOf(PoseObservation(p.people.single().landmarks.map {
+            if(it.joint.name in hips.map { h->h.name })it.copy(confidence=.49) else it
+        })))
+        assertEquals(expected,WorkoutGripInference.handStageRequests(weakPose,weak))
+        val four=weak.copy(trackedBody=weak.trackedBody.filter { it.joint !in hips })
+        val fourPose=weakPose.copy(people=listOf(PoseObservation(weakPose.people.single().landmarks.filter { it.joint.name !in hips.map { h->h.name } })))
+        assertEquals(expected,WorkoutGripInference.handStageRequests(fourPose,four))
+        val invalid=listOf(o.copy(body=o.body.map { if(it.joint==GripBodyJoint.leftHip)it.copy(score=.49) else it }),
+            o.copy(body=o.body.map { it.copy(world=GripVector3(0.0,0.0,0.0)) }),
+            o.copy(body=o.body.dropLast(1)+o.body.first()),o.copy(schemaVersion=2),
+            o.copy(coordinateConvention="mirrored"),o.copy(failure="bodyFrameUnavailable"))
+        for(context in invalid) {
+            assertNull(WorkoutGripGeometry.bodyBasis(context))
+            assertTrue(WorkoutGripInference.handStageRequests(p,context).isEmpty())
+        }
+        val bridge=WorkoutGripInferenceBridge()
+        assertEquals(expected,WorkoutRecordCodec.json.decodeFromString<List<GripHandCropRequest>>(
+            bridge.handStageRequestsJson(WorkoutRecordCodec.json.encodeToString(p),WorkoutRecordCodec.json.encodeToString(o))))
+        assertEquals("[]",bridge.handStageRequestsJson(WorkoutRecordCodec.json.encodeToString(p),WorkoutRecordCodec.json.encodeToString(invalid.first())))
+        assertEquals(1,bridge.bodyPreflightVersion)
+    }
+    @Test fun handStageCannotUseACachedOrForeignPrimaryBodyContext() {
+        val p=pose(0.0);val o=observation()
+        assertTrue(WorkoutGripInference.handStageRequests(p,o.copy(seconds=.1)).isEmpty())
+        assertTrue(WorkoutGripInference.handStageRequests(p,o.copy(imageSize=ImageSize(2000.0,2000.0))).isEmpty())
+        val changed=p.copy(people=listOf(PoseObservation(p.people.single().landmarks.map {
+            if(it.joint==PoseJoint.leftWrist)it.copy(position=Point2D(710.0,100.0)) else it
+        })))
+        assertNotNull(WorkoutGripGeometry.bodyBasis(o))
+        assertTrue(WorkoutGripInference.handStageRequests(changed,o).isEmpty())
+        assertTrue(WorkoutGripInference.handStageRequests(p.copy(people=p.people+p.people),o).isEmpty())
+        assertEquals(WorkoutGripInference.handRequests(p),WorkoutGripInference.handStageRequests(p,o.copy(trackedBody=o.trackedBody.reversed(),hands=emptyList())))
+    }
     @Test fun candidateIdentityRequiresActualWristAndConsistentSdkSide() {
         val o=observation();val right=o.hands.first()
         assertTrue(WorkoutGripGeometry.hasHandIdentity(o,right,ArmMeasurement.Side.right))

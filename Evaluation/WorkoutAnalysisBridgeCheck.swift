@@ -318,10 +318,16 @@ struct WorkoutAnalysisBridgeCheck {
                     let inference = WorkoutGripInferenceBridge()
                     let requestsJSON = try inference.handRequestsJson(poseJson: String(decoding: JSONEncoder().encode(frame), as: UTF8.self))
                     let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(requestsJSON.utf8))
+                    let stageJSON = try inference.handStageRequestsJson(poseJson: String(decoding: JSONEncoder().encode(frame),as: UTF8.self),observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!),as: UTF8.self))
+                    let stage = try JSONDecoder().decode([WorkoutGripCropRequest].self,from: Data(stageJSON.utf8))
+                    let empty = WorkoutGripObservation(seconds: time,imageSize: frame.imageSize,trackedBody: [],body: [],hands: [],modelId: "authored-anatomy",backend: "authored transport")
+                    let rejectedJSON = try inference.handStageRequestsJson(poseJson: String(decoding: JSONEncoder().encode(frame),as: UTF8.self),observationJson: String(decoding: JSONEncoder().encode(empty),as: UTF8.self))
                     let estimateJSON = try inference.orientationJson(observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!), as: UTF8.self))
                     let estimate = try JSONDecoder().decode(WorkoutGripEstimate.self, from: Data(estimateJSON.utf8))
                     let identity = try inference.hasHandIdentityJson(observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!),as: UTF8.self),handJson: String(decoding: JSONEncoder().encode(hands[0]),as: UTF8.self),expectedSide: "left")
-                    guard inference.cropPolicyVersion == 3, requests.map(\.side) == ["left","right"], identity,
+                    guard inference.cropPolicyVersion == 3, inference.bodyPreflightVersion == 1,
+                          stage.map(\.side) == requests.map(\.side), stage.map(\.regions) == requests.map(\.regions), rejectedJSON == "[]",
+                          requests.map(\.side) == ["left","right"], identity,
                           requests.allSatisfy({ !$0.regions.isEmpty && $0.regions.count <= 2 }), estimate.policyVersion == 3,
                           estimate.orientation == "underhand" else {
                         fatalError("Native crop planning or offline geometric-estimate FFI changed")

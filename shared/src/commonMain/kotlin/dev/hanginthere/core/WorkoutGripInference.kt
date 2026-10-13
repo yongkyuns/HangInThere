@@ -13,6 +13,20 @@ import kotlin.math.hypot
 object WorkoutGripInference {
     const val modelId = "mediapipe_hand_full_v1_pose_lite_v1"
     const val cropPolicyVersion = 3
+    const val bodyPreflightVersion = 1
+    /** Gate the expensive hand stage using the same body frame required by
+     * classification. Bind it to this primary pose; a cached/foreign context
+     * cannot authorize crops from another source observation. Hands and their
+     * orientation never affect eligibility. */
+    fun handStageRequests(pose:PoseResult,context:GripObservation):List<GripHandCropRequest> {
+        if(context.seconds!=pose.timestamp.seconds || context.imageSize!=pose.imageSize || WorkoutGripGeometry.bodyBasis(context)==null)return emptyList()
+        val person=pose.people.singleOrNull() ?: return emptyList()
+        val tracked=person.landmarks.mapNotNull { point ->
+            GripBodyJoint.entries.firstOrNull { it.name==point.joint.name }?.let { GripTrackedPoint(it,point.position,point.confidence) }
+        }
+        if(tracked.size!=context.trackedBody.size || tracked.toSet()!=context.trackedBody.toSet())return emptyList()
+        return handRequests(pose)
+    }
     /** First preserve the forearm-scaled crop; retry a missing or identity-invalid
      * hand once with more wrist-centered context. Native adapters stop at the
      * first identity-valid result, independent of its grip orientation. */
@@ -43,6 +57,10 @@ object WorkoutGripInference {
 }
 class WorkoutGripInferenceBridge {
     val cropPolicyVersion get() = WorkoutGripInference.cropPolicyVersion
+    val bodyPreflightVersion get() = WorkoutGripInference.bodyPreflightVersion
+    @Throws(IllegalArgumentException::class)
+    fun handStageRequestsJson(poseJson:String,observationJson:String):String = WorkoutRecordCodec.json.encodeToString(
+        WorkoutGripInference.handStageRequests(WorkoutRecordCodec.json.decodeFromString(poseJson),WorkoutRecordCodec.json.decodeFromString(observationJson)))
     @Throws(IllegalArgumentException::class)
     fun handRequestsJson(poseJson:String):String = WorkoutRecordCodec.json.encodeToString(WorkoutGripInference.handRequests(WorkoutRecordCodec.json.decodeFromString(poseJson)))
     @Throws(IllegalArgumentException::class)

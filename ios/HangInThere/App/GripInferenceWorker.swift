@@ -7,6 +7,11 @@ import UIKit
 import WorkoutCore
 import os
 
+struct GripHandInferenceResult: Sendable {
+    let hands: [WorkoutGripHandObservation]
+    let modelCalls: Int
+}
+
 /// SDK objects belong exclusively to this actor. No SDK handle crosses isolation.
 actor GripInferenceWorker {
     private nonisolated let executor = NativeFrameExecutor(label: "dev.hanginthere.grip", qos: .utility)
@@ -42,7 +47,7 @@ actor GripInferenceWorker {
             return WorkoutGripTrackedPoint(joint: point.joint.rawValue, position: point.position, score: point.confidence)
         } : []
         var result = WorkoutGripObservation(seconds: pose.timestamp.seconds, imageSize: pose.imageSize, trackedBody: tracked,
-            body: [], hands: [], modelId: Self.modelId, backend: "MediaPipe iOS 0.10.21 CPU IMAGE crops_v\(regions.cropPolicyVersion)")
+            body: [], hands: [], modelId: Self.modelId, backend: "MediaPipe iOS 0.10.21 CPU IMAGE crops_v\(regions.cropPolicyVersion) body_preflight_v\(regions.bodyPreflightVersion)")
         guard (4...6).contains(tracked.count), !Task.isCancelled else { result.failure = "bodyTrackingUnavailable"; return result }
         do {
             try load()
@@ -59,9 +64,11 @@ actor GripInferenceWorker {
                     world: WorkoutGripVector3(x: Double(w.x), y: Double(w.y), z: Double(w.z)),
                     score: min(p.visibility?.doubleValue ?? 0, p.presence?.doubleValue ?? 0))
             }
-            let hands = try estimateHands(image: image, pose: pose, bodyPoints: bodyPoints)
-            return WorkoutGripObservation(seconds: result.seconds, imageSize: result.imageSize, trackedBody: tracked,
-                body: bodyPoints, hands: hands, modelId: result.modelId, backend: result.backend)
+            let context = WorkoutGripObservation(seconds: result.seconds,imageSize: result.imageSize,trackedBody: tracked,
+                body: bodyPoints,hands: [],modelId: result.modelId,backend: result.backend)
+            let hands = try estimateHands(image: image, pose: pose, context: context).hands
+            return WorkoutGripObservation(seconds: context.seconds,imageSize: context.imageSize,trackedBody: tracked,
+                body: bodyPoints,hands: hands,modelId: context.modelId,backend: context.backend)
         } catch {
             if hand == nil || body == nil { unavailable = true }
             result.failure = "gripInferenceUnavailable"
@@ -70,19 +77,20 @@ actor GripInferenceWorker {
     }
     /// Also exercised on authored blank pixels by native tests. SDK ownership
     /// stays on this actor; a fallback never produces a second hand for a wrist.
-    func estimateHands(image: CGImage, pose: PoseResult, bodyPoints: [WorkoutGripBodyPoint]) throws -> [WorkoutGripHandObservation] {
+    func estimateHands(image: CGImage, pose: PoseResult, context: WorkoutGripObservation) throws -> GripHandInferenceResult {
         try load()
         guard let hand else { throw CocoaError(.fileReadUnknown) }
         var source = pose; source.gripObservation = nil
-        let regionJSON = try regions.handRequestsJson(poseJson: String(decoding: JSONEncoder().encode(source), as: UTF8.self))
-        let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(regionJSON.utf8))
-        let context = WorkoutGripObservation(seconds: pose.timestamp.seconds,imageSize: pose.imageSize,trackedBody: [],body: bodyPoints,hands: [],modelId: Self.modelId,backend: "candidate identity")
         let contextJSON = String(decoding: try JSONEncoder().encode(context),as: UTF8.self)
+        let regionJSON = try regions.handStageRequestsJson(poseJson: String(decoding: JSONEncoder().encode(source), as: UTF8.self),observationJson: contextJSON)
+        let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(regionJSON.utf8))
         var hands: [WorkoutGripHandObservation] = []
+        var modelCalls = 0
         for request in requests.prefix(2) {
             for region in request.regions.prefix(2) {
                 try Task.checkCancellation()
                 guard let crop = image.cropping(to: CGRect(x: region.left, y: region.top, width: region.width, height: region.height)) else { continue }
+                modelCalls += 1
                 let detected = try hand.detect(image: MPImage(uiImage: UIImage(cgImage: crop)))
                 var candidateHands: [WorkoutGripHandObservation] = []
                 for (i, points) in detected.landmarks.enumerated() where points.count == 21 && i < detected.worldLandmarks.count && detected.worldLandmarks[i].count == 21 {
@@ -102,7 +110,7 @@ actor GripInferenceWorker {
                 }
             }
         }
-        return hands
+        return GripHandInferenceResult(hands: hands,modelCalls: modelCalls)
     }
     private static let bodyJoints = [("leftShoulder",11),("rightShoulder",12),("leftHip",23),("rightHip",24),("leftWrist",15),("rightWrist",16)]
     private static let handJoints = [("wrist",0),("indexMCP",5),("middleMCP",9),("pinkyMCP",17),("thumbCMC",1),("thumbTip",4)]
