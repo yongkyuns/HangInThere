@@ -47,13 +47,14 @@ class WorkoutLibraryUiTest {
                 throw failure
             }
             compose.onNodeWithText("Build a repeatable baseline").assertIsDisplayed()
+            compose.onNodeWithContentDescription("Observed hold seconds, oldest to newest; unavailable values are gaps.", substring = true).assertExists()
             compose.onNodeWithText("History").performClick()
             compose.onNodeWithText("Review and correct").assertIsDisplayed()
             compose.onNodeWithText("Plans").performClick()
             compose.onNodeWithText("Plan your practice").assertIsDisplayed()
-            compose.onNodeWithText("Pull-up: 2 sets of 5.0 hold seconds per set").assertIsDisplayed()
-            compose.onNodeWithText("1/2 sets meet this target · preview; link to confirm").assertIsDisplayed()
-            compose.onNodeWithText("Link recorded workout").performClick()
+            compose.onNodeWithText("Pull-up: 2 sets of 5.0 hold seconds per set").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("1/2 sets meet this target · preview; link to confirm").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("Link recorded workout").performScrollTo().performClick()
             compose.onNodeWithText("Pull-up · 1 sets", substring = true).performClick()
             compose.waitUntil(10000) { compose.onAllNodesWithText("1/2 sets meet this target").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Storage").performClick()

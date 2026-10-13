@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -244,16 +243,18 @@ private fun comparisonTitle(value: String): String = runCatching {
     "${parts[0]} · ${parts[2]} ${parts[3]} · ${parts[4]} kg · ${parts[5]} · ${parts[6]}"
 }.getOrDefault("Comparison group")
 @Composable private fun LibraryPlot(title: String, values: List<Double?>, maximum: Double? = null) {
+    val seriesColor = MaterialTheme.colorScheme.primary
+    val axisColor = MaterialTheme.colorScheme.onSurfaceVariant
     Text(title, style = MaterialTheme.typography.titleSmall)
     Text(values.mapIndexed { index, value -> "${index + 1}: ${value?.let { String.format(java.util.Locale.ROOT, "%.1f", it) } ?: "unavailable"}" }.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
-    Canvas(Modifier.fillMaxWidth().height(150.dp).semantics { contentDescription = "$title, ordered comparable sessions; unavailable values are gaps. ${values.joinToString()}" }) {
+    Canvas(Modifier.fillMaxWidth().height(150.dp).semantics { contentDescription = "$title, oldest to newest; unavailable values are gaps. ${values.joinToString()}" }) {
         val max = maximum ?: maxOf(1.0, values.filterNotNull().maxOrNull() ?: 1.0)
-        drawLine(Color.Gray, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+        drawLine(axisColor, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
         var previous: Offset? = null
         values.forEachIndexed { index, value ->
             if (value == null) previous = null else {
                 val point = Offset((index.toFloat() / maxOf(1, values.size - 1)) * size.width, (1 - value / max).toFloat() * size.height)
-                previous?.let { drawLine(Color.Cyan, it, point, 2.dp.toPx()) }; drawCircle(Color.Cyan, 3.dp.toPx(), point); previous = point
+                previous?.let { drawLine(seriesColor, it, point, 2.dp.toPx()) }; drawCircle(seriesColor, 3.dp.toPx(), point); previous = point
             }
         }
     }
