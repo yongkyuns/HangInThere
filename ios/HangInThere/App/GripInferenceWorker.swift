@@ -42,12 +42,12 @@ actor GripInferenceWorker {
             return WorkoutGripTrackedPoint(joint: point.joint.rawValue, position: point.position, score: point.confidence)
         } : []
         var result = WorkoutGripObservation(seconds: pose.timestamp.seconds, imageSize: pose.imageSize, trackedBody: tracked,
-            body: [], hands: [], modelId: Self.modelId, backend: "MediaPipe iOS 0.10.21 CPU IMAGE")
-        guard tracked.count == 6, !Task.isCancelled else { result.failure = "bodyTrackingUnavailable"; return result }
+            body: [], hands: [], modelId: Self.modelId, backend: "MediaPipe iOS 0.10.21 CPU IMAGE crops_v\(regions.cropPolicyVersion)")
+        guard (4...6).contains(tracked.count), !Task.isCancelled else { result.failure = "bodyTrackingUnavailable"; return result }
         do {
             try load()
             try Task.checkCancellation()
-            guard let body, let hand else { result.failure = "gripModelUnavailable"; return result }
+            guard let body else { result.failure = "gripModelUnavailable"; return result }
             let bodyResult = try body.detect(image: MPImage(uiImage: UIImage(cgImage: image)))
             guard bodyResult.landmarks.count == 1, bodyResult.worldLandmarks.count == 1,
                   bodyResult.landmarks[0].count == 33, bodyResult.worldLandmarks[0].count == 33 else {
@@ -59,24 +59,7 @@ actor GripInferenceWorker {
                     world: WorkoutGripVector3(x: Double(w.x), y: Double(w.y), z: Double(w.z)),
                     score: min(p.visibility?.doubleValue ?? 0, p.presence?.doubleValue ?? 0))
             }
-            var hands: [WorkoutGripHandObservation] = []
-            var source = pose; source.gripObservation = nil
-            let regionJSON = try regions.handRegionsJson(poseJson: String(decoding: JSONEncoder().encode(source), as: UTF8.self))
-            let crops = try JSONDecoder().decode([WorkoutGripRegion].self, from: Data(regionJSON.utf8))
-            for region in crops.prefix(2) {
-                try Task.checkCancellation()
-                guard let crop = image.cropping(to: CGRect(x: region.left, y: region.top, width: region.width, height: region.height)) else { continue }
-                let detected = try hand.detect(image: MPImage(uiImage: UIImage(cgImage: crop)))
-                for (i, points) in detected.landmarks.enumerated() where points.count == 21 && i < detected.worldLandmarks.count && detected.worldLandmarks[i].count == 21 {
-                    let side = detected.handedness[safe: i]?.first
-                    let landmarks = Self.handJoints.map { (name, index) in
-                        let p = points[index]; let w = detected.worldLandmarks[i][index]
-                        return WorkoutGripHandPoint(joint: name, position: Point2D(x: Double(region.left) + Double(p.x) * Double(region.width), y: Double(region.top) + Double(p.y) * Double(region.height)),
-                            world: WorkoutGripVector3(x: Double(w.x), y: Double(w.y), z: Double(w.z)), score: nil)
-                    }
-                    hands.append(WorkoutGripHandObservation(points: landmarks, sdkHandedness: side?.categoryName, sdkHandednessScore: side.map { Double($0.score) }, sourceRegion: region))
-                }
-            }
+            let hands = try estimateHands(image: image, pose: pose)
             return WorkoutGripObservation(seconds: result.seconds, imageSize: result.imageSize, trackedBody: tracked,
                 body: bodyPoints, hands: hands, modelId: result.modelId, backend: result.backend)
         } catch {
@@ -84,6 +67,38 @@ actor GripInferenceWorker {
             result.failure = "gripInferenceUnavailable"
             return result
         }
+    }
+    /// Also exercised on authored blank pixels by native tests. SDK ownership
+    /// stays on this actor; a fallback never produces a second hand for a wrist.
+    func estimateHands(image: CGImage, pose: PoseResult) throws -> [WorkoutGripHandObservation] {
+        try load()
+        guard let hand else { throw CocoaError(.fileReadUnknown) }
+        var source = pose; source.gripObservation = nil
+        let regionJSON = try regions.handRegionCandidatesJson(poseJson: String(decoding: JSONEncoder().encode(source), as: UTF8.self))
+        let requests = try JSONDecoder().decode([[WorkoutGripRegion]].self, from: Data(regionJSON.utf8))
+        var hands: [WorkoutGripHandObservation] = []
+        for candidates in requests.prefix(2) {
+            for region in candidates.prefix(2) {
+                try Task.checkCancellation()
+                guard let crop = image.cropping(to: CGRect(x: region.left, y: region.top, width: region.width, height: region.height)) else { continue }
+                let detected = try hand.detect(image: MPImage(uiImage: UIImage(cgImage: crop)))
+                var candidateHands: [WorkoutGripHandObservation] = []
+                for (i, points) in detected.landmarks.enumerated() where points.count == 21 && i < detected.worldLandmarks.count && detected.worldLandmarks[i].count == 21 {
+                    let side = detected.handedness[safe: i]?.first
+                    let landmarks = Self.handJoints.map { (name, index) in
+                        let p = points[index]; let w = detected.worldLandmarks[i][index]
+                        return WorkoutGripHandPoint(joint: name, position: Point2D(x: Double(region.left) + Double(p.x) * Double(region.width), y: Double(region.top) + Double(p.y) * Double(region.height)),
+                            world: WorkoutGripVector3(x: Double(w.x), y: Double(w.y), z: Double(w.z)), score: nil)
+                    }
+                    candidateHands.append(WorkoutGripHandObservation(points: landmarks, sdkHandedness: side?.categoryName, sdkHandednessScore: side.map { Double($0.score) }, sourceRegion: region))
+                }
+                if let candidate = candidateHands.first {
+                    hands.append(candidate)
+                    break
+                }
+            }
+        }
+        return hands
     }
     private static let bodyJoints = [("leftShoulder",11),("rightShoulder",12),("leftHip",23),("rightHip",24),("leftWrist",15),("rightWrist",16)]
     private static let handJoints = [("wrist",0),("indexMCP",5),("middleMCP",9),("pinkyMCP",17),("thumbCMC",1),("thumbTip",4)]

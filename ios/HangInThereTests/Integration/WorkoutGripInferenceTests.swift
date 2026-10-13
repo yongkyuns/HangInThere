@@ -22,5 +22,17 @@ final class WorkoutGripInferenceTests: XCTestCase {
         XCTAssertEqual(result.trackedBody.count, 6)
         XCTAssertEqual(result.coordinateConvention, "cameraRightDownAway_v1")
     }
+    func testPrimaryAndFallbackHandCropsDoNotInventHandsOnBlankPixels() async throws {
+        let context = try XCTUnwrap(CGContext(data: nil, width: 256, height: 256, bitsPerComponent: 8,
+            bytesPerRow: 1024, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue))
+        let image = try XCTUnwrap(context.makeImage())
+        let pose = PoseResult(timestamp: PresentationTime(value: 0, timescale: 1000), imageSize: ImageSize(width: 256, height: 256),
+            people: [PoseObservation(landmarks: [
+                Landmark(joint: .leftWrist, position: Point2D(x: 64,y: 64), confidence: 1),
+                Landmark(joint: .rightWrist, position: Point2D(x: 192,y: 64), confidence: 1)])],
+            backend: "authored blank hand crops", requestRevision: 0)
+        let hands = try await GripInferenceWorker().estimateHands(image: image, pose: pose)
+        XCTAssertTrue(hands.isEmpty, "Both pinned-model crop attempts must run without fabricating a hand")
+    }
 }
 #endif

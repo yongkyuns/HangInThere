@@ -314,6 +314,18 @@ struct WorkoutAnalysisBridgeCheck {
                 frame.gripObservation = WorkoutGripObservation(seconds: time,imageSize: base.imageSize,
                     trackedBody: body.map { .init(joint: $0.joint,position: $0.position,score: $0.score) },body: body,hands: hands,
                     modelId: "authored-anatomy",backend: "authored transport")
+                if index == 0 {
+                    let inference = WorkoutGripInferenceBridge()
+                    let requestsJSON = try inference.handRegionCandidatesJson(poseJson: String(decoding: JSONEncoder().encode(frame), as: UTF8.self))
+                    let requests = try JSONDecoder().decode([[WorkoutGripRegion]].self, from: Data(requestsJSON.utf8))
+                    let estimateJSON = try inference.orientationJson(observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!), as: UTF8.self))
+                    let estimate = try JSONDecoder().decode(WorkoutGripEstimate.self, from: Data(estimateJSON.utf8))
+                    guard inference.cropPolicyVersion == 2, requests.count == 2,
+                          requests.allSatisfy({ !$0.isEmpty && $0.count <= 2 }), estimate.policyVersion == 2,
+                          estimate.orientation == "underhand" else {
+                        fatalError("Native crop planning or offline geometric-estimate FFI changed")
+                    }
+                }
             }
             gripCounter.consume(frame,referenceEdge: reference)
             let started = ContinuousClock.now
@@ -330,7 +342,7 @@ struct WorkoutAnalysisBridgeCheck {
               gripAnalysis.gripLabel == "Underhand · Shoulder-width", gripSet.completedCount == 0 else {
             fatalError("Native Swift/shared grip transport or confirmation changed")
         }
-        let result: [String: Any] = ["gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+        let result: [String: Any] = ["gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)

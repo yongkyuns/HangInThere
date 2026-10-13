@@ -183,7 +183,7 @@ class WorkoutGripAnalysis(private val setId: String) {
         const val confirmationSeconds=.5
         const val maximumObservationGapSeconds=.4
         fun summary(record:WorkoutGripRecord?,start:Double,end:Double):GripEstimate {
-            if(record==null || !start.isFinite() || !end.isFinite() || end<=start)return GripEstimate(reason="variationUnavailable")
+            if(record==null || !start.isFinite() || !end.isFinite() || end<=start)return GripEstimate(reason="variationUnavailable",policyVersion=record?.policyVersion ?: WorkoutGripGeometry.policyVersion)
             val duration=end-start
             fun overlap(a:Double,b:Double)=maxOf(0.0,minOf(end,b)-maxOf(start,a))
             fun credit(a:Double,b:Double,observed:Double)=if(b>a)overlap(a,b)*(observed/(b-a)).coerceIn(0.0,1.0) else 0.0
@@ -199,7 +199,8 @@ class WorkoutGripAnalysis(private val setId: String) {
             val orientation=if(!reliable)GripOrientation.unknown else if(types.size>1 || l==HandGrip.unknown || r==HandGrip.unknown)GripOrientation.varied else types.single()
             val width=if(wc<.8)GripWidth.unknown else bands.singleOrNull() ?: GripWidth.varied
             return GripEstimate(l,r,width,widths.mapNotNull { it.projectedSpanRatio }.takeIf { it.isNotEmpty() }?.average(),orientation,
-                if(!reliable || wc<.8)"variationCoverageLow" else null,hands.mapNotNull { it.modelId }.distinct().singleOrNull(),hc,wc,inferenceBackend=hands.mapNotNull { it.inferenceBackend }.distinct().singleOrNull())
+                if(!reliable || wc<.8)"variationCoverageLow" else null,hands.mapNotNull { it.modelId }.distinct().singleOrNull(),hc,wc,
+                policyVersion=record.policyVersion,inferenceBackend=hands.mapNotNull { it.inferenceBackend }.distinct().singleOrNull())
         }
     }
 }

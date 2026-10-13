@@ -66,7 +66,7 @@ import kotlin.math.sqrt
 /** Geometry only; stabilization, lifecycle and storage are independent consumers.
  * These are monocular estimates. No SDK landmark score is exposed as grip confidence. */
 object WorkoutGripGeometry {
-    const val policyVersion = 1
+    const val policyVersion = 2
     const val maximumAgeSeconds = .5
     const val samplingIntervalSeconds = .25
     private fun score(value: Double?) = value==null || value.isFinite() && value in .5..1.0
@@ -80,14 +80,21 @@ object WorkoutGripGeometry {
     data class BodyBasis(val left: GripVector3, val facing: GripVector3)
     fun bodyBasis(observation: GripObservation): BodyBasis? {
         if(observation.failure!=null || observation.schemaVersion!=1 || observation.coordinateConvention!="cameraRightDownAway_v1" ||
-            !observation.seconds.isFinite() || !observation.imageSize.isValid || observation.body.size!=6 || observation.trackedBody.size!=6 ||
-            observation.body.map { it.joint }.toSet().size!=6 || observation.trackedBody.map { it.joint }.toSet().size!=6) return null
+            !observation.seconds.isFinite() || !observation.imageSize.isValid || observation.body.size!=6 || observation.trackedBody.size !in 4..6 ||
+            observation.body.map { it.joint }.toSet().size!=6 || observation.trackedBody.map { it.joint }.toSet().size!=observation.trackedBody.size) return null
         val points=observation.body.associateBy { it.joint }
         val tracked=observation.trackedBody.associateBy { it.joint }
+        val identityJoints=setOf(GripBodyJoint.leftShoulder,GripBodyJoint.rightShoulder,GripBodyJoint.leftWrist,GripBodyJoint.rightWrist)
+        // Shoulders and wrists match the athlete. The auxiliary model must
+        // still supply strong hips for its 3D frame. A weak primary hip is not
+        // identity evidence; a confident conflicting hip remains a rejection.
+        if(tracked.values.any { !it.score.isFinite() || it.score !in 0.0..1.0 })return null
+        val reliableTracked=tracked.filterValues { it.score>=.5 }
         val short=minOf(observation.imageSize.width,observation.imageSize.height)
         if(points.values.any { !score(it.score) || !it.world.isFinite || !inside(it.position,observation.imageSize) } ||
-            tracked.values.any { !score(it.score) || !inside(it.position,observation.imageSize) } ||
-            points.any { (joint,p)->p.position.distanceTo(tracked.getValue(joint).position)>short*.12 }) return null
+            !reliableTracked.keys.containsAll(identityJoints) ||
+            reliableTracked.values.any { !inside(it.position,observation.imageSize) } ||
+            reliableTracked.any { (joint,p)->p.position.distanceTo(points.getValue(joint).position)>short*.12 }) return null
         fun world(joint: GripBodyJoint)=points.getValue(joint).world
         val across=world(GripBodyJoint.leftShoulder)-world(GripBodyJoint.rightShoulder)
         val up=(world(GripBodyJoint.leftShoulder)+world(GripBodyJoint.rightShoulder)-world(GripBodyJoint.leftHip)-world(GripBodyJoint.rightHip))*.5

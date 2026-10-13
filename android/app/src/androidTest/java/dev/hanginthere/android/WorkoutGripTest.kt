@@ -7,6 +7,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dev.hanginthere.android.session.WorkoutGripCorrectionStore
 import dev.hanginthere.android.session.WorkoutRecordStore
 import dev.hanginthere.android.vision.GripInference
+import dev.hanginthere.android.vision.inferGripHandCrops
+import com.google.mediapipe.tasks.core.BaseOptions
+import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import dev.hanginthere.core.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -16,6 +20,20 @@ import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class WorkoutGripTest {
+    @Test fun primaryAndFallbackCropsDoNotInventHandsOnBlankPixels() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val pixels=Bitmap.createBitmap(256,256,Bitmap.Config.ARGB_8888)
+        val pose=PoseResult(PresentationTime(0,1000),ImageSize(256.0,256.0),listOf(PoseObservation(listOf(
+            Landmark(PoseJoint.leftWrist,Point2D(64.0,64.0),1.0),
+            Landmark(PoseJoint.rightWrist,Point2D(192.0,64.0),1.0)))),"authored blank hand crops",0)
+        val hand=HandLandmarker.createFromOptions(context,HandLandmarker.HandLandmarkerOptions.builder()
+            .setBaseOptions(BaseOptions.builder().setModelAssetPath("hand_landmarker.task").build())
+            .setRunningMode(RunningMode.IMAGE).setNumHands(1).setMinHandDetectionConfidence(.5f).setMinHandPresenceConfidence(.5f).build())
+        try {
+            assertTrue(inferGripHandCrops(pixels,pose,hand).isEmpty())
+            assertFalse("Crop ownership must not recycle the caller's frame",pixels.isRecycled)
+        } finally { hand.close();pixels.recycle() }
+    }
     @Test fun pinnedNativeModelsRunAndMissingBodyDoesNotBecomeGripEvidence() {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val pixels=Bitmap.createBitmap(64,64,Bitmap.Config.ARGB_8888)

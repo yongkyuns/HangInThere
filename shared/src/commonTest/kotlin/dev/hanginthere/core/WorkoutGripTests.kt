@@ -53,6 +53,34 @@ class WorkoutGripTests {
         val contradictory=o.copy(hands=o.hands.map { it.copy(sdkHandedness=if(it.sdkHandedness=="left")"right" else "left",sdkHandednessScore=.99) })
         assertEquals(GripOrientation.unknown,WorkoutGripGeometry.orientation(contradictory).orientation)
     }
+    @Test fun strongAuxiliaryHipsDoNotRequireWeakPrimaryHipIdentityEvidence() {
+        val o=observation()
+        val hips=setOf(GripBodyJoint.leftHip,GripBodyJoint.rightHip)
+        val weakPrimary=o.copy(trackedBody=o.trackedBody.map { if(it.joint in hips)it.copy(score=.49) else it })
+        assertEquals(GripOrientation.underhand,WorkoutGripGeometry.orientation(weakPrimary).orientation)
+        assertNotNull(WorkoutGripGeometry.bodyBasis(o.copy(trackedBody=o.trackedBody.filter { it.joint !in hips })))
+        assertNull(WorkoutGripGeometry.bodyBasis(o.copy(body=o.body.map { if(it.joint in hips)it.copy(score=.49) else it })))
+        assertNull(WorkoutGripGeometry.bodyBasis(o.copy(trackedBody=o.trackedBody.map {
+            if(it.joint==GripBodyJoint.leftHip)it.copy(position=Point2D(900.0,900.0)) else it
+        })))
+        assertNull(WorkoutGripGeometry.bodyBasis(o.copy(trackedBody=o.trackedBody.filter { it.joint!=GripBodyJoint.leftWrist })))
+        assertNull(WorkoutGripGeometry.bodyBasis(o.copy(trackedBody=o.trackedBody.map {
+            if(it.joint==GripBodyJoint.leftShoulder)it.copy(score=.49) else it
+        })))
+        assertNull(WorkoutGripGeometry.bodyBasis(o.copy(trackedBody=o.trackedBody.map {
+            if(it.joint==GripBodyJoint.leftHip)it.copy(score=Double.NaN) else it
+        })))
+    }
+    @Test fun historicalGripPolicyIsPreservedWhenReviewingOldRecords() {
+        val old=WorkoutGripRecord(listOf(GripOrientationSpan("old",0.0,1.0,HandGrip.underhand,HandGrip.underhand,1.0,null,"model")),
+            emptyList(),GripEstimate(left=HandGrip.underhand,right=HandGrip.underhand,policyVersion=1),policyVersion=1)
+        val decoded=WorkoutRecordCodec.json.decodeFromString<WorkoutGripRecord>(WorkoutRecordCodec.json.encodeToString(old))
+        assertEquals(old,decoded)
+        assertEquals(1,WorkoutGripAnalysis.summary(decoded,0.0,1.0).policyVersion)
+        assertEquals(1,WorkoutGripAnalysis.summary(decoded,1.0,1.0).policyVersion)
+        assertEquals(GripOrientation.underhand,WorkoutGripAnalysis.summary(decoded,0.0,1.0).orientation)
+        assertFailsWith<IllegalArgumentException> { WorkoutRecordCodec.mergeGrip(decoded,decoded.copy(policyVersion=2)) }
+    }
     @Test fun pendingPreInterruptionFrameCannotRestoreTheViewOrConfirmHands() {
         val a=WorkoutGripAnalysis("set")
         for(i in 0..9)a.observe(pose(i*.05,if(i%5==0)i*.05 else null),bar,ExerciseCounter.Phase.ready,true)
@@ -117,6 +145,40 @@ class WorkoutGripTests {
         val regions=WorkoutGripInference.handRegions(p)
         assertEquals(2,regions.size);assertTrue(regions.all { it.isValidFor(size) })
         assertTrue(WorkoutGripInference.handRegions(p.copy(people=p.people+p.people)).isEmpty())
+    }
+    @Test fun missedHandsHaveABoundedWristCenteredContextFallback() {
+        val p=pose(0.0)
+        val candidates=WorkoutGripInference.handRegionCandidates(p)
+        assertEquals(2,candidates.size)
+        assertEquals(WorkoutGripInference.handRegions(p),candidates.map { it.first() })
+        assertEquals(PersonInferenceRegion(560,0,280,240),candidates[0].last())
+        assertEquals(PersonInferenceRegion(160,0,280,240),candidates[1].last())
+        assertTrue(candidates.all { it.size<=2 && it.distinct()==it && it.all { region->region.isValidFor(size) } })
+        val bridge=WorkoutGripInferenceBridge()
+        assertEquals(candidates,WorkoutRecordCodec.json.decodeFromString<List<List<PersonInferenceRegion>>>(
+            bridge.handRegionCandidatesJson(WorkoutRecordCodec.json.encodeToString(p))))
+        assertEquals(2,bridge.cropPolicyVersion)
+        assertEquals(WorkoutGripGeometry.orientation(observation()),WorkoutRecordCodec.json.decodeFromString<GripEstimate>(
+            bridge.orientationJson(WorkoutRecordCodec.json.encodeToString(observation()))))
+    }
+    @Test fun fallbackCropsClipEdgesDeduplicateAndRejectAmbiguousSources() {
+        val p=pose(0.0)
+        val edge=p.copy(people=listOf(PoseObservation(listOf(
+            Landmark(PoseJoint.leftWrist,Point2D(0.0,0.0),1.0),
+            Landmark(PoseJoint.rightWrist,Point2D(1000.0,1000.0),1.0)))))
+        val candidates=WorkoutGripInference.handRegionCandidates(edge)
+        assertEquals(2,candidates.size)
+        assertEquals(PersonInferenceRegion(0,0,140,140),candidates[0].last())
+        assertEquals(PersonInferenceRegion(860,860,140,140),candidates[1].last())
+        assertTrue(candidates.flatten().all { it.isValidFor(size) })
+        val tiny=edge.copy(imageSize=ImageSize(1.0,1.0),people=listOf(PoseObservation(listOf(
+            Landmark(PoseJoint.leftWrist,Point2D(.5,.5),1.0),
+            Landmark(PoseJoint.rightWrist,Point2D(.5,.5),1.0)))))
+        assertTrue(WorkoutGripInference.handRegionCandidates(tiny).all { it.size==1 })
+        assertTrue(WorkoutGripInference.handRegionCandidates(p.copy(people=p.people+p.people)).isEmpty())
+        assertTrue(WorkoutGripInference.handRegionCandidates(p.copy(imageSize=ImageSize(1000.5,1000.0))).isEmpty())
+        val duplicate=p.copy(people=listOf(PoseObservation(p.people.single().landmarks+p.people.single().landmarks)))
+        assertTrue(WorkoutGripInference.handRegionCandidates(duplicate).isEmpty())
     }
     @Test fun missingDepthOrIdentityOrBodyContextIsUnknown() {
         val o=observation()
