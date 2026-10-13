@@ -108,6 +108,7 @@ class WorkoutLibraryTests {
         assertEquals(listOf(20.0), session.restSeconds); assertEquals(140000, session.endedAtEpochMilliseconds)
         val overlapping = state(record("a", 100000).copy(trackedEndedAtEpochMilliseconds = 135000), record("b", 130000))
         assertTrue(WorkoutInsights.report(overlapping, null, 200000, 0).sessions.single().restSeconds.isEmpty())
+        assertNull(WorkoutInsights.report(overlapping, null, 200000, 0).sessions.single().endedAtEpochMilliseconds)
     }
     @Test fun futureContextIsExplicitPerExerciseAndAfterSetGoalsRequireComparableEvidence() {
         var library = edit(state(record("a")), "a", WorkoutReviewCorrection(context = context.copy(effort = 9, readiness = WorkoutReadiness.low, recoveryNote = "tired")))

@@ -53,7 +53,8 @@ object WorkoutInsights {
                 val end = a.trackedEndedAtEpochMilliseconds; val start = b.trackedAtEpochMilliseconds
                 if (end != null && start != null && start >= end) (start - end) / 1000.0 else null
             }
-            WorkoutSessionSummary(id, members.map { it.id }, dates.minOrNull(), sources.mapNotNull { it.trackedEndedAtEpochMilliseconds }.maxOrNull(), members.map { it.exercise }.distinct(),
+            val knownEnd = sources.mapNotNull { it.trackedEndedAtEpochMilliseconds }.maxOrNull().takeIf { sources.all { it.trackedEndedAtEpochMilliseconds != null } }
+            WorkoutSessionSummary(id, members.map { it.id }, dates.minOrNull(), knownEnd, members.map { it.exercise }.distinct(),
                 members.sumOf { it.measuredCompletedReps }, members.sumOf { it.userReportedCompletedReps }, members.sumOf { it.practiceAttempts },
                 members.mapNotNull { it.totalHoldSeconds }.takeIf { it.isNotEmpty() }?.sum(),
                 rests, sources.count { it.endReason !in listOf("manual", "disengaged", "sourceEnded") }, dates.zipWithNext { a, b -> (b - a) / 1000.0 })
