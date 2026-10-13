@@ -60,7 +60,10 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
     AlertDialog(onDismissRequest = onClose, title = { Text("Workout analysis") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            practice?.let { WorkoutPracticePanel(it) }
+            practice?.let {
+                WorkoutPracticePanel(it)
+                if(it.exercise==ExerciseCounter.Exercise.pullUp)WorkoutGripPanel(it,goalsEnabled)
+            }
             if (reps.isEmpty() && rep == null) Text("Hangs, support holds and partial attempts are practice. Completed cycles appear in rep timing.")
             if (reps.isNotEmpty()) {
                 Text("Rep timing", style = MaterialTheme.typography.titleMedium)

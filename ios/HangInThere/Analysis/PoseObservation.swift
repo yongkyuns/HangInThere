@@ -60,6 +60,7 @@ struct PoseResult: Codable, Equatable, Sendable {
     let people: [PoseObservation]
     let backend: String
     let requestRevision: Int
+    var gripObservation: WorkoutGripObservation? = nil
 
     // P0 draws each returned skeleton separately; it does not claim to select or
     // persist the identity of an athlete. Counting/identity continuity is P1/P2.

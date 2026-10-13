@@ -4,7 +4,11 @@ import UniformTypeIdentifiers
 @MainActor
 struct ReplayView: View {
     @State private var showingAnalysis = false
+    #if os(iOS)
+    @State private var model = ReplayController(gripObserverFactory: { exercise in GripInferenceScheduler(enabled: exercise == .pullUp) })
+    #else
     @State private var model = ReplayController()
+    #endif
     @State private var importing = false
     @State private var showingLiveWorkout = false
     @State private var barSetup: BarSetupFrame?

@@ -32,7 +32,35 @@ class WorkoutRecordCodec {
                 }
             }
             val newest = if ((delta.endedAt ?: Double.NEGATIVE_INFINITY) >= (previous.endedAt ?: Double.NEGATIVE_INFINITY)) delta else previous
-            return summary(newest.copy(startedAt=listOfNotNull(previous.startedAt,delta.startedAt).minOrNull(),reps=reps.values.sortedBy{it.ordinal},activity=if(newest===delta) mergeActivity(previous.activity,delta.activity) else previous.activity))
+            return summary(newest.copy(startedAt=listOfNotNull(previous.startedAt,delta.startedAt).minOrNull(),reps=reps.values.sortedBy{it.ordinal},activity=if(newest===delta) mergeActivity(previous.activity,delta.activity) else previous.activity,grip=if(newest===delta)mergeGrip(previous.grip,delta.grip) else previous.grip))
+        }
+        fun mergeGrip(previous:WorkoutGripRecord?,delta:WorkoutGripRecord?):WorkoutGripRecord? {
+            if(delta==null)return previous
+            if(previous==null)return delta
+            require(previous.policyVersion==delta.policyVersion)
+            val orientations=previous.orientationSpans.associateBy { it.id }.toMutableMap()
+            delta.orientationSpans.forEach { span ->
+                val old=orientations[span.id]
+                require(old==null || old.startedAt==span.startedAt && old.left==span.left && old.right==span.right && old.modelId==span.modelId && old.inferenceBackend==span.inferenceBackend && old.reason==span.reason)
+                if(old==null || span.endedAt>=old.endedAt) {
+                    require(span.startedAt.isFinite() && span.endedAt.isFinite() && span.endedAt>=span.startedAt && span.observedSeconds.isFinite() && span.observedSeconds in 0.0..(span.endedAt-span.startedAt+1e-8))
+                    require(old==null || span.observedSeconds>=old.observedSeconds)
+                    orientations[span.id]=span
+                }
+            }
+            val widths=previous.widthSpans.associateBy { it.id }.toMutableMap()
+            delta.widthSpans.forEach { span ->
+                val old=widths[span.id]
+                require(old==null || old.startedAt==span.startedAt && old.width==span.width && old.reason==span.reason)
+                if(old==null || span.endedAt>=old.endedAt) {
+                    require(span.startedAt.isFinite() && span.endedAt.isFinite() && span.endedAt>=span.startedAt && span.observedSeconds.isFinite() && span.observedSeconds in 0.0..(span.endedAt-span.startedAt+1e-8))
+                    require(old==null || span.observedSeconds>=old.observedSeconds)
+                    widths[span.id]=span
+                }
+            }
+            return delta.copy(orientationSpans=orientations.values.sortedBy { it.startedAt }.takeLast(WorkoutGripAnalysis.maximumSpans),
+                widthSpans=widths.values.sortedBy { it.startedAt }.takeLast(WorkoutGripAnalysis.maximumSpans),
+                timelineTruncated=previous.timelineTruncated || delta.timelineTruncated || orientations.size>WorkoutGripAnalysis.maximumSpans || widths.size>WorkoutGripAnalysis.maximumSpans)
         }
         /** Small live deltas retain the full bounded timeline in the journal. */
         fun mergeActivity(previous: WorkoutActivity?, delta: WorkoutActivity?): WorkoutActivity? {

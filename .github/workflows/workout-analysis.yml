@@ -20,6 +20,8 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Verify shared grip model pins
+        run: python3 scripts/verify-grip-models.py
       - name: Generate production Swift policy and setup oracles
         run: |
           python3 scripts/prepare-workout-oracle.py

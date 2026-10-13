@@ -158,6 +158,10 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 snapshot?.setupIssue != null -> setupText(snapshot.setupIssue!!)
                 else -> "Hold a hang or top support · show both hands"
             }
+            if(running && !state.interrupted) state.result?.currentSet?.grip?.latest?.let { grip ->
+                Text("Estimated · ${grip.label}", Modifier.background(Color.Black.copy(alpha = 0.6f)).padding(8.dp),
+                    color = Color.White, style = MaterialTheme.typography.bodySmall)
+            }
             if(running && !state.interrupted) state.result?.currentSet?.activity?.phases?.lastOrNull()?.takeIf {
                 it.phase==WorkoutMotionPhase.hang || it.phase==WorkoutMotionPhase.support
             }?.let { span ->

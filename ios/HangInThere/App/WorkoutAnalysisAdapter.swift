@@ -38,6 +38,8 @@ final class WorkoutAnalysisAdapter {
     @ObservationIgnored private let startFeedback = WorkoutStartFeedback()
     @ObservationIgnored private var startFeedbackTask: Task<Void, Never>?
     private(set) var showsSetStarted = false
+    var gripLabel: String? { currentRecord?.exercise == .pullUp ? engine.gripLabel : nil }
+    @ObservationIgnored private var gripTimestamp: Double?
     var startSpokenMessage: String { WorkoutStartFeedback.companion.spokenMessage }
     @discardableResult
     func beginStartFeedback(isRunning: Bool, nowSeconds: Double = ProcessInfo.processInfo.systemUptime) -> Bool {
@@ -71,6 +73,7 @@ final class WorkoutAnalysisAdapter {
             guard let index = names.firstIndex(of: joint.rawValue) else { preconditionFailure("Unsupported pose joint: \(joint)") }
             return (joint, Int32(index))
         })
+        gripTimestamp = nil
         revision = -1; reps = []; currentRecord = nil; error = nil; pendingDraft = nil
     }
     func shouldResume(reason: LiveSetSession.EndReason?) -> Bool { WorkoutLifecycle.shared.shouldResume(endReason: reason?.rawValue) }
@@ -79,6 +82,13 @@ final class WorkoutAnalysisAdapter {
     func resetReadiness() { engine.resetReadiness() }
     func consume(_ pose: PoseResult, reference: BarSegment?, counter: ExerciseCounter,
                  event: ExerciseCounter.Event?, automaticFinish: Bool) -> LiveSetSession.EndReason? {
+        if pose.gripObservation?.seconds != gripTimestamp {
+            do {
+                let json = try pose.gripObservation.map { String(decoding: try JSONEncoder().encode($0), as: UTF8.self) }
+                try engine.gripObservationJson(input: json)
+                gripTimestamp = pose.gripObservation?.seconds
+            } catch { try? engine.gripObservationJson(input: nil); gripTimestamp = nil }
+        }
         let points = pose.people.count == 1 ? pose.people[0].landmarks : []
         let joints = KotlinIntArray(size: Int32(points.count))
         let triples = KotlinDoubleArray(size: Int32(points.count * 3))
@@ -135,7 +145,7 @@ final class WorkoutAnalysisAdapter {
                         endedAt: delta.endedAt, endReason: delta.endReason, reps: reps, backend: delta.backend,
                         modelRevision: delta.modelRevision, schemaVersion: delta.schemaVersion, lifecycleVersion: delta.lifecycleVersion,
                         trackingSide: delta.trackingSide, imageSize: delta.imageSize, referenceEdge: delta.referenceEdge,
-                        trackedAtEpochMilliseconds: delta.trackedAtEpochMilliseconds, activity: delta.activity)
+                        trackedAtEpochMilliseconds: delta.trackedAtEpochMilliseconds, activity: delta.activity, grip: delta.grip)
                     currentRecord = record
                 }
             }

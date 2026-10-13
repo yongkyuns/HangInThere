@@ -5,6 +5,21 @@
 	};
 	objectVersion = 56;
 	objects = {
+        ACB100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGripInferenceTests.swift; sourceTree = "<group>";};
+        ACB200000000000000000007 = {isa = PBXBuildFile; fileRef = ACB100000000000000000007;};
+		ACB100000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutGripRecords.swift"; sourceTree = "<group>";};
+		ACB200000000000000000001 = {isa = PBXBuildFile; fileRef = ACB100000000000000000001;};
+		ACB100000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/GripInferenceWorker.swift"; sourceTree = "<group>";};
+		ACB200000000000000000002 = {isa = PBXBuildFile; fileRef = ACB100000000000000000002;};
+		ACB100000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/WorkoutGripReview.swift"; sourceTree = "<group>";};
+		ACB200000000000000000003 = {isa = PBXBuildFile; fileRef = ACB100000000000000000003;};
+		ACB100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutGripView.swift"; sourceTree = "<group>";};
+		ACB200000000000000000004 = {isa = PBXBuildFile; fileRef = ACB100000000000000000004;};
+		ACB100000000000000000005 = {isa = PBXFileReference; lastKnownFileType = file; path = "../models/grip/hand_landmarker.task"; sourceTree = SOURCE_ROOT;};
+		ACB200000000000000000005 = {isa = PBXBuildFile; fileRef = ACB100000000000000000005;};
+		ACB100000000000000000006 = {isa = PBXFileReference; lastKnownFileType = file; path = "../models/grip/pose_landmarker_lite.task"; sourceTree = SOURCE_ROOT;};
+		ACB200000000000000000006 = {isa = PBXBuildFile; fileRef = ACB100000000000000000006;};
+		ACB300000000000000000001 = {isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "\"$SRCROOT/../scripts/prepare-grip-sdk.sh\""; name = "Prepare pinned grip SDK";};
 		AAA100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/WorkoutProgression.swift"; sourceTree = "<group>";};
 		AAA200000000000000000004 = {isa = PBXBuildFile; fileRef = AAA100000000000000000004;};
 		AAA100000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutPracticeView.swift"; sourceTree = "<group>";};
@@ -303,6 +318,10 @@
 		3AA483116254740FBE6590D1 = {
 			isa = PBXGroup;
 			children = (
+				ACB100000000000000000001,
+				ACB100000000000000000002,
+				ACB100000000000000000003,
+				ACB100000000000000000004,
 				AAA100000000000000000004,
 				AAA100000000000000000005,
 				AAA100000000000000000003,
@@ -429,6 +448,7 @@
 				F8DBFC01AE179FD407840101,
 				3B9FA338709B9E10B4C03079,
 				6FAA384EC7A5412D562FC46C,
+				ACB100000000000000000007,
 				ACF000000000000000000001,
 				AAB000000000000000000005,
 				D8B6A101D4B748E0A35F0501,
@@ -472,8 +492,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION)";
-				OTHER_LDFLAGS = "$(inherited) -framework WorkoutCore -lc++";
+				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION) $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -501,8 +520,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION)";
-				OTHER_LDFLAGS = "$(inherited) -framework WorkoutCore -lc++";
+				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION) $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -532,6 +550,7 @@
 		9F88269D30200F75DF5FC671 = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_LDFLAGS = "$(inherited) -framework WorkoutCore -lc++ -ObjC -framework MediaPipeTasksVision -framework MediaPipeTasksCommon -framework Accelerate -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework CoreImage -framework CoreVideo -framework QuartzCore -force_load $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 0.1.0;
@@ -559,6 +578,7 @@
 		5269FA304F4FEBACD0ACC9DE = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_LDFLAGS = "$(inherited) -framework WorkoutCore -lc++ -ObjC -framework MediaPipeTasksVision -framework MediaPipeTasksCommon -framework Accelerate -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework CoreImage -framework CoreVideo -framework QuartzCore -force_load $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 0.1.0;
@@ -657,6 +677,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACB200000000000000000001,
+				ACB200000000000000000002,
+				ACB200000000000000000003,
+				ACB200000000000000000004,
 				AAA200000000000000000004,
 				AAA200000000000000000005,
 				AAA200000000000000000003,
@@ -708,7 +732,7 @@
 		253694B87BCB5FB6ECA0DC84 = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
+			files = (ACB200000000000000000005, ACB200000000000000000006);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		B902F7C2327297FC583709E1 = {
@@ -716,6 +740,7 @@
 			buildConfigurationList = 70336279113C6D09893D9716;
 			buildPhases = (
 				AAA300000000000000000001,
+				ACB300000000000000000001,
 				68794D95D50DF8ED5158D413,
 				BF8D21E9E84F4DF4F2CFEE1E,
 				253694B87BCB5FB6ECA0DC84,
@@ -732,6 +757,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C476E88F0B62A3B7D2B8E034,
+				ACB200000000000000000007,
 				ACF000000000000000000002,
 				AAB000000000000000000006,
 				E907D117346B40511577EFAB,

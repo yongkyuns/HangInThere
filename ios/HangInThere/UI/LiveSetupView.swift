@@ -86,6 +86,7 @@ struct LiveSetupView: View {
                     showsSetStarted: camera.showsSetStarted,
                     activity: camera.activeWorkoutRecord?.activity,
                     exerciseTitle: camera.workoutTitle,
+                    gripLabel: camera.gripLabel,
                     cameraReady: camera.isCameraReady,
                     status: overlayStatus,
                     statusSymbol: overlayStatusSymbol,

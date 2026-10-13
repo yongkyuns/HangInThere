@@ -57,6 +57,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
     private val edges = ObservedEdges()
     private val scene = SceneRegistration()
     private var poses = PoseEstimator(context)
+    private val grips = GripInference(context)
     private var reference: BarSegment? = null
     private var setupGeneration = runtime.snapshot.setupGeneration
     private var lastDetectionSeconds: Double? = null
@@ -64,7 +65,8 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
     private var lastSceneSeconds: Double? = null
     fun process(bitmap: Bitmap, ptsUs: Long, attitude: PhoneAttitude.Sample?, paused: Boolean = false): Result {
         val started = System.nanoTime()
-        val pose = poses.estimate(bitmap, ptsUs)
+        val bodyPose = poses.estimate(bitmap, ptsUs)
+        val pose = bodyPose.copy(gripObservation = if(runtime.snapshot.exercise==ExerciseCounter.Exercise.pullUp)grips.observe(bitmap, bodyPose) else null)
         val seconds = pose.timestamp.seconds
         val search = runtime.search(pose)
         val detectionDue = lastDetectionSeconds?.let { seconds - it >= AutomaticPullUpBar.samplingInterval } ?: true
@@ -88,6 +90,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
             sceneTimestamp = lastSceneSeconds, paused = paused)
         val snapshot = runtime.observe(input)
         if (snapshot.setupGeneration != setupGeneration || snapshot.referenceEdge != reference) {
+            grips.reset()
             setupGeneration = snapshot.setupGeneration
             reference = snapshot.referenceEdge
             sceneEvidence = SceneRegistration.Evidence(emptyList(), null); lastSceneSeconds = null
@@ -114,10 +117,11 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
         val identity = requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0))
         if (!runtime.rewindReplay(identity, 0.0)) return false
         setupGeneration = runtime.snapshot.setupGeneration
+        grips.reset()
         poses.close(); poses = PoseEstimator(context)
         lastDetectionSeconds = null; lastSceneSeconds = null; sceneEvidence = SceneRegistration.Evidence(emptyList(), null)
         // Preserve fixed reference grayscale pixels; never relabel the rewound camera as stable.
         return true
     }
-    override fun close() { runtime.stop();retryAfterNanos=0L;persistRecords();poses.close();scene.close() }
+    override fun close() { runtime.stop();retryAfterNanos=0L;persistRecords();poses.close();grips.close();scene.close() }
 }

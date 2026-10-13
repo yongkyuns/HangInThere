@@ -262,7 +262,69 @@ struct WorkoutAnalysisBridgeCheck {
         guard !FileManager.default.fileExists(atPath: orphan.path), cleaned.filter({$0.lastPathComponent.hasSuffix(".motion.json")}).count == 50 else {
             fatalError("Idempotent retry skipped post-commit cleanup")
         }
-        let result: [String: Any] = ["practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+        let correctionDirectory = directory.appendingPathComponent("grip-corrections")
+        let correctionStore = WorkoutGripCorrectionStore(directory: correctionDirectory)
+        let measuredSet = completed[0]
+        let originalEvidence = try JSONEncoder().encode(measuredSet)
+        try await correctionStore.correct(measuredSet, repId: nil, orientation: "underhand", width: "wide")
+        let corrected = try await WorkoutGripCorrectionStore(directory: correctionDirectory).report(measuredSet)
+        guard corrected.reps.first?.orientation == "underhand", corrected.reps.first?.orientationSource == "user",
+              corrected.totals.first?.completedReps == measuredSet.completedCount else { fatalError("Apple grip correction storage/FFI lost annotation") }
+        try await correctionStore.correct(measuredSet, repId: measuredSet.reps[0].id, orientation: nil, width: nil)
+        let reset = try await correctionStore.report(measuredSet)
+        guard reset.reps[0].orientation == (measuredSet.reps[0].grip?.orientation ?? "unknown"),
+              try JSONEncoder().encode(measuredSet) == originalEvidence else { fatalError("Apple grip reset rewrote measured evidence") }
+        // Exercise the real array/JSON FFI with independent source-clock hand
+        // observations. These are authored anatomy fixtures, not native accuracy.
+        let gripAnalysis = WorkoutAnalysisAdapter(); gripAnalysis.start(exercise: .pullUp)
+        var gripCounter = ExerciseCounter(exercise: .pullUp, side: .left)
+        var gripLatencies: [Double] = []
+        let bodyWorld: [PoseJoint: WorkoutGripVector3] = [
+            .leftShoulder: .init(x: 0.2,y: -0.2,z: 0), .rightShoulder: .init(x: -0.2,y: -0.2,z: 0),
+            .leftHip: .init(x: 0.2,y: 0.2,z: 0), .rightHip: .init(x: -0.2,y: 0.2,z: 0),
+            .leftWrist: .init(x: 0.2,y: -0.4,z: 0), .rightWrist: .init(x: -0.2,y: -0.4,z: 0)]
+        for index in 0..<2000 {
+            let time = Double(index) * 0.05
+            let base = pose(time,170,exercise: .pullUp)
+            var points = base.people[0].landmarks.map { Landmark(joint: $0.joint,position: Point2D(x: 1000 - $0.position.x,y: $0.position.y),confidence: $0.confidence) }
+            points += [Landmark(joint: .leftHip,position: Point2D(x: 700,y: 900),confidence: 1),
+                Landmark(joint: .rightHip,position: Point2D(x: 300,y: 900),confidence: 1)]
+            var frame = PoseResult(timestamp: base.timestamp,imageSize: base.imageSize,people: [PoseObservation(landmarks: points)],backend: base.backend,requestRevision: 0)
+            if index % 5 == 0 {
+                let body = points.compactMap { p -> WorkoutGripBodyPoint? in
+                    bodyWorld[p.joint].map { WorkoutGripBodyPoint(joint: p.joint.rawValue,position: p.position,world: $0,score: 1) }
+                }
+                let hands = [PoseJoint.leftWrist, .rightWrist].map { joint in
+                    let position = points.first { $0.joint == joint }!.position
+                    let isLeft = joint == .leftWrist
+                    let indexPoint = WorkoutGripVector3(x: isLeft ? 0.04 : -0.04,y: -0.06,z: 0)
+                    let pinky = WorkoutGripVector3(x: isLeft ? -0.04 : 0.04,y: -0.06,z: 0)
+                    return WorkoutGripHandObservation(points: [
+                        WorkoutGripHandPoint(joint: "wrist",position: position,world: .init(x: 0,y: 0,z: 0),score: nil),
+                        WorkoutGripHandPoint(joint: "indexMCP",position: position,world: indexPoint,score: nil),
+                        WorkoutGripHandPoint(joint: "middleMCP",position: position,world: .init(x: 0,y: -0.07,z: 0),score: nil),
+                        WorkoutGripHandPoint(joint: "pinkyMCP",position: position,world: pinky,score: nil)],sdkHandedness: isLeft ? "Left" : "Right",sdkHandednessScore: 0.99)
+                }
+                frame.gripObservation = WorkoutGripObservation(seconds: time,imageSize: base.imageSize,
+                    trackedBody: body.map { .init(joint: $0.joint,position: $0.position,score: $0.score) },body: body,hands: hands,
+                    modelId: "authored-anatomy",backend: "authored transport")
+            }
+            gripCounter.consume(frame,referenceEdge: reference)
+            let started = ContinuousClock.now
+            _ = gripAnalysis.consume(frame,reference: reference,counter: gripCounter,event: nil,automaticFinish: false)
+            let elapsed = started.duration(to: .now).components
+            gripLatencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
+        }
+        gripLatencies.sort()
+        let gripP95 = gripLatencies[Int(Double(gripLatencies.count - 1) * 0.95)]
+        guard gripP95 < 5 else { fatalError("Grip-enabled host FFI p95 exceeds 5 ms budget: \(gripP95)") }
+        guard let gripSet = gripAnalysis.finish(reason: "manual"), let grip = gripSet.grip,
+              grip.latest.orientation == "underhand", grip.latest.width == "shoulderWidth",
+              grip.latest.inferenceBackend == "authored transport", grip.orientationSpans.count <= 128,
+              gripAnalysis.gripLabel == "Underhand · Shoulder-width", gripSet.completedCount == 0 else {
+            fatalError("Native Swift/shared grip transport or confirmation changed")
+        }
+        let result: [String: Any] = ["gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)

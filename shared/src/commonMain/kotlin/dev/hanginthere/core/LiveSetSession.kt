@@ -18,8 +18,8 @@ class LiveSetSession {
     private var imageSize:ImageSize?=null
     private var reference:BarSegment?=null
     private var trackedAtEpochMilliseconds:Long?=null
-    val record get()=WorkoutSetRecord(setId,exercise,firstSourceSeconds,lastSourceSeconds,endReason?.name ?: "running",analysis.records,backend,modelRevision,trackingSide=side,imageSize=imageSize,referenceEdge=reference,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds,activity=analysis.activity)
-    val draftDelta get()=if(record.hasPractice || analysis.activeRecord != null) record.copy(reps=listOfNotNull(analysis.activeRecord ?: analysis.records.lastOrNull()),activity=analysis.activityDelta) else null
+    val record get()=WorkoutSetRecord(setId,exercise,firstSourceSeconds,lastSourceSeconds,endReason?.name ?: "running",analysis.records,backend,modelRevision,trackingSide=side,imageSize=imageSize,referenceEdge=reference,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds,activity=analysis.activity,grip=analysis.gripRecord)
+    val draftDelta get()=if(record.hasPractice || analysis.activeRecord != null) record.copy(reps=listOfNotNull(analysis.activeRecord ?: analysis.records.lastOrNull()),activity=analysis.activityDelta,grip=analysis.gripDelta) else null
     var phase=Phase.idle;private set
     var endReason:EndReason?=null;private set
     var counter=ExerciseCounter();private set
@@ -48,6 +48,7 @@ class LiveSetSession {
         val eventCount=counter.events.size
         analyzedFrames++;counter.consume(pose,referenceEdge)
         val features=motionFeatures.extract(pose,referenceEdge,counter.trackingIssue==null && referenceEdge!=null,counter.phase)
+        analysis.observeGrip(pose,referenceEdge,counter.phase,features.usable)
         analysis.observe(features,counter.phase,counter.events.drop(eventCount).lastOrNull())
         if(automaticFinishEnabled) boundary.observe(features,counter.observedMovements+counter.partialAttempts+counter.interruptedAttempts>0 || counter.phase in listOf(ExerciseCounter.Phase.ready,ExerciseCounter.Phase.outbound,ExerciseCounter.Phase.returning))?.let { finish(EndReason.valueOf(it)) }
         if(referenceEdge!=null && counter.trackingIssue==null) usableFrames++

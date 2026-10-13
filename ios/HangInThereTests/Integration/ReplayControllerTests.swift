@@ -1,10 +1,31 @@
 import AVFoundation
 import CoreGraphics
+import os
 import Testing
 @testable import HangInThere
 
 @MainActor @Suite(.serialized)
 struct ReplayControllerTests {
+    @Test func switchingExerciseUpdatesGripInferenceOnTheReusedReader() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let observer = RecordingGripObserver()
+        let model = ReplayController(estimator: TestPoseEstimator(), gripObserverFactory: { _ in observer })
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try #require(model.phase == .paused)
+        #expect(observer.enabledAtObservation == [true])
+        model.configureCounting(exercise: .dip, side: .left)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try #require(model.phase == .paused)
+        #expect(observer.enabledAtObservation == [true, false])
+        model.configureCounting(exercise: .pullUp, side: .left)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try #require(model.phase == .paused)
+        #expect(observer.enabledAtObservation == [true, false, true])
+    }
+
     @Test func pauseResumeAndRestartDoNotLoseConsumedFrames() async throws {
         let url = try await VideoTestSupport.makeVideo()
         defer { try? FileManager.default.removeItem(at: url) }
@@ -266,6 +287,21 @@ struct ReplayControllerTests {
             try await Task.sleep(for: .milliseconds(10))
         }
     }
+}
+
+private final class RecordingGripObserver: GripObservationScheduling {
+    private struct State: Sendable {
+        var enabled = true
+        var observations: [Bool] = []
+    }
+    private let state = OSAllocatedUnfairLock(initialState: State())
+    var enabledAtObservation: [Bool] { state.withLock { $0.observations } }
+    func observe(image: CGImage, pose: PoseResult) -> WorkoutGripObservation? {
+        state.withLock { $0.observations.append($0.enabled) }
+        return nil
+    }
+    func reset() {}
+    func setEnabled(_ enabled: Bool) { state.withLock { $0.enabled = enabled } }
 }
 
 // Synthetic arm observations over actual decoded quadrant-video timestamps.
