@@ -44,6 +44,8 @@ jobs:
           name: workout-analysis-contracts
           path: |
             build/workout-analysis/apple-bridge-check.json
+            build/workout-analysis/native-benchmark-session.json
+            build/workout-analysis/native-authored-records.json
             build/workout-analysis/render/*.png
             build/workout-analysis/render/*.ocr.json
             shared/build/test-results/jvmTest/*.xml
