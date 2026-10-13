@@ -5,8 +5,16 @@ on:
     paths:
       - 'scripts/session_qualification.py'
       - 'scripts/session_intake.py'
+      - 'scripts/workout_benchmark.py'
+      - 'scripts/temporal_events.py'
+      - 'scripts/score-temporal.py'
       - 'scripts/tests/test_session_qualification.py'
       - 'scripts/tests/test_session_intake.py'
+      - 'scripts/tests/test_workout_benchmark.py'
+      - 'Evaluation/tests/test_temporal.py'
+      - 'Evaluation/fixtures/workout-benchmark-synthetic.json'
+      - 'Evaluation/fixtures/workout-predictions-synthetic.json'
+      - 'Evaluation/WORKOUT_BENCHMARK.md'
       - 'Evaluation/fixtures/session-qualification-seed.json'
       - 'Evaluation/fixtures/session-review-example.json'
       - 'Evaluation/SESSION_QUALIFICATION.md'
@@ -16,8 +24,16 @@ on:
     paths:
       - 'scripts/session_qualification.py'
       - 'scripts/session_intake.py'
+      - 'scripts/workout_benchmark.py'
+      - 'scripts/temporal_events.py'
+      - 'scripts/score-temporal.py'
       - 'scripts/tests/test_session_qualification.py'
       - 'scripts/tests/test_session_intake.py'
+      - 'scripts/tests/test_workout_benchmark.py'
+      - 'Evaluation/tests/test_temporal.py'
+      - 'Evaluation/fixtures/workout-benchmark-synthetic.json'
+      - 'Evaluation/fixtures/workout-predictions-synthetic.json'
+      - 'Evaluation/WORKOUT_BENCHMARK.md'
       - 'Evaluation/fixtures/session-qualification-seed.json'
       - 'Evaluation/fixtures/session-review-example.json'
       - 'Evaluation/SESSION_QUALIFICATION.md'
@@ -40,6 +56,27 @@ jobs:
         run: |
           python3 -m unittest scripts/tests/test_session_qualification.py -v
           python3 -m unittest scripts/tests/test_session_intake.py -v
+          python3 -m unittest scripts/tests/test_workout_benchmark.py Evaluation/tests/test_temporal.py -v
+      - name: Freeze and score synthetic workout contract
+        run: |
+          python3 scripts/workout_benchmark.py freeze Evaluation/fixtures/workout-benchmark-synthetic.json \
+            --output build/session-qualification/workout-synthetic.lock.json
+          python3 scripts/workout_benchmark.py score build/session-qualification/workout-synthetic.lock.json \
+            Evaluation/fixtures/workout-predictions-synthetic.json --split all \
+            --output build/session-qualification/workout-synthetic-report.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('build/session-qualification/workout-synthetic-report.json').read_text())
+          assert report['evidence_class'] == 'synthetic_contract'
+          assert report['summary']['sessions'] == 4
+          assert report['summary']['completed_cycles']['true_positives'] == 3
+          assert report['summary']['completed_cycles']['false_positives'] == 0
+          assert report['summary']['phase_boundaries']['true_positives'] == 12
+          assert report['summary']['exact_set_count_fraction'] == 1
+          assert report['summary']['phase_agreement_all_labelled'] == 1
+          print('Synthetic workout contracts pass; field accuracy and device qualification are not established.')
+          PY
       - name: Build seed report
         run: |
           mkdir -p build/session-qualification
