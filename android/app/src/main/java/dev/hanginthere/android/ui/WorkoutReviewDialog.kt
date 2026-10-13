@@ -62,6 +62,7 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if(goalsEnabled && showsLibraryLink)TextButton(onClick={library=true}) { Text("Workout library · trends, plans and corrections") }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            if (goalsEnabled) Text("Original measurements. The workout library applies your reviews to progress.", style = MaterialTheme.typography.bodySmall)
             practice?.let {
                 WorkoutPracticePanel(it)
                 if(it.exercise==ExerciseCounter.Exercise.pullUp)WorkoutGripPanel(it,goalsEnabled)

@@ -14,7 +14,8 @@ import kotlin.math.abs
     val meanReturnSeconds: Double?, val trackingCoverage: Double?)
 @Serializable data class WorkoutWeeklyPractice(val firstDay: Long, val days: Int, val workouts: Int, val completedReps: Int, val observedHoldSeconds: Double)
 @Serializable data class WorkoutPlanResult(val planId: String, val title: String, val status: String,
-    val completedItems: Int, val totalItems: Int, val measuredValues: List<Double>, val workoutId: String?)
+    val completedItems: Int, val totalItems: Int, val measuredValues: List<Double>, val workoutId: String?,
+    val candidateWorkoutIds: List<String> = emptyList())
 @Serializable data class WorkoutCoachFocus(val title: String, val message: String, val evidenceSetIds: List<String>,
     val metric: String?, val recentMedian: Double?, val sampleSessions: Int, val limitation: String)
 @Serializable data class WorkoutLibraryInsights(val sessions: List<WorkoutSessionSummary>,
@@ -133,21 +134,29 @@ object WorkoutInsights {
         val milestones = listOf(milestone("practice", "First recorded practice") { (it.totalHoldSeconds ?: 0.0) > 0 || it.practiceAttempts > 0 || it.measuredCompletedReps > 0 },
             milestone("rep", "First measured completed cycle") { it.measuredCompletedReps > 0 }) +
             listOf(5, 10, 20, 30).map { value -> milestone("hold-$value", "$value seconds of observed hold") { (it.holdSeconds ?: 0.0) >= value } }
+        val sessionMembers = sessions.associate { session -> session.id to session.setIds.toSet() }
+        val setsById = sets.associateBy { it.id }
         val plans = state.plans.map { plan ->
-            val candidateSessions = sessions.filter { session ->
-                if (plan.workoutId != null) session.id == plan.workoutId else session.startedAtEpochMilliseconds?.let { localDay(it, offset) == plan.scheduledDay } == true
-            }
+            fun matches(set: WorkoutReviewedSet, item: WorkoutPlanItem): Boolean =
+                set.comparisonKey != null && set.comparisonKey == item.context.comparisonKey(item.exercise, set.metricVersion, set.countPolicyVersion)
+            val eligibleBySession = sessionMembers.mapValues { (_, ids) -> ids.mapNotNull(setsById::get).filter { set ->
+                (set.trackingCoverage ?: 0.0) >= .8 && set.trackedAtEpochMilliseconds?.let { it <= now && localDay(it, offset) == plan.scheduledDay } == true &&
+                    plan.items.any { matches(set, it) }
+            } }
+            val candidateSessions = sessions.filter { eligibleBySession[it.id].orEmpty().isNotEmpty() }
             // A workout may satisfy one plan only when explicitly linked; unlinked plans remain descriptive previews.
-            val session = candidateSessions.firstOrNull()
-            val members = sets.filter { it.id in session?.setIds.orEmpty() }
+            val session = if (plan.workoutId != null) candidateSessions.firstOrNull { it.id == plan.workoutId }
+                else candidateSessions.firstOrNull()
+            val members = eligibleBySession[session?.id].orEmpty()
             val values = plan.items.map { item ->
-                val matching = members.filter { it.comparisonKey != null && it.comparisonKey == item.context.comparisonKey(item.exercise, it.metricVersion, it.countPolicyVersion) }
+                val matching = members.filter { matches(it, item) }
                 matching.count { (if (item.metric == WorkoutGoalMetric.completedReps) it.measuredCompletedReps.toDouble() else it.holdSeconds ?: 0.0) >= item.target }.toDouble()
             }
             val completed = values.zip(plan.items).count { (value, item) -> value >= item.sets }
             WorkoutPlanResult(plan.id, plan.title,
-                if (plan.workoutId != null && completed == plan.items.size) "completed" else if (session != null) "observed" else if (plan.scheduledDay < today) "notRecorded" else "planned",
-                completed, plan.items.size, values, session?.id)
+                if (plan.workoutId != null && completed == plan.items.size) "completed" else if (session != null) "observed"
+                else if (plan.workoutId != null) "linkedNotEligible" else if (plan.scheduledDay < today) "notRecorded" else "planned",
+                completed, plan.items.size, values, plan.workoutId, candidateSessions.take(100).map { it.id })
         }
         return WorkoutLibraryInsights(sessions.take(100), keys, selected, sets.count { it.comparisonKey == null }, points, weekly, days.size,
             days.count { it in (today - 27)..today }, plateau, chosen, suggestion, goalBest, chosen != null && goalBest != null && goalBest >= chosen.target,

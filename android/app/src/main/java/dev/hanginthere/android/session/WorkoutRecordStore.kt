@@ -86,7 +86,8 @@ class WorkoutRecordStore(private val context: Context, private val directory: Fi
     }
     private fun committedFiles(): List<File> = directory.listFiles().orEmpty()
         .map { if(it.name.endsWith(".bak")) File(directory,it.name.removeSuffix(".bak")) else it }
-        .distinctBy { it.name }.filter { it.extension=="json" && restoreAtomic(it) }
+        .distinctBy { it.name }.filter { it.extension=="json" &&
+            (it.isFile || File(it.path + ".bak").isFile) && restoreAtomic(it) }
     private fun writeAtomic(file: File, text: String) {
         val atomic = AtomicFile(file); val output = atomic.startWrite()
         try { output.write(text.toByteArray()); atomic.finishWrite(output) }
@@ -185,6 +186,7 @@ class WorkoutRecordStore(private val context: Context, private val directory: Fi
     @Synchronized fun libraryCommand(command: WorkoutLibraryCommand): WorkoutLibraryState {
         val next = WorkoutLibrary.apply(libraryState(), command)
         if (command.action == "delete") markDeletion(requireNotNull(command.setId))
+        if (command.action == "deleteSources") command.setIds.forEach(::markDeletion)
         publishLibrary(next)
         cleanupDeletions()
         pruneLibraryMedia(next)

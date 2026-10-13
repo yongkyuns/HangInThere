@@ -396,6 +396,7 @@ actor WorkoutRecordStore {
         let next = try WorkoutLibraryBridge().applyJson(stateJson: libraryState(), commandJson: command)
         let object = try JSONSerialization.jsonObject(with: Data(command.utf8)) as? [String: Any]
         if object?["action"] as? String == "delete", let id = object?["setId"] as? String { try markDeletion(id) }
+        if object?["action"] as? String == "deleteSources" { for id in object?["setIds"] as? [String] ?? [] { try markDeletion(id) } }
         // Publish tombstones before deleting data; a failed cleanup stays deleted.
         try publishLibrary(next)
         try cleanupDeletions()

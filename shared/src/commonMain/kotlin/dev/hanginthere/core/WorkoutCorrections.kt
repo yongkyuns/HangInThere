@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
     val trackedAtEpochMilliseconds: Long?, val endReason: String, val context: WorkoutContext,
     val comparisonKey: String?, val metricVersion: Int, val countPolicyVersion: Int, val workoutId: String?,
     val exerciseCorrected: Boolean, val attempts: List<WorkoutReviewedAttempt>, val sourceSetIds: List<String> = listOf(sourceSetId),
-    val trackedEndedAtEpochMilliseconds: Long? = null)
+    val trackedEndedAtEpochMilliseconds: Long? = null, val isMerged: Boolean = false)
 
 object WorkoutCorrections {
     const val maximumEvents = 65536
@@ -95,7 +95,7 @@ object WorkoutCorrections {
             val reps = record.reps.filter { it.id in part.repIds }
             val attempts = reps.map { rep ->
                 val classification = correction.attempts.firstOrNull { it.repId == rep.id }?.classification ?: WorkoutAttemptClassification.automatic
-                val included = classification != WorkoutAttemptClassification.excluded && classification != WorkoutAttemptClassification.practice
+                val included = classification == WorkoutAttemptClassification.automatic
                 WorkoutReviewedAttempt(rep.id, rep.ordinal, classification,
                     rep.isCompleteForAnalytics && included && !correctedExercise,
                     classification == WorkoutAttemptClassification.userCompleted,

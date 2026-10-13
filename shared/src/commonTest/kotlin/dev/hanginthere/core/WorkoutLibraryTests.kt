@@ -46,6 +46,17 @@ class WorkoutLibraryTests {
         assertNull(projected.meanReturnSeconds)
         assertFalse(WorkoutInsights.report(edited, null, 200000, 0).milestones.single { it.id == "rep" }.achieved)
     }
+    @Test fun userReportedClassificationNeverKeepsMeasuredCompletion() {
+        val original = record("one")
+        val edited = edit(state(original), "one", WorkoutReviewCorrection(context = context,
+            attempts = listOf(WorkoutAttemptCorrection(original.reps.single().id, WorkoutAttemptClassification.userCompleted))))
+        val projected = WorkoutLibrary.reviewed(edited).single()
+        assertEquals(original, edited.entries.single().measured)
+        assertEquals(0, projected.measuredCompletedReps); assertEquals(1, projected.userReportedCompletedReps)
+        assertFalse(projected.attempts.single().metricsEligible)
+        assertNull(projected.meanReturnSeconds); assertNull(projected.elbowExcursionDegrees)
+        assertFalse(WorkoutInsights.report(edited, null, 200000, 0).milestones.single { it.id == "rep" }.achieved)
+    }
     @Test fun exerciseCorrectionDoesNotReinterpretHoldOrRepGeometry() {
         val edited = edit(state(record("one")), "one", WorkoutReviewCorrection(exercise = ExerciseCounter.Exercise.dip, context = context))
         val set = WorkoutLibrary.reviewed(edited).single()
@@ -214,6 +225,27 @@ class WorkoutLibraryTests {
         val deleted = WorkoutLibrary.apply(merged, WorkoutLibraryCommand("delete", setId = "a", atEpochMilliseconds = 300002))
         assertTrue(deleted.merges.isEmpty()); assertEquals(1, WorkoutLibrary.page(deleted).sets.size)
     }
+    @Test fun mergingSplitsOfOneSourceExposesAnExplicitMergeRole() {
+        val first = record("a"); val second = first.reps.single().copy(id = "a:rep:2", ordinal = 2, startedAt = 2.0, extremeAt = 3.0, acceptedAt = 3.0, returnedAt = 4.0, closedAt = 4.0)
+        val library = edit(state(first.copy(reps = first.reps + second)), "a", WorkoutReviewCorrection(context = context,
+            partitions = listOf(WorkoutSetPartition("first", listOf("a:rep:1"), true), WorkoutSetPartition("second", listOf("a:rep:2"), false))))
+        val merged = WorkoutLibrary.apply(library, WorkoutLibraryCommand("merge", id = "group", setIds = listOf("first", "second"), atEpochMilliseconds = 200000))
+        val row = WorkoutLibrary.page(merged).sets.single()
+        assertTrue(row.isMerged); assertEquals(listOf("a"), row.sourceSetIds)
+        val undone = WorkoutLibrary.apply(merged, WorkoutLibraryCommand("unmerge", id = "group", atEpochMilliseconds = 200001))
+        assertTrue(WorkoutLibrary.page(undone).sets.all { !it.isMerged })
+    }
+    @Test fun mergedRecordingDeletionIsAtomicCompleteAndCannotBeRestored() {
+        var library = state(record("a"), record("b"))
+        for (id in listOf("a", "b")) library = edit(library, id, WorkoutReviewCorrection(context = context))
+        val merged = WorkoutLibrary.apply(library, WorkoutLibraryCommand("merge", id = "merged", setIds = listOf("a", "b"), atEpochMilliseconds = 200000))
+        val sources = WorkoutLibrary.page(merged).sets.single().sourceSetIds
+        val deleted = WorkoutLibrary.apply(merged, WorkoutLibraryCommand("deleteSources", setIds = sources, atEpochMilliseconds = 300000))
+        assertTrue(deleted.entries.isEmpty()); assertTrue(deleted.merges.isEmpty()); assertEquals(2, deleted.deletions.size)
+        assertTrue(WorkoutLibraryBackup.restore(deleted, WorkoutLibraryBackup.export(merged)).entries.isEmpty())
+        assertFailsWith<IllegalArgumentException> { WorkoutLibrary.apply(merged, WorkoutLibraryCommand("deleteSources", setIds = listOf("a", "../b"), atEpochMilliseconds = 300000)) }
+        assertEquals(2, merged.entries.size)
+    }
     @Test fun batchWorkoutAssignmentIsAtomicAndPlansRequireExplicitLink() {
         var library = state(record("a", 100000), record("b", 200000))
         for (id in listOf("a", "b")) library = edit(library, id, WorkoutReviewCorrection(context = context))
@@ -223,7 +255,8 @@ class WorkoutLibraryTests {
         assertEquals(null, WorkoutCorrections.current(library.reviews, "a").workoutId)
         val plan = WorkoutPlan("plan", "My practice", 0, listOf(WorkoutPlanItem("item", ExerciseCounter.Exercise.pullUp, WorkoutGoalMetric.holdSeconds, 5.0, 2, context)))
         val planned = WorkoutLibrary.apply(grouped, WorkoutLibraryCommand("plan", plan = plan, atEpochMilliseconds = 300000))
-        assertEquals("observed", WorkoutInsights.report(planned, null, 400000, 0).plans.single().status)
+        val preview = WorkoutInsights.report(planned, null, 400000, 0).plans.single()
+        assertEquals("observed", preview.status); assertNull(preview.workoutId); assertEquals(listOf("workout"), preview.candidateWorkoutIds)
         val linked = WorkoutLibrary.apply(planned, WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = "workout"), atEpochMilliseconds = 300001))
         assertEquals("completed", WorkoutInsights.report(linked, null, 400000, 0).plans.single().status)
     }
@@ -239,9 +272,28 @@ class WorkoutLibraryTests {
         val item = WorkoutPlanItem("item", ExerciseCounter.Exercise.pullUp, WorkoutGoalMetric.completedReps, 1.0, 2, context)
         val plan = WorkoutPlan("plan", "Two sets", 2, listOf(item), workoutId = "workout")
         val linked = WorkoutLibrary.apply(merged, WorkoutLibraryCommand("plan", plan = plan, atEpochMilliseconds = 259200000))
-        assertEquals("completed", WorkoutInsights.report(linked, null, 259200000, 0).plans.single().status)
+        val report = WorkoutInsights.report(linked, null, 259200000, 0).plans.single()
+        assertEquals("observed", report.status); assertEquals(listOf(1.0), report.measuredValues)
         val harder = WorkoutLibrary.apply(linked, WorkoutLibraryCommand("plan", plan = plan.copy(items = listOf(item.copy(target = 2.0, sets = 1))), atEpochMilliseconds = 259200001))
         assertEquals("observed", WorkoutInsights.report(harder, null, 259200001, 0).plans.single().status)
+    }
+    @Test fun plansRequireScheduledDayContextAndCoverageEvenWhenExplicitlyLinked() {
+        var library = state(record("a", 100000), record("b", 86400000 + 100000))
+        for (id in listOf("a", "b")) library = edit(library, id, WorkoutReviewCorrection(context = context))
+        val item = WorkoutPlanItem("item", ExerciseCounter.Exercise.pullUp, WorkoutGoalMetric.holdSeconds, 5.0, 1, context)
+        val plan = WorkoutPlan("plan", "Future practice", 1, listOf(item), workoutId = "session-a")
+        val linked = WorkoutLibrary.apply(library, WorkoutLibraryCommand("plan", plan = plan, atEpochMilliseconds = 200000))
+        val wrong = WorkoutInsights.report(linked, null, 86400000 + 200000, 0).plans.single()
+        assertEquals("linkedNotEligible", wrong.status); assertEquals(0, wrong.completedItems)
+        assertEquals("session-a", wrong.workoutId); assertEquals(listOf("session-b"), wrong.candidateWorkoutIds)
+        val correct = WorkoutLibrary.apply(linked, WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = "session-b"), atEpochMilliseconds = 86400000 + 200001))
+        assertEquals("completed", WorkoutInsights.report(correct, null, 86400000 + 200001, 0).plans.single().status)
+        val unrelated = WorkoutLibrary.apply(correct, WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = "session-b", items = listOf(item.copy(context = context.copy(addedLoadKg = 5.0)))), atEpochMilliseconds = 86400000 + 200002))
+        assertTrue(WorkoutInsights.report(unrelated, null, 86400000 + 200002, 0).plans.single().candidateWorkoutIds.isEmpty())
+        val low = record("low", 86400000 + 100000).let { it.copy(activity = it.activity!!.copy(observedSeconds = 1.0)) }
+        val lowState = edit(state(low), "low", WorkoutReviewCorrection(context = context))
+        val lowPlan = WorkoutLibrary.apply(lowState, WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = "session-low"), atEpochMilliseconds = 86400000 + 200000))
+        assertEquals("linkedNotEligible", WorkoutInsights.report(lowPlan, null, 86400000 + 200000, 0).plans.single().status)
     }
     @Test fun benchmarkExportBindsSourceClocksAndExcludesIncompleteAttempts() {
         val measured = record("a", complete = false)
@@ -272,6 +324,7 @@ class WorkoutLibraryTests {
         val corrected = edit(state(record("a")), "a", WorkoutReviewCorrection(attempts = listOf(WorkoutAttemptCorrection("a:rep:1", WorkoutAttemptClassification.practice))))
         val feedback = WorkoutFeedback.summary(corrected, "a")
         assertEquals(0, feedback.measuredCompletedReps); assertEquals(1, feedback.practiceAttempts)
+        assertTrue(feedback.spokenCue.startsWith("0 measured"))
     }
     @Test fun replayBridgeDoesNotAssignAnEvaluationDateAsAWorkoutDate() {
         val bridge = WorkoutAnalysisBridge("replay", "pullUp", 0)

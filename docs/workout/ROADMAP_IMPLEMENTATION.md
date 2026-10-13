@@ -13,7 +13,9 @@ same JSON bridge for projections and commands.
   completions are shown separately and never invent measured rep metrics/milestones.
 - Split partitions cover every original attempt exactly once. Only one partition owns
   a set's hold totals. Merging requires the same exercise and comparison context; raw
-  source clocks from separate recordings never become one continuous timeline.
+  source clocks from separate recordings never become one continuous timeline. Each
+  merged member remains independently reviewable; deleting a group atomically tombstones
+  every source and removes their local artifacts, including queued writes.
 - Comparable trends require explicit exercise, assistance/load, motion intent and
   camera/equipment context plus matching metric versions. Missing context is shown as
   unclassified. Recent multi-session medians drive suggestions; chosen goals stay fixed.
@@ -71,7 +73,9 @@ History merges are presentation groups. Analytics still use each original source
 partition, so merging recordings cannot erase practice days, turn two one-rep sets
 into one two-rep planned set, or splice source clocks. Workouts are grouped with a
 45-minute start gap unless explicitly assigned. Planned completion requires an
-explicit workout link. Goals and plans use observed cycles or holds and do not
+explicit workout link, sufficient tracking coverage and matching context on the scheduled day.
+The native picker lists eligible recordings; an older or unrelated linked workout cannot
+complete future planned work. Goals and plans use observed cycles or holds and do not
 verify anatomical form or prescribe training.
 
 Chosen-goal feedback aggregates comparable eligible sets in the current workout.

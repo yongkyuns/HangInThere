@@ -14,6 +14,25 @@ final class WorkoutLibraryStoreTests: XCTestCase {
         var values = values; values["atEpochMilliseconds"] = 200_000
         return String(decoding: try JSONSerialization.data(withJSONObject: values), as: UTF8.self)
     }
+    func testBatchDeletionErasesEverySourceAndSurvivesReloadAndRestore() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = WorkoutRecordStore(directory: root)
+        let originals = [record(), record()]
+        for original in originals { try await store.save(original); try await store.enqueue(original, finalized: true) }
+        let backup = try await store.libraryExport()
+        _ = try await store.libraryCommand(command(["action": "deleteSources", "setIds": originals.map(\.id)]))
+        try await store.flushPending()
+        let reload = WorkoutRecordStore(directory: root)
+        try await reload.libraryRestore(backup)
+        for original in originals {
+            let restored = try await reload.libraryRecord(id: original.id)
+            XCTAssertNil(restored)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent(original.id + ".json").path))
+        }
+        let state = try JSONSerialization.jsonObject(with: Data(try await reload.libraryState().utf8)) as? [String: Any]
+        XCTAssertEqual((state?["deletions"] as? [[String: Any]])?.count, 2)
+    }
     func testReviewReloadPreservesMeasuredBytesAndUndo() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

@@ -31,6 +31,7 @@ struct LibrarySet: Decodable, Identifiable, Sendable {
     let practiceAttempts: Int; let holdSeconds: Double?; let context: LibraryContext
     let trackedAtEpochMilliseconds: Int64?; let comparisonKey: String?; let exerciseCorrected: Bool
     let sourceSetIds: [String]
+    let isMerged: Bool
 }
 struct LibraryCursor: Codable, Sendable { let epochMilliseconds: Int64?; let id: String; let revision: Int64 }
 struct LibraryPage: Decodable, Sendable { let sets: [LibrarySet]; let nextCursor: LibraryCursor?; let revision: Int64 }
@@ -44,10 +45,11 @@ private struct LibraryMetricPoint: Identifiable { let id: Int; let date: Date; l
 struct LibraryWeek: Decodable, Identifiable, Sendable { let firstDay: Int64; let days: Int; let workouts: Int; let completedReps: Int; var id: Int64 { firstDay } }
 struct LibrarySession: Decodable, Identifiable, Sendable {
     let id: String; let setIds: [String]; let measuredCompletedReps: Int; let userReportedCompletedReps: Int
+    let startedAtEpochMilliseconds: Int64?
     let exercises: [ExerciseCounter.Exercise]; let restSeconds: [Double]; let interruptedSets: Int
     let startIntervalsSeconds: [Double]
 }
-struct LibraryPlanResult: Decodable, Identifiable, Sendable { let planId: String; let title: String; let status: String; let completedItems: Int; let totalItems: Int; let workoutId: String?; var id: String { planId } }
+struct LibraryPlanResult: Decodable, Identifiable, Sendable { let planId: String; let title: String; let status: String; let completedItems: Int; let totalItems: Int; let workoutId: String?; let candidateWorkoutIds: [String]; var id: String { planId } }
 struct LibraryInsights: Decodable, Sendable {
     let sessions: [LibrarySession]; let comparisonKeys: [String]; let selectedComparisonKey: String?
     let unclassifiedSets: Int; let trend: [LibraryTrend]; let weekly: [LibraryWeek]; let practiceDays: Int
@@ -88,6 +90,8 @@ struct WorkoutLibraryView: View {
     @State private var deleting: LibrarySet?
     @State private var goalTarget = ""
     @State private var goalMetric = "holdSeconds"
+    @State private var goalDraftKey: String?
+    @State private var planMetric = "holdSeconds"
     @State private var planTarget = "5"
     @State private var planSets = 3
     @State private var planExercise = ExerciseCounter.Exercise.pullUp
@@ -99,6 +103,10 @@ struct WorkoutLibraryView: View {
         previewMode = preview != nil
         _dashboard = State(initialValue: preview)
         _history = State(initialValue: preview?.page.sets ?? [])
+        _comparison = State(initialValue: preview?.insights.selectedComparisonKey)
+        _goalDraftKey = State(initialValue: preview?.insights.selectedComparisonKey)
+        _goalMetric = State(initialValue: preview?.insights.goal?.metric ?? "holdSeconds")
+        _goalTarget = State(initialValue: preview?.insights.goal.map { String($0.target) } ?? "")
         _tab = State(initialValue: Tab(rawValue: section) ?? .progress)
     }
     var body: some View {
@@ -154,10 +162,10 @@ struct WorkoutLibraryView: View {
                     catch { self.error = "Video attachment failed: \(error.localizedDescription)" }
                 }
             }
-            .alert("Delete this set and its local review video?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
-                Button("Delete", role: .destructive) { if let deleting { Task { await command(["action": "delete", "setId": deleting.sourceSetId]); self.deleting = nil } } }
+            .alert("Delete original recordings and their local review videos?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
+                Button("Delete", role: .destructive) { if let deleting { Task { if await command(["action": "deleteSources", "setIds": deleting.sourceSetIds]) { self.deleting = nil } } } }
                 Button("Cancel", role: .cancel) { deleting = nil }
-            } message: { Text("Deletion also removes its contribution to progress. A backup may preserve a copy; restoring it cannot undo this deletion.") }
+            } message: { Text("This removes \(deleting?.sourceSetIds.count ?? 0) original recording(s), all their splits and their contribution to progress. Backups cannot undo deletion." + (error.map { "\n" + $0 } ?? "")) }
     }
     private func progress(_ report: LibraryInsights) -> some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -207,7 +215,7 @@ struct WorkoutLibraryView: View {
                 Button("Save chosen goal") { Task {
                     guard let parts = try? JSONDecoder().decode([String].self, from: Data(key.utf8)), let name = parts.first, let exercise = ExerciseCounter.Exercise(rawValue: name) else { return }
                     await saveGoal(key: key, exercise: exercise)
-                } }.disabled(Double(goalTarget) == nil)
+                } }.disabled(Double(goalTarget) == nil || comparison != report.selectedComparisonKey)
             }
             Text("\(report.consistencyDaysLast28) practice days in the last 28 days").font(.headline)
             Text("Holds and attempts count as practice. Repeated sets on one day earn one practice day.").font(.caption)
@@ -228,24 +236,27 @@ struct WorkoutLibraryView: View {
                     Text("\(set.measuredCompletedReps) measured cycles · \(set.userReportedCompletedReps) user-reported · \(set.practiceAttempts) practice attempts")
                     if let hold = set.holdSeconds { Text("Observed hold: \(hold.formatted()) s") }
                     if let time = set.trackedAtEpochMilliseconds { Text(Date(timeIntervalSince1970: Double(time) / 1000).formatted()).font(.caption) }
-                    HStack {
-                        Button("Measurements") { Task { do { evidenceRecord = try await WorkoutRecordStore.shared.libraryRecord(id: set.sourceSetId) } catch { self.error = error.localizedDescription } } }
-                        Button("Edit") { Task { await edit(set.sourceSetId) } }
-                    }
-                    HStack {
-                        Button("Undo edit") { Task { await command(["action": "undo", "setId": set.sourceSetId]) } }
-                        Button("Delete", role: .destructive) { deleting = set }
-                    }
-                    if set.sourceSetIds.count > 1 { Text("Merged from \(set.sourceSetIds.count) recordings; source timing remains separate.").font(.caption) }
-                    if set.sourceSetIds.count > 1 { Button("Unmerge grouped set") { Task { await command(["action": "unmerge", "id": set.id]) } } }
-                    Toggle("Select for grouping or merging", isOn: Binding(get: { selectedForGrouping.contains(set.id) }, set: { if $0 { selectedForGrouping.insert(set.id) } else { selectedForGrouping.remove(set.id) } }))
-                    if dashboard.mediaPolicy.enabled { Button("Attach local review video") { mediaSetId = set.sourceSetId; importingMedia = true } }
-                    ForEach(dashboard.media.filter { $0.setId == set.sourceSetId }) { media in
-                        HStack {
-                            Button("Play review video") { Task { do { mediaURL = try await WorkoutRecordStore.shared.libraryMediaURL(id: media.id) } catch { self.error = error.localizedDescription } } }
-                            Button("Delete video", role: .destructive) { Task { await command(["action": "deleteMedia", "id": media.id]) } }
+                    ForEach(set.sourceSetIds, id: \.self) { sourceId in
+                        VStack(alignment: .leading, spacing: 8) {
+                            if set.sourceSetIds.count > 1 { Text("Original recording · \(sourceId.prefix(8))").font(.subheadline.bold()) }
+                            HStack {
+                                Button("Measurements") { Task { do { evidenceRecord = try await WorkoutRecordStore.shared.libraryRecord(id: sourceId) } catch { self.error = error.localizedDescription } } }
+                                Button("Edit") { Task { await edit(sourceId) } }
+                                Button("Undo edit") { Task { await command(["action": "undo", "setId": sourceId]) } }
+                            }
+                            if dashboard.mediaPolicy.enabled { Button("Attach local review video") { mediaSetId = sourceId; importingMedia = true } }
+                            ForEach(dashboard.media.filter { $0.setId == sourceId }) { media in
+                                HStack {
+                                    Button("Play review video") { Task { do { mediaURL = try await WorkoutRecordStore.shared.libraryMediaURL(id: media.id) } catch { self.error = error.localizedDescription } } }
+                                    Button("Delete video", role: .destructive) { Task { await command(["action": "deleteMedia", "id": media.id]) } }
+                                }
+                            }
                         }
                     }
+                    Button(set.sourceSetIds.count > 1 ? "Delete recordings" : "Delete source recording", role: .destructive) { error = nil; deleting = set }
+                    if set.isMerged { Text("Merged group · \(set.sourceSetIds.count) original recording(s); source timing remains separate.").font(.caption) }
+                    if set.isMerged { Button("Unmerge grouped set") { Task { await command(["action": "unmerge", "id": set.id]) } } }
+                    Toggle("Select for grouping or merging", isOn: Binding(get: { selectedForGrouping.contains(set.id) }, set: { if $0 { selectedForGrouping.insert(set.id) } else { selectedForGrouping.remove(set.id) } }))
                 }.padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
             }
             if dashboard.page.nextCursor != nil { Button("Load more history") { Task { await load(more: true) } } }
@@ -285,12 +296,19 @@ struct WorkoutLibraryView: View {
             Text("Plans use your chosen targets. Link an observed workout to mark a plan completed; app suggestions are not training prescriptions.").font(.caption)
             ForEach(report.plans) { plan in
                 Text("\(plan.title) · \(plan.status) · \(plan.completedItems)/\(plan.totalItems) items")
-                if plan.workoutId == nil, let session = report.sessions.first { Button("Link latest workout") { Task { await linkPlan(plan.planId, workoutId: session.id) } } }
+                if !plan.candidateWorkoutIds.isEmpty {
+                    Menu(plan.workoutId == nil ? "Link recorded workout" : "Change linked workout") {
+                        ForEach(plan.candidateWorkoutIds, id: \.self) { id in
+                            Button(workoutTitle(id, sessions: report.sessions)) { Task { await linkPlan(plan.planId, workoutId: id) } }
+                        }
+                    }
+                } else { Text("No comparable recording on the planned day with sufficient tracking coverage.").font(.caption) }
+                if plan.workoutId != nil { Button("Unlink workout") { Task { await linkPlan(plan.planId, workoutId: nil) } } }
                 Button("Delete plan", role: .destructive) { Task { await command(["action": "deletePlan", "id": plan.planId]) } }
             }
             DatePicker("Practice date", selection: $planDate, displayedComponents: .date)
             Picker("Exercise", selection: $planExercise) { ForEach(ExerciseCounter.Exercise.allCases, id: \.self) { Text($0.title).tag($0) } }
-            Picker("Metric", selection: $goalMetric) { Text("Hold seconds").tag("holdSeconds"); Text("Completed cycles").tag("completedReps") }
+            Picker("Metric", selection: $planMetric) { Text("Hold seconds").tag("holdSeconds"); Text("Completed cycles").tag("completedReps") }
             TextField("Target per set", text: $planTarget).textFieldStyle(.roundedBorder)
             Stepper("\(planSets) sets", value: $planSets, in: 1...20)
             LibraryContextFields(context: $planContext)
@@ -323,6 +341,11 @@ struct WorkoutLibraryView: View {
             let cursor = more ? try dashboard?.page.nextCursor.map { String(decoding: try JSONEncoder().encode($0), as: UTF8.self) } : nil
             let json = try await WorkoutRecordStore.shared.libraryDashboard(key: comparison, cursor: cursor, now: Int64(Date().timeIntervalSince1970 * 1000), offset: Int32(TimeZone.current.secondsFromGMT() / 60))
             let next = try JSONDecoder().decode(LibraryDashboard.self, from: Data(json.utf8))
+            if goalDraftKey != next.insights.selectedComparisonKey {
+                goalDraftKey = next.insights.selectedComparisonKey
+                goalMetric = next.insights.goal?.metric ?? "holdSeconds"
+                goalTarget = next.insights.goal.map { String($0.target) } ?? ""
+            }
             dashboard = next; comparison = next.insights.selectedComparisonKey; history = more ? history + next.page.sets : next.page.sets; error = nil
         } catch { self.error = "Library could not be loaded: \(error.localizedDescription)" }
     }
@@ -352,14 +375,19 @@ struct WorkoutLibraryView: View {
         guard let target = Double(planTarget) else { return }
         let day = Int64(floor((planDate.timeIntervalSince1970 + Double(TimeZone.current.secondsFromGMT(for: planDate))) / 86400))
         await command(["action": "plan", "plan": ["id": UUID().uuidString, "title": "\(planExercise.title) practice", "scheduledDay": day,
-            "items": [["id": UUID().uuidString, "exercise": planExercise.rawValue, "metric": goalMetric, "target": target, "sets": planSets, "context": jsonObject(planContext)]]]])
+            "items": [["id": UUID().uuidString, "exercise": planExercise.rawValue, "metric": planMetric, "target": target, "sets": planSets, "context": jsonObject(planContext)]]]])
     }
-    private func linkPlan(_ id: String, workoutId: String) async {
+    private func linkPlan(_ id: String, workoutId: String?) async {
         do {
             let object = try JSONSerialization.jsonObject(with: Data(try await WorkoutRecordStore.shared.libraryState().utf8)) as? [String: Any]
             guard var plan = (object?["plans"] as? [[String: Any]])?.first(where: { $0["id"] as? String == id }) else { return }
             plan["workoutId"] = workoutId; await command(["action": "plan", "plan": plan])
         } catch { self.error = error.localizedDescription }
+    }
+    private func workoutTitle(_ id: String, sessions: [LibrarySession]) -> String {
+        guard let session = sessions.first(where: { $0.id == id }) else { return "Recorded workout \(id.prefix(8))" }
+        let date = session.startedAtEpochMilliseconds.map { Date(timeIntervalSince1970: Double($0) / 1000).formatted(date: .abbreviated, time: .shortened) } ?? "Date unavailable"
+        return "\(date) · \(session.exercises.map(\.title).joined(separator: ", ")) · \(session.setIds.count) sets"
     }
     private func jsonObject<T: Encodable>(_ value: T) -> Any { (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(value))) ?? [:] }
     private func comparisonTitle(_ key: String) -> String {

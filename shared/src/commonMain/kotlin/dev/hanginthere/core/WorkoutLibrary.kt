@@ -169,7 +169,7 @@ object WorkoutLibrary {
                 meanReturnSeconds = null, // Individual source records retain timing; no averaging unknown sample counts.
                 trackingCoverage = members.mapNotNull { it.trackingCoverage }.minOrNull().takeIf { members.all { it.trackingCoverage != null } },
                 trackedAtEpochMilliseconds = members.mapNotNull { it.trackedAtEpochMilliseconds }.minOrNull().takeIf { members.all { it.trackedAtEpochMilliseconds != null } },
-                trackedEndedAtEpochMilliseconds = null,
+                trackedEndedAtEpochMilliseconds = null, isMerged = true,
                 workoutId = members.map { it.workoutId }.distinct().singleOrNull())
         }
     }
@@ -200,19 +200,22 @@ object WorkoutLibrary {
         val media = retainedMedia(state.mediaPolicy, state.media, now)
         return if (media == state.media) state else state.copy(media = media, revision = state.revision + 1)
     }
+    private fun deleteSources(state: WorkoutLibraryState, sources: List<String>, at: Long): WorkoutLibraryState {
+        require(sources.size in 1..1000 && sources.distinct().size == sources.size && sources.all(WorkoutCorrections::safeId))
+        val ids = sources.toSet(); val alreadyDeleted = state.deletions.map { it.setId }.toSet()
+        val affectedParts = rawReviewed(state).filter { it.sourceSetId in ids }.map { it.id }.toSet()
+        return state.copy(entries = state.entries.filter { it.measured.id !in ids },
+            deletions = state.deletions + sources.filter { it !in alreadyDeleted }.map { WorkoutDeletion(it, at) },
+            media = state.media.filter { it.setId !in ids }, merges = state.merges.filter { group -> group.setIds.none { it in affectedParts } })
+    }
     fun apply(state: WorkoutLibraryState, command: WorkoutLibraryCommand): WorkoutLibraryState {
         validate(state); require(command.atEpochMilliseconds > 0)
         val record = command.setId?.let { id -> state.entries.singleOrNull { it.measured.id == id }?.measured }
         val next = when (command.action) {
             "review" -> state.copy(reviews = WorkoutCorrections.append(requireNotNull(record), state.reviews, requireNotNull(command.correction), command.atEpochMilliseconds))
             "undo" -> state.copy(reviews = WorkoutCorrections.undo(requireNotNull(record), state.reviews, command.atEpochMilliseconds))
-            "delete" -> {
-                val id = requireNotNull(command.setId); require(WorkoutCorrections.safeId(id))
-                state.copy(entries = state.entries.filter { it.measured.id != id },
-                    deletions = if (state.deletions.any { it.setId == id }) state.deletions else state.deletions + WorkoutDeletion(id, command.atEpochMilliseconds),
-                    media = state.media.filter { it.setId != id },
-                    merges = state.merges.filter { group -> rawReviewed(state).none { it.sourceSetId == id && it.id in group.setIds } })
-            }
+            "delete" -> deleteSources(state, listOf(requireNotNull(command.setId)), command.atEpochMilliseconds)
+            "deleteSources" -> deleteSources(state, command.setIds, command.atEpochMilliseconds)
             "merge" -> {
                 val id = requireNotNull(command.id); require(WorkoutCorrections.safeId(id))
                 val members = rawReviewed(state).filter { it.id in command.setIds }

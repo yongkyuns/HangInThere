@@ -35,9 +35,9 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
 
 /** Native presentation of shared review/application policy. No camera-state mutations. */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun WorkoutLibraryDialog(onClose: () -> Unit) {
+@Composable fun WorkoutLibraryDialog(recordStore: WorkoutRecordStore? = null, onClose: () -> Unit) {
     val context = LocalContext.current
-    val store = remember(context) { WorkoutRecordStore.live(context.applicationContext) }
+    val store = recordStore ?: remember(context) { WorkoutRecordStore.live(context.applicationContext) }
     val scope = rememberCoroutineScope()
     var dashboard by remember { mutableStateOf<LibraryDashboard?>(null) }
     var history by remember { mutableStateOf<List<WorkoutReviewedSet>>(emptyList()) }
@@ -162,24 +162,25 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
                                         Text("${set.measuredCompletedReps} measured cycles · ${set.userReportedCompletedReps} user-reported · ${set.practiceAttempts} practice attempts")
                                         set.holdSeconds?.let { Text("Observed hold: $it s") }
                                         set.trackedAtEpochMilliseconds?.let { Text(DateFormat.getDateTimeInstance().format(Date(it))) }
-                                        Row {
-                                            TextButton(onClick = { scope.launch { try { evidenceRecord = withContext(Dispatchers.IO) { store.libraryRecord(set.sourceSetId) } } catch (failure: Throwable) { error = failure.message } } }) { Text("Measurements") }
-                                            TextButton(onClick = { scope.launch { try { editing = withContext(Dispatchers.IO) { store.libraryRecord(set.sourceSetId) }; editCorrection = WorkoutCorrections.current(current.state.reviews, set.sourceSetId) } catch (failure: Throwable) { error = failure.message } } }) { Text("Edit") }
-                                        }
-                                        Row {
-                                            TextButton(onClick = { apply(WorkoutLibraryCommand("undo", setId = set.sourceSetId, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Undo") }
-                                            TextButton(onClick = { deleting = set }) { Text("Delete") }
-                                        }
-                                        if (set.sourceSetIds.size > 1) Text("Merged from ${set.sourceSetIds.size} recordings; source timing remains separate.")
-                                        if (set.sourceSetIds.size > 1) TextButton(onClick = { apply(WorkoutLibraryCommand("unmerge", id = set.id, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Unmerge grouped set") }
-                                        Row { Checkbox(set.id in selected, { value -> selected = if (value) selected + set.id else selected - set.id }); Text("Select for grouping or merging") }
-                                        if (current.state.mediaPolicy.enabled) TextButton(onClick = { attachingSet = set.sourceSetId; mediaImport.launch(arrayOf("video/*")) }) { Text("Attach local review video") }
-                                        current.state.media.filter { it.setId == set.sourceSetId }.forEach { media ->
+                                        set.sourceSetIds.forEach { sourceId ->
+                                            if (set.sourceSetIds.size > 1) Text("Original recording · ${sourceId.take(8)}", style = MaterialTheme.typography.titleSmall)
                                             Row {
-                                                TextButton(onClick = { scope.launch { playing = withContext(Dispatchers.IO) { store.libraryMedia(media.id) } } }) { Text("Play video") }
-                                                TextButton(onClick = { apply(WorkoutLibraryCommand("deleteMedia", id = media.id, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Delete video") }
+                                                TextButton(onClick = { scope.launch { try { evidenceRecord = withContext(Dispatchers.IO) { store.libraryRecord(sourceId) } } catch (failure: Throwable) { error = failure.message } } }) { Text("Measurements") }
+                                                TextButton(onClick = { scope.launch { try { editing = withContext(Dispatchers.IO) { store.libraryRecord(sourceId) }; editCorrection = WorkoutCorrections.current(current.state.reviews, sourceId) } catch (failure: Throwable) { error = failure.message } } }) { Text("Edit") }
+                                                TextButton(onClick = { apply(WorkoutLibraryCommand("undo", setId = sourceId, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Undo") }
+                                            }
+                                            if (current.state.mediaPolicy.enabled) TextButton(onClick = { attachingSet = sourceId; mediaImport.launch(arrayOf("video/*")) }) { Text("Attach local review video") }
+                                            current.state.media.filter { it.setId == sourceId }.forEach { media ->
+                                                Row {
+                                                    TextButton(onClick = { scope.launch { playing = withContext(Dispatchers.IO) { store.libraryMedia(media.id) } } }) { Text("Play video") }
+                                                    TextButton(onClick = { apply(WorkoutLibraryCommand("deleteMedia", id = media.id, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Delete video") }
+                                                }
                                             }
                                         }
+                                        TextButton(onClick = { error = null; deleting = set }) { Text(if (set.sourceSetIds.size > 1) "Delete recordings" else "Delete source recording") }
+                                        if (set.isMerged) Text("Merged group · ${set.sourceSetIds.size} original recording(s); source timing remains separate.")
+                                        if (set.isMerged) TextButton(onClick = { apply(WorkoutLibraryCommand("unmerge", id = set.id, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Unmerge grouped set") }
+                                        Row { Checkbox(set.id in selected, { value -> selected = if (value) selected + set.id else selected - set.id }); Text("Select for grouping or merging") }
                                     }
                                 }
                             }
@@ -221,9 +222,9 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
     editing?.let { record -> LibraryCorrectionDialog(record, editCorrection, errorMessage = error, onClose = { editing = null }) { correction ->
         apply(WorkoutLibraryCommand("review", setId = record.id, correction = correction, atEpochMilliseconds = System.currentTimeMillis())) { editing = null }
     } }
-    deleting?.let { set -> AlertDialog(onDismissRequest = { deleting = null }, title = { Text("Delete set and its local review video?") },
-        text = { Text("Its contribution to progress is removed. Restoring a backup cannot undo deletion.") },
-        confirmButton = { TextButton(onClick = { apply(WorkoutLibraryCommand("delete", setId = set.sourceSetId, atEpochMilliseconds = System.currentTimeMillis())); deleting = null }) { Text("Delete") } },
+    deleting?.let { set -> AlertDialog(onDismissRequest = { deleting = null }, title = { Text("Delete original recordings and their local review videos?") },
+        text = { Column { Text("This removes ${set.sourceSetIds.size} original recording(s), all their splits and their contribution to progress. Backups cannot undo deletion."); error?.let { Text(it, color = MaterialTheme.colorScheme.error) } } },
+        confirmButton = { TextButton(onClick = { apply(WorkoutLibraryCommand("deleteSources", setIds = set.sourceSetIds, atEpochMilliseconds = System.currentTimeMillis())) { deleting = null } }) { Text("Delete") } },
         dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } }) }
     evidenceRecord?.let { record -> WorkoutReviewDialog(emptyList(), listOf(record), null, showsLibraryLink = false, onClose = { evidenceRecord = null }) }
     playing?.let { file -> Dialog(onDismissRequest = { playing = null }) {
@@ -317,10 +318,22 @@ private fun comparisonTitle(value: String): String = runCatching {
     Text("Plans use your chosen targets. Link an observed workout to mark completion. These are tracking defaults, not training prescriptions.")
     dashboard.insights.plans.forEach { report ->
         Text("${report.title} · ${report.status} · ${report.completedItems}/${report.totalItems} items")
-        if (report.workoutId == null && dashboard.insights.sessions.isNotEmpty()) TextButton(onClick = {
-            val plan = dashboard.state.plans.single { it.id == report.planId }
-            apply(WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = dashboard.insights.sessions.first().id), atEpochMilliseconds = System.currentTimeMillis()))
-        }) { Text("Link latest workout") }
+        val plan = dashboard.state.plans.single { it.id == report.planId }
+        var choosingWorkout by remember(report.planId) { mutableStateOf(false) }
+        if (report.candidateWorkoutIds.isNotEmpty()) {
+            TextButton(onClick = { choosingWorkout = true }) { Text(if (report.workoutId == null) "Link recorded workout" else "Change linked workout") }
+            DropdownMenu(choosingWorkout, { choosingWorkout = false }) {
+                report.candidateWorkoutIds.forEach { id ->
+                    val session = dashboard.insights.sessions.firstOrNull { it.id == id }
+                    val label = session?.let { "${it.startedAtEpochMilliseconds?.let { time -> DateFormat.getDateTimeInstance().format(Date(time)) } ?: "Date unavailable"} · ${it.exercises.joinToString { exercise -> exercise.title }} · ${it.setIds.size} sets" } ?: "Recorded workout ${id.take(8)}"
+                    DropdownMenuItem(text = { Text(label) }, onClick = {
+                        choosingWorkout = false
+                        apply(WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = id), atEpochMilliseconds = System.currentTimeMillis()))
+                    })
+                }
+            }
+        } else Text("No comparable recording on the planned day with sufficient tracking coverage.")
+        if (report.workoutId != null) TextButton(onClick = { apply(WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = null), atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Unlink workout") }
         TextButton(onClick = { apply(WorkoutLibraryCommand("deletePlan", id = report.planId, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Delete plan") }
     }
     LibraryChoice("Exercise", exercise.name, ExerciseCounter.Exercise.entries.map { it.name }) { exercise = ExerciseCounter.Exercise.valueOf(it) }

@@ -15,14 +15,14 @@ object WorkoutFeedback {
         val interrupted = record.endReason !in listOf("manual", "disengaged", "sourceEnded")
         val title = if (interrupted) "Tracking stopped" else if (record.hasPractice) "Set recorded" else "No measurable practice"
         val message = when {
-            interrupted -> "Available practice is saved. Missing observations do not establish a completed cycle."
+            interrupted -> "Available practice is captured. Missing observations do not establish a completed cycle."
             record.completedCount > 0 -> "Review measured return timing and both-arm evidence in your results."
-            incomplete > 0 -> "Your attempts are saved as practice. Unfinished returns are excluded from completed-rep metrics."
+            incomplete > 0 -> "Your attempts are practice. Unfinished returns are excluded from completed-rep metrics."
             (hold ?: 0.0) > 0 -> "Your observed hold is useful practice, even without a completed rep."
             else -> "No measurable practice was recorded. Review camera framing and apparatus visibility."
         }
-        val speech = if (!record.hasPractice) "No measurable practice recorded. Check camera framing." else if (interrupted) "Tracking stopped. Available practice saved." else if (record.completedCount > 0)
-            "Set recorded. ${record.completedCount} completed ${if (record.completedCount == 1) "cycle" else "cycles"}." else "Set recorded. Practice saved."
+        val speech = if (!record.hasPractice) "No measurable practice recorded. Check camera framing." else if (interrupted) "Tracking stopped. Available practice captured." else if (record.completedCount > 0)
+            "Set ended. ${record.completedCount} completed ${if (record.completedCount == 1) "cycle" else "cycles"}." else "Set ended. Practice captured."
         return WorkoutAfterSetReport(title, record.completedCount, incomplete, hold, message, speech)
     }
     fun summary(state: WorkoutLibraryState, id: String): WorkoutAfterSetReport {
@@ -39,6 +39,7 @@ object WorkoutFeedback {
         val raw = summary(record)
         return raw.copy(measuredCompletedReps = measured, practiceAttempts = practice, observedHoldSeconds = sets.mapNotNull { it.holdSeconds }.maxOrNull(),
             observation = if (measured != raw.measuredCompletedReps || practice != raw.practiceAttempts) "Review your corrected classification in the workout library; original measurements are preserved." else raw.observation,
+            spokenCue = if (measured != raw.measuredCompletedReps || practice != raw.practiceAttempts) "$measured measured completed cycles. Results include your reviews." else raw.spokenCue,
             goalTarget = goal?.target, goalValue = value, goalMetric = goal?.metric)
     }
 }

@@ -15,6 +15,20 @@ import java.util.UUID
     private fun record(id: String = UUID.randomUUID().toString()) = WorkoutSetRecord(id, ExerciseCounter.Exercise.pullUp,
         0.0, 8.0, "manual", emptyList(), "authored", 1, trackedAtEpochMilliseconds = 100000,
         activity = WorkoutActivity(emptyList(), listOf(WorkoutPhaseTotal(WorkoutMotionPhase.hang, 8.0)), 8.0, 0.0, 8.0, 8.0, false, 2))
+    @Test fun batchDeletionErasesEverySourceAndSurvivesReloadAndRestore() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val root = File(context.cacheDir, "library-test-${UUID.randomUUID()}")
+        try {
+            val store = WorkoutRecordStore(context, root); val originals = listOf(record(), record())
+            originals.forEach { store.save(it); store.enqueue(it, true) }
+            val backup = store.libraryExport()
+            store.libraryCommand(WorkoutLibraryCommand("deleteSources", setIds = originals.map { it.id }, atEpochMilliseconds = 200000))
+            store.flushPending()
+            val reload = WorkoutRecordStore(context, root); reload.libraryRestore(backup)
+            originals.forEach { assertNull(reload.libraryRecord(it.id)); assertFalse(File(root, "${it.id}.json").exists()) }
+            assertEquals(2, reload.libraryState().deletions.size)
+        } finally { root.deleteRecursively() }
+    }
     @Test fun reviewDeletionAndBackupPreserveImmutableEvidenceAcrossReload() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val root = File(context.cacheDir, "library-test-${UUID.randomUUID()}")

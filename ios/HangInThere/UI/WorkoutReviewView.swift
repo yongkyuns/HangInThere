@@ -38,6 +38,7 @@ struct WorkoutReviewView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 if let storageError { Text(storageError).foregroundStyle(.orange) }
+                if goalsEnabled { Text("Original measurements. The workout library applies your reviews to progress.").font(.caption).foregroundStyle(.secondary) }
                 if goalsEnabled && showsLibraryLink {
                     NavigationLink("Workout library · trends, plans and corrections") { WorkoutLibraryView() }
                         .font(.headline)
