@@ -265,7 +265,12 @@ struct WorkoutAnalysisBridgeCheck {
         let correctionDirectory = directory.appendingPathComponent("grip-corrections")
         let correctionStore = WorkoutGripCorrectionStore(directory: correctionDirectory)
         let measuredSet = completed[0]
-        let originalEvidence = try JSONEncoder().encode(measuredSet)
+        let measuredDirectory = directory.appendingPathComponent("grip-measured")
+        try await WorkoutRecordStore(directory: measuredDirectory).save(measuredSet)
+        let summaryFile = measuredDirectory.appendingPathComponent(measuredSet.id + ".json")
+        let motionFile = measuredDirectory.appendingPathComponent(measuredSet.id + ".motion.json")
+        let originalSummary = try Data(contentsOf: summaryFile)
+        let originalMotion = try Data(contentsOf: motionFile)
         try await correctionStore.correct(measuredSet, repId: nil, orientation: "underhand", width: "wide")
         let corrected = try await WorkoutGripCorrectionStore(directory: correctionDirectory).report(measuredSet)
         guard corrected.reps.first?.orientation == "underhand", corrected.reps.first?.orientationSource == "user",
@@ -273,7 +278,8 @@ struct WorkoutAnalysisBridgeCheck {
         try await correctionStore.correct(measuredSet, repId: measuredSet.reps[0].id, orientation: nil, width: nil)
         let reset = try await correctionStore.report(measuredSet)
         guard reset.reps[0].orientation == (measuredSet.reps[0].grip?.orientation ?? "unknown"),
-              try JSONEncoder().encode(measuredSet) == originalEvidence else { fatalError("Apple grip reset rewrote measured evidence") }
+              try Data(contentsOf: summaryFile) == originalSummary,
+              try Data(contentsOf: motionFile) == originalMotion else { fatalError("Apple grip reset rewrote measured evidence") }
         // Exercise the real array/JSON FFI with independent source-clock hand
         // observations. These are authored anatomy fixtures, not native accuracy.
         let gripAnalysis = WorkoutAnalysisAdapter(); gripAnalysis.start(exercise: .pullUp)
