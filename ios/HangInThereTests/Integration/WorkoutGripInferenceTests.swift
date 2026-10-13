@@ -31,7 +31,8 @@ final class WorkoutGripInferenceTests: XCTestCase {
                 Landmark(joint: .leftWrist, position: Point2D(x: 64,y: 64), confidence: 1),
                 Landmark(joint: .rightWrist, position: Point2D(x: 192,y: 64), confidence: 1)])],
             backend: "authored blank hand crops", requestRevision: 0)
-        let hands = try await GripInferenceWorker().estimateHands(image: image, pose: pose)
+        let body = pose.people[0].landmarks.map { WorkoutGripBodyPoint(joint: $0.joint.rawValue,position: $0.position,world: .init(x: 0,y: 0,z: 0),score: 1) }
+        let hands = try await GripInferenceWorker().estimateHands(image: image, pose: pose, bodyPoints: body)
         XCTAssertTrue(hands.isEmpty, "Both pinned-model crop attempts must run without fabricating a hand")
     }
 }

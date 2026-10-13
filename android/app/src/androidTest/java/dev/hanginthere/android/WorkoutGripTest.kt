@@ -30,7 +30,8 @@ class WorkoutGripTest {
             .setBaseOptions(BaseOptions.builder().setModelAssetPath("hand_landmarker.task").build())
             .setRunningMode(RunningMode.IMAGE).setNumHands(1).setMinHandDetectionConfidence(.5f).setMinHandPresenceConfidence(.5f).build())
         try {
-            assertTrue(inferGripHandCrops(pixels,pose,hand).isEmpty())
+            val body=pose.people.single().landmarks.map { GripBodyPoint(GripBodyJoint.valueOf(it.joint.name),it.position,GripVector3(0.0,0.0,0.0),1.0) }
+            assertTrue(inferGripHandCrops(pixels,pose,hand,body).isEmpty())
             assertFalse("Crop ownership must not recycle the caller's frame",pixels.isRecycled)
         } finally { hand.close();pixels.recycle() }
     }

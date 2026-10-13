@@ -9,18 +9,21 @@ class WorkoutGripAnalysis(private val setId: String) {
     private class HandState {
         var stable=HandGrip.unknown;private set
         private var candidate=HandGrip.unknown
-        private var since:Double?=null
         private var last:Double?=null
-        private var count=0
+        private val support=mutableListOf<Double>()
         fun observe(value:HandGrip,time:Double) {
             if(last?.let { time-it>maximumObservationGapSeconds }==true) reset()
+            if(support.lastOrNull()?.let { time-it>maximumUnsupportedSeconds }==true)reset()
             last=time
-            if(value==HandGrip.unknown) {reset();last=time;return}
-            if(candidate!=value) {candidate=value;since=time;count=0;stable=HandGrip.unknown}
-            count++
-            if(count>=3 && time-(since ?: time)>=confirmationSeconds) stable=value
+            while(support.firstOrNull()?.let { time-it>supportWindowSeconds }==true)support.removeAt(0)
+            stable=HandGrip.unknown
+            if(value==HandGrip.unknown)return
+            if(candidate!=value) {candidate=value;support.clear()}
+            support+=time
+            if(support.size>32)support.removeAt(0)
+            if(support.size>=3 && time-support.first()>=confirmationSeconds)stable=value
         }
-        fun reset(){stable=HandGrip.unknown;candidate=HandGrip.unknown;since=null;last=null;count=0}
+        fun reset(){stable=HandGrip.unknown;candidate=HandGrip.unknown;support.clear();last=null}
     }
     private val left=HandState();private val right=HandState()
     private var lastBody:Double?=null
@@ -182,6 +185,8 @@ class WorkoutGripAnalysis(private val setId: String) {
         const val maximumSpans=128
         const val confirmationSeconds=.5
         const val maximumObservationGapSeconds=.4
+        const val maximumUnsupportedSeconds=.6
+        const val supportWindowSeconds=1.0
         fun summary(record:WorkoutGripRecord?,start:Double,end:Double):GripEstimate {
             if(record==null || !start.isFinite() || !end.isFinite() || end<=start)return GripEstimate(reason="variationUnavailable",policyVersion=record?.policyVersion ?: WorkoutGripGeometry.policyVersion)
             val duration=end-start

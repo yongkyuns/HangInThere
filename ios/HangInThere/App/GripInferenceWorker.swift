@@ -59,7 +59,7 @@ actor GripInferenceWorker {
                     world: WorkoutGripVector3(x: Double(w.x), y: Double(w.y), z: Double(w.z)),
                     score: min(p.visibility?.doubleValue ?? 0, p.presence?.doubleValue ?? 0))
             }
-            let hands = try estimateHands(image: image, pose: pose)
+            let hands = try estimateHands(image: image, pose: pose, bodyPoints: bodyPoints)
             return WorkoutGripObservation(seconds: result.seconds, imageSize: result.imageSize, trackedBody: tracked,
                 body: bodyPoints, hands: hands, modelId: result.modelId, backend: result.backend)
         } catch {
@@ -70,15 +70,17 @@ actor GripInferenceWorker {
     }
     /// Also exercised on authored blank pixels by native tests. SDK ownership
     /// stays on this actor; a fallback never produces a second hand for a wrist.
-    func estimateHands(image: CGImage, pose: PoseResult) throws -> [WorkoutGripHandObservation] {
+    func estimateHands(image: CGImage, pose: PoseResult, bodyPoints: [WorkoutGripBodyPoint]) throws -> [WorkoutGripHandObservation] {
         try load()
         guard let hand else { throw CocoaError(.fileReadUnknown) }
         var source = pose; source.gripObservation = nil
-        let regionJSON = try regions.handRegionCandidatesJson(poseJson: String(decoding: JSONEncoder().encode(source), as: UTF8.self))
-        let requests = try JSONDecoder().decode([[WorkoutGripRegion]].self, from: Data(regionJSON.utf8))
+        let regionJSON = try regions.handRequestsJson(poseJson: String(decoding: JSONEncoder().encode(source), as: UTF8.self))
+        let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(regionJSON.utf8))
+        let context = WorkoutGripObservation(seconds: pose.timestamp.seconds,imageSize: pose.imageSize,trackedBody: [],body: bodyPoints,hands: [],modelId: Self.modelId,backend: "candidate identity")
+        let contextJSON = String(decoding: try JSONEncoder().encode(context),as: UTF8.self)
         var hands: [WorkoutGripHandObservation] = []
-        for candidates in requests.prefix(2) {
-            for region in candidates.prefix(2) {
+        for request in requests.prefix(2) {
+            for region in request.regions.prefix(2) {
                 try Task.checkCancellation()
                 guard let crop = image.cropping(to: CGRect(x: region.left, y: region.top, width: region.width, height: region.height)) else { continue }
                 let detected = try hand.detect(image: MPImage(uiImage: UIImage(cgImage: crop)))
@@ -92,7 +94,9 @@ actor GripInferenceWorker {
                     }
                     candidateHands.append(WorkoutGripHandObservation(points: landmarks, sdkHandedness: side?.categoryName, sdkHandednessScore: side.map { Double($0.score) }, sourceRegion: region))
                 }
-                if let candidate = candidateHands.first {
+                if let candidate = try candidateHands.first(where: {
+                    try regions.hasHandIdentityJson(observationJson: contextJSON,handJson: String(decoding: JSONEncoder().encode($0),as: UTF8.self),expectedSide: request.side)
+                }) {
                     hands.append(candidate)
                     break
                 }

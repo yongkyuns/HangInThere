@@ -2,19 +2,21 @@ package dev.hanginthere.core
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.Serializable
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.hypot
 
 /** Shared crop policy. Translation only: no mirroring/rotation of hand world axes.
  * A crop is input framing, never evidence of hand identity or apparatus contact. */
+@Serializable data class GripHandCropRequest(val side:ArmMeasurement.Side,val regions:List<PersonInferenceRegion>)
 object WorkoutGripInference {
     const val modelId = "mediapipe_hand_full_v1_pose_lite_v1"
-    const val cropPolicyVersion = 2
-    /** First preserve the forearm-scaled crop; retry a missed hand once with
-     * more wrist-centered context. Native adapters stop at the first result,
-     * so successful hands incur no additional model call. */
-    fun handRegionCandidates(pose:PoseResult):List<List<PersonInferenceRegion>> {
+    const val cropPolicyVersion = 3
+    /** First preserve the forearm-scaled crop; retry a missing or identity-invalid
+     * hand once with more wrist-centered context. Native adapters stop at the
+     * first identity-valid result, independent of its grip orientation. */
+    fun handRequests(pose:PoseResult):List<GripHandCropRequest> {
         val size=pose.imageSize
         if(!size.isValid || size.width!=floor(size.width) || size.height!=floor(size.height))return emptyList()
         val person=pose.people.singleOrNull() ?: return emptyList()
@@ -27,10 +29,11 @@ object WorkoutGripInference {
             val side=(elbow?.let { hypot(wrist.x-it.x,wrist.y-it.y)*1.5 } ?: short*.2).coerceIn(short*.12,short*.4)
             val x=wrist.x+(elbow?.let { (wrist.x-it.x)*.15 } ?: 0.0)
             val y=wrist.y+(elbow?.let { (wrist.y-it.y)*.15 } ?: 0.0)
-            listOfNotNull(region(size,x,y,side),region(size,wrist.x,wrist.y,short*.28))
-                .distinct().takeIf { it.isNotEmpty() }
+            val regions=listOfNotNull(region(size,x,y,side),region(size,wrist.x,wrist.y,short*.28)).distinct()
+            regions.takeIf { it.isNotEmpty() }?.let { GripHandCropRequest(if(wristJoint==PoseJoint.leftWrist)ArmMeasurement.Side.left else ArmMeasurement.Side.right,it) }
         }
     }
+    fun handRegionCandidates(pose:PoseResult):List<List<PersonInferenceRegion>> = handRequests(pose).map { it.regions }
     fun handRegions(pose:PoseResult):List<PersonInferenceRegion> = handRegionCandidates(pose).map { it.first() }
     private fun region(size:ImageSize,x:Double,y:Double,side:Double):PersonInferenceRegion? {
         val left=floor(maxOf(0.0,x-side*.5)).toInt();val top=floor(maxOf(0.0,y-side*.5)).toInt()
@@ -40,6 +43,11 @@ object WorkoutGripInference {
 }
 class WorkoutGripInferenceBridge {
     val cropPolicyVersion get() = WorkoutGripInference.cropPolicyVersion
+    @Throws(IllegalArgumentException::class)
+    fun handRequestsJson(poseJson:String):String = WorkoutRecordCodec.json.encodeToString(WorkoutGripInference.handRequests(WorkoutRecordCodec.json.decodeFromString(poseJson)))
+    @Throws(IllegalArgumentException::class)
+    fun hasHandIdentityJson(observationJson:String,handJson:String,expectedSide:String):Boolean = WorkoutGripGeometry.hasHandIdentity(
+        WorkoutRecordCodec.json.decodeFromString(observationJson),WorkoutRecordCodec.json.decodeFromString(handJson),ArmMeasurement.Side.valueOf(expectedSide))
     @Throws(IllegalArgumentException::class)
     fun handRegionsJson(poseJson:String):String = WorkoutRecordCodec.json.encodeToString(WorkoutGripInference.handRegions(WorkoutRecordCodec.json.decodeFromString(poseJson)))
     @Throws(IllegalArgumentException::class)

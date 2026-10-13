@@ -66,7 +66,7 @@ import kotlin.math.sqrt
 /** Geometry only; stabilization, lifecycle and storage are independent consumers.
  * These are monocular estimates. No SDK landmark score is exposed as grip confidence. */
 object WorkoutGripGeometry {
-    const val policyVersion = 2
+    const val policyVersion = 3
     const val maximumAgeSeconds = .5
     const val samplingIntervalSeconds = .25
     private fun score(value: Double?) = value==null || value.isFinite() && value in .5..1.0
@@ -78,6 +78,26 @@ object WorkoutGripGeometry {
             point.y in region.top.toDouble()..(region.top+region.height).toDouble()
     }
     data class BodyBasis(val left: GripVector3, val facing: GripVector3)
+    private fun handSide(observation:GripObservation,hand:GripHandObservation):ArmMeasurement.Side? {
+        if(hand.points.map { it.joint }.toSet().size!=hand.points.size)return null
+        val wrist=hand.points.singleOrNull { it.joint==GripHandJoint.wrist && score(it.score) && inside(it.position,observation,hand) } ?: return null
+        fun body(joint:GripBodyJoint)=observation.body.singleOrNull { it.joint==joint && score(it.score) && inside(it.position,observation.imageSize) }
+        val left=wrist.position.distanceTo(body(GripBodyJoint.leftWrist)?.position ?: return null)
+        val right=wrist.position.distanceTo(body(GripBodyJoint.rightWrist)?.position ?: return null)
+        val short=minOf(observation.imageSize.width,observation.imageSize.height)
+        if(minOf(left,right)>short*.08 || kotlin.math.abs(left-right)<short*.04)return null
+        return if(left<right)ArmMeasurement.Side.left else ArmMeasurement.Side.right
+    }
+    private fun consistentSdkSide(hand:GripHandObservation,side:ArmMeasurement.Side):Boolean {
+        val label=hand.sdkHandedness?.lowercase();val value=hand.sdkHandednessScore
+        return label==null || value==null || value.isFinite() && value in 0.0..1.0 && (value<.8 || label==side.name)
+    }
+    /** A crop's hint cannot establish identity. Match its actual wrist and
+     * reject the same confident SDK contradiction as geometric classification.
+     * This does not evaluate or search for a preferred grip orientation. */
+    fun hasHandIdentity(observation:GripObservation,hand:GripHandObservation,expectedSide:ArmMeasurement.Side):Boolean =
+        observation.schemaVersion==1 && observation.coordinateConvention=="cameraRightDownAway_v1" && observation.failure==null &&
+        observation.seconds.isFinite() && handSide(observation,hand)==expectedSide && consistentSdkSide(hand,expectedSide)
     fun bodyBasis(observation: GripObservation): BodyBasis? {
         if(observation.failure!=null || observation.schemaVersion!=1 || observation.coordinateConvention!="cameraRightDownAway_v1" ||
             !observation.seconds.isFinite() || !observation.imageSize.isValid || observation.body.size!=6 || observation.trackedBody.size !in 4..6 ||
@@ -107,16 +127,9 @@ object WorkoutGripGeometry {
     fun orientation(observation: GripObservation): GripEstimate {
         val basis=bodyBasis(observation) ?: return GripEstimate(reason=observation.failure ?: "bodyFrameUnavailable",modelId=observation.modelId)
         if(observation.hands.size>2) return GripEstimate(reason="handIdentityAmbiguous",modelId=observation.modelId)
-        val body=observation.body.associateBy { it.joint }
         val assignments=mutableMapOf<ArmMeasurement.Side,GripHandObservation>()
-        val short=minOf(observation.imageSize.width,observation.imageSize.height)
         for(hand in observation.hands) {
-            if(hand.points.map { it.joint }.toSet().size!=hand.points.size) continue
-            val wrist=hand.points.singleOrNull { it.joint==GripHandJoint.wrist && score(it.score) && inside(it.position,observation,hand) } ?: continue
-            val left=wrist.position.distanceTo(body.getValue(GripBodyJoint.leftWrist).position)
-            val right=wrist.position.distanceTo(body.getValue(GripBodyJoint.rightWrist).position)
-            if(minOf(left,right)>short*.08 || kotlin.math.abs(left-right)<short*.04) continue
-            val side=if(left<right)ArmMeasurement.Side.left else ArmMeasurement.Side.right
+            val side=handSide(observation,hand) ?: continue
             if(assignments.containsKey(side)) return GripEstimate(reason="handIdentityAmbiguous",modelId=observation.modelId)
             assignments[side]=hand
         }
@@ -125,10 +138,7 @@ object WorkoutGripGeometry {
             // Task adapters receive upright, unmirrored pixels. A confident
             // contradictory side estimate makes the anatomical MCP ordering
             // ambiguous; never silently apply a body-derived chirality sign.
-            val sdkSide=hand.sdkHandedness?.lowercase()
-            val sdkScore=hand.sdkHandednessScore
-            if(sdkSide!=null && sdkScore!=null && (!sdkScore.isFinite() || sdkScore !in 0.0..1.0 ||
-                sdkScore>=.8 && sdkSide!=side.name))return HandGrip.unknown
+            if(!consistentSdkSide(hand,side))return HandGrip.unknown
             fun point(joint: GripHandJoint)=hand.points.singleOrNull { it.joint==joint && score(it.score) && inside(it.position,observation,hand) }?.world?.takeIf { it.isFinite }
             val wrist=point(GripHandJoint.wrist) ?: return HandGrip.unknown
             val index=point(GripHandJoint.indexMCP)?.minus(wrist) ?: return HandGrip.unknown

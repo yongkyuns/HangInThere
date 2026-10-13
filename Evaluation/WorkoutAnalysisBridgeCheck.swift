@@ -316,12 +316,13 @@ struct WorkoutAnalysisBridgeCheck {
                     modelId: "authored-anatomy",backend: "authored transport")
                 if index == 0 {
                     let inference = WorkoutGripInferenceBridge()
-                    let requestsJSON = try inference.handRegionCandidatesJson(poseJson: String(decoding: JSONEncoder().encode(frame), as: UTF8.self))
-                    let requests = try JSONDecoder().decode([[WorkoutGripRegion]].self, from: Data(requestsJSON.utf8))
+                    let requestsJSON = try inference.handRequestsJson(poseJson: String(decoding: JSONEncoder().encode(frame), as: UTF8.self))
+                    let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(requestsJSON.utf8))
                     let estimateJSON = try inference.orientationJson(observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!), as: UTF8.self))
                     let estimate = try JSONDecoder().decode(WorkoutGripEstimate.self, from: Data(estimateJSON.utf8))
-                    guard inference.cropPolicyVersion == 2, requests.count == 2,
-                          requests.allSatisfy({ !$0.isEmpty && $0.count <= 2 }), estimate.policyVersion == 2,
+                    let identity = try inference.hasHandIdentityJson(observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!),as: UTF8.self),handJson: String(decoding: JSONEncoder().encode(hands[0]),as: UTF8.self),expectedSide: "left")
+                    guard inference.cropPolicyVersion == 3, requests.map(\.side) == ["left","right"], identity,
+                          requests.allSatisfy({ !$0.regions.isEmpty && $0.regions.count <= 2 }), estimate.policyVersion == 3,
                           estimate.orientation == "underhand" else {
                         fatalError("Native crop planning or offline geometric-estimate FFI changed")
                     }

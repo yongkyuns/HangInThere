@@ -15,11 +15,12 @@ import java.security.MessageDigest
 import java.util.concurrent.Executors
 
 /** The caller owns the SDK handle and source bitmap. Each wrist gets at most
- * two crop calls and one result; already detected hands never use the fallback. */
-internal fun inferGripHandCrops(bitmap:Bitmap,pose:PoseResult,hand:HandLandmarker):List<GripHandObservation> {
+ * two crop calls and one identity-valid result; valid hands skip the fallback. */
+internal fun inferGripHandCrops(bitmap:Bitmap,pose:PoseResult,hand:HandLandmarker,bodyPoints:List<GripBodyPoint>):List<GripHandObservation> {
     val hands=mutableListOf<GripHandObservation>()
-    for(candidates in WorkoutGripInference.handRegionCandidates(pose).take(2)) {
-        for(region in candidates.take(2)) {
+    val context=GripObservation(pose.timestamp.seconds,pose.imageSize,emptyList(),bodyPoints,emptyList(),WorkoutGripInference.modelId,"candidate identity")
+    for(request in WorkoutGripInference.handRequests(pose).take(2)) {
+        for(region in request.regions.take(2)) {
             val cropped=Bitmap.createBitmap(bitmap,region.left,region.top,region.width,region.height)
             // createBitmap may return its input for a full-image rectangle.
             val owned=if(cropped===bitmap)checkNotNull(cropped.copy(Bitmap.Config.ARGB_8888,false)) else cropped
@@ -33,7 +34,7 @@ internal fun inferGripHandCrops(bitmap:Bitmap,pose:PoseResult,hand:HandLandmarke
                     GripHandPoint(joint,Point2D(region.left+p.x().toDouble()*region.width,region.top+p.y().toDouble()*region.height),
                         GripVector3(w.x().toDouble(),w.y().toDouble(),w.z().toDouble()))
                 },side?.categoryName(),side?.score()?.toDouble(),sourceRegion=region)
-            }.firstOrNull()
+            }.firstOrNull { WorkoutGripGeometry.hasHandIdentity(context,it,request.side) }
             if(candidate!=null) { hands+=candidate;break }
         }
     }
@@ -110,7 +111,7 @@ class GripInference(context: Context) : Closeable {
                 GripBodyPoint(joint,Point2D(p.x().toDouble()*bitmap.width,p.y().toDouble()*bitmap.height),
                     GripVector3(w.x().toDouble(),w.y().toDouble(),w.z().toDouble()),minOf(p.visibility().orElse(0f),p.presence().orElse(0f)).toDouble())
             }
-            val hands=inferGripHandCrops(bitmap,pose,hand)
+            val hands=inferGripHandCrops(bitmap,pose,hand,bodyPoints)
             base.copy(body=bodyPoints,hands=hands)
         } catch(error:Exception) { if(hand==null || body==null)unavailable=true;base.copy(failure="gripInferenceUnavailable") }
     }

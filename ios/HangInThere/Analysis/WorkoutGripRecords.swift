@@ -32,6 +32,7 @@ struct WorkoutGripRecord: Codable, Equatable, Sendable {
     let latest: WorkoutGripEstimate; let timelineTruncated: Bool; let policyVersion: Int
 }
 struct WorkoutGripRegion: Codable, Equatable, Sendable { let left: Int; let top: Int; let width: Int; let height: Int }
+struct WorkoutGripCropRequest: Codable, Sendable { let side: String; let regions: [WorkoutGripRegion] }
 struct WorkoutGripRepVariation: Codable, Identifiable, Sendable {
     let repId: String; let ordinal: Int; let orientation: String; let width: String
     let label: String; let orientationSource: String; let widthSource: String; let measured: WorkoutGripEstimate?

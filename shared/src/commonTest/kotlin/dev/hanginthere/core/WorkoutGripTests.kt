@@ -157,7 +157,7 @@ class WorkoutGripTests {
         val bridge=WorkoutGripInferenceBridge()
         assertEquals(candidates,WorkoutRecordCodec.json.decodeFromString<List<List<PersonInferenceRegion>>>(
             bridge.handRegionCandidatesJson(WorkoutRecordCodec.json.encodeToString(p))))
-        assertEquals(2,bridge.cropPolicyVersion)
+        assertEquals(3,bridge.cropPolicyVersion)
         assertEquals(WorkoutGripGeometry.orientation(observation()),WorkoutRecordCodec.json.decodeFromString<GripEstimate>(
             bridge.orientationJson(WorkoutRecordCodec.json.encodeToString(observation()))))
     }
@@ -179,6 +179,59 @@ class WorkoutGripTests {
         assertTrue(WorkoutGripInference.handRegionCandidates(p.copy(imageSize=ImageSize(1000.5,1000.0))).isEmpty())
         val duplicate=p.copy(people=listOf(PoseObservation(p.people.single().landmarks+p.people.single().landmarks)))
         assertTrue(WorkoutGripInference.handRegionCandidates(duplicate).isEmpty())
+    }
+    @Test fun requestSideSurvivesMissingOtherWristAndJsonTransport() {
+        val p=pose(0.0).let { it.copy(people=listOf(PoseObservation(it.people.single().landmarks.filter { p->p.joint!=PoseJoint.leftWrist }))) }
+        val requests=WorkoutGripInference.handRequests(p)
+        assertEquals(ArmMeasurement.Side.right,requests.single().side)
+        assertEquals(requests,WorkoutRecordCodec.json.decodeFromString<List<GripHandCropRequest>>(
+            WorkoutGripInferenceBridge().handRequestsJson(WorkoutRecordCodec.json.encodeToString(p))))
+    }
+    @Test fun candidateIdentityRequiresActualWristAndConsistentSdkSide() {
+        val o=observation();val right=o.hands.first()
+        assertTrue(WorkoutGripGeometry.hasHandIdentity(o,right,ArmMeasurement.Side.right))
+        assertFalse(WorkoutGripGeometry.hasHandIdentity(o,right,ArmMeasurement.Side.left))
+        assertFalse(WorkoutGripGeometry.hasHandIdentity(o,right.copy(sdkHandedness="Left"),ArmMeasurement.Side.right))
+        assertFalse(WorkoutGripGeometry.hasHandIdentity(o.copy(schemaVersion=2),right,ArmMeasurement.Side.right))
+        assertFalse(WorkoutGripGeometry.hasHandIdentity(o.copy(coordinateConvention="mirrored"),right,ArmMeasurement.Side.right))
+        assertFalse(WorkoutGripGeometry.hasHandIdentity(o.copy(seconds=Double.NaN),right,ArmMeasurement.Side.right))
+        assertFalse(WorkoutGripGeometry.hasHandIdentity(o.copy(failure="bodyFrameUnavailable"),right,ArmMeasurement.Side.right))
+        val ambiguous=right.copy(points=right.points.map { if(it.joint==GripHandJoint.wrist)it.copy(position=Point2D(500.0,100.0)) else it })
+        assertFalse(WorkoutGripGeometry.hasHandIdentity(o,ambiguous,ArmMeasurement.Side.right))
+        // Identity is not a preferred-grip or missing-depth filter.
+        assertTrue(WorkoutGripGeometry.hasHandIdentity(o,right.copy(points=right.points.map { it.copy(world=null) }),ArmMeasurement.Side.right))
+        assertTrue(WorkoutGripInferenceBridge().hasHandIdentityJson(WorkoutRecordCodec.json.encodeToString(o),WorkoutRecordCodec.json.encodeToString(right),"right"))
+    }
+    @Test fun briefUncertaintyReusesRecentSupportWithoutCreditingUnknownTime() {
+        val a=WorkoutGripAnalysis("set")
+        for(t in listOf(0.0,.25,.5))a.observe(pose(t),bar,ExerciseCounter.Phase.ready,true)
+        assertEquals(GripOrientation.underhand,a.current.orientation)
+        val missing=pose(.75).let { it.copy(gripObservation=it.gripObservation!!.copy(hands=emptyList())) }
+        a.observe(missing,bar,ExerciseCounter.Phase.ready,true)
+        assertEquals(GripOrientation.unknown,a.current.orientation)
+        a.observe(pose(1.0),bar,ExerciseCounter.Phase.ready,true)
+        assertEquals(GripOrientation.underhand,a.current.orientation)
+        a.observe(pose(1.25),bar,ExerciseCounter.Phase.ready,true)
+        assertTrue(a.record.orientationSpans.filter { it.left==HandGrip.unknown || it.right==HandGrip.unknown }.all { it.observedSeconds==0.0 })
+        assertEquals(.25,a.record.orientationSpans.sumOf { it.observedSeconds },1e-9)
+    }
+    @Test fun longUncertaintyOrAContradictoryGripRequiresFreshConfirmation() {
+        for(changed in listOf(false,true)) {
+            val a=WorkoutGripAnalysis("set")
+            for(t in listOf(0.0,.25,.5))a.observe(pose(t),bar,ExerciseCounter.Phase.ready,true)
+            for(t in listOf(.75,1.0)) {
+                val p=pose(t)
+                val o=if(changed && t==.75)observation(t,right=HandGrip.overhand) else p.gripObservation!!.copy(hands=emptyList())
+                a.observe(p.copy(gripObservation=o),bar,ExerciseCounter.Phase.ready,true)
+                assertEquals(GripOrientation.unknown,a.current.orientation)
+            }
+            a.observe(pose(1.25),bar,ExerciseCounter.Phase.ready,true)
+            assertEquals(GripOrientation.unknown,a.current.orientation)
+            a.observe(pose(1.5),bar,ExerciseCounter.Phase.ready,true)
+            assertEquals(GripOrientation.unknown,a.current.orientation)
+            a.observe(pose(1.75),bar,ExerciseCounter.Phase.ready,true)
+            assertEquals(GripOrientation.underhand,a.current.orientation)
+        }
     }
     @Test fun missingDepthOrIdentityOrBodyContextIsUnknown() {
         val o=observation()
