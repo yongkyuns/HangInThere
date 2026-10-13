@@ -317,7 +317,14 @@ private fun comparisonTitle(value: String): String = runCatching {
     Text("Plan your practice", style = MaterialTheme.typography.headlineSmall)
     Text("Plans use your chosen targets. Link an observed workout to mark completion. These are tracking defaults, not training prescriptions.")
     dashboard.insights.plans.forEach { report ->
-        Text("${report.title} · ${report.status} · ${report.completedItems}/${report.totalItems} items")
+        val status = when (report.status) { "completed" -> "Completed"; "observed" -> "Recorded progress"; "linkedNotEligible" -> "Linked recording does not match"; "notRecorded" -> "No eligible recording"; else -> "Planned" }
+        Text("${report.title} · $status", style = MaterialTheme.typography.titleMedium)
+        report.scheduledDay?.let { Text("Planned for " + DateFormat.getDateInstance().apply { timeZone = TimeZone.getTimeZone("UTC") }.format(Date(it * 86400000L))) }
+        report.items.forEachIndexed { index, item ->
+            Text("${item.exercise.title}: ${item.sets} sets of ${item.target} ${if (item.metric == WorkoutGoalMetric.holdSeconds) "hold seconds" else "completed cycles"} per set")
+            Text("${report.measuredValues.getOrElse(index) { 0.0 }.toInt()}/${item.sets} sets meet this target${if (report.workoutId == null) " · preview; link to confirm" else ""}", style = MaterialTheme.typography.bodySmall)
+            Text("${item.context.assistance.name} ${item.context.assistanceLabel} · ${item.context.addedLoadKg?.let { "$it kg" } ?: "load unrecorded"} · ${item.context.equipment} · ${item.context.cameraView} · ${item.context.intent.name} ${item.context.variation}", style = MaterialTheme.typography.bodySmall)
+        }
         val plan = dashboard.state.plans.single { it.id == report.planId }
         var choosingWorkout by remember(report.planId) { mutableStateOf(false) }
         if (report.candidateWorkoutIds.isNotEmpty()) {
@@ -336,6 +343,7 @@ private fun comparisonTitle(value: String): String = runCatching {
         if (report.workoutId != null) TextButton(onClick = { apply(WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = null), atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Unlink workout") }
         TextButton(onClick = { apply(WorkoutLibraryCommand("deletePlan", id = report.planId, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Delete plan") }
     }
+    Text("Create a single-exercise plan. Declare assistance, load, equipment and camera view to match recordings.", style = MaterialTheme.typography.bodySmall)
     LibraryChoice("Exercise", exercise.name, ExerciseCounter.Exercise.entries.map { it.name }) { exercise = ExerciseCounter.Exercise.valueOf(it) }
     LibraryChoice("Metric", metric.name, WorkoutGoalMetric.entries.map { it.name }) { metric = WorkoutGoalMetric.valueOf(it) }
     OutlinedTextField(target, { target = it }, label = { Text("Target per set") })

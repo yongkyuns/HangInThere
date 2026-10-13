@@ -37,9 +37,14 @@ import WorkoutCore
                 "correction": ["context": ["assistance": "none", "addedLoadKg": 0, "equipment": "Gym bar", "cameraView": "front"]]]
             library = try libraryBridge.applyJson(stateJson: library, commandJson: String(decoding: JSONSerialization.data(withJSONObject: command), as: UTF8.self))
         }
+        let plan: [String: Any] = ["action": "plan", "atEpochMilliseconds": Int64(Date().timeIntervalSince1970 * 1000),
+            "plan": ["id": "plan-preview", "title": "Pull-up practice", "scheduledDay": libraryRecords.last!.trackedAtEpochMilliseconds! / 86_400_000,
+                "items": [["id": "item-preview", "exercise": "pullUp", "metric": "holdSeconds", "target": 1.0, "sets": 2,
+                    "context": ["assistance": "none", "addedLoadKg": 0, "equipment": "Gym bar", "cameraView": "front"]]]]]
+        library = try libraryBridge.applyJson(stateJson: library, commandJson: String(decoding: JSONSerialization.data(withJSONObject: plan), as: UTF8.self))
         let dashboardJSON: [String: Any] = ["page": try JSONSerialization.jsonObject(with: Data(libraryBridge.pageJson(stateJson: library, cursorJson: nil, limit: 25).utf8)),
             "insights": try JSONSerialization.jsonObject(with: Data(libraryBridge.insightsJson(stateJson: library, comparisonKey: nil, nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000), utcOffsetMinutes: 0).utf8)),
-            "mediaPolicy": ["enabled": false, "maximumClips": 20, "maximumBytes": 209715200, "maximumAgeDays": 30], "media": [], "diagnosticsConsent": false, "revision": 4]
+            "mediaPolicy": ["enabled": false, "maximumClips": 20, "maximumBytes": 209715200, "maximumAgeDays": 30], "media": [], "diagnosticsConsent": false, "revision": 5]
         let libraryDashboard = try JSONDecoder().decode(LibraryDashboard.self, from: JSONSerialization.data(withJSONObject: dashboardJSON))
         for section in ["Progress", "History", "Plans", "Storage"] {
             for dark in [true, false] {
@@ -51,6 +56,10 @@ import WorkoutCore
                     let text = try render(content, width: width, height: 1100, filename: name)
                     let expected = ["Progress": "comparecompletedcycles", "History": "reviewandcorrect", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
                     verify(text.contains { $0.contains(expected) }, "Workout library section missing: \(section)", filename: name)
+                    if section == "Plans" {
+                        verify(text.contains { $0.contains("setsmeetthistarget") }, "Saved plan progress is missing", filename: name)
+                        verify(text.contains { $0.contains("plannedfor") }, "Saved plan date is missing", filename: name)
+                    }
                 }
             }
         }

@@ -15,7 +15,8 @@ import kotlin.math.abs
 @Serializable data class WorkoutWeeklyPractice(val firstDay: Long, val days: Int, val workouts: Int, val completedReps: Int, val observedHoldSeconds: Double)
 @Serializable data class WorkoutPlanResult(val planId: String, val title: String, val status: String,
     val completedItems: Int, val totalItems: Int, val measuredValues: List<Double>, val workoutId: String?,
-    val candidateWorkoutIds: List<String> = emptyList())
+    val candidateWorkoutIds: List<String> = emptyList(), val scheduledDay: Long? = null,
+    val items: List<WorkoutPlanItem> = emptyList())
 @Serializable data class WorkoutCoachFocus(val title: String, val message: String, val evidenceSetIds: List<String>,
     val metric: String?, val recentMedian: Double?, val sampleSessions: Int, val limitation: String)
 @Serializable data class WorkoutLibraryInsights(val sessions: List<WorkoutSessionSummary>,
@@ -158,7 +159,7 @@ object WorkoutInsights {
             WorkoutPlanResult(plan.id, plan.title,
                 if (plan.workoutId != null && completed == plan.items.size) "completed" else if (session != null) "observed"
                 else if (plan.workoutId != null) "linkedNotEligible" else if (plan.scheduledDay < today) "notRecorded" else "planned",
-                completed, plan.items.size, values, plan.workoutId, candidateSessions.take(100).map { it.id })
+                completed, plan.items.size, values, plan.workoutId, candidateSessions.take(100).map { it.id }, plan.scheduledDay, plan.items)
         }
         return WorkoutLibraryInsights(sessions.take(100), keys, selected, sets.count { it.comparisonKey == null }, points, weekly, days.size,
             days.count { it in (today - 27)..today }, plateau, chosen, suggestion, goalBest, chosen != null && goalBest != null && goalBest >= chosen.target,

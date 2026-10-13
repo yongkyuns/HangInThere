@@ -10,6 +10,7 @@ import dev.hanginthere.core.*
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.util.TimeZone
 import java.util.UUID
 
 class WorkoutLibraryUiTest {
@@ -22,8 +23,11 @@ class WorkoutLibraryUiTest {
         val record = WorkoutSetRecord(id, ExerciseCounter.Exercise.pullUp, 0.0, 8.0, "manual", emptyList(), "authored", 1,
             trackedAtEpochMilliseconds = time, activity = WorkoutActivity(emptyList(), listOf(WorkoutPhaseTotal(WorkoutMotionPhase.hang, 8.0)), 8.0, 0.0, 8.0, 8.0, false, 2))
         store.save(record)
-        store.libraryCommand(WorkoutLibraryCommand("review", setId = id, correction = WorkoutReviewCorrection(context = WorkoutContext(
-            assistance = WorkoutAssistance.none, addedLoadKg = 0.0, equipment = "test bar", cameraView = "front")), atEpochMilliseconds = time))
+        val context = WorkoutContext(assistance = WorkoutAssistance.none, addedLoadKg = 0.0, equipment = "test bar", cameraView = "front")
+        store.libraryCommand(WorkoutLibraryCommand("review", setId = id, correction = WorkoutReviewCorrection(context = context), atEpochMilliseconds = time))
+        store.libraryCommand(WorkoutLibraryCommand("plan", plan = WorkoutPlan("ui-plan", "My pull-up practice",
+            WorkoutInsights.localDay(time, TimeZone.getDefault().getOffset(time) / 60000),
+            listOf(WorkoutPlanItem("ui-item", ExerciseCounter.Exercise.pullUp, WorkoutGoalMetric.holdSeconds, 5.0, 2, context))), atEpochMilliseconds = time))
         try {
             compose.runOnUiThread { compose.activity.setContent { MaterialTheme { WorkoutLibraryDialog(recordStore = store) {} } } }
             compose.waitUntil(10000) { compose.onAllNodesWithText("Build a repeatable baseline").fetchSemanticsNodes().isNotEmpty() }
@@ -32,6 +36,11 @@ class WorkoutLibraryUiTest {
             compose.onNodeWithText("Review and correct").assertIsDisplayed()
             compose.onNodeWithText("Plans").performClick()
             compose.onNodeWithText("Plan your practice").assertIsDisplayed()
+            compose.onNodeWithText("Pull-up: 2 sets of 5.0 hold seconds per set").assertIsDisplayed()
+            compose.onNodeWithText("1/2 sets meet this target · preview; link to confirm").assertIsDisplayed()
+            compose.onNodeWithText("Link recorded workout").performClick()
+            compose.onNodeWithText("Pull-up · 1 sets", substring = true).performClick()
+            compose.waitUntil(10000) { compose.onAllNodesWithText("1/2 sets meet this target").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Storage").performClick()
             compose.onNodeWithText("Restore backup").assertIsDisplayed()
             compose.onNodeWithText("Keep explicitly attached review videos").performScrollTo().assertIsDisplayed()

@@ -276,6 +276,7 @@ class WorkoutLibraryTests {
         val planned = WorkoutLibrary.apply(grouped, WorkoutLibraryCommand("plan", plan = plan, atEpochMilliseconds = 300000))
         val preview = WorkoutInsights.report(planned, null, 400000, 0).plans.single()
         assertEquals("observed", preview.status); assertNull(preview.workoutId); assertEquals(listOf("workout"), preview.candidateWorkoutIds)
+        assertEquals(plan.scheduledDay, preview.scheduledDay); assertEquals(plan.items, preview.items)
         val linked = WorkoutLibrary.apply(planned, WorkoutLibraryCommand("plan", plan = plan.copy(workoutId = "workout"), atEpochMilliseconds = 300001))
         assertEquals("completed", WorkoutInsights.report(linked, null, 400000, 0).plans.single().status)
     }

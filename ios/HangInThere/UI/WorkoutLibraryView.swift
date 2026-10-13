@@ -49,7 +49,8 @@ struct LibrarySession: Decodable, Identifiable, Sendable {
     let exercises: [ExerciseCounter.Exercise]; let restSeconds: [Double]; let interruptedSets: Int
     let startIntervalsSeconds: [Double]
 }
-struct LibraryPlanResult: Decodable, Identifiable, Sendable { let planId: String; let title: String; let status: String; let completedItems: Int; let totalItems: Int; let workoutId: String?; let candidateWorkoutIds: [String]; var id: String { planId } }
+struct LibraryPlanItem: Decodable, Identifiable, Sendable { let id: String; let exercise: ExerciseCounter.Exercise; let metric: String; let target: Double; let sets: Int; let context: LibraryContext }
+struct LibraryPlanResult: Decodable, Identifiable, Sendable { let planId: String; let title: String; let status: String; let completedItems: Int; let totalItems: Int; let workoutId: String?; let candidateWorkoutIds: [String]; let scheduledDay: Int64?; let items: [LibraryPlanItem]; let measuredValues: [Double]; var id: String { planId } }
 struct LibraryInsights: Decodable, Sendable {
     let sessions: [LibrarySession]; let comparisonKeys: [String]; let selectedComparisonKey: String?
     let unclassifiedSets: Int; let trend: [LibraryTrend]; let weekly: [LibraryWeek]; let practiceDays: Int
@@ -295,7 +296,13 @@ struct WorkoutLibraryView: View {
             Text("Plan your practice").font(.title2.bold())
             Text("Plans use your chosen targets. Link an observed workout to mark a plan completed; app suggestions are not training prescriptions.").font(.caption)
             ForEach(report.plans) { plan in
-                Text("\(plan.title) · \(plan.status) · \(plan.completedItems)/\(plan.totalItems) items")
+                Text("\(plan.title) · \(planStatusTitle(plan.status))").font(.headline)
+                if let day = plan.scheduledDay { Text("Planned for \(plannedDayTitle(day))").font(.subheadline) }
+                ForEach(Array(plan.items.enumerated()), id: \.element.id) { index, item in
+                    Text("\(item.exercise.title): \(item.sets) sets of \(item.target.formatted()) \(item.metric == "holdSeconds" ? "hold seconds" : "completed cycles") per set")
+                    Text("\(Int(plan.measuredValues.indices.contains(index) ? plan.measuredValues[index] : 0))/\(item.sets) sets meet this target\(plan.workoutId == nil ? " · preview; link to confirm" : "")").font(.caption)
+                    Text("\(item.context.assistance) \(item.context.assistanceLabel) · \(item.context.addedLoadKg.map { "\($0.formatted()) kg" } ?? "load unrecorded") · \(item.context.equipment) · \(item.context.cameraView) · \(item.context.intent) \(item.context.variation)").font(.caption)
+                }
                 if !plan.candidateWorkoutIds.isEmpty {
                     Menu(plan.workoutId == nil ? "Link recorded workout" : "Change linked workout") {
                         ForEach(plan.candidateWorkoutIds, id: \.self) { id in
@@ -307,6 +314,7 @@ struct WorkoutLibraryView: View {
                 Button("Delete plan", role: .destructive) { Task { await command(["action": "deletePlan", "id": plan.planId]) } }
             }
             DatePicker("Practice date", selection: $planDate, displayedComponents: .date)
+            Text("Create a single-exercise plan. Declare assistance, load, equipment and camera view to match recordings.").font(.caption)
             Picker("Exercise", selection: $planExercise) { ForEach(ExerciseCounter.Exercise.allCases, id: \.self) { Text($0.title).tag($0) } }
             Picker("Metric", selection: $planMetric) { Text("Hold seconds").tag("holdSeconds"); Text("Completed cycles").tag("completedReps") }
             TextField("Target per set", text: $planTarget).textFieldStyle(.roundedBorder)
@@ -388,6 +396,19 @@ struct WorkoutLibraryView: View {
         guard let session = sessions.first(where: { $0.id == id }) else { return "Recorded workout \(id.prefix(8))" }
         let date = session.startedAtEpochMilliseconds.map { Date(timeIntervalSince1970: Double($0) / 1000).formatted(date: .abbreviated, time: .shortened) } ?? "Date unavailable"
         return "\(date) · \(session.exercises.map(\.title).joined(separator: ", ")) · \(session.setIds.count) sets"
+    }
+    private func plannedDayTitle(_ day: Int64) -> String {
+        let formatter = DateFormatter(); formatter.timeZone = TimeZone(secondsFromGMT: 0); formatter.dateStyle = .medium
+        return formatter.string(from: Date(timeIntervalSince1970: Double(day) * 86400))
+    }
+    private func planStatusTitle(_ status: String) -> String {
+        switch status {
+        case "completed": "Completed"
+        case "observed": "Recorded progress"
+        case "linkedNotEligible": "Linked recording does not match"
+        case "notRecorded": "No eligible recording"
+        default: "Planned"
+        }
     }
     private func jsonObject<T: Encodable>(_ value: T) -> Any { (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(value))) ?? [:] }
     private func comparisonTitle(_ key: String) -> String {
