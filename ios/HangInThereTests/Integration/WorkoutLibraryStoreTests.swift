@@ -152,7 +152,13 @@ final class WorkoutLibraryStoreTests: XCTestCase {
         let state = try await store.libraryState()
         let deletion = root.appendingPathComponent("Library/Deletion"); try FileManager.default.createDirectory(at: deletion, withIntermediateDirectories: true)
         try JSONEncoder().encode(original.id).write(to: deletion.appendingPathComponent(original.id + ".json"), options: .atomic)
-        let next = try WorkoutLibraryBridge().applyJson(stateJson: state, commandJson: command(["action": "delete", "setId": original.id]))
+        // Model a fully published, validated deletion state without linking a
+        // second Kotlin runtime into the native XCTest bundle.
+        var object = try JSONSerialization.jsonObject(with: Data(state.utf8)) as! [String: Any]
+        object["entries"] = []
+        object["deletions"] = [["setId": original.id, "deletedAtEpochMilliseconds": 200_000]]
+        object["revision"] = (object["revision"] as! Int) + 1
+        let next = String(decoding: try JSONSerialization.data(withJSONObject: object), as: UTF8.self)
         try Data(next.utf8).write(to: root.appendingPathComponent("Library/state-journal.json"), options: .atomic)
         try Data(next.utf8).write(to: root.appendingPathComponent("Library/index.json"), options: .atomic)
         // Model termination after publication, before cleanup. Source files still exist.
