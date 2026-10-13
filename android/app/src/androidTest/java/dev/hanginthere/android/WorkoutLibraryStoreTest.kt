@@ -109,6 +109,8 @@ import java.util.UUID
             val store = WorkoutRecordStore(context, root); val original = record(); store.save(original)
             val gripRoot = File(root, "GripCorrections")
             WorkoutGripCorrectionStore(context, gripRoot).correct(original, null, GripOrientation.underhand, null)
+            val ledgerFile = gripRoot.listFiles()!!.single()
+            File(gripRoot, ledgerFile.name + ".pending").writeText("Unpublished legacy annotation")
             val state = store.libraryState()
             val markers = File(root, "Library/Deletion"); assertTrue(markers.isDirectory || markers.mkdirs())
             File(markers, "${original.id}.json").writeText(WorkoutRecordCodec.json.encodeToString(kotlinx.serialization.serializer<String>(), original.id))
@@ -119,6 +121,7 @@ import java.util.UUID
             WorkoutRecordStore(context, root).libraryState()
             assertFalse(File(root, "${original.id}.json").exists()); assertFalse(File(root, "${original.id}.motion.json").exists())
             assertNull(WorkoutGripCorrectionStore.archiveLedger(gripRoot, original.id))
+            assertTrue(gripRoot.listFiles().orEmpty().isEmpty())
         } finally { root.deleteRecursively() }
     }
     @Test fun orphanPublicationAndInterruptedRestoreRecoverAfterReload() {

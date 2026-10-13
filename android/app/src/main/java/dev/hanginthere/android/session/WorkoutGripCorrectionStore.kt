@@ -9,15 +9,9 @@ import java.security.MessageDigest
 
 /** Independent atomic annotation files; never scanned as measured workout JSON. */
 class WorkoutGripCorrectionStore(context: Context, private val directory: File = File(context.filesDir,"workout-grip-corrections")) {
-    private fun file(id:String):File {
-        val key=MessageDigest.getInstance("SHA-256").digest(id.toByteArray()).joinToString("") { "%02x".format(it) }
-        return File(directory,"$key.json")
-    }
+    private fun file(id:String):File = archiveFile(directory, id)
     private fun ledger(set:WorkoutSetRecord):GripCorrectionLedger {
-        val file=file(set.id)
-        if(!file.exists())return GripCorrectionLedger(set.id)
-        check(file.length()<=512*1024) { "Grip correction file is too large" }
-        return WorkoutRecordCodec.json.decodeFromString(file.readText())
+        return archiveLedger(directory, set.id) ?: GripCorrectionLedger(set.id)
     }
     fun report(set:WorkoutSetRecord,useCorrections:Boolean=true):GripVariationReport=WorkoutGripReview.report(set,if(useCorrections)ledger(set) else null)
     fun correct(set:WorkoutSetRecord,repId:String?,orientation:GripOrientation?,width:GripWidth?) = synchronized(writeLock) {
@@ -35,7 +29,13 @@ class WorkoutGripCorrectionStore(context: Context, private val directory: File =
         }
         fun archiveLedger(directory: File, id: String): GripCorrectionLedger? = synchronized(writeLock) {
             val file = archiveFile(directory, id)
-            if (!file.exists()) null else { check(file.length() <= 512 * 1024); WorkoutRecordCodec.json.decodeFromString(file.readText()) }
+            if (!file.exists() && !File(file.path + ".bak").exists()) null else {
+                val text = android.util.AtomicFile(file).openRead().use { input ->
+                    check(file.length() <= 512 * 1024)
+                    input.bufferedReader().use { it.readText() }
+                }
+                WorkoutRecordCodec.json.decodeFromString(text)
+            }
         }
         fun restoreLedger(directory: File, record: WorkoutSetRecord, incoming: GripCorrectionLedger, publish: Boolean) = synchronized(writeLock) {
             val merged = WorkoutGripReview.mergeLedgers(record, archiveLedger(directory, record.id) ?: GripCorrectionLedger(record.id), incoming)
@@ -46,6 +46,12 @@ class WorkoutGripCorrectionStore(context: Context, private val directory: File =
                 catch (failure: Throwable) { atomic.failWrite(output); throw failure }
             }
         }
-        fun deleteLedger(directory: File, id: String) = synchronized(writeLock) { android.util.AtomicFile(archiveFile(directory, id)).delete() }
+        fun deleteLedger(directory: File, id: String) = synchronized(writeLock) {
+            val file = archiveFile(directory, id)
+            android.util.AtomicFile(file).delete()
+            val legacyPending = File(directory, file.name + ".pending")
+            if (legacyPending.exists()) check(legacyPending.delete())
+            check(!file.exists() && !File(file.path + ".bak").exists() && !File(file.path + ".new").exists())
+        }
     }
 }
