@@ -105,6 +105,7 @@ class WorkoutWriteQueue {
     @Throws(IllegalArgumentException::class)
     fun enqueueJson(input: String, finalized: Boolean) = enqueue(WorkoutRecordCodec.json.decodeFromString(input), finalized)
     fun next(): Write? = pending.values.firstOrNull()
+    fun discard(setId: String) { pending.remove(setId) }
     fun nextJson(): String? = next()?.let { WorkoutRecordCodec.json.encodeToString(it.record) }
     val nextFinalized: Boolean get() = next()?.finalized ?: false
     val nextToken: Long get() = next()?.token ?: -1

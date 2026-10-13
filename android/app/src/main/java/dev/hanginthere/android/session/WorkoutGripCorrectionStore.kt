@@ -27,5 +27,25 @@ class WorkoutGripCorrectionStore(context: Context, private val directory: File =
         temporary.outputStream().use { stream -> stream.write(WorkoutRecordCodec.json.encodeToString(updated).toByteArray());stream.flush();stream.fd.sync() }
         check(temporary.renameTo(destination)) { "Cannot save grip correction" }
     }
-    companion object { private val writeLock=Any() }
+    companion object {
+        private val writeLock=Any()
+        private fun archiveFile(directory: File, id: String): File {
+            val key=MessageDigest.getInstance("SHA-256").digest(id.toByteArray()).joinToString("") { "%02x".format(it) }
+            return File(directory,"$key.json")
+        }
+        fun archiveLedger(directory: File, id: String): GripCorrectionLedger? = synchronized(writeLock) {
+            val file = archiveFile(directory, id)
+            if (!file.exists()) null else { check(file.length() <= 512 * 1024); WorkoutRecordCodec.json.decodeFromString(file.readText()) }
+        }
+        fun restoreLedger(directory: File, record: WorkoutSetRecord, incoming: GripCorrectionLedger, publish: Boolean) = synchronized(writeLock) {
+            val merged = WorkoutGripReview.mergeLedgers(record, archiveLedger(directory, record.id) ?: GripCorrectionLedger(record.id), incoming)
+            if (publish) {
+                check(directory.isDirectory || directory.mkdirs())
+                val destination = archiveFile(directory, record.id); val atomic = android.util.AtomicFile(destination); val output = atomic.startWrite()
+                try { output.write(WorkoutRecordCodec.json.encodeToString(merged).toByteArray()); atomic.finishWrite(output) }
+                catch (failure: Throwable) { atomic.failWrite(output); throw failure }
+            }
+        }
+        fun deleteLedger(directory: File, id: String) = synchronized(writeLock) { android.util.AtomicFile(archiveFile(directory, id)).delete() }
+    }
 }

@@ -19,6 +19,13 @@ import kotlinx.serialization.decodeFromString
 
 class WorkoutGripReviewBridge {
     @Throws(IllegalArgumentException::class)
+    fun mergeBackupLedgerJson(recordJson: String, existingJson: String?, incomingJson: String): String {
+        val record = WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(recordJson)
+        val incoming = WorkoutRecordCodec.json.decodeFromString<GripCorrectionLedger>(incomingJson)
+        val existing = existingJson?.let { WorkoutRecordCodec.json.decodeFromString<GripCorrectionLedger>(it) } ?: GripCorrectionLedger(record.id)
+        return WorkoutRecordCodec.json.encodeToString(WorkoutGripReview.mergeLedgers(record, existing, incoming))
+    }
+    @Throws(IllegalArgumentException::class)
     fun reportJson(recordJson: String, ledgerJson: String?): String {
         val record = WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(recordJson)
         val ledger = ledgerJson?.let { WorkoutRecordCodec.json.decodeFromString<GripCorrectionLedger>(it) }
@@ -42,6 +49,12 @@ object WorkoutGripReview {
             require(event.sequence > 0 && event.recordedAtEpochMilliseconds > 0)
             require(event.repId == null || record.reps.any { it.id == event.repId })
         }
+    }
+    fun mergeLedgers(record: WorkoutSetRecord, existing: GripCorrectionLedger, incoming: GripCorrectionLedger): GripCorrectionLedger {
+        validate(record, existing); validate(record, incoming)
+        val common = minOf(existing.corrections.size, incoming.corrections.size)
+        require(existing.corrections.take(common) == incoming.corrections.take(common)) { "Grip correction histories conflict" }
+        return if (existing.corrections.size >= incoming.corrections.size) existing else incoming
     }
     fun correct(record: WorkoutSetRecord, ledger: GripCorrectionLedger, repId: String?, orientation: GripOrientation?, width: GripWidth?, at: Long): GripCorrectionLedger {
         validate(record, ledger)

@@ -29,6 +29,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     // Main/UI owner survives recomposition and Activity recreation. Inference
     // does not read or mutate this presentation clock/policy.
     val startFeedback = WorkoutStartFeedback()
+    val completionFeedback = WorkoutCompletionFeedback()
     val inferenceExecutor = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private val generation = AtomicLong(0)

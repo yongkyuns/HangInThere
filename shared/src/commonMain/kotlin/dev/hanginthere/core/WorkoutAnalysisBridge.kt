@@ -60,7 +60,7 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
     private fun recordJson(reps:List<RepRecord>,activity:WorkoutActivity,grip:WorkoutGripRecord?=analysis.gripRecord) = WorkoutAnalysis.json.encodeToString(
         WorkoutSetRecord(setId,exercise,sourceTimeline.firstSeconds,sourceTimeline.lastSeconds,endReason,reps,backend,modelRevision,
             trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,
-            trackedAtEpochMilliseconds=trackedAtEpochMilliseconds,activity=activity,grip=grip))
+            trackedAtEpochMilliseconds=trackedAtEpochMilliseconds.takeIf { it > 0 },activity=activity,grip=grip))
     fun recordsJson() = analysis.recordsJson()
     fun lastClosedRecordJson():String? = analysis.records.lastOrNull()?.let{WorkoutAnalysis.json.encodeToString(it)}
     private fun pose(seconds: Double, width: Double, height: Double, peopleCount: Int, joints: IntArray, triples: DoubleArray): PoseResult {

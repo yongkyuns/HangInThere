@@ -374,7 +374,7 @@ final class ReplayController {
     }
 
     private func resetAnalysisMetrics() {
-        workoutAnalysis.start(exercise: counter.exercise)
+        workoutAnalysis.start(exercise: counter.exercise, recordCalendarTime: false)
         analysisRecord = nil
         countingFrames = 0
         analyzableFrames = 0

@@ -8,7 +8,9 @@ import kotlinx.serialization.Serializable
     rising("Rising"), peakHold("Top hold"), bottomHold("Bottom hold"), effortHold("Mid-range hold"), release("Released"), unobserved("Tracking gap"), acquiring("Acquiring position")
 }
 @Serializable data class WorkoutPhaseSpan(val id: String, val phase: WorkoutMotionPhase,
-    val startedAt: Double, val endedAt: Double, val observedSeconds: Double)
+    val startedAt: Double, val endedAt: Double, val observedSeconds: Double,
+    /** Credited suffix starts after any uncredited first hold interval. Legacy spans may omit this. */
+    val observedStartedAt: Double? = null)
 @Serializable data class WorkoutPhaseTotal(val phase: WorkoutMotionPhase, val observedSeconds: Double)
 @Serializable data class WorkoutActivity(val phases: List<WorkoutPhaseSpan>, val totals: List<WorkoutPhaseTotal>,
     val longestHangSeconds: Double, val longestSupportSeconds: Double, val observedSeconds: Double,
@@ -37,8 +39,9 @@ internal class WorkoutPhaseAnalysis(private val setId: String, private val exerc
     private fun append(phase: WorkoutMotionPhase, start: Double, end: Double, observed: Double, separate: Boolean = false) {
         val old = spans.lastOrNull()
         val next = if (!separate && old?.phase == phase && old.endedAt == start)
-            old.copy(endedAt = end, observedSeconds = old.observedSeconds + observed)
-        else WorkoutPhaseSpan("$setId:phase:${++ordinal}", phase, start, end, observed)
+            old.copy(endedAt = end, observedSeconds = old.observedSeconds + observed,
+                observedStartedAt = old.observedStartedAt ?: start.takeIf { observed > 0 })
+        else WorkoutPhaseSpan("$setId:phase:${++ordinal}", phase, start, end, observed, start.takeIf { observed > 0 })
         if (old?.id == next.id) spans[spans.lastIndex] = next else {
             if (spans.size == maximumSpans) { spans.removeAt(0); truncated = true }
             spans += next

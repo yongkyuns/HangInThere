@@ -43,7 +43,11 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private val automaticStart=AutomaticWorkoutStart()
     private var qualifiedStartPose:PoseResult?=null
     var latestCompletedSet:WorkoutSetRecord?=null;private set
-    private fun captureCompletedSet(){if(session.phase==LiveSetSession.Phase.finished && session.record.hasPractice) latestCompletedSet=session.record}
+    private fun captureCompletedSet(){if(session.phase==LiveSetSession.Phase.finished && session.record.hasPractice && latestCompletedSet?.id != session.setId) {
+        val record = session.record
+        val end = nowEpochMilliseconds()?.takeIf { start -> record.trackedAtEpochMilliseconds?.let { start >= it } == true }
+        latestCompletedSet = record.copy(trackedEndedAtEpochMilliseconds = end)
+    }}
     val phoneOrientation=PhoneOrientationStability()
     val staticScene=StaticSceneStability()
     val handsFreeStart=HandsFreeSetStart()
@@ -146,7 +150,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             val cameraQualified=bar!=null && motionFresh && phoneOrientation.state.allowsLiveSet
                 && sceneFresh && staticScene.state.allowsLiveSet
             if(cameraQualified && !input.paused) {
-                handsFreeStart.reset();session.automaticFinishEnabled=false;session.start(activeExercise,side,nowEpochMilliseconds())
+                handsFreeStart.reset();session.automaticFinishEnabled=false;session.start(activeExercise,side)
                 discardNextSetFrame=false;session.consume(pose,bar?.referenceEdge)
             }
             return snapshot

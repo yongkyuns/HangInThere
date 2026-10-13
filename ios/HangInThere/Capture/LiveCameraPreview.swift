@@ -219,6 +219,7 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var liveSet = LiveSetSession()
     private let workoutAnalysis = WorkoutAnalysisAdapter()
     private(set) var latestCompletedWorkout: WorkoutSetRecord?
+    private(set) var latestAfterSetReport: WorkoutAfterSetReport?
     private(set) var workoutHistory: [WorkoutSetRecord] = []
     private(set) var workoutStorageError: String?
     var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
@@ -898,6 +899,10 @@ final class LiveCameraPreviewController: NSObject {
               let record = workoutAnalysis.finish(reason: liveSet.endReason?.rawValue ?? "manual"),
               archivedSetId != record.id else { return }
         archivedSetId = record.id
+        if let report = try? record.afterSetReport() {
+            latestAfterSetReport = report
+            speakWorkoutCue(report.spokenCue)
+        }
         guard record.hasPractice else { return }
         latestCompletedWorkout = record
         workoutHistory.insert(record, at: 0)
@@ -910,6 +915,9 @@ final class LiveCameraPreviewController: NSObject {
             do {
                 try await WorkoutRecordStore.shared.enqueue(record, finalized: finalized)
                 try await WorkoutRecordStore.shared.flushPending()
+                if finalized, latestAfterSetReport != nil, latestCompletedWorkout?.id == record.id {
+                    latestAfterSetReport = try await WorkoutRecordStore.shared.libraryAfterSet(id: record.id)
+                }
                 workoutStorageError = nil
             } catch {
                 workoutStorageError = "Workout save will retry: \(error.localizedDescription)"
@@ -924,6 +932,9 @@ final class LiveCameraPreviewController: NSObject {
             while !Task.isCancelled {
                 do {
                     try await WorkoutRecordStore.shared.flushPending()
+                    if let record = self?.latestCompletedWorkout {
+                        self?.latestAfterSetReport = try await WorkoutRecordStore.shared.libraryAfterSet(id: record.id)
+                    }
                     self?.workoutStorageError = nil
                     break
                 } catch {
@@ -1581,6 +1592,7 @@ final class LiveCameraPreviewController: NSObject {
             lastAnalyzedFrameUptime = ProcessInfo.processInfo.systemUptime
             latestFrame = frame
             analyzedFrames += 1
+            if let cue = workoutAnalysis.trackingSpokenCue(isRunning: liveSet.phase == .running, issue: liveSet.trackingIssue) { speakWorkoutCue(cue) }
             lastProcessingMilliseconds = frame.processingMilliseconds
             observeExerciseSelection(frame.pose)
             framing = LiveFramingAssessment(pose: frame.pose, side: trackingSide,

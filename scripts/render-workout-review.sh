@@ -9,7 +9,7 @@ xcrun swiftc -swift-version 6 -O -parse-as-library -target "$(uname -m)-apple-ma
   -F "$FRAMEWORK" -framework WorkoutCore -lc++ \
   ios/HangInThere/Analysis/*.swift ios/HangInThere/App/WorkoutAnalysisAdapter.swift \
   ios/HangInThere/App/WorkoutProgression.swift ios/HangInThere/App/WorkoutGripReview.swift \
-  ios/HangInThere/UI/WorkoutReviewView.swift ios/HangInThere/UI/WorkoutPracticeView.swift ios/HangInThere/UI/WorkoutGripView.swift \
+  ios/HangInThere/UI/WorkoutReviewView.swift ios/HangInThere/UI/WorkoutLibraryView.swift ios/HangInThere/UI/WorkoutPracticeView.swift ios/HangInThere/UI/WorkoutGripView.swift \
   ios/HangInThere/UI/LiveWorkoutOverlay.swift ios/HangInThere/UI/ExerciseProgressView.swift \
   Evaluation/WorkoutReviewRender.swift -o build/workout-analysis/render-review
 build/workout-analysis/render-review

@@ -26,12 +26,13 @@ import java.text.DateFormat
 
 /** Read-only: presentation does not send pause/configuration controls to inference. */
 @Composable
-fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord>, error: String?, currentSet: WorkoutSetRecord? = null, goalsEnabled: Boolean = true, onClose: () -> Unit) {
+fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord>, error: String?, currentSet: WorkoutSetRecord? = null, goalsEnabled: Boolean = true, showsLibraryLink: Boolean = true, onClose: () -> Unit) {
     var selected by remember { mutableStateOf<String?>(null) }
     var selectedSet by remember { mutableStateOf<String?>(null) }
     var selectedAttempt by remember { mutableStateOf<String?>(null) }
     var exercise by remember { mutableStateOf(currentSet?.exercise ?: history.firstOrNull()?.exercise ?: ExerciseCounter.Exercise.pullUp) }
     var editingGoal by remember { mutableStateOf(false) }
+    var library by remember { mutableStateOf(false) }
     var goalRevision by remember { mutableIntStateOf(0) }
     val context=LocalContext.current
     val goalStore=remember(context) { WorkoutGoalStore(context.applicationContext) }
@@ -39,14 +40,14 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
     var archiveLoaded by remember { mutableStateOf(!goalsEnabled) }
     var archiveError by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(history,goalsEnabled) {
-        if(goalsEnabled)runCatching { withContext(Dispatchers.IO) { WorkoutRecordStore.live(context.applicationContext).progressEvidence(currentSet?.id.takeIf { currentSet?.endReason=="running" }) } }
+        if(!goalsEnabled)runCatching { withContext(Dispatchers.IO) { WorkoutRecordStore.live(context.applicationContext).progressEvidence(currentSet?.id.takeIf { currentSet?.endReason=="running" }) } }
             .onSuccess { archive=it;archiveLoaded=true;archiveError=null }.onFailure { if(it is kotlinx.coroutines.CancellationException)throw it;archiveError=it.message }
     }
     val progress=remember(history,archive,archiveLoaded,exercise,goalRevision,goalsEnabled) {
         runCatching {
             val recent=history.map(WorkoutProgression::evidence)
             val evidence=recent+archive.filter { old -> recent.none { it.id==old.id } }
-            if(goalsEnabled && archiveLoaded) goalStore.reportEvidence(evidence,exercise) else WorkoutProgression.reportEvidence(evidence,exercise)
+            WorkoutProgression.reportEvidence(evidence,exercise)
         }
     }
     val practiceHistory=history.filter { it.hasPractice }
@@ -59,6 +60,7 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
     val rep = all.firstOrNull { it.id == selected } ?: reps.lastOrNull()
     AlertDialog(onDismissRequest = onClose, title = { Text("Workout analysis") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if(goalsEnabled && showsLibraryLink)TextButton(onClick={library=true}) { Text("Workout library · trends, plans and corrections") }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             practice?.let {
                 WorkoutPracticePanel(it)
@@ -110,8 +112,8 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
             }
             Row { TextButton(onClick={exercise=ExerciseCounter.Exercise.pullUp}) { Text("Pull-up progress") };TextButton(onClick={exercise=ExerciseCounter.Exercise.dip}) { Text("Dip progress") } }
             archiveError?.let { Text("Progress history could not be loaded: $it") }
-            if(!archiveLoaded)Text("Loading progress history…")
-            progress.getOrNull()?.let { WorkoutProgressPanel(it,if(goalsEnabled && archiveLoaded)({editingGoal=true}) else null) }
+            if(!archiveLoaded && !goalsEnabled)Text("Loading progress history…")
+            if(!goalsEnabled)progress.getOrNull()?.let { WorkoutProgressPanel(it,null) }
             progress.exceptionOrNull()?.let { Text("Progress could not be loaded: ${it.message}") }
             if (practiceHistory.isNotEmpty()) Text("Saved sets", style = MaterialTheme.typography.titleMedium)
             practiceHistory.forEach { set ->
@@ -129,6 +131,7 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
     if(editingGoal)progress.getOrNull()?.let { report ->
         WorkoutGoalEditor(report,onSave={metric,target -> goalStore.setGoal(report.exercise,metric,target);goalRevision++},onClose={editingGoal=false})
     }
+    if(library)WorkoutLibraryDialog { library=false }
 }
 @Composable
 private fun AttemptEvidence(rep: RepRecord, setEndReason: String?) {

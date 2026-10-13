@@ -5,6 +5,7 @@ import SwiftUI
 struct LiveWorkoutOverlay: View {
     let session: LiveSetSession
     var latestCompletedSet: WorkoutSetRecord? = nil
+    var afterSetReport: WorkoutAfterSetReport? = nil
     var showsSetStarted = false
     var activity: WorkoutActivity? = nil
     var exerciseTitle: String? = nil
@@ -155,6 +156,7 @@ struct LiveWorkoutOverlay: View {
                         .accessibilityHint("Changing cameras clears bar setup.")
                         .accessibilityIdentifier("liveCameraSelection")
                 }
+                if latestCompletedSet != nil, let afterSetReport { afterSetSummary(afterSetReport) }
             case .running:
                 if let gripLabel, session.exercise == .pullUp {
                     Text("Estimated · " + gripLabel).font(.caption.weight(.medium)).foregroundStyle(.white)
@@ -183,10 +185,20 @@ struct LiveWorkoutOverlay: View {
                     actionButton("New set", symbol: "arrow.counterclockwise", primary: true, action: onNextSet)
                         .accessibilityIdentifier("newLiveSet")
                 }
+                if let afterSetReport { afterSetSummary(afterSetReport) }
             }
         }
     }
 
+    private func afterSetSummary(_ report: WorkoutAfterSetReport) -> some View {
+        VStack(spacing: 6) {
+            Text("\(report.measuredCompletedReps) completed cycles · \(report.practiceAttempts) practice attempts").font(.headline).foregroundStyle(.white)
+            Text(report.observation).font(.caption).foregroundStyle(.white).multilineTextAlignment(.center)
+            if let target = report.goalTarget, let value = report.goalValue {
+                ProgressView(value: min(1, value / target)) { Text("Chosen goal: \(value.formatted()) / \(target.formatted()) \(report.goalMetric == "holdSeconds" ? "s" : "cycles")").font(.caption) }.tint(.mint)
+            }
+        }.padding(10).background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
+    }
     private var statusChip: some View {
         Label(status, systemImage: statusSymbol)
             .font(.subheadline.weight(.medium))

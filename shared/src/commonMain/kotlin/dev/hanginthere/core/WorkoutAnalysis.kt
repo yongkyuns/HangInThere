@@ -83,6 +83,8 @@ object WorkoutAnalytics {
     val trackedAtEpochMilliseconds: Long? = null,
     val activity: WorkoutActivity? = null,
     val grip: WorkoutGripRecord? = null,
+    /** Actual live calendar finish; absent for replay, legacy and interrupted recovery. */
+    val trackedEndedAtEpochMilliseconds: Long? = null,
 ) {
     val acceptedCount get() = reps.count { it.acceptedAt != null }
     val completedReps get() = reps.filter { it.isCompleteForAnalytics }

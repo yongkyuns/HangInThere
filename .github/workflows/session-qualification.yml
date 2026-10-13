@@ -6,6 +6,8 @@ on:
       - 'scripts/session_qualification.py'
       - 'scripts/session_intake.py'
       - 'scripts/workout_benchmark.py'
+      - 'scripts/workout_release_readiness.py'
+      - 'scripts/tests/test_workout_release_readiness.py'
       - 'scripts/temporal_events.py'
       - 'scripts/score-temporal.py'
       - 'scripts/tests/test_session_qualification.py'
@@ -25,6 +27,8 @@ on:
       - 'scripts/session_qualification.py'
       - 'scripts/session_intake.py'
       - 'scripts/workout_benchmark.py'
+      - 'scripts/workout_release_readiness.py'
+      - 'scripts/tests/test_workout_release_readiness.py'
       - 'scripts/temporal_events.py'
       - 'scripts/score-temporal.py'
       - 'scripts/tests/test_session_qualification.py'
@@ -57,6 +61,7 @@ jobs:
           python3 -m unittest scripts/tests/test_session_qualification.py -v
           python3 -m unittest scripts/tests/test_session_intake.py -v
           python3 -m unittest scripts/tests/test_workout_benchmark.py Evaluation/tests/test_temporal.py -v
+          python3 -m unittest scripts/tests/test_workout_release_readiness.py -v
       - name: Freeze and score synthetic workout contract
         run: |
           python3 scripts/workout_benchmark.py freeze Evaluation/fixtures/workout-benchmark-synthetic.json \

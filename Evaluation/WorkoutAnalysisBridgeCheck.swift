@@ -217,7 +217,7 @@ struct WorkoutAnalysisBridgeCheck {
         }
         let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
         guard files.filter({ $0.lastPathComponent.hasSuffix(".motion.json") }).count == 50,
-              files.filter({ !$0.lastPathComponent.hasSuffix(".motion.json") }).count == 55 else { fatalError("Motion retention discarded summaries or exceeded bounds") }
+              files.filter({ $0.pathExtension == "json" && !$0.lastPathComponent.hasSuffix(".motion.json") }).count == 55 else { fatalError("Motion retention discarded summaries or exceeded bounds") }
         let recent = try await store.recent()
         guard recent.count == 50, recent.allSatisfy({ $0.acceptedCount == 1 }) else { fatalError("Stored records do not recover") }
         let allEvidence = try await store.progressEvidence()
@@ -352,6 +352,12 @@ struct WorkoutAnalysisBridgeCheck {
         let result: [String: Any] = ["gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
+        // Actual shipping Swift → Kotlin normalization, checked again by the
+        // independent Python schema/scorer. Authored data only; no media access.
+        try JSONEncoder().encode(completed).write(to: URL(fileURLWithPath: "build/workout-analysis/native-authored-records.json"), options: .atomic)
+        let normalized = try WorkoutBenchmarkExportBridge().sessionJson(id: "native_authored", captureSha: String(repeating: "a", count: 64), spanJson: "[0,4]",
+            recordsJson: String(decoding: JSONEncoder().encode(completed), as: UTF8.self), offsetsJson: "[0,2]", observedIntervalsJson: "[[0,0.75],[2,2.75]]", failed: false)
+        try Data(normalized.utf8).write(to: URL(fileURLWithPath: "build/workout-analysis/native-benchmark-session.json"), options: .atomic)
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)
         print(String(decoding: data, as: UTF8.self))
     }

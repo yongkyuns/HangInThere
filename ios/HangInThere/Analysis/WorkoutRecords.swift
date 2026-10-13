@@ -62,6 +62,7 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let trackedAtEpochMilliseconds: Int64?
     var activity: WorkoutActivity? = nil
     var grip: WorkoutGripRecord? = nil
+    var trackedEndedAtEpochMilliseconds: Int64? = nil
     var hasPractice: Bool { !reps.isEmpty || (activity?.observedSeconds ?? 0) > 0 }
     var progressInput: WorkoutSetRecord {
         var result = self
@@ -71,6 +72,18 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
         return result
     }
     var acceptedCount: Int { reps.filter { $0.acceptedAt != nil }.count }
+}
+struct WorkoutAfterSetReport: Codable, Equatable, Sendable {
+    let title: String
+    let measuredCompletedReps: Int
+    let practiceAttempts: Int
+    let observedHoldSeconds: Double?
+    let observation: String
+    let spokenCue: String
+    let policyVersion: Int
+    var goalTarget: Double? = nil
+    var goalValue: Double? = nil
+    var goalMetric: String? = nil
 }
 
 // A review projection of shared policy, never a persisted confidence/form score.
@@ -93,6 +106,7 @@ struct WorkoutPhaseSpan: Codable, Equatable, Identifiable, Sendable {
     let startedAt: Double
     let endedAt: Double
     let observedSeconds: Double
+    var observedStartedAt: Double? = nil
 }
 struct WorkoutPhaseTotal: Codable, Equatable, Sendable {
     let phase: String

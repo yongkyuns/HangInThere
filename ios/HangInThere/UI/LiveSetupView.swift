@@ -83,6 +83,7 @@ struct LiveSetupView: View {
                 LiveWorkoutOverlay(
                     session: camera.liveSet,
                     latestCompletedSet: camera.latestCompletedWorkout,
+                    afterSetReport: camera.latestAfterSetReport,
                     showsSetStarted: camera.showsSetStarted,
                     activity: camera.activeWorkoutRecord?.activity,
                     exerciseTitle: camera.workoutTitle,

@@ -2,6 +2,7 @@ import Foundation
 import AppKit
 import SwiftUI
 import Vision
+import WorkoutCore
 
 /// Render the shipping SwiftUI/Charts view; no screenshot of the user's desktop.
 @main struct WorkoutReviewRender {
@@ -13,6 +14,45 @@ import Vision
         var fixture = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
         fixture["trackedAtEpochMilliseconds"] = 1_791_784_800_000 as Int64
         let completed = (fixture["reps"] as! [[String: Any]])[0]
+        // Exercise the shipping context-aware library with authored data only.
+        let libraryBridge = WorkoutLibraryBridge()
+        var library = libraryBridge.emptyJson()
+        var libraryRecords: [WorkoutSetRecord] = []
+        for index in 0..<3 {
+            var row = fixture
+            let id = "library-preview-\(index)"
+            row["id"] = id
+            row["trackedAtEpochMilliseconds"] = Int64(Date().timeIntervalSince1970 * 1000) - Int64(3 - index) * 86_400_000
+            var rep = completed; rep["id"] = id + ":rep:1"; rep["setId"] = id
+            row["reps"] = [rep]
+            row["activity"] = ["phases": [], "totals": [["phase": "hang", "observedSeconds": 1.0]],
+                "longestHangSeconds": 1.0, "longestSupportSeconds": 0.0, "observedSeconds": 3.0,
+                "elapsedSeconds": 3.0, "timelineTruncated": false, "metricVersion": 2] as [String: Any]
+            libraryRecords.append(try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: row)))
+        }
+        library = try libraryBridge.registerJson(stateJson: library, recordsJson: String(decoding: JSONEncoder().encode(libraryRecords), as: UTF8.self))
+        for record in libraryRecords {
+            let command: [String: Any] = ["action": "review", "setId": record.id, "atEpochMilliseconds": Int64(Date().timeIntervalSince1970 * 1000),
+                "correction": ["context": ["assistance": "none", "addedLoadKg": 0, "equipment": "Gym bar", "cameraView": "front"]]]
+            library = try libraryBridge.applyJson(stateJson: library, commandJson: String(decoding: JSONSerialization.data(withJSONObject: command), as: UTF8.self))
+        }
+        let dashboardJSON: [String: Any] = ["page": try JSONSerialization.jsonObject(with: Data(libraryBridge.pageJson(stateJson: library, cursorJson: nil, limit: 25).utf8)),
+            "insights": try JSONSerialization.jsonObject(with: Data(libraryBridge.insightsJson(stateJson: library, comparisonKey: nil, nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000), utcOffsetMinutes: 0).utf8)),
+            "mediaPolicy": ["enabled": false, "maximumClips": 20, "maximumBytes": 209715200, "maximumAgeDays": 30], "media": [], "diagnosticsConsent": false, "revision": 4]
+        let libraryDashboard = try JSONDecoder().decode(LibraryDashboard.self, from: JSONSerialization.data(withJSONObject: dashboardJSON))
+        for section in ["Progress", "History", "Plans", "Storage"] {
+            for dark in [true, false] {
+                for width in [320.0, 430.0] {
+                    let content = WorkoutLibraryView(preview: libraryDashboard, section: section)
+                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1100)
+                        .background(dark ? Color.black : Color.white)
+                    let name = "library-\(section.lowercased())-\(dark ? "dark" : "light")-\(Int(width)).png"
+                    let text = try render(content, width: width, height: 1100, filename: name)
+                    let expected = ["Progress": "comparecompletedcycles", "History": "reviewandcorrect", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
+                    verify(text.contains { $0.contains(expected) }, "Workout library section missing: \(section)", filename: name)
+                }
+            }
+        }
         var unfinished = completed
         unfinished["id"] = "preview:rep:2"; unfinished["ordinal"] = 2
         unfinished["returnedAt"] = NSNull(); unfinished["returnSeconds"] = NSNull()

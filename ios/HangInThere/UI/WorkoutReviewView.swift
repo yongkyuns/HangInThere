@@ -9,6 +9,7 @@ struct WorkoutReviewView: View {
     let storageError: String?
     let currentSet: WorkoutSetRecord?
     let goalsEnabled: Bool
+    let showsLibraryLink: Bool
     @State private var selectedSet: String?
     @State private var selectedAttempt: String?
     @State private var progressExercise = ExerciseCounter.Exercise.pullUp
@@ -17,9 +18,10 @@ struct WorkoutReviewView: View {
     @State private var editingGoal = false
     @State private var goalRevision = 0
     @State private var selectedRep: String?
-    init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil, currentSet: WorkoutSetRecord? = nil, goalsEnabled: Bool = true) {
+    init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil, currentSet: WorkoutSetRecord? = nil, goalsEnabled: Bool = true, showsLibraryLink: Bool = true) {
         self.sets = sets; self.currentReps = currentReps; self.storageError = storageError
         self.currentSet = currentSet; self.goalsEnabled = goalsEnabled
+        self.showsLibraryLink = showsLibraryLink
         _progressExercise = State(initialValue: currentSet?.exercise ?? sets.first?.exercise ?? .pullUp)
         _selectedRep = State(initialValue: selectedRepId)
     }
@@ -36,6 +38,10 @@ struct WorkoutReviewView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 if let storageError { Text(storageError).foregroundStyle(.orange) }
+                if goalsEnabled && showsLibraryLink {
+                    NavigationLink("Workout library · trends, plans and corrections") { WorkoutLibraryView() }
+                        .font(.headline)
+                }
                 if let practice {
                     WorkoutPracticeView(set: practice)
                     if practice.exercise == .pullUp { WorkoutGripView(set: practice, allowsCorrections: goalsEnabled) }
@@ -66,11 +72,11 @@ struct WorkoutReviewView: View {
                     Text("Pull-up").tag(ExerciseCounter.Exercise.pullUp)
                     Text("Dip").tag(ExerciseCounter.Exercise.dip)
                 }.pickerStyle(.segmented)
-                if let progressReport {
+                if let progressReport, !goalsEnabled {
                     WorkoutProgressView(report: progressReport, onEditGoal: goalsEnabled ? { editingGoal = true } : nil)
                 }
                 if let progressError { Text(progressError).foregroundStyle(.orange) }
-                else if progressReport == nil { ProgressView("Loading progress history…") }
+                else if progressReport == nil && !goalsEnabled { ProgressView("Loading progress history…") }
                 if !practiceSets.isEmpty {
                     Text("Saved sets").font(.title2.bold())
                     ForEach(practiceSets) { set in
@@ -110,6 +116,9 @@ struct WorkoutReviewView: View {
             }
     }
     private func refreshProgress() async {
+        // Shipping progress lives in the context-aware library. Legacy projection
+        // remains available for SDK-free render/evaluation fixtures.
+        guard !goalsEnabled else { return }
         let exercise = progressExercise
         progressReport = nil
         do {

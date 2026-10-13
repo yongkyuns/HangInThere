@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.sp
 import dev.hanginthere.core.LiveSetSession
 import dev.hanginthere.core.WorkoutRuntime
 import dev.hanginthere.core.WorkoutStartFeedback
+import dev.hanginthere.core.WorkoutTrackingFeedback
+import dev.hanginthere.core.WorkoutCompletionFeedback
+import dev.hanginthere.core.WorkoutFeedback
 import kotlinx.coroutines.delay
 import java.util.Locale
 
@@ -64,7 +67,7 @@ fun WorkoutStartFeedbackOverlay(snapshot: WorkoutRuntime.Snapshot?, live: Boolea
 }
 
 /** Main-thread TTS owner. Late engine initialization cannot announce an expired/ended set. */
-private class WorkoutStartSpeaker(context: Context) {
+internal class WorkoutStartSpeaker(context: Context) {
     private val main = Handler(Looper.getMainLooper())
     private var engine: TextToSpeech? = null
     private var ready = false
@@ -90,4 +93,27 @@ private class WorkoutStartSpeaker(context: Context) {
     }
     fun stop() { pending = null; engine?.stop() }
     fun close() { closed = true; stop(); engine?.shutdown(); engine = null }
+}
+
+@Composable internal fun WorkoutSessionFeedbackEffects(snapshot: WorkoutRuntime.Snapshot?, live: Boolean,
+    foreground: Boolean, completion: WorkoutCompletionFeedback) {
+    val context = LocalContext.current
+    val tracking = remember { WorkoutTrackingFeedback() }
+    val speaker = if (live && foreground) remember(context) { WorkoutStartSpeaker(context) } else null
+    DisposableEffect(speaker) { onDispose { speaker?.close() } }
+    LaunchedEffect(snapshot?.activeSetId, snapshot?.trackingIssue, snapshot?.phase, live, foreground) {
+        val id = snapshot?.activeSetId
+        if (live && foreground && id != null) {
+            val running = snapshot.phase == LiveSetSession.Phase.running
+            tracking.observe(id, running, snapshot.trackingIssue, SystemClock.elapsedRealtimeNanos() / 1e9)?.let { speaker?.speak(it) }
+            if (running && snapshot.trackingIssue != null) {
+                delay(650)
+                tracking.observe(id, true, snapshot.trackingIssue, SystemClock.elapsedRealtimeNanos() / 1e9)?.let { speaker?.speak(it) }
+            }
+        }
+    }
+    LaunchedEffect(snapshot?.latestCompletedSet?.id, live, foreground) {
+        val record = snapshot?.latestCompletedSet
+        if (record != null && completion.begin(record.id, live, foreground)) speaker?.speak(WorkoutFeedback.summary(record).spokenCue)
+    }
 }

@@ -1,5 +1,11 @@
 import Foundation
 import WorkoutCore
+extension WorkoutSetRecord {
+    func afterSetReport() throws -> WorkoutAfterSetReport {
+        let input = String(decoding: try JSONEncoder().encode(progressInput), as: UTF8.self)
+        return try JSONDecoder().decode(WorkoutAfterSetReport.self, from: Data(try WorkoutFeedbackBridge().summaryJson(recordJson: input).utf8))
+    }
+}
 
 // Native persistence and the shared-framework adapter belong to the app layer.
 // Analysis remains framework-free for Swift policy/replay tools on Linux/macOS.

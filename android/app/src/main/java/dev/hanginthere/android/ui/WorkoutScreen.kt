@@ -147,6 +147,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
         state.result?.snapshot?.countdownSeconds?.let { Text("$it", Modifier.align(Alignment.Center).background(Color.Black.copy(alpha = 0.5f)).padding(24.dp), fontSize = 72.sp, color = Color.White) }
         WorkoutStartFeedbackOverlay(state.result?.snapshot, live = !state.replay,
             foreground = resumed && !state.interrupted, policy = model.startFeedback)
+        WorkoutSessionFeedbackEffects(state.result?.snapshot, live = !state.replay, foreground = resumed, completion = model.completionFeedback)
         Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             val snapshot = state.result?.snapshot
             val running = snapshot?.phase == LiveSetSession.Phase.running
@@ -171,6 +172,24 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             Text(message, Modifier.background(Color.Black.copy(alpha = 0.6f)).padding(10.dp), color = Color.White)
             WorkoutActions(state, onFinish = model::finishSet, onNext = model::nextSet,
                 onRestart = { model.startLive(selection, side) })
+            if (!running) snapshot?.latestCompletedSet?.let { completed ->
+                var report by remember(completed.id) { mutableStateOf(WorkoutFeedback.summary(completed)) }
+                LaunchedEffect(completed.id) {
+                    try {
+                        report = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            val library = dev.hanginthere.android.session.WorkoutRecordStore.live(context.applicationContext).libraryState()
+                            WorkoutFeedback.summary(library, completed.id)
+                        }
+                    } catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure }
+                }
+                Text("${report.measuredCompletedReps} completed cycles · ${report.practiceAttempts} practice attempts", color = Color.White)
+                Text(report.observation, color = Color.White, style = MaterialTheme.typography.bodySmall)
+                val goalValue = report.goalValue; val goalTarget = report.goalTarget
+                if (goalValue != null && goalTarget != null) {
+                    Text("Chosen goal: $goalValue / $goalTarget ${if (report.goalMetric == WorkoutGoalMetric.holdSeconds) "s" else "cycles"}", color = Color.White)
+                    LinearProgressIndicator(progress = { (goalValue / goalTarget).coerceIn(0.0, 1.0).toFloat() }, modifier = Modifier.fillMaxWidth())
+                }
+            }
         }
     }
     if (settings) AlertDialog(onDismissRequest = { settings = false }, title = { Text("Workout settings") }, text = {

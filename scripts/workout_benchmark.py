@@ -331,7 +331,8 @@ def score_session(ref, prediction, benchmark, exercise=None):
             windows = [[t, t] for t in times if not any(a <= t < b for a, b in boundary_excluded)]
             boundaries[kind + ":" + key] = temporal.match_events(source, windows, boundary_excluded,
                 benchmark["phase_tolerance_seconds"], sorted(predicted_changes.get(key, [])))
-    return {"id": ref["id"], "split": ref["split"], "context": ref["context"], "status": prediction["status"],
+    return {"id": ref["id"], "participant_group": ref["participant_group"], "source_group": ref["source_group"],
+            "split": ref["split"], "context": ref["context"], "status": prediction["status"],
             "completed_cycles": completed, "automatic_starts": starts, "automatic_ends": ends,
             "reference_sets": len(truth), "count_gradable_sets": len(count_gradable), "missed_sets": missed_sets, "extra_sets": extra_sets, "exact_count_sets": exact_sets,
             "source_gradable_seconds": seconds(grade), "observed_seconds": seconds(observed),
