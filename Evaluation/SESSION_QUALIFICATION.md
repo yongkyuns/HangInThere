@@ -53,6 +53,10 @@ population evidence.
 
 The tool is deliberately descriptive and does not emit a release verdict.
 
+For source-time completed cycles, automatic boundaries, phase/hold errors and
+frozen participant/source splits, use the [workout benchmark](WORKOUT_BENCHMARK.md).
+It complements these legacy aggregates without changing their labels or metrics.
+
 ## Seed evidence
 
 `Evaluation/fixtures/session-qualification-seed.json` contains the current v6
