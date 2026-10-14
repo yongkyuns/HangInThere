@@ -297,6 +297,37 @@ def score(manifest, result, manifest_sha):
                 cases=reports)
 
 
+def merge_apple_shards(manifest, reports, manifest_sha, report_digests):
+    """Union verified assignments without rebinding or changing measurements."""
+    ev.require(reports and len(reports) == len(report_digests), "Missing Apple shards/digests")
+    keys = ["schema_version", "manifest_sha256", "source_revision", "platform", "backend",
+            "counter_policy_version", "request_revision", "exercise_selection"]
+    first = reports[0]
+    ev.require(first["platform"] == "apple_host" and first["manifest_sha256"] == manifest_sha,
+               "Wrong Apple corpus/platform")
+    count = len(reports)
+    ev.require(all(ev.integer(r["shard_index"], 0) and ev.integer(r["shard_count"], 1) for r in reports)
+               and all(re.fullmatch(r"[a-f0-9]{64}", d) for d in report_digests), "Invalid Apple shard provenance")
+    ev.require({r["shard_index"] for r in reports} == set(range(count)), "Missing/duplicate Apple shard")
+    cases = {}
+    for report in reports:
+        ev.require(all(report[k] == first[k] for k in keys) and report["shard_count"] == count,
+                   "Apple source/backend/policy/shard contract differs")
+        expected = {c["id"] for i, c in enumerate(manifest["cases"]) if i % count == report["shard_index"]}
+        rows = report["cases"]
+        ev.require(len(rows) == len(expected) and {r["id"] for r in rows} == expected,
+                   "Apple shard omitted, duplicated or misassigned a case")
+        cases.update({r["id"]: r for r in rows})
+    merged = {k: first[k] for k in keys}
+    merged["cases"] = [cases[c["id"]] for c in manifest["cases"]]
+    merged["shards"] = sorted([dict(index=r["shard_index"], native_report_sha256=d)
+                              for r, d in zip(reports, report_digests)], key=lambda s: s["index"])
+    # Validate source/media/EOF/events before writing a combined audit artifact.
+    # Failed cases remain failed; this never manufactures full-source success.
+    score(manifest, merged, manifest_sha)
+    return merged
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -313,6 +344,10 @@ def main(argv=None):
     staging.add_argument("manifest", type=Path)
     staging.add_argument("--root", type=Path, required=True)
     staging.add_argument("--output", type=Path, required=True)
+    merging = commands.add_parser("merge-apple")
+    merging.add_argument("manifest", type=Path)
+    merging.add_argument("native_reports", type=Path, nargs="+")
+    merging.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "prepare":
@@ -320,6 +355,10 @@ def main(argv=None):
             print(f"Prepared {len(manifest['cases'])} pinned original videos; held-out qualification is false.")
         elif args.command == "android-assets":
             stage_android(args.manifest, args.root, args.output)
+        elif args.command == "merge-apple":
+            report = merge_apple_shards(ev.read_json(args.manifest), [ev.read_json(p) for p in args.native_reports],
+                                       ev.digest(args.manifest), [ev.digest(p) for p in args.native_reports])
+            write_new(args.output, report)
         else:
             report = score(ev.read_json(args.manifest), ev.read_json(args.native_report), ev.digest(args.manifest))
             write_new(args.output, report)

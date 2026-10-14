@@ -64,7 +64,7 @@ private final class PublicReplayClock: Sendable {
         let cases: [Case]
     }
     @MainActor static func main() async throws {
-        guard CommandLine.arguments.count == 5 else { throw failure("Usage: public-replay MANIFEST ROOT OUTPUT REVISION") }
+        guard [5, 7].contains(CommandLine.arguments.count) else { throw failure("Usage: public-replay MANIFEST ROOT OUTPUT REVISION [SHARD_INDEX SHARD_COUNT]") }
         let manifestURL = URL(fileURLWithPath: CommandLine.arguments[1])
         let root = URL(fileURLWithPath: CommandLine.arguments[2]).resolvingSymlinksInPath().standardizedFileURL
         let output = URL(fileURLWithPath: CommandLine.arguments[3])
@@ -73,10 +73,14 @@ private final class PublicReplayClock: Sendable {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let manifest = try decoder.decode(Manifest.self, from: manifestData)
-        let cases = manifest.cases
+        let shardIndex = CommandLine.arguments.count == 7 ? Int(CommandLine.arguments[5]) : 0
+        let shardCount = CommandLine.arguments.count == 7 ? Int(CommandLine.arguments[6]) : 1
         guard manifest.schemaVersion == 1, manifest.scope == "public_repetition_diagnostic",
-              !manifest.heldOutQualification, !cases.isEmpty,
-              Set(cases.map(\.id)).count == cases.count else { throw failure("Invalid public manifest") }
+              !manifest.heldOutQualification, !manifest.cases.isEmpty,
+              Set(manifest.cases.map(\.id)).count == manifest.cases.count,
+              let shardIndex, let shardCount, shardCount > 0, shardCount <= manifest.cases.count,
+              (0..<shardCount).contains(shardIndex) else { throw failure("Invalid public manifest/shard") }
+        let cases = manifest.cases.enumerated().filter { $0.offset % shardCount == shardIndex }.map(\.element)
         var reports: [[String: Any]] = []
         for item in cases {
             let id = item.id
@@ -97,7 +101,9 @@ private final class PublicReplayClock: Sendable {
                 guard model.phase == .paused, model.frame?.pose.backend == "Apple Vision 2D",
                       model.frame?.pose.requestRevision == 1 else { throw failure(model.errorMessage ?? "Vision did not open") }
                 model.play()
-                try await wait(model) { model.phase == .finished || model.phase == .failed }
+                // Operational watchdog for slow hosted VM inference, not a
+                // source-time, counting or physical-device performance gate.
+                try await wait(model, timeoutSeconds: 900) { model.phase == .finished || model.phase == .failed }
                 guard model.phase == .finished else { throw failure(model.errorMessage ?? "Replay failed") }
                 let expected = item.sourcePtsSeconds
                 let actual = clock.values
@@ -124,12 +130,13 @@ private final class PublicReplayClock: Sendable {
         let value: [String: Any] = ["schema_version": 1, "manifest_sha256": manifestHash,
             "source_revision": CommandLine.arguments[4], "platform": "apple_host", "backend": "Apple Vision 2D",
             "counter_policy_version": ExerciseCounter.policyVersion, "request_revision": 1,
+            "shard_index": shardIndex, "shard_count": shardCount,
             "exercise_selection": "pullUp selected in production native replay", "cases": reports]
         try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys])
             .write(to: output, options: .withoutOverwriting)
     }
-    @MainActor private static func wait(_ model: ReplayController, until done: () -> Bool) async throws {
-        let deadline = ContinuousClock.now.advanced(by: .seconds(300))
+    @MainActor private static func wait(_ model: ReplayController, timeoutSeconds: Int = 300, until done: () -> Bool) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(timeoutSeconds))
         while !done() {
             guard ContinuousClock.now < deadline else { throw failure("Native public replay timed out") }
             try await Task.sleep(for: .milliseconds(20))

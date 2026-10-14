@@ -29,10 +29,14 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 -m unittest scripts.tests.test_public_workout_datasets scripts.tests.test_public_workout_android_runner -v
-  apple:
+  apple-native:
     if: github.event_name == 'workflow_dispatch'
     runs-on: macos-15
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
@@ -52,19 +56,47 @@ jobs:
       - name: Run native Apple replay and shipping common analytics
         run: |
           bash scripts/evaluate-public-workouts-apple.sh build/public-workout-inputs/manifest.json \
-            build/public-workout-inputs build/public-workout-apple.json
-          python3 scripts/public_workout_datasets.py score build/public-workout-inputs/manifest.json \
-            build/public-workout-apple.json --output build/public-workout-apple-score.json
+            build/public-workout-inputs build/public-workout-apple.json ${{ matrix.shard }} 2
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: public-workout-apple
+          name: public-workout-apple-shard-${{ matrix.shard }}
           if-no-files-found: warn
           path: |
             build/public-workout-inputs/manifest.json
             build/public-workout-inputs/inventory.json
             build/public-workout-apple.json
             build/public-workout-apple.json.provenance.json
+  apple:
+    if: ${{ github.event_name == 'workflow_dispatch' && !cancelled() }}
+    needs: apple-native
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          pattern: public-workout-apple-shard-*
+          path: build/apple-shards
+      - name: Verify full corpus assignments, combine measurements and score
+        run: |
+          python3 scripts/public_workout_datasets.py merge-apple \
+            build/apple-shards/public-workout-apple-shard-0/public-workout-inputs/manifest.json \
+            build/apple-shards/public-workout-apple-shard-0/public-workout-apple.json \
+            build/apple-shards/public-workout-apple-shard-1/public-workout-apple.json \
+            --output build/public-workout-apple-combined.json
+          python3 scripts/public_workout_datasets.py score \
+            build/apple-shards/public-workout-apple-shard-0/public-workout-inputs/manifest.json \
+            build/public-workout-apple-combined.json --output build/public-workout-apple-score.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: public-workout-apple
+          if-no-files-found: warn
+          path: |
+            build/public-workout-apple-combined.json
             build/public-workout-apple-score.json
   android:
     if: github.event_name == 'workflow_dispatch'

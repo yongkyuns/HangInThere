@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Real production Apple replay + common analytics. Host evidence, not device timing.
 set -euo pipefail
-[[ $# == 3 ]] || { echo 'Usage: evaluate-public-workouts-apple.sh MANIFEST ROOT OUTPUT' >&2; exit 2; }
+[[ $# == 3 || $# == 5 ]] || { echo 'Usage: evaluate-public-workouts-apple.sh MANIFEST ROOT OUTPUT [SHARD_INDEX SHARD_COUNT]' >&2; exit 2; }
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLATFORM_NAME=macosx ARCHS="$(uname -m)" CONFIGURATION=Debug "$ROOT/scripts/build-workout-core.sh"
 FRAMEWORK="$ROOT/build/WorkoutCore/macosx/Debug"
@@ -32,7 +32,7 @@ xcrun swiftc -O -swift-version 6 -parse-as-library -target "$(uname -m)-apple-ma
   "$ROOT/ios/HangInThere/App/ReplayController.swift" \
   "$ROOT/ios/HangInThere/UI/QualificationReportDocument.swift" \
   "$ROOT/Evaluation/PublicWorkoutReplay.swift" -o "$WORK/public-replay"
-"$WORK/public-replay" "$1" "$2" "$3" "$(git -C "$ROOT" rev-parse HEAD)"
+"$WORK/public-replay" "$1" "$2" "$3" "$(git -C "$ROOT" rev-parse HEAD)" "${4:-0}" "${5:-1}"
 python3 - "$ROOT" "$WORK/source-snapshot.json" "$WORK/public-replay" "$3" <<'PY'
 import json, pathlib, sys
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts'))

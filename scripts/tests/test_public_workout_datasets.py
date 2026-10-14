@@ -232,5 +232,74 @@ class PublicDatasetArtifactTests(unittest.TestCase):
                 public.pinned_source(dict(id="source", bytes=2, sha256="a" * 64), path, False)
 
 
+class PublicAppleShardTests(unittest.TestCase):
+    def inputs(self):
+        manifest = corpus()
+        second = copy.deepcopy(manifest["cases"][0]); second["id"] = "b"
+        manifest["cases"].append(second)
+        reports = []
+        for index, identifier in enumerate(["a", "b"]):
+            report = native(); report["cases"][0]["id"] = identifier
+            report.update(shard_index=index, shard_count=2, counter_policy_version=8, request_revision=1)
+            reports.append(report)
+        return manifest, reports
+
+    def merge(self, manifest, reports):
+        return public.merge_apple_shards(manifest, reports, "b" * 64, ["d" * 64] * len(reports))
+
+    def test_original_corpus_hash_and_measurements_survive_out_of_order_shards(self):
+        manifest, reports = self.inputs()
+        merged = self.merge(manifest, reports[::-1])
+        self.assertEqual(merged["manifest_sha256"], "b" * 64)
+        self.assertEqual([c["id"] for c in merged["cases"]], ["a", "b"])
+        self.assertEqual(merged["cases"], [r["cases"][0] for r in reports])
+        self.assertEqual([s["index"] for s in merged["shards"]], [0, 1])
+        self.assertTrue(public.score(manifest, merged, "b" * 64)["all_exact_completed_counts"])
+
+    def test_missing_or_duplicate_shard_cannot_claim_complete_corpus(self):
+        manifest, reports = self.inputs()
+        for bad in [reports[:1], [reports[0], reports[0]]]:
+            with self.subTest(bad=bad), self.assertRaises(ValueError): self.merge(manifest, bad)
+
+    def test_case_omission_duplicate_or_wrong_assignment_is_rejected(self):
+        for modify in [lambda r:r[0].update(cases=[]),
+                       lambda r:r[0]["cases"].append(copy.deepcopy(r[0]["cases"][0])),
+                       lambda r:r[0]["cases"][0].update(id="b")]:
+            manifest, reports = self.inputs(); modify(reports)
+            with self.assertRaises(ValueError): self.merge(manifest, reports)
+
+    def test_different_corpus_source_model_policy_or_selection_is_rejected(self):
+        for key, value in [("manifest_sha256", "e" * 64), ("source_revision", "e" * 40),
+                           ("platform", "android_emulator"), ("backend", "alternative model"),
+                           ("counter_policy_version", 9), ("request_revision", 2),
+                           ("exercise_selection", "manual apparatus"), ("shard_count", 3)]:
+            manifest, reports = self.inputs(); reports[1][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError): self.merge(manifest, reports)
+
+    def test_media_clock_or_events_are_validated_before_combined_artifact(self):
+        for key, value in [("sha256", "e" * 64), ("source_clock_verified", False),
+                           ("frames", 5), ("completed_seconds", [float("nan")])]:
+            manifest, reports = self.inputs(); reports[1]["cases"][0][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError): self.merge(manifest, reports)
+
+    def test_failed_source_is_preserved_and_cannot_become_full_processing(self):
+        manifest, reports = self.inputs()
+        reports[1]["cases"][0].update(status="failed", frames=0, source_clock_verified=False,
+                                     acceptance_seconds=[], completed_seconds=[])
+        merged = self.merge(manifest, reports)
+        self.assertEqual(merged["cases"][1]["status"], "failed")
+        scored = public.score(manifest, merged, "b" * 64)
+        self.assertFalse(scored["all_inputs_processed"])
+        self.assertFalse(scored["all_exact_completed_counts"])
+
+    def test_shard_indices_counts_and_provenance_are_typed(self):
+        for key, value in [("shard_index", True), ("shard_count", 2.0)]:
+            manifest, reports = self.inputs(); reports[1][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError): self.merge(manifest, reports)
+        manifest, reports = self.inputs()
+        with self.assertRaises(ValueError):
+            public.merge_apple_shards(manifest, reports, "b" * 64, ["missing", "d" * 64])
+
+
 if __name__ == "__main__":
     unittest.main()

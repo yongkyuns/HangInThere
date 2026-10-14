@@ -105,6 +105,24 @@ and exits unsuccessfully when a source was not fully processed; this fails its n
 CI job. The separate accuracy job retains count mismatches as failures. A successful
 contract/preparation job establishes no accuracy result.
 
+Apple CI uses two deterministic interleaved shards of the original manifest.
+Each worker reads and verifies the full immutable manifest and reports its actual
+assignment. The merger requires every shard and original case exactly once,
+identical source/backend/counter/request/selection contracts and matching media,
+EOF and event clocks before preserving a combined report. Individual native
+report hashes remain attached. A missing, duplicate, changed or misassigned shard
+cannot claim full-corpus success. Failed cases remain failed.
+
+The initial hosted Apple attempt completed 31 clips before the 45-minute job
+limit stopped it; it has no complete native report or qualified full-batch score.
+Hosted VM inference was substantially slower than the local Mac. Sharding bounds
+each worker's workload without changing source frames or evaluation rules. The
+replay operation watchdog allows 900 wall-clock seconds per clip on these VMs;
+loading retains its 300-second watchdog. These are operational hang limits,
+separate from source-time gates and physical-device latency/battery/thermal
+qualification. Count rules, EOF/PTS integrity, accuracy tolerances and existing
+app performance gates are unchanged.
+
 Android reserves an exclusive directory for each run nonce. Media copy/hash errors
 retain a failed row and processing continues through the remaining cases. Report
 files use exclusive creation; collection rejects a different nonce or app revision.
