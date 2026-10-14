@@ -221,7 +221,123 @@ struct StaticSceneStabilityTests {
         monitor.observe(translations: moved, globalScaleFraction: 0.002, timestamp: 10.1)
         monitor.observe(translations: moved, globalScaleFraction: 0.002, timestamp: 9)
         monitor.observe(translations: moved, globalScaleFraction: 0.002, timestamp: 10.2)
+        #expect(monitor.state == .calibrating)
+        #expect(!monitor.isReady(at: 10.2))
+    }
+
+    @Test func lostCurrentEvidenceCannotRetainReadinessOrLatestValues() {
+        var monitor = StaticSceneStability()
+        _ = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1)
         #expect(monitor.state == .stable)
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: nil, timestamp: 1.1)
+        #expect(monitor.state == .calibrating)
+        #expect(monitor.latestScaleFraction == nil)
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1.2)
+        #expect(monitor.state == .stable)
+        monitor.observe(translations: [], globalScaleFraction: 0, timestamp: 1.3)
+        #expect(monitor.state == .calibrating)
+        #expect(monitor.latestShiftFraction == nil)
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1.4)
+        #expect(monitor.state == .stable)
+    }
+
+    @Test func sourceGapsCannotConfirmCameraMovement() {
+        for scale in [false, true] {
+            var monitor = StaticSceneStability()
+            _ = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))
+            monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1)
+            let patches = scale ? stableTranslations() : Array(repeating:
+                StaticSceneStability.PatchTranslation(dxPixels: 12, dyPixels: 0), count: 3)
+            let fraction = scale ? 0.03 : 0.0
+            monitor.observe(translations: patches, globalScaleFraction: fraction, timestamp: 1.1)
+            monitor.observe(translations: patches, globalScaleFraction: fraction, timestamp: 2)
+            #expect(monitor.state != .moved)
+            monitor.observe(translations: patches, globalScaleFraction: fraction, timestamp: 2.2)
+            #expect(monitor.state != .moved)
+            monitor.observe(translations: patches, globalScaleFraction: fraction, timestamp: 2.3)
+            #expect(monitor.state == .moved)
+        }
+    }
+
+    @Test func duplicateRewindAndInvalidClockInvalidateEvidenceAndDwell() {
+        for badTime in [1.2, 0.9, Double.nan, Double.infinity] {
+            var monitor = StaticSceneStability()
+            _ = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))
+            let patches = Array(repeating: StaticSceneStability.PatchTranslation(
+                dxPixels: 12, dyPixels: 0), count: 3)
+            monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1)
+            monitor.observe(translations: patches, globalScaleFraction: 0, timestamp: 1.1)
+            monitor.observe(translations: patches, globalScaleFraction: 0, timestamp: 1.2)
+            monitor.observe(translations: patches, globalScaleFraction: 0, timestamp: badTime)
+            #expect(monitor.state == .calibrating)
+            #expect(monitor.latestShiftFraction == nil)
+            #expect(monitor.latestScaleFraction == nil)
+            monitor.observe(translations: patches, globalScaleFraction: 0, timestamp: 1.4)
+            #expect(monitor.state != .moved)
+            monitor.observe(translations: patches, globalScaleFraction: 0, timestamp: 1.6)
+            #expect(monitor.state != .moved)
+            monitor.observe(translations: patches, globalScaleFraction: 0, timestamp: 1.7)
+            #expect(monitor.state == .moved)
+        }
+    }
+
+    @Test func missingSignalsBreakTheirOwnDwellAndMovementStaysLatched() {
+        var monitor = StaticSceneStability()
+        _ = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1)
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0.03, timestamp: 1.1)
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: .nan, timestamp: 1.2)
+        #expect(monitor.state == .calibrating)
+        #expect(monitor.latestScaleFraction == nil)
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0.03, timestamp: 1.4)
+        #expect(monitor.state != .moved)
+        monitor.observe(translations: [], globalScaleFraction: 0.03, timestamp: 1.7)
+        #expect(monitor.state == .moved)
+        #expect(monitor.movementKind == .scale)
+        monitor.observe(translations: [], globalScaleFraction: nil, timestamp: .nan)
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 2)
+        #expect(monitor.state == .moved)
+        _ = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 2.1)
+        #expect(monitor.state == .stable)
+        #expect(monitor.movementKind == nil)
+    }
+
+    @Test func readinessAndReferenceExpireAtTheExistingSceneAge() {
+        var monitor = StaticSceneStability()
+        _ = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1)
+        #expect(monitor.isReady(at: 1.8))
+        #expect(!monitor.isReady(at: 1.800001))
+        #expect(!monitor.isReady(at: nil))
+        #expect(!monitor.isReady(at: .nan))
+        #expect(!monitor.isReady(at: 0.94))
+        #expect(monitor.isReady(at: 0.96))
+        #expect(monitor.qualifiedReference(ExerciseCounterTests.referenceEdge, at: 1.1) != nil)
+        #expect(monitor.qualifiedReference(ExerciseCounterTests.referenceEdge, at: 2) == nil)
+        monitor.observe(translations: [], globalScaleFraction: nil, timestamp: 1.2)
+        #expect(monitor.qualifiedReference(ExerciseCounterTests.referenceEdge, at: 1.2) == nil)
+    }
+
+    @Test func unqualifiedSceneFrameInterruptsTheCycleWithoutErasingTheBar() {
+        var monitor = StaticSceneStability()
+        _ = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))
+        var session = LiveSetSession()
+        session.start(exercise: .pullUp, side: .left)
+        for (time, angle) in [(1.0, 170.0), (1.15, 170.0), (1.3, 120.0), (1.45, 80.0)] {
+            monitor.observe(translations: stableTranslations(),
+                globalScaleFraction: time == 1.45 ? nil : 0, timestamp: time)
+            session.consume(ExerciseCounterTests.pose(time, degrees: angle), referenceEdge:
+                monitor.qualifiedReference(ExerciseCounterTests.referenceEdge, at: time))
+        }
+        #expect(session.phase == .running)
+        #expect(session.observedMovements == 0)
+        #expect(session.interruptedAttempts == 1)
+        #expect(session.usableFrames == 3)
+        #expect(session.trackingIssue == "barReferenceUnavailable")
+        monitor.observe(translations: stableTranslations(), globalScaleFraction: 0, timestamp: 1.6)
+        #expect(monitor.qualifiedReference(ExerciseCounterTests.referenceEdge, at: 1.6) != nil)
     }
 
     private func stableTranslations() -> [StaticSceneStability.PatchTranslation] {

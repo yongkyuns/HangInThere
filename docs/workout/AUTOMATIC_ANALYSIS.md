@@ -62,6 +62,25 @@ Native goal persistence/FFI belongs in `App/`; Swift `Analysis/` remains free of
 
 ## Lifecycle and evidence
 
+Setup and active tracking require current background registration evidence.
+Both scene monitors qualify only observations with translation consensus and a
+valid scale measurement. Missing measurements revoke readiness immediately;
+duplicate, regressing or nonfinite source clocks and observation gaps beyond
+0.8 seconds also reset qualification and movement dwell. The 0.8-second scene
+limit accommodates the native 0.33-second registration cadence; body-frame
+continuity retains its separate 0.35-second limit. Translation and scale can
+independently prove camera movement, but missing one signal breaks its own dwell.
+Confirmed movement stays latched until explicit recalibration.
+
+Each running frame receives reference geometry only while scene evidence is
+qualified at that frame's source time. Unavailable reference evidence interrupts
+the live counter before a cached dip support axis can be reused. Analysis retains
+the actual pose and interruption, while completed-rep and hold credit stop through
+the unknown interval. The observed apparatus remains available for reacquisition.
+Loss and recovery contracts cover both exercises in common tests, the independent
+Swift setup oracle and the shipping Apple bridge. Counting thresholds are unchanged;
+these guards cannot restore an obscured arm or compensate for camera zoom.
+
 Phase direction uses shared source-time stabilization (activity metric version 2).
 A bounded 64-sample, 0.24-second window fits the observed piecewise-linear elbow
 trajectory with time weighting, so redundant samples do not change a linear

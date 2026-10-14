@@ -30,6 +30,8 @@ struct StaticSceneStability: Sendable {
     static let scaleThresholdFraction = 0.012
     static let movementDwellSeconds = 0.25
     static let minimumConsensusPatches = 2
+    static let maximumObservationGapSeconds = 0.8
+    static let maximumFutureSkewSeconds = 0.05
 
     private(set) var state: State = .uncalibrated
     private(set) var movementKind: MovementKind?
@@ -73,6 +75,17 @@ struct StaticSceneStability: Sendable {
         self = Self()
     }
 
+    func isReady(at timestamp: Double?) -> Bool {
+        guard state.allowsLiveSet, let timestamp, timestamp.isFinite,
+              let lastTimestamp else { return false }
+        return lastTimestamp <= timestamp + Self.maximumFutureSkewSeconds
+            && timestamp - lastTimestamp <= Self.maximumObservationGapSeconds
+    }
+
+    func qualifiedReference(_ reference: BarSegment?, at timestamp: Double) -> BarSegment? {
+        isReady(at: timestamp) ? reference : nil
+    }
+
     @discardableResult
     mutating func observe(
         translations: [PatchTranslation],
@@ -80,10 +93,16 @@ struct StaticSceneStability: Sendable {
         timestamp: Double
     ) -> State {
         guard state == .calibrating || state == .stable,
-              let imageShortSide,
-              timestamp.isFinite,
-              lastTimestamp == nil || timestamp > lastTimestamp!
+              let imageShortSide
         else { return state }
+
+        guard timestamp.isFinite, lastTimestamp == nil || timestamp > lastTimestamp! else {
+            invalidateObservation()
+            return state
+        }
+        if let lastTimestamp, timestamp - lastTimestamp > Self.maximumObservationGapSeconds {
+            invalidateObservation()
+        }
 
         lastTimestamp = timestamp
 
@@ -92,16 +111,20 @@ struct StaticSceneStability: Sendable {
             imageShortSide: imageShortSide
         )
         latestConsensusPatches = translation.count
+        latestShiftFraction = translation.fraction
         if let fraction = translation.fraction {
-            latestShiftFraction = fraction
             maximumShiftFraction = max(maximumShiftFraction, fraction)
         }
 
         let scale = sanitizedScale(globalScaleFraction)
         latestScaleMeasurementAvailable = scale != nil
+        latestScaleFraction = scale
         if let scale {
-            latestScaleFraction = scale
             maximumScaleFraction = max(maximumScaleFraction, scale)
+        }
+
+        if translation.fraction == nil || translation.count < Self.minimumConsensusPatches || scale == nil {
+            state = .calibrating
         }
 
         let translationStable = translation.count >= Self.minimumConsensusPatches
@@ -122,6 +145,16 @@ struct StaticSceneStability: Sendable {
         }
 
         return state
+    }
+
+    private mutating func invalidateObservation() {
+        state = .calibrating
+        latestShiftFraction = nil
+        latestScaleFraction = nil
+        latestConsensusPatches = 0
+        latestScaleMeasurementAvailable = false
+        translationOverThresholdSince = nil
+        scaleOverThresholdSince = nil
     }
 
     private mutating func updateTranslationThreshold(

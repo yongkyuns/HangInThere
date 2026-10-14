@@ -87,6 +87,54 @@ struct WorkoutAnalysisBridgeCheck {
               readFraming(2.33) == nil else {
             fatalError("Shipping Apple feedback sanitized a nonfinite clock or carried its old confirmation")
         }
+        // Current scene qualification passes through the shipping adapter as
+        // an unavailable reference, without inventing missing body landmarks.
+        for exercise in ExerciseCounter.Exercise.allCases {
+            var scene = StaticSceneStability()
+            _ = scene.calibrate(imageSize: clearFraming.imageSize)
+            let patches = Array(repeating: StaticSceneStability.PatchTranslation(dxPixels: 0, dyPixels: 0), count: 3)
+            let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
+            var session = LiveSetSession(); session.start(exercise: exercise, side: .left)
+            for (time, angle) in [(0.0, 170.0), (0.15, 170.0), (0.30, 80.0), (0.45, 80.0), (0.60, 170.0), (0.75, 170.0)] {
+                let p = pose(time, angle, exercise: exercise)
+                scene.observe(translations: patches, globalScaleFraction: time == 0.45 ? nil : 0, timestamp: time)
+                let qualified = scene.qualifiedReference(reference, at: time)
+                let count = session.counter.events.count
+                session.consume(p, referenceEdge: qualified)
+                _ = analysis.consume(p, reference: qualified, counter: session.counter,
+                    event: session.counter.events.count > count ? session.counter.events.last : nil, automaticFinish: false)
+            }
+            guard let set = analysis.finish(reason: "manual"), set.completedCount == 0, set.acceptedCount == 0,
+                  !set.reps.isEmpty, set.reps.allSatisfy({ !$0.isCompleteForAnalytics }),
+                  set.reps.contains(where: { $0.closeReason == "barReferenceUnavailable" }) else {
+                fatalError("Unqualified scene/reference fabricated a completed \(exercise) cycle")
+            }
+        }
+        let holdAnalysis = WorkoutAnalysisAdapter(); holdAnalysis.start(exercise: .pullUp)
+        var holdSession = LiveSetSession(); holdSession.start(exercise: .pullUp, side: .left)
+        var holdScene = StaticSceneStability()
+        _ = holdScene.calibrate(imageSize: clearFraming.imageSize)
+        let stillPatches = Array(repeating: StaticSceneStability.PatchTranslation(dxPixels: 0, dyPixels: 0), count: 3)
+        var qualifiedHangSeconds = 0.0
+        for index in 0...7 {
+            let time = Double(index) * 0.15
+            let p = pose(time, 170, exercise: .pullUp)
+            holdScene.observe(translations: stillPatches, globalScaleFraction: index < 5 ? 0 : nil, timestamp: time)
+            let qualified = holdScene.qualifiedReference(reference, at: time)
+            let count = holdSession.counter.events.count
+            holdSession.consume(p, referenceEdge: qualified)
+            _ = holdAnalysis.consume(p, reference: qualified, counter: holdSession.counter,
+                event: holdSession.counter.events.count > count ? holdSession.counter.events.last : nil, automaticFinish: false)
+            // The live projection publishes bounded deltas periodically. Read
+            // authoritative totals for this contract, outside performance loops.
+            let hang = holdAnalysis.reviewRecord()?.activity?.totals.first(where: { $0.phase == "hang" })?.observedSeconds ?? 0
+            if index == 4 { qualifiedHangSeconds = hang }
+            if index > 4 && abs(hang - qualifiedHangSeconds) > 1e-9 {
+                fatalError("Unavailable scene credited hang time through the Apple FFI: index \(index), before \(qualifiedHangSeconds), after \(hang)")
+            }
+        }
+        guard qualifiedHangSeconds > 0, let holdSet = holdAnalysis.finish(reason: "manual"),
+              holdSet.completedCount == 0 else { fatalError("Scene qualification lost valid zero-rep hang practice") }
         for exercise in ExerciseCounter.Exercise.allCases {
             let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
             var counter = ExerciseCounter(exercise: exercise, side: .left)
@@ -431,7 +479,7 @@ struct WorkoutAnalysisBridgeCheck {
         let framingP95 = framingLatencies[Int(Double(framingLatencies.count - 1) * 0.95)]
         guard framingP95 < 5 else { fatalError("Framing host FFI p95 exceeds 5 ms budget: \(framingP95)") }
         let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 8, "framingFrames": 2000, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
-            "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
+            "sceneQualificationCases": 3, "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         // Actual shipping Swift → Kotlin normalization, checked again by the
         // independent Python schema/scorer. Authored data only; no media access.

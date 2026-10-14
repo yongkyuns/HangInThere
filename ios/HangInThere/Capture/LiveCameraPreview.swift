@@ -598,7 +598,7 @@ final class LiveCameraPreviewController: NSObject {
             framing: framing.state,
             barConfirmed: currentBar != nil,
             phoneStable: phoneOrientation.state.allowsLiveSet,
-            sceneStable: sceneTranslation.state.allowsLiveSet
+            sceneStable: sceneTranslation.isReady(at: latestFrame?.pose.timestamp.seconds)
         )
     }
 
@@ -1453,9 +1453,10 @@ final class LiveCameraPreviewController: NSObject {
                     image: image
                 )
             } catch {
-                if self.setupGeneration == token {
+                if !Task.isCancelled, self.setupGeneration == token, self.bar != nil {
                     self.sceneRegistrationFailures += 1
                     self.lastSceneRegistrationMilliseconds = nil
+                    self.sceneTranslation.observe(translations: [], globalScaleFraction: nil, timestamp: seconds)
                     self.sceneRegistrationTask = nil
                 }
                 return
@@ -1652,10 +1653,12 @@ final class LiveCameraPreviewController: NSObject {
                 if discardNextSetFrame {
                     discardNextSetFrame = false
                 } else if let referenceEdge = currentBar?.referenceEdge {
+                    let frameReference = sceneTranslation.qualifiedReference(
+                        referenceEdge, at: frame.pose.timestamp.seconds)
                     let eventCount = liveSet.counter.events.count
-                    liveSet.consume(frame.pose, referenceEdge: referenceEdge)
+                    liveSet.consume(frame.pose, referenceEdge: frameReference)
                     let event = liveSet.counter.events.count > eventCount ? liveSet.counter.events.last : nil
-                    let automaticEnd = workoutAnalysis.consume(frame.pose, reference: referenceEdge,
+                    let automaticEnd = workoutAnalysis.consume(frame.pose, reference: frameReference,
                         counter: liveSet.counter, event: event, automaticFinish: true)
                     if let draft = workoutAnalysis.drainDraft() {
                         persistWorkout(draft, finalized: false)

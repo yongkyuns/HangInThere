@@ -85,7 +85,11 @@ struct LiveSetSession: Sendable {
         }
 
         analyzedFrames += 1
-        counter.consume(pose, referenceEdge: referenceEdge)
+        if referenceEdge == nil {
+            counter.interrupt(reason: "barReferenceUnavailable")
+        } else {
+            counter.consume(pose, referenceEdge: referenceEdge)
+        }
         if referenceEdge != nil, counter.trackingIssue == nil {
             usableFrames += 1
         }

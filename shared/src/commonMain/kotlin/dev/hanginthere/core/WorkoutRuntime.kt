@@ -144,7 +144,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
                 if(activeExercise==ExerciseCounter.Exercise.dip) "dipRailsUnclear" else "pullUpBarUnclear"
             bar==null -> "barReferenceNeeded"
             !motionFresh || !phoneOrientation.state.allowsLiveSet -> "phoneStabilityNeeded"
-            !sceneFresh || !staticScene.state.allowsLiveSet -> "sceneStabilityNeeded"
+            !sceneFresh || !staticScene.isReady(seconds) -> "sceneStabilityNeeded"
             input.paused -> "paused"
             else -> null
         }
@@ -156,7 +156,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             // timeline once its actual background registration qualifies. Even
             // an unusable pose is consumed so coverage and baseline timing match.
             val cameraQualified=bar!=null && motionFresh && phoneOrientation.state.allowsLiveSet
-                && sceneFresh && staticScene.state.allowsLiveSet
+                && sceneFresh && staticScene.isReady(seconds)
             if(cameraQualified && !input.paused) {
                 handsFreeStart.reset();session.automaticFinishEnabled=false;session.start(activeExercise,side)
                 discardNextSetFrame=false;session.consume(pose,bar?.referenceEdge)
@@ -178,7 +178,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             }
         } else if(session.phase==LiveSetSession.Phase.running) {
             if(discardNextSetFrame){discardNextSetFrame=false;return snapshot}
-            session.consume(pose,bar?.referenceEdge);captureCompletedSet()
+            val frameReference=if(sceneFresh) staticScene.qualifiedReference(bar?.referenceEdge,seconds) else null
+            session.consume(pose,frameReference);captureCompletedSet()
         }
         return snapshot
     }
@@ -215,7 +216,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private fun clearSetup(){clearAcquisition();confirmedBar=null;phoneOrientation.reset();staticScene.reset();generation++;issue="barReferenceNeeded";clearFramingFeedback()}
     companion object {
         const val motionMaximumAgeSeconds=.5
-        const val sceneMaximumAgeSeconds=.8
+        const val sceneMaximumAgeSeconds=StaticSceneStability.maximumObservationGapSeconds
         private fun isFresh(frame:Double,sample:Double?,maximumAge:Double)=frame.isFinite() && sample!=null && sample.isFinite() && sample<=frame+.05 && frame-sample<=maximumAge
     }
 }

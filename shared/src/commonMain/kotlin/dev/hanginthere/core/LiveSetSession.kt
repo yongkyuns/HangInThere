@@ -46,7 +46,11 @@ class LiveSetSession {
         if(reference==null) reference=referenceEdge
         backend=pose.backend;modelRevision=pose.requestRevision
         val eventCount=counter.events.size
-        analyzedFrames++;counter.consume(pose,referenceEdge)
+        analyzedFrames++
+        // A cached dip support axis cannot qualify a frame whose current camera
+        // reference is unavailable. Preserve the real pose for evidence, while
+        // interrupting the counter before it can reuse that axis.
+        if(referenceEdge==null) counter.interrupt("barReferenceUnavailable") else counter.consume(pose,referenceEdge)
         val features=motionFeatures.extract(pose,referenceEdge,counter.trackingIssue==null && referenceEdge!=null,counter.phase)
         analysis.observeGrip(pose,referenceEdge,counter.phase,features.usable)
         analysis.observe(features,counter.phase,counter.events.drop(eventCount).lastOrNull())

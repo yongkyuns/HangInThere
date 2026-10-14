@@ -41,6 +41,15 @@ def prepare(output):
         add(ex+'-unavailable-sensor',ex,frames(attitude=None),False,False)
         add(ex+'-scale-missing',ex,frames(scale=None),True,False)
         add(ex+'-one-scene-patch',ex,frames(translations=[dict(dxPixels=0,dyPixels=0)]),True,False)
+        # A formerly qualified background cannot stand in for a lost current
+        # signal during countdown. These labels are authored contract cases.
+        for name,missing in [('scale',dict(scale=None)),
+                             ('patches',dict(translations=[]))]:
+            lost=frames()
+            lost[15:]=[step(i/10,ex,**missing) for i in range(15,56)]
+            add(ex+'-scene-'+name+'-lost-after-stable',ex,lost,True,False)
+            recovered=lost+[step(i/10,ex) for i in range(56,96)]
+            add(ex+'-scene-'+name+'-recovers',ex,recovered,True,True)
         add(ex+'-settings-paused',ex,frames(paused=True),True,False)
         add(ex+'-ineligible',ex,frames(eligible=False),True,False)
         add(ex+'-crowd',ex,frames(pose_options=dict(people=2)),False,False)

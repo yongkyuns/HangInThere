@@ -104,7 +104,7 @@ private struct Report: Encodable {
                     globalScaleFraction: step.globalScaleFraction, timestamp: seconds) }
             }
             let eligible = step.eligible && identity.exercise == input.exercise && bar != nil
-                && phone.state.allowsLiveSet && scene.state.allowsLiveSet
+                && phone.state.allowsLiveSet && scene.isReady(at: seconds)
             let began: Bool
             if input.exercise == .dip {
                 began = countdown.observeDip(pose: pose, side: input.side, referenceEdge: bar?.referenceEdge,
