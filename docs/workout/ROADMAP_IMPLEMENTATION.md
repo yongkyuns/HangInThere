@@ -128,6 +128,16 @@ public device/model families, scope, sustained duration, pipeline p95, drop frac
 battery rate, maximum thermal state, consent and camera/sensor timing qualification.
 Missing measurements fail. A host or emulator row cannot establish physical parity.
 
+The assessor can prepare pending human-review packets and consume actual coach,
+usability and consent/exposure decisions through the
+[field-validation workflow](FIELD_VALIDATION.md). Packets bind the evaluated app,
+[coaching specification](COACHING_SPEC.md), policy, benchmark, scores and device
+matrix. Required-review assessment fails on pending, missing, incomplete, rejected
+or stale decisions. These are audited human attestations; the parser does not
+authenticate credentials or establish that field trials occurred. Failed accuracy
+or device gates cannot be overridden by an approval. Review tooling is not field
+qualification evidence.
+
 Still external: independent collection/adjudication and exposure audit, fresh
 participant/session holdout accuracy, sustained physical iOS/Android energy/thermal
 and camera/sensor tests, coach approval of training rules, and equipment-distance /

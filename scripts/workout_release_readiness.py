@@ -10,6 +10,8 @@ import hashlib
 import json
 import math
 import re
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 try:
     from . import workout_benchmark as benchmark
@@ -19,6 +21,25 @@ except ImportError:
 
 class ReadinessError(ValueError):
     pass
+
+
+# Decisions are human attestations backed by separately retained reports. This
+# parser checks their binding and completeness; it cannot authenticate credentials
+# or establish that the claimed field work actually occurred.
+EXTERNAL_REVIEW_CHECKS = {
+    "qualified_coach_review": ("qualified_coach", (
+        "credentials_verified", "progression_rules_reviewed", "recommendation_limits_reviewed",
+        "beginner_hold_and_partial_practice_reviewed")),
+    "equipment_distance_and_gym_noise_usability": ("usability_reviewer", (
+        "ios_equipment_distance_trials_completed", "android_equipment_distance_trials_completed",
+        "ios_gym_noise_trials_completed", "android_gym_noise_trials_completed",
+        "beginner_unaided_task_trials_completed", "start_stop_and_tracking_loss_recognized",
+        "review_correction_and_next_focus_understood")),
+    "consent_and_exposure_audit": ("data_auditor", (
+        "capture_and_review_consent_verified", "participant_and_source_holdout_verified",
+        "annotation_independent_of_runtime_output", "adjudication_completed",
+        "model_and_developer_exposure_documented", "supported_conditions_verified")),
+}
 
 
 def require(condition, message):
@@ -106,7 +127,75 @@ def measurement_gates(summary, limits):
     return metrics, failures
 
 
-def assess(lock, score, devices):
+def review_subject(lock, score, devices, app_revision, coaching_spec_sha256):
+    require(isinstance(app_revision, str) and re.fullmatch(r"[0-9a-f]{40}", app_revision), "Bind the full evaluated app revision")
+    require(isinstance(coaching_spec_sha256, str) and re.fullmatch(r"[0-9a-f]{64}", coaching_spec_sha256), "Bind the reviewed coaching specification")
+    return {"schema_version": 1, "app_revision": app_revision, "coaching_spec_sha256": coaching_spec_sha256,
+            "policy_sha256": lock["policy_sha256"], "benchmark_sha256": lock["policy"]["benchmark_sha256"],
+            "score_sha256": fingerprint(score), "device_matrix_sha256": fingerprint(devices)}
+
+
+def prepare_reviews(lock, score, devices, app_revision, coaching_spec_sha256):
+    # Use the existing validators even when the measurements legitimately fail.
+    # Preparing a packet never turns those failures into approval.
+    assess(lock, score, devices)
+    subject = review_subject(lock, score, devices, app_revision, coaching_spec_sha256)
+    return {"schema_version": 1, "subject": subject, "subject_sha256": fingerprint(subject),
+            "reviews": [{"kind": kind, "status": "pending", "reviewer_id": None, "reviewer_role": role,
+                         "human_review_confirmed": False, "independent_review_confirmed": False,
+                         "reviewed_at_utc": None, "evidence_sha256": None, "reviewed_context_sha256s": [],
+                         "checks": dict.fromkeys(checks, False)}
+                        for kind, (role, checks) in EXTERNAL_REVIEW_CHECKS.items()]}
+
+
+def assess_reviews(packet, subject, contexts):
+    require(isinstance(packet, dict) and set(packet) == {"schema_version", "subject", "subject_sha256", "reviews"}, "Use the content-free review packet schema")
+    require(type(packet["schema_version"]) is int and packet["schema_version"] == 1 and packet["subject"] == subject
+            and fingerprint(packet["subject"]) == packet["subject_sha256"] == fingerprint(subject), "Reviews must bind the exact evaluated artifacts")
+    reviews = packet["reviews"]
+    require(isinstance(reviews, list) and len(reviews) <= len(EXTERNAL_REVIEW_CHECKS), "Invalid review decisions")
+    required_contexts = {fingerprint(context) for context in contexts}
+    fields = {"kind", "status", "reviewer_id", "reviewer_role", "human_review_confirmed", "independent_review_confirmed",
+              "reviewed_at_utc", "evidence_sha256", "reviewed_context_sha256s", "checks"}
+    seen, accepted, decisions = set(), set(), []
+    for row in reviews:
+        require(isinstance(row, dict) and set(row) == fields, "Use content-free review decisions, not report contents")
+        kind = row["kind"]
+        require(isinstance(kind, str) and kind in EXTERNAL_REVIEW_CHECKS and kind not in seen, "Unknown or duplicate review kind")
+        seen.add(kind)
+        role, checks = EXTERNAL_REVIEW_CHECKS[kind]
+        require(row["status"] in ["pending", "approved", "rejected"], "Unknown human review decision")
+        require(row["reviewer_role"] == role, "Reviewer role does not match the required review")
+        require(row["reviewer_id"] is None or isinstance(row["reviewer_id"], str) and re.fullmatch(r"[A-Za-z0-9_-]{1,64}", row["reviewer_id"]), "Use a pseudonymous reviewer identifier")
+        require(all(type(row[key]) is bool for key in ["human_review_confirmed", "independent_review_confirmed"]), "Explicit human and independent review declarations required")
+        require(isinstance(row["checks"], dict) and set(row["checks"]) == set(checks) and all(type(value) is bool for value in row["checks"].values()), "Declare every required field-review check")
+        reviewed_contexts = row["reviewed_context_sha256s"]
+        require(isinstance(reviewed_contexts, list) and all(isinstance(pin, str) and pin in required_contexts for pin in reviewed_contexts) and len(set(reviewed_contexts)) == len(reviewed_contexts), "Bind reviewed supported conditions without duplicates")
+        evidence = row["evidence_sha256"]
+        require(evidence is None or isinstance(evidence, str) and re.fullmatch(r"[0-9a-f]{64}", evidence), "Pin the separately retained human report")
+        reviewed_at = row["reviewed_at_utc"]
+        require(reviewed_at is None or isinstance(reviewed_at, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", reviewed_at), "Use a UTC review timestamp")
+        if reviewed_at is not None:
+            try:
+                when = datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            except ValueError as error:
+                raise ReadinessError("Invalid review date") from error
+            require(when <= datetime.now(timezone.utc), "A future review cannot qualify")
+        reasons = []
+        if row["status"] != "approved": reasons.append(row["status"])
+        if row["reviewer_id"] is None or not row["human_review_confirmed"] or not row["independent_review_confirmed"]: reasons.append("eligible_human_review_required")
+        if evidence is None or reviewed_at is None: reasons.append("dated_report_required")
+        if set(reviewed_contexts) != required_contexts: reasons.append("supported_conditions_not_reviewed")
+        if not all(row["checks"].values()): reasons.append("review_checks_incomplete")
+        if not reasons: accepted.add(kind)
+        # Never copy reviewer identities or human report contents to the output.
+        decisions.append({"kind": kind, "status": row["status"], "attestation_complete": not reasons, "reasons": reasons})
+    return {"scope": "Artifact-bound human attestations; credentials and field observations require independent verification",
+            "subject_sha256": fingerprint(subject), "reviews_sha256": fingerprint(packet), "decisions": decisions,
+            "remaining_external_reviews": [kind for kind in EXTERNAL_REVIEW_CHECKS if kind not in accepted]}
+
+
+def assess(lock, score, devices, reviews=None, app_revision=None, coaching_spec_sha256=None):
     require(lock == freeze(lock["policy"]), "Policy lock was modified")
     policy = lock["policy"]
     require(score.get("benchmark_sha256") == policy["benchmark_sha256"], "Benchmark binding mismatch")
@@ -142,25 +231,45 @@ def assess(lock, score, devices):
         context_results.append({"context": required_context, "sessions": len(matching), "metrics": context_metrics, "failures": context_failures, "qualified": not context_failures})
     matrix = device_matrix(devices, policy["performance"])
     if not matrix["qualified"]: failures.append("physical_device_matrix")
+    field_reviews = assess_reviews(reviews, review_subject(lock, score, devices, app_revision, coaching_spec_sha256), policy["supported_contexts"]) if reviews is not None else None
+    remaining_reviews = field_reviews["remaining_external_reviews"] if field_reviews is not None else list(EXTERNAL_REVIEW_CHECKS)
     return {"schema_version": 1, "scope": "Predeclared evidence readiness; never waives existing CI or form/coaching qualification",
             "policy_sha256": lock["policy_sha256"], "benchmark_sha256": policy["benchmark_sha256"], "measurement_and_device_gates_pass": not failures,
             "failures": list(dict.fromkeys(failures)), "metrics": metrics, "supported_contexts": context_results, "device_matrix": matrix,
-            "remaining_external_reviews": ["qualified_coach_review", "equipment_distance_and_gym_noise_usability", "consent_and_exposure_audit"]}
+            "field_reviews": field_reviews, "remaining_external_reviews": remaining_reviews,
+            "reviewed_qualification_gates_pass": not failures and not remaining_reviews}
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["freeze", "assess"]); parser.add_argument("policy", type=Path)
+    parser.add_argument("action", choices=["freeze", "assess", "prepare-reviews"]); parser.add_argument("policy", type=Path)
     parser.add_argument("--score", type=Path); parser.add_argument("--devices", type=Path); parser.add_argument("--output", type=Path, required=True)
-    args = parser.parse_args()
-    policy = json.loads(args.policy.read_text())
-    if args.action == "freeze": result = freeze(policy)
-    else:
-        require(args.score and args.devices, "Score and device matrix are required")
-        result = assess(policy, json.loads(args.score.read_text()), json.loads(args.devices.read_text()))
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
-    if args.action == "assess" and not result["measurement_and_device_gates_pass"]: raise SystemExit(1)
+    parser.add_argument("--reviews", type=Path); parser.add_argument("--app-revision"); parser.add_argument("--coaching-spec", type=Path)
+    parser.add_argument("--require-field-reviews", action="store_true", help="Fail if any human review is missing, incomplete or rejected")
+    args = parser.parse_args(argv)
+    try:
+        require(args.action == "assess" or (args.reviews is None and not args.require_field_reviews), "Review-required flags apply only to assessment")
+        require(args.action != "freeze" or all(value is None for value in [args.score, args.devices, args.app_revision, args.coaching_spec]), "Freeze accepts only a policy and a fresh output")
+        inputs = [path for path in [args.policy, args.score, args.devices, args.reviews, args.coaching_spec] if path is not None]
+        require(all(args.output.resolve() != path.resolve() and not (args.output.exists() and path.exists() and args.output.samefile(path)) for path in inputs), "Output would overwrite an immutable input")
+        policy = benchmark.read(args.policy)
+        if args.action == "freeze": result = freeze(policy)
+        else:
+            require(args.score and args.devices, "Score and device matrix are required")
+            score, devices = benchmark.read(args.score), benchmark.read(args.devices)
+            spec_pin = hashlib.sha256(args.coaching_spec.read_bytes()).hexdigest() if args.coaching_spec else None
+            if args.action == "prepare-reviews": result = prepare_reviews(policy, score, devices, args.app_revision, spec_pin)
+            else: result = assess(policy, score, devices, benchmark.read(args.reviews) if args.reviews else None, args.app_revision, spec_pin)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        # Archive every result; a different existing audit artifact must also
+        # survive even when it was not named among this invocation's inputs.
+        with args.output.open("x") as output:
+            json.dump(result, output, indent=2, allow_nan=False); output.write("\n")
+        if args.action == "assess" and not result["reviewed_qualification_gates_pass" if args.require_field_reviews or args.reviews else "measurement_and_device_gates_pass"]: return 1
+        return 0
+    except (ValueError, OSError, KeyError, TypeError, OverflowError) as error:
+        print(f"Workout release assessment rejected: {error}", file=sys.stderr)
+        return 2
 
 
-if __name__ == "__main__": main()
+if __name__ == "__main__": raise SystemExit(main())
