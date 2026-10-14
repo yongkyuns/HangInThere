@@ -92,6 +92,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         var outcome: ReplayOutcome? = null; var endReason: LiveSetSession.EndReason? = null
         var finalSetupIssue: String? = null
         var events: JsonElement = JsonArray(emptyList())
+        var completedRepSeconds: JsonElement = JsonArray(emptyList())
         val colorEncodings = linkedSetOf<String>()
         val decoderMimeTypes = linkedSetOf<String>()
         val decoderDiagnostics = linkedSetOf<VideoDecoderDiagnostics>()
@@ -163,6 +164,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 pipeline.runtime.stop()
                 movements = pipeline.runtime.snapshot.observedMovements
                 events = Json.encodeToJsonElement(pipeline.runtime.session.counter.events)
+                completedRepSeconds = Json.encodeToJsonElement(pipeline.runtime.session.record.completedReps.map { requireNotNull(it.returnedAt) })
             }
             return buildJsonObject {
                 put("acquiredActualContours", acquired); put("acquisitionSourceSeconds", acquisitionSeconds?.let(::JsonPrimitive) ?: JsonNull)
@@ -177,6 +179,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 put("endReason", endReason?.name?.let(::JsonPrimitive) ?: JsonNull)
                 put("countingPassStarted", countingPassStarted); put("countingSourceEnded", countingSourceEnded)
                 put("countingSourceFrames", countingSourceFrames); put("events", events)
+                put("completedRepSeconds", completedRepSeconds)
                 put("decodedFrames", decodedFrames); put("singlePersonFrames", peopleFrames); put("multiplePersonFrames", multiplePeopleFrames)
                 put("pipelineWithDisplayCopyLatencyMillis", NativeEvaluationMetrics.latency(times)); put("elapsedSeconds", (System.nanoTime() - elapsedStart) / 1e9)
                 put("pipelineLatencyScope", "decode+canonical pixels+pose+actual contours/scene+runtime+display copy; excludes model initialization and EOF null read")

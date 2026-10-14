@@ -50,6 +50,12 @@ unapproved use, mismatched hashes and missing model assets never become success.
 No live-camera or real-time dropping is simulated here; timings are native Mac
 diagnostics only.
 
+For public **repetition counts and cycle boundaries**, use the separate
+[public workout dataset adapter and production replay harness](PUBLIC_WORKOUT_DATASETS.md).
+Its frozen first batch contains 29 Countix and four RepCount-A original videos.
+It scores acceptance and completed cycles separately; it does not change this
+pose-only runner's `rep_metrics.status` or supply 2D joint references.
+
 Countix's official archive can omit the action-class column. Such rows are
 reported as `unclassified_rows`, never guessed or counted as known negatives.
 `selected_counts` covers only explicitly class-labelled rows. An external,

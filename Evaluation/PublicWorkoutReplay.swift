@@ -1,0 +1,147 @@
+import Foundation
+import Synchronization
+import CryptoKit
+import CoreGraphics
+
+// Observe the production estimator's unchanged output, keeping one latest
+// observation per source PTS across acquisition/rewind rather than double-counting.
+private final class PublicPoseQuality: PoseEstimator {
+    private struct Quality: Sendable {
+        let singlePerson: Bool
+        let left: String
+        let right: String
+        let canSearch: Bool
+    }
+    private let frames = Mutex<[Double: Quality]>([:])
+    func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
+        let pose = try VisionPoseEstimator().estimate(image: image, timestamp: timestamp)
+        let quality = Quality(singlePerson: pose.people.count == 1,
+            left: ArmMeasurement(pose: pose, side: .left).unavailableReason?.rawValue ?? "available",
+            right: ArmMeasurement(pose: pose, side: .right).unavailableReason?.rawValue ?? "available",
+            canSearch: AutomaticApparatusReference.search(pose: pose, exercise: .pullUp) != nil)
+        frames.withLock { $0[timestamp.seconds] = quality }
+        return pose
+    }
+    var summary: [String: Any] {
+        frames.withLock { values in
+            let samples = Array(values.values)
+            return ["unique_source_frames": samples.count,
+                "single_person_frames": samples.filter(\.singlePerson).count,
+                "both_arm_frames": samples.filter { $0.left == "available" && $0.right == "available" }.count,
+                "pullup_search_frames": samples.filter(\.canSearch).count,
+                "left_arm_status_counts": Dictionary(grouping: samples, by: \.left).mapValues(\.count),
+                "right_arm_status_counts": Dictionary(grouping: samples, by: \.right).mapValues(\.count)]
+        }
+    }
+}
+
+// This entry point drives the actual native replay controller and shipping Apple
+// analysis bridge. It does not reimplement acquisition, counting or analytics.
+private final class PublicReplayClock: Sendable {
+    private let times = Mutex<[Double]>([])
+    func observe(_ trace: ReplayTrace) {
+        times.withLock { values in
+            if trace.stage == .preparation && trace.boundary == .began { values = [] }
+            if trace.stage == .counting && trace.boundary == .ended, let time = trace.sourceSeconds {
+                values.append(time)
+            }
+        }
+    }
+    var values: [Double] { times.withLock { $0 } }
+}
+
+@main private enum PublicWorkoutReplay {
+    private struct Manifest: Decodable {
+        struct Case: Decodable {
+            struct Media: Decodable { let path: String; let sha256: String }
+            let id: String
+            let media: Media
+            let sourcePtsSeconds: [Double]
+        }
+        let schemaVersion: Int
+        let scope: String
+        let heldOutQualification: Bool
+        let cases: [Case]
+    }
+    @MainActor static func main() async throws {
+        guard CommandLine.arguments.count == 5 else { throw failure("Usage: public-replay MANIFEST ROOT OUTPUT REVISION") }
+        let manifestURL = URL(fileURLWithPath: CommandLine.arguments[1])
+        let root = URL(fileURLWithPath: CommandLine.arguments[2]).resolvingSymlinksInPath().standardizedFileURL
+        let output = URL(fileURLWithPath: CommandLine.arguments[3])
+        let manifestData = try Data(contentsOf: manifestURL)
+        let manifestHash = SHA256.hash(data: manifestData).map { String(format: "%02x", $0) }.joined()
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let manifest = try decoder.decode(Manifest.self, from: manifestData)
+        let cases = manifest.cases
+        guard manifest.schemaVersion == 1, manifest.scope == "public_repetition_diagnostic",
+              !manifest.heldOutQualification, !cases.isEmpty,
+              Set(cases.map(\.id)).count == cases.count else { throw failure("Invalid public manifest") }
+        var reports: [[String: Any]] = []
+        for item in cases {
+            let id = item.id
+            let media = item.media
+            var report: [String: Any] = ["id": id, "sha256": media.sha256, "status": "failed", "frames": 0,
+                "acceptance_seconds": [Double](), "completed_seconds": [Double](), "source_clock_verified": false,
+                "selected_exercise": "pullUp"]
+            let clock = PublicReplayClock()
+            let quality = PublicPoseQuality()
+            let model = ReplayController(estimator: quality, trace: clock.observe)
+            let started = ContinuousClock.now
+            do {
+                let url = root.appendingPathComponent(media.path).resolvingSymlinksInPath().standardizedFileURL
+                guard media.path.hasPrefix("videos/"), media.path.hasSuffix(".mp4"),
+                      url.path.hasPrefix(root.path + "/"), try sha256(url) == media.sha256 else { throw failure("Media integrity mismatch") }
+                model.open(url)
+                try await wait(model) { model.phase != .loading }
+                guard model.phase == .paused, model.frame?.pose.backend == "Apple Vision 2D",
+                      model.frame?.pose.requestRevision == 1 else { throw failure(model.errorMessage ?? "Vision did not open") }
+                model.play()
+                try await wait(model) { model.phase == .finished || model.phase == .failed }
+                guard model.phase == .finished else { throw failure(model.errorMessage ?? "Replay failed") }
+                let expected = item.sourcePtsSeconds
+                let actual = clock.values
+                guard actual.count == expected.count, model.displayedFrames == expected.count,
+                      zip(actual, expected).allSatisfy({ abs($0.0 - $0.1) < 0.000001 }),
+                      try sha256(url) == media.sha256 else { throw failure("Replay frame/source-clock integrity failed") }
+                report["frames"] = actual.count
+                report["source_clock_verified"] = true
+                report["status"] = model.bar == nil ? "setupUnavailable" : "processed"
+                report["acceptance_seconds"] = model.counter.events.filter { $0.outcome == .movement }.map(\.sourceSeconds)
+                report["completed_seconds"] = model.analysisRecord?.completedReps.compactMap(\.returnedAt) ?? []
+                report["tracking_coverage"] = model.trackingCoverage.map { $0 as Any } ?? NSNull()
+                report["automatic_bar_state"] = String(describing: model.automaticBarState)
+            } catch {
+                report["error"] = error.localizedDescription
+            }
+            model.close()
+            report["pose_quality"] = quality.summary
+            report["elapsed_seconds"] = ReplayTrace.milliseconds(since: started) / 1000
+            reports.append(report)
+            FileHandle.standardOutput.write(Data("\(id): \(report["status"]!)\n".utf8))
+        }
+        guard try sha256(manifestURL) == manifestHash else { throw failure("Manifest changed while evaluating") }
+        let value: [String: Any] = ["schema_version": 1, "manifest_sha256": manifestHash,
+            "source_revision": CommandLine.arguments[4], "platform": "apple_host", "backend": "Apple Vision 2D",
+            "counter_policy_version": ExerciseCounter.policyVersion, "request_revision": 1,
+            "exercise_selection": "pullUp selected in production native replay", "cases": reports]
+        try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys])
+            .write(to: output, options: .withoutOverwriting)
+    }
+    @MainActor private static func wait(_ model: ReplayController, until done: () -> Bool) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(300))
+        while !done() {
+            guard ContinuousClock.now < deadline else { throw failure("Native public replay timed out") }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+    private static func sha256(_ url: URL) throws -> String {
+        // Streaming verification is implemented by CryptoKit, as in app storage.
+        var digest = SHA256()
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        while let data = try handle.read(upToCount: 65536), !data.isEmpty { digest.update(data: data) }
+        return digest.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+    private static func failure(_ message: String) -> NSError { NSError(domain: "PublicWorkoutReplay", code: 1, userInfo: [NSLocalizedDescriptionKey: message]) }
+}

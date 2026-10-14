@@ -1,0 +1,822 @@
+{
+  "cases": [
+    {
+      "bytes": 981981,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix___rd8woSLiM",
+      "kinetics_seconds": [
+        41.0,
+        51.0
+      ],
+      "member": "pull ups/--rd8woSLiM_000041_000051.mp4",
+      "repetition_seconds": [
+        41.0,
+        47.733333
+      ],
+      "sha256": "20acdb4425aa9acd8dfb8da46be09d5e57ba95583a376bb59a4b4a485b64ff6a",
+      "split": "val",
+      "video_id": "--rd8woSLiM"
+    },
+    {
+      "bytes": 534813,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_0_VBxJ4eNlg",
+      "kinetics_seconds": [
+        2.0,
+        12.0
+      ],
+      "member": "pull ups/0_VBxJ4eNlg_000002_000012.mp4",
+      "repetition_seconds": [
+        2.0,
+        9.5
+      ],
+      "sha256": "d04a83d34f0c3f9c1d0b89525a66d4e3ebe6378add92ef71b0667ec124c76c45",
+      "split": "val",
+      "video_id": "0_VBxJ4eNlg"
+    },
+    {
+      "bytes": 1444682,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_0ep0izfSjIY",
+      "kinetics_seconds": [
+        0.0,
+        10.0
+      ],
+      "member": "pull ups/0ep0izfSjIY_000000_000010.mp4",
+      "repetition_seconds": [
+        0.0,
+        5.8
+      ],
+      "sha256": "954eaa87667c63f1abc352f40afb0d91eeba6503945e4dd7c705934aa794e831",
+      "split": "val",
+      "video_id": "0ep0izfSjIY"
+    },
+    {
+      "bytes": 628442,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_15ypy7AMAsc",
+      "kinetics_seconds": [
+        11.0,
+        21.0
+      ],
+      "member": "pull ups/15ypy7AMAsc_000011_000021.mp4",
+      "repetition_seconds": [
+        11.0,
+        15.574658
+      ],
+      "sha256": "3dac8ebe971015f10a7f94d7eb4a20168bee5f84dbc6ceb29894a8d393c43f1e",
+      "split": "val",
+      "video_id": "15ypy7AMAsc"
+    },
+    {
+      "bytes": 776051,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_6EPqA_hS1jc",
+      "kinetics_seconds": [
+        1.0,
+        11.0
+      ],
+      "member": "pull ups/6EPqA_hS1jc_000001_000011.mp4",
+      "repetition_seconds": [
+        1.0,
+        5.5
+      ],
+      "sha256": "eee7810c4aee5c732c8c1897471244ea29c64d6d2fce38d93eb7d8c1b7b3a0b3",
+      "split": "val",
+      "video_id": "6EPqA_hS1jc"
+    },
+    {
+      "bytes": 1852829,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_6cDE1YpzSaE",
+      "kinetics_seconds": [
+        37.0,
+        47.0
+      ],
+      "member": "pull ups/6cDE1YpzSaE_000037_000047.mp4",
+      "repetition_seconds": [
+        37.0,
+        45.408408
+      ],
+      "sha256": "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+      "split": "val",
+      "video_id": "6cDE1YpzSaE"
+    },
+    {
+      "bytes": 587702,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix_88hPGnxh_Go",
+      "kinetics_seconds": [
+        6.0,
+        16.0
+      ],
+      "member": "pull ups/88hPGnxh_Go_000006_000016.mp4",
+      "repetition_seconds": [
+        6.0,
+        15.976643
+      ],
+      "sha256": "f5dcfabac111631cae436fe47388d9112f9f6c631e59e6be5c7df267c6040fb2",
+      "split": "val",
+      "video_id": "88hPGnxh_Go"
+    },
+    {
+      "bytes": 859807,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_AV9sB40vvZQ",
+      "kinetics_seconds": [
+        18.0,
+        28.0
+      ],
+      "member": "pull ups/AV9sB40vvZQ_000018_000028.mp4",
+      "repetition_seconds": [
+        18.0,
+        22.255885
+      ],
+      "sha256": "9c80e49820a956ef16e5e1cd60c8ae076eb3c3d5e7730c5624211928eb3d91c9",
+      "split": "val",
+      "video_id": "AV9sB40vvZQ"
+    },
+    {
+      "bytes": 2914422,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix_Ace4EsUWyYc",
+      "kinetics_seconds": [
+        5.0,
+        15.0
+      ],
+      "member": "pull ups/Ace4EsUWyYc_000005_000015.mp4",
+      "repetition_seconds": [
+        5.0,
+        15.0
+      ],
+      "sha256": "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+      "split": "val",
+      "video_id": "Ace4EsUWyYc"
+    },
+    {
+      "bytes": 3341557,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix_AiVMAXr8E9o",
+      "kinetics_seconds": [
+        3.0,
+        13.0
+      ],
+      "member": "pull ups/AiVMAXr8E9o_000003_000013.mp4",
+      "repetition_seconds": [
+        3.0,
+        12.976643
+      ],
+      "sha256": "a306272427dc1fbba0dfebb8877fce00363b7f55523d70e8f837386dc707cd9a",
+      "split": "val",
+      "video_id": "AiVMAXr8E9o"
+    },
+    {
+      "bytes": 5751331,
+      "count": 6,
+      "dataset": "countix",
+      "id": "countix_GK9zE0RGQ4c",
+      "kinetics_seconds": [
+        5.0,
+        15.0
+      ],
+      "member": "pull ups/GK9zE0RGQ4c_000005_000015.mp4",
+      "repetition_seconds": [
+        5.0,
+        15.0
+      ],
+      "sha256": "cc227516531d6f2093986979b0ec6d973e32efaa375e8f1b3bfd255e4c81dec1",
+      "split": "val",
+      "video_id": "GK9zE0RGQ4c"
+    },
+    {
+      "bytes": 675453,
+      "count": 5,
+      "dataset": "countix",
+      "id": "countix_HmwfLUgHZIc",
+      "kinetics_seconds": [
+        0.0,
+        10.0
+      ],
+      "member": "pull ups/HmwfLUgHZIc_000000_000010.mp4",
+      "repetition_seconds": [
+        0.0,
+        10.0
+      ],
+      "sha256": "3b8c21b7550cebca0da2133c86df0e65c01b10ec0554c9046595a1a23632267f",
+      "split": "val",
+      "video_id": "HmwfLUgHZIc"
+    },
+    {
+      "bytes": 431062,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_Itbz9_ghSfc",
+      "kinetics_seconds": [
+        22.0,
+        32.0
+      ],
+      "member": "pull ups/Itbz9-ghSfc_000022_000032.mp4",
+      "repetition_seconds": [
+        22.0,
+        28.239573
+      ],
+      "sha256": "52f8710cfd2624698e7767bda36076a7acbb8747a9f7e6fb1043209437478e8c",
+      "split": "val",
+      "video_id": "Itbz9-ghSfc"
+    },
+    {
+      "bytes": 347965,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix_VHj2sMZQ0fU",
+      "kinetics_seconds": [
+        0.0,
+        10.0
+      ],
+      "member": "pull ups/VHj2sMZQ0fU_000000_000010.mp4",
+      "repetition_seconds": [
+        2.93627,
+        8.475142
+      ],
+      "sha256": "b6df09db14898740c8096dcd7602a8a5810e5628839d6f54be19acbbdf690803",
+      "split": "val",
+      "video_id": "VHj2sMZQ0fU"
+    },
+    {
+      "bytes": 2587546,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix_XNFGt0WPASQ",
+      "kinetics_seconds": [
+        25.0,
+        35.0
+      ],
+      "member": "pull ups/XNFGt0WPASQ_000025_000035.mp4",
+      "repetition_seconds": [
+        25.0,
+        33.875542
+      ],
+      "sha256": "ed04cc69f008ec5829162810a5ffde6c8e44a3488ab0d66e52cee0f68a629fa8",
+      "split": "val",
+      "video_id": "XNFGt0WPASQ"
+    },
+    {
+      "bytes": 1705933,
+      "count": 6,
+      "dataset": "countix",
+      "id": "countix_XuZ8ydaiN3A",
+      "kinetics_seconds": [
+        8.0,
+        18.0
+      ],
+      "member": "pull ups/XuZ8ydaiN3A_000008_000018.mp4",
+      "repetition_seconds": [
+        8.0,
+        18.0
+      ],
+      "sha256": "90e50f020cf3567c0c40d413ac67d2b659d26404806ef16730fcb8a147598a52",
+      "split": "val",
+      "video_id": "XuZ8ydaiN3A"
+    },
+    {
+      "bytes": 292281,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_Yt7_BnVkoUM",
+      "kinetics_seconds": [
+        18.0,
+        28.0
+      ],
+      "member": "pull ups/Yt7-BnVkoUM_000018_000028.mp4",
+      "repetition_seconds": [
+        18.366667,
+        26.666667
+      ],
+      "sha256": "932ee3c41ae9314e89e19b72b3a06c77b36f33a6fa3c32f534b7070d1d630d44",
+      "split": "val",
+      "video_id": "Yt7-BnVkoUM"
+    },
+    {
+      "bytes": 356163,
+      "count": 8,
+      "dataset": "countix",
+      "id": "countix_aiJcIGNepAM",
+      "kinetics_seconds": [
+        17.0,
+        27.0
+      ],
+      "member": "pull ups/aiJcIGNepAM_000017_000027.mp4",
+      "repetition_seconds": [
+        17.0,
+        27.0
+      ],
+      "sha256": "4f70bf902381a06ee31ec0f9f09133092b5db8dde13f7dfba57abadf62b25f11",
+      "split": "val",
+      "video_id": "aiJcIGNepAM"
+    },
+    {
+      "bytes": 385460,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_aleOhE3pmCk",
+      "kinetics_seconds": [
+        0.0,
+        10.0
+      ],
+      "member": "pull ups/aleOhE3pmCk_000000_000010.mp4",
+      "repetition_seconds": [
+        3.533333,
+        7.4
+      ],
+      "sha256": "044632bc9f887bd6f30cb408a46f01d1c5351545fada0ca7a95fa0c8f7e92276",
+      "split": "val",
+      "video_id": "aleOhE3pmCk"
+    },
+    {
+      "bytes": 1090512,
+      "count": 5,
+      "dataset": "countix",
+      "id": "countix_bfQGBGK81JE",
+      "kinetics_seconds": [
+        1.0,
+        11.0
+      ],
+      "member": "pull ups/bfQGBGK81JE_000001_000011.mp4",
+      "repetition_seconds": [
+        1.0,
+        11.0
+      ],
+      "sha256": "a23f659b832c2819ff871830a4987904340cc1df6dba58800065fa27c317e43f",
+      "split": "val",
+      "video_id": "bfQGBGK81JE"
+    },
+    {
+      "bytes": 1829691,
+      "count": 10,
+      "dataset": "countix",
+      "id": "countix_eMRW1vKyy9o",
+      "kinetics_seconds": [
+        6.0,
+        16.0
+      ],
+      "member": "pull ups/eMRW1vKyy9o_000006_000016.mp4",
+      "repetition_seconds": [
+        6.0,
+        15.968302
+      ],
+      "sha256": "d29d7ab0339ddc451e9410094eb26181f47d627c62da6c97538662d57d53d96b",
+      "split": "val",
+      "video_id": "eMRW1vKyy9o"
+    },
+    {
+      "bytes": 390601,
+      "count": 4,
+      "dataset": "countix",
+      "id": "countix_fdmzDARpAng",
+      "kinetics_seconds": [
+        3.0,
+        13.0
+      ],
+      "member": "pull ups/fdmzDARpAng_000003_000013.mp4",
+      "repetition_seconds": [
+        3.0,
+        12.976643
+      ],
+      "sha256": "663d17d6813ab14f95169ead76a89e9bbcfe02e78344fc6d40f19d412fb4d4f2",
+      "split": "val",
+      "video_id": "fdmzDARpAng"
+    },
+    {
+      "bytes": 308581,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_fw3FnkqViKo",
+      "kinetics_seconds": [
+        10.0,
+        20.0
+      ],
+      "member": "pull ups/fw3FnkqViKo_000010_000020.mp4",
+      "repetition_seconds": [
+        10.0,
+        15.533333
+      ],
+      "sha256": "9df9bfa38a229b6784e2e37ddae4205047c69877f0893fa55c6fd612991a794f",
+      "split": "val",
+      "video_id": "fw3FnkqViKo"
+    },
+    {
+      "bytes": 1703979,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_j9nYcbI4OOw",
+      "kinetics_seconds": [
+        2.0,
+        12.0
+      ],
+      "member": "pull ups/j9nYcbI4OOw_000002_000012.mp4",
+      "repetition_seconds": [
+        2.0,
+        8.459392
+      ],
+      "sha256": "9639f79f3a521673aaf12176aaa223763da2e29452c260a2d55fcbf650e1abe5",
+      "split": "val",
+      "video_id": "j9nYcbI4OOw"
+    },
+    {
+      "bytes": 875239,
+      "count": 5,
+      "dataset": "countix",
+      "id": "countix_wKNOQ5_6xgw",
+      "kinetics_seconds": [
+        4.0,
+        14.0
+      ],
+      "member": "pull ups/wKNOQ5_6xgw_000004_000014.mp4",
+      "repetition_seconds": [
+        4.0,
+        13.96
+      ],
+      "sha256": "c6e17a85d4e24fbf0fc0d4e3363e0dda8d1546301a542e8a5b1cec54318f448a",
+      "split": "val",
+      "video_id": "wKNOQ5_6xgw"
+    },
+    {
+      "bytes": 854711,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix_xNN9Sha2SAM",
+      "kinetics_seconds": [
+        1.0,
+        11.0
+      ],
+      "member": "pull ups/xNN9Sha2SAM_000001_000011.mp4",
+      "repetition_seconds": [
+        1.0,
+        10.137931
+      ],
+      "sha256": "86b860e93de21cb15fa4936cd1566966824e76edfef234b2da2633281c797d25",
+      "split": "val",
+      "video_id": "xNN9Sha2SAM"
+    },
+    {
+      "bytes": 2553349,
+      "count": 4,
+      "dataset": "countix",
+      "id": "countix_zHonAu4yl8I",
+      "kinetics_seconds": [
+        9.0,
+        19.0
+      ],
+      "member": "pull ups/zHonAu4yl8I_000009_000019.mp4",
+      "repetition_seconds": [
+        9.0,
+        16.774441
+      ],
+      "sha256": "f6cf005ba96fbcb9ed0804c34abbc031e42722b3ac7dce7fa3639c65a5e890db",
+      "split": "val",
+      "video_id": "zHonAu4yl8I"
+    },
+    {
+      "bytes": 280445,
+      "count": 3,
+      "dataset": "countix",
+      "id": "countix_zJ_7ZJuHslY",
+      "kinetics_seconds": [
+        26.0,
+        36.0
+      ],
+      "member": "pull ups/zJ_7ZJuHslY_000026_000036.mp4",
+      "repetition_seconds": [
+        26.0,
+        35.760337
+      ],
+      "sha256": "fae199974e1b3015f6b6370b1a267a27bc7fd185371fe0230d5fe92abc20b612",
+      "split": "val",
+      "video_id": "zJ_7ZJuHslY"
+    },
+    {
+      "bytes": 1279935,
+      "count": 2,
+      "dataset": "countix",
+      "id": "countix_zWV8fZ9spHs",
+      "kinetics_seconds": [
+        33.0,
+        43.0
+      ],
+      "member": "pull ups/zWV8fZ9spHs_000033_000043.mp4",
+      "repetition_seconds": [
+        33.0,
+        38.505965
+      ],
+      "sha256": "6b879abaaf4b1d49e761bbc16525288279ef52d01c114f964bbbca822de3c78d",
+      "split": "val",
+      "video_id": "zWV8fZ9spHs"
+    },
+    {
+      "bytes": 8409576,
+      "count": 7,
+      "cycle_frames": [
+        [
+          130,
+          175
+        ],
+        [
+          175,
+          220
+        ],
+        [
+          220,
+          270
+        ],
+        [
+          270,
+          343
+        ],
+        [
+          343,
+          429
+        ],
+        [
+          429,
+          471
+        ],
+        [
+          472,
+          509
+        ]
+      ],
+      "dataset": "repcount_a",
+      "id": "repcount_stu10_34",
+      "mirror": {
+        "revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+        "row_index": 75,
+        "split": "validation"
+      },
+      "sha256": "170562f77776e50a929113776c6be96d8f00c2961bb595d6a3214ee7e30affc1",
+      "source_name": "stu10_34.mp4",
+      "split": "train",
+      "split_scheme": "author_open_set"
+    },
+    {
+      "bytes": 13114081,
+      "count": 10,
+      "cycle_frames": [
+        [
+          62,
+          102
+        ],
+        [
+          102,
+          139
+        ],
+        [
+          139,
+          181
+        ],
+        [
+          181,
+          223
+        ],
+        [
+          223,
+          269
+        ],
+        [
+          269,
+          342
+        ],
+        [
+          342,
+          398
+        ],
+        [
+          398,
+          459
+        ],
+        [
+          459,
+          539
+        ],
+        [
+          774,
+          897
+        ]
+      ],
+      "dataset": "repcount_a",
+      "id": "repcount_stu10_39",
+      "mirror": {
+        "revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+        "row_index": 92,
+        "split": "validation"
+      },
+      "sha256": "4fad39aadc66cc4375fe926b5e4c20f44c7b2059b0076af4f47cd95a466eeac4",
+      "source_name": "stu10_39.mp4",
+      "split": "train",
+      "split_scheme": "author_open_set"
+    },
+    {
+      "bytes": 18448016,
+      "count": 13,
+      "cycle_frames": [
+        [
+          16,
+          63
+        ],
+        [
+          63,
+          109
+        ],
+        [
+          109,
+          157
+        ],
+        [
+          333,
+          420
+        ],
+        [
+          420,
+          464
+        ],
+        [
+          464,
+          512
+        ],
+        [
+          839,
+          891
+        ],
+        [
+          891,
+          931
+        ],
+        [
+          931,
+          977
+        ],
+        [
+          977,
+          1029
+        ],
+        [
+          1057,
+          1101
+        ],
+        [
+          1101,
+          1149
+        ],
+        [
+          1149,
+          1190
+        ]
+      ],
+      "dataset": "repcount_a",
+      "id": "repcount_stu1_34",
+      "mirror": {
+        "revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+        "row_index": 55,
+        "split": "validation"
+      },
+      "sha256": "d45301f7f7644f3261544c16f85167adb03ea04b045b1f0098ce799c388b4fbf",
+      "source_name": "stu1_34.mp4",
+      "split": "train",
+      "split_scheme": "author_open_set"
+    },
+    {
+      "bytes": 8224343,
+      "count": 18,
+      "cycle_frames": [
+        [
+          48,
+          89
+        ],
+        [
+          89,
+          145
+        ],
+        [
+          145,
+          211
+        ],
+        [
+          211,
+          279
+        ],
+        [
+          279,
+          356
+        ],
+        [
+          356,
+          427
+        ],
+        [
+          427,
+          516
+        ],
+        [
+          516,
+          596
+        ],
+        [
+          596,
+          674
+        ],
+        [
+          674,
+          767
+        ],
+        [
+          767,
+          858
+        ],
+        [
+          858,
+          951
+        ],
+        [
+          951,
+          1058
+        ],
+        [
+          1058,
+          1153
+        ],
+        [
+          1153,
+          1274
+        ],
+        [
+          1378,
+          1449
+        ],
+        [
+          1538,
+          1591
+        ],
+        [
+          1701,
+          1772
+        ]
+      ],
+      "dataset": "repcount_a",
+      "id": "repcount_stu1_37",
+      "mirror": {
+        "revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+        "row_index": 95,
+        "split": "validation"
+      },
+      "sha256": "c2fba8f59e13934c0048978469b87f6287c6fc44f09fb812c78d12ff32098037",
+      "source_name": "stu1_37.mp4",
+      "split": "train",
+      "split_scheme": "author_open_set"
+    }
+  ],
+  "rights_scope": "User-authorized internal diagnostic evaluation of publicly distributed research data; no source-video redistribution, commercial-training permission, participant consent or unseen-model qualification is asserted.",
+  "schema_version": 1,
+  "scope": "public_repetition_diagnostic",
+  "selection": "All 29 published class-labelled Countix validation pull-ups in CVDF archive; first four native-ID-sorted pull-ups from the 100-row RepCount LLSP validation preview, before inference. Author open-set assignments remain separate from mirror LLSP assignments.",
+  "sources": [
+    {
+      "bytes": 160752,
+      "id": "countix_metadata",
+      "sha256": "c68a98f9bbedc6a5ebf7d7e4b1eb70ba026154081b0f398c5f0287a43e61e2cb",
+      "url": "https://s3.amazonaws.com/kinetics/700_2020/annotations/countix.tar.gz"
+    },
+    {
+      "bytes": 61091021,
+      "id": "countix_video_archive",
+      "sha256": "5b7a1496152cb74669042729af554be64a50d7f23f9ea4967a32ca62e4d0a39e",
+      "url": "https://s3.amazonaws.com/kinetics/700_2020/val/k700_val_454.tar.gz"
+    },
+    {
+      "bytes": 331991,
+      "id": "repcount_train",
+      "sha256": "55771108cfd18a4090c67da81841aa7a49b5f65fc7d8207e68073b958524b488",
+      "url": "https://raw.githubusercontent.com/SvipRepetitionCounting/TransRAC/68bdd4daa60ed7c3174a7f6bf86f6537b6fa0979/open_set/new_train.csv"
+    },
+    {
+      "bytes": 52013,
+      "id": "repcount_valid",
+      "sha256": "67b8a59088a07408447097f88055dc5ae49a96ea070d47fc1bee6b6c1d30b2d7",
+      "url": "https://raw.githubusercontent.com/SvipRepetitionCounting/TransRAC/68bdd4daa60ed7c3174a7f6bf86f6537b6fa0979/open_set/new_valid.csv"
+    },
+    {
+      "bytes": 113279,
+      "id": "repcount_test",
+      "sha256": "447926645df02a7599b3f5f842ae0ffb8458f4b117bcbefe430ff98d1b51d989",
+      "url": "https://raw.githubusercontent.com/SvipRepetitionCounting/TransRAC/68bdd4daa60ed7c3174a7f6bf86f6537b6fa0979/open_set/new_test.csv"
+    }
+  ]
+}

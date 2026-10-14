@@ -1,0 +1,161 @@
+name: Public workout repetition diagnostics
+on:
+  push:
+    branches: [main, 'codex/android-parity']
+    paths: ['.github/workflows/public-workout.yml', 'scripts/public_workout_datasets.py', 'scripts/tests/test_public_workout*.py', 'scripts/run-public-workout-android.sh', 'scripts/evaluate-public-workouts-apple.sh']
+  pull_request:
+    paths:
+      - '.github/workflows/public-workout.yml'
+      - 'scripts/public_workout_datasets.py'
+      - 'scripts/tests/test_public_workout_datasets.py'
+      - 'scripts/tests/test_public_workout_android_runner.py'
+      - 'scripts/run-public-workout-android.sh'
+      - 'scripts/evaluate-public-workouts-apple.sh'
+      - 'Evaluation/PublicWorkoutReplay.swift'
+      - 'Evaluation/fixtures/public-workout-pilot.json'
+      - 'android/app/src/androidTest/java/dev/hanginthere/android/PublicWorkoutDatasetEvaluationTest.kt'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: public-workout-${{ github.ref }}-${{ github.sha }}-${{ github.event_name }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest scripts.tests.test_public_workout_datasets scripts.tests.test_public_workout_android_runner -v
+  apple:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Prepare identical pinned original videos
+        run: |
+          if ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/public_workout_datasets.py prepare --fetch \
+            --cache build/public-workout-cache --output build/public-workout-inputs
+      - name: Run native Apple replay and shipping common analytics
+        run: |
+          bash scripts/evaluate-public-workouts-apple.sh build/public-workout-inputs/manifest.json \
+            build/public-workout-inputs build/public-workout-apple.json
+          python3 scripts/public_workout_datasets.py score build/public-workout-inputs/manifest.json \
+            build/public-workout-apple.json --output build/public-workout-apple-score.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: public-workout-apple
+          if-no-files-found: warn
+          path: |
+            build/public-workout-inputs/manifest.json
+            build/public-workout-inputs/inventory.json
+            build/public-workout-apple.json
+            build/public-workout-apple.json.provenance.json
+            build/public-workout-apple-score.json
+  android:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [29, 35]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        with:
+          cache-disabled: true
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          cmdline-tools-version: '13114758'
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1
+          log-accepted-android-sdk-licenses: false
+      - name: Prepare pinned media and production model
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg autoconf automake libtool pkg-config
+          python3 scripts/public_workout_datasets.py prepare --fetch \
+            --cache build/public-workout-cache --output build/public-workout-inputs
+          python3 scripts/public_workout_datasets.py android-assets build/public-workout-inputs/manifest.json \
+            --root build/public-workout-inputs --output android/app/src/androidTest/assets/generated/public-workout
+          python3 scripts/prepare-mediapipe-model.py --output android/app/src/main/assets/pose_landmarker_heavy.task \
+            --metadata build/public-workout-model.json
+          ./gradlew :android:app:assembleDebug :android:app:assembleDebugAndroidTest --no-build-cache --console=plain
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run actual native decoder, model, acquisition and analytics
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: default
+          profile: pixel_2
+          cores: 2
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/run-public-workout-android.sh
+      - name: Score all cases, including setup and interrupted failures
+        if: ${{ !cancelled() }}
+        run: |
+          python3 scripts/public_workout_datasets.py score build/public-workout-inputs/manifest.json \
+            build/public-workout-android/report.json --output build/public-workout-android-score.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: public-workout-android-api-${{ matrix.api }}
+          if-no-files-found: warn
+          path: |
+            build/public-workout-inputs/manifest.json
+            build/public-workout-inputs/inventory.json
+            build/public-workout-model.json
+            build/public-workout-android/report.json
+            build/public-workout-android/instrumentation.log
+            build/public-workout-android-score.json
+  accuracy:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [apple, android]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          pattern: public-workout-*
+          path: build/reports
+      - name: Preserve public repetition accuracy failures
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          reports = [json.loads(p.read_text()) for p in Path('build/reports').rglob('*-score.json')]
+          assert len(reports) == 3, 'All three native reports are required'
+          assert len({r['manifest_sha256'] for r in reports}) == 1, 'Native inputs differ'
+          assert len({r['run']['source_revision'] for r in reports}) == 1, 'Native app revisions differ'
+          for r in reports:
+              print(r['run']['platform'], r['summary'])
+          assert all(r['all_inputs_processed'] and r['all_exact_completed_counts'] for r in reports), 'Published repetition diagnostic accuracy remains failed; this is not field qualification'
+          PY
