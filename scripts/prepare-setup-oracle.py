@@ -151,6 +151,15 @@ def prepare(output):
     add('pullUp-two-separate-bars','pullUp',[step(i/10,'pullUp',candidates=ambiguous) for i in range(56)],False,False)
     thin=[[candidate(200,495,800,495),candidate(200,500,800,500)]]
     add('pullUp-thin-parallel-bar','pullUp',[step(i/10,'pullUp',candidates=thin) for i in range(56)],True,True)
+    # Exact authored hold duration, with a nonzero source-clock origin. Source
+    # ticks must not turn 0.9s into an extra-observation requirement by rounding.
+    add('pullUp-exact-source-dwell','pullUp',
+        [step(t,'pullUp') for t in [3.0,3.3,3.6,3.9]],True,False)
+    short_dwell=[step(t,'pullUp') for t in [3.0,3.3,3.6,3.899999]]
+    # This new boundary case needs finer ticks than the existing ms fixtures.
+    for frame,ticks in zip(short_dwell,[3_000_000,3_300_000,3_600_000,3_899_999]):
+        frame['pose']['timestamp']=dict(value=ticks,timescale=1_000_000)
+    add('pullUp-one-microsecond-short-source-dwell','pullUp',short_dwell,False,False)
     settling=[step(i/10,'pullUp',degrees=145 if i<10 else 170) for i in range(66)]
     add('pullUp-hang-settles-before-countdown','pullUp',settling,True,True)
     # Once a hang qualifies identity, fresh overhead hands still identify the

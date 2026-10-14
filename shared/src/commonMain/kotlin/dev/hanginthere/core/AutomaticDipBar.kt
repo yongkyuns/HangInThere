@@ -6,6 +6,9 @@ import kotlin.math.*
 class AutomaticDipBar {
     private var stability = AutomaticReferenceStability()
     var state = AutomaticPullUpBar.State.lookingForGrip; private set
+    val referenceStabilityDiagnostic get() = stability.diagnostic.takeIf {
+        state==AutomaticPullUpBar.State.holding || state==AutomaticPullUpBar.State.locked
+    }
     fun reset() { stability = AutomaticReferenceStability(); state = AutomaticPullUpBar.State.lookingForGrip }
 
     fun observe(pose: PoseResult, side: ArmMeasurement.Side, candidates: List<BarLineCandidate>): ConfirmedBar? {

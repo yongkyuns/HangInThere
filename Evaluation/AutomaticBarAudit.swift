@@ -9,6 +9,7 @@ import Foundation
         let candidates: [BarLineCandidate]
         let state: String
         let detectionError: String?
+        let referenceStability: AutomaticReferenceStability.Diagnostic?
     }
     struct Count: Encodable {
         let side: ArmMeasurement.Side
@@ -51,7 +52,8 @@ import Foundation
                     catch { detectionError = String(describing: error) }
                 }
                 bar = policy.observe(pose: frame.pose, candidates: candidates)
-                samples.append(Sample(seconds: seconds, candidates: candidates, state: String(describing: policy.state), detectionError: detectionError))
+                samples.append(Sample(seconds: seconds, candidates: candidates, state: String(describing: policy.state),
+                    detectionError: detectionError, referenceStability: policy.referenceStabilityDiagnostic))
             }
         } catch {
             await reader.close()

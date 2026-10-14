@@ -98,6 +98,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         val acquisitionExerciseFrames = linkedMapOf<String, Int>()
         val acquisitionIssueFrames = linkedMapOf<String, Int>()
         val acquisitionStateFrames = linkedMapOf<String, Int>()
+        val referenceStabilitySamples = linkedMapOf<String, Int>()
         fun acquisitionEvidence() = buildJsonObject {
             put("scope", "first acquisition pass; actual production observations, not labelled pose accuracy")
             put("frames", acquisitionFrames); put("bothArmFrames", acquisitionBothArmFrames)
@@ -107,6 +108,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
             put("resolvedExerciseFrames", buildJsonObject { acquisitionExerciseFrames.forEach { (key, value) -> put(key, value) } })
             put("setupIssueFrames", buildJsonObject { acquisitionIssueFrames.forEach { (key, value) -> put(key, value) } })
             put("acquisitionStateFrames", buildJsonObject { acquisitionStateFrames.forEach { (key, value) -> put(key, value) } })
+            put("referenceStabilitySamples", buildJsonObject { referenceStabilitySamples.forEach { (key, value) -> put(key, value) } })
         }
         val colorEncodings = linkedSetOf<String>()
         val decoderMimeTypes = linkedSetOf<String>()
@@ -156,6 +158,12 @@ internal class NativeReplayEvaluator(private val app: Context) {
                                         acquisitionIssueFrames[issue] = (acquisitionIssueFrames[issue] ?: 0) + 1
                                         val state = result.snapshot.acquisitionState.name
                                         acquisitionStateFrames[state] = (acquisitionStateFrames[state] ?: 0) + 1
+                                        // Count actual eligible-edge observations once, never cached frame states.
+                                        pipeline.runtime.referenceStabilityDiagnostic?.takeIf {
+                                            it.sourceSeconds == result.pose.timestamp.seconds
+                                        }?.status?.name?.let { key ->
+                                            referenceStabilitySamples[key] = (referenceStabilitySamples[key] ?: 0) + 1
+                                        }
                                     }
                                     trace.write(buildJsonObject {
                                         put("frameIndex", passFrames); put("sourcePtsMicroseconds", it.presentationTimeUs)

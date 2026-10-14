@@ -6,6 +6,9 @@ import Foundation
 struct AutomaticDipBar: Sendable {
     private var stability = AutomaticReferenceStability()
     private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
+    var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic? {
+        state == .holding || state == .locked ? stability.diagnostic : nil
+    }
 
     mutating func reset() { self = Self() }
 

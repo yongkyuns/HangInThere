@@ -3,6 +3,7 @@ package dev.hanginthere.android
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.hanginthere.core.ArmMeasurement
+import dev.hanginthere.core.AutomaticReferenceStability
 import dev.hanginthere.core.ExerciseCounter
 import kotlinx.serialization.json.*
 import org.junit.Assert.assertTrue
@@ -65,6 +66,10 @@ class PublicWorkoutDatasetEvaluationTest {
                         check(evidence.getValue(key).jsonPrimitive.int in 0..acquisitionFrames)
                     }
                     val sampled = evidence.getValue("contourSampleFrames").jsonPrimitive.int
+                    val stability = evidence.getValue("referenceStabilitySamples").jsonObject
+                    check(stability.keys.all { key -> AutomaticReferenceStability.Status.entries.any { it.name == key } })
+                    check(stability.values.all { it.jsonPrimitive.int >= 0 })
+                    check(stability.values.sumOf { it.jsonPrimitive.int } in 0..sampled)
                     for (key in listOf("contourEvidenceFrames", "contourErrorFrames")) {
                         check(evidence.getValue(key).jsonPrimitive.int <= sampled)
                     }

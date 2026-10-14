@@ -15,6 +15,9 @@ struct AutomaticPullUpBar: Sendable {
     static let samplingInterval = 0.3
     private(set) var state: State = .lookingForGrip
     private var stability = AutomaticReferenceStability()
+    var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic? {
+        state == .holding || state == .locked ? stability.diagnostic : nil
+    }
 
     mutating func reset() { self = Self() }
 

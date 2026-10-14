@@ -52,6 +52,14 @@ struct PresentationTime: Codable, Equatable, Sendable {
     let timescale: Int32
 
     var seconds: Double { timescale > 0 ? Double(value) / Double(timescale) : .nan }
+
+    // Subtract source ticks before conversion, preserving exact same-clock boundaries.
+    func elapsedSeconds(since start: PresentationTime) -> Double {
+        guard timescale > 0, start.timescale > 0 else { return .nan }
+        guard timescale == start.timescale else { return seconds - start.seconds }
+        let delta = value.subtractingReportingOverflow(start.value)
+        return delta.overflow ? .nan : Double(delta.partialValue) / Double(timescale)
+    }
 }
 
 struct PoseResult: Codable, Equatable, Sendable {

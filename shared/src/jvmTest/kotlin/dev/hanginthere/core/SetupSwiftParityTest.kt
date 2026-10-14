@@ -19,7 +19,8 @@ class SetupSwiftParityTest {
         val side:ArmMeasurement.Side,val expectedAcquired:Boolean,val expectedStarted:Boolean,val steps:List<Step>)
     @Serializable data class Snapshot(val exercise:ExerciseCounter.Exercise?=null,
         val apparatusCandidate:ExerciseCounter.Exercise?=null,val identityLocked:Boolean,
-        val acquisitionState:String,val referenceEdge:BarSegment?=null,val role:String?=null,
+        val acquisitionState:String,val referenceStabilityDiagnostic:AutomaticReferenceStability.Diagnostic?=null,
+        val referenceEdge:BarSegment?=null,val role:String?=null,
         val countdownState:String,val countdownSeconds:Int?=null,val began:Boolean,
         val phoneState:String,val phoneDelta:Double?=null,val sceneState:String,val movementKind:String?=null,
         val shiftFraction:Double?=null,val scaleFraction:Double?=null,val consensusPatches:Int,val scaleAvailable:Boolean)
@@ -53,6 +54,7 @@ class SetupSwiftParityTest {
             val began=if(input.exercise==ExerciseCounter.Exercise.dip) countdown.observeDip(pose,input.side,bar?.referenceEdge,eligible,step.paused) else countdown.observe(seconds,eligible && bar?.let{HandsFreeSetStart.isStartingPosition(pose,it.referenceEdge)}==true,step.paused)
             if(began){assertTrue(identity.lock());everStarted=true}
             Snapshot(identity.exercise,identity.apparatusCandidate,identity.isLocked,apparatus.state.name,
+                apparatus.referenceStabilityDiagnostic,
                 bar?.referenceEdge,bar?.role?.name,countdown.state.phase.name,countdown.state.seconds,began,
                 phone.state.name,phone.latestDeltaDegrees,scene.state.name,scene.movementKind?.name,
                 scene.latestShiftFraction,scene.latestScaleFraction,scene.latestConsensusPatches,scene.latestScaleMeasurementAvailable)
@@ -84,6 +86,7 @@ class SetupSwiftParityTest {
         assertTrue(cases.size>=72,"Setup parity cases reduced")
         val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
         assertTrue(ids.containsAll(listOf("dip-native-overlap-left","dip-native-overlap-right",
+            "pullUp-exact-source-dwell","pullUp-one-microsecond-short-source-dwell",
             "pullUp-qualified-identity-through-flexion","pullUp-flexion-then-fresh-hang-start",
             "pullUp-flexion-identity-without-apparatus",
             "dip-wrist-aligned-before-longer-clutter-left","dip-wrist-aligned-before-longer-clutter-right") +

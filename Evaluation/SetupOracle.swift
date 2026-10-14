@@ -32,6 +32,7 @@ private struct Snapshot: Encodable {
     let apparatusCandidate: ExerciseCounter.Exercise?
     let identityLocked: Bool
     let acquisitionState: String
+    let referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic?
     let referenceEdge: BarSegment?
     let role: String?
     let countdownState: String
@@ -123,6 +124,7 @@ private struct Report: Encodable {
             }
             snapshots.append(Snapshot(exercise: identity.exercise, apparatusCandidate: identity.apparatusCandidate,
                 identityLocked: identity.isLocked, acquisitionState: state(apparatus.state),
+                referenceStabilityDiagnostic: apparatus.referenceStabilityDiagnostic,
                 referenceEdge: bar?.referenceEdge, role: bar?.role.rawValue,
                 countdownState: countdownState, countdownSeconds: remaining, began: began,
                 phoneState: phone.state.rawValue, phoneDelta: phone.latestDeltaDegrees,

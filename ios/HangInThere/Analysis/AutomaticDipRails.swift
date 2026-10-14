@@ -3,11 +3,26 @@ import Foundation
 // Shared fixed-reference dwell. Hands locate the search, while every returned
 // segment remains an observed image edge. Supports vertical projected rails.
 struct AutomaticReferenceStability: Sendable {
+    enum Status: String, Codable, Sendable {
+        case waiting, invalidEvidence, sourceRegression, candidateStarted, contextChanged
+        case sourceGap, edgeChanged, gripMoved, accumulating, qualified
+    }
+    // Counts/timing only; no image geometry and no additional qualification rule.
+    struct Diagnostic: Codable, Equatable, Sendable {
+        var status: Status = .waiting
+        var observations = 0
+        var stableSeconds = 0.0
+        var sourceSeconds: Double? = nil
+    }
+    static let minimumObservations = 4
+    static let minimumStableSeconds = 0.9
+    static let maximumFrameGap = 0.8
+    private(set) var diagnostic = Diagnostic()
     private var edges: [BarSegment] = []
     private var grips: [Point2D] = []
     private var size: ImageSize?
-    private var firstSeconds: Double?
-    private var lastSeconds: Double?
+    private var firstTime: PresentationTime?
+    private var lastTime: PresentationTime?
     private var observations = 0
 
     mutating func reset() { self = Self() }
@@ -16,21 +31,33 @@ struct AutomaticReferenceStability: Sendable {
         let seconds = pose.timestamp.seconds
         guard seconds.isFinite, !next.isEmpty, next.allSatisfy(\.isValid),
               !hands.isEmpty, hands.allSatisfy(\.isFinite), pose.imageSize.isValid else {
-            reset(); return false
+            reset(); diagnostic = Diagnostic(status: .invalidEvidence,
+                sourceSeconds: seconds.isFinite ? seconds : nil); return false
         }
-        if let lastSeconds, seconds <= lastSeconds { reset(); return false }
+        let gap = lastTime.map { pose.timestamp.elapsedSeconds(since: $0) }
+        if let gap, !gap.isFinite || gap <= 0 {
+            reset(); diagnostic = Diagnostic(status: .sourceRegression, sourceSeconds: seconds); return false
+        }
         let short = min(pose.imageSize.width, pose.imageSize.height)
-        let continues = size == pose.imageSize && edges.count == next.count && grips.count == hands.count
-            && lastSeconds.map { seconds - $0 <= 0.8 } == true
-            && zip(edges, next).allSatisfy { Self.sameLine($0, $1, tolerance: short * 0.008) }
-            && zip(grips, hands).allSatisfy { hypot($0.x - $1.x, $0.y - $1.y) <= short * 0.02 }
-        if !continues {
+        // Report the first failing condition in the existing qualification order.
+        let restart: Status?
+        if lastTime == nil { restart = .candidateStarted }
+        else if size != pose.imageSize || edges.count != next.count || grips.count != hands.count { restart = .contextChanged }
+        else if gap! > Self.maximumFrameGap { restart = .sourceGap }
+        else if !zip(edges, next).allSatisfy({ Self.sameLine($0, $1, tolerance: short * 0.008) }) { restart = .edgeChanged }
+        else if !zip(grips, hands).allSatisfy({ hypot($0.x - $1.x, $0.y - $1.y) <= short * 0.02 }) { restart = .gripMoved }
+        else { restart = nil }
+        if restart != nil {
             edges = next; grips = hands; size = pose.imageSize
-            firstSeconds = seconds; observations = 0
+            firstTime = pose.timestamp; observations = 0
         }
-        lastSeconds = seconds
+        lastTime = pose.timestamp
         observations += 1
-        return observations >= 4 && seconds - (firstSeconds ?? seconds) >= 0.9
+        let elapsed = pose.timestamp.elapsedSeconds(since: firstTime ?? pose.timestamp)
+        let qualified = observations >= Self.minimumObservations && elapsed >= Self.minimumStableSeconds
+        diagnostic = Diagnostic(status: qualified ? .qualified : restart ?? .accumulating,
+            observations: observations, stableSeconds: elapsed, sourceSeconds: seconds)
+        return qualified
     }
 
     static func sameLine(_ p: BarSegment, _ q: BarSegment, tolerance: Double,
@@ -65,6 +92,9 @@ struct AutomaticDipRails: Sendable {
     }
     private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
     private var stability = AutomaticReferenceStability()
+    var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic? {
+        state == .holding || state == .locked ? stability.diagnostic : nil
+    }
     private struct ObservedRail {
         let pair: BarCandidate
         let edge: BarSegment
@@ -237,6 +267,7 @@ struct AutomaticApparatusReference: Sendable {
     private var dip = AutomaticDipRails()
     private var sharedDipBar = AutomaticDipBar()
     private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
+    private(set) var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic?
     mutating func reset() { self = Self() }
     static func search(pose: PoseResult, exercise: ExerciseCounter.Exercise) -> Search? {
         switch exercise {
@@ -253,19 +284,23 @@ struct AutomaticApparatusReference: Sendable {
                           side: ArmMeasurement.Side, candidates: [[BarLineCandidate]]) -> ConfirmedBar? {
         let bar: ConfirmedBar?
         switch exercise {
-        case .pullUp: bar = pullUp.observe(pose: pose, candidates: candidates.first ?? []); state = pullUp.state
+        case .pullUp:
+            bar = pullUp.observe(pose: pose, candidates: candidates.first ?? []); state = pullUp.state
+            referenceStabilityDiagnostic = pullUp.referenceStabilityDiagnostic
         case .dip:
             guard candidates.count == 2 || candidates.count == 3 else {
-                dip.reset(); sharedDipBar.reset(); state = .lookingForGrip; return nil
+                dip.reset(); sharedDipBar.reset(); state = .lookingForGrip; referenceStabilityDiagnostic = nil; return nil
             }
             bar = dip.observe(pose: pose, side: side, candidates: Array(candidates.prefix(2)))
             if dip.state == .holding || dip.state == .locked {
                 // Preserve an independently witnessed parallel-rail dwell.
-                sharedDipBar.reset(); state = dip.state
+                sharedDipBar.reset(); state = dip.state; referenceStabilityDiagnostic = dip.referenceStabilityDiagnostic
             } else {
                 let shared = sharedDipBar.observe(pose: pose, side: side,
                     candidates: candidates.count == 3 ? candidates[2] : [])
                 state = sharedDipBar.state == .holding || sharedDipBar.state == .locked ? sharedDipBar.state : dip.state
+                referenceStabilityDiagnostic = sharedDipBar.state == .holding || sharedDipBar.state == .locked
+                    ? sharedDipBar.referenceStabilityDiagnostic : dip.referenceStabilityDiagnostic
                 return shared
             }
         }

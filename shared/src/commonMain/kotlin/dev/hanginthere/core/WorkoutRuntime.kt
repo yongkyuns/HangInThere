@@ -76,6 +76,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     val resolvedExercise get()=selection.exercise ?: replayExercise ?: identity.exercise
     /** Apparatus can precede stable Auto identity; recorded acquisition must await both. */
     val isReplayAcquisitionReady get() = confirmedBar != null && resolvedExercise != null
+    /** Latest actual selected-apparatus sample; its source time does not advance with cached frames. */
+    val referenceStabilityDiagnostic get()=apparatus.referenceStabilityDiagnostic
     val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview,latestCompletedSet,session.setId.takeIf { session.phase==LiveSetSession.Phase.running },session.trackingIssue,framingHint.takeIf { session.phase==LiveSetSession.Phase.idle && issue in listOf("framingIncomplete", "barReferenceNeeded", "exerciseIdentityNeeded") })
 
     fun configure(selection:WorkoutExerciseSelection,side:ArmMeasurement.Side=this.side) {

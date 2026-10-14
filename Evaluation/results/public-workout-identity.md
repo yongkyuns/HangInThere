@@ -25,7 +25,7 @@ No source pixels, landmarks or raw errors are published.
 | Kotlin Native common tests, macOS x86_64 | 300 tests pass |
 | JVM common and parity tests, JDK 17 | 302 tests pass |
 | Actual Swift-to-Kotlin setup snapshots | 83 cases plus 17 geometry cases pass frame by frame |
-| Actual Swift-to-Kotlin counter oracle | 35 cases pass |
+| Actual Swift-to-Kotlin counter oracle | 30 cases pass |
 | Shipping Apple analysis bridge and source normalization | Pass |
 | Python script contracts | All 270 pass after the fixture repair below |
 | Independent implementation review | No actionable issues |

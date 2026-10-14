@@ -4,20 +4,48 @@ import kotlinx.serialization.Serializable
 import kotlin.math.*
 
 class AutomaticReferenceStability {
+    @Serializable enum class Status {
+        waiting, invalidEvidence, sourceRegression, candidateStarted, contextChanged,
+        sourceGap, edgeChanged, gripMoved, accumulating, qualified
+    }
+    /** Counts/timing only; no image geometry and no additional qualification rule. */
+    @Serializable data class Diagnostic(val status:Status=Status.waiting,
+        val observations:Int=0,val stableSeconds:Double=0.0,val sourceSeconds:Double?=null)
+    var diagnostic=Diagnostic();private set
     private var edges=emptyList<BarSegment>();private var grips=emptyList<Point2D>();private var size:ImageSize?=null
-    private var firstSeconds:Double?=null;private var lastSeconds:Double?=null;private var observations=0
-    fun reset(){edges=emptyList();grips=emptyList();size=null;firstSeconds=null;lastSeconds=null;observations=0}
+    private var firstTime:PresentationTime?=null;private var lastTime:PresentationTime?=null;private var observations=0
+    fun reset(){edges=emptyList();grips=emptyList();size=null;firstTime=null;lastTime=null;observations=0;diagnostic=Diagnostic()}
     fun observe(next:List<BarSegment>,hands:List<Point2D>,pose:PoseResult):Boolean {
         val seconds=pose.timestamp.seconds
-        if(!seconds.isFinite() || next.isEmpty() || next.any{!it.isValid} || hands.isEmpty() || hands.any{!it.isFinite} || !pose.imageSize.isValid){reset();return false}
-        if(lastSeconds?.let{seconds<=it}==true){reset();return false}
+        if(!seconds.isFinite() || next.isEmpty() || next.any{!it.isValid} || hands.isEmpty() || hands.any{!it.isFinite} || !pose.imageSize.isValid){
+            reset();diagnostic=Diagnostic(Status.invalidEvidence,sourceSeconds=seconds.takeIf{it.isFinite()});return false
+        }
+        val gap=lastTime?.let{pose.timestamp.elapsedSeconds(it)}
+        if(gap!=null && (!gap.isFinite() || gap<=0)){
+            reset();diagnostic=Diagnostic(Status.sourceRegression,sourceSeconds=seconds);return false
+        }
         val short=min(pose.imageSize.width,pose.imageSize.height)
-        val continues=size==pose.imageSize && edges.size==next.size && grips.size==hands.size && lastSeconds?.let{seconds-it<=.8}==true && edges.zip(next).all{sameLine(it.first,it.second,short*.008)} && grips.zip(hands).all{hypot(it.first.x-it.second.x,it.first.y-it.second.y)<=short*.02}
-        if(!continues){edges=next;grips=hands;size=pose.imageSize;firstSeconds=seconds;observations=0}
-        lastSeconds=seconds;observations++
-        return observations>=4 && seconds-(firstSeconds ?: seconds)>=.9
+        // Report the first failing condition in the existing qualification order.
+        val restart=when {
+            lastTime==null -> Status.candidateStarted
+            size!=pose.imageSize || edges.size!=next.size || grips.size!=hands.size -> Status.contextChanged
+            gap!!>maximumFrameGap -> Status.sourceGap
+            !edges.zip(next).all{sameLine(it.first,it.second,short*.008)} -> Status.edgeChanged
+            !grips.zip(hands).all{hypot(it.first.x-it.second.x,it.first.y-it.second.y)<=short*.02} -> Status.gripMoved
+            else -> null
+        }
+        // Caller-owned mutable lists cannot rewrite the witnessed baseline.
+        if(restart!=null){edges=next.toList();grips=hands.toList();size=pose.imageSize;firstTime=pose.timestamp;observations=0}
+        lastTime=pose.timestamp;observations++
+        val elapsed=pose.timestamp.elapsedSeconds(firstTime ?: pose.timestamp)
+        val qualified=observations>=minimumObservations && elapsed>=minimumStableSeconds
+        diagnostic=Diagnostic(if(qualified) Status.qualified else restart ?: Status.accumulating,observations,elapsed,seconds)
+        return qualified
     }
     companion object {
+        const val minimumObservations=4
+        const val minimumStableSeconds=.9
+        const val maximumFrameGap=.8
         fun sameLine(p:BarSegment,q:BarSegment,tolerance:Double,angleDegrees:Double=3.0,overlapFraction:Double=.65):Boolean {
             if(!sameSupportingLine(p,q,tolerance,angleDegrees)) return false
             val ux=(p.b.x-p.a.x)/p.length;val uy=(p.b.y-p.a.y)/p.length
@@ -45,6 +73,9 @@ class AutomaticDipRails {
         }
     }
     private var stability=AutomaticReferenceStability();private var witnessedRails=emptyList<ObservedRail>();private var witnessedHands=emptyList<Point2D>()
+    val referenceStabilityDiagnostic get() = stability.diagnostic.takeIf {
+        state==AutomaticPullUpBar.State.holding || state==AutomaticPullUpBar.State.locked
+    }
     fun reset(){state=AutomaticPullUpBar.State.lookingForGrip;stability=AutomaticReferenceStability();witnessedRails=emptyList();witnessedHands=emptyList()}
     fun observe(pose:PoseResult,side:ArmMeasurement.Side,candidates:List<List<BarLineCandidate>>):ConfirmedBar? {
         if(state==AutomaticPullUpBar.State.locked) return null
@@ -127,17 +158,19 @@ class AutomaticApparatusReference {
     }
     private var pullUp=AutomaticPullUpBar();private var dip=AutomaticDipRails();private var sharedDipBar=AutomaticDipBar()
     var state=AutomaticPullUpBar.State.lookingForGrip;private set
-    fun reset(){pullUp=AutomaticPullUpBar();dip=AutomaticDipRails();sharedDipBar=AutomaticDipBar();state=AutomaticPullUpBar.State.lookingForGrip}
+    var referenceStabilityDiagnostic:AutomaticReferenceStability.Diagnostic?=null;private set
+    fun reset(){pullUp=AutomaticPullUpBar();dip=AutomaticDipRails();sharedDipBar=AutomaticDipBar();state=AutomaticPullUpBar.State.lookingForGrip;referenceStabilityDiagnostic=null}
     fun observe(pose:PoseResult,exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side,candidates:List<List<BarLineCandidate>>):ConfirmedBar? {
-        if(exercise==ExerciseCounter.Exercise.pullUp) return pullUp.observe(pose,candidates.firstOrNull() ?: emptyList()).also{state=pullUp.state}
-        if(candidates.size!=2 && candidates.size!=3){dip.reset();sharedDipBar.reset();state=AutomaticPullUpBar.State.lookingForGrip;return null}
+        if(exercise==ExerciseCounter.Exercise.pullUp) return pullUp.observe(pose,candidates.firstOrNull() ?: emptyList()).also{state=pullUp.state;referenceStabilityDiagnostic=pullUp.referenceStabilityDiagnostic}
+        if(candidates.size!=2 && candidates.size!=3){dip.reset();sharedDipBar.reset();state=AutomaticPullUpBar.State.lookingForGrip;referenceStabilityDiagnostic=null;return null}
         val rails=dip.observe(pose,side,candidates.take(2))
         if(dip.state==AutomaticPullUpBar.State.holding || dip.state==AutomaticPullUpBar.State.locked){
             // Preserve an independently witnessed parallel-rail dwell.
-            sharedDipBar.reset();state=dip.state;return rails
+            sharedDipBar.reset();state=dip.state;referenceStabilityDiagnostic=dip.referenceStabilityDiagnostic;return rails
         }
         val shared=sharedDipBar.observe(pose,side,candidates.getOrNull(2) ?: emptyList())
         state=if(sharedDipBar.state==AutomaticPullUpBar.State.holding || sharedDipBar.state==AutomaticPullUpBar.State.locked) sharedDipBar.state else dip.state
+        referenceStabilityDiagnostic=if(sharedDipBar.state==AutomaticPullUpBar.State.holding || sharedDipBar.state==AutomaticPullUpBar.State.locked) sharedDipBar.referenceStabilityDiagnostic else dip.referenceStabilityDiagnostic
         return shared
     }
     companion object {

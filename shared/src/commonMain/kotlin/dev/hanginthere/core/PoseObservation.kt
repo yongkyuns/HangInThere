@@ -38,6 +38,15 @@ data class PoseObservation(val landmarks: List<Landmark>) {
 @Serializable
 data class PresentationTime(val value: Long, val timescale: Int) {
     val seconds: Double get() = if (timescale > 0) value.toDouble() / timescale else Double.NaN
+
+    /** Subtract source ticks before conversion, preserving exact same-clock boundaries. */
+    fun elapsedSeconds(since: PresentationTime): Double {
+        if (timescale <= 0 || since.timescale <= 0) return Double.NaN
+        if (timescale != since.timescale) return seconds - since.seconds
+        val ticks = value - since.value
+        if (((value xor since.value) and (value xor ticks)) < 0) return Double.NaN
+        return ticks.toDouble() / timescale
+    }
 }
 
 @Serializable

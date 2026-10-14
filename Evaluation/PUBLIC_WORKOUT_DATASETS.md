@@ -139,6 +139,23 @@ outputs without changing policy, exposing raw poses or establishing labelled pos
 accuracy. Diagnostics run outside the measured decode-to-display-copy interval;
 the full harness wall time still includes them.
 
+`referenceStabilitySamples` counts only actual eligible-edge observations whose
+diagnostic source timestamp matches the current frame. Cached states and the
+counting-pass rewind add no samples. Statuses describe the first failed dwell
+condition (source gap, context, edge or hand drift), a newly selected candidate,
+continued accumulation or qualification. These counts cover the selected apparatus
+path after edge eligibility, not all earlier grip/contour rejections. Their sum
+cannot exceed actual contour samples. Swift/Kotlin setup parity compares the same
+counts/timing diagnostic frame by frame; the local Apple bar audit additionally
+contains geometry and must remain local for private footage.
+
+Fixed-reference dwell subtracts same-timescale source ticks before converting
+to seconds, preserving the existing 0.9-second hold and 0.8-second gap boundaries.
+Invalid scales or signed subtraction overflow fail qualification. Mixed-timescale
+observations retain floating-point subtraction; they do not have the same exact
+boundary guarantee. No hold duration, required observations or geometry tolerance
+has been relaxed.
+
 ## Qualification and data use
 
 This is user-authorized internal diagnostic use of publicly distributed research

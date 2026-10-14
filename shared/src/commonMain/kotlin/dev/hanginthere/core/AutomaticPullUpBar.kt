@@ -9,6 +9,9 @@ class AutomaticPullUpBar {
     data class Grip(val left:Point2D,val right:Point2D,val region:BarRegion)
     var state=State.lookingForGrip;private set
     private var stability=AutomaticReferenceStability()
+    val referenceStabilityDiagnostic get() = stability.diagnostic.takeIf {
+        state==State.holding || state==State.locked
+    }
     fun reset(){state=State.lookingForGrip;stability=AutomaticReferenceStability()}
     fun observe(pose:PoseResult,candidates:List<BarLineCandidate>):ConfirmedBar? {
         if(state==State.locked) return null
