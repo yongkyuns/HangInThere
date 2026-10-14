@@ -61,23 +61,35 @@ class WorkoutFramingGuidanceTests {
             BarSegment(Point2D(400.0, 30.0), Point2D(500.0, 30.0)), imageSize = p.imageSize, sourceTime = p.timestamp)
         val attitude = PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)!!
         assertTrue(runtime.confirmManualBar(bar, attitude, 0.0))
-        val snapshot = runtime.observe(WorkoutRuntime.FrameInput(p, attitude = attitude, motionTimestamp = 0.0))
+        assertNull(runtime.observe(WorkoutRuntime.FrameInput(p, attitude = attitude, motionTimestamp = 0.0)).framingHint)
+        val snapshot = runtime.observe(WorkoutRuntime.FrameInput(p.copy(timestamp = PresentationTime(310, 1000)),
+            attitude = attitude, motionTimestamp = .31))
         assertEquals("framingIncomplete", snapshot.setupIssue)
         assertEquals("Improve lighting · keep the selected arm and hand clear", snapshot.framingHint)
         assertNotNull(snapshot.referenceEdge)
         assertEquals(0, snapshot.observedMovements)
         assertNull(snapshot.countdownSeconds)
+        runtime.session.start(ExerciseCounter.Exercise.dip, ArmMeasurement.Side.right)
+        assertNull(runtime.snapshot.framingHint)
+        runtime.stop(); runtime.nextSet()
+        assertNull(runtime.snapshot.framingHint, "A new set cannot reuse the previous setup instruction")
+        assertNull(runtime.observe(WorkoutRuntime.FrameInput(p.copy(timestamp = PresentationTime(320, 1000)),
+            attitude = attitude, motionTimestamp = .32)).framingHint)
     }
     @Test fun runtimeGuidanceClearsWithFreshEvidenceOrInvalidatedSetup() {
         val runtime = WorkoutRuntime()
         val unclear = pose { if (it.joint == PoseJoint.rightWrist) it.copy(confidence = .01) else it }
         val first = runtime.observe(WorkoutRuntime.FrameInput(unclear))
         assertEquals("framingIncomplete", first.setupIssue)
-        assertEquals("Angle camera so both arms and hands are clear", first.framingHint)
+        assertNull(first.framingHint, "One unclear frame must not publish a camera instruction")
         assertEquals(0, first.observedMovements)
         assertNull(first.countdownSeconds)
-        assertNull(runtime.observe(WorkoutRuntime.FrameInput(pose().copy(timestamp = PresentationTime(100, 1000)))).framingHint)
-        runtime.observe(WorkoutRuntime.FrameInput(unclear.copy(timestamp = PresentationTime(200, 1000))))
+        val stable = runtime.observe(WorkoutRuntime.FrameInput(unclear.copy(timestamp = PresentationTime(310, 1000))))
+        assertEquals("Angle camera so both arms and hands are clear", stable.framingHint)
+        assertEquals(0, stable.observedMovements)
+        assertNull(stable.countdownSeconds)
+        assertNull(runtime.observe(WorkoutRuntime.FrameInput(pose().copy(timestamp = PresentationTime(400, 1000)))).framingHint)
+        runtime.observe(WorkoutRuntime.FrameInput(unclear.copy(timestamp = PresentationTime(500, 1000))))
         runtime.interrupt(LiveSetSession.EndReason.cameraInterrupted)
         assertNull(runtime.snapshot.framingHint)
     }

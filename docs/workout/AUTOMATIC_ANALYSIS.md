@@ -28,6 +28,16 @@ an obscured arm in a saved video. The original failed evaluation clips remain
 fatal accuracy checks. Common tests, shipping Apple FFI contracts/performance,
 and narrow/wide overlay renders cover this path in CI.
 
+Shared `WorkoutFramingFeedback` waits for 0.30 seconds of one consistent camera
+instruction on consecutive source frames. Clear framing, athlete identity and
+malformed pose errors take effect immediately. Changed instructions, duplicate
+or regressing timestamps, gaps beyond the existing 0.35-second frame continuity
+limit, configuration/resolution changes and lifecycle invalidation reset this
+presentation state. Apple passes the original source clock through FFI and
+clears its observable hint synchronously on bar/camera/set invalidation, without
+waiting for another pose. This engineering default reduces transient direction
+changes; it does not delay set readiness or credit elapsed wall-clock time.
+
 Roadmap [#31](https://github.com/yongkyuns/HangInThere/issues/31) begins with
 `WorkoutEvidence`, a shared, versioned review projection. Both apps distinguish
 completed cycles, active attempts, counter-observed partial movements, acceptance

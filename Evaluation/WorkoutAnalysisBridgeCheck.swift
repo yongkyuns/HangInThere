@@ -48,6 +48,45 @@ struct WorkoutAnalysisBridgeCheck {
                   automatic: true, pullUp: true, side: .right) == nil else {
             fatalError("Shipping Apple framing advice lost confirmed-dip fallback or leaked into a running set")
         }
+        let feedbackAdapter = WorkoutAnalysisAdapter()
+        @MainActor func readFraming(_ time: Double, clear: Bool = false, idle: Bool = true) -> String? {
+            let original = clear ? clearFraming : unclearFraming
+            let frame = PoseResult(timestamp: PresentationTime(value: Int64((time * 1000).rounded()), timescale: 1000),
+                imageSize: original.imageSize, people: original.people, backend: original.backend, requestRevision: 0)
+            return feedbackAdapter.observeSetupFraming(frame, idle: idle, barConfirmed: false,
+                automatic: true, pullUp: true, side: .left)
+        }
+        let angleAdvice = "Angle camera so both arms and hands are clear"
+        guard readFraming(0) == nil, readFraming(0.1, clear: true) == nil,
+              readFraming(0.2) == nil, readFraming(0.51) == angleAdvice,
+              readFraming(0.51) == nil, readFraming(0.70) == nil,
+              readFraming(0.40) == nil, readFraming(0.71) == angleAdvice,
+              readFraming(1.2) == nil, readFraming(1.3, idle: false) == nil else {
+            fatalError("Shipping Apple framing feedback used noise, duplicates, rewinds, gaps or running frames")
+        }
+        feedbackAdapter.resetFramingFeedback()
+        guard readFraming(1.31) == nil,
+              feedbackAdapter.observeSetupFraming(duplicateFraming, idle: true, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == "Pose unavailable · retry the camera" else {
+            fatalError("Shipping Apple feedback failed to clear lifecycle state or immediately report malformed evidence")
+        }
+        // A lifecycle reset is synchronous; no additional pose is required.
+        feedbackAdapter.resetFramingFeedback()
+        guard readFraming(2.0) == nil, readFraming(2.31) == angleAdvice,
+              feedbackAdapter.framingHint == angleAdvice else {
+            fatalError("Shipping Apple feedback lost a fresh confirmation after reset")
+        }
+        feedbackAdapter.resetFramingFeedback()
+        guard feedbackAdapter.framingHint == nil else { fatalError("Shipping Apple invalidation needs another pose to clear its hint") }
+        guard readFraming(2.32) == nil else { fatalError("Shipping Apple feedback reused an invalidated setup") }
+        let invalidClock = PoseResult(timestamp: PresentationTime(value: 1, timescale: 0),
+            imageSize: unclearFraming.imageSize, people: unclearFraming.people,
+            backend: unclearFraming.backend, requestRevision: 0)
+        guard feedbackAdapter.observeSetupFraming(invalidClock, idle: true, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == "Pose unavailable · retry the camera",
+              readFraming(2.33) == nil else {
+            fatalError("Shipping Apple feedback sanitized a nonfinite clock or carried its old confirmation")
+        }
         for exercise in ExerciseCounter.Exercise.allCases {
             let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
             var counter = ExerciseCounter(exercise: exercise, side: .left)
@@ -376,18 +415,22 @@ struct WorkoutAnalysisBridgeCheck {
             fatalError("Native Swift/shared grip transport or confirmation changed")
         }
         var framingLatencies: [Double] = []
-        for _ in 0..<2000 {
+        framingAdapter.resetFramingFeedback()
+        for index in 0..<2000 {
+            let frame = PoseResult(timestamp: PresentationTime(value: Int64(index), timescale: 30),
+                imageSize: unclearFraming.imageSize, people: unclearFraming.people,
+                backend: unclearFraming.backend, requestRevision: 0)
             let started = ContinuousClock.now
-            let message = framingAdapter.setupFramingMessage(unclearFraming, idle: true, barConfirmed: false,
+            let message = framingAdapter.observeSetupFraming(frame, idle: true, barConfirmed: false,
                 automatic: true, pullUp: true, side: .left)
             let elapsed = started.duration(to: .now).components
             framingLatencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
-            guard message == "Angle camera so both arms and hands are clear" else { fatalError("Framing result was not consumed") }
+            guard message == (index < 9 ? nil : angleAdvice) else { fatalError("Framing result was not consumed") }
         }
         framingLatencies.sort()
         let framingP95 = framingLatencies[Int(Double(framingLatencies.count - 1) * 0.95)]
         guard framingP95 < 5 else { fatalError("Framing host FFI p95 exceeds 5 ms budget: \(framingP95)") }
-        let result: [String: Any] = ["framingCases": 8, "framingFrames": 2000, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+        let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 8, "framingFrames": 2000, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         // Actual shipping Swift → Kotlin normalization, checked again by the

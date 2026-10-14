@@ -31,6 +31,7 @@ final class WorkoutAnalysisAdapter {
     @ObservationIgnored private lazy var engine = makeEngine(exercise: .pullUp)
     @ObservationIgnored private var jointIndices: [PoseJoint: Int32] = [:]
     @ObservationIgnored private lazy var framingBridge = WorkoutFramingBridge()
+    private(set) var framingHint: String?
     @ObservationIgnored private var revision: Int32 = -1
     private(set) var reps: [WorkoutRepRecord] = []
     private(set) var currentRecord: WorkoutSetRecord?
@@ -117,6 +118,18 @@ final class WorkoutAnalysisAdapter {
                 idle: idle, barConfirmed: barConfirmed, automatic: automatic, pullUp: pullUp,
                 side: side.rawValue)
         } catch { return "Pose unavailable · retry the camera" }
+    }
+    func resetFramingFeedback() { framingBridge.resetFeedback(); framingHint = nil }
+    func observeSetupFraming(_ pose: PoseResult, idle: Bool, barConfirmed: Bool, automatic: Bool,
+                            pullUp: Bool, side: ArmMeasurement.Side) -> String? {
+        let payload = poseTransport(pose)
+        do {
+            framingHint = try framingBridge.observeSetup(seconds: pose.timestamp.seconds,
+                width: pose.imageSize.width, height: pose.imageSize.height, peopleCount: Int32(pose.people.count),
+                joints: payload.joints, triples: payload.triples, idle: idle, barConfirmed: barConfirmed,
+                automatic: automatic, pullUp: pullUp, side: side.rawValue)
+        } catch { framingBridge.resetFeedback(); framingHint = "Pose unavailable · retry the camera" }
+        return framingHint
     }
     func consume(_ pose: PoseResult, reference: BarSegment?, counter: ExerciseCounter,
                  event: ExerciseCounter.Event?, automaticFinish: Bool) -> LiveSetSession.EndReason? {
