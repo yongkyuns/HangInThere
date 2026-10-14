@@ -1,0 +1,1009 @@
+{
+  "all_exact_completed_counts": false,
+  "all_inputs_processed": true,
+  "by_dataset": {
+    "countix": {
+      "acceptance_seconds": {
+        "clips": 29,
+        "exact_clips": 0,
+        "expected_repetitions": 101,
+        "mean_absolute_error": 3.4827586206896552,
+        "observed_events": 0
+      },
+      "completed_seconds": {
+        "clips": 29,
+        "exact_clips": 0,
+        "expected_repetitions": 101,
+        "mean_absolute_error": 3.4827586206896552,
+        "observed_events": 0
+      }
+    },
+    "repcount_a": {
+      "acceptance_seconds": {
+        "clips": 4,
+        "exact_clips": 0,
+        "expected_repetitions": 48,
+        "mean_absolute_error": 12.0,
+        "observed_events": 0
+      },
+      "completed_seconds": {
+        "clips": 4,
+        "exact_clips": 0,
+        "expected_repetitions": 48,
+        "mean_absolute_error": 12.0,
+        "observed_events": 0
+      }
+    }
+  },
+  "cases": [
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix___rd8woSLiM",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_0_VBxJ4eNlg",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_0ep0izfSjIY",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_15ypy7AMAsc",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_6EPqA_hS1jc",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_6cDE1YpzSaE",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_88hPGnxh_Go",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_AV9sB40vvZQ",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_Ace4EsUWyYc",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_AiVMAXr8E9o",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_GK9zE0RGQ4c",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 6,
+          "exact": false,
+          "expected": 6,
+          "observed": 0,
+          "signed_error": -6
+        },
+        "completed_seconds": {
+          "absolute_error": 6,
+          "exact": false,
+          "expected": 6,
+          "observed": 0,
+          "signed_error": -6
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_HmwfLUgHZIc",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 5,
+          "exact": false,
+          "expected": 5,
+          "observed": 0,
+          "signed_error": -5
+        },
+        "completed_seconds": {
+          "absolute_error": 5,
+          "exact": false,
+          "expected": 5,
+          "observed": 0,
+          "signed_error": -5
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_Itbz9_ghSfc",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_VHj2sMZQ0fU",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_XNFGt0WPASQ",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_XuZ8ydaiN3A",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 6,
+          "exact": false,
+          "expected": 6,
+          "observed": 0,
+          "signed_error": -6
+        },
+        "completed_seconds": {
+          "absolute_error": 6,
+          "exact": false,
+          "expected": 6,
+          "observed": 0,
+          "signed_error": -6
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_Yt7_BnVkoUM",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_aiJcIGNepAM",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 8,
+          "exact": false,
+          "expected": 8,
+          "observed": 0,
+          "signed_error": -8
+        },
+        "completed_seconds": {
+          "absolute_error": 8,
+          "exact": false,
+          "expected": 8,
+          "observed": 0,
+          "signed_error": -8
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_aleOhE3pmCk",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_bfQGBGK81JE",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 5,
+          "exact": false,
+          "expected": 5,
+          "observed": 0,
+          "signed_error": -5
+        },
+        "completed_seconds": {
+          "absolute_error": 5,
+          "exact": false,
+          "expected": 5,
+          "observed": 0,
+          "signed_error": -5
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_eMRW1vKyy9o",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 10,
+          "exact": false,
+          "expected": 10,
+          "observed": 0,
+          "signed_error": -10
+        },
+        "completed_seconds": {
+          "absolute_error": 10,
+          "exact": false,
+          "expected": 10,
+          "observed": 0,
+          "signed_error": -10
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_fdmzDARpAng",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 4,
+          "exact": false,
+          "expected": 4,
+          "observed": 0,
+          "signed_error": -4
+        },
+        "completed_seconds": {
+          "absolute_error": 4,
+          "exact": false,
+          "expected": 4,
+          "observed": 0,
+          "signed_error": -4
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_fw3FnkqViKo",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_j9nYcbI4OOw",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_wKNOQ5_6xgw",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 5,
+          "exact": false,
+          "expected": 5,
+          "observed": 0,
+          "signed_error": -5
+        },
+        "completed_seconds": {
+          "absolute_error": 5,
+          "exact": false,
+          "expected": 5,
+          "observed": 0,
+          "signed_error": -5
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_xNN9Sha2SAM",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_zHonAu4yl8I",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 4,
+          "exact": false,
+          "expected": 4,
+          "observed": 0,
+          "signed_error": -4
+        },
+        "completed_seconds": {
+          "absolute_error": 4,
+          "exact": false,
+          "expected": 4,
+          "observed": 0,
+          "signed_error": -4
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_zJ_7ZJuHslY",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        },
+        "completed_seconds": {
+          "absolute_error": 3,
+          "exact": false,
+          "expected": 3,
+          "observed": 0,
+          "signed_error": -3
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": null,
+      "dataset": "countix",
+      "exercise_correct": false,
+      "id": "countix_zWV8fZ9spHs",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        },
+        "completed_seconds": {
+          "absolute_error": 2,
+          "exact": false,
+          "expected": 2,
+          "observed": 0,
+          "signed_error": -2
+        }
+      },
+      "published_split": "val",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": {
+        "absolute_count_error": 7,
+        "exact_count": false,
+        "f1": 0.0,
+        "false_negatives": 7,
+        "false_positive_indices": [],
+        "false_positives": 0,
+        "ignored_prediction_indices": [],
+        "matched_timing_error_seconds": {
+          "coverage": 0.0,
+          "mean": null,
+          "measured_count": 0,
+          "p95": null,
+          "reference_count": 7
+        },
+        "matches": [],
+        "missed_reference_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "precision": null,
+        "predicted_events_scored": 0,
+        "predicted_events_total": 0,
+        "recall": 0.0,
+        "reference_events": 7,
+        "scored_seconds": 22.022,
+        "scored_time_fraction": 1.0,
+        "true_positives": 0
+      },
+      "dataset": "repcount_a",
+      "exercise_correct": false,
+      "id": "repcount_stu10_34",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 7,
+          "exact": false,
+          "expected": 7,
+          "observed": 0,
+          "signed_error": -7
+        },
+        "completed_seconds": {
+          "absolute_error": 7,
+          "exact": false,
+          "expected": 7,
+          "observed": 0,
+          "signed_error": -7
+        }
+      },
+      "published_split": "train",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": {
+        "absolute_count_error": 10,
+        "exact_count": false,
+        "f1": 0.0,
+        "false_negatives": 10,
+        "false_positive_indices": [],
+        "false_positives": 0,
+        "ignored_prediction_indices": [],
+        "matched_timing_error_seconds": {
+          "coverage": 0.0,
+          "mean": null,
+          "measured_count": 0,
+          "p95": null,
+          "reference_count": 10
+        },
+        "matches": [],
+        "missed_reference_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "precision": null,
+        "predicted_events_scored": 0,
+        "predicted_events_total": 0,
+        "recall": 0.0,
+        "reference_events": 10,
+        "scored_seconds": 39.0,
+        "scored_time_fraction": 1.0,
+        "true_positives": 0
+      },
+      "dataset": "repcount_a",
+      "exercise_correct": false,
+      "id": "repcount_stu10_39",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 10,
+          "exact": false,
+          "expected": 10,
+          "observed": 0,
+          "signed_error": -10
+        },
+        "completed_seconds": {
+          "absolute_error": 10,
+          "exact": false,
+          "expected": 10,
+          "observed": 0,
+          "signed_error": -10
+        }
+      },
+      "published_split": "train",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": {
+        "absolute_count_error": 13,
+        "exact_count": false,
+        "f1": 0.0,
+        "false_negatives": 13,
+        "false_positive_indices": [],
+        "false_positives": 0,
+        "ignored_prediction_indices": [],
+        "matched_timing_error_seconds": {
+          "coverage": 0.0,
+          "mean": null,
+          "measured_count": 0,
+          "p95": null,
+          "reference_count": 13
+        },
+        "matches": [],
+        "missed_reference_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "precision": null,
+        "predicted_events_scored": 0,
+        "predicted_events_total": 0,
+        "recall": 0.0,
+        "reference_events": 13,
+        "scored_seconds": 50.0,
+        "scored_time_fraction": 1.0,
+        "true_positives": 0
+      },
+      "dataset": "repcount_a",
+      "exercise_correct": false,
+      "id": "repcount_stu1_34",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 13,
+          "exact": false,
+          "expected": 13,
+          "observed": 0,
+          "signed_error": -13
+        },
+        "completed_seconds": {
+          "absolute_error": 13,
+          "exact": false,
+          "expected": 13,
+          "observed": 0,
+          "signed_error": -13
+        }
+      },
+      "published_split": "train",
+      "status": "setupUnavailable"
+    },
+    {
+      "cycle_end_timing_diagnostic": {
+        "absolute_count_error": 18,
+        "exact_count": false,
+        "f1": 0.0,
+        "false_negatives": 18,
+        "false_positive_indices": [],
+        "false_positives": 0,
+        "ignored_prediction_indices": [],
+        "matched_timing_error_seconds": {
+          "coverage": 0.0,
+          "mean": null,
+          "measured_count": 0,
+          "p95": null,
+          "reference_count": 18
+        },
+        "matches": [],
+        "missed_reference_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "precision": null,
+        "predicted_events_scored": 0,
+        "predicted_events_total": 0,
+        "recall": 0.0,
+        "reference_events": 18,
+        "scored_seconds": 60.026633333333336,
+        "scored_time_fraction": 1.0,
+        "true_positives": 0
+      },
+      "dataset": "repcount_a",
+      "exercise_correct": false,
+      "id": "repcount_stu1_37",
+      "metrics": {
+        "acceptance_seconds": {
+          "absolute_error": 18,
+          "exact": false,
+          "expected": 18,
+          "observed": 0,
+          "signed_error": -18
+        },
+        "completed_seconds": {
+          "absolute_error": 18,
+          "exact": false,
+          "expected": 18,
+          "observed": 0,
+          "signed_error": -18
+        }
+      },
+      "published_split": "train",
+      "status": "setupUnavailable"
+    }
+  ],
+  "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+  "run": {
+    "backend": "production MediaPipe CPU/OpenCV native video replay",
+    "exercise_selection": "production automatic exercise acquisition",
+    "platform": "android_emulator",
+    "source_revision": "e73e57c827d5ba68c7668438ecf702a0ad9b0418"
+  },
+  "schema_version": 1,
+  "scope": "published repetition diagnostics; no strict-form, phase/hold, field or physical-device qualification",
+  "summary": {
+    "acceptance_seconds": {
+      "clips": 33,
+      "exact_clips": 0,
+      "expected_repetitions": 149,
+      "mean_absolute_error": 4.515151515151516,
+      "observed_events": 0
+    },
+    "completed_seconds": {
+      "clips": 33,
+      "exact_clips": 0,
+      "expected_repetitions": 149,
+      "mean_absolute_error": 4.515151515151516,
+      "observed_events": 0
+    }
+  }
+}

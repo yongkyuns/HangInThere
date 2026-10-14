@@ -1,0 +1,6 @@
+{
+  "bytes": 30664242,
+  "model_id": "pose_landmarker_heavy/float16/1",
+  "sha256": "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
+  "url": "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task"
+}
