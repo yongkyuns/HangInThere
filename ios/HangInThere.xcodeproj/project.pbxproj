@@ -61,6 +61,8 @@
 		ADA000000000000000000002 = {isa = PBXBuildFile; fileRef = ADA000000000000000000001;};
 		ADA000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipRailsTests.swift; sourceTree = "<group>";};
 		ADA000000000000000000004 = {isa = PBXBuildFile; fileRef = ADA000000000000000000003;};
+		ADB000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticReferenceStabilityTests.swift; sourceTree = "<group>";};
+		ADB000000000000000000004 = {isa = PBXBuildFile; fileRef = ADB000000000000000000003;};
 		AD9000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgress.swift; sourceTree = "<group>";};
 		AD9000000000000000000002 = {isa = PBXBuildFile; fileRef = AD9000000000000000000001;};
 		AD9000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgressTests.swift; sourceTree = "<group>";};
@@ -405,6 +407,7 @@
 				AD8000000000000000000003,
 				AD9000000000000000000003,
 				ADA000000000000000000003,
+				ADB000000000000000000003,
 				AEB000000000000000000003,
 				A91000000000000000000005,
 			);
@@ -790,6 +793,7 @@
 				AD8000000000000000000004,
 				AD9000000000000000000004,
 				ADA000000000000000000004,
+				ADB000000000000000000004,
 				AEB000000000000000000004,
 				A91000000000000000000006,
 				9F515F569E5290F4F4BB1565,
