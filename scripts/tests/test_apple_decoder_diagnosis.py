@@ -114,7 +114,12 @@ class Cancellation(unittest.TestCase):
         for signum in (signal.SIGTERM, signal.SIGINT):
             with self.subTest(signum=signum), tempfile.TemporaryDirectory() as work:
                 marker = Path(work) / 'child-pid'
-                child = f'import os,time; from pathlib import Path; Path({str(marker)!r}).write_text(str(os.getpid())); time.sleep(10)'
+                pending = marker.with_name(marker.name + '.pending')
+                # Existence must mean the complete PID is available. A direct
+                # write briefly exposes an empty file to the polling parent.
+                child = (f'import os,time; from pathlib import Path; '
+                         f'Path({str(pending)!r}).write_text(str(os.getpid())); '
+                         f'Path({str(pending)!r}).replace({str(marker)!r}); time.sleep(10)')
                 wrapper = (
                     'import importlib.util,signal,sys; '
                     f's=importlib.util.spec_from_file_location("probe", {str(ROOT / "scripts/diagnose-apple-decoder.py")!r}); '
