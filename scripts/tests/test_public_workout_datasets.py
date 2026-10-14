@@ -185,6 +185,32 @@ class PublicDatasetScoreTests(unittest.TestCase):
 
 
 class PublicDatasetArtifactTests(unittest.TestCase):
+    def run_score_cli(self, result):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "manifest.json"; output = root / "score.json"
+            public.write_new(manifest, corpus())
+            result["manifest_sha256"] = public.ev.digest(manifest)
+            public.write_new(root / "native.json", result)
+            status = public.main(["score", str(manifest), str(root / "native.json"), "--output", str(output)])
+            return status, json.loads(output.read_text())
+
+    def test_native_processing_failure_exits_failed_after_preserving_score(self):
+        for status in ["failed", "interrupted"]:
+            with self.subTest(status=status):
+                result = native(status=status, accepted=[], completed=[])
+                result["cases"][0].update(frames=0, source_clock_verified=False)
+                exit_code, report = self.run_score_cli(result)
+                self.assertEqual(exit_code, 1)
+                self.assertFalse(report["all_inputs_processed"])
+                self.assertEqual(report["cases"][0]["status"], status)
+
+    def test_full_processing_count_mismatch_remains_for_separate_accuracy_gate(self):
+        exit_code, report = self.run_score_cli(native(completed=[1]))
+        self.assertEqual(exit_code, 0)
+        self.assertTrue(report["all_inputs_processed"])
+        self.assertFalse(report["all_exact_completed_counts"])
+
     def test_immutable_report_output(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "report.json"; public.write_new(path, {"first": 1})

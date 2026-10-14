@@ -100,8 +100,9 @@ setup; they do not filter cases out of accuracy scoring or certify pose accuracy
 
 The optional native workflow saves counts, source-clock manifests, metadata,
 model/build provenance and scores. It does not upload source videos, images,
-landmarks, test APKs or user phone data. Native processing failures fail the native
-jobs; the separate accuracy job retains count mismatches as failures. A successful
+landmarks, test APKs or user phone data. Scoring preserves failed/interrupted cases
+and exits unsuccessfully when a source was not fully processed; this fails its native
+CI job. The separate accuracy job retains count mismatches as failures. A successful
 contract/preparation job establishes no accuracy result.
 
 Android reserves an exclusive directory for each run nonce. Media copy/hash errors

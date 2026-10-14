@@ -324,6 +324,8 @@ def main(argv=None):
             report = score(ev.read_json(args.manifest), ev.read_json(args.native_report), ev.digest(args.manifest))
             write_new(args.output, report)
             print(json.dumps(report["summary"]))
+            if not report["all_inputs_processed"]:
+                return 1
         return 0
     except (OSError, ValueError, KeyError, StopIteration, tarfile.TarError, subprocess.CalledProcessError) as error:
         print(f"Public workout diagnostic failed: {error}")
