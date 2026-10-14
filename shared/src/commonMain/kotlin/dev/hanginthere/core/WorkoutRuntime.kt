@@ -14,6 +14,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         val candidates:List<List<BarLineCandidate>> = emptyList(),
         val attitude:PhoneOrientationStability.Quaternion? = null,
         val motionTimestamp:Double? = null,
+        // Latest scene observation, which may be cached between registration
+        // updates. Its source timestamp never advances with the pose clock.
         val translations:List<StaticSceneStability.PatchTranslation> = emptyList(),
         val globalScaleFraction:Double? = null,
         val sceneTimestamp:Double? = null,
@@ -52,6 +54,9 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     }}
     val phoneOrientation=PhoneOrientationStability()
     val staticScene=StaticSceneStability()
+    private data class SceneObservation(val timestamp:Double,
+        val translations:List<StaticSceneStability.PatchTranslation>,val scale:Double?)
+    private var lastDeliveredSceneObservation:SceneObservation?=null
     val handsFreeStart=HandsFreeSetStart()
     private val identity=AutomaticExerciseDetection()
     private val apparatus=AutomaticApparatusReference()
@@ -111,7 +116,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             if(lastAcquisitionSeconds==null || (seconds-lastAcquisitionSeconds!!)>=AutomaticPullUpBar.samplingInterval) {
                 lastAcquisitionSeconds=seconds
                 val proposal=apparatus.observe(pose,activeExercise,side,input.candidates)
-                if(proposal!=null && proposal.isValid && phoneOrientation.calibrate(input.attitude,input.motionTimestamp!!) && staticScene.calibrate(pose.imageSize)) {
+                if(proposal!=null && proposal.isValid && phoneOrientation.calibrate(input.attitude,input.motionTimestamp!!) && calibrateScene(pose.imageSize)) {
                     confirmedBar=proposal;generation++;acquiredThisFrame=true
                 }
             }
@@ -128,7 +133,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
                 interrupt(LiveSetSession.EndReason.phoneMoved);issue="phoneMoved";return snapshot
             }
             if(!acquiredThisFrame && isFresh(seconds,input.sceneTimestamp,sceneMaximumAgeSeconds)) {
-                if(staticScene.observe(input.translations,input.globalScaleFraction,input.sceneTimestamp!!)==StaticSceneStability.State.moved) {
+                if(observeScene(input)==StaticSceneStability.State.moved) {
                     val endReason=if(staticScene.movementKind==StaticSceneStability.MovementKind.scale) LiveSetSession.EndReason.sceneScaled else LiveSetSession.EndReason.sceneShifted
                     interrupt(endReason);issue=endReason.name;return snapshot
                 }
@@ -197,7 +202,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     }
     /** Explicit manual apparatus fallback still must have valid pixels and camera calibration. */
     fun confirmManualBar(bar:ConfirmedBar,attitude:PhoneOrientationStability.Quaternion?,motionTimestamp:Double):Boolean {
-        if(session.phase==LiveSetSession.Phase.running || !bar.isValid || resolvedExercise==null || bar.role!=expectedRole() || !phoneOrientation.calibrate(attitude,motionTimestamp) || !staticScene.calibrate(bar.imageSize)) return false
+        if(session.phase==LiveSetSession.Phase.running || !bar.isValid || resolvedExercise==null || bar.role!=expectedRole() || !phoneOrientation.calibrate(attitude,motionTimestamp) || !calibrateScene(bar.imageSize)) return false
         clearAcquisition();clearFramingFeedback();confirmedBar=bar;generation++;return true
     }
     /** Recorded review rewinds after acquisition, retaining only the observed apparatus identity.
@@ -207,13 +212,27 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
      */
     fun rewindReplay(attitude:PhoneOrientationStability.Quaternion,motionTimestamp:Double):Boolean {
         val bar=confirmedBar ?: return false;val exercise=resolvedExercise ?: return false
-        if(!phoneOrientation.calibrate(attitude,motionTimestamp) || !staticScene.calibrate(bar.imageSize)) return false
+        if(!phoneOrientation.calibrate(attitude,motionTimestamp) || !calibrateScene(bar.imageSize)) return false
         replayExercise=exercise;replayReview=true;activeExercise=exercise;identity.reset();handsFreeStart.reset();session.reset(exercise,side);sourceTimeline.reset();clearFramingFeedback();lastAcquisitionSeconds=null;discardNextSetFrame=false;generation++;return true
     }
     private fun expectedRole()=if(activeExercise==ExerciseCounter.Exercise.pullUp) ConfirmedBar.Role.pullUpGrip else if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail
+    private fun calibrateScene(size:ImageSize):Boolean {
+        lastDeliveredSceneObservation=null
+        return staticScene.calibrate(size)
+    }
+    private fun observeScene(input:FrameInput):StaticSceneStability.State {
+        val observation=SceneObservation(input.sceneTimestamp!!,input.translations,input.globalScaleFraction)
+        if(observation!=lastDeliveredSceneObservation) {
+            // Consume each registration once. Copy the bounded patch list so a
+            // caller's mutable cache cannot alter the retained observation.
+            lastDeliveredSceneObservation=observation.copy(translations=observation.translations.toList())
+            staticScene.observe(observation.translations,observation.scale,observation.timestamp)
+        }
+        return staticScene.state
+    }
     private fun clearAcquisition(){apparatus.reset();lastAcquisitionSeconds=null;handsFreeStart.reset();automaticStart.reset()}
     private fun clearFramingFeedback(){framingHint=null;framingFeedback.reset()}
-    private fun clearSetup(){clearAcquisition();confirmedBar=null;phoneOrientation.reset();staticScene.reset();generation++;issue="barReferenceNeeded";clearFramingFeedback()}
+    private fun clearSetup(){clearAcquisition();confirmedBar=null;phoneOrientation.reset();staticScene.reset();lastDeliveredSceneObservation=null;generation++;issue="barReferenceNeeded";clearFramingFeedback()}
     companion object {
         const val motionMaximumAgeSeconds=.5
         const val sceneMaximumAgeSeconds=StaticSceneStability.maximumObservationGapSeconds

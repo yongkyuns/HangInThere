@@ -72,6 +72,12 @@ continuity retains its separate 0.35-second limit. Translation and scale can
 independently prove camera movement, but missing one signal breaks its own dwell.
 Confirmed movement stays latched until explicit recalibration.
 
+Pose frames can carry the latest cached scene observation between registrations.
+The shared runtime delivers each exact timestamp/patch/scale observation once;
+reusing that cache cannot renew its source age or advance movement dwell. Changed
+evidence at the same registration time still reaches the clock-fault check.
+Calibration, setup invalidation and replay rewind clear the delivery cache.
+
 Each running frame receives reference geometry only while scene evidence is
 qualified at that frame's source time. Unavailable reference evidence interrupts
 the live counter before a cached dip support axis can be reused. Analysis retains

@@ -5,6 +5,18 @@ import kotlin.test.*
 class StaticSceneEvidenceTests {
     private val still = List(3) { StaticSceneStability.PatchTranslation(0.0, 0.0) }
     private val shifted = List(3) { StaticSceneStability.PatchTranslation(12.0, 0.0) }
+    private val attitude = PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)!!
+    private fun runtime(exercise: ExerciseCounter.Exercise, automatic: Boolean = false) =
+        WorkoutRuntime(if (exercise == ExerciseCounter.Exercise.pullUp) WorkoutExerciseSelection.pullUp else WorkoutExerciseSelection.dip,
+            automaticWorkouts = automatic).also {
+            val role = if (exercise == ExerciseCounter.Exercise.pullUp) ConfirmedBar.Role.pullUpGrip else ConfirmedBar.Role.leftDipRail
+            assertTrue(it.confirmManualBar(ConfirmedBar(role, ConfirmedBar.Method.manualEdge,
+                CounterFixtures.edge, imageSize = ImageSize(1000.0, 1000.0), sourceTime = PresentationTime(0, 1000)), attitude, 0.0))
+        }
+    private fun frame(time: Double, sceneTime: Double, exercise: ExerciseCounter.Exercise,
+        scale: Double? = 0.0, patches: List<StaticSceneStability.PatchTranslation> = still) =
+        WorkoutRuntime.FrameInput(CounterFixtures.bilateral(time, 170.0, 170.0, exercise = exercise),
+            attitude = attitude, motionTimestamp = time, translations = patches, globalScaleFraction = scale, sceneTimestamp = sceneTime)
     private fun monitor() = StaticSceneStability().also {
         assertTrue(it.calibrate(ImageSize(1000.0, 1000.0)))
         it.observe(still, 0.0, 1.0)
@@ -107,6 +119,62 @@ class StaticSceneEvidenceTests {
         assertNull(scene.qualifiedReference(CounterFixtures.edge, 2.0))
         scene.observe(emptyList(), null, 1.2)
         assertNull(scene.qualifiedReference(CounterFixtures.edge, 1.2))
+    }
+
+    @Test fun cachedRegistrationSupportsFasterPoseFramesAndBothStartModes() {
+        for (exercise in ExerciseCounter.Exercise.entries) for (automatic in listOf(false, true)) {
+            val runtime = runtime(exercise, automatic)
+            val countdown = mutableSetOf<Int>()
+            for (i in 0..60) {
+                // Actual Android delivery: 12 Hz poses reuse each 3 Hz registration.
+                val snapshot = runtime.observe(frame(i / 12.0, (i / 4 * 4) / 12.0, exercise))
+                snapshot.countdownSeconds?.let(countdown::add)
+                assertEquals(StaticSceneStability.State.stable, snapshot.sceneState)
+            }
+            assertEquals(LiveSetSession.Phase.running, runtime.session.phase)
+            assertEquals(0, runtime.session.observedMovements)
+            if (!automatic) assertTrue(countdown.containsAll(listOf(3, 2, 1)))
+        }
+    }
+
+    @Test fun repeatedCachedRegistrationCannotRenewItsSourceAgeOrCredit() {
+        val runtime = runtime(ExerciseCounter.Exercise.pullUp)
+        assertTrue(runtime.rewindReplay(attitude, 0.0))
+        for (i in 0..9) runtime.observe(frame(i / 12.0, 0.0, ExerciseCounter.Exercise.pullUp))
+        val credited = runtime.session.analysis.activity.seconds(WorkoutMotionPhase.hang)
+        assertTrue(credited > 0)
+        for (i in 10..16) {
+            val snapshot = runtime.observe(frame(i / 12.0, 0.0, ExerciseCounter.Exercise.pullUp))
+            assertEquals("sceneStabilityNeeded", snapshot.setupIssue)
+            assertEquals("barReferenceUnavailable", snapshot.trackingIssue)
+            assertEquals(credited, runtime.session.analysis.activity.seconds(WorkoutMotionPhase.hang))
+        }
+        assertEquals(0, runtime.session.record.completedCount)
+    }
+
+    @Test fun changedEvidenceAtTheSameSourceTimeIsNotACachedObservation() {
+        val runtime = runtime(ExerciseCounter.Exercise.pullUp)
+        runtime.observe(frame(0.0, 0.0, ExerciseCounter.Exercise.pullUp))
+        runtime.observe(frame(.1, 0.0, ExerciseCounter.Exercise.pullUp))
+        assertEquals(StaticSceneStability.State.stable, runtime.staticScene.state)
+        runtime.observe(frame(.2, 0.0, ExerciseCounter.Exercise.pullUp, scale = null))
+        assertEquals(StaticSceneStability.State.calibrating, runtime.staticScene.state)
+        assertEquals("sceneStabilityNeeded", runtime.snapshot.setupIssue)
+        runtime.observe(frame(.3, .3, ExerciseCounter.Exercise.pullUp))
+        assertEquals(StaticSceneStability.State.stable, runtime.staticScene.state)
+    }
+
+    @Test fun cachedMovementDoesNotAdvanceDwellButFreshRegistrationCanConfirmIt() {
+        val runtime = runtime(ExerciseCounter.Exercise.pullUp)
+        runtime.observe(frame(0.0, 0.0, ExerciseCounter.Exercise.pullUp))
+        runtime.observe(frame(.1, .1, ExerciseCounter.Exercise.pullUp, patches = shifted))
+        for (time in listOf(.2, .3, .4)) {
+            val snapshot = runtime.observe(frame(time, .1, ExerciseCounter.Exercise.pullUp, patches = shifted))
+            assertEquals(StaticSceneStability.State.stable, snapshot.sceneState)
+        }
+        val snapshot = runtime.observe(frame(.45, .45, ExerciseCounter.Exercise.pullUp, patches = shifted))
+        assertEquals("sceneShifted", snapshot.setupIssue)
+        assertNull(runtime.confirmedBar)
     }
 
     @Test fun runtimeCannotCompleteMovementOnAnUnqualifiedSceneFrame() {
