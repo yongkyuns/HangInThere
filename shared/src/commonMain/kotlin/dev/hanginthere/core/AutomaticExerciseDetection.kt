@@ -20,6 +20,10 @@ class AutomaticExerciseDetection {
         if(lastSeconds?.let{seconds<=it || seconds-it>HandsFreeSetStart.maximumFrameGap}==true){reset();return null}
         if(apparatusCandidate!=next || imageSize!=pose.imageSize){reset();apparatusCandidate=next;imageSize=pose.imageSize}
         lastSeconds=seconds
+        // A qualified hang identifies the exercise, not a pose to freeze. Keep
+        // that identity through flexion only while fresh bilateral grip evidence
+        // still identifies the same apparatus. Set start separately needs a hang.
+        if(exercise==next) return exercise
         if(candidate(pose)!=next){exercise=null;firstSeconds=null;observations=0;return null}
         if(firstSeconds==null) firstSeconds=seconds
         observations++

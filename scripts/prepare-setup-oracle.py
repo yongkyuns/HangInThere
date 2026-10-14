@@ -153,6 +153,15 @@ def prepare(output):
     add('pullUp-thin-parallel-bar','pullUp',[step(i/10,'pullUp',candidates=thin) for i in range(56)],True,True)
     settling=[step(i/10,'pullUp',degrees=145 if i<10 else 170) for i in range(66)]
     add('pullUp-hang-settles-before-countdown','pullUp',settling,True,True)
+    # Once a hang qualifies identity, fresh overhead hands still identify the
+    # exercise during flexion. Observed apparatus may settle during that motion,
+    # but flexion cannot start a live set or substitute for a new full hang.
+    moving=[step(i/10,'pullUp',degrees=170 if i<7 else 90) for i in range(56)]
+    add('pullUp-qualified-identity-through-flexion','pullUp',moving,True,False)
+    add('pullUp-flexion-then-fresh-hang-start','pullUp',
+        moving+[step(i/10,'pullUp') for i in range(56,96)],True,True)
+    add('pullUp-flexion-identity-without-apparatus','pullUp',
+        [step(i/10,'pullUp',degrees=170 if i<7 else 90,candidates=[]) for i in range(56)],False,False)
     # Preserve the actual failed public held-dip observations independently of
     # the unchanged positive native fixture. Projected foreground tube fragments
     # must never become two rails or earn countdown through a geometry relaxation.

@@ -93,6 +93,21 @@ internal class NativeReplayEvaluator(private val app: Context) {
         var finalSetupIssue: String? = null
         var events: JsonElement = JsonArray(emptyList())
         var completedRepSeconds: JsonElement = JsonArray(emptyList())
+        var acquisitionFrames = 0; var acquisitionBothArmFrames = 0; var acquisitionReferenceFrames = 0
+        var contourSampleFrames = 0; var contourEvidenceFrames = 0; var contourErrorFrames = 0
+        val acquisitionExerciseFrames = linkedMapOf<String, Int>()
+        val acquisitionIssueFrames = linkedMapOf<String, Int>()
+        val acquisitionStateFrames = linkedMapOf<String, Int>()
+        fun acquisitionEvidence() = buildJsonObject {
+            put("scope", "first acquisition pass; actual production observations, not labelled pose accuracy")
+            put("frames", acquisitionFrames); put("bothArmFrames", acquisitionBothArmFrames)
+            put("referenceFrames", acquisitionReferenceFrames)
+            put("contourSampleFrames", contourSampleFrames); put("contourEvidenceFrames", contourEvidenceFrames)
+            put("contourErrorFrames", contourErrorFrames)
+            put("resolvedExerciseFrames", buildJsonObject { acquisitionExerciseFrames.forEach { (key, value) -> put(key, value) } })
+            put("setupIssueFrames", buildJsonObject { acquisitionIssueFrames.forEach { (key, value) -> put(key, value) } })
+            put("acquisitionStateFrames", buildJsonObject { acquisitionStateFrames.forEach { (key, value) -> put(key, value) } })
+        }
         val colorEncodings = linkedSetOf<String>()
         val decoderMimeTypes = linkedSetOf<String>()
         val decoderDiagnostics = linkedSetOf<VideoDecoderDiagnostics>()
@@ -125,6 +140,23 @@ internal class NativeReplayEvaluator(private val app: Context) {
                                     it.bitmap.copy(Bitmap.Config.ARGB_8888, false).recycle()
                                     times += (System.nanoTime() - started) / 1e6
                                     // Diagnostic serialization is intentionally outside the measured native path.
+                                    if (acquire) {
+                                        acquisitionFrames++
+                                        if (PullUpArmMeasurement(result.pose).arms.size == 2) acquisitionBothArmFrames++
+                                        if (result.snapshot.referenceEdge != null) acquisitionReferenceFrames++
+                                        result.apparatus?.let { observation ->
+                                            contourSampleFrames++
+                                            if (observation.candidates.any { it.isNotEmpty() }) contourEvidenceFrames++
+                                            if (observation.errors.any { it != null }) contourErrorFrames++
+                                        }
+                                        result.snapshot.exercise?.name?.let { key ->
+                                            acquisitionExerciseFrames[key] = (acquisitionExerciseFrames[key] ?: 0) + 1
+                                        }
+                                        val issue = result.snapshot.setupIssue ?: "none"
+                                        acquisitionIssueFrames[issue] = (acquisitionIssueFrames[issue] ?: 0) + 1
+                                        val state = result.snapshot.acquisitionState.name
+                                        acquisitionStateFrames[state] = (acquisitionStateFrames[state] ?: 0) + 1
+                                    }
                                     trace.write(buildJsonObject {
                                         put("frameIndex", passFrames); put("sourcePtsMicroseconds", it.presentationTimeUs)
                                         put("pose", Json.encodeToJsonElement(result.pose))
@@ -180,6 +212,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 put("countingPassStarted", countingPassStarted); put("countingSourceEnded", countingSourceEnded)
                 put("countingSourceFrames", countingSourceFrames); put("events", events)
                 put("completedRepSeconds", completedRepSeconds)
+                put("acquisitionEvidence", acquisitionEvidence())
                 put("decodedFrames", decodedFrames); put("singlePersonFrames", peopleFrames); put("multiplePersonFrames", multiplePeopleFrames)
                 put("pipelineWithDisplayCopyLatencyMillis", NativeEvaluationMetrics.latency(times)); put("elapsedSeconds", (System.nanoTime() - elapsedStart) / 1e9)
                 put("pipelineLatencyScope", "decode+canonical pixels+pose+actual contours/scene+runtime+display copy; excludes model initialization and EOF null read")
@@ -197,6 +230,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
             }
             return buildJsonObject {
             put("functionalParity", false); put("acquiredActualContours", acquired)
+            put("acquisitionEvidence", acquisitionEvidence())
             put("decoderMimeTypes", JsonArray(decoderMimeTypes.map(::JsonPrimitive)))
             put("decoderDiagnostics", Json.encodeToJsonElement(decoderDiagnostics.toList()))
             put("setupIssue", finalSetupIssue?.let(::JsonPrimitive) ?: JsonNull); put("error", error.stackTraceToString())

@@ -6,6 +6,15 @@ import Testing
         exercise == .pullUp ? AutomaticPullUpBarTests().pose(seconds) : AutomaticDipRailsTests().pose(seconds)
     }
 
+    func bentPullUpPose(_ seconds: Double) -> PoseResult {
+        let original = pose(.pullUp, seconds)
+        return PoseResult(timestamp: original.timestamp, imageSize: original.imageSize,
+            people: [.init(landmarks: original.people[0].landmarks.map {
+                $0.joint == .leftElbow
+                    ? Landmark(joint: .leftElbow, position: .init(x: 320, y: 340), confidence: 0.9) : $0
+            })], backend: original.backend, requestRevision: original.requestRevision)
+    }
+
     @Test func distinguishesStableStartingPosesBeforeApparatusAcquisition() {
         for exercise in ExerciseCounter.Exercise.allCases {
             var detection = AutomaticExerciseDetection()
@@ -49,19 +58,55 @@ import Testing
         var detection = AutomaticExerciseDetection()
         let fixture = AutomaticPullUpBarTests()
         for t in [0.0, 0.2, 0.4, 0.7, 1.0] {
-            let original = fixture.pose(t)
-            let bent = PoseResult(timestamp: original.timestamp, imageSize: original.imageSize,
-                people: [.init(landmarks: original.people[0].landmarks.map {
-                    $0.joint == .leftElbow
-                        ? Landmark(joint: .leftElbow, position: .init(x: 320, y: 340), confidence: 0.9) : $0
-                })], backend: original.backend, requestRevision: 1)
-            #expect(detection.observe(bent) == nil)
+            #expect(detection.observe(bentPullUpPose(t)) == nil)
             #expect(detection.apparatusCandidate == .pullUp)
         }
         let locked = detection.lock()
         #expect(!locked)
         for t in [1.2, 1.4, 1.6] { #expect(detection.observe(fixture.pose(t)) == nil) }
         #expect(detection.observe(fixture.pose(1.9)) == .pullUp)
+    }
+
+    @Test func qualifiedIdentitySurvivesFlexionWithFreshBilateralGrip() {
+        var detection = AutomaticExerciseDetection()
+        for t in [0.0, 0.2, 0.4, 0.7] { _ = detection.observe(pose(.pullUp, t)) }
+        #expect(detection.exercise == .pullUp)
+        for t in [0.9, 1.1, 1.3, 1.5] {
+            let bent = bentPullUpPose(t)
+            #expect(AutomaticExerciseDetection.candidate(in: bent) == nil)
+            #expect(detection.observe(bent) == .pullUp)
+            #expect(!detection.isLocked)
+            #expect(!HandsFreeSetStart.isStartingPosition(pose: bent,
+                referenceEdge: AutomaticPullUpBarTests().candidate().edge))
+        }
+    }
+
+    @Test func unlockedFlexionIdentityNeverBridgesLostGripOrSourceContext() {
+        for fault in ["missingHand", "lowConfidence", "crowd", "gap", "duplicate", "reverse", "resize", "invalidTime"] {
+            var detection = AutomaticExerciseDetection()
+            for t in [0.0, 0.2, 0.4, 0.7] { _ = detection.observe(pose(.pullUp, t)) }
+            var invalid = bentPullUpPose(0.9)
+            switch fault {
+            case "gap": invalid = bentPullUpPose(1.5)
+            case "duplicate": invalid = bentPullUpPose(0.7)
+            case "reverse": invalid = bentPullUpPose(0.6)
+            default:
+                let people = invalid.people.map { person in
+                    PoseObservation(landmarks: person.landmarks.compactMap { point in
+                        if fault == "missingHand", point.joint == .rightWrist { return nil }
+                        return fault == "lowConfidence"
+                            ? Landmark(joint: point.joint, position: point.position, confidence: 0.1) : point
+                    })
+                }
+                invalid = PoseResult(timestamp: fault == "invalidTime" ? .init(value: 0, timescale: 0) : invalid.timestamp,
+                    imageSize: fault == "resize" ? .init(width: 800, height: 1400) : invalid.imageSize,
+                    people: fault == "crowd" ? people + people : people,
+                    backend: invalid.backend, requestRevision: invalid.requestRevision)
+            }
+            #expect(detection.observe(invalid) == nil)
+            #expect(detection.exercise == nil)
+            #expect(detection.observe(bentPullUpPose(1.7)) == nil)
+        }
     }
 
     @Test func switchingPoseClearsIdentityAndRequiresFreshDwell() {

@@ -63,6 +63,19 @@ class SetupPoliciesTest {
     private val stablePatches=listOf(StaticSceneStability.PatchTranslation(0.0,0.0),StaticSceneStability.PatchTranslation(.1,.1),StaticSceneStability.PatchTranslation(-.1,-.1))
     private fun frame(seconds:Double,dip:Boolean=true,candidates:List<List<BarLineCandidate>> = rails(),paused:Boolean=false)=WorkoutRuntime.FrameInput(pose(seconds,dip),candidates,identity,seconds,stablePatches,0.0,seconds,paused)
 
+    private fun bentPullUpPose(seconds:Double):PoseResult {
+        val original=pose(seconds,dip=false)
+        return original.copy(people=original.people.map { person ->
+            PoseObservation(person.landmarks.map { landmark ->
+                when(landmark.joint) {
+                    PoseJoint.leftElbow -> landmark.copy(position=landmark.position.copy(x=landmark.position.x+140))
+                    PoseJoint.rightElbow -> landmark.copy(position=landmark.position.copy(x=landmark.position.x-140))
+                    else -> landmark
+                }
+            })
+        })
+    }
+
     @Test fun parallelDipAutomaticallyAcquiresStartsCompletesAndRearmsWithoutManualSetup() {
         for (side in ArmMeasurement.Side.entries) {
             val runtime = WorkoutRuntime(side = side, automaticWorkouts = true)
@@ -295,6 +308,59 @@ class SetupPoliciesTest {
         assertTrue(policy.lock());assertEquals(ExerciseCounter.Exercise.dip,policy.observe(pose(.8,false)))
         policy.reset();assertFalse(policy.lock());assertNull(policy.observe(pose(2.0)));assertNull(policy.observe(pose(2.6)))
     }
+    @Test fun qualifiedIdentitySurvivesFlexionWithFreshBilateralGrip() {
+        val policy=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4,.7)) policy.observe(pose(t,dip=false))
+        assertEquals(ExerciseCounter.Exercise.pullUp,policy.exercise)
+        for(t in listOf(.9,1.1,1.3,1.5)) {
+            val bent=bentPullUpPose(t)
+            assertNull(AutomaticExerciseDetection.candidate(bent))
+            assertEquals(ExerciseCounter.Exercise.pullUp,policy.observe(bent))
+            assertFalse(policy.isLocked)
+            assertFalse(HandsFreeSetStart.isStartingPosition(bent,BarSegment(Point2D(200.0,195.0),Point2D(800.0,195.0))))
+        }
+    }
+    @Test fun unlockedFlexionIdentityNeverBridgesLostGripOrSourceContext() {
+        for(fault in listOf("missingHand","lowConfidence","crowd","gap","duplicate","reverse","resize","invalidTime")) {
+            val policy=AutomaticExerciseDetection()
+            for(t in listOf(0.0,.2,.4,.7)) policy.observe(pose(t,dip=false))
+            val original=bentPullUpPose(.9)
+            val invalid=when(fault) {
+                "gap" -> bentPullUpPose(1.5)
+                "duplicate" -> bentPullUpPose(.7)
+                "reverse" -> bentPullUpPose(.6)
+                "resize" -> original.copy(imageSize=ImageSize(800.0,1400.0))
+                "invalidTime" -> original.copy(timestamp=PresentationTime(0,0))
+                "crowd" -> original.copy(people=original.people+original.people)
+                else -> original.copy(people=original.people.map { person -> PoseObservation(person.landmarks
+                    .filter { fault!="missingHand" || it.joint!=PoseJoint.rightWrist }
+                    .map { if(fault=="lowConfidence") it.copy(confidence=.1) else it }) })
+            }
+            assertNull(policy.observe(invalid),fault)
+            assertNull(policy.exercise,fault)
+            assertNull(policy.observe(bentPullUpPose(1.7)),fault)
+        }
+    }
+    @Test fun firstPullDoesNotResetAcquisitionButCannotStartUntilFreshHang() {
+        val runtime=WorkoutRuntime(automaticWorkouts=true)
+        val bar=BarLineCandidate(BarSegment(Point2D(200.0,195.0),Point2D(800.0,195.0)),600.0)
+        fun input(t:Double,bent:Boolean=false):WorkoutRuntime.FrameInput {
+            val original=frame(t,dip=false,candidates=listOf(listOf(bar)))
+            return if(bent) original.copy(pose=bentPullUpPose(t)) else original
+        }
+        for(t in listOf(0.0,.2,.4,.6)) runtime.observe(input(t))
+        assertEquals(ExerciseCounter.Exercise.pullUp,runtime.resolvedExercise)
+        for(i in 4..15) runtime.observe(input(i*.2,bent=true))
+        val reference=assertNotNull(runtime.confirmedBar)
+        assertEquals(bar.edge,reference.referenceEdge)
+        assertTrue(runtime.isReplayAcquisitionReady)
+        assertEquals(LiveSetSession.Phase.idle,runtime.session.phase)
+        assertEquals(0,runtime.session.observedMovements)
+        for(i in 16..35) runtime.observe(input(i*.2))
+        assertEquals(reference,runtime.confirmedBar)
+        assertEquals(LiveSetSession.Phase.running,runtime.session.phase)
+        assertEquals(0,runtime.session.observedMovements)
+    }
     @Test fun countdownPausesOnMissingFramesOrSettingsAndStartsOnlyOnce() {
         val policy=HandsFreeSetStart()
         for(i in 0..10) assertFalse(policy.observe(i*.2,true))
@@ -455,15 +521,7 @@ class SetupPoliciesTest {
             if(extended) return input
             // Both observed chains remain usable with fixed overhead hands and
             // shoulders, but bent elbows cannot qualify the extended-hang identity.
-            val person=input.pose.people.single()
-            val landmarks=person.landmarks.map { landmark ->
-                when(landmark.joint) {
-                    PoseJoint.leftElbow -> landmark.copy(position=landmark.position.copy(x=landmark.position.x+140))
-                    PoseJoint.rightElbow -> landmark.copy(position=landmark.position.copy(x=landmark.position.x-140))
-                    else -> landmark
-                }
-            }
-            return input.copy(pose=input.pose.copy(people=listOf(PoseObservation(landmarks))))
+            return input.copy(pose=bentPullUpPose(seconds))
         }
 
         assertFalse(runtime.isReplayAcquisitionReady)

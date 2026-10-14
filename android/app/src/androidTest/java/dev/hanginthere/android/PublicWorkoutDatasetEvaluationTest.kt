@@ -54,6 +54,22 @@ class PublicWorkoutDatasetEvaluationTest {
                 val outcome = result["replayOutcome"]?.jsonPrimitive?.contentOrNull
                 val complete = outcome == "complete" && result["countingSourceEnded"]?.jsonPrimitive?.boolean == true
                 val status = if (complete) "processed" else if (outcome == "setupUnavailable") "setupUnavailable" else if (outcome == "interrupted") "interrupted" else "failed"
+                if (complete || status == "setupUnavailable") {
+                    val evidence = result.getValue("acquisitionEvidence").jsonObject
+                    val acquisitionFrames = evidence.getValue("frames").jsonPrimitive.int
+                    check(acquisitionFrames in 1..frames)
+                    for (key in listOf("setupIssueFrames", "acquisitionStateFrames")) {
+                        check(evidence.getValue(key).jsonObject.values.sumOf { it.jsonPrimitive.int } == acquisitionFrames)
+                    }
+                    for (key in listOf("bothArmFrames", "referenceFrames", "contourSampleFrames", "contourEvidenceFrames", "contourErrorFrames")) {
+                        check(evidence.getValue(key).jsonPrimitive.int in 0..acquisitionFrames)
+                    }
+                    val sampled = evidence.getValue("contourSampleFrames").jsonPrimitive.int
+                    for (key in listOf("contourEvidenceFrames", "contourErrorFrames")) {
+                        check(evidence.getValue(key).jsonPrimitive.int <= sampled)
+                    }
+                    check(evidence.getValue("resolvedExerciseFrames").jsonObject.values.sumOf { it.jsonPrimitive.int } in 0..acquisitionFrames)
+                }
                 val measured = complete || status == "interrupted"
                 val accepted = if (measured) result.getValue("events").jsonArray.filter {
                     it.jsonObject.getValue("outcome").jsonPrimitive.content == "movement"
@@ -66,7 +82,7 @@ class PublicWorkoutDatasetEvaluationTest {
                     put("acceptance_seconds", JsonArray(accepted))
                     put("completed_seconds", if (measured) result.getValue("completedRepSeconds") else JsonArray(emptyList()))
                     put("has_native_error", "error" in result)
-                    put("native", result.filterKeys { it in setOf("replayOutcome", "setupIssue", "countingSourceFrames", "decodedFrames", "singlePersonFrames", "multiplePersonFrames", "elapsedSeconds", "pipelineWithDisplayCopyLatencyMillis") }.let(::JsonObject))
+                    put("native", result.filterKeys { it in setOf("replayOutcome", "setupIssue", "countingSourceFrames", "decodedFrames", "singlePersonFrames", "multiplePersonFrames", "elapsedSeconds", "pipelineWithDisplayCopyLatencyMillis", "acquisitionEvidence") }.let(::JsonObject))
                 }
             } catch (failure: Throwable) {
                 // Preserve the failed case and continue. Raw error descriptions

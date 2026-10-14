@@ -24,8 +24,9 @@ enum WorkoutExerciseSelection: String, CaseIterable, Sendable {
     }
 }
 
-// Starting-pose identity only. Actual contour evidence and camera stability
-// still have to qualify before the existing three-second countdown can start.
+// Initial starting-pose identity remains valid through motion only while fresh
+// bilateral grip evidence agrees. Actual contours, camera stability and a full
+// starting position still qualify independently before a set can start.
 struct AutomaticExerciseDetection: Sendable {
     static let minimumStableSeconds = 0.6
     private(set) var exercise: ExerciseCounter.Exercise?
@@ -69,6 +70,10 @@ struct AutomaticExerciseDetection: Sendable {
             imageSize = pose.imageSize
         }
         lastSeconds = seconds
+        // Bending during the first pull must not discard already qualified
+        // identity or restart apparatus acquisition. This does not earn a rep
+        // or relax the separate starting-position requirement.
+        if exercise == next { return exercise }
         guard Self.candidate(in: pose) == next else {
             exercise = nil; firstSeconds = nil; observations = 0
             return nil

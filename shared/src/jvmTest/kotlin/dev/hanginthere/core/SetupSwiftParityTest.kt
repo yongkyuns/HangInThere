@@ -84,6 +84,8 @@ class SetupSwiftParityTest {
         assertTrue(cases.size>=72,"Setup parity cases reduced")
         val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
         assertTrue(ids.containsAll(listOf("dip-native-overlap-left","dip-native-overlap-right",
+            "pullUp-qualified-identity-through-flexion","pullUp-flexion-then-fresh-hang-start",
+            "pullUp-flexion-identity-without-apparatus",
             "dip-wrist-aligned-before-longer-clutter-left","dip-wrist-aligned-before-longer-clutter-right") +
             listOf("observed","single-edge","short-pair","ambiguous","above-grip","forearm","missing-pair").flatMap { kind ->
                 listOf("left","right").map { side -> "dip-shared-bar-$kind-$side" }

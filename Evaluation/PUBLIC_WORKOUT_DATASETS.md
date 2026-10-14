@@ -129,6 +129,16 @@ files use exclusive creation; collection rejects a different nonce or app revisi
 Failed instrumentation cannot be converted into success by collecting an old report.
 Raw native error descriptions that might contain serialized poses are not published.
 
+Android's `acquisitionEvidence` reports counts from the first acquisition pass:
+usable bilateral arms, resolved exercise, actual contour sampling/evidence/errors,
+acquisition states, setup issues and confirmed-reference frames. Its frame and
+histogram bounds are checked on completed processing. `none` in the setup-issue
+histogram means no current setup issue, not a valid starting position or counted
+rep. A rewind/counting pass does not inflate these counters. They observe production
+outputs without changing policy, exposing raw poses or establishing labelled pose
+accuracy. Diagnostics run outside the measured decode-to-display-copy interval;
+the full harness wall time still includes them.
+
 ## Qualification and data use
 
 This is user-authorized internal diagnostic use of publicly distributed research
