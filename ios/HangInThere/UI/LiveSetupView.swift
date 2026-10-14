@@ -924,7 +924,7 @@ struct LiveSetupView: View {
         if !camera.phoneOrientation.state.allowsLiveSet {
             return "Phone orientation is not stable against the calibration baseline."
         }
-        if !camera.setupReadiness.sceneStable {
+        if !camera.sceneIsReady {
             return sceneStabilityDetail
         }
         return "Complete the remaining setup checks."
@@ -1215,7 +1215,7 @@ struct LiveSetupView: View {
             }
             return "Waiting for at least two peripheral background patches to agree."
         case .stable:
-            guard camera.setupReadiness.sceneStable else {
+            guard camera.sceneIsReady else {
                 return "Waiting for fresh background alignment before Start."
             }
             let shift = (camera.sceneTranslation.latestShiftFraction ?? 0) * 100

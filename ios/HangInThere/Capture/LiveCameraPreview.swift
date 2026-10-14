@@ -592,13 +592,17 @@ final class LiveCameraPreviewController: NSObject {
         return String(decoding: data, as: UTF8.self) + "\n"
     }
 
+    var sceneIsReady: Bool {
+        sceneTranslation.isReady(at: latestFrame?.pose.timestamp.seconds)
+    }
+
     var setupReadiness: LiveSetupReadiness {
         LiveSetupReadiness(
             cameraReady: isCameraReady,
             framing: framing.state,
             barConfirmed: currentBar != nil,
             phoneStable: phoneOrientation.state.allowsLiveSet,
-            sceneStable: sceneTranslation.isReady(at: latestFrame?.pose.timestamp.seconds)
+            sceneStable: sceneIsReady
         )
     }
 
