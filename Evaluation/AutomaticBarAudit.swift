@@ -4,12 +4,26 @@ import Foundation
 // contour backends and automatic policy, then counts from the start with one
 // fixed reference. Output includes geometry, so keep private footage audits local.
 @main struct AutomaticBarAudit {
+    struct SceneMotion: Encodable, Sendable {
+        let referenceSeconds: Double
+        let consensusPatches: Int
+        let shiftFraction: Double?
+        let scaleFraction: Double?
+    }
+    struct SceneReference: Sendable {
+        let image: StaticSceneRegistrationReference
+        let seconds: Double
+    }
     struct Sample: Encodable {
         let seconds: Double
         let candidates: [BarLineCandidate]
         let state: String
         let detectionError: String?
         let referenceStability: AutomaticReferenceStability.Diagnostic?
+        let adjacentSceneMotion: SceneMotion?
+        let dwellSceneMotion: SceneMotion?
+        let adjacentRegistrationFailed: Bool
+        let dwellRegistrationFailed: Bool
     }
     struct Count: Encodable {
         let side: ArmMeasurement.Side
@@ -23,6 +37,21 @@ import Foundation
         let samples: [Sample]
         let counts: [Count]
     }
+    static func measureScene(reference: SceneReference?, frame: ProcessedFrame,
+                             worker: VisionStaticSceneRegistrationWorker) async -> (motion: SceneMotion?, failed: Bool) {
+        guard let reference else { return (nil, false) }
+        do {
+            let measurement = try await worker.measure(reference: reference.image, image: frame.image)
+            var consensus = StaticSceneStability()
+            guard consensus.calibrate(imageSize: frame.pose.imageSize) else { return (nil, true) }
+            consensus.observe(translations: measurement.translations,
+                globalScaleFraction: measurement.globalScaleFraction, timestamp: frame.pose.timestamp.seconds)
+            return (SceneMotion(referenceSeconds: reference.seconds,
+                consensusPatches: consensus.latestConsensusPatches,
+                shiftFraction: consensus.latestShiftFraction,
+                scaleFraction: consensus.latestScaleFraction), false)
+        } catch { return (nil, true) }
+    }
     static func main() async throws {
         guard CommandLine.arguments.count == 3 else {
             throw NSError(domain: "Usage: automatic-bar-audit VIDEO OUTPUT.json", code: 1)
@@ -33,11 +62,14 @@ import Foundation
         }
         let reader = VideoReplayReader()
         let detector = VisionBarDetector()
+        let sceneWorker = VisionStaticSceneRegistrationWorker()
         _ = try await reader.open(URL(fileURLWithPath: CommandLine.arguments[1]))
         var policy = AutomaticPullUpBar()
         var poses: [PoseResult] = []
         var samples: [Sample] = []
         var lastSample = -Double.infinity
+        var previousScene: SceneReference?
+        var dwellScene: SceneReference?
         var bar: ConfirmedBar?
         do {
             while let frame = try await reader.nextFrame() {
@@ -52,8 +84,27 @@ import Foundation
                     catch { detectionError = String(describing: error) }
                 }
                 bar = policy.observe(pose: frame.pose, candidates: candidates)
+                // Independent diagnostic only. Use actual peripheral registration
+                // and the production consensus; it never changes bar qualification.
+                let diagnostic = policy.referenceStabilityDiagnostic
+                let adjacent = await measureScene(reference: previousScene, frame: frame, worker: sceneWorker)
+                let dwell: (motion: SceneMotion?, failed: Bool)
+                if diagnostic == nil { dwell = (nil, false) }
+                else if let previousScene, let dwellScene, previousScene.seconds == dwellScene.seconds {
+                    dwell = adjacent
+                } else { dwell = await measureScene(reference: dwellScene, frame: frame, worker: sceneWorker) }
+                let current = VisionStaticSceneRegistrationWorker.makeReference(image: frame.image).map {
+                    SceneReference(image: $0, seconds: seconds)
+                }
+                // Compare against the old dwell anchor before replacing it on a
+                // reset. Adjacent-only drift would hide cumulative camera motion.
+                if diagnostic == nil { dwellScene = nil }
+                else if diagnostic?.observations == 1 { dwellScene = current }
+                previousScene = current
                 samples.append(Sample(seconds: seconds, candidates: candidates, state: String(describing: policy.state),
-                    detectionError: detectionError, referenceStability: policy.referenceStabilityDiagnostic))
+                    detectionError: detectionError, referenceStability: policy.referenceStabilityDiagnostic,
+                    adjacentSceneMotion: adjacent.motion, dwellSceneMotion: dwell.motion,
+                    adjacentRegistrationFailed: adjacent.failed, dwellRegistrationFailed: dwell.failed))
             }
         } catch {
             await reader.close()

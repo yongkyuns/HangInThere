@@ -12,5 +12,6 @@ xcrun swiftc -Onone -swift-version 6 -parse-as-library \
   "$ROOT/ios/HangInThere/Capture/VideoReplayReader.swift" \
   "$ROOT/ios/HangInThere/Pose/VisionPoseEstimator.swift" \
   "$ROOT/ios/HangInThere/Pose/VisionBarDetector.swift" \
+  "$ROOT/ios/HangInThere/Pose/VisionStaticSceneRegistration.swift" \
   "$ROOT/Evaluation/AutomaticBarAudit.swift" -o "$WORK/automatic-bar-audit"
 "$WORK/automatic-bar-audit" "$1" "$2"
