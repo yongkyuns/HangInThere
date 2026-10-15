@@ -184,7 +184,10 @@ import WorkoutCore
             ("selected", "Adjust the view so the selected arm and hand are clear", "adjusttheview"),
             ("visibility", "Improve lighting · keep arms and hands clear", "improvelighting"),
             ("visibility-selected", "Improve lighting · keep the selected arm and hand clear", "improvelighting"),
-            ("unavailable", "Pose unavailable · retry the camera", "poseunavailable")
+            ("unavailable", "Pose unavailable · retry the camera", "poseunavailable"),
+            ("overhead", "Leave room above your hands for the bar", "leaveroom"),
+            ("grip-visibility", "Keep both hands and shoulders clearly visible", "keepbothhands"),
+            ("acquisition", "Hold your start position · keep the phone steady", "holdyourstart")
         ] {
             for width in [320.0, 430.0] {
                 let content = LiveWorkoutOverlay(session: LiveSetSession(), cameraReady: true,

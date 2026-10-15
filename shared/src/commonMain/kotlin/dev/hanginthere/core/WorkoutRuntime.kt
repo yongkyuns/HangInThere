@@ -157,7 +157,8 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         }
         framingHint=framingFeedback.observe(pose, idle=session.phase==LiveSetSession.Phase.idle,
             barConfirmed=bar!=null, automatic=selection==WorkoutExerciseSelection.automatic,
-            pullUp=activeExercise==ExerciseCounter.Exercise.pullUp, side=side)
+            pullUp=activeExercise==ExerciseCounter.Exercise.pullUp, side=side,
+            acquisitionState=apparatus.state, referenceStability=apparatus.referenceStabilityDiagnostic)
         if(replayReview && session.phase==LiveSetSession.Phase.idle) {
             // A recording has no spoken start cue. Preserve the entire source
             // timeline once its actual background registration qualifies. Even

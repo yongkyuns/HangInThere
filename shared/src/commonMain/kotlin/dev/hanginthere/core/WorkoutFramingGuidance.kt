@@ -4,9 +4,14 @@ import kotlin.math.min
 
 /** Presentation only: never changes arm eligibility, acquisition, counting or credited time. */
 object WorkoutFramingGuidance {
-    const val policyVersion = 3
+    const val policyVersion = 4
     const val edgeMarginFraction = .03
-    internal data class Advice(val message: String, val immediate: Boolean = false)
+    internal data class Advice(val message: String, val immediate: Boolean = false,
+        val acquisition: Boolean = false)
+    private val liveAcquisitionStatuses = setOf(AutomaticReferenceStability.Status.candidateStarted,
+        AutomaticReferenceStability.Status.contextChanged, AutomaticReferenceStability.Status.sourceGap,
+        AutomaticReferenceStability.Status.edgeChanged, AutomaticReferenceStability.Status.gripMoved,
+        AutomaticReferenceStability.Status.accumulating)
 
     /** Only setup advice; a confirmed manual dip retains its selected-arm fallback. */
     fun setupMessage(pose: PoseResult, idle: Boolean, barConfirmed: Boolean, automatic: Boolean,
@@ -14,7 +19,10 @@ object WorkoutFramingGuidance {
         setupAdvice(pose, idle, barConfirmed, automatic, pullUp, side)?.message
 
     internal fun setupAdvice(pose: PoseResult, idle: Boolean, barConfirmed: Boolean, automatic: Boolean,
-                             pullUp: Boolean, side: ArmMeasurement.Side): Advice? {
+                             pullUp: Boolean, side: ArmMeasurement.Side,
+                             acquisitionState: AutomaticPullUpBar.State? = null,
+                             referenceStability: AutomaticReferenceStability.Diagnostic? = null,
+                             sourceSeconds: Double = pose.timestamp.seconds): Advice? {
         if (!idle) return null
         val framingReady = if (automatic) PullUpArmMeasurement(pose).arms.size == 2
             else if (pullUp) PullUpArmMeasurement(pose).arms.isNotEmpty()
@@ -22,8 +30,9 @@ object WorkoutFramingGuidance {
         if (barConfirmed && framingReady) return null
         val armAdvice = advice(pose, requireBothArms = !barConfirmed || automatic || pullUp, side = side)
         if (armAdvice != null) return armAdvice
-        if (!barConfirmed && (automatic || pullUp)) {
-            when (val grip = AutomaticPullUpBar.assessGrip(pose)) {
+        val pullUpAssessment = if (!barConfirmed && (automatic || pullUp)) AutomaticPullUpBar.assessGrip(pose) else null
+        if (pullUpAssessment != null) {
+            when (val grip = pullUpAssessment) {
                 // Measurable arms do not imply sufficient confidence for bar search.
                 // Auto must not apply a pull-up requirement to valid dip support.
                 AutomaticPullUpBar.GripRejection.gripLandmarksUnavailable ->
@@ -33,6 +42,17 @@ object WorkoutFramingGuidance {
                     return Advice("Leave room above your hands for the bar")
                 else -> Unit
             }
+        }
+        if (!barConfirmed && acquisitionState == AutomaticPullUpBar.State.holding && referenceStability != null) {
+            val diagnostic = referenceStability
+            // The raw FFI clock avoids microsecond transport truncation making a fresh observation appear future-dated.
+            val age = diagnostic.sourceSeconds?.let { sourceSeconds - it }
+            if (age != null && age.isFinite() && age in 0.0..AutomaticReferenceStability.maximumFrameGap &&
+                diagnostic.status in liveAcquisitionStatuses && diagnostic.observations > 0 &&
+                diagnostic.stableSeconds.isFinite() && diagnostic.stableSeconds >= 0 &&
+                (if (pullUp) pullUpAssessment is AutomaticPullUpBar.Grip
+                    else AutomaticApparatusReference.search(pose, ExerciseCounter.Exercise.dip) != null))
+                return Advice("Hold your start position · keep the phone steady", acquisition = true)
         }
         return null
     }
@@ -91,13 +111,29 @@ class WorkoutFramingBridge {
         pullUp, ArmMeasurement.Side.valueOf(side))
 
     fun resetFeedback() = feedback.reset()
+    fun invalidateAcquisitionFeedback(): Boolean = feedback.invalidateAcquisition()
     @Throws(IllegalArgumentException::class)
     fun observeSetup(seconds: Double, width: Double, height: Double, peopleCount: Int,
                      joints: IntArray, triples: DoubleArray, idle: Boolean, barConfirmed: Boolean,
-                     automatic: Boolean, pullUp: Boolean, side: String): String? {
+                     automatic: Boolean, pullUp: Boolean, side: String): String? =
+        observeSetupWithAcquisition(seconds, width, height, peopleCount, joints, triples, idle, barConfirmed,
+            automatic, pullUp, side, "", "", Double.NaN, 0, Double.NaN)
+
+    /** Atomic, optional acquisition evidence; unknown/missing values cannot invent a hold. */
+    @Throws(IllegalArgumentException::class)
+    fun observeSetupWithAcquisition(seconds: Double, width: Double, height: Double, peopleCount: Int,
+                     joints: IntArray, triples: DoubleArray, idle: Boolean, barConfirmed: Boolean,
+                     automatic: Boolean, pullUp: Boolean, side: String, acquisitionState: String,
+                     stabilityStatus: String, stabilitySeconds: Double, stabilityObservations: Int,
+                     stableSeconds: Double): String? {
         try {
+            val state = AutomaticPullUpBar.State.entries.find { it.name == acquisitionState }
+            val status = AutomaticReferenceStability.Status.entries.find { it.name == stabilityStatus }
+            val diagnostic = status?.let { AutomaticReferenceStability.Diagnostic(it, stabilityObservations,
+                stableSeconds, stabilitySeconds.takeIf { it.isFinite() }) }
             return feedback.observe(workoutBridgePose(seconds, width, height, peopleCount, joints, triples),
-                idle, barConfirmed, automatic, pullUp, ArmMeasurement.Side.valueOf(side), sourceSeconds = seconds)
+                idle, barConfirmed, automatic, pullUp, ArmMeasurement.Side.valueOf(side), sourceSeconds = seconds,
+                acquisitionState = state, referenceStability = diagnostic)
         } catch (error: IllegalArgumentException) { feedback.reset(); throw error }
     }
 }

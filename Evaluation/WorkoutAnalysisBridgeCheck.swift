@@ -96,6 +96,33 @@ struct WorkoutAnalysisBridgeCheck {
                   automatic: true, pullUp: true, side: .left) == nil else {
             fatalError("Shipping Apple grip visibility advice bypassed its debounce or confirmed-apparatus reset")
         }
+        let acquisitionAdvice = "Hold your start position · keep the phone steady"
+        let clearDipFraming = pose(0, 170, exercise: .dip)
+        var acquisitionFeedbackChecks = 0
+        @MainActor func readAcquisition(_ time: Double, source: Double? = nil,
+            state: AutomaticPullUpBar.State? = .holding, idle: Bool = true, bar: Bool = false,
+            dip: Bool = false) -> String? {
+            acquisitionFeedbackChecks += 1
+            let original = dip ? clearDipFraming : clearFraming
+            let frame = PoseResult(timestamp: PresentationTime(value: Int64((time * 1000).rounded()), timescale: 1000),
+                imageSize: original.imageSize, people: original.people, backend: original.backend, requestRevision: 0)
+            return framingAdapter.observeSetupFraming(frame, idle: idle, barConfirmed: bar,
+                automatic: true, pullUp: !dip, side: .left, acquisitionState: state,
+                referenceStability: AutomaticReferenceStability.Diagnostic(status: .accumulating,
+                    observations: 2, stableSeconds: 0.31, sourceSeconds: source ?? time))
+        }
+        framingAdapter.resetFramingFeedback()
+        guard readAcquisition(0) == nil, readAcquisition(0.31) == acquisitionAdvice,
+              readAcquisition(0.32, state: .ambiguous) == nil, readAcquisition(0.33) == nil,
+              readAcquisition(0.64) == acquisitionAdvice, readAcquisition(0.65, source: -0.2) == nil,
+              readAcquisition(0.66, source: .nan) == nil, readAcquisition(0.67) == nil,
+              readAcquisition(0.98) == acquisitionAdvice, readAcquisition(0.99, bar: true) == nil,
+              readAcquisition(1.0) == nil, readAcquisition(1.31, idle: false) == nil,
+              readAcquisition(1.32) == nil, readAcquisition(1.63) == acquisitionAdvice,
+              readAcquisition(1.64, dip: true) == nil, readAcquisition(1.95, dip: true) == acquisitionAdvice,
+              readAcquisition(1.96, state: nil, dip: true) == nil else {
+            fatalError("Shipping Apple acquisition advice used stale evidence, skipped confirmation or leaked across lifecycle state")
+        }
         let feedbackAdapter = WorkoutAnalysisAdapter()
         @MainActor func readFraming(_ time: Double, clear: Bool = false, idle: Bool = true) -> String? {
             let original = clear ? clearFraming : unclearFraming
@@ -105,6 +132,37 @@ struct WorkoutAnalysisBridgeCheck {
                 automatic: true, pullUp: true, side: .left)
         }
         let angleAdvice = "Angle camera so both arms and hands are clear"
+        // Equipment search failures recur at about the visibility debounce interval.
+        // They clear an acquisition caption synchronously without starving pose advice.
+        feedbackAdapter.resetFramingFeedback()
+        guard readFraming(0) == nil else { fatalError("Visibility cue skipped confirmation") }
+        feedbackAdapter.resetAcquisitionFramingFeedback()
+        guard readFraming(0.29) == nil else { fatalError("Visibility cue skipped confirmation") }
+        feedbackAdapter.resetAcquisitionFramingFeedback()
+        guard readFraming(0.31) == angleAdvice else { fatalError("Equipment search suppressed visibility advice") }
+        feedbackAdapter.resetAcquisitionFramingFeedback()
+        guard feedbackAdapter.framingHint == angleAdvice else { fatalError("Equipment search cleared unrelated advice") }
+        framingAdapter.resetFramingFeedback()
+        guard readAcquisition(2) == nil, readAcquisition(2.31) == acquisitionAdvice else {
+            fatalError("Acquisition cue skipped fresh confirmation")
+        }
+        framingAdapter.resetAcquisitionFramingFeedback()
+        guard framingAdapter.framingHint == nil, readAcquisition(2.32) == nil else {
+            fatalError("Equipment search retained a cancelled acquisition cue")
+        }
+        // A successful detector returning no contours also loses its candidate.
+        var acquisitionPolicy = AutomaticApparatusReference()
+        let edgeCandidate = [[BarLineCandidate(edge: reference, geometryScore: 800)]]
+        _ = acquisitionPolicy.observe(pose: pose(3, 170, exercise: .pullUp), exercise: .pullUp,
+            side: .left, candidates: edgeCandidate)
+        guard acquisitionPolicy.state == .holding, readAcquisition(3) == nil,
+              readAcquisition(3.31) == acquisitionAdvice else { fatalError("Real candidate did not enter holding") }
+        _ = acquisitionPolicy.observe(pose: pose(3.32, 170, exercise: .pullUp), exercise: .pullUp,
+            side: .left, candidates: [[]])
+        guard acquisitionPolicy.state == .findingEdge else { fatalError("Missing contours retained a candidate") }
+        framingAdapter.resetAcquisitionFramingFeedback()
+        guard framingAdapter.framingHint == nil else { fatalError("Missing contours retained a displayed hold cue") }
+        feedbackAdapter.resetFramingFeedback()
         guard readFraming(0) == nil, readFraming(0.1, clear: true) == nil,
               readFraming(0.2) == nil, readFraming(0.51) == angleAdvice,
               readFraming(0.51) == nil, readFraming(0.70) == nil,
@@ -508,7 +566,7 @@ struct WorkoutAnalysisBridgeCheck {
               gripAnalysis.gripLabel == "Underhand · Shoulder-width", gripSet.completedCount == 0 else {
             fatalError("Native Swift/shared grip transport or confirmation changed")
         }
-        @MainActor func measureFraming(_ original: PoseResult, expected: String) -> Double {
+        @MainActor func measureFraming(_ original: PoseResult, expected: String, acquisition: Bool = false) -> Double {
             var latencies: [Double] = []
             framingAdapter.resetFramingFeedback()
             for index in 0..<2000 {
@@ -517,7 +575,10 @@ struct WorkoutAnalysisBridgeCheck {
                     backend: original.backend, requestRevision: 0)
                 let started = ContinuousClock.now
                 let message = framingAdapter.observeSetupFraming(frame, idle: true, barConfirmed: false,
-                    automatic: true, pullUp: true, side: .left)
+                    automatic: true, pullUp: true, side: .left,
+                    acquisitionState: acquisition ? .holding : nil,
+                    referenceStability: acquisition ? AutomaticReferenceStability.Diagnostic(status: .accumulating,
+                        observations: 2, stableSeconds: 0.31, sourceSeconds: frame.timestamp.seconds) : nil)
                 let elapsed = started.duration(to: .now).components
                 latencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
                 guard message == (index < 9 ? nil : expected) else { fatalError("Framing result was not consumed") }
@@ -528,12 +589,15 @@ struct WorkoutAnalysisBridgeCheck {
         let framingP95 = measureFraming(unclearFraming, expected: angleAdvice)
         let overheadP95 = measureFraming(overheadFraming, expected: overheadAdvice)
         let gripVisibilityP95 = measureFraming(gripVisibilityFraming, expected: gripVisibilityAdvice)
+        let acquisitionP95 = measureFraming(clearFraming, expected: acquisitionAdvice, acquisition: true)
         // Retain every measured path before enforcing budgets, so a slow analysis
         // path cannot hide the framing measurements. Failure still exits nonzero.
-        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95].allSatisfy { $0 < 5 }
+        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95, acquisitionP95].allSatisfy { $0 < 5 }
         let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 12, "framingFrames": 2000, "overheadFramingFrames": 2000, "overheadFramingHostBridgeP95Milliseconds": overheadP95, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": withinHostBudgets, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "gripVisibilityCases": 7, "gripVisibilityFeedbackCases": 3, "gripVisibilityFramingFrames": 2000,
             "gripVisibilityFramingHostBridgeP95Milliseconds": gripVisibilityP95,
+            "acquisitionFeedbackCases": acquisitionFeedbackChecks, "acquisitionFramingFrames": 2000,
+            "acquisitionFramingHostBridgeP95Milliseconds": acquisitionP95,
             "sceneQualificationCases": 3, "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         // Actual shipping Swift → Kotlin normalization, checked again by the
@@ -545,7 +609,7 @@ struct WorkoutAnalysisBridgeCheck {
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)
         print(String(decoding: data, as: UTF8.self))
         guard withinHostBudgets else {
-            fatalError("Host FFI p95 exceeds 5 ms budgets: analysis \(p95), grip \(gripP95), framing \(framingP95), overhead \(overheadP95), grip visibility \(gripVisibilityP95)")
+            fatalError("Host FFI p95 exceeds 5 ms budgets: analysis \(p95), grip \(gripP95), framing \(framingP95), overhead \(overheadP95), grip visibility \(gripVisibilityP95), acquisition \(acquisitionP95)")
         }
     }
     @MainActor private static func checkSavedObservations() throws {

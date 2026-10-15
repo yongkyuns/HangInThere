@@ -120,14 +120,24 @@ final class WorkoutAnalysisAdapter {
         } catch { return "Pose unavailable · retry the camera" }
     }
     func resetFramingFeedback() { framingBridge.resetFeedback(); framingHint = nil }
+    func resetAcquisitionFramingFeedback() {
+        if framingBridge.invalidateAcquisitionFeedback() { framingHint = nil }
+    }
     func observeSetupFraming(_ pose: PoseResult, idle: Bool, barConfirmed: Bool, automatic: Bool,
-                            pullUp: Bool, side: ArmMeasurement.Side) -> String? {
+                            pullUp: Bool, side: ArmMeasurement.Side,
+                            acquisitionState: AutomaticPullUpBar.State? = nil,
+                            referenceStability: AutomaticReferenceStability.Diagnostic? = nil) -> String? {
         let payload = poseTransport(pose)
         do {
-            framingHint = try framingBridge.observeSetup(seconds: pose.timestamp.seconds,
+            framingHint = try framingBridge.observeSetupWithAcquisition(seconds: pose.timestamp.seconds,
                 width: pose.imageSize.width, height: pose.imageSize.height, peopleCount: Int32(pose.people.count),
                 joints: payload.joints, triples: payload.triples, idle: idle, barConfirmed: barConfirmed,
-                automatic: automatic, pullUp: pullUp, side: side.rawValue)
+                automatic: automatic, pullUp: pullUp, side: side.rawValue,
+                acquisitionState: acquisitionState.map { String(describing: $0) } ?? "",
+                stabilityStatus: referenceStability?.status.rawValue ?? "",
+                stabilitySeconds: referenceStability?.sourceSeconds ?? .nan,
+                stabilityObservations: referenceStability.flatMap { Int32(exactly: $0.observations) } ?? 0,
+                stableSeconds: referenceStability?.stableSeconds ?? .nan)
         } catch { framingBridge.resetFeedback(); framingHint = "Pose unavailable · retry the camera" }
         return framingHint
     }

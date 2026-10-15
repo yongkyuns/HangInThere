@@ -646,7 +646,8 @@ final class LiveCameraPreviewController: NSObject {
             usesBothArms: exerciseSelection == .automatic || exercise == .pullUp)
         _ = workoutAnalysis.observeSetupFraming(pose, idle: liveSet.phase == .idle,
             barConfirmed: bar != nil, automatic: exerciseSelection == .automatic, pullUp: exercise == .pullUp,
-            side: trackingSide)
+            side: trackingSide, acquisitionState: automaticBarState,
+            referenceStability: automaticBarPolicy.referenceStabilityDiagnostic)
     }
 
     // Also exercised without starting capture in controller regression tests.
@@ -716,8 +717,13 @@ final class LiveCameraPreviewController: NSObject {
         automaticBarTask?.cancel()
         automaticBarTask = nil
         lastAutomaticBarSeconds = nil
+        resetAutomaticBarObservation()
+    }
+
+    private func resetAutomaticBarObservation(_ state: AutomaticPullUpBar.State = .lookingForGrip) {
         automaticBarPolicy.reset()
-        automaticBarState = .lookingForGrip
+        automaticBarState = state
+        workoutAnalysis.resetAcquisitionFramingFeedback()
     }
 
     func setHandsFreeStartEnabled(_ enabled: Bool) {
@@ -789,8 +795,7 @@ final class LiveCameraPreviewController: NSObject {
         }
         lastAutomaticBarSeconds = seconds
         guard let grip = AutomaticApparatusReference.search(pose: frame.pose, exercise: exercise) else {
-            automaticBarPolicy.reset()
-            automaticBarState = .lookingForGrip
+            resetAutomaticBarObservation()
             return
         }
         guard let reference = VisionStaticSceneRegistrationWorker.makeReference(image: frame.image) else { return }
@@ -805,8 +810,7 @@ final class LiveCameraPreviewController: NSObject {
             } catch {
                 guard self.setupGeneration == token else { return }
                 self.automaticBarTask = nil
-                self.automaticBarPolicy.reset()
-                self.automaticBarState = .findingEdge
+                self.resetAutomaticBarObservation(.findingEdge)
                 return
             }
             guard self.setupGeneration == token else { return }
@@ -822,12 +826,14 @@ final class LiveCameraPreviewController: NSObject {
                   motion.attitude.angularDistanceDegrees(to: currentMotion.attitude) < PhoneOrientationStability.movementThresholdDegrees,
                   grip.matches(latestGrip, size: frame.pose.imageSize)
             else {
-                self.automaticBarPolicy.reset()
-                self.automaticBarState = .lookingForGrip
+                self.resetAutomaticBarObservation()
                 return
             }
             let proposal = self.automaticBarPolicy.observe(pose: frame.pose, exercise: self.exercise, side: self.trackingSide, candidates: candidates)
             self.automaticBarState = self.automaticBarPolicy.state
+            if self.automaticBarState != .holding {
+                self.workoutAnalysis.resetAcquisitionFramingFeedback()
+            }
             guard let proposal else { return }
             let setup = BarSetupFrame(frame: frame, role: self.barRole, generation: token)
             self.pendingBarMotionSample = (setup.id, motion)
