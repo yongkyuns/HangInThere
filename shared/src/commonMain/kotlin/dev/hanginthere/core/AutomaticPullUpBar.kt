@@ -33,8 +33,8 @@ class AutomaticPullUpBar {
         const val gripAssessmentVersion=1
         private fun overheadReach(short:Double)=max(12.0,short*.12)
         /** Search-space advice only; the crop and qualification rules are unchanged. */
-        internal fun overheadSearchIsClipped(pose:PoseResult):Boolean {
-            val grip=grip(pose) ?: return false
+        internal fun overheadSearchIsClipped(pose:PoseResult,observedGrip:Grip?=grip(pose)):Boolean {
+            val grip=observedGrip ?: return false
             return min(grip.left.y,grip.right.y)<overheadReach(min(pose.imageSize.width,pose.imageSize.height))
         }
         fun grip(pose:PoseResult):Grip? = assessGrip(pose) as? Grip

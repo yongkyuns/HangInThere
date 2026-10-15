@@ -142,4 +142,49 @@ class WorkoutFramingGuidanceTests {
         assertEquals(0, second.observedMovements)
         assertEquals(LiveSetSession.Phase.idle, second.phase)
     }
+    @Test fun measurableArmsCanStillNeedClearGripLandmarks() {
+        val hint = "Keep both hands and shoulders clearly visible"
+        for (joint in listOf(PoseJoint.leftWrist, PoseJoint.rightWrist, PoseJoint.leftShoulder, PoseJoint.rightShoulder)) {
+            val p = pose { if (it.joint == joint) it.copy(confidence = .4) else it }
+            assertEquals(2, PullUpArmMeasurement(p).arms.size)
+            assertNull(WorkoutFramingGuidance.message(p), "Arm visibility uses its existing confidence threshold")
+            assertEquals(AutomaticPullUpBar.GripRejection.gripLandmarksUnavailable, AutomaticPullUpBar.assessGrip(p))
+            for (automatic in listOf(false, true)) {
+                assertEquals(hint, WorkoutFramingGuidance.setupMessage(p, true, false, automatic, true, ArmMeasurement.Side.left))
+                assertNull(WorkoutFramingGuidance.setupMessage(p, true, true, automatic, true, ArmMeasurement.Side.left))
+                assertNull(WorkoutFramingGuidance.setupMessage(p, false, false, automatic, true, ArmMeasurement.Side.left))
+            }
+        }
+        assertEquals("Leave room above your hands for the bar", WorkoutFramingGuidance.setupMessage(
+            pose { if (it.joint == PoseJoint.rightWrist) it.copy(confidence = .5) else it },
+            true, false, true, true, ArmMeasurement.Side.left))
+    }
+    @Test fun dipSupportDoesNotInheritPullUpLandmarkConfidenceAdvice() {
+        val p = pose { it.copy(position = it.position.copy(y = 250.0 - it.position.y),
+            confidence = if (it.joint == PoseJoint.rightWrist) .4 else it.confidence) }
+        assertNotNull(AutomaticDipRails.grip(p), "Dip support retains its existing confidence threshold")
+        assertEquals(AutomaticPullUpBar.GripRejection.gripLandmarksUnavailable, AutomaticPullUpBar.assessGrip(p))
+        for (automatic in listOf(false, true)) for (pullUp in listOf(false, true)) {
+            if (!automatic && pullUp) continue // Explicit pull-up mode still requests its own grip evidence.
+            assertNull(WorkoutFramingGuidance.setupMessage(p, true, false, automatic, pullUp, ArmMeasurement.Side.left))
+        }
+    }
+    @Test fun gripVisibilityAdviceIsDebouncedAndCannotStartOrCreditASet() {
+        val runtime = WorkoutRuntime(WorkoutExerciseSelection.pullUp)
+        val p = pose { if (it.joint == PoseJoint.rightWrist) it.copy(confidence = .4) else it }
+        fun observe(ticks: Long, input: PoseResult = p) = runtime.observe(WorkoutRuntime.FrameInput(
+            input.copy(timestamp = PresentationTime(ticks, 1000))))
+        assertNull(observe(0).framingHint)
+        val waiting = observe(310)
+        assertEquals("Keep both hands and shoulders clearly visible", waiting.framingHint)
+        assertEquals("barReferenceNeeded", waiting.setupIssue)
+        assertNull(waiting.referenceEdge)
+        assertNull(waiting.countdownSeconds)
+        assertEquals(0, waiting.observedMovements)
+        assertEquals(LiveSetSession.Phase.idle, waiting.phase)
+        assertNull(observe(400, pose { it.copy(position = it.position.copy(y = it.position.y + 20.0)) }).framingHint)
+        assertNull(observe(500).framingHint, "Recovered visibility clears the previous confirmation")
+        runtime.stop(); runtime.nextSet()
+        assertNull(observe(510).framingHint, "A new set cannot reuse prior guidance confirmation")
+    }
 }

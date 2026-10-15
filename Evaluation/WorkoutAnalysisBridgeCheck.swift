@@ -63,6 +63,39 @@ struct WorkoutAnalysisBridgeCheck {
                   automatic: true, pullUp: true, side: .left) == nil else {
             fatalError("Shipping Apple framing did not distinguish arm visibility from overhead equipment space")
         }
+        func weakGrip(_ original: PoseResult, seconds: Double = 0) -> PoseResult {
+            PoseResult(timestamp: PresentationTime(value: Int64((seconds * 1000).rounded()), timescale: 1000),
+                imageSize: original.imageSize, people: [PoseObservation(landmarks: original.people[0].landmarks.map {
+                    Landmark(joint: $0.joint, position: $0.position, confidence: $0.joint == .rightWrist ? 0.4 : $0.confidence)
+                })], backend: original.backend, requestRevision: 0)
+        }
+        let gripVisibilityFraming = weakGrip(clearFraming)
+        let gripVisibilityAdvice = "Keep both hands and shoulders clearly visible"
+        let dipVisibilityFraming = weakGrip(pose(0, 170, exercise: .dip))
+        guard framingAdapter.framingMessage(gripVisibilityFraming, requireBothArms: true, side: .left) == nil,
+              framingAdapter.setupFramingMessage(gripVisibilityFraming, idle: true, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == gripVisibilityAdvice,
+              framingAdapter.setupFramingMessage(gripVisibilityFraming, idle: true, barConfirmed: false,
+                  automatic: false, pullUp: true, side: .left) == gripVisibilityAdvice,
+              framingAdapter.setupFramingMessage(gripVisibilityFraming, idle: true, barConfirmed: true,
+                  automatic: true, pullUp: true, side: .left) == nil,
+              framingAdapter.setupFramingMessage(gripVisibilityFraming, idle: false, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == nil,
+              framingAdapter.setupFramingMessage(dipVisibilityFraming, idle: true, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == nil,
+              framingAdapter.setupFramingMessage(dipVisibilityFraming, idle: true, barConfirmed: false,
+                  automatic: false, pullUp: false, side: .left) == nil else {
+            fatalError("Shipping Apple grip visibility advice changed counting readiness or leaked into dip support")
+        }
+        framingAdapter.resetFramingFeedback()
+        guard framingAdapter.observeSetupFraming(gripVisibilityFraming, idle: true, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == nil,
+              framingAdapter.observeSetupFraming(weakGrip(clearFraming, seconds: 0.31), idle: true, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == gripVisibilityAdvice,
+              framingAdapter.observeSetupFraming(weakGrip(clearFraming, seconds: 0.32), idle: true, barConfirmed: true,
+                  automatic: true, pullUp: true, side: .left) == nil else {
+            fatalError("Shipping Apple grip visibility advice bypassed its debounce or confirmed-apparatus reset")
+        }
         let feedbackAdapter = WorkoutAnalysisAdapter()
         @MainActor func readFraming(_ time: Double, clear: Bool = false, idle: Bool = true) -> String? {
             let original = clear ? clearFraming : unclearFraming
@@ -494,10 +527,13 @@ struct WorkoutAnalysisBridgeCheck {
         }
         let framingP95 = measureFraming(unclearFraming, expected: angleAdvice)
         let overheadP95 = measureFraming(overheadFraming, expected: overheadAdvice)
+        let gripVisibilityP95 = measureFraming(gripVisibilityFraming, expected: gripVisibilityAdvice)
         // Retain every measured path before enforcing budgets, so a slow analysis
         // path cannot hide the framing measurements. Failure still exits nonzero.
-        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95].allSatisfy { $0 < 5 }
+        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95].allSatisfy { $0 < 5 }
         let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 12, "framingFrames": 2000, "overheadFramingFrames": 2000, "overheadFramingHostBridgeP95Milliseconds": overheadP95, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": withinHostBudgets, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+            "gripVisibilityCases": 7, "gripVisibilityFeedbackCases": 3, "gripVisibilityFramingFrames": 2000,
+            "gripVisibilityFramingHostBridgeP95Milliseconds": gripVisibilityP95,
             "sceneQualificationCases": 3, "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         // Actual shipping Swift → Kotlin normalization, checked again by the
@@ -509,7 +545,7 @@ struct WorkoutAnalysisBridgeCheck {
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)
         print(String(decoding: data, as: UTF8.self))
         guard withinHostBudgets else {
-            fatalError("Host FFI p95 exceeds 5 ms budgets: analysis \(p95), grip \(gripP95), framing \(framingP95), overhead \(overheadP95)")
+            fatalError("Host FFI p95 exceeds 5 ms budgets: analysis \(p95), grip \(gripP95), framing \(framingP95), overhead \(overheadP95), grip visibility \(gripVisibilityP95)")
         }
     }
     @MainActor private static func checkSavedObservations() throws {

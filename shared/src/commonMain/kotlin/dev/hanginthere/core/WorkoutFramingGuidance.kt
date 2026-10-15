@@ -4,7 +4,7 @@ import kotlin.math.min
 
 /** Presentation only: never changes arm eligibility, acquisition, counting or credited time. */
 object WorkoutFramingGuidance {
-    const val policyVersion = 2
+    const val policyVersion = 3
     const val edgeMarginFraction = .03
     internal data class Advice(val message: String, val immediate: Boolean = false)
 
@@ -22,8 +22,18 @@ object WorkoutFramingGuidance {
         if (barConfirmed && framingReady) return null
         val armAdvice = advice(pose, requireBothArms = !barConfirmed || automatic || pullUp, side = side)
         if (armAdvice != null) return armAdvice
-        if (!barConfirmed && (automatic || pullUp) && AutomaticPullUpBar.overheadSearchIsClipped(pose))
-            return Advice("Leave room above your hands for the bar")
+        if (!barConfirmed && (automatic || pullUp)) {
+            when (val grip = AutomaticPullUpBar.assessGrip(pose)) {
+                // Measurable arms do not imply sufficient confidence for bar search.
+                // Auto must not apply a pull-up requirement to valid dip support.
+                AutomaticPullUpBar.GripRejection.gripLandmarksUnavailable ->
+                    if (!automatic || AutomaticDipRails.grip(pose) == null)
+                        return Advice("Keep both hands and shoulders clearly visible")
+                is AutomaticPullUpBar.Grip -> if (AutomaticPullUpBar.overheadSearchIsClipped(pose, grip))
+                    return Advice("Leave room above your hands for the bar")
+                else -> Unit
+            }
+        }
         return null
     }
 
