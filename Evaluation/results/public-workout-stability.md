@@ -516,3 +516,46 @@ costs excluded; they establish no production/device speedup. The recipe remains
 diagnostic because it demonstrates no count or arm-coverage gain on these exposed
 development cases. No app code, threshold, label, release gate or original failure
 changes, and no raw poses, pixels, APKs or source media are added to Git.
+
+## Automatic exercise identity clock fix at `41d51ca`
+
+Both Auto recognition policies previously subtracted rounded absolute seconds.
+A true 0.6-second hold from source ticks 1,100,000 to 1,700,000 at timescale
+1,000,000 could therefore miss the minimum identity duration. Similarly, an
+exactly allowed 0.35-second gap from 1.2 to 1.55 seconds could discard the hold.
+The [source-bound before/after record](public-workout-identity-clock.validation.json)
+reproduces the defect at prior source `4c9bb22`: three of four new JVM regression
+tests fail; two tests produce six issues in the 242-test Swift core suite.
+
+Swift and Kotlin now retain first/last PresentationTime values and reuse the
+existing source-tick elapsed-time helper for identity dwell and frame gaps. No
+new tolerance is added. Identity still requires four observations over at least
+0.6 seconds, with gaps no larger than 0.35 seconds. Grip/pose eligibility, lock and
+reset behavior, apparatus confirmation, countdown, count policy 8 and credited
+time remain unchanged. Mixed timescales retain the helper's existing floating
+subtraction fallback; this fix does not promise exact boundaries across clocks.
+
+Validation passes all 242 Swift core tests, 326 Kotlin Native tests, 328 JVM tests,
+and 20 selected iOS identity/camera tests with a full app build. The production
+Swift oracle and common engine match across 93 cases / 4,878 frames plus 17
+geometry cases. Eight new clock cases carry independently authored per-frame
+identity labels. All snapshots of the original 85 cases / 4,846 frames remain
+identical. Regressions cover exact/one-microsecond-short holds, insufficient
+observations, exact/over-limit gaps, invalid/duplicate/reversed/overflowing clocks,
+large source origins, mixed timescales and the common runtime. Identity alone
+cannot invent apparatus, countdown or movement credit. Independent code review
+finds no actionable issues.
+
+All 30 counter cases pass; core p95 remains below the unchanged 1 ms budget
+(Swift 0.0091 ms, Kotlin 0.0028 ms). The rebuilt shipping Apple FFI passes source
+normalization and all six unchanged <5 ms host budgets over 2,000 results per path:
+analysis 1.014764 ms, grip 1.564904 ms, arm framing 0.087514 ms, overhead framing
+0.145316 ms, grip visibility 0.191488 ms and acquisition guidance 0.155863 ms.
+These host measurements do not measure identity-policy overhead separately or
+qualify camera/model/device performance.
+
+Fresh hosted Android and full 33-video native evaluation are pending for this
+source. The last completed full-corpus score remains `1bb4378`; no new video
+accuracy gain is established by authored clock tests. Earlier failures, simulator
+decoder/model blockers and all five independent/field-validation goals remain
+open. PR #29 stays draft, with original labels and release gates in force.
