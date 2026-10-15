@@ -15,6 +15,72 @@ import Testing
             })], backend: original.backend, requestRevision: original.requestRevision)
     }
 
+    func identityPose(_ exercise: ExerciseCounter.Exercise, _ ticks: Int64, timescale: Int32 = 1_000_000) -> PoseResult {
+        let original = pose(exercise, 0)
+        return PoseResult(timestamp: .init(value: ticks, timescale: timescale), imageSize: original.imageSize,
+            people: original.people, backend: original.backend, requestRevision: original.requestRevision)
+    }
+
+    @Test func identitySourceDwellIsExactButCannotRoundUpOrUseThreeSamples() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for origin: Int64 in [0, 1_100_000, 60_100_000, 9_007_199_254_740_990] {
+                var policy = AutomaticExerciseDetection()
+                for delta: Int64 in [0, 200_000, 400_000, 599_999] {
+                    let result = policy.observe(identityPose(exercise, origin + delta))
+                    #expect(result == nil)
+                }
+                let result = policy.observe(identityPose(exercise, origin + 600_000))
+                #expect(result == exercise); #expect(!policy.isLocked)
+            }
+            var exact = AutomaticExerciseDetection(), sparse = AutomaticExerciseDetection()
+            for t: Int64 in [1_100_000, 1_300_000, 1_500_000] {
+                let result = exact.observe(identityPose(exercise, t)); #expect(result == nil)
+            }
+            let exactResult = exact.observe(identityPose(exercise, 1_700_000)); #expect(exactResult == exercise)
+            for t: Int64 in [1_100_000, 1_400_000, 1_700_000] {
+                let result = sparse.observe(identityPose(exercise, t)); #expect(result == nil)
+            }
+            let sparseResult = sparse.observe(identityPose(exercise, 1_700_001)); #expect(sparseResult == exercise)
+        }
+    }
+
+    @Test func identitySourceGapAcceptsExactLimitAndRejectsOneTickMore() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for extra: Int64 in [0, 1] {
+                var policy = AutomaticExerciseDetection()
+                for t: Int64 in [1_000_000, 1_200_000, 1_550_000 + extra] {
+                    let result = policy.observe(identityPose(exercise, t)); #expect(result == nil)
+                }
+                let result = policy.observe(identityPose(exercise, 1_650_000))
+                #expect(result == (extra == 0 ? exercise : nil))
+            }
+        }
+    }
+
+    @Test func identitySourceClockFaultsClearDwellAndMixedScalesRemainSupported() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for fault in [PresentationTime(value: 1_500_000, timescale: 1_000_000),
+                          .init(value: 1_499_999, timescale: 1_000_000), .init(value: 0, timescale: 0),
+                          .init(value: 1, timescale: .min), .init(value: .max, timescale: 1_000_000)] {
+                var policy = AutomaticExerciseDetection()
+                for t: Int64 in [1_100_000, 1_300_000, 1_500_000] { _ = policy.observe(identityPose(exercise, t)) }
+                let invalid = policy.observe(identityPose(exercise, fault.value, timescale: fault.timescale))
+                #expect(invalid == nil); #expect(policy.exercise == nil); #expect(policy.apparatusCandidate == nil)
+                let next = policy.observe(identityPose(exercise, 1_700_000)); #expect(next == nil)
+            }
+            var overflow = AutomaticExerciseDetection(), mixed = AutomaticExerciseDetection()
+            let first = overflow.observe(identityPose(exercise, .min)); #expect(first == nil)
+            let last = overflow.observe(identityPose(exercise, .max)); #expect(last == nil)
+            #expect(overflow.apparatusCandidate == nil)
+            for time in [PresentationTime(value: 0, timescale: 1000), .init(value: 200_000, timescale: 1_000_000),
+                         .init(value: 400, timescale: 1000)] {
+                let result = mixed.observe(identityPose(exercise, time.value, timescale: time.timescale))
+                #expect(result == nil)
+            }
+            let result = mixed.observe(identityPose(exercise, 600_000)); #expect(result == exercise)
+        }
+    }
+
     @Test func distinguishesStableStartingPosesBeforeApparatusAcquisition() {
         for exercise in ExerciseCounter.Exercise.allCases {
             var detection = AutomaticExerciseDetection()

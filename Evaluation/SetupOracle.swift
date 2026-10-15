@@ -26,6 +26,7 @@ private struct Case: Codable {
     let expectedAcquired: Bool
     let expectedStarted: Bool
     let steps: [Step]
+    let expectedIdentity: [ExerciseCounter.Exercise?]?
 }
 private struct Snapshot: Encodable {
     let exercise: ExerciseCounter.Exercise?
@@ -134,6 +135,9 @@ private struct Report: Encodable {
         }
         precondition(everAcquired == input.expectedAcquired, "Acquisition ground truth mismatch: \(input.id)")
         precondition(everStarted == input.expectedStarted, "Countdown ground truth mismatch: \(input.id)")
+        if let expected = input.expectedIdentity {
+            precondition(snapshots.map(\.exercise) == expected, "Identity ground truth mismatch: \(input.id)")
+        }
         return Result(input: input, snapshots: snapshots)
     }
     static func geometry(_ input: GeometryCase) -> GeometryResult {

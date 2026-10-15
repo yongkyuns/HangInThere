@@ -32,8 +32,8 @@ struct AutomaticExerciseDetection: Sendable {
     private(set) var exercise: ExerciseCounter.Exercise?
     private(set) var apparatusCandidate: ExerciseCounter.Exercise?
     private(set) var isLocked = false
-    private var firstSeconds: Double?
-    private var lastSeconds: Double?
+    private var firstTime: PresentationTime?
+    private var lastTime: PresentationTime?
     private var imageSize: ImageSize?
     private var observations = 0
 
@@ -61,26 +61,30 @@ struct AutomaticExerciseDetection: Sendable {
         guard seconds.isFinite, let next = Self.apparatusCandidate(in: pose) else {
             reset(); return nil
         }
-        if let lastSeconds, seconds <= lastSeconds || seconds - lastSeconds > HandsFreeSetStart.maximumFrameGap {
-            reset(); return nil
+        if let lastTime {
+            let gap = pose.timestamp.elapsedSeconds(since: lastTime)
+            if !gap.isFinite || gap <= 0 || gap > HandsFreeSetStart.maximumFrameGap {
+                reset(); return nil
+            }
         }
         if apparatusCandidate != next || imageSize != pose.imageSize {
             reset()
             apparatusCandidate = next
             imageSize = pose.imageSize
         }
-        lastSeconds = seconds
+        lastTime = pose.timestamp
         // Bending during the first pull must not discard already qualified
         // identity or restart apparatus acquisition. This does not earn a rep
         // or relax the separate starting-position requirement.
         if exercise == next { return exercise }
         guard Self.candidate(in: pose) == next else {
-            exercise = nil; firstSeconds = nil; observations = 0
+            exercise = nil; firstTime = nil; observations = 0
             return nil
         }
-        if firstSeconds == nil { firstSeconds = seconds }
+        if firstTime == nil { firstTime = pose.timestamp }
         observations += 1
-        if observations >= 4, seconds - (firstSeconds ?? seconds) >= Self.minimumStableSeconds {
+        // Reuse source-tick subtraction for exact dwell/gap boundaries; no tolerance is added.
+        if observations >= 4, pose.timestamp.elapsedSeconds(since: firstTime ?? pose.timestamp) >= Self.minimumStableSeconds {
             exercise = next
         }
         return exercise

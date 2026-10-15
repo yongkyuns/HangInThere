@@ -16,7 +16,8 @@ class SetupSwiftParityTest {
         val attitude:Attitude?=null,val translations:List<StaticSceneStability.PatchTranslation>,
         val globalScaleFraction:Double?=null,val eligible:Boolean,val paused:Boolean)
     @Serializable data class Input(val id:String,val exercise:ExerciseCounter.Exercise,
-        val side:ArmMeasurement.Side,val expectedAcquired:Boolean,val expectedStarted:Boolean,val steps:List<Step>)
+        val side:ArmMeasurement.Side,val expectedAcquired:Boolean,val expectedStarted:Boolean,val steps:List<Step>,
+        val expectedIdentity:List<ExerciseCounter.Exercise?>?=null)
     @Serializable data class Snapshot(val exercise:ExerciseCounter.Exercise?=null,
         val apparatusCandidate:ExerciseCounter.Exercise?=null,val identityLocked:Boolean,
         val acquisitionState:String,val referenceStabilityDiagnostic:AutomaticReferenceStability.Diagnostic?=null,
@@ -61,6 +62,7 @@ class SetupSwiftParityTest {
         }
         assertEquals(input.expectedAcquired,everAcquired,input.id+" acquisition label")
         assertEquals(input.expectedStarted,everStarted,input.id+" countdown label")
+        input.expectedIdentity?.let { assertEquals(it,snapshots.map { snapshot -> snapshot.exercise },input.id+" identity label") }
         return snapshots
     }
     private fun equivalent(expected:JsonElement,actual:JsonElement,path:String) {
@@ -90,6 +92,9 @@ class SetupSwiftParityTest {
             "pullUp-qualified-identity-through-flexion","pullUp-flexion-then-fresh-hang-start",
             "pullUp-flexion-identity-without-apparatus",
             "dip-wrist-aligned-before-longer-clutter-left","dip-wrist-aligned-before-longer-clutter-right") +
+            listOf("pullUp","dip").flatMap { exercise ->
+                listOf("exact-dwell","short-dwell","exact-gap","gap-over-limit").map { "$exercise-identity-clock-$it" }
+            } +
             listOf("observed","single-edge","short-pair","ambiguous","above-grip","forearm","missing-pair").flatMap { kind ->
                 listOf("left","right").map { side -> "dip-shared-bar-$kind-$side" }
             } + listOf("dip-parallel-before-shared-bar-left","dip-parallel-before-shared-bar-right")),

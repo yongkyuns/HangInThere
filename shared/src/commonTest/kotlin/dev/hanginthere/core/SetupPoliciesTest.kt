@@ -370,6 +370,69 @@ class SetupPoliciesTest {
         assertTrue(policy.lock());assertEquals(ExerciseCounter.Exercise.dip,policy.observe(pose(.8,false)))
         policy.reset();assertFalse(policy.lock());assertNull(policy.observe(pose(2.0)));assertNull(policy.observe(pose(2.6)))
     }
+    private fun identityPose(ticks:Long,dip:Boolean,timescale:Int=1_000_000)=
+        pose(0.0,dip).copy(timestamp=PresentationTime(ticks,timescale))
+    @Test fun identitySourceDwellIsExactButCannotRoundUpOrUseThreeSamples() {
+        for(dip in listOf(false,true)) {
+            val exercise=if(dip) ExerciseCounter.Exercise.dip else ExerciseCounter.Exercise.pullUp
+            for(origin in listOf(0L,1_100_000L,60_100_000L,9_007_199_254_740_990L)) {
+                val policy=AutomaticExerciseDetection()
+                for(delta in listOf(0L,200_000L,400_000L,599_999L))
+                    assertNull(policy.observe(identityPose(origin+delta,dip)))
+                assertEquals(exercise,policy.observe(identityPose(origin+600_000,dip)))
+                assertFalse(policy.isLocked)
+            }
+            val exact=AutomaticExerciseDetection()
+            for(t in listOf(1_100_000L,1_300_000L,1_500_000L)) assertNull(exact.observe(identityPose(t,dip)))
+            assertEquals(exercise,exact.observe(identityPose(1_700_000,dip)))
+            val sparse=AutomaticExerciseDetection()
+            for(t in listOf(1_100_000L,1_400_000L,1_700_000L)) assertNull(sparse.observe(identityPose(t,dip)))
+            assertEquals(exercise,sparse.observe(identityPose(1_700_001,dip)))
+        }
+    }
+    @Test fun identitySourceGapAcceptsExactLimitAndRejectsOneTickMore() {
+        for(dip in listOf(false,true)) {
+            val exercise=if(dip) ExerciseCounter.Exercise.dip else ExerciseCounter.Exercise.pullUp
+            for(extra in listOf(0L,1L)) {
+                val policy=AutomaticExerciseDetection()
+                for(t in listOf(1_000_000L,1_200_000L,1_550_000L+extra)) assertNull(policy.observe(identityPose(t,dip)))
+                assertEquals(if(extra==0L) exercise else null,policy.observe(identityPose(1_650_000,dip)))
+            }
+        }
+    }
+    @Test fun identitySourceClockFaultsClearDwellAndMixedScalesRemainSupported() {
+        for(dip in listOf(false,true)) {
+            val exercise=if(dip) ExerciseCounter.Exercise.dip else ExerciseCounter.Exercise.pullUp
+            for(fault in listOf(PresentationTime(1_500_000,1_000_000),PresentationTime(1_499_999,1_000_000),
+                PresentationTime(0,0),PresentationTime(1,Int.MIN_VALUE),PresentationTime(Long.MAX_VALUE,1_000_000))) {
+                val policy=AutomaticExerciseDetection()
+                for(t in listOf(1_100_000L,1_300_000L,1_500_000L)) policy.observe(identityPose(t,dip))
+                assertNull(policy.observe(identityPose(0,dip).copy(timestamp=fault)))
+                assertNull(policy.exercise);assertNull(policy.apparatusCandidate)
+                assertNull(policy.observe(identityPose(1_700_000,dip)))
+            }
+            val overflow=AutomaticExerciseDetection()
+            assertNull(overflow.observe(identityPose(Long.MIN_VALUE,dip)))
+            assertNull(overflow.observe(identityPose(Long.MAX_VALUE,dip)));assertNull(overflow.apparatusCandidate)
+            val mixed=AutomaticExerciseDetection()
+            for(t in listOf(PresentationTime(0,1000),PresentationTime(200_000,1_000_000),PresentationTime(400,1000)))
+                assertNull(mixed.observe(identityPose(0,dip).copy(timestamp=t)))
+            assertEquals(exercise,mixed.observe(identityPose(600_000,dip)))
+        }
+    }
+    @Test fun identitySourceDwellInRuntimeCannotInventApparatusCountdownOrReps() {
+        for(dip in listOf(false,true)) {
+            val runtime=WorkoutRuntime()
+            for(ticks in listOf(1_100_000L,1_300_000L,1_500_000L,1_700_000L)) {
+                val p=identityPose(ticks,dip)
+                val s=runtime.observe(frame(p.timestamp.seconds,dip,candidates=emptyList()).copy(pose=p))
+                assertNull(s.referenceEdge);assertNull(s.countdownSeconds);assertEquals(0,s.observedMovements)
+                assertEquals(LiveSetSession.Phase.idle,s.phase)
+            }
+            assertEquals(if(dip) ExerciseCounter.Exercise.dip else ExerciseCounter.Exercise.pullUp,runtime.resolvedExercise)
+            assertEquals("barReferenceNeeded",runtime.snapshot.setupIssue)
+        }
+    }
     @Test fun qualifiedIdentitySurvivesFlexionWithFreshBilateralGrip() {
         val policy=AutomaticExerciseDetection()
         for(t in listOf(0.0,.2,.4,.7)) policy.observe(pose(t,dip=false))

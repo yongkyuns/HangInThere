@@ -11,23 +11,25 @@ class AutomaticExerciseDetection {
     var exercise:ExerciseCounter.Exercise?=null;private set
     var apparatusCandidate:ExerciseCounter.Exercise?=null;private set
     var isLocked=false;private set
-    private var firstSeconds:Double?=null;private var lastSeconds:Double?=null;private var imageSize:ImageSize?=null;private var observations=0
-    fun reset(){exercise=null;apparatusCandidate=null;isLocked=false;firstSeconds=null;lastSeconds=null;imageSize=null;observations=0}
+    private var firstTime:PresentationTime?=null;private var lastTime:PresentationTime?=null;private var imageSize:ImageSize?=null;private var observations=0
+    fun reset(){exercise=null;apparatusCandidate=null;isLocked=false;firstTime=null;lastTime=null;imageSize=null;observations=0}
     fun observe(pose:PoseResult):ExerciseCounter.Exercise? {
         if(isLocked) return exercise
         val seconds=pose.timestamp.seconds;val next=apparatusCandidate(pose)
         if(!seconds.isFinite() || next==null){reset();return null}
-        if(lastSeconds?.let{seconds<=it || seconds-it>HandsFreeSetStart.maximumFrameGap}==true){reset();return null}
+        val gap=lastTime?.let{pose.timestamp.elapsedSeconds(it)}
+        if(gap!=null && (!gap.isFinite() || gap<=0 || gap>HandsFreeSetStart.maximumFrameGap)){reset();return null}
         if(apparatusCandidate!=next || imageSize!=pose.imageSize){reset();apparatusCandidate=next;imageSize=pose.imageSize}
-        lastSeconds=seconds
+        lastTime=pose.timestamp
         // A qualified hang identifies the exercise, not a pose to freeze. Keep
         // that identity through flexion only while fresh bilateral grip evidence
         // still identifies the same apparatus. Set start separately needs a hang.
         if(exercise==next) return exercise
-        if(candidate(pose)!=next){exercise=null;firstSeconds=null;observations=0;return null}
-        if(firstSeconds==null) firstSeconds=seconds
+        if(candidate(pose)!=next){exercise=null;firstTime=null;observations=0;return null}
+        if(firstTime==null) firstTime=pose.timestamp
         observations++
-        if(observations>=4 && seconds-(firstSeconds ?: seconds)>=minimumStableSeconds) exercise=next
+        // Reuse source-tick subtraction for exact dwell/gap boundaries; no tolerance is added.
+        if(observations>=4 && pose.timestamp.elapsedSeconds(firstTime ?: pose.timestamp)>=minimumStableSeconds) exercise=next
         return exercise
     }
     fun lock():Boolean {if(exercise==null) return false;isLocked=true;return true}

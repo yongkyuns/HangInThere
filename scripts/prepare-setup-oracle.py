@@ -32,8 +32,12 @@ def step(t, exercise, **kw):
 
 def prepare(output):
     cases=[]
-    def add(name, exercise, steps, acquired, started,side='left'):
-        cases.append(dict(id=name,exercise=exercise,side=side,expectedAcquired=acquired,expectedStarted=started,steps=steps))
+    def add(name, exercise, steps, acquired, started,side='left',identity=None):
+        value=dict(id=name,exercise=exercise,side=side,expectedAcquired=acquired,expectedStarted=started,steps=steps)
+        if identity is not None:
+            assert len(identity)==len(steps)
+            value['expectedIdentity']=identity
+        cases.append(value)
     for ex in ['pullUp','dip']:
         frames=lambda **kw: [step(i/10,ex,**kw) for i in range(56)]
         add(ex+'-observed-start',ex,frames(),True,True)
@@ -160,6 +164,17 @@ def prepare(output):
     for frame,ticks in zip(short_dwell,[3_000_000,3_300_000,3_600_000,3_899_999]):
         frame['pose']['timestamp']=dict(value=ticks,timescale=1_000_000)
     add('pullUp-one-microsecond-short-source-dwell','pullUp',short_dwell,False,False)
+    # Explicit identity labels guard against both engines sharing a clock bug.
+    # No contour observations: identity cannot invent apparatus or a countdown.
+    for ex in ['pullUp','dip']:
+        for name,ticks,expected in [
+            ('exact-dwell',[1_100_000,1_300_000,1_500_000,1_700_000],[None,None,None,ex]),
+            ('short-dwell',[1_100_000,1_300_000,1_500_000,1_699_999],[None]*4),
+            ('exact-gap',[1_000_000,1_200_000,1_550_000,1_650_000],[None,None,None,ex]),
+            ('gap-over-limit',[1_000_000,1_200_000,1_550_001,1_650_000],[None]*4)]:
+            steps=[step(t/1_000_000,ex,candidates=[]) for t in ticks]
+            for frame,t in zip(steps,ticks):frame['pose']['timestamp']=dict(value=t,timescale=1_000_000)
+            add(ex+'-identity-clock-'+name,ex,steps,False,False,identity=expected)
     settling=[step(i/10,'pullUp',degrees=145 if i<10 else 170) for i in range(66)]
     add('pullUp-hang-settles-before-countdown','pullUp',settling,True,True)
     # Once a hang qualifies identity, fresh overhead hands still identify the
