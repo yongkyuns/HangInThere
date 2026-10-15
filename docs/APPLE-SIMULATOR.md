@@ -64,6 +64,31 @@ with hands enabled and disabled. Its fresh simulator trials time out during
 boot, so there is no simulator inference result for that request. The revision
 1 production backend remains unchanged.
 
+## Independent reports and interpretation
+
+A [December 2021 first-hand report](https://stackoverflow.com/questions/70473725/ios-vision-framework-unable-to-setup-request-in-vndetecthumanbodyposerequest)
+contains the same missing `cnn_human_pose.espresso.weights`, status `-2`, and
+Vision Code 9 while analyzing a still image. Its later community answer recommends
+a physical device; the proposed hardware explanation has no Apple confirmation.
+The [Kinetix developers](https://devpost.com/software/kinetix-1mfxtc) independently
+report body-pose Code 9 in Simulator while the same request succeeds on macOS.
+They precompute Mac pose sidecars for simulator demonstrations and describe a
+live-inference path for physical hardware. Their future-work list still includes
+live camera capture when hardware ships, so this account does not establish
+completed physical-device testing. Sidecars can support UI development, but
+cannot qualify the iOS inference path.
+
+These accounts corroborate our standalone generated-image reproduction and
+historical CI logs. They support a simulator model-loading problem, without
+establishing whether the missing assets reflect an intended limitation or a
+runtime defect. No verified workaround or Apple acknowledgment was found in
+this research. In particular, a missing Neural Engine has not been established
+as the cause. Apple's [human-action sample](https://developer.apple.com/documentation/createml/detecting-human-actions-in-a-live-video-feed)
+requires a physical device because it uses a camera; that camera restriction
+does not establish a general support contract for still-image pose inference.
+Retain native Mac inference, simulator mechanics and physical iOS inference as
+separate evidence, preserving the simulator failure status.
+
 ## Capture interpretation
 
 The opt-in replay profiler stops the sampler when the selected test's explicit
@@ -77,6 +102,25 @@ stacks to a replay stage; a sample report's header is not proof of capture start
 or exact scope. This diagnostic change does not repair a native wait.
 
 ## Physical-device and rendering evidence
+
+At source `69ceaa4`, the full unfiltered Debug scheme on an iPhone 14 Pro with
+iOS 26.6.2, Xcode 16.4 and SDK 18.5 passes **320/320 tests**, with zero failures,
+skips or expected failures: 307 Swift Testing cases and 13 XCTest cases. All
+eight real-Vision smoke/corpus cases and the original pinned H264 color test
+pass, along with automatic pull-up/dip replay, identity clock boundaries,
+camera-selection policy, grip SDK and storage integration. The
+[source-bound validation record](../Evaluation/results/iphone-integration-69ceaa4.validation.json)
+binds the source trees, binaries and local result/log hashes. Three initial
+attempts stopped before test execution: missing provisioning, a bootstrap exit
+after locked-device preflight, and a device trust/security refusal. They remain
+recorded separately. After the user unlocked the phone and completed developer
+trust, the already-built products passed the full suite. The bootstrap exit's
+cause is not independently established.
+
+This is physical-device fixture/integration evidence. Sustained live-camera,
+sensor timing, battery/thermal behavior, independent exercise accuracy and
+physical Android qualification remain required. The simulator failures and
+intermittent replay-latency qualification remain unresolved.
 
 At source `3de67b2`, an iPhone 14 Pro on iOS 26.6.2 built with Xcode 16.4/SDK
 18.5 passes all 290 tests with no skips in a full followup. Real revision 1
