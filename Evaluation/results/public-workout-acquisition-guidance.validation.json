@@ -1,0 +1,149 @@
+{
+  "apple_bridge_script_exit_code": 0,
+  "apple_executable_sha256": "026107b45f21bd20ddce973dd77a67f5c7e4dc6c7f469796d23a831d169a3c3a",
+  "apple_ffi": {
+    "acquisitionFeedbackCases": 22,
+    "acquisitionFramingFrames": 2000,
+    "acquisitionFramingHostBridgeP95Milliseconds": 0.182261,
+    "activeReps": 222,
+    "cases": 2,
+    "frames": 2000,
+    "framingCases": 12,
+    "framingFeedbackCases": 19,
+    "framingFrames": 2000,
+    "framingHostBridgeP95Milliseconds": 0.114919,
+    "gripCorrectionCases": 2,
+    "gripFrames": 2000,
+    "gripHostBridgeP95Milliseconds": 1.660083,
+    "gripInferenceCases": 2,
+    "gripTransportCases": 1,
+    "gripVisibilityCases": 7,
+    "gripVisibilityFeedbackCases": 3,
+    "gripVisibilityFramingFrames": 2000,
+    "gripVisibilityFramingHostBridgeP95Milliseconds": 0.208283,
+    "hostBridgeP95Milliseconds": 1.266427,
+    "overheadFramingFrames": 2000,
+    "overheadFramingHostBridgeP95Milliseconds": 0.154434,
+    "passed": true,
+    "persistenceSets": 55,
+    "practiceCases": 2,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "sceneQualificationCases": 3,
+    "timestampRegressionCases": 4
+  },
+  "apple_framework_sha256": "ca7966d3d7eff176cdcd13fa404ad3fd63d9460bf3b391ba044e2bdd7fcd1420",
+  "changed_source_sha256": {
+    "Evaluation/WorkoutAnalysisBridgeCheck.swift": "e14228cdf32264fd3dc93364739a0c8304dbf5a3f57d433f5af3d9e6da078c71",
+    "Evaluation/WorkoutReviewRender.swift": "627bf16f192500f929e1f32deb30dc6b4ee481fe0085780e8c35d1c1c18e6342",
+    "ios/HangInThere/App/WorkoutAnalysisAdapter.swift": "2dbc2625cbab5623c1a3d3d19c0367ef17a37c1a83c911d814df24ed75b334b4",
+    "ios/HangInThere/Capture/LiveCameraPreview.swift": "1e1bbcf5c3f3461b3783e10760f9382f48f2fbe8a550e3b68877534100cfedb7",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutFramingFeedback.kt": "f7430c80095dd33aa53c64ce8df5bf02ecac54012994407fca5ebf873e9b3952",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutFramingGuidance.kt": "55be9627cdd5c81561eb487dff485a65b7882bc00b2ee8dbbcdb29628d2f670d",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutRuntime.kt": "9c727486e12ddb754eb71b92c03842cb0e078660ac42191fff5b78b54d6d1074",
+    "shared/src/commonTest/kotlin/dev/hanginthere/core/WorkoutAcquisitionGuidanceTests.kt": "71adb0ecd665a06a65c42d1906a9d2fd0636a5f69923aea7196f3f99ba2a4695"
+  },
+  "common_tests": {
+    "jvmTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 324
+    },
+    "macosX64Test": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 322
+    }
+  },
+  "count_policy_version": 8,
+  "counter_parity": {
+    "cases": 30,
+    "checksum": 8892.549907689074,
+    "frames": 259,
+    "iterations": 100,
+    "p50NanosecondsPerFrame": 2339.054054054054,
+    "p95NanosecondsPerFrame": 4120.934362934363,
+    "scope": "same-host core only; includes counter initialization; excludes inference and camera",
+    "swift": {
+      "cases": 30,
+      "checksum": 8892.549907689074,
+      "framesPerIteration": 259,
+      "iterations": 100,
+      "p50NanosecondsPerFrame": 38752.62548262548,
+      "p95NanosecondsPerFrame": 62280.984555984556,
+      "scope": "same-host core only; includes counter initialization, excludes pose inference and camera"
+    }
+  },
+  "existing_1ms_core_and_5ms_host_budgets_unchanged": true,
+  "guidance_policy_version": 4,
+  "independent_code_review": "No actionable findings after verified candidate-loss fix",
+  "ios_selected_tests": {
+    "app_build_included": true,
+    "failed": 0,
+    "passed": 15,
+    "sdk": "iOS Simulator 18.5",
+    "simulator_runtime": "iOS 18.6",
+    "suites": [
+      "LiveCameraSelectionTests",
+      "LiveFramingAssessmentTests"
+    ],
+    "summary_sha256": "e688b193a102587a6870a590e13bf472791cbfc82a7fd999b8f57ce18c30a063",
+    "warnings": "Existing AVCaptureSession Sendable warnings; no new failure"
+  },
+  "latest_completed_native_corpus_source": "1bb43782050142cbefe6ad15d215d13ae44b9dbf",
+  "native_android_source_validation": "Pending fresh hosted CI; local SDK installation unsuitable",
+  "native_export_source_normalization": "passed by shipping script after FFI guards",
+  "new_hint_corpus_accuracy_gain_established": false,
+  "physical_device_performance_qualified": false,
+  "prior_failed_local_timings_preserved": true,
+  "scope": "Shared acquisition setup presentation; native confidence, geometry, dwell, countdown, counting and credited-time gates unchanged",
+  "setup_parity": {
+    "cases": 85,
+    "frames": 4846,
+    "geometryCases": 17,
+    "matched": true,
+    "scope": "every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference"
+  },
+  "shipping_ui_render": {
+    "fresh_ocr_count": 104,
+    "fresh_png_count": 104,
+    "new_caption_layouts": {
+      "framing-acquisition-320.png": {
+        "image_sha256": "72bacceefc2bef0d27b2de51e5f35967849b9736b69062a105f8f7007c2b5f81",
+        "ocr_sha256": "3cedf7be2d093f4e720105c0b4988297b30f6678ef15fd7212018ac6ffba17ae"
+      },
+      "framing-acquisition-430.png": {
+        "image_sha256": "0c94acad6e15617130ffc9e3b6ec07e510567c894c6f866c18009fe8d4c160c4",
+        "ocr_sha256": "e836f1260bb60029e4b05a308ca785e33348a1f934a4f396f8651a7de640d051"
+      },
+      "framing-grip-visibility-320.png": {
+        "image_sha256": "778310af5b51b414d6a3c1cf6190ea98864e06bea7d13e0e25ead9a187e88c1f",
+        "ocr_sha256": "38bce5f8dbc897c94a50669764745028682ad2d6754f402d6029e3ea0731eb0a"
+      },
+      "framing-grip-visibility-430.png": {
+        "image_sha256": "9b93e58c2eb524559eb6e91d20dfe9c8590396447236c0b27b75a047a48166e2",
+        "ocr_sha256": "e0258306cc8706c2bd34ebebaaa36e0174c944e26205b75adab9a82cba4fd544"
+      },
+      "framing-overhead-320.png": {
+        "image_sha256": "49b2deac13dd026ddabef866423da0bffde1fedf83d737d657ae1723657d6c65",
+        "ocr_sha256": "3a8cfbed23c184232dc398d4bbc03932124d7bd1d5f2af5a33c9480b665d2d85"
+      },
+      "framing-overhead-430.png": {
+        "image_sha256": "eabd76067ca6260d20e4b9b973f2fcc34a65bb0c13145f668ef76887d26c65f3",
+        "ocr_sha256": "152326b1b8e491d0d1160321eedab2cd46e9542c573e5e70f3723306e928aa62"
+      }
+    },
+    "script_exit_code": 0,
+    "visual_inspection": "All six new caption renders inspected; readable at 320 and 430 points"
+  },
+  "source_revision": "8337d6e7df92539a81ce6c293577dd2e340832f6",
+  "validation_log_sha256": {
+    "apple-bridge.log": "8a8ea24df24dfa6f3c13b56fed76bdb41f73815a2b64e7f5c1d61fea09038f6a",
+    "core-budget.log": "385b1a7b1b3e98bf18ab05c749cfbca84e59b993bc37d93c5ed575f41b70fdb7",
+    "ios-camera-framing.log": "8014b82858987cc313f61f1cc914f5c7f415fd90727298f643b51a0c1c0faa20",
+    "render.log": "b7c156b12ffde66c78a1ad77e4ff1187012492272d679f818d91a420dbf36284",
+    "shared-tests.initial.log": "ea48ae8925f310d82ab94296e3f01a589bf56af996425e64497b32b2f8da8e81",
+    "shared-tests.log": "d31486b540780a292efe9e54efe8fac0491b4ab35daf87633fe5d358a9a35954"
+  }
+}

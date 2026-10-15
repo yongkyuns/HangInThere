@@ -407,3 +407,52 @@ or a causal decomposition of each reset. No confidence/stability threshold, mode
 label or release gate changes. The latest full 33-video count score remains the
 `1bb4378` result above. Published-count failures, simulator blockers and all five
 field-validation goals remain open; PR #29 stays draft.
+
+## Shared acquisition guidance at `8337d6e`
+
+Guidance policy 4 adds **Hold your start position · keep the phone steady** while
+a real bar or rail candidate accumulates qualifying observations. The production
+diagnostic must be fresh, its state must be holding, and the current grip search
+must still be possible. Missing, ambiguous, stale, future or qualified evidence
+cannot invent a hold. Arm visibility and overhead-framing advice retain priority.
+This instruction neither asserts that equipment is confirmed nor attributes a
+failure to physical camera movement. Both apps use the common presentation rule.
+
+The Apple bridge carries the raw observation clock, avoiding microsecond pose
+transport truncation that can make a fresh observation appear future-dated.
+Cancelled searches and asynchronous candidate loss clear only acquisition
+feedback immediately. Repeated failed equipment searches preserve visibility
+advice and its confirmation interval. Lifecycle, exercise, confirmation and
+running-state changes cannot retain the old acquisition cue. Counting policy 8,
+grip confidence, geometry, reference dwell, countdown and credited-time rules are
+unchanged; no cached edge earns an observation.
+
+The [source-bound validation](public-workout-acquisition-guidance.validation.json)
+passes 322 Kotlin Native and 324 JVM tests, all 85 setup cases / 4,846 frames plus
+17 geometry cases, and all 30 counter cases. Core p95 remains under the existing
+1 ms budget (Swift 0.0623 ms, Kotlin 0.0041 ms). The shipping Apple FFI passes 22
+acquisition feedback checks, scoped invalidation contracts, normalization and all
+six unchanged <5 ms host budgets. Each measured path consumes 2,000 results:
+
+| Host FFI path | p95 |
+| --- | ---: |
+| Analysis | 1.266427 ms |
+| Grip | 1.660083 ms |
+| Arm framing | 0.114919 ms |
+| Overhead framing | 0.154434 ms |
+| Grip visibility | 0.208283 ms |
+| Acquisition guidance | 0.182261 ms |
+
+The full iOS app builds and all 15 selected camera/framing tests pass on the iOS
+18.6 simulator with the 18.5 SDK. Existing AVCaptureSession Sendable warnings
+remain. All 104 shipping UI renders and OCR checks pass; the six newly covered
+caption layouts are visually inspected at 320 and 430 points, with readable text
+and no clipping or control overlap. Independent code review finds no remaining
+actionable issues after the asynchronous candidate-loss fix.
+
+Fresh hosted Android validation is pending for this source. These synthetic
+host/simulator checks do not qualify sustained camera/device performance or a
+counting accuracy gain. The latest full 33-video native score remains `1bb4378`;
+the rejected continuity experiment, prior failed local timings, original public
+count failures, simulator blockers and all five field-validation goals remain
+recorded and open. PR #29 remains the sole draft integration PR.
