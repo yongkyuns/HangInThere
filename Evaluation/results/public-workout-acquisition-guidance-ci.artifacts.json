@@ -1,0 +1,189 @@
+{
+  "apple_p0": {
+    "log_sha256": {
+      "ci-ios-mechanics.log": "e75fe09296ac43b9a4070a9acf0cebfb590c3531acb586c2a88af91847af3573",
+      "ci-ios-vision.log": "4d4792ad43ea8ee787bf18a232fec00499086e54832fe45e1ba36e64d4bcf192"
+    },
+    "native_macos_job": {
+      "conclusion": "success",
+      "id": 116497557340
+    },
+    "run_id": 38756786866,
+    "simulator_mechanics": {
+      "conclusion": "failure",
+      "failing_tests": [
+        "pinnedH264DecodesVFRAndPortraitPixelsWithoutVision"
+      ],
+      "failure": "Existing native H264 green/yellow pixel mismatch before rendering",
+      "issues": 8,
+      "job_id": 116497556733,
+      "tests": 296
+    },
+    "simulator_vision": {
+      "conclusion": "failure",
+      "failure": "Existing Vision Code9 missing cnn_human_pose.espresso.weights",
+      "issues": 8,
+      "job_id": 116497557209,
+      "tests": 8
+    }
+  },
+  "artifact_archives": [
+    {
+      "archive_sha256": "1575701a208c6e8a90b6101bdd7c12842d9e9689b42ebb353814092cedd3519e",
+      "id": 11985039754,
+      "name": "workout-analysis-contracts",
+      "run_id": 38756787324
+    },
+    {
+      "archive_sha256": "3271f731352c73ad4bf73d16be540247e3e61b5aab40e66755b8282d03a5f453",
+      "id": 11984953565,
+      "name": "shared-parity",
+      "run_id": 38756787240
+    },
+    {
+      "archive_sha256": "61d896cbfc8ff6232160bf16dc22a1f7d7cd1ca2e57bdb43fa7b5931038ea613",
+      "id": 11988170713,
+      "name": "android-swift-api-29",
+      "run_id": 38756787240
+    },
+    {
+      "archive_sha256": "2f0bfdf6589023dc22ec5fdb03ebef435ca4dbbcba9da55a1d72a785cc1a1233",
+      "id": 11986968097,
+      "name": "android-swift-api-35",
+      "run_id": 38756787240
+    }
+  ],
+  "checkout_commit": "e169b5b355c5a033e08426d19216c24378d4189b",
+  "checkout_tree_matches_workflow_head": true,
+  "checkout_tree_sha": "97f44ffc75691cb139928a1e19e8862b2d2143fb",
+  "jvm_tests": {
+    "shared-parity": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 324
+    },
+    "workout-analysis-contracts": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 324
+    }
+  },
+  "local_failed_timings_preserved": true,
+  "native_android": {
+    "api29": {
+      "cases": [
+        {
+          "auto_movements": 1,
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "role": "positive",
+          "rounded_peak_pss_mib": 445.9,
+          "rounded_pipeline_p95_ms": 128.8,
+          "rounded_pose_p95_ms": 61.9
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 427.2,
+          "rounded_pipeline_p95_ms": 77.2,
+          "rounded_pose_p95_ms": 61.5
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 319.7,
+          "rounded_pipeline_p95_ms": 174.6,
+          "rounded_pose_p95_ms": 62.4
+        }
+      ],
+      "job_conclusion": "success",
+      "job_id": 116497209925,
+      "log_section": "actual check-android-evaluation --native step; unit-test fixture output excluded",
+      "log_sha256": "0c4fefb690ec5a44ada7e318b32b87d368598c37a9518f2106cf490907d986e6",
+      "scope": "CI-native emulator regression budgets; rounded scalar log summaries; physical camera/device performance excluded"
+    },
+    "api35": {
+      "cases": [
+        {
+          "auto_movements": 1,
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "role": "positive",
+          "rounded_peak_pss_mib": 425.6,
+          "rounded_pipeline_p95_ms": 169.2,
+          "rounded_pose_p95_ms": 120.7
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 418.4,
+          "rounded_pipeline_p95_ms": 135.9,
+          "rounded_pose_p95_ms": 124.9
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 302.5,
+          "rounded_pipeline_p95_ms": 225.1,
+          "rounded_pose_p95_ms": 127.7
+        }
+      ],
+      "job_conclusion": "success",
+      "job_id": 116497210145,
+      "log_section": "actual check-android-evaluation --native step; unit-test fixture output excluded",
+      "log_sha256": "d13ca2d6d5d844d15c8fde72b92a618b5c46effdb266b534aa5829ce4a6e6705",
+      "scope": "CI-native emulator regression budgets; rounded scalar log summaries; physical camera/device performance excluded"
+    }
+  },
+  "native_export_source_normalization": "independently checked from verified archive",
+  "original_accuracy": {
+    "api29": "failure",
+    "api35": "failure",
+    "dip_controlled_pexels": {
+      "auto": 0,
+      "expected": 9,
+      "fixed": 0
+    },
+    "pullup_smoke": {
+      "auto": 0,
+      "expected": 1,
+      "fixed": 0
+    },
+    "run_id": 38756787240
+  },
+  "retained_report_sha256": {
+    "public-workout-acquisition-guidance-ci.android-api29.parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "public-workout-acquisition-guidance-ci.android-api35.parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "public-workout-acquisition-guidance-ci.bridge.json": "380f01c9f57f227ca141fc8b9d438632079357633be4a1c2dc80d67796b0c218",
+    "public-workout-acquisition-guidance-ci.core.json": "1314a6c98e6962cb74c73c43dbca7513826ea3a331001a29de17983d3485ce0b"
+  },
+  "scope": "completed acquisition-guidance CI at 751c53c; excludes experimental continuity comparisons and physical devices",
+  "shipping_ui_render": {
+    "ocr_count": 104,
+    "png_count": 104,
+    "required_script_conclusion": "success"
+  },
+  "workflow_head_sha": "751c53ccf96cb4a7842bc967499e6040d8bca973"
+}

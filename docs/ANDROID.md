@@ -229,6 +229,37 @@ The collector clears only generated public evaluation outputs before each run,
 so old crop evidence cannot enter a normal or failed rerun. Private evaluation
 outputs and workout history remain in separate directories.
 
+The completed [crop comparison at `7beed84`](https://github.com/yongkyuns/HangInThere/actions/runs/38247556801)
+is now audited from its original artifacts; this is historical inference from
+October 12, not a new run of the current app. Both APIs process all 448 source
+frames, validate the crop witnesses/restoration and pass nine Swift mode-replay
+cases each. The original and current evidence checkers both accept the complete
+traces. VIDEO, IMAGE and crop counts remain 1/1 on the clear pull-up, 0/1 on the
+cropped pull-up and 0/9 on the dip.
+
+| Clip | Source frames | VIDEO usable-arm frames, left/right | Crop usable-arm frames, left/right | VIDEO / crop count |
+| --- | ---: | ---: | ---: | --- |
+| Clear pull-up | 108 | 96 / 108 | 81 / 98 | 1 / 1 |
+| Cropped pull-up | 40 | 32 / 25 | 24 / 6 | 0 / 0 |
+| Panning/zooming dip | 300 | 300 / 34 | 260 / 16 | 0 / 0 |
+
+These counts, coverage, event times and skip counts agree across API29/API35.
+Usable-arm coverage is the existing measurement policy, not independently labelled
+joint accuracy. Crop inference skips two pull-up frames with unavailable regions;
+they remain in the 40-frame denominator. The clear pull-up's crop event occurs at
+1.90 seconds versus 1.933333 for VIDEO/IMAGE; agreement in count does not establish
+timing accuracy. IMAGE redetection also fails to recover the original misses.
+
+This crop recipe demonstrates **no count or arm-coverage gain** on these exposed
+development clips and remains diagnostic only. Source/model/confidence/geometry
+and count rules are unchanged. Per-mode inference timing excludes crop allocation,
+pixel verification, decode, counter and trace work; crop always runs last and
+combined PSS retains three models. It establishes no production/device speedup,
+Auto acquisition, athlete identity or anatomical-form qualification. The original
+fatal count checks remain red. [Verified bindings and scalar reports](../Evaluation/results/public-workout-person-crop.audit.json)
+retain four archive digests, source/trace hashes and the negative decision; raw
+native poses, pixels, APKs and source media remain outside Git.
+
 The public clips are development smoke cases, not a held-out accuracy benchmark.
 Separate authored setup videos repeat a source-only reviewed starting frame for
 six seconds. Native tests use the real decoder, pose model, contours and background

@@ -456,3 +456,63 @@ counting accuracy gain. The latest full 33-video native score remains `1bb4378`;
 the rejected continuity experiment, prior failed local timings, original public
 count failures, simulator blockers and all five field-validation goals remain
 recorded and open. PR #29 remains the sole draft integration PR.
+
+## Completed acquisition-guidance CI at `751c53c`
+
+[Shared/Apple CI 38756787324](https://github.com/yongkyuns/HangInThere/actions/runs/38756787324)
+passes all 324 JVM tests, production setup/count parity, native source
+normalization, shipping FFI and all 104 required UI renders/OCR checks. All six
+unchanged <5 ms host budgets pass: analysis 0.990250 ms, grip 1.149625 ms, arm
+framing 0.217917 ms, overhead framing 0.339416 ms, grip visibility 0.421916 ms and
+acquisition guidance 0.345500 ms. The 22 acquisition feedback checks and 2,000
+consumed results per measured path pass.
+
+[Android CI 38756787240](https://github.com/yongkyuns/HangInThere/actions/runs/38756787240)
+passes all seven engineering jobs: native API 29/35 compilation, lint, emulator
+budgets, HDR contracts, production policy parity, identical public inputs and
+Swift replay of native observations. The controlled pull-up remains 1/1.
+**Original-capture accuracy still fails on both APIs:** pull-up 0/1 and dip 0/9 on
+both fixed-edge and Auto paths. Unit-test fixture output is excluded from these
+native results.
+
+The [verified CI bindings](public-workout-acquisition-guidance-ci.artifacts.json)
+retain four archive digests, exact scalar host/core/parity outputs, both 324-test
+totals and rounded native log summaries. Normalized native output is independently
+checked. Merge checkout `e169b5b355c5a033e08426d19216c24378d4189b` has the same
+complete tree as branch checkpoint `751c53ccf96cb4a7842bc967499e6040d8bca973`.
+
+[Apple P0 38756786866](https://github.com/yongkyuns/HangInThere/actions/runs/38756786866)
+passes native macOS real-Vision/replay integration. Simulator mechanics still
+fails the one pinned-H264 pixel test with eight green/yellow assertions among
+296 tests. All eight simulator vision tests still fail with the missing
+`cnn_human_pose.espresso.weights` / Vision Code 9 error. These are the existing
+decoder/model blockers, not a new setup-guidance regression; both gates remain
+fatal. Earlier local timing failures, public count failures, physical-device
+qualification and all five field-validation goals remain open. No new full-corpus
+accuracy score or counting gain is inferred from this presentation change.
+
+## Historical person-crop result closed
+
+The completed [Android crop experiment 38247556801](https://github.com/yongkyuns/HangInThere/actions/runs/38247556801)
+at `7beed84c7b39e985a8d5018026f417dcb51d63be` had no recorded outcome in the
+evaluation notes. Its four original archives are now hash-verified, and both the
+historical and current checkers independently accept all 448 source-frame entries
+per API. Eighteen hosted Swift mode-replay cases bind the exact local trace hashes
+and match the native counts/events. This audits historical inference; no fresh
+model execution or current-source accuracy qualification is claimed.
+
+The bounded person-crop recipe preserves the clear pull-up's 1/1 result but leaves
+the cropped pull-up at 0/1 and dip at 0/9. Usable right-arm frames fall from 25 to
+6 of 40 on the cropped pull-up and from 34 to 16 of 300 on the dip. Left-arm
+coverage also falls in every clip. Counts, coverage, events and skips agree across
+both APIs. This is coverage under the existing measurement policy, not ground
+truth joint accuracy. Two unavailable crop regions remain in the source denominator.
+
+The [scalar audit](public-workout-person-crop.audit.json) and
+[completed comparison](../../docs/ANDROID.md) preserve the original model/media,
+recipe, source clocks, confidence, geometry and count policy 8. Per-mode timings
+are diagnostic with three retained models, crop always last and preprocessing
+costs excluded; they establish no production/device speedup. The recipe remains
+diagnostic because it demonstrates no count or arm-coverage gain on these exposed
+development cases. No app code, threshold, label, release gate or original failure
+changes, and no raw poses, pixels, APKs or source media are added to Git.
