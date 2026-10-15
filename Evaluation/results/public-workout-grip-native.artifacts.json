@@ -1,0 +1,60 @@
+{
+  "artifact_archives": [
+    {
+      "archive_sha256": "8def9ee3db6a837660bd4245645fd17e305f2d0b13b9fb6bc8bbd4bb3ac1d102",
+      "id": 11946238478,
+      "name": "public-workout-android-api-29",
+      "source_revision": "1bb43782050142cbefe6ad15d215d13ae44b9dbf"
+    },
+    {
+      "archive_sha256": "6d07af72e15b1f60287486fdc0f6c724ba5790bb28700a453b63e04ded15c771",
+      "id": 11946143329,
+      "name": "public-workout-android-api-35",
+      "source_revision": "1bb43782050142cbefe6ad15d215d13ae44b9dbf"
+    },
+    {
+      "archive_sha256": "4a653c8e123353577d2ebc16cfa21833b4265e1d868fcc80fe21ca2e9c9d93e0",
+      "id": 11947378440,
+      "name": "public-workout-apple",
+      "source_revision": "1bb43782050142cbefe6ad15d215d13ae44b9dbf"
+    },
+    {
+      "archive_sha256": "3a5da29237066fa24ad1878eaaede89a9ce71f822b7c4b0347499c0311095ed5",
+      "id": 11945873398,
+      "name": "public-workout-apple-shard-0",
+      "source_revision": "1bb43782050142cbefe6ad15d215d13ae44b9dbf"
+    },
+    {
+      "archive_sha256": "95471254a6faeb54196ba03c040a740f0305507156588660b1cfdbe6a067ffe1",
+      "id": 11945733108,
+      "name": "public-workout-apple-shard-1",
+      "source_revision": "1bb43782050142cbefe6ad15d215d13ae44b9dbf"
+    }
+  ],
+  "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+  "retained_report_sha256": {
+    "public-workout-grip-native-android-api29.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-grip-native-android-api29.native.json": "08c75b0eb04fe1783dac700047e21b393f8cd168d21cbae826aa952839d5f396",
+    "public-workout-grip-native-android-api29.score.json": "357040c86d87e6de673144acec7ad583fa158dfe3531c6985ec078276268edf4",
+    "public-workout-grip-native-android-api35.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-grip-native-android-api35.native.json": "b83823afe1bfc57fc7d4c2e6690702b541f22646eabf3709fec42549041e93aa",
+    "public-workout-grip-native-android-api35.score.json": "357040c86d87e6de673144acec7ad583fa158dfe3531c6985ec078276268edf4",
+    "public-workout-grip-native-apple-shard0.native.json": "4c961fcd901f6631899af513353fe187ee86102387f747044755f2f99c281245",
+    "public-workout-grip-native-apple-shard0.provenance.json": "78f0c77963bd5dc956ca162d85e92a03fc5d7d4775d17dc5e17b1f00b4394417",
+    "public-workout-grip-native-apple-shard1.native.json": "97701a6f057c7a71be3ef8f858bbdd0b66078d50491cbe5c1c8699db0732745f",
+    "public-workout-grip-native-apple-shard1.provenance.json": "1ffdd65c4f71903acb8e9874444925c9a4d145035bd5ef51f01a56c6eb95aebe",
+    "public-workout-grip-native-apple.native.json": "17f8de21d2fba2148901257c1aeaa17277944a15f663b33438467a06001f6d7f",
+    "public-workout-grip-native-apple.score.json": "507ae59b54c9946020c0f6fa79e6d10d3cb98fdb244db90a25adaa6e78f01b91"
+  },
+  "schema_version": 1,
+  "source_revision": "1bb43782050142cbefe6ad15d215d13ae44b9dbf",
+  "verification": {
+    "apple_framework_and_executable_hash_scope": "CI provenance; not independently reproduced locally",
+    "apple_report_provenance_hashes": true,
+    "git_source_hashes_per_apple_shard": 34,
+    "github_archive_digests": true,
+    "independent_merge_and_three_scores_byte_match_hosted": true
+  },
+  "workflow_run_id": 38670981277,
+  "workflow_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38670981277"
+}

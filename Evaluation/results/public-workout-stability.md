@@ -251,6 +251,97 @@ analysis 3.015573 ms, grip 3.692934 ms, arm framing 0.260913 ms and overhead fra
 remain recorded; this run does not explain their cause or qualify device timing.
 Independent code/evidence review finds no actionable issues.
 
-New-source Android compilation and actual native histograms still require hosted
-evaluation. No new corpus accuracy or counting gain is claimed by this diagnostic
-change. Published-label failures and all five field-validation goals stay open.
+At this local checkpoint, new-source Android compilation and actual native
+histograms still required hosted evaluation. Its completed results follow. No new
+corpus accuracy or counting gain is claimed by this diagnostic change.
+
+## Completed grip-assessment evaluation at `1bb4378`
+
+[Shared/Apple CI 38670979769](https://github.com/yongkyuns/HangInThere/actions/runs/38670979769)
+passes all 315 JVM tests, setup/count parity, shipping FFI, native normalization
+and required UI renders. Host FFI p95 is 0.601791 ms for analysis, 0.854417 ms for
+grip, 0.046500 ms for arm framing and 0.074709 ms for overhead framing, all below
+the unchanged 5 ms limits. [Android CI 38670979690](https://github.com/yongkyuns/HangInThere/actions/runs/38670979690)
+passes native API 29/35 compilation, lint, emulator budgets, the 1/1 controlled
+positive, HDR contracts, exact inputs and Swift replay of Android observations.
+Original-capture accuracy still fails: pull-up 0/1 and dip 0/9 on both fixed-edge
+and Auto paths. [Verified CI bindings](public-workout-grip-assessment-ci.artifacts.json)
+retain four archive digests and scalar host/core/parity outputs. The PR merge
+checkout `d98daf32f8586d603d256a1603a1649ecb4fea5a` has the same complete Git tree as
+branch checkpoint `1bb43782050142cbefe6ad15d215d13ae44b9dbf`.
+
+The [full native run 38670981277](https://github.com/yongkyuns/HangInThere/actions/runs/38670981277)
+also completes all 33 original clips / 149 published reps / 11,629 source frames
+per platform. Native execution, contracts and Apple shard merging pass; final
+published-count accuracy fails. Apple again reports 11 accepted / 10 completed
+cycles and Android Auto reports zero, with 0/33 exact clips on every platform.
+Media hashes, statuses, frame counts and event times match the `fbd64d0` run.
+Five verified archives, twelve unchanged hosted outputs and 34 Git source hashes
+per Apple shard are retained in the [native bindings](public-workout-grip-native.artifacts.json).
+Independent merging and all three scores byte-match hosted outputs. Framework
+hashes remain CI provenance, not locally reproduced binaries.
+
+Version-1 grip histograms match **for every clip** across Android APIs 29 and 35:
+
+| First grip-search result | Frames per API |
+| --- | ---: |
+| Eligible | 3,947 |
+| Left arm unavailable | 1,889 |
+| Right arm unavailable | 2,063 |
+| No person | 735 |
+| Multiple people | 711 |
+| Grip landmarks unavailable | 374 |
+| Hands not above shoulders | 1,269 |
+| Projected hand span too small | 516 |
+| Hands not level | 125 |
+| **All first-pass frames** | **11,629** |
+
+These are the first failed production checks, not independent joint-error rates
+or labelled physical pose accuracy. The left-arm check precedes the right-arm
+check. Of 6,231 bilateral-arm frames, 374 fail the existing higher-confidence
+hand/shoulder requirement and 3,947 pass grip-search rules. Auto acquisition still
+confirms no reference. The 586 contour-sampled frames include 544 with evidence
+and zero native contour errors; their scopes include Auto apparatus searches and
+must not be equated with the pull-up-only histogram. [Stage diagnostics](public-workout-grip-native.diagnostics.json)
+preserve complete denominators and previous acquisition totals/states/issues.
+
+This confirms a presentation gap when arm measurements are available but grip
+landmarks are insufficient. It does not justify lowering confidence, stability
+or accuracy gates. A subsequent shared setup hint addresses that gap; the hosted
+results above do not validate its later source or establish a counting gain.
+All five field-validation goals and known simulator blockers remain open.
+
+## Shared grip-visibility guidance at `662767a`
+
+Guidance policy 3 reuses the typed production assessment to show **Keep both hands
+and shoulders clearly visible** when both arm measurements are available but
+bar-search grip landmarks are insufficient. Both apps receive it through their
+existing shared guidance interfaces and video captions. Higher-priority arm,
+identity and malformed-evidence advice remains first. Valid Auto dip support
+does not inherit the pull-up confidence requirement, including when the previous
+exercise selection was pull-up. Confirmed apparatus and running sets stay silent.
+The existing 0.30-second confirmation filters transient advice; recovery and
+lifecycle changes clear it. This hint neither loosens the 0.5 grip-search threshold
+nor advances acquisition, countdowns, counts or credited time. Overhead advice
+reuses the already assessed grip without recalculating it.
+
+[Local validation](public-workout-grip-visibility.validation.json) passes 316
+Kotlin Native and 318 JVM tests, exact setup parity across 85 cases / 4,846 frames
+plus 17 geometry cases, and 30 counter cases under the existing core budget. New
+tests cover all four grip joints, the exact confidence boundary, Auto dip support
+and feedback lifecycle without starting or crediting a set. An initial command
+with incorrect oracle directory paths was cancelled before tests; the corrected
+full suites pass and both invocation records remain explicit.
+
+The rebuilt shipping Apple FFI exits zero and passes normalization. Seven new
+direct guidance contracts and three feedback checks pass. Five 2,000-result host
+paths meet their unchanged <5 ms budgets: analysis 1.124776 ms, grip 1.809990 ms,
+arm framing 0.167947 ms, overhead framing 0.234389 ms and the new grip-visibility
+path 0.322846 ms. Independent code and evidence reviews find no actionable issues.
+Prior failed local measurements remain recorded. These are synthetic host FFI
+measurements, with no camera/model or physical-device timing qualification.
+
+Fresh new-source Android CI remains required. The completed native corpus at
+`1bb4378` above excludes this later hint; no new corpus count or accuracy gain is
+claimed. The hint helps users correct future setup and cannot repair saved clips.
+Published-count failures, simulator blockers and all five field goals stay open.

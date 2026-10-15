@@ -1,0 +1,54 @@
+{
+  "policyVersion": 8,
+  "scope": "same Android-produced poses and source PTS; production Swift vs Kotlin counter",
+  "cases": [
+    {
+      "id": "pullup_margin",
+      "frames": 108,
+      "observationsSha256": "2a99a02d7090816d6e2f144b3b7ecea02b266a9a73fb67df33ddedf05db61b60",
+      "movements": 1,
+      "expectedMovements": 1,
+      "accuracyPassed": true,
+      "events": [
+        {
+          "outcome": "movement",
+          "reason": "barReferencedTop;chinClearanceNotMeasured",
+          "sourceSeconds": 1.933333
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "pullup_smoke",
+      "frames": 40,
+      "observationsSha256": "af28e19110bd64c8b19b70037602558e5261c74972d7881b49c75b52ebe84cf5",
+      "movements": 0,
+      "expectedMovements": 1,
+      "accuracyPassed": false,
+      "events": [
+        {
+          "outcome": "interrupted",
+          "reason": "lowConfidence",
+          "sourceSeconds": 2.1
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "dip_controlled_pexels",
+      "frames": 300,
+      "observationsSha256": "1190e6061a3bfbe4edb58fc7a403d1540a1bf8fbfc781335336c84dd8a9dbb8d",
+      "movements": 0,
+      "expectedMovements": 9,
+      "accuracyPassed": false,
+      "events": [
+        {
+          "outcome": "interrupted",
+          "reason": "dipGripMoved",
+          "sourceSeconds": 6.92
+        }
+      ],
+      "matched": true
+    }
+  ]
+}
