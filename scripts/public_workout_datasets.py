@@ -245,11 +245,41 @@ def stage_android(manifest_path, root, output):
     shutil.copyfile(manifest_path, output / "manifest.json")
 
 
+def validate_progress_evidence(case, native):
+    """Bound new partial-run evidence to the exact observed manifest prefix."""
+    progress = native["progress_evidence"]
+    ev.require(isinstance(progress, dict) and set(progress) == {
+        "schema_version", "source_prefix_verified", "observed_source_end_seconds"}
+        and type(progress["schema_version"]) is int and progress["schema_version"] == 1,
+        "Unknown replay progress evidence")
+    frames = native["frames"]
+    pts = case.get("source_pts_seconds")
+    ev.require(ev.integer(frames, 0) and frames <= case["frames"] and isinstance(pts, list)
+               and len(pts) == case["frames"] and pts and all(ev.number(t) for t in pts)
+               and all(a < b for a, b in zip(pts, pts[1:])), "Invalid observed replay prefix")
+    end = progress["observed_source_end_seconds"]
+    if native["status"] == "failed":
+        ev.require(frames == 0 and native["source_clock_verified"] is False
+                   and progress["source_prefix_verified"] is False and end is None,
+                   "Failed replay cannot claim verified progress")
+    else:
+        ev.require(frames > 0 and progress["source_prefix_verified"] is True and ev.number(end)
+                   and abs(end - pts[frames - 1]) < 0.000001, "Replay prefix endpoint differs from source PTS")
+        if native["status"] == "interrupted":
+            ev.require(native["source_clock_verified"] is False, "Interrupted replay cannot claim verified EOF")
+        for name in ["acceptance_seconds", "completed_seconds"]:
+            ev.require(isinstance(native[name], list) and all(ev.number(t) and pts[0] <= t <= end for t in native[name]),
+                       "Replay event exceeds observed source prefix")
+
+
 def score(manifest, result, manifest_sha):
     ev.require(result["schema_version"] == manifest["schema_version"] == 1
                and manifest["scope"] == "public_repetition_diagnostic" and not manifest["held_out_qualification"], "Wrong evaluation scope")
     ev.require(result["manifest_sha256"] == manifest_sha, "Native run used different corpus bytes")
     ev.require(result["platform"] in {"apple_host", "android_emulator"}, "Undeclared native platform")
+    has_progress = "progress_evidence_version" in result
+    ev.require(not has_progress or (type(result["progress_evidence_version"]) is int
+               and result["progress_evidence_version"] == 1), "Unknown replay progress version")
     ev.require(manifest["cases"] and len({c["id"] for c in manifest["cases"]}) == len(manifest["cases"]), "Empty/duplicate corpus")
     ev.require(re.fullmatch(r"[a-f0-9]{40}", result["source_revision"]), "Missing app source revision")
     ev.require(len({r["id"] for r in result["cases"]}) == len(result["cases"]), "Duplicate native result")
@@ -260,6 +290,9 @@ def score(manifest, result, manifest_sha):
         native = predictions[case["id"]]
         ev.require(native["sha256"] == case["media"]["sha256"], "Native media hash mismatch")
         ev.require(native["status"] in {"processed", "setupUnavailable", "interrupted", "failed"}, "Unknown native outcome")
+        ev.require(("progress_evidence" in native) == has_progress, "Missing or undeclared replay progress evidence")
+        if has_progress:
+            validate_progress_evidence(case, native)
         valid = native["status"] == "processed"
         exercise_correct = native["selected_exercise"] == "pullUp"
         if native["status"] in {"processed", "setupUnavailable"}:
@@ -289,7 +322,8 @@ def score(manifest, result, manifest_sha):
             mean_absolute_error=sum(r["metrics"][name]["absolute_error"] for r in rows) / len(rows))
             for name in ["acceptance_seconds", "completed_seconds"]}
     return dict(schema_version=1, scope="published repetition diagnostics; no strict-form, phase/hold, field or physical-device qualification",
-                manifest_sha256=manifest_sha, run={k: result[k] for k in ["platform", "backend", "source_revision", "exercise_selection"]},
+                manifest_sha256=manifest_sha, run={k: result[k] for k in ["platform", "backend", "source_revision", "exercise_selection"]
+                    + (["progress_evidence_version"] if has_progress else [])},
                 all_inputs_processed=all(r["status"] in {"processed", "setupUnavailable"} for r in reports),
                 all_exact_completed_counts=all(r["metrics"]["completed_seconds"]["exact"] for r in reports),
                 summary=summarize(reports),
@@ -303,6 +337,10 @@ def merge_apple_shards(manifest, reports, manifest_sha, report_digests):
     keys = ["schema_version", "manifest_sha256", "source_revision", "platform", "backend",
             "counter_policy_version", "request_revision", "exercise_selection"]
     first = reports[0]
+    ev.require(all(("progress_evidence_version" in r) == ("progress_evidence_version" in first) for r in reports),
+               "Apple shards have mixed progress contracts")
+    if "progress_evidence_version" in first:
+        keys.append("progress_evidence_version")
     ev.require(first["platform"] == "apple_host" and first["manifest_sha256"] == manifest_sha,
                "Wrong Apple corpus/platform")
     count = len(reports)

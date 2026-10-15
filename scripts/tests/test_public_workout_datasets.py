@@ -30,6 +30,7 @@ def corpus():
     return dict(schema_version=1, scope="public_repetition_diagnostic", held_out_qualification=False,
         boundary_tolerance_seconds=.5, cases=[dict(id="a", dataset="repcount_a", published_split="train",
         media=dict(path="videos/a.mp4", sha256="a" * 64), frames=6, source_span_seconds=[0, 3],
+        source_pts_seconds=[0, .5, 1, 1.5, 2, 2.5],
         labels=dict(expected_count=2, count_window_seconds=[0, 3], cycle_end_seconds=[1, 2]))])
 
 
@@ -39,6 +40,15 @@ def native(status="processed", accepted=None, completed=None):
         id="a", sha256="a" * 64, status=status, frames=6, source_clock_verified=True,
         selected_exercise="pullUp", acceptance_seconds=[.6, 1.6] if accepted is None else accepted,
         completed_seconds=[1, 2] if completed is None else completed)])
+
+
+def native_progress(status="interrupted", frames=5):
+    result = native(status=status)
+    result["progress_evidence_version"] = 1
+    result["cases"][0].update(frames=frames, source_clock_verified=status == "processed",
+        progress_evidence=dict(schema_version=1, source_prefix_verified=True,
+                               observed_source_end_seconds=corpus()["cases"][0]["source_pts_seconds"][frames - 1]))
+    return result
 
 
 class PublicDatasetLabelsTests(unittest.TestCase):
@@ -151,6 +161,59 @@ class PublicDatasetScoreTests(unittest.TestCase):
         self.assertFalse(report["all_exact_completed_counts"])
         self.assertEqual(report["cases"][0]["metrics"]["completed_seconds"]["observed"], 2)
 
+    def test_new_interrupted_progress_is_bounded_and_keeps_the_failed_gate(self):
+        result = native_progress()
+        for platform in ["apple_host", "android_emulator"]:
+            result["platform"] = platform
+            report = self.score(result)
+            self.assertFalse(report["all_inputs_processed"])
+            self.assertFalse(report["all_exact_completed_counts"])
+            self.assertEqual(report["run"]["progress_evidence_version"], 1)
+            self.assertEqual(report["summary"]["completed_seconds"]["observed_events"], 2)
+
+    def test_new_progress_rejects_events_after_last_observed_frame(self):
+        with self.assertRaisesRegex(ValueError, "exceeds observed"):
+            self.score(native_progress(frames=4))
+
+    def test_new_progress_cannot_claim_unobserved_frames_endpoint_or_eof(self):
+        mutations = [lambda row: row.update(frames=-1), lambda row: row.update(frames=True),
+            lambda row: row.update(frames=7), lambda row: row.update(source_clock_verified=True),
+            lambda row: row["progress_evidence"].update(source_prefix_verified=False),
+            lambda row: row["progress_evidence"].update(observed_source_end_seconds=2.5),
+            lambda row: row["progress_evidence"].update(observed_source_end_seconds=float("nan"))]
+        for mutate in mutations:
+            with self.subTest(mutate=mutate):
+                result = native_progress(); mutate(result["cases"][0])
+                with self.assertRaises(ValueError): self.score(result)
+
+    def test_new_progress_requires_explicit_supported_contract_on_every_case(self):
+        for version in [True, 0, 2, "1"]:
+            result = native_progress(); result["progress_evidence_version"] = version
+            with self.subTest(version=version), self.assertRaises(ValueError): self.score(result)
+        result = native_progress(); del result["cases"][0]["progress_evidence"]
+        with self.assertRaises(ValueError): self.score(result)
+        result = native_progress(); del result["progress_evidence_version"]
+        with self.assertRaises(ValueError): self.score(result)
+
+    def test_new_complete_and_failed_progress_preserve_existing_status_rules(self):
+        self.assertTrue(self.score(native_progress(status="processed", frames=6))["all_exact_completed_counts"])
+        unavailable = native_progress(status="processed", frames=6)
+        unavailable["cases"][0].update(status="setupUnavailable", acceptance_seconds=[], completed_seconds=[])
+        self.assertTrue(self.score(unavailable)["all_inputs_processed"])
+        self.assertFalse(self.score(unavailable)["all_exact_completed_counts"])
+        result = native_progress(status="failed", frames=0)
+        row = result["cases"][0]
+        row.update(acceptance_seconds=[], completed_seconds=[])
+        row["progress_evidence"].update(source_prefix_verified=False, observed_source_end_seconds=None)
+        self.assertFalse(self.score(result)["all_inputs_processed"])
+        row["progress_evidence"]["source_prefix_verified"] = True
+        with self.assertRaises(ValueError): self.score(result)
+
+    def test_versioned_progress_requires_the_complete_ordered_manifest_clock(self):
+        for pts in [None, [], [0, .5], [0, .5, .5, 1.5, 2, 2.5], [0, .5, float("nan"), 1.5, 2, 2.5]]:
+            manifest = corpus(); manifest["cases"][0]["source_pts_seconds"] = pts
+            with self.subTest(pts=pts), self.assertRaises(ValueError): self.score(native_progress(), manifest)
+
     def test_failed_run_cannot_smuggle_measurements(self):
         with self.assertRaises(ValueError): self.score(native(status="failed"))
 
@@ -210,6 +273,13 @@ class PublicDatasetArtifactTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertTrue(report["all_inputs_processed"])
         self.assertFalse(report["all_exact_completed_counts"])
+
+    def test_versioned_partial_evidence_still_exits_failed_and_retains_measured_returns(self):
+        exit_code, report = self.run_score_cli(native_progress())
+        self.assertEqual(exit_code, 1)
+        self.assertFalse(report["all_inputs_processed"])
+        self.assertFalse(report["all_exact_completed_counts"])
+        self.assertEqual(report["summary"]["completed_seconds"]["observed_events"], 2)
 
     def test_immutable_report_output(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -291,6 +361,28 @@ class PublicAppleShardTests(unittest.TestCase):
         scored = public.score(manifest, merged, "b" * 64)
         self.assertFalse(scored["all_inputs_processed"])
         self.assertFalse(scored["all_exact_completed_counts"])
+
+    def test_versioned_interrupted_progress_survives_merge_without_exact_success(self):
+        manifest, reports = self.inputs()
+        for index, report in enumerate(reports):
+            fresh = native_progress(status="processed", frames=6) if index == 0 else native_progress()
+            report["progress_evidence_version"] = 1
+            report["cases"][0].update({k: v for k, v in fresh["cases"][0].items() if k != "id"})
+        merged = self.merge(manifest, reports)
+        self.assertEqual(merged["progress_evidence_version"], 1)
+        self.assertEqual(merged["cases"], [r["cases"][0] for r in reports])
+        score = public.score(manifest, merged, "b" * 64)
+        self.assertFalse(score["all_inputs_processed"])
+        self.assertFalse(score["all_exact_completed_counts"])
+        self.assertEqual(score["summary"]["completed_seconds"]["observed_events"], 4)
+
+    def test_merge_rejects_mixed_progress_contracts(self):
+        for versions in [(None, 1), (1, None), (1, 2)]:
+            manifest, reports = self.inputs()
+            for report, version in zip(reports, versions):
+                if version is not None: report["progress_evidence_version"] = version
+            with self.subTest(versions=versions), self.assertRaises(ValueError):
+                self.merge(manifest, reports)
 
     def test_shard_indices_counts_and_provenance_are_typed(self):
         for key, value in [("shard_index", True), ("shard_count", 2.0)]:

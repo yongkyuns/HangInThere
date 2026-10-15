@@ -113,6 +113,23 @@ EOF and event clocks before preserving a combined report. Individual native
 report hashes remain attached. A missing, duplicate, changed or misassigned shard
 cannot claim full-corpus success. Failed cases remain failed.
 
+Apple reports with `progress_evidence_version=1` retain a verified source prefix
+when inference or an operational watchdog interrupts replay. Each row binds its
+observed frame count and last source PTS; events after that endpoint are rejected.
+The snapshot reads the production counter and existing shared completed-cycle
+eligibility before controller cleanup. An active review can contribute already
+closed returns, while an accepted but unreturned movement remains incomplete.
+Missing/invalid clocks or changed media produce a failed row without credited
+measurements. Interrupted rows cannot claim verified EOF or exact-count success,
+even when their partial event count happens to match the published count.
+
+Every row must carry the declared progress contract, and shard merging rejects
+mixed versions. Older reports retain their original scoring behavior and make
+no claim of this additional observed-prefix validation. Native Mac CI exercises
+the collector on actual decoded synthetic frames and the shipping analytics,
+including late inference failures and active-review snapshots; Python contracts
+cover endpoint bounds, versioning, shard preservation and failed CLI exits.
+
 The initial hosted Apple attempt completed 31 clips before the 45-minute job
 limit stopped it; it has no complete native report or qualified full-batch score.
 Hosted VM inference was substantially slower than the local Mac. Sharding bounds

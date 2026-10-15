@@ -266,6 +266,74 @@ struct ReplayControllerTests {
         #expect(model.counter.lastEvent == nil)
     }
 
+    @Test(arguments: [0.6, 0.9])
+    func interruptionPreservesCompletedPrefixButNeverCreditsAnUnreturnedAcceptance(failAt: Double) async throws {
+        let times = [0,15,30,45,60,75,90].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        #if os(macOS)
+        let clock = PublicReplayClock()
+        let trace: ReplayTrace.Handler? = clock.observe
+        #else
+        let trace: ReplayTrace.Handler? = nil
+        #endif
+        let model = ReplayController(estimator: CountingTestEstimator(failAt: failAt), trace: trace)
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        #expect(model.phase == .failed)
+        #expect(model.counter.events.filter { $0.outcome == .movement }.map(\.sourceSeconds) == [0.45])
+        let expectedCompleted = failAt == 0.9 ? 1 : 0
+        #expect(model.analysisRecord?.completedCount == expectedCompleted)
+        #expect(model.repAnalysis.filter(\.isCompleteForAnalytics).count == expectedCompleted)
+        #expect(model.displayedFrames == (failAt == 0.9 ? 6 : 4))
+        #expect(model.repAnalysis.filter(\.isCompleteForAnalytics).allSatisfy {
+            ($0.returnedAt ?? .infinity) <= (model.frame?.pose.timestamp.seconds ?? -.infinity)
+        })
+        #if os(macOS)
+        // Exercise the actual public-runner snapshot with native decoded
+        // frames, production counter and shipping common analytics.
+        let progress = PublicReplayMeasurements(model: model, expected: times.map(\.seconds),
+            observed: clock.values, finished: false, mediaVerified: true)
+        #expect(progress.status == "interrupted")
+        #expect(progress.frames == model.displayedFrames)
+        #expect(progress.acceptanceSeconds == [0.45])
+        #expect(progress.completedSeconds.count == expectedCompleted)
+        #expect(!progress.sourceClockVerified)
+        #endif
+    }
+
+    #if os(macOS)
+    @Test func publicReplaySnapshotReadsClosedReturnsWithoutFinishingAnActiveReview() async throws {
+        let times = [0,15,30,45,60,75,90,105,120].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let clock = PublicReplayClock()
+        let model = ReplayController(estimator: CountingTestEstimator(), trace: clock.observe)
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await wait { (model.counter.observedMovements == 1 && model.counter.phase == .ready)
+            || model.phase == .finished || model.phase == .failed }
+        model.pause()
+        try #require(model.phase == .paused)
+        #expect(model.analysisRecord == nil)
+        let phase = model.counter.phase
+        let progress = PublicReplayMeasurements(model: model, expected: times.map(\.seconds),
+            observed: clock.values, finished: false, mediaVerified: true)
+        #expect(progress.status == "interrupted" && !progress.sourceClockVerified)
+        #expect(progress.acceptanceSeconds == [0.45])
+        #expect(progress.completedSeconds.count == 1)
+        #expect(progress.frames == model.displayedFrames && progress.frames < times.count)
+        #expect(model.analysisRecord == nil && model.counter.phase == phase)
+    }
+    #endif
+
     private func confirmCountingBar(_ model: ReplayController) async throws {
         let setup = try #require(model.beginBarSetup())
         let size = setup.frame.pose.imageSize

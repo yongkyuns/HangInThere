@@ -15,7 +15,8 @@ paths = [p for folder in ['Analysis', 'Capture', 'Pose'] for p in sorted((root/'
 paths += [root/p for p in ['ios/HangInThere/App/WorkoutAnalysisAdapter.swift',
     'ios/HangInThere/App/WorkoutProgression.swift', 'ios/HangInThere/App/WorkoutGripReview.swift',
     'ios/HangInThere/App/ReplayController.swift', 'ios/HangInThere/UI/QualificationReportDocument.swift',
-    'Evaluation/PublicWorkoutReplay.swift', 'scripts/evaluate-public-workouts-apple.sh']]
+    'Evaluation/PublicWorkoutReplay.swift', 'Evaluation/PublicReplayMeasurements.swift',
+    'scripts/evaluate-public-workouts-apple.sh']]
 paths += [pathlib.Path(sys.argv[2])/'WorkoutCore.framework/WorkoutCore']
 snapshot = {'source_revision': subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip(),
     'source_sha256': {str(p.relative_to(root)):evaluation.digest(p) for p in paths},
@@ -31,6 +32,7 @@ xcrun swiftc -O -swift-version 6 -parse-as-library -target "$(uname -m)-apple-ma
   "$ROOT/ios/HangInThere/App/WorkoutGripReview.swift" \
   "$ROOT/ios/HangInThere/App/ReplayController.swift" \
   "$ROOT/ios/HangInThere/UI/QualificationReportDocument.swift" \
+  "$ROOT/Evaluation/PublicReplayMeasurements.swift" \
   "$ROOT/Evaluation/PublicWorkoutReplay.swift" -o "$WORK/public-replay"
 "$WORK/public-replay" "$1" "$2" "$3" "$(git -C "$ROOT" rev-parse HEAD)" "${4:-0}" "${5:-1}"
 python3 - "$ROOT" "$WORK/source-snapshot.json" "$WORK/public-replay" "$3" <<'PY'

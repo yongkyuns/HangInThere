@@ -37,19 +37,6 @@ private final class PublicPoseQuality: PoseEstimator {
 
 // This entry point drives the actual native replay controller and shipping Apple
 // analysis bridge. It does not reimplement acquisition, counting or analytics.
-private final class PublicReplayClock: Sendable {
-    private let times = Mutex<[Double]>([])
-    func observe(_ trace: ReplayTrace) {
-        times.withLock { values in
-            if trace.stage == .preparation && trace.boundary == .began { values = [] }
-            if trace.stage == .counting && trace.boundary == .ended, let time = trace.sourceSeconds {
-                values.append(time)
-            }
-        }
-    }
-    var values: [Double] { times.withLock { $0 } }
-}
-
 @main private enum PublicWorkoutReplay {
     private struct Manifest: Decodable {
         struct Case: Decodable {
@@ -92,10 +79,13 @@ private final class PublicReplayClock: Sendable {
             let quality = PublicPoseQuality()
             let model = ReplayController(estimator: quality, trace: clock.observe)
             let started = ContinuousClock.now
+            var verifiedURL: URL?
+            var finished = false
             do {
                 let url = root.appendingPathComponent(media.path).resolvingSymlinksInPath().standardizedFileURL
                 guard media.path.hasPrefix("videos/"), media.path.hasSuffix(".mp4"),
                       url.path.hasPrefix(root.path + "/"), try sha256(url) == media.sha256 else { throw failure("Media integrity mismatch") }
+                verifiedURL = url
                 model.open(url)
                 try await wait(model) { model.phase != .loading }
                 guard model.phase == .paused, model.frame?.pose.backend == "Apple Vision 2D",
@@ -105,21 +95,18 @@ private final class PublicReplayClock: Sendable {
                 // source-time, counting or physical-device performance gate.
                 try await wait(model, timeoutSeconds: 900) { model.phase == .finished || model.phase == .failed }
                 guard model.phase == .finished else { throw failure(model.errorMessage ?? "Replay failed") }
-                let expected = item.sourcePtsSeconds
-                let actual = clock.values
-                guard actual.count == expected.count, model.displayedFrames == expected.count,
-                      zip(actual, expected).allSatisfy({ abs($0.0 - $0.1) < 0.000001 }),
-                      try sha256(url) == media.sha256 else { throw failure("Replay frame/source-clock integrity failed") }
-                report["frames"] = actual.count
-                report["source_clock_verified"] = true
-                report["status"] = model.bar == nil ? "setupUnavailable" : "processed"
-                report["acceptance_seconds"] = model.counter.events.filter { $0.outcome == .movement }.map(\.sourceSeconds)
-                report["completed_seconds"] = model.analysisRecord?.completedReps.compactMap(\.returnedAt) ?? []
-                report["tracking_coverage"] = model.trackingCoverage.map { $0 as Any } ?? NSNull()
-                report["automatic_bar_state"] = String(describing: model.automaticBarState)
+                finished = true
             } catch {
                 report["error"] = error.localizedDescription
             }
+            // Read before close resets the controller, including on failures.
+            let mediaVerified = verifiedURL.flatMap { try? sha256($0) } == media.sha256
+            let progress = PublicReplayMeasurements(model: model, expected: item.sourcePtsSeconds,
+                observed: clock.values, finished: finished, mediaVerified: mediaVerified)
+            report.merge(progress.fields) { _, new in new }
+            if finished, progress.status == "failed" { report["error"] = "Replay frame/source-clock integrity failed" }
+            report["tracking_coverage"] = model.trackingCoverage.map { $0 as Any } ?? NSNull()
+            report["automatic_bar_state"] = String(describing: model.automaticBarState)
             model.close()
             report["pose_quality"] = quality.summary
             report["elapsed_seconds"] = ReplayTrace.milliseconds(since: started) / 1000
@@ -130,6 +117,7 @@ private final class PublicReplayClock: Sendable {
         let value: [String: Any] = ["schema_version": 1, "manifest_sha256": manifestHash,
             "source_revision": CommandLine.arguments[4], "platform": "apple_host", "backend": "Apple Vision 2D",
             "counter_policy_version": ExerciseCounter.policyVersion, "request_revision": 1,
+            "progress_evidence_version": 1,
             "shard_index": shardIndex, "shard_count": shardCount,
             "exercise_selection": "pullUp selected in production native replay", "cases": reports]
         try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys])

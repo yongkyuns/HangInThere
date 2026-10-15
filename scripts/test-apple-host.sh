@@ -19,8 +19,10 @@ cp "$ROOT/ios/HangInThere/App/WorkoutProgression.swift" "$WORK/Sources/HangInThe
 cp "$ROOT/ios/HangInThere/App/WorkoutGripReview.swift" "$WORK/Sources/HangInThere/"
 cp "$ROOT/ios/HangInThere/App/ReplayController.swift" "$WORK/Sources/HangInThere/"
 cp "$ROOT/ios/HangInThere/UI/QualificationReportDocument.swift" "$WORK/Sources/HangInThere/"
+cp "$ROOT/Evaluation/PublicReplayMeasurements.swift" "$WORK/Sources/HangInThere/"
 cp "$ROOT"/ios/HangInThereTests/Core/*.swift "$WORK/Tests/HangInThereTests/"
 cp "$ROOT"/ios/HangInThereTests/Integration/*.swift "$WORK/Tests/HangInThereTests/"
+cp "$ROOT/Evaluation/PublicReplayMeasurementsTests.swift" "$WORK/Tests/HangInThereTests/"
 cp -R "$ROOT/ios/HangInThereTests/Fixtures" "$WORK/Tests/HangInThereTests/Fixtures"
 cat > "$WORK/Package.swift" <<'SWIFT'
 // swift-tools-version: 6.0
