@@ -1,0 +1,150 @@
+{
+  "apple_executable_sha256": "25a62a9413d8f168089ceddec5c16eef000653cecd30690265320e822be1d82f",
+  "apple_ffi": {
+    "acquisitionFeedbackCases": 22,
+    "acquisitionFramingFrames": 2000,
+    "acquisitionFramingHostBridgeP95Milliseconds": 0.20999,
+    "activeReps": 222,
+    "cases": 2,
+    "frames": 2000,
+    "framingCases": 12,
+    "framingFeedbackCases": 19,
+    "framingFrames": 2000,
+    "framingHostBridgeP95Milliseconds": 0.179517,
+    "gripCorrectionCases": 2,
+    "gripFrames": 2000,
+    "gripHostBridgeP95Milliseconds": 2.001456,
+    "gripInferenceCases": 2,
+    "gripTransportCases": 1,
+    "gripVisibilityCases": 7,
+    "gripVisibilityFeedbackCases": 3,
+    "gripVisibilityFramingFrames": 2000,
+    "gripVisibilityFramingHostBridgeP95Milliseconds": 0.241309,
+    "hostBridgeP95Milliseconds": 1.62039,
+    "overheadFramingFrames": 2000,
+    "overheadFramingHostBridgeP95Milliseconds": 0.238708,
+    "passed": true,
+    "persistenceSets": 55,
+    "practiceCases": 2,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "readinessCases": 18,
+    "readinessFrames": 2000,
+    "readinessHostBridgeP95Milliseconds": 0.000908,
+    "sceneQualificationCases": 3,
+    "timestampRegressionCases": 4
+  },
+  "apple_framework_sha256": "eb444aa91c3b906820b9135952c49e53664ca12f31cf95744937b72e80ebf2f9",
+  "baseline": {
+    "baseline_xml_sha256": "5d2fd79ab6f22dc39553f23f4b4a0f7adf082a82b92f62a11b96a516c4212111",
+    "comparison_scope": "Old camera scalar-seconds transport fails two tick-labelled boundaries; final helper migrates to typed PresentationTime and adds four tests. Test source is intentionally different; legacy scalar API remains unchanged.",
+    "failing_tests": [
+      "exactReadinessGapIsAllowedButOneTickMoreDiscardsDwell[jvm]",
+      "exactReadinessDurationQualifiesWithoutRoundingUpShortHolds[jvm]"
+    ],
+    "regression_totals": {
+      "errors": 0,
+      "failures": 2,
+      "skipped": 0,
+      "tests": 2
+    },
+    "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f",
+    "source_sha256": {
+      "ios/HangInThere/App/WorkoutAnalysisAdapter.swift": "2dbc2625cbab5623c1a3d3d19c0367ef17a37c1a83c911d814df24ed75b334b4",
+      "ios/HangInThere/Capture/LiveCameraPreview.swift": "1e1bbcf5c3f3461b3783e10760f9382f48f2fbe8a550e3b68877534100cfedb7",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutAnalysis.kt": "964eccbff3ddf38e5748f0506e2a0f9dd5bf7bd43f4bf614f19d1cfa35420aa1",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutAnalysisBridge.kt": "1e68662f64ad311389b02e176345dd9813288bf36d7e6d8dae6c97359a1c37de",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutRuntime.kt": "9c727486e12ddb754eb71b92c03842cb0e078660ac42191fff5b78b54d6d1074",
+      "shared/src/commonTest/kotlin/dev/hanginthere/core/WorkoutReadinessClockTests.kt": "af0ab2ad76f7138f42eff0df9b1161b65d9e95650c4b9979a7029d232d4ba70f"
+    },
+    "test_transport": "New authored tick-labelled regression helper uses old camera scalar transport before migration; test transport will become typed after the API is added"
+  },
+  "changed_source_sha256": {
+    "Evaluation/WorkoutAnalysisBridgeCheck.swift": "347831d4b2e42c8e9c8c841bc6ee08a2f3164a2265e703dc5d4ad42b89db2c18",
+    "ios/HangInThere/App/WorkoutAnalysisAdapter.swift": "b2b66758b61153790e02b079f732ba3205b6d777333263482b52dbe6a5e1c352",
+    "ios/HangInThere/Capture/LiveCameraPreview.swift": "1babe6ede9f85fa95027259fe7543d993ba73354a3e928b3c9f50eb8a8006e7f",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutAnalysis.kt": "0bcb838c9a1b10a265445068f0557240537d71b6296f547ae56fbb06f565c3a1",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutAnalysisBridge.kt": "b3c3846460927b329eb575184e38cab314443c362c7f0472364c897828ece173",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutRuntime.kt": "f3c4faee10d6dc3347ed844cc13c8a3d35a5a1195f1be949ff2a5740d54faded",
+    "shared/src/commonTest/kotlin/dev/hanginthere/core/WorkoutReadinessClockTests.kt": "2fb01cf04b7c9f369d17dab3293d98deb93993bbd018c9a7705c8983e40f6efe"
+  },
+  "common_tests": {
+    "jvmTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 334
+    },
+    "macosX64Test": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 332
+    }
+  },
+  "count_policy_version": 8,
+  "counter_parity": {
+    "cases": 30,
+    "checksum": 8892.549907689074,
+    "frames": 259,
+    "iterations": 100,
+    "p50NanosecondsPerFrame": 6573.482625482626,
+    "p95NanosecondsPerFrame": 10698.760617760618,
+    "scope": "same-host core only; includes counter initialization; excludes inference and camera",
+    "swift": {
+      "cases": 30,
+      "checksum": 8892.549907689074,
+      "framesPerIteration": 259,
+      "iterations": 100,
+      "p50NanosecondsPerFrame": 6940.023166023166,
+      "p95NanosecondsPerFrame": 9060.212355212356,
+      "scope": "same-host core only; includes counter initialization, excludes pose inference and camera"
+    }
+  },
+  "epsilon_added": false,
+  "existing_source_tick_helper_reused": true,
+  "fresh_full_native_corpus": "Separate run 38793588018 at earlier source 0607776; does not qualify this live transport change",
+  "independent_code_review": "No actionable findings",
+  "ios_tests": {
+    "failed": 0,
+    "full_app_build": true,
+    "passed": 20,
+    "runtime": "iOS 18.6",
+    "sdk": "iOS Simulator 18.5",
+    "suites": [
+      "AutomaticExerciseDetectionTests",
+      "LiveCameraSelectionTests"
+    ],
+    "summary_sha256": "70bc1d7a36c6bb38ce4e2c0b45f4a4e763e9ac259f68b5639a8760653c83b08c"
+  },
+  "log_sha256": {
+    "apple-bridge.log": "6aae5182918a05ed619a00abf9e52cdf378070b030cd7930422bd68735fce429",
+    "baseline.log": "227de287f666fabb15de2f7f347ef65e0bd917a5c35deacf2e19f9d518024c6c",
+    "ios-tests.log": "1cc43c1e28b0f37dafd7b78a2742db9108b8d0da4aa4555bc024ad0cbe766249",
+    "shared-tests.log": "a3a999506dd038442d65e7e7d79834c6de4d4421391495fb3b1d398b558acaca"
+  },
+  "maximum_readiness_frame_gap_seconds": 0.35,
+  "minimum_readiness_dwell_seconds": 0.12,
+  "mixed_timescales": "Existing helper Double fallback; no new exact-boundary guarantee",
+  "native_android_validation": "Pending hosted CI for this source",
+  "native_export_source_normalization": "Passed after functional and performance guards",
+  "new_common_test_methods": 6,
+  "new_corpus_accuracy_gain_established": false,
+  "oracle_scope": "Reused production Swift oracles from identity-clock validation; Swift Analysis sources unchanged from baseline",
+  "oracle_sha256": {
+    "counter-oracle": "18261e94d62605d1eb51a59d8cd7faa200c5b324e7cc79b351c4f7dac0e7e077",
+    "setup-oracle": "e8bb20606439a20247f3a41fa8ba7a353471fa7bf7bdb8e0f806ef02593f9804"
+  },
+  "physical_device_performance_qualified": false,
+  "prior_failed_timing_and_accuracy_records_preserved": true,
+  "readiness_identity_count_reference_geometry_confidence_thresholds_unchanged": true,
+  "scalar_compatibility": "Legacy seconds API retained with existing arithmetic; crossing between typed and scalar clock kinds discards prior dwell and the transition frame",
+  "scope": "Raw source clocks for the shared live brief set-start gate on iOS and Android; replay uses a separate qualified-registration path",
+  "setup_parity": {
+    "cases": 93,
+    "frames": 4878,
+    "geometryCases": 17,
+    "matched": true,
+    "scope": "every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference"
+  },
+  "source_revision": "1fed6490d47ee206ba8f766755e7c41aeb55d098"
+}

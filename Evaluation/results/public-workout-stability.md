@@ -554,8 +554,86 @@ analysis 1.014764 ms, grip 1.564904 ms, arm framing 0.087514 ms, overhead framin
 These host measurements do not measure identity-policy overhead separately or
 qualify camera/model/device performance.
 
-Fresh hosted Android and full 33-video native evaluation are pending for this
-source. The last completed full-corpus score remains `1bb4378`; no new video
-accuracy gain is established by authored clock tests. Earlier failures, simulator
-decoder/model blockers and all five independent/field-validation goals remain
-open. PR #29 stays draft, with original labels and release gates in force.
+At the original checkpoint, fresh hosted Android and full 33-video native
+evaluation were pending. The following sections record their outcome separately
+from authored clock tests. Earlier failures, simulator decoder/model blockers and
+all five independent/field-validation goals remain open. PR #29 stays draft, with
+original labels and release gates in force.
+
+## Hosted identity-clock validation at `0607776`
+
+The [shared/Apple run](https://github.com/yongkyuns/HangInThere/actions/runs/38793587842)
+passes all 328 JVM tests, all six existing Apple host FFI budgets, source
+normalization, and 104 rendered layouts with OCR. All seven engineering jobs in
+the [Android run](https://github.com/yongkyuns/HangInThere/actions/runs/38793587816)
+pass, including actual API 29/35 decoding/model execution and both Swift replays.
+The original cropped pull-up remains 0/1 and dip 0/9 on fixed-edge and Auto
+paths; their accuracy jobs still fail. The [verified CI bindings](public-workout-identity-clock-ci.artifacts.json)
+retain four archive digests, exact scalar reports, native log summaries, and the
+merge-checkout tree equivalence to branch source `0607776`.
+
+[iOS P0](https://github.com/yongkyuns/HangInThere/actions/runs/38793587801)
+passes native Mac real-Vision/replay integration. Simulator mechanics retains
+eight color assertions in the pinned-H264 test (299 Swift Testing tests); all
+eight simulator Vision tests retain the missing-weight/Code 9 failure. Both
+gates remain fatal. These results belong to `0607776`, before the subsequent
+live-readiness transport change.
+
+The [full public-video run](https://github.com/yongkyuns/HangInThere/actions/runs/38793588018)
+also completes both native Apple shards and both native Android API jobs
+successfully, together with contracts. Four original archives are digest-verified.
+Each Apple shard's provenance binds its native report and all 34 Git source-file
+hashes to `0607776`; media manifests and the Android Heavy model pin are unchanged.
+The [retained native reports and bindings](public-workout-identity-clock-native.artifacts.json)
+contain scalar evidence only. Local independent Apple aggregation and all three
+scores cover all 33 clips / 11,629 source frames / 149 published reps per platform;
+Android scores byte-match hosted reports. Hosted Apple aggregation and the final
+accuracy job were still queued at retention, so no hosted final verdict is
+claimed here.
+
+The [independent diagnostic summary](public-workout-identity-clock-native.diagnostics.json)
+is unchanged from `1bb4378` for every clip's media, status, frames and event times:
+Apple's selected-pull-up replay has 11 accepted / 10 completed cycles, one
+processed clip and 32 setup failures. Android Auto has zero cycles and 33 setup
+failures on each API. Each scores 0/33 exact published counts. Android acquisition
+frame/state/issue totals also match the prior run, with no confirmed reference,
+586 actual contour samples, 544 evidence frames and zero contour errors. The two
+platforms' exercise-selection modes differ; these totals do not establish
+identical-mode parity, field accuracy or an improvement from the clock fix.
+
+## Live readiness source clocks at `1fed649`
+
+After apparatus, pose and camera qualification, both shipping live paths now
+preserve PresentationTime through the shared brief set-start gate. The gate
+previously subtracted absolute Double seconds: a real 0.12-second hold from
+1.1 to 1.22 seconds could miss readiness, and an exactly allowed 0.35-second gap
+could discard its dwell. Two regression tests reproduce those failures on the
+old camera scalar transport. Their final helper uses the new typed API; this is
+a transport migration, not a claim that identical test source or the retained
+legacy scalar API now changes behavior.
+
+One shared implementation handles typed and legacy inputs. Switching clock
+kinds discards accumulated dwell and the transition frame. Same-timescale clocks
+reuse the existing source-tick subtraction helper; mixed timescales retain its
+Double fallback. The 0.12-second readiness dwell, 0.35-second gap, Auto identity,
+actual setup qualification, start announcement, count policy 8 and incomplete-rep
+analytics rules are unchanged. Replay follows its separate qualified-registration
+path; the earlier `0607776` full-corpus run does not validate this live change.
+
+The [source-bound validation](public-workout-readiness-clock.validation.json)
+passes 332 Kotlin Native tests, 334 JVM tests, a full iOS app build and all 20
+selected identity/camera tests. Six new common tests cover exact and short holds,
+gap limits, invalid/reversed/duplicate/overflowing clocks, eligibility/reset,
+clock-kind changes, bridge transport, and both exercises starting only after real
+setup gates without inventing a movement. Production setup parity still matches
+93 cases / 4,878 frames plus 17 geometry cases; all 30 counter cases pass. Core
+p95 is 0.0091 ms Swift and 0.0107 ms Kotlin, below the existing 1 ms budget.
+
+The actual shipping Apple FFI consumes all 18 readiness assertions and 2,000
+readiness results. All seven host paths pass their unchanged <5 ms budgets:
+analysis 1.620390 ms, grip 2.001456 ms, arm framing 0.179517 ms, overhead framing
+0.238708 ms, grip visibility 0.241309 ms, acquisition guidance 0.209990 ms, and
+readiness 0.000908 ms. Source normalization also passes. Independent review finds
+no actionable issues. These synthetic host measurements do not qualify sustained
+physical-camera/model performance or establish a video accuracy improvement;
+fresh hosted Android validation for this live change is pending.
