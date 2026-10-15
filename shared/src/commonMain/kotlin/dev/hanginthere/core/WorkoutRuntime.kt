@@ -78,7 +78,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     val isReplayAcquisitionReady get() = confirmedBar != null && resolvedExercise != null
     /** Latest actual selected-apparatus sample; its source time does not advance with cached frames. */
     val referenceStabilityDiagnostic get()=apparatus.referenceStabilityDiagnostic
-    val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview,latestCompletedSet,session.setId.takeIf { session.phase==LiveSetSession.Phase.running },session.trackingIssue,framingHint.takeIf { session.phase==LiveSetSession.Phase.idle && issue in listOf("framingIncomplete", "barReferenceNeeded", "exerciseIdentityNeeded") })
+    val snapshot get()=Snapshot(resolvedExercise,selection.exercise ?: replayExercise ?: identity.apparatusCandidate,session.phase,session.observedMovements,handsFreeStart.state.seconds,confirmedBar?.referenceEdge,apparatus.state,phoneOrientation.state,staticScene.state,issue,generation,replayReview,latestCompletedSet,session.setId.takeIf { session.phase==LiveSetSession.Phase.running },session.trackingIssue,framingHint.takeIf { session.phase==LiveSetSession.Phase.idle && issue in listOf("framingIncomplete", "barReferenceNeeded", "exerciseIdentityNeeded", "pullUpBarUnclear") })
 
     fun configure(selection:WorkoutExerciseSelection,side:ArmMeasurement.Side=this.side) {
         if(session.phase==LiveSetSession.Phase.running || (this.selection==selection && this.side==side)) return

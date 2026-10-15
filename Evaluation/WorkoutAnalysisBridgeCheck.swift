@@ -48,6 +48,21 @@ struct WorkoutAnalysisBridgeCheck {
                   automatic: true, pullUp: true, side: .right) == nil else {
             fatalError("Shipping Apple framing advice lost confirmed-dip fallback or leaked into a running set")
         }
+        let overheadPoints = clearFraming.people[0].landmarks.map {
+            Landmark(joint: $0.joint, position: Point2D(x: $0.position.x, y: $0.position.y - 410), confidence: $0.confidence)
+        }
+        let overheadFraming = PoseResult(timestamp: clearFraming.timestamp, imageSize: clearFraming.imageSize,
+            people: [PoseObservation(landmarks: overheadPoints)], backend: clearFraming.backend, requestRevision: 0)
+        let overheadAdvice = "Leave room above your hands for the bar"
+        guard framingAdapter.framingMessage(overheadFraming, requireBothArms: true, side: .left) == nil,
+              framingAdapter.setupFramingMessage(overheadFraming, idle: true, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == overheadAdvice,
+              framingAdapter.setupFramingMessage(overheadFraming, idle: true, barConfirmed: true,
+                  automatic: true, pullUp: true, side: .left) == nil,
+              framingAdapter.setupFramingMessage(overheadFraming, idle: false, barConfirmed: false,
+                  automatic: true, pullUp: true, side: .left) == nil else {
+            fatalError("Shipping Apple framing did not distinguish arm visibility from overhead equipment space")
+        }
         let feedbackAdapter = WorkoutAnalysisAdapter()
         @MainActor func readFraming(_ time: Double, clear: Bool = false, idle: Bool = true) -> String? {
             let original = clear ? clearFraming : unclearFraming
@@ -273,7 +288,6 @@ struct WorkoutAnalysisBridgeCheck {
         }
         latencies.sort()
         let p95 = latencies[Int(Double(latencies.count - 1) * 0.95)]
-        guard p95 < 5 else { fatalError("Host FFI p95 exceeds 5 ms budget: \(p95)") }
         guard let review = engine.reviewRecord(), review.reps.count == engine.reps.count,
               (review.activity?.phases.count ?? 1000) <= 256 else { fatalError("Bounded review lost cached reps or phase limits") }
         guard let activeSet = engine.finish(reason: "manual"), activeSet.acceptedCount == counter.observedMovements,
@@ -455,30 +469,35 @@ struct WorkoutAnalysisBridgeCheck {
         }
         gripLatencies.sort()
         let gripP95 = gripLatencies[Int(Double(gripLatencies.count - 1) * 0.95)]
-        guard gripP95 < 5 else { fatalError("Grip-enabled host FFI p95 exceeds 5 ms budget: \(gripP95)") }
         guard let gripSet = gripAnalysis.finish(reason: "manual"), let grip = gripSet.grip,
               grip.latest.orientation == "underhand", grip.latest.width == "shoulderWidth",
               grip.latest.inferenceBackend == "authored transport", grip.orientationSpans.count <= 128,
               gripAnalysis.gripLabel == "Underhand · Shoulder-width", gripSet.completedCount == 0 else {
             fatalError("Native Swift/shared grip transport or confirmation changed")
         }
-        var framingLatencies: [Double] = []
-        framingAdapter.resetFramingFeedback()
-        for index in 0..<2000 {
-            let frame = PoseResult(timestamp: PresentationTime(value: Int64(index), timescale: 30),
-                imageSize: unclearFraming.imageSize, people: unclearFraming.people,
-                backend: unclearFraming.backend, requestRevision: 0)
-            let started = ContinuousClock.now
-            let message = framingAdapter.observeSetupFraming(frame, idle: true, barConfirmed: false,
-                automatic: true, pullUp: true, side: .left)
-            let elapsed = started.duration(to: .now).components
-            framingLatencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
-            guard message == (index < 9 ? nil : angleAdvice) else { fatalError("Framing result was not consumed") }
+        @MainActor func measureFraming(_ original: PoseResult, expected: String) -> Double {
+            var latencies: [Double] = []
+            framingAdapter.resetFramingFeedback()
+            for index in 0..<2000 {
+                let frame = PoseResult(timestamp: PresentationTime(value: Int64(index), timescale: 30),
+                    imageSize: original.imageSize, people: original.people,
+                    backend: original.backend, requestRevision: 0)
+                let started = ContinuousClock.now
+                let message = framingAdapter.observeSetupFraming(frame, idle: true, barConfirmed: false,
+                    automatic: true, pullUp: true, side: .left)
+                let elapsed = started.duration(to: .now).components
+                latencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
+                guard message == (index < 9 ? nil : expected) else { fatalError("Framing result was not consumed") }
+            }
+            latencies.sort()
+            return latencies[Int(Double(latencies.count - 1) * 0.95)]
         }
-        framingLatencies.sort()
-        let framingP95 = framingLatencies[Int(Double(framingLatencies.count - 1) * 0.95)]
-        guard framingP95 < 5 else { fatalError("Framing host FFI p95 exceeds 5 ms budget: \(framingP95)") }
-        let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 8, "framingFrames": 2000, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": true, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
+        let framingP95 = measureFraming(unclearFraming, expected: angleAdvice)
+        let overheadP95 = measureFraming(overheadFraming, expected: overheadAdvice)
+        // Retain every measured path before enforcing budgets, so a slow analysis
+        // path cannot hide the framing measurements. Failure still exits nonzero.
+        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95].allSatisfy { $0 < 5 }
+        let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 12, "framingFrames": 2000, "overheadFramingFrames": 2000, "overheadFramingHostBridgeP95Milliseconds": overheadP95, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": withinHostBudgets, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "sceneQualificationCases": 3, "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         // Actual shipping Swift → Kotlin normalization, checked again by the
@@ -489,6 +508,9 @@ struct WorkoutAnalysisBridgeCheck {
         try Data(normalized.utf8).write(to: URL(fileURLWithPath: "build/workout-analysis/native-benchmark-session.json"), options: .atomic)
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)
         print(String(decoding: data, as: UTF8.self))
+        guard withinHostBudgets else {
+            fatalError("Host FFI p95 exceeds 5 ms budgets: analysis \(p95), grip \(gripP95), framing \(framingP95), overhead \(overheadP95)")
+        }
     }
     @MainActor private static func checkSavedObservations() throws {
         let args = CommandLine.arguments

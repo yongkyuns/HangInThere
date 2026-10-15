@@ -4,7 +4,7 @@ import kotlin.math.min
 
 /** Presentation only: never changes arm eligibility, acquisition, counting or credited time. */
 object WorkoutFramingGuidance {
-    const val policyVersion = 1
+    const val policyVersion = 2
     const val edgeMarginFraction = .03
     internal data class Advice(val message: String, val immediate: Boolean = false)
 
@@ -20,7 +20,11 @@ object WorkoutFramingGuidance {
             else if (pullUp) PullUpArmMeasurement(pose).arms.isNotEmpty()
             else ArmMeasurement(pose, side).estimate != null
         if (barConfirmed && framingReady) return null
-        return advice(pose, requireBothArms = !barConfirmed || automatic || pullUp, side = side)
+        val armAdvice = advice(pose, requireBothArms = !barConfirmed || automatic || pullUp, side = side)
+        if (armAdvice != null) return armAdvice
+        if (!barConfirmed && (automatic || pullUp) && AutomaticPullUpBar.overheadSearchIsClipped(pose))
+            return Advice("Leave room above your hands for the bar")
+        return null
     }
 
     fun message(pose: PoseResult, requireBothArms: Boolean = true,

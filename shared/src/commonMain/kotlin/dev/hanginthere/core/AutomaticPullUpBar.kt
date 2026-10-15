@@ -24,6 +24,12 @@ class AutomaticPullUpBar {
     }
     companion object {
         const val samplingInterval=.3
+        private fun overheadReach(short:Double)=max(12.0,short*.12)
+        /** Search-space advice only; the crop and qualification rules are unchanged. */
+        internal fun overheadSearchIsClipped(pose:PoseResult):Boolean {
+            val grip=grip(pose) ?: return false
+            return min(grip.left.y,grip.right.y)<overheadReach(min(pose.imageSize.width,pose.imageSize.height))
+        }
         fun grip(pose:PoseResult):Grip? {
             if(!pose.imageSize.isValid || !pose.timestamp.seconds.isFinite() || pose.people.size!=1 || ArmMeasurement(pose,ArmMeasurement.Side.left).estimate==null || ArmMeasurement(pose,ArmMeasurement.Side.right).estimate==null) return null
             val person=pose.people[0]
@@ -31,7 +37,7 @@ class AutomaticPullUpBar {
             if(points.size!=4) return null
             val l=points[0];val r=points[1];val short=min(pose.imageSize.width,pose.imageSize.height)
             if(points[2].y-l.y<=short*.08 || points[3].y-r.y<=short*.08 || abs(l.x-r.x)<short*.12 || abs(l.y-r.y)>short*.10) return null
-            val region=BarRegion(Point2D(max(0.0,min(l.x,r.x)-short*.12),max(0.0,min(l.y,r.y)-max(12.0,short*.12))),Point2D(min(pose.imageSize.width,max(l.x,r.x)+short*.12),min(pose.imageSize.height,max(l.y,r.y)+max(6.0,short*.04))))
+            val region=BarRegion(Point2D(max(0.0,min(l.x,r.x)-short*.12),max(0.0,min(l.y,r.y)-overheadReach(short))),Point2D(min(pose.imageSize.width,max(l.x,r.x)+short*.12),min(pose.imageSize.height,max(l.y,r.y)+max(6.0,short*.04))))
             return if(region.isValid(pose.imageSize)) Grip(l,r,region) else null
         }
         fun select(candidates:List<BarLineCandidate>,grip:Grip,size:ImageSize):BarSegment? {

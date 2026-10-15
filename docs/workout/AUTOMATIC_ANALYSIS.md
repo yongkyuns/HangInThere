@@ -20,6 +20,12 @@ visibility, and malformed SDK evidence. A 3% margin of the image's shorter side
 suggests more room around measurable arms; it is a presentation default, not an
 eligibility threshold. Native Apple transport and Android use the same raw-joint
 policy, preserving duplicate joints and scores rather than sanitizing them.
+For unconfirmed pull-up or Auto setup, measurable arms can still leave too little
+space above the hands for the bar search. Guidance policy 2 uses that existing
+search reach (the greater of 12 pixels or 12% of the shorter image side) to suggest
+leaving overhead room. Arm visibility advice takes priority; the equipment hint
+uses the same debounce and caption, including while the bar edge is unclear.
+It does not assert that a bar exists, change the search crop or delay readiness.
 Advice clears on fresh usable framing and camera/selection invalidation, and is
 hidden during running or finished sets. A confirmed manual dip still permits
 the selected arm; automatic acquisition still needs both arms. Advice never

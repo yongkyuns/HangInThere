@@ -102,4 +102,44 @@ class WorkoutFramingGuidanceTests {
         assertEquals("Pose unavailable · retry the camera", bridge.message(640.0, 360.0, 1, joints, triples, true, "left"))
         assertFailsWith<IllegalArgumentException> { bridge.message(640.0, 360.0, 1, joints, doubleArrayOf(), true, "left") }
     }
+    @Test fun visibleArmsCanStillNeedOverheadEquipmentSpace() {
+        val p = pose()
+        val hint = "Leave room above your hands for the bar"
+        assertNull(WorkoutFramingGuidance.message(p), "Arm visibility alone remains ready")
+        assertEquals(hint, WorkoutFramingGuidance.setupMessage(p, true, false, true, false, ArmMeasurement.Side.left))
+        assertEquals(hint, WorkoutFramingGuidance.setupMessage(p, true, false, false, true, ArmMeasurement.Side.left))
+        assertNull(WorkoutFramingGuidance.setupMessage(p, true, false, false, false, ArmMeasurement.Side.left))
+        assertNull(WorkoutFramingGuidance.setupMessage(p, true, true, true, true, ArmMeasurement.Side.left))
+        assertNull(WorkoutFramingGuidance.setupMessage(p, false, false, true, true, ArmMeasurement.Side.left))
+    }
+    @Test fun completeOverheadSearchAtTheBoundaryNeedsNoExtraRoom() {
+        fun shifted(dy: Double) = pose { it.copy(position = it.position.copy(y = it.position.y + dy)) }
+        val complete = shifted(13.2) // wrists at 43.2px: the existing 12% search reach.
+        assertFalse(AutomaticPullUpBar.overheadSearchIsClipped(complete))
+        assertNull(WorkoutFramingGuidance.setupMessage(complete, true, false, true, true, ArmMeasurement.Side.left))
+        val clipped = shifted(13.199999)
+        assertTrue(AutomaticPullUpBar.overheadSearchIsClipped(clipped))
+        assertEquals("Leave room above your hands for the bar",
+            WorkoutFramingGuidance.setupMessage(clipped, true, false, true, true, ArmMeasurement.Side.left))
+        val weak = pose { if (it.joint == PoseJoint.rightWrist) it.copy(confidence = .01) else it }
+        assertEquals("Angle camera so both arms and hands are clear",
+            WorkoutFramingGuidance.setupMessage(weak, true, false, true, true, ArmMeasurement.Side.left))
+    }
+    @Test fun unclearBarCanShowEquipmentAdviceWithoutAcquiringOrStartingWork() {
+        val runtime = WorkoutRuntime(WorkoutExerciseSelection.pullUp)
+        val attitude = PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)!!
+        val wrongEdge = BarLineCandidate(BarSegment(Point2D(10.0, 10.0), Point2D(50.0, 10.0)), 40.0)
+        fun observe(ticks: Long) = runtime.observe(WorkoutRuntime.FrameInput(pose().copy(timestamp = PresentationTime(ticks, 1000)),
+            attitude = attitude, motionTimestamp = ticks / 1000.0, candidates = listOf(listOf(wrongEdge))))
+        val first = observe(0)
+        assertEquals("pullUpBarUnclear", first.setupIssue)
+        assertNull(first.framingHint, "The existing confirmation delay filters one-frame advice")
+        val second = observe(310)
+        assertEquals("pullUpBarUnclear", second.setupIssue)
+        assertEquals("Leave room above your hands for the bar", second.framingHint)
+        assertNull(second.referenceEdge)
+        assertNull(second.countdownSeconds)
+        assertEquals(0, second.observedMovements)
+        assertEquals(LiveSetSession.Phase.idle, second.phase)
+    }
 }
