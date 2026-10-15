@@ -23,6 +23,12 @@
       "id": 12003351886,
       "name": "public-workout-apple-shard-1",
       "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
+    },
+    {
+      "archive_sha256": "ad8e9b95a457a0811d3f5c28331bf3b4f2fd5acbb15881a4669a1e4d831a4a9d",
+      "id": 12003857148,
+      "name": "public-workout-apple",
+      "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
     }
   ],
   "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
@@ -43,14 +49,14 @@
   "schema_version": 1,
   "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f",
   "verification": {
-    "apple_aggregate_origin": "local independent aggregation/scoring of two verified CI native shards; hosted merge still queued at retention",
+    "apple_aggregate_origin": "Local independent aggregation/scoring of two verified CI native shards; subsequently byte-verified against completed hosted merge job 116643349952",
     "apple_framework_and_executable_hash_scope": "CI provenance; not independently reproduced locally",
     "apple_report_provenance_hashes": true,
     "git_source_hashes_per_apple_shard": 34,
     "github_archive_digests": true,
-    "hosted_final_accuracy_conclusion": "not yet observed; all native jobs succeeded; independent scores still fail exact published counts",
+    "hosted_final_accuracy_conclusion": "Not yet observed; hosted Apple aggregation and all native jobs succeeded; independent scores still fail exact published counts",
     "independent_android_scores_byte_match_hosted": true,
-    "independent_apple_merge_and_score_byte_match_hosted": null
+    "independent_apple_merge_and_score_byte_match_hosted": true
   },
   "workflow_run_id": 38793588018,
   "workflow_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38793588018"

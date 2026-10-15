@@ -164,7 +164,7 @@
       "setupUnavailable": 32
     }
   },
-  "hosted_apple_aggregation_available": false,
+  "hosted_apple_aggregation_available": true,
   "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
   "scope": "full public original-capture replay; independent aggregation of all native results; no physical-device or independent equipment accuracy claim",
   "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"

@@ -588,7 +588,9 @@ The [retained native reports and bindings](public-workout-identity-clock-native.
 contain scalar evidence only. Local independent Apple aggregation and all three
 scores cover all 33 clips / 11,629 source frames / 149 published reps per platform;
 Android scores byte-match hosted reports. Hosted Apple aggregation and the final
-accuracy job were still queued at retention, so no hosted final verdict is
+accuracy job were still queued at initial retention. The hosted Apple merge has
+since passed: its fifth verified archive byte-matches the independent aggregate
+and score. The final accuracy job remains queued, so no hosted final verdict is
 claimed here.
 
 The [independent diagnostic summary](public-workout-identity-clock-native.diagnostics.json)
