@@ -341,7 +341,69 @@ path 0.322846 ms. Independent code and evidence reviews find no actionable issue
 Prior failed local measurements remain recorded. These are synthetic host FFI
 measurements, with no camera/model or physical-device timing qualification.
 
-Fresh new-source Android CI remains required. The completed native corpus at
-`1bb4378` above excludes this later hint; no new corpus count or accuracy gain is
-claimed. The hint helps users correct future setup and cannot repair saved clips.
-Published-count failures, simulator blockers and all five field goals stay open.
+At this local checkpoint, fresh new-source Android CI was still required. Its
+completed results follow. The native corpus at `1bb4378` above excludes the later
+hint; no new corpus count or accuracy gain is claimed. The hint helps users correct
+future setup and cannot repair saved clips.
+
+## Completed visibility-guidance CI at `f61a146`
+
+[Shared/Apple CI 38737532676](https://github.com/yongkyuns/HangInThere/actions/runs/38737532676)
+passes all 318 JVM tests, production setup/count parity, native normalization,
+shipping FFI and required UI renders. All five unchanged <5 ms host FFI budgets
+pass: analysis 1.347916 ms, grip 1.172625 ms, arm framing 0.187917 ms, overhead framing
+0.286334 ms and grip visibility 0.351709 ms. The seven new direct guidance cases,
+three new feedback checks and 2,000 results per measured path pass.
+
+[Android CI 38737532681](https://github.com/yongkyuns/HangInThere/actions/runs/38737532681)
+passes native API 29/35 compilation, lint, emulator budgets, controlled positive,
+HDR contracts, identical inputs and Swift replay of Android model observations.
+Both original public-capture accuracy jobs still fail: pull-up 0/1 and dip 0/9 on
+fixed-edge and Auto paths. Engineering parity does not establish rep accuracy.
+
+[Verified bindings](public-workout-grip-visibility-ci.artifacts.json) retain four
+archive digests, both 318-test totals and exact scalar host/core/parity outputs.
+Normalized native source output was independently checked. Merge checkout
+`aceb3b735dcc484d7892b20a8957ccfa121a84c1` has the same complete tree as branch
+checkpoint `f61a1460dc945a3a1592d911e73b86531d424a73`. Host/emulator results exclude
+physical-device qualification and preserve earlier failed local measurements.
+
+## Rejected fresh-edge continuity preference
+
+The next experiment asks whether a newly visible contour makes selection abandon
+an already witnessed edge that is still freshly visible. Six of thirteen resets
+in the cached Ace candidate lists have some matching adjacent contours. This is
+only a candidate-level upper bound; those pairs need not be eligible or match the
+selected dwell witness.
+
+The [comparison source](../EdgeContinuityProbe.swift) runs the original production
+selector and a separate experimental preference on identical native decoded
+poses/contours. Original full-set ambiguity rejection remains mandatory. The
+preference may use only a newly observed, individually eligible edge matching the
+dwell witness under the unchanged angle, distance, overlap, time, image-size and
+hand-motion conditions. A cached edge never becomes a new observation. Missing
+or ambiguous evidence resets the experimental dwell. Production code is unchanged.
+
+On the pinned public `countix_Ace4EsUWyYc` clip, all 250 frames and 32 sampled
+observations complete. The baseline exactly reproduces the previous audit's
+sample states/diagnostics. The preference changes one edge choice at 4.16 seconds,
+where both paths already accumulate normally. Both retain thirteen edge-change
+resets, maximum dwell 0.64 seconds and no confirmed reference. This specific
+preference has **no demonstrated acquisition gain on this clip**. It is not
+promoted into either app and does not rule out other strategies on other inputs.
+
+The [scalar audit](public-workout-edge-continuity.audit.json) binds original media,
+manifest, all 27 compiled source hashes, executable and exact experimental source
+bytes. The source was compiled from an identical local staging copy; the 26
+production Git sources match `f61a146`. Sample output contains timing/status/counts,
+not coordinates, poses or pixels. Independent review verifies source hashes,
+baseline equivalence and the negative result. The experiment's actual native run
+is its validation; it is a standalone research tool, not a shipping app policy.
+
+A single-assistant visual inspection of original frames 30 and 40 also observes
+rack displacement in image space, consistent with the earlier registration audit.
+This is development inspection, not independent physical-camera/equipment labels
+or a causal decomposition of each reset. No confidence/stability threshold, model,
+label or release gate changes. The latest full 33-video count score remains the
+`1bb4378` result above. Published-count failures, simulator blockers and all five
+field-validation goals remain open; PR #29 stays draft.
