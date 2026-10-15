@@ -97,6 +97,47 @@ class AndroidEvaluationEvidenceTests(unittest.TestCase):
         report = self.failing_diagnostic(); report['accuracyFailures'] = []
         with self.assertRaises(AssertionError): self.check(report)
 
+    def grip_report(self):
+        report=self.report()
+        for case in report['cases']:
+            case['productionReplay']['acquisitionEvidence']={
+                'frames':case['frames'], 'bothArmFrames':10, 'pullUpGripAssessmentVersion':1,
+                'pullUpGripFrames':{'eligible':10, 'gripLandmarksUnavailable':case['frames']-10}}
+        return report
+
+    def test_complete_grip_evidence_and_unavailable_legacy_reports(self):
+        self.check(self.grip_report())
+        self.check(self.report())
+
+    def test_grip_evidence_cannot_hide_frames_counts_or_unknown_statuses(self):
+        mutations=[
+            lambda e:e.pop('pullUpGripFrames'),
+            lambda e:e.pop('pullUpGripAssessmentVersion'),
+            lambda e:e.update(pullUpGripAssessmentVersion=2),
+            lambda e:e.update(pullUpGripAssessmentVersion=True),
+            lambda e:e['pullUpGripFrames'].update(eligible=9),
+            lambda e:e['pullUpGripFrames'].update(eligible=-1),
+            lambda e:e['pullUpGripFrames'].update(eligible=True),
+            lambda e:e['pullUpGripFrames'].update(eligible=10.0),
+            lambda e:e['pullUpGripFrames'].update(unrecognized=0),
+            lambda e:e.update(pullUpGripFrames=[]),
+            lambda e:e.update(frames=1000),
+            lambda e:e.update(frames=True),
+            lambda e:e.update(bothArmFrames=True),
+            lambda e:e.update(bothArmFrames=9)]
+        for mutation in mutations:
+            with self.subTest(mutation=mutations.index(mutation)):
+                report=self.grip_report();mutation(report['cases'][0]['productionReplay']['acquisitionEvidence'])
+                with self.assertRaises(AssertionError):self.check(report)
+
+    def test_valid_grip_diagnostics_do_not_clear_failed_accuracy(self):
+        report=self.failing_diagnostic()
+        report['cases'][1]['productionReplay']['acquisitionEvidence']=self.grip_report()['cases'][1]['productionReplay']['acquisitionEvidence']
+        self.check(report)
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'report.json';path.write_text(json.dumps(report))
+            with self.assertRaises(AssertionError):CHECK.accuracy(path)
+
 
 class AndroidPoseModeEvidenceTests(unittest.TestCase):
     def evidence(self):

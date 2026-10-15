@@ -14,6 +14,29 @@ CASES = {'pullup_margin': ('positive', 108, 1),
          'pullup_smoke': ('diagnostic', 40, 1),
          'dip_controlled_pexels': ('diagnostic', 300, 9)}
 
+PULLUP_GRIP_STATUSES = {'eligible', 'invalidContext', 'noPerson', 'multiplePeople',
+    'leftArmUnavailable', 'rightArmUnavailable', 'gripLandmarksUnavailable',
+    'handsNotAboveShoulders', 'handSpanTooSmall', 'handsNotLevel', 'invalidSearchRegion'}
+
+
+def grip_evidence(evidence, decoded_frames):
+    """Older reports have no assessment; absence must never become zero rejections."""
+    assert isinstance(evidence, dict), 'Acquisition evidence must be an object'
+    version = 'pullUpGripAssessmentVersion'
+    histogram = 'pullUpGripFrames'
+    if version not in evidence and histogram not in evidence:
+        return
+    assert type(decoded_frames) is int and decoded_frames >= 0, 'Decoded frame denominator invalid'
+    assert type(evidence.get(version)) is int and evidence[version] == 1, 'Unknown grip assessment version'
+    frames = evidence.get('frames'); both = evidence.get('bothArmFrames')
+    assert type(frames) is int and 0 <= frames <= decoded_frames, 'Grip frame denominator invalid'
+    assert type(both) is int and 0 <= both <= frames, 'Bilateral-arm denominator invalid'
+    counts = evidence.get(histogram)
+    assert isinstance(counts, dict) and set(counts) <= PULLUP_GRIP_STATUSES, 'Unknown grip assessment status'
+    assert all(type(count) is int and 0 <= count <= frames for count in counts.values()), 'Invalid grip frame count'
+    assert sum(counts.values()) == frames, 'Grip assessments must cover every first-pass frame once'
+    assert counts.get('eligible', 0) <= both, 'Grip search readiness exceeds bilateral-arm support'
+
 
 def finite_positive(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
@@ -60,6 +83,8 @@ def native(path):
         production = case['productionReplay']
         assert 'error' not in production and production['singlePersonFrames'] > 0, 'Production native execution failed'
         assert production['decodedFrames'] > 0, 'Production source never decoded'
+        if 'acquisitionEvidence' in production:
+            grip_evidence(production['acquisitionEvidence'], production['decodedFrames'])
         pipeline = production['pipelineWithDisplayCopyLatencyMillis']
         assert pipeline['samples'] == production['decodedFrames']
         assert finite_positive(pipeline['p95']) and pipeline['p95'] < 2500, 'Decode-inclusive production pipeline exceeds2.5s/frame'

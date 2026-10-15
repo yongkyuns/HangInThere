@@ -139,6 +139,25 @@ outputs without changing policy, exposing raw poses or establishing labelled pos
 accuracy. Diagnostics run outside the measured decode-to-display-copy interval;
 the full harness wall time still includes them.
 
+`pullUpGripAssessmentVersion=1` adds a `pullUpGripFrames` histogram over every
+actual first-pass pose, including frames before contour sampling. It uses the
+same shared typed assessment as production `AutomaticPullUpBar.grip()`, with the
+same check order and arithmetic. Success is `eligible`; other entries describe
+the first failed context, athlete, arm, grip-landmark or projected-geometry check.
+For example, measurable arms at the existing 0.3 confidence threshold can still
+lack the 0.5-confidence hand/shoulder landmarks required for bar search. These
+scores are SDK evidence, not calibrated pose accuracy. A dip can normally fail
+the overhead pull-up pose check; this histogram does not grade dip suitability.
+
+Every first-pass frame appears once, all statuses/counts and the version are
+validated, and eligible frames cannot exceed bilateral-arm frames. Cached
+acquisition states and the counting-pass rewind add no assessments. `eligible`
+does not mean a bar was found, a set started or a valid rep completed. Older
+reports without these fields remain explicitly unassessed; they are not zero
+rejections. Evaluation performs this additional assessment outside the measured
+native pipeline interval, without feeding results into the app runtime. The
+diagnostic exports only counts, not poses, coordinates or inferred physical labels.
+
 `referenceStabilitySamples` counts only actual eligible-edge observations whose
 diagnostic source timestamp matches the current frame. Cached states and the
 counting-pass rewind add no samples. Statuses describe the first failed dwell

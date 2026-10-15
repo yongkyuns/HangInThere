@@ -99,6 +99,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         val acquisitionIssueFrames = linkedMapOf<String, Int>()
         val acquisitionStateFrames = linkedMapOf<String, Int>()
         val referenceStabilitySamples = linkedMapOf<String, Int>()
+        val pullUpGripFrames = linkedMapOf<String, Int>()
         fun acquisitionEvidence() = buildJsonObject {
             put("scope", "first acquisition pass; actual production observations, not labelled pose accuracy")
             put("frames", acquisitionFrames); put("bothArmFrames", acquisitionBothArmFrames)
@@ -109,6 +110,8 @@ internal class NativeReplayEvaluator(private val app: Context) {
             put("setupIssueFrames", buildJsonObject { acquisitionIssueFrames.forEach { (key, value) -> put(key, value) } })
             put("acquisitionStateFrames", buildJsonObject { acquisitionStateFrames.forEach { (key, value) -> put(key, value) } })
             put("referenceStabilitySamples", buildJsonObject { referenceStabilitySamples.forEach { (key, value) -> put(key, value) } })
+            put("pullUpGripAssessmentVersion", AutomaticPullUpBar.gripAssessmentVersion)
+            put("pullUpGripFrames", buildJsonObject { pullUpGripFrames.forEach { (key, value) -> put(key, value) } })
         }
         val colorEncodings = linkedSetOf<String>()
         val decoderMimeTypes = linkedSetOf<String>()
@@ -144,6 +147,11 @@ internal class NativeReplayEvaluator(private val app: Context) {
                                     // Diagnostic serialization is intentionally outside the measured native path.
                                     if (acquire) {
                                         acquisitionFrames++
+                                        val grip = when (val assessment = AutomaticPullUpBar.assessGrip(result.pose)) {
+                                            is AutomaticPullUpBar.Grip -> "eligible"
+                                            is AutomaticPullUpBar.GripRejection -> assessment.name
+                                        }
+                                        pullUpGripFrames[grip] = (pullUpGripFrames[grip] ?: 0) + 1
                                         if (PullUpArmMeasurement(result.pose).arms.size == 2) acquisitionBothArmFrames++
                                         if (result.snapshot.referenceEdge != null) acquisitionReferenceFrames++
                                         result.apparatus?.let { observation ->

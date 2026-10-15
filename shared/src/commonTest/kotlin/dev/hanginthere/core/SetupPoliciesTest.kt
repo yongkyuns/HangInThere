@@ -12,6 +12,68 @@ class SetupPoliciesTest {
         val points=listOf(shoulders[0],Point2D((shoulders[0].x+wrists[0].x)/2,(shoulders[0].y+wrists[0].y)/2),wrists[0],shoulders[1],Point2D((shoulders[1].x+wrists[1].x)/2,(shoulders[1].y+wrists[1].y)/2),wrists[1])
         return PoseResult(PresentationTime((seconds*1000).roundToLong(),1000),size,listOf(PoseObservation(joints.zip(points).map{Landmark(it.first,it.second,1.0)})),"test",1)
     }
+    private fun mapLandmarks(p:PoseResult,change:(Landmark)->Landmark) = p.copy(
+        people=p.people.map { person -> PoseObservation(person.landmarks.map(change)) })
+    @Test fun gripAssessmentPreservesObservedCropAndSuccessType() {
+        val p=pose(0.0,false)
+        val grip=assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(p))
+        assertEquals(Point2D(250.0,200.0),grip.left)
+        assertEquals(Point2D(750.0,200.0),grip.right)
+        assertEquals(BarRegion(Point2D(130.0,80.0),Point2D(870.0,240.0)),grip.region)
+        assertEquals(grip,AutomaticPullUpBar.grip(p))
+    }
+    @Test fun gripAssessmentPreservesFirstContextAndIdentityFailure() {
+        val p=pose(0.0,false)
+        val cases=listOf(
+            p.copy(imageSize=ImageSize(Double.NaN,1000.0)) to AutomaticPullUpBar.GripRejection.invalidContext,
+            p.copy(timestamp=PresentationTime(0,0)) to AutomaticPullUpBar.GripRejection.invalidContext,
+            p.copy(people=emptyList()) to AutomaticPullUpBar.GripRejection.noPerson,
+            p.copy(people=p.people+p.people) to AutomaticPullUpBar.GripRejection.multiplePeople)
+        for((input,reason) in cases) {
+            assertEquals(reason,AutomaticPullUpBar.assessGrip(input));assertNull(AutomaticPullUpBar.grip(input))
+        }
+    }
+    @Test fun measurableArmsDoNotGuaranteeGripLandmarkConfidence() {
+        val p=pose(0.0,false)
+        for((joint,reason) in listOf(PoseJoint.leftWrist to AutomaticPullUpBar.GripRejection.leftArmUnavailable,
+                PoseJoint.rightWrist to AutomaticPullUpBar.GripRejection.rightArmUnavailable)) {
+            val weak=mapLandmarks(p){if(it.joint==joint) it.copy(confidence=.29) else it}
+            assertEquals(reason,AutomaticPullUpBar.assessGrip(weak));assertNull(AutomaticPullUpBar.grip(weak))
+        }
+        val marginal=mapLandmarks(p){if(it.joint==PoseJoint.rightWrist) it.copy(confidence=.4) else it}
+        assertNotNull(ArmMeasurement(marginal,ArmMeasurement.Side.left).estimate)
+        assertNotNull(ArmMeasurement(marginal,ArmMeasurement.Side.right).estimate)
+        assertEquals(AutomaticPullUpBar.GripRejection.gripLandmarksUnavailable,AutomaticPullUpBar.assessGrip(marginal))
+        assertNull(AutomaticPullUpBar.grip(marginal))
+        assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(
+            mapLandmarks(p){if(it.joint==PoseJoint.rightWrist) it.copy(confidence=.5) else it}))
+    }
+    @Test fun gripAssessmentRetainsProjectedGeometryBoundaries() {
+        val p=pose(0.0,false)
+        fun shoulder(y:Double)=mapLandmarks(p){if(it.joint==PoseJoint.leftShoulder) it.copy(position=it.position.copy(y=y)) else it}
+        assertEquals(AutomaticPullUpBar.GripRejection.handsNotAboveShoulders,AutomaticPullUpBar.assessGrip(shoulder(280.0)))
+        assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(shoulder(280.000001)))
+        fun span(width:Double)=mapLandmarks(p){if(it.joint in ArmMeasurement.Side.right.joints) it.copy(position=it.position.copy(x=it.position.x-500+width)) else it}
+        assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(span(120.0)))
+        assertEquals(AutomaticPullUpBar.GripRejection.handSpanTooSmall,AutomaticPullUpBar.assessGrip(span(119.999999)))
+        fun wrist(y:Double)=mapLandmarks(p){if(it.joint==PoseJoint.rightWrist) it.copy(position=it.position.copy(y=y)) else it}
+        assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(wrist(300.0)))
+        assertEquals(AutomaticPullUpBar.GripRejection.handsNotLevel,AutomaticPullUpBar.assessGrip(wrist(300.000001)))
+    }
+    @Test fun gripAssessmentCannotAdvanceOrResetApparatusDwell() {
+        val policy=AutomaticPullUpBar()
+        val candidates=listOf(BarLineCandidate(BarSegment(Point2D(200.0,200.0),Point2D(800.0,200.0)),600.0))
+        assertNull(policy.observe(pose(0.0,false),candidates))
+        val prior=policy.referenceStabilityDiagnostic
+        repeat(20) {
+            AutomaticPullUpBar.assessGrip(pose(10.0,false))
+            AutomaticPullUpBar.assessGrip(pose(10.0,false).copy(people=emptyList()))
+        }
+        assertEquals(prior,policy.referenceStabilityDiagnostic)
+        assertEquals(AutomaticPullUpBar.State.holding,policy.state)
+        for(time in listOf(.3,.6)) assertNull(policy.observe(pose(time,false),candidates))
+        assertNotNull(policy.observe(pose(.9,false),candidates))
+    }
     private fun line(x:Double,y0:Double=590.0,y1:Double=700.0)=BarLineCandidate(BarSegment(Point2D(x,y0),Point2D(x,y1)),y1-y0)
     private fun rails()=listOf(listOf(line(250.0),line(258.0)),listOf(line(750.0),line(758.0)))
     private fun sharedBar() = listOf(555.0,575.0).map { y ->

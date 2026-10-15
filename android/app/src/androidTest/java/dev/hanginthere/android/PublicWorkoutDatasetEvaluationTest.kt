@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.hanginthere.core.ArmMeasurement
 import dev.hanginthere.core.AutomaticReferenceStability
+import dev.hanginthere.core.AutomaticPullUpBar
 import dev.hanginthere.core.ExerciseCounter
 import kotlinx.serialization.json.*
 import org.junit.Assert.assertTrue
@@ -59,6 +60,13 @@ class PublicWorkoutDatasetEvaluationTest {
                     val evidence = result.getValue("acquisitionEvidence").jsonObject
                     val acquisitionFrames = evidence.getValue("frames").jsonPrimitive.int
                     check(acquisitionFrames in 1..frames)
+                    check(evidence.getValue("pullUpGripAssessmentVersion").jsonPrimitive.int == AutomaticPullUpBar.gripAssessmentVersion)
+                    val grip = evidence.getValue("pullUpGripFrames").jsonObject
+                    val gripKeys = AutomaticPullUpBar.GripRejection.entries.map { it.name }.toSet() + "eligible"
+                    check(grip.keys.all { it in gripKeys })
+                    check(grip.values.all { it.jsonPrimitive.int in 0..acquisitionFrames })
+                    check(grip.values.sumOf { it.jsonPrimitive.int } == acquisitionFrames)
+                    check((grip["eligible"]?.jsonPrimitive?.int ?: 0) <= evidence.getValue("bothArmFrames").jsonPrimitive.int)
                     for (key in listOf("setupIssueFrames", "acquisitionStateFrames")) {
                         check(evidence.getValue(key).jsonObject.values.sumOf { it.jsonPrimitive.int } == acquisitionFrames)
                     }
