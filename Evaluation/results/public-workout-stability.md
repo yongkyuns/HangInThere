@@ -180,6 +180,77 @@ binds the tested source, executables, frameworks, common test totals, exact pari
 results and all failed attempts. Initial failures use the earlier harness variant
 that stopped at the first budget failure; the paired current run uses the final
 reporting harness. Common and shipping-bridge CI already discover these tests.
-A fresh CI run is required for this new source; the `fbd64d0` full-corpus run above
-does not validate it. Local full performance and all existing accuracy/field gates
-remain open.
+A fresh CI run was still pending when this local record was made; its completed
+results follow. The `fbd64d0` full-corpus run above does not validate this guidance
+source. Local failed timings and all existing accuracy/field gates remain recorded.
+
+## Completed overhead-guidance CI at `d0e9ada`
+
+[Shared/Apple CI 38661485364](https://github.com/yongkyuns/HangInThere/actions/runs/38661485364)
+passes all 310 JVM tests, production setup/count oracles, shipping FFI contracts,
+native source normalization and the required narrow/wide, light/dark UI renders.
+All four host FFI paths meet the unchanged <5 ms budgets:
+
+| Host FFI p95 | CI measurement |
+| --- | ---: |
+| Analysis | 1.470916 ms |
+| Grip | 1.136708 ms |
+| Arm framing | 0.188708 ms |
+| Overhead framing | 0.305500 ms |
+
+The twelve framing cases and 2,000 consumed results per framing path pass. These
+CI-host results do not erase the failed local measurements, identify their cause
+or qualify camera/model/physical-device performance.
+
+[Android CI 38661485195](https://github.com/yongkyuns/HangInThere/actions/runs/38661485195)
+passes native API 29/35 engineering and emulator budgets, the required controlled
+positive, software HDR decoder contracts, identical inputs, common policy parity
+and Swift replay of the exact Android-produced observations. The controlled
+positive counts one movement; the original pull-up remains 0/1 and the original
+dip remains 0/9 on both fixed-edge and Auto paths. Both original-capture accuracy
+jobs still fail and the workflow concludes failure. Policy/event agreement is
+distinct from meeting the reference labels.
+
+The PR checkout is merge commit `6e571ffb68172a9d75e78bb14b93af9f36cbe4d1`;
+its complete Git tree matches branch head `d0e9ada5a505f031e3d3df2ab4248d1a3a3869c9`.
+[Verified CI artifacts](public-workout-overhead-framing-ci.artifacts.json) bind four
+archive digests, exact host/core/parity outputs, both 310-test totals and rounded
+native log summaries. Native normalized source output was independently checked
+from the verified archive. Raw native poses, APKs and source videos are excluded
+from retained Git records. These results validate the overhead-guidance checkpoint;
+they do not validate subsequent grip-assessment instrumentation or establish a
+fresh 33-video accuracy score. All five field-validation goals and the simulator
+model/decoder blockers remain open. PR #29 remains draft.
+
+## Shared grip assessment at `f0c5aec`
+
+The next checkpoint exposes the existing pull-up search conditions as a typed
+shared assessment. `grip()` still returns the same nullable grip and crop; the
+first rejection now identifies context, athlete count, unavailable arms or grip
+landmarks, or projected hand geometry. Check order, confidence thresholds,
+geometry, dwell and count policy 8 are unchanged. Failed assessments reuse enum
+singletons, and asking for an assessment cannot advance or reset apparatus dwell.
+
+Android native evaluation records a version-1 counts-only histogram over every
+actual first-acquisition pose, including frames before contour sampling. The
+histogram uses this production assessment outside the measured pipeline interval;
+it does not feed acquisition or counting. Version, allowed statuses, integer
+counts and complete first-pass denominators are checked. Legacy reports remain
+unassessed. An eligible grip is not a confirmed bar, started set or completed rep;
+the overhead pull-up assessment does not grade dip suitability. iOS acquisition
+does not yet export this histogram.
+
+The [source-bound local validation](public-workout-grip-assessment.validation.json)
+records 313 Kotlin Native and 315 JVM tests with no failures, 85 Swift/Kotlin setup
+cases / 4,846 frames plus 17 geometry cases, and 30 counter cases. All 87 Python
+evaluation contracts pass; the affected 17-test class also passes after the final
+type guards. Existing core budgets pass. A single rebuilt shipping Apple FFI run
+exits zero and passes normalization and all four unchanged <5 ms host budgets:
+analysis 3.015573 ms, grip 3.692934 ms, arm framing 0.260913 ms and overhead framing
+0.301328 ms. Each path consumes 2,000 results. Prior failed local measurements
+remain recorded; this run does not explain their cause or qualify device timing.
+Independent code/evidence review finds no actionable issues.
+
+New-source Android compilation and actual native histograms still require hosted
+evaluation. No new corpus accuracy or counting gain is claimed by this diagnostic
+change. Published-label failures and all five field-validation goals stay open.
