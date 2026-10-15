@@ -1,0 +1,170 @@
+{
+  "android-api29": {
+    "acquisitionStateFrames": {
+      "ambiguous": 1527,
+      "findingEdge": 286,
+      "holding": 1752,
+      "lookingForGrip": 8064
+    },
+    "acquisition_frames": {
+      "bothArmFrames": 6231,
+      "contourErrorFrames": 0,
+      "contourEvidenceFrames": 544,
+      "contourSampleFrames": 586,
+      "frames": 11629,
+      "referenceFrames": 0
+    },
+    "cases": 33,
+    "final_setup_issues": {
+      "exerciseIdentityNeeded": 14,
+      "framingIncomplete": 19
+    },
+    "prior_acquisition_frames_states_issues_unchanged": true,
+    "referenceStabilitySamples": {
+      "accumulating": 19,
+      "candidateStarted": 155,
+      "edgeChanged": 81,
+      "gripMoved": 8
+    },
+    "resolvedExerciseFrames": {
+      "dip": 12,
+      "pullUp": 678
+    },
+    "same_media_status_frames_events_as_e73e57c": true,
+    "score": {
+      "acceptance_seconds": {
+        "clips": 33,
+        "exact_clips": 0,
+        "expected_repetitions": 149,
+        "mean_absolute_error": 4.515151515151516,
+        "observed_events": 0
+      },
+      "completed_seconds": {
+        "clips": 33,
+        "exact_clips": 0,
+        "expected_repetitions": 149,
+        "mean_absolute_error": 4.515151515151516,
+        "observed_events": 0
+      }
+    },
+    "setupIssueFrames": {
+      "barReferenceNeeded": 422,
+      "dipRailsUnclear": 12,
+      "exerciseIdentityNeeded": 5541,
+      "framingIncomplete": 5398,
+      "pullUpBarUnclear": 256
+    },
+    "source_frames": 11629,
+    "status_counts": {
+      "setupUnavailable": 33
+    }
+  },
+  "android-api35": {
+    "acquisitionStateFrames": {
+      "ambiguous": 1527,
+      "findingEdge": 286,
+      "holding": 1752,
+      "lookingForGrip": 8064
+    },
+    "acquisition_frames": {
+      "bothArmFrames": 6231,
+      "contourErrorFrames": 0,
+      "contourEvidenceFrames": 544,
+      "contourSampleFrames": 586,
+      "frames": 11629,
+      "referenceFrames": 0
+    },
+    "cases": 33,
+    "final_setup_issues": {
+      "exerciseIdentityNeeded": 14,
+      "framingIncomplete": 19
+    },
+    "prior_acquisition_frames_states_issues_unchanged": true,
+    "referenceStabilitySamples": {
+      "accumulating": 19,
+      "candidateStarted": 155,
+      "edgeChanged": 80,
+      "gripMoved": 9
+    },
+    "resolvedExerciseFrames": {
+      "dip": 12,
+      "pullUp": 678
+    },
+    "same_media_status_frames_events_as_e73e57c": true,
+    "score": {
+      "acceptance_seconds": {
+        "clips": 33,
+        "exact_clips": 0,
+        "expected_repetitions": 149,
+        "mean_absolute_error": 4.515151515151516,
+        "observed_events": 0
+      },
+      "completed_seconds": {
+        "clips": 33,
+        "exact_clips": 0,
+        "expected_repetitions": 149,
+        "mean_absolute_error": 4.515151515151516,
+        "observed_events": 0
+      }
+    },
+    "setupIssueFrames": {
+      "barReferenceNeeded": 422,
+      "dipRailsUnclear": 12,
+      "exerciseIdentityNeeded": 5541,
+      "framingIncomplete": 5398,
+      "pullUpBarUnclear": 256
+    },
+    "source_frames": 11629,
+    "status_counts": {
+      "setupUnavailable": 33
+    }
+  },
+  "android_stability_histogram_differences": [
+    {
+      "api29": {
+        "candidateStarted": 77,
+        "edgeChanged": 44,
+        "gripMoved": 3
+      },
+      "api35": {
+        "candidateStarted": 77,
+        "edgeChanged": 43,
+        "gripMoved": 4
+      },
+      "case_id": "repcount_stu1_37"
+    }
+  ],
+  "apple": {
+    "cases": 33,
+    "pose_availability": {
+      "both_arm_frames": 5774,
+      "pullup_search_frames": 2696,
+      "single_person_frames": 7981
+    },
+    "same_media_status_frames_events_as_e73e57c": true,
+    "score": {
+      "acceptance_seconds": {
+        "clips": 33,
+        "exact_clips": 0,
+        "expected_repetitions": 149,
+        "mean_absolute_error": 4.181818181818182,
+        "observed_events": 11
+      },
+      "completed_seconds": {
+        "clips": 33,
+        "exact_clips": 0,
+        "expected_repetitions": 149,
+        "mean_absolute_error": 4.212121212121212,
+        "observed_events": 10
+      }
+    },
+    "source_frames": 11629,
+    "status_counts": {
+      "processed": 1,
+      "setupUnavailable": 32
+    }
+  },
+  "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+  "scope": "full public original-capture replay; no physical-device or independent equipment accuracy claim",
+  "source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b"
+}

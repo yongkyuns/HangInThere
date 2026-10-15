@@ -156,6 +156,16 @@ observations retain floating-point subtraction; they do not have the same exact
 boundary guarantee. No hold duration, required observations or geometry tolerance
 has been relaxed.
 
+The local Apple bar audit also records optional adjacent-frame and prior-dwell
+scene-registration diagnostics. Adjacent means the previous contour-sampled
+source frame; prior-dwell means the stability anchor before the current sample
+can replace it. Translation consensus, estimated shift and estimated scale use
+the production registration worker. Missing measurements remain missing, and
+registration errors are explicit. These observations never feed acquisition or
+counting. Their association with edge resets is image evidence, not independently
+labelled physical camera or bar movement. Retained public summaries exclude raw
+images, poses and geometry; private audit output must remain local.
+
 ## Qualification and data use
 
 This is user-authorized internal diagnostic use of publicly distributed research
