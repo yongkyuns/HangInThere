@@ -765,14 +765,15 @@ final class LiveCameraPreviewController: NSObject {
         // Shared readiness uses only fresh source frames after real apparatus,
         // motion and scene qualification. No gesture or countdown is required.
         if !eligible || workoutDetailsPresented { qualifiedStartPose = nil }
-        if let previous = qualifiedStartPose,
-           frame.pose.timestamp.seconds <= previous.timestamp.seconds ||
-           frame.pose.timestamp.seconds - previous.timestamp.seconds > ExerciseCounter.maximumGapSeconds {
-            qualifiedStartPose = nil
+        if let previous = qualifiedStartPose {
+            let gap = frame.pose.timestamp.elapsedSeconds(since: previous.timestamp)
+            if !gap.isFinite || gap <= 0 || gap > ExerciseCounter.maximumGapSeconds {
+                qualifiedStartPose = nil
+            }
         }
         let baseline = qualifiedStartPose
         if eligible && qualifiedStartPose == nil { qualifiedStartPose = frame.pose }
-        if workoutAnalysis.ready(seconds: frame.pose.timestamp.seconds,
+        if workoutAnalysis.ready(at: frame.pose.timestamp,
             eligible: eligible && !workoutDetailsPresented) {
             if startSet(discardQueuedFrame: false), let baseline, let reference = currentBar?.referenceEdge {
                 liveSet.consume(baseline, referenceEdge: reference)

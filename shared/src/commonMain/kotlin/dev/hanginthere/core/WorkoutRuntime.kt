@@ -173,10 +173,11 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         }
         if(session.phase==LiveSetSession.Phase.idle) {
             val eligible=issue==null && (activeExercise==ExerciseCounter.Exercise.dip || HandsFreeSetStart.isStartingPosition(pose,bar!!.referenceEdge))
-            if(!eligible || input.paused || (qualifiedStartPose!=null && (seconds<=qualifiedStartPose!!.timestamp.seconds || seconds-qualifiedStartPose!!.timestamp.seconds>ExerciseCounter.maximumGapSeconds))) qualifiedStartPose=null
+            val startGap=qualifiedStartPose?.let{pose.timestamp.elapsedSeconds(it.timestamp)}
+            if(!eligible || input.paused || (startGap!=null && (!startGap.isFinite() || startGap<=0 || startGap>ExerciseCounter.maximumGapSeconds))) qualifiedStartPose=null
             val baseline=qualifiedStartPose
             if(eligible && qualifiedStartPose==null) qualifiedStartPose=pose
-            val began=if(automaticWorkouts) automaticStart.observe(seconds,eligible && !input.paused) else if(activeExercise==ExerciseCounter.Exercise.dip) handsFreeStart.observeDip(pose,side,bar?.referenceEdge,eligible,input.paused) else handsFreeStart.observe(seconds,eligible,input.paused)
+            val began=if(automaticWorkouts) automaticStart.observe(pose.timestamp,eligible && !input.paused) else if(activeExercise==ExerciseCounter.Exercise.dip) handsFreeStart.observeDip(pose,side,bar?.referenceEdge,eligible,input.paused) else handsFreeStart.observe(seconds,eligible,input.paused)
             if(began) {
                 if(resolvedExercise!=null && (selection!=WorkoutExerciseSelection.automatic || replayExercise!=null || identity.lock())) {
                     session.automaticFinishEnabled=automaticWorkouts;session.start(activeExercise,side,nowEpochMilliseconds());discardNextSetFrame=!automaticWorkouts

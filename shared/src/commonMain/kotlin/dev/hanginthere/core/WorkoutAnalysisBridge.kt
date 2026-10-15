@@ -48,6 +48,8 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
         return if (automaticFinish) boundary.observe(sample, hasActivity || ExerciseCounter.Phase.valueOf(phase) in listOf(ExerciseCounter.Phase.ready,ExerciseCounter.Phase.outbound,ExerciseCounter.Phase.returning)) else null
     }
     fun ready(seconds: Double, eligible: Boolean) = start.observe(seconds, eligible)
+    fun readyAt(sourceValue:Long,sourceTimescale:Int,eligible:Boolean)=
+        start.observe(PresentationTime(sourceValue,sourceTimescale),eligible)
     fun resetReadiness() = start.reset()
     fun interrupt(reason: String) { analysis.interrupt(reason); boundary.breakContinuity() }
     fun finish(reason: String) { analysis.finish(reason);endReason=reason }

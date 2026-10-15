@@ -23,6 +23,25 @@ struct WorkoutAnalysisBridgeCheck {
                 imageSize: ImageSize(width: 1000, height: 1000), people: [PoseObservation(landmarks: landmarks)], backend: "synthetic bridge check", requestRevision: 0)
         }
         let framingAdapter = WorkoutAnalysisAdapter()
+        let readiness = WorkoutAnalysisAdapter()
+        var readinessChecks = 0
+        @MainActor func readReady(_ ticks: Int64, scale: Int32 = 1_000_000, eligible: Bool = true) -> Bool {
+            readinessChecks += 1
+            return readiness.ready(at: .init(value: ticks, timescale: scale), eligible: eligible)
+        }
+        guard !readReady(1_100_000), !readReady(1_219_999), readReady(1_220_000) else {
+            fatalError("Shipping Apple readiness rounded away the source hold boundary")
+        }
+        readiness.resetReadiness()
+        guard !readReady(1_200_000), readReady(1_550_000) else { fatalError("Shipping Apple readiness rejected the exact allowed source gap") }
+        readiness.resetReadiness()
+        guard !readReady(1_200_000), !readReady(1_550_001), !readReady(1_670_001), readReady(1_790_001),
+              !readReady(1_800_000, eligible: false), !readReady(1_920_000), readReady(2_040_000),
+              !readReady(2_050_000, scale: 0), !readReady(2_170_000), readReady(2_290_000),
+              !readReady(2_290_000), !readReady(2_410_000), readReady(2_530_000),
+              readiness.reps.isEmpty, readiness.currentRecord == nil, !readiness.showsSetStarted else {
+            fatalError("Shipping Apple readiness reused missing/duplicate/ineligible time or invented a workout")
+        }
         let clearFraming = pose(0, 170, exercise: .pullUp)
         let unclearPoints = clearFraming.people[0].landmarks.map { point in
             Landmark(joint: point.joint, position: point.position, confidence: point.joint == .rightWrist ? 0.01 : point.confidence)
@@ -590,14 +609,28 @@ struct WorkoutAnalysisBridgeCheck {
         let overheadP95 = measureFraming(overheadFraming, expected: overheadAdvice)
         let gripVisibilityP95 = measureFraming(gripVisibilityFraming, expected: gripVisibilityAdvice)
         let acquisitionP95 = measureFraming(clearFraming, expected: acquisitionAdvice, acquisition: true)
+        var readinessLatencies: [Double] = []
+        readiness.resetReadiness()
+        for index in 0..<2000 {
+            let time = PresentationTime(value: Int64(index) * 40_000, timescale: 1_000_000)
+            let started = ContinuousClock.now
+            let ready = readiness.ready(at: time, eligible: index % 10 != 9)
+            let elapsed = started.duration(to: .now).components
+            readinessLatencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
+            guard ready == (3...8).contains(index % 10) else { fatalError("Readiness result was not consumed") }
+        }
+        readinessLatencies.sort()
+        let readinessP95 = readinessLatencies[Int(Double(readinessLatencies.count - 1) * 0.95)]
         // Retain every measured path before enforcing budgets, so a slow analysis
         // path cannot hide the framing measurements. Failure still exits nonzero.
-        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95, acquisitionP95].allSatisfy { $0 < 5 }
+        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95, acquisitionP95, readinessP95].allSatisfy { $0 < 5 }
         let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 12, "framingFrames": 2000, "overheadFramingFrames": 2000, "overheadFramingHostBridgeP95Milliseconds": overheadP95, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": withinHostBudgets, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "gripVisibilityCases": 7, "gripVisibilityFeedbackCases": 3, "gripVisibilityFramingFrames": 2000,
             "gripVisibilityFramingHostBridgeP95Milliseconds": gripVisibilityP95,
             "acquisitionFeedbackCases": acquisitionFeedbackChecks, "acquisitionFramingFrames": 2000,
             "acquisitionFramingHostBridgeP95Milliseconds": acquisitionP95,
+            "readinessCases": readinessChecks, "readinessFrames": 2000,
+            "readinessHostBridgeP95Milliseconds": readinessP95,
             "sceneQualificationCases": 3, "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
         // Actual shipping Swift → Kotlin normalization, checked again by the
@@ -609,7 +642,7 @@ struct WorkoutAnalysisBridgeCheck {
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/apple-bridge-check.json"), options: .atomic)
         print(String(decoding: data, as: UTF8.self))
         guard withinHostBudgets else {
-            fatalError("Host FFI p95 exceeds 5 ms budgets: analysis \(p95), grip \(gripP95), framing \(framingP95), overhead \(overheadP95), grip visibility \(gripVisibilityP95), acquisition \(acquisitionP95)")
+            fatalError("Host FFI p95 exceeds 5 ms budgets: analysis \(p95), grip \(gripP95), framing \(framingP95), overhead \(overheadP95), grip visibility \(gripVisibilityP95), acquisition \(acquisitionP95), readiness \(readinessP95)")
         }
     }
     @MainActor private static func checkSavedObservations() throws {

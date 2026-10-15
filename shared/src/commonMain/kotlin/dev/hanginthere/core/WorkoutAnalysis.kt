@@ -261,13 +261,25 @@ class AutomaticSetBoundary {
 
 /** Shared brief source-time readiness gate after actual apparatus/camera qualification. */
 class AutomaticWorkoutStart {
-    private var since: Double? = null
-    private var last: Double? = null
-    fun observe(seconds: Double, eligible: Boolean): Boolean {
-        if (!seconds.isFinite() || !eligible || (last != null && (seconds <= last!! || seconds - last!! > ExerciseCounter.maximumGapSeconds))) { reset(); return false }
-        last = seconds
-        if (since == null) since = seconds
-        return seconds - since!! >= ExerciseCounter.endpointDwellSeconds
+    private data class Time(val seconds:Double,val source:PresentationTime?=null) {
+        fun elapsedSince(previous:Time)=if(source!=null && previous.source!=null)
+            source.elapsedSeconds(previous.source) else seconds-previous.seconds
+        fun sameClockKind(other:Time)=(source==null)==(other.source==null)
+    }
+    private var since: Time? = null
+    private var last: Time? = null
+    /** Scalar compatibility path; no rounding or invented source ticks. */
+    fun observe(seconds: Double, eligible: Boolean): Boolean = observe(Time(seconds),eligible)
+    /** Camera adapters preserve the original source clock through the readiness gate. */
+    fun observe(time:PresentationTime,eligible:Boolean):Boolean = observe(Time(time.seconds,time),eligible)
+    private fun observe(time:Time,eligible:Boolean):Boolean {
+        val gap=last?.let{time.elapsedSince(it)}
+        if(!time.seconds.isFinite() || !eligible ||
+            last?.let{!time.sameClockKind(it)}==true ||
+            (gap!=null && (!gap.isFinite() || gap<=0 || gap>ExerciseCounter.maximumGapSeconds))) {reset();return false}
+        last=time
+        if(since==null) since=time
+        return time.elapsedSince(since!!)>=ExerciseCounter.endpointDwellSeconds
     }
     fun reset() { since = null; last = null }
 }

@@ -81,6 +81,9 @@ final class WorkoutAnalysisAdapter {
     func shouldResume(reason: LiveSetSession.EndReason?) -> Bool { WorkoutLifecycle.shared.shouldResume(endReason: reason?.rawValue) }
     func observationOutage(elapsed: Double) -> Bool { WorkoutLifecycle.shared.observationOutage(elapsedSeconds: elapsed) }
     func ready(seconds: Double, eligible: Bool) -> Bool { engine.ready(seconds: seconds, eligible: eligible) }
+    func ready(at time: PresentationTime, eligible: Bool) -> Bool {
+        engine.readyAt(sourceValue: time.value, sourceTimescale: time.timescale, eligible: eligible)
+    }
     func resetReadiness() { engine.resetReadiness() }
     private func makeJointIndices(_ names: [String]) -> [PoseJoint: Int32] {
         Dictionary(uniqueKeysWithValues: PoseJoint.allCases.map { joint in
