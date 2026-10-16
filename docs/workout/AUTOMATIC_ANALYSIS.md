@@ -125,6 +125,11 @@ are preserved rather than silently reclassified.
   never advances counting/readiness/set boundaries, and feedback never delays the
   first rep. Replay does not announce live starts; ended/background sets cancel
   feedback, including late Android speech initialization.
+  Apple visibility reads the shared remaining UI-time budget even while its
+  timer callback is queued. An absolute monotonic deadline schedules drawing
+  invalidation, and cancellation/set identity prevent an old callback from
+  hiding a newer set's cue. The clock is injectable for deterministic native
+  tests and never substitutes for source presentation time.
 - A rep opens on departure from the acquired start. An accepted pull-up reaches
   its counting milestone at the upper endpoint; it closes its motion record on
   the observed return. A dip is accepted on the return to top support. The count

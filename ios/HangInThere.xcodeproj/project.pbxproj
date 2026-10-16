@@ -93,6 +93,8 @@
 		AAB000000000000000000002 = {isa = PBXBuildFile; fileRef = AAB000000000000000000001;};
 		ACF000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCameraSelectionTests.swift; sourceTree = "<group>";};
 		ACF000000000000000000002 = {isa = PBXBuildFile; fileRef = ACF000000000000000000001;};
+		ACF000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutStartFeedbackTimerTests.swift; sourceTree = "<group>";};
+		ACF000000000000000000004 = {isa = PBXBuildFile; fileRef = ACF000000000000000000003;};
 		D8B6A101D4B748E0A35F0501 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSessionPackageTests.swift; sourceTree = "<group>";};
 		D8B6A101D4B748E0A35F0502 = {isa = PBXBuildFile; fileRef = D8B6A101D4B748E0A35F0501;};
 		6FAA384EC7A5412D562FC46C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupControllerTests.swift; sourceTree = "<group>";};
@@ -474,6 +476,7 @@
 				ACC100000000000000000002,
 				ACB100000000000000000007,
 				ACF000000000000000000001,
+				ACF000000000000000000003,
 				AAB000000000000000000005,
 				D8B6A101D4B748E0A35F0501,
 			);
@@ -785,6 +788,7 @@
 				ACC200000000000000000002,
 				ACB200000000000000000007,
 				ACF000000000000000000002,
+				ACF000000000000000000004,
 				AAB000000000000000000006,
 				E907D117346B40511577EFAB,
 				AE9049A619C3D801DBA2F172,

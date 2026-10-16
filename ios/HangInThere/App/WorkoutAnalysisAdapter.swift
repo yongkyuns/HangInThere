@@ -40,7 +40,15 @@ final class WorkoutAnalysisAdapter {
     @ObservationIgnored private let startFeedback = WorkoutStartFeedback()
     @ObservationIgnored private let trackingFeedback = WorkoutTrackingFeedback()
     @ObservationIgnored private var startFeedbackTask: Task<Void, Never>?
-    private(set) var showsSetStarted = false
+    @ObservationIgnored private let feedbackClock: @MainActor () -> Double
+    private var startCueVisible = false
+    var showsSetStarted: Bool {
+        startCueVisible && startFeedback.remainingSeconds(nowSeconds: feedbackClock()) > 0
+    }
+    // Presentation-only monotonic time, independent of workout source PTS.
+    init(feedbackClock: @escaping @MainActor () -> Double = { ProcessInfo.processInfo.systemUptime }) {
+        self.feedbackClock = feedbackClock
+    }
     var gripLabel: String? { currentRecord?.exercise == .pullUp ? engine.gripLabel : nil }
     @ObservationIgnored private var gripTimestamp: Double?
     var startSpokenMessage: String { WorkoutStartFeedback.companion.spokenMessage }
@@ -48,21 +56,29 @@ final class WorkoutAnalysisAdapter {
         trackingFeedback.observe(id: setId, running: isRunning, trackingIssue: issue, nowSeconds: ProcessInfo.processInfo.systemUptime)
     }
     @discardableResult
-    func beginStartFeedback(isRunning: Bool, nowSeconds: Double = ProcessInfo.processInfo.systemUptime) -> Bool {
-        guard startFeedback.begin(setId: setId, live: true, running: isRunning, nowSeconds: nowSeconds) else { return false }
+    func beginStartFeedback(isRunning: Bool) -> Bool {
+        beginStartFeedback(isRunning: isRunning, nowSeconds: feedbackClock())
+    }
+    @discardableResult
+    func beginStartFeedback(isRunning: Bool, nowSeconds: Double) -> Bool {
+        guard startFeedback.begin(setId: setId, live: true, running: isRunning,
+                                  nowSeconds: nowSeconds) else { return false }
         startFeedbackTask?.cancel()
-        showsSetStarted = true
-        let duration = startFeedback.remainingSeconds(nowSeconds: nowSeconds)
+        startCueVisible = true
+        let duration = startFeedback.remainingSeconds(nowSeconds: feedbackClock())
+        let deadline = ContinuousClock.now.advanced(by: .seconds(duration))
+        let owner = setId
         startFeedbackTask = Task { [weak self] in
-            do { try await Task.sleep(for: .seconds(duration)) } catch { return }
-            self?.showsSetStarted = false
-            self?.startFeedbackTask = nil
+            do { try await Task.sleep(until: deadline, clock: .continuous) } catch { return }
+            guard !Task.isCancelled, let self, self.setId == owner else { return }
+            self.startCueVisible = false
+            self.startFeedbackTask = nil
         }
         return true
     }
     private func clearStartFeedback() {
         startFeedbackTask?.cancel(); startFeedbackTask = nil
-        startFeedback.clear(); showsSetStarted = false
+        startFeedback.clear(); startCueVisible = false
     }
     func drainDraft() -> WorkoutSetRecord? { defer { pendingDraft = nil }; return pendingDraft }
     private func makeEngine(exercise: ExerciseCounter.Exercise, recordCalendarTime: Bool = true) -> WorkoutAnalysisBridge {
