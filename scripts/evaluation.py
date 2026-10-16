@@ -324,7 +324,8 @@ def run_batch(manifest_path, root, output, engine, public_output=False, timeout=
         except (OSError, ValueError, KeyError, TypeError):
             record.update(status="evaluation_failure", pose_metrics={"status": "not_evaluated"})
     sources = sorted(list((ROOT / "ios/HangInThere/Analysis").glob("*.swift")) +
-                     [ROOT / "ios/HangInThere/Capture/VideoReplayReader.swift", ROOT / "ios/HangInThere/Pose/VisionPoseEstimator.swift",
+                     [ROOT / "ios/HangInThere/Capture/VideoReplayReader.swift", ROOT / "ios/HangInThere/Capture/BitmapFrameRenderer.swift",
+                      ROOT / "ios/HangInThere/Pose/VisionPoseEstimator.swift",
                       ROOT / "Evaluation/PoseBatch.swift", Path(__file__)])
     fingerprint = {str(p.relative_to(ROOT)): digest(p) for p in sources}
     commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True, capture_output=True, check=False).stdout.strip() or None

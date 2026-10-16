@@ -5,8 +5,9 @@ import Testing
 
 @Suite(.serialized)
 struct VideoReplayReaderTests {
-    @MainActor @Test func nativeFrameStagesLeaveThePresentationActor() async throws {
-        let url = try await VideoTestSupport.makeVideo()
+    @MainActor @Test(arguments: [false, true])
+    func nativeFrameStagesLeaveThePresentationActor(needsResampling: Bool) async throws {
+        let url = try await VideoTestSupport.makeVideo(width: needsResampling ? 1400 : 160)
         defer { try? FileManager.default.removeItem(at: url) }
         let (events, continuation) = AsyncStream.makeStream(of: Bool.self)
         let reader = VideoReplayReader(estimator: TestPoseEstimator(), trace: { event in
@@ -45,11 +46,11 @@ struct VideoReplayReaderTests {
         var recorded: [ReplayTrace] = []
         for await event in events { recorded.append(event) }
         #expect(recorded.map(\.stage) == [.preparation, .preparation,
-                .decoding, .decoding, .geometry, .geometry, .context, .context,
+                .decoding, .decoding, .geometry, .geometry,
                 .rendering, .rendering, .estimation, .estimation,
                 .decoding, .decoding, .geometry, .geometry,
                 .rendering, .rendering, .estimation, .estimation],
-                "Create the context lazily on first render, then reuse it on later frames.")
+                "Unscaled opaque BGRA frames must render without a Core Image context.")
         for index in stride(from: 0, to: recorded.count - 1, by: 2) {
             let begin = recorded[index], end = recorded[index + 1]
             #expect(begin.stage == end.stage && begin.sourceSeconds == end.sourceSeconds)
@@ -59,11 +60,15 @@ struct VideoReplayReaderTests {
             #expect(elapsed.isFinite && elapsed >= 0)
         }
         #expect(recorded.filter { $0.stage == .estimation && $0.boundary == .ended }.map(\.sourceSeconds) == [0, 0.1])
+        #expect(recorded.filter { $0.stage == .rendering }.allSatisfy { $0.renderingBackend == .bitmap })
     }
 
     @Test(arguments: [nil, .decoding, .geometry, .context, .rendering, .estimation] as [ReplayTrace.Stage?])
     func discardedRequestsStopBetweenStagesWithoutCorruptingTheTimeline(after stage: ReplayTrace.Stage?) async throws {
-        let url = try await VideoTestSupport.makeVideo()
+        // Preserve cancellation coverage at lazy CI-context creation using a
+        // frame that needs resampling. Ordinary unscaled frames bypass CI.
+        let needsResampling = stage == .context
+        let url = try await VideoTestSupport.makeVideo(width: needsResampling ? 1400 : 160)
         defer { try? FileManager.default.removeItem(at: url) }
         let discard = ReplayFrameDiscardSignal()
         let (events, continuation) = AsyncStream.makeStream(of: ReplayTrace.self)
@@ -84,12 +89,15 @@ struct VideoReplayReaderTests {
         let next = try await reader.nextFrame()
         let frame = try #require(next)
         #expect(frame.pose.timestamp.seconds == (stage == nil ? 0 : 0.1))
-        try checkFrame(frame, width: 160, height: 96, colors: [red, green, blue, yellow])
+        try checkFrame(frame, width: needsResampling ? 1280 : 160, height: needsResampling ? 88 : 96,
+                       colors: [red, green, blue, yellow])
         await reader.close()
         continuation.finish()
         var recorded: [ReplayTrace.Stage] = []
         for await event in events where event.boundary == .began { recorded.append(event.stage) }
-        let nativeStages: [ReplayTrace.Stage] = [.decoding, .geometry, .context, .rendering, .estimation]
+        let nativeStages: [ReplayTrace.Stage] = needsResampling
+            ? [.decoding, .geometry, .context, .rendering, .estimation]
+            : [.decoding, .geometry, .rendering, .estimation]
         let stop = stage.flatMap { nativeStages.firstIndex(of: $0) }
         let abandonedStages = stop.map { Array(nativeStages.prefix($0 + 1)) } ?? []
         let continuedStages = abandonedStages.contains(.context)

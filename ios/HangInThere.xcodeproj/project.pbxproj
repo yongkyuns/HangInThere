@@ -95,6 +95,10 @@
 		ACF000000000000000000002 = {isa = PBXBuildFile; fileRef = ACF000000000000000000001;};
 		ACF000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutStartFeedbackTimerTests.swift; sourceTree = "<group>";};
 		ACF000000000000000000004 = {isa = PBXBuildFile; fileRef = ACF000000000000000000003;};
+		ACF000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapFrameRenderer.swift; sourceTree = "<group>";};
+		ACF000000000000000000006 = {isa = PBXBuildFile; fileRef = ACF000000000000000000005;};
+		ACF000000000000000000007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapFrameRendererTests.swift; sourceTree = "<group>";};
+		ACF000000000000000000008 = {isa = PBXBuildFile; fileRef = ACF000000000000000000007;};
 		D8B6A101D4B748E0A35F0501 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSessionPackageTests.swift; sourceTree = "<group>";};
 		D8B6A101D4B748E0A35F0502 = {isa = PBXBuildFile; fileRef = D8B6A101D4B748E0A35F0501;};
 		6FAA384EC7A5412D562FC46C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupControllerTests.swift; sourceTree = "<group>";};
@@ -275,6 +279,7 @@
 			isa = PBXGroup;
 			children = (
 				B798D0952C0283EE3BA0F9A9,
+				ACF000000000000000000005,
 				A1C4E501D4B748E0A35F0101,
 			);
 			path = Capture;
@@ -477,6 +482,7 @@
 				ACB100000000000000000007,
 				ACF000000000000000000001,
 				ACF000000000000000000003,
+				ACF000000000000000000007,
 				AAB000000000000000000005,
 				D8B6A101D4B748E0A35F0501,
 			);
@@ -739,6 +745,7 @@
 				6701F93B4C431819319367FA,
 				416A0916046EB339EA9673D8,
 				F9B57C2A9301AC3E37D4D15E,
+				ACF000000000000000000006,
 				A1C4E501D4B748E0A35F0102,
 				CDD19EB39340058AFAD45F5A,
 				E5A8C901DBE46CA1D4510302,
@@ -789,6 +796,7 @@
 				ACB200000000000000000007,
 				ACF000000000000000000002,
 				ACF000000000000000000004,
+				ACF000000000000000000008,
 				AAB000000000000000000006,
 				E907D117346B40511577EFAB,
 				AE9049A619C3D801DBA2F172,

@@ -8,6 +8,7 @@ trap 'rm -rf "$WORK"' EXIT
 xcrun swiftc -O -swift-version 6 -parse-as-library \
   "$ROOT"/ios/HangInThere/Analysis/*.swift \
   "$ROOT/ios/HangInThere/Capture/VideoReplayReader.swift" \
+  "$ROOT/ios/HangInThere/Capture/BitmapFrameRenderer.swift" \
   "$ROOT/ios/HangInThere/Pose/VisionPoseEstimator.swift" \
   "$ROOT/Evaluation/PoseBatch.swift" -o "$WORK/pose-batch"
 python3 "$ROOT/scripts/evaluation.py" run "$@" --engine "$WORK/pose-batch"

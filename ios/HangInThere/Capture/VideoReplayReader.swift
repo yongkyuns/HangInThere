@@ -51,6 +51,7 @@ struct ReplayTrace: Sendable {
     let boundary: Boundary
     let sourceSeconds: Double?
     let milliseconds: Double?
+    var renderingBackend: FrameRenderingBackend? = nil
 
     static func milliseconds(since start: ContinuousClock.Instant) -> Double {
         let duration = start.duration(to: .now).components
@@ -227,67 +228,97 @@ actor VideoReplayReader {
     }
 
     func nextFrame(discard: ReplayFrameDiscardSignal? = nil) throws -> ProcessedFrame? {
+        try autoreleasepool { try consumeFrame(discard: discard) }
+    }
+
+    // Keep non-Sendable sample/buffer borrows in an explicitly actor-isolated
+    // method; only the actor reference enters Foundation's pool closure.
+    private func consumeFrame(discard: ReplayFrameDiscardSignal?) throws -> ProcessedFrame? {
         guard let reader, let output else { throw ReplayError.notOpen }
         try discard?.check()
-        return try autoreleasepool {
-            let started = ContinuousClock.now
-            let decoded = measure(.decoding, { output.copyNextSampleBuffer() })
-            // A blocking native read cannot observe disposal until it returns.
-            // Avoid rendering/inference for that obsolete session afterwards.
+        let started = ContinuousClock.now
+        let decoded = measure(.decoding, { output.copyNextSampleBuffer() })
+        // A blocking native read cannot observe disposal until it returns.
+        // Avoid rendering/inference for that obsolete session afterwards.
+        try discard?.check()
+        guard let sample = decoded else {
+            if reader.status == .completed { return nil }
+            throw ReplayError.decoding(reader.error?.localizedDescription ?? "The decoder stopped unexpectedly.")
+        }
+        let pts = CMSampleBufferGetPresentationTimeStamp(sample)
+        guard pts.isNumeric, pts.epoch == 0 else { throw ReplayError.invalidTime }
+        let timestamp = PresentationTime(value: pts.value, timescale: pts.timescale)
+        guard timeline.accept(timestamp) else { throw ReplayError.invalidTime }
+        guard let buffer = CMSampleBufferGetImageBuffer(sample) else {
+            throw ReplayError.decoding("A decoded frame has no image buffer.")
+        }
+        let width = Double(CVPixelBufferGetWidth(buffer))
+        let height = Double(CVPixelBufferGetHeight(buffer))
+        // The first profile is square-pixel video. Reject non-square pixels
+        // and nontrivial clean apertures instead of drawing a shifted overlay.
+        if let format = CMSampleBufferGetFormatDescription(sample) {
+            let displayed = CMVideoFormatDescriptionGetPresentationDimensions(
+                format, usePixelAspectRatio: true, useCleanAperture: true)
+            guard abs(displayed.width - width) < 1, abs(displayed.height - height) < 1 else {
+                throw ReplayError.invalidGeometry
+            }
+        }
+        let geometry = try measure(.geometry, sourceSeconds: timestamp.seconds) {
+            guard let geometry = OrientedGeometry(
+                sourceSize: ImageSize(width: width, height: height), preferredTransform: transform
+            ) else { throw ReplayError.invalidGeometry }
+            return geometry
+        }
+        try discard?.check()
+        let source = CIImage(cvPixelBuffer: buffer)
+        let colorSpace = source.colorSpace
+        var rendered: CGImage?
+        if BitmapFrameRenderer.supports(buffer, geometry: geometry, colorSpace: colorSpace,
+                                        maximumDimension: maximumDimension, isolation: self) {
+            rendered = bitmapImage(buffer, geometry: geometry, colorSpace: colorSpace, sourceSeconds: timestamp.seconds)
             try discard?.check()
-            guard let sample = decoded else {
-                if reader.status == .completed { return nil }
-                throw ReplayError.decoding(reader.error?.localizedDescription ?? "The decoder stopped unexpectedly.")
-            }
-            let pts = CMSampleBufferGetPresentationTimeStamp(sample)
-            guard pts.isNumeric, pts.epoch == 0 else { throw ReplayError.invalidTime }
-            let timestamp = PresentationTime(value: pts.value, timescale: pts.timescale)
-            guard timeline.accept(timestamp) else { throw ReplayError.invalidTime }
-            guard let buffer = CMSampleBufferGetImageBuffer(sample) else {
-                throw ReplayError.decoding("A decoded frame has no image buffer.")
-            }
-            let width = Double(CVPixelBufferGetWidth(buffer))
-            let height = Double(CVPixelBufferGetHeight(buffer))
-            // The first profile is square-pixel video. Reject non-square pixels
-            // and nontrivial clean apertures instead of drawing a shifted overlay.
-            if let format = CMSampleBufferGetFormatDescription(sample) {
-                let displayed = CMVideoFormatDescriptionGetPresentationDimensions(
-                    format, usePixelAspectRatio: true, useCleanAperture: true)
-                guard abs(displayed.width - width) < 1, abs(displayed.height - height) < 1 else {
-                    throw ReplayError.invalidGeometry
-                }
-            }
-            let (pixels, rect) = try measure(.geometry, sourceSeconds: timestamp.seconds) {
-                guard let geometry = OrientedGeometry(
-                    sourceSize: ImageSize(width: width, height: height), preferredTransform: transform
-                ) else { throw ReplayError.invalidGeometry }
+        }
+        if rendered == nil {
+            let renderingContext = imageContext()
+            try discard?.check()
+            rendered = measure(.rendering, sourceSeconds: timestamp.seconds, renderingBackend: .coreImage) {
                 let t = geometry.coreImageTransform
-                var pixels = CIImage(cvPixelBuffer: buffer).transformed(by: CGAffineTransform(
+                var pixels = source.transformed(by: CGAffineTransform(
                     a: t.a, b: t.b, c: t.c, d: t.d, tx: t.tx, ty: t.ty))
                 let scale = min(1, maximumDimension / max(geometry.outputSize.width, geometry.outputSize.height))
                 pixels = pixels.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
                 let rect = CGRect(x: 0, y: 0,
                                   width: max(1, (geometry.outputSize.width * scale).rounded()),
                                   height: max(1, (geometry.outputSize.height * scale).rounded()))
-                return (pixels, rect)
+                return renderingContext.createCGImage(pixels, from: rect)
             }
-            try discard?.check()
-            let renderingContext = imageContext()
-            try discard?.check()
-            guard let image = measure(.rendering, sourceSeconds: timestamp.seconds, {
-                renderingContext.createCGImage(pixels, from: rect)
-            }) else {
-                throw ReplayError.decoding("The oriented image could not be rendered.")
-            }
-            try discard?.check()
-            var pose = try measure(.estimation, sourceSeconds: timestamp.seconds) {
-                try estimator.estimate(image: image, timestamp: timestamp)
-            }
-            try discard?.check()
-            pose.gripObservation = gripObserver?.observe(image: image, pose: pose)
-            let milliseconds = ReplayTrace.milliseconds(since: started)
-            return ProcessedFrame(image: image, pose: pose, processingMilliseconds: milliseconds)
         }
+        guard let image = rendered else {
+            throw ReplayError.decoding("The oriented image could not be rendered.")
+        }
+        try discard?.check()
+        var pose = try measure(.estimation, sourceSeconds: timestamp.seconds) {
+            try estimator.estimate(image: image, timestamp: timestamp)
+        }
+        try discard?.check()
+        pose.gripObservation = gripObserver?.observe(image: image, pose: pose)
+        let milliseconds = ReplayTrace.milliseconds(since: started)
+        return ProcessedFrame(image: image, pose: pose, processingMilliseconds: milliseconds)
+    }
+
+    // Borrow the buffer directly on this actor rather than capture it in a
+    // diagnostic closure while a lazy CIImage can still reference its pixels.
+    private func bitmapImage(_ buffer: CVPixelBuffer, geometry: OrientedGeometry,
+                             colorSpace: CGColorSpace?, sourceSeconds: Double) -> CGImage? {
+        let started = ContinuousClock.now
+        trace?(.init(stage: .rendering, boundary: .began, sourceSeconds: sourceSeconds,
+                     milliseconds: nil, renderingBackend: .bitmap))
+        defer {
+            trace?(.init(stage: .rendering, boundary: .ended, sourceSeconds: sourceSeconds,
+                         milliseconds: ReplayTrace.milliseconds(since: started), renderingBackend: .bitmap))
+        }
+        return BitmapFrameRenderer.render(buffer, geometry: geometry, colorSpace: colorSpace,
+                                          maximumDimension: maximumDimension, isolation: self)
     }
 
     private func imageContext() -> CIContext {
@@ -298,13 +329,15 @@ actor VideoReplayReader {
     }
 
     private func measure<Result>(_ stage: ReplayTrace.Stage, sourceSeconds: Double? = nil,
+                                 renderingBackend: FrameRenderingBackend? = nil,
                                  _ work: () throws -> Result) rethrows -> Result {
         guard let trace else { return try work() }
         let started = ContinuousClock.now
-        trace(.init(stage: stage, boundary: .began, sourceSeconds: sourceSeconds, milliseconds: nil))
+        trace(.init(stage: stage, boundary: .began, sourceSeconds: sourceSeconds, milliseconds: nil,
+                    renderingBackend: renderingBackend))
         defer {
             trace(.init(stage: stage, boundary: .ended, sourceSeconds: sourceSeconds,
-                        milliseconds: ReplayTrace.milliseconds(since: started)))
+                        milliseconds: ReplayTrace.milliseconds(since: started), renderingBackend: renderingBackend))
         }
         return try work()
     }

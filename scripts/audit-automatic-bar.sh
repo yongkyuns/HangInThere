@@ -10,6 +10,7 @@ trap 'rm -rf "$WORK"' EXIT
 xcrun swiftc -Onone -swift-version 6 -parse-as-library \
   "$ROOT"/ios/HangInThere/Analysis/*.swift \
   "$ROOT/ios/HangInThere/Capture/VideoReplayReader.swift" \
+  "$ROOT/ios/HangInThere/Capture/BitmapFrameRenderer.swift" \
   "$ROOT/ios/HangInThere/Pose/VisionPoseEstimator.swift" \
   "$ROOT/ios/HangInThere/Pose/VisionBarDetector.swift" \
   "$ROOT/ios/HangInThere/Pose/VisionStaticSceneRegistration.swift" \

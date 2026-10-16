@@ -168,7 +168,8 @@ private actor TestDipRailDetector: BarEdgeDetector {
                       "unixSeconds=\(unixSeconds), " +
                       "stage=\(event.stage.rawValue), boundary=\(event.boundary.rawValue), " +
                       "sourcePTS=\(event.sourceSeconds?.description ?? "none"), " +
-                      "stageMilliseconds=\(event.milliseconds?.description ?? "none")\n"
+                      "stageMilliseconds=\(event.milliseconds?.description ?? "none"), " +
+                      "renderingBackend=\(event.renderingBackend?.rawValue ?? "none")\n"
                 FileHandle.standardOutput.write(Data(line.utf8))
             }
         }

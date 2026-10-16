@@ -13,6 +13,26 @@ Successful reruns alone do not establish a repair for intermittent stalls.
 | Compressed decoding | The immutable H264 fixture has incorrect green/yellow chroma in native VideoToolbox output, before Core Image rendering | Unresolved; original fixture and color assertions remain intact |
 | Replay latency | Hosted native reading or rendering has exceeded the existing replay deadlines | Unresolved; removing fixture authoring does not repair a blocked production reader/render call |
 
+### Bounded bitmap rasterization
+
+The production replay reader normalizes unscaled, opaque SDR BGRA frames with
+owned CPU bitmap storage when the track transform is an integer quarter-turn or
+reflection. Identity sRGB frames return their owned copy directly; other eligible RGB
+frames use a bitmap context for orientation and color conversion. Its sRGB
+destination matches Core Image's [default output contract](https://developer.apple.com/documentation/coreimage/cicontextoption/outputcolorspace).
+Tests cover every pixel center in all eight orientations, padded rows, buffer
+reuse and sRGB/Rec.709/Display P3 comparisons (exact sRGB, at most one channel
+level for the other tested profiles).
+
+Resampling, arbitrary transforms, HDR/extended or unavailable color spaces,
+non-BGRA or nonopaque surfaces, and unavailable CPU pixels keep the existing
+Core Image path. Source timestamps, native decoding, inference and replay
+deadlines are unchanged. Opt-in rendering spans identify the attempted
+`bitmap` or `coreImage` backend; an end marker still means return, not success.
+This removes Core Image context creation/rendering from eligible frame paths;
+it does not repair a blocked native decoder, compressed-pixel corruption, model
+startup or establish that every intermittent replay stall is fixed.
+
 Raw fixture generation runs off the presentation actor with a ten-second budget
 including queue time, cooperative cancellation, owned-file cleanup and limits of
 512 frames, 4 MiB per frame and 64 MiB of samples. It preserves exact rational PTS,
