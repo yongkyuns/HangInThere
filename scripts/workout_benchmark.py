@@ -189,19 +189,23 @@ def validate_lock(lock):
     require(fingerprint(lock["benchmark"]) == lock["benchmark_sha256"], "Frozen labels, groups or tolerances changed")
 
 
-def validate_predictions(value, lock, split):
-    keys(value, ("schema_version", "benchmark_sha256", "timebase", "completed_cycle_definition", "run", "sessions"))
-    require(type(value["schema_version"]) is int and value["schema_version"] == 1, "Unsupported prediction version")
-    require(value["benchmark_sha256"] == lock["benchmark_sha256"], "Run is bound to a different benchmark")
-    require(value["timebase"] == "source_pts_seconds", "Wrong prediction timebase")
-    require(value["completed_cycle_definition"] == lock["benchmark"]["completed_cycle_definition"], "Completed-cycle event definition differs")
-    run = value["run"]
+def validate_run(run):
+    """Shared provenance contract for native predictions and scored-run consumers."""
     keys(run, ("id", "platform", "backend", "source_revision", "counter_policy_version", "activity_metric_version", "rep_metric_version", "capture_mode"))
     identifier(run["id"]); identifier(run["backend"])
     require(run["platform"] in {"ios", "android"} and run["capture_mode"] == "automatic", "Benchmark requires a declared automatic run")
     require(isinstance(run["source_revision"], str) and re.fullmatch(r"[0-9a-f]{40}", run["source_revision"]), "Missing source revision")
     for name in ("counter_policy_version", "activity_metric_version", "rep_metric_version"):
         require(session.integer(run[name], 1), "Invalid analysis version")
+
+
+def validate_predictions(value, lock, split):
+    keys(value, ("schema_version", "benchmark_sha256", "timebase", "completed_cycle_definition", "run", "sessions"))
+    require(type(value["schema_version"]) is int and value["schema_version"] == 1, "Unsupported prediction version")
+    require(value["benchmark_sha256"] == lock["benchmark_sha256"], "Run is bound to a different benchmark")
+    require(value["timebase"] == "source_pts_seconds", "Wrong prediction timebase")
+    require(value["completed_cycle_definition"] == lock["benchmark"]["completed_cycle_definition"], "Completed-cycle event definition differs")
+    validate_run(value["run"])
     references = {r["id"]: r for r in lock["benchmark"]["sessions"] if split == "all" or r["split"] == split}
     require(references, "Selected split is empty")
     require(isinstance(value["sessions"], list), "Missing prediction sessions")

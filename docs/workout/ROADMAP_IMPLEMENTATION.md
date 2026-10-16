@@ -123,7 +123,10 @@ accuracy/cohort/device thresholds and the frozen benchmark hash before tuning, t
 freeze that policy with `workout_release_readiness.py freeze`. Score the fresh test
 split and assess it with an audited content-free device matrix. Every supported
 recording-condition subgroup must independently meet cohort and accuracy limits;
-pooled scores cannot hide an unsupported condition. Matrix rows bind report hashes,
+pooled scores cannot hide an unsupported condition or failing native platform.
+Paired iOS/Android reports must evaluate the same app revision, policy versions
+and frozen sessions. Matrix rows bind their matching run's canonical hash and
+report hashes,
 public device/model families, scope, sustained duration, pipeline p95, drop fraction,
 battery rate, maximum thermal state, consent and camera/sensor timing qualification.
 Missing measurements fail. A host or emulator row cannot establish physical parity.

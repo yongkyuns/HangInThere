@@ -56,7 +56,8 @@ def fingerprint(value):
 
 
 def freeze(policy):
-    require(policy.get("schema_version") == 1 and policy.get("status") == "predeclared", "A predeclared policy is required")
+    require(type(policy.get("schema_version")) is int and policy["schema_version"] == 1
+            and policy.get("status") == "predeclared", "A predeclared policy is required")
     require(isinstance(policy.get("benchmark_sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", policy["benchmark_sha256"]), "Bind the exact frozen benchmark")
     require(all(type(policy.get(k)) is int and policy[k] >= 2 for k in ["minimum_participants", "minimum_sessions"]), "Declare independent cohort minimums")
     limits = policy.get("limits", {})
@@ -78,14 +79,40 @@ def freeze(policy):
     return {"schema_version": 1, "policy_sha256": fingerprint(policy), "policy": policy}
 
 
-def device_matrix(rows, limits):
+def score_inputs(scores, app_revision=None):
+    """Canonical paired native runs; a missing platform stays an explicit gate."""
+    values = [scores] if isinstance(scores, dict) else scores
+    require(isinstance(values, list) and 1 <= len(values) <= 2, "Supply one score report per native platform")
+    platforms = set()
+    for score in values:
+        require(isinstance(score, dict), "Expected a native score report")
+        require(type(score.get("schema_version")) is int and score["schema_version"] == 1, "Unsupported native score version")
+        try:
+            benchmark.validate_run(score.get("run"))
+        except benchmark.BenchmarkError as error:
+            raise ReadinessError(str(error)) from error
+        platform = score["run"]["platform"]
+        require(platform not in platforms, "Duplicate platform accuracy report")
+        platforms.add(platform)
+    revisions = {s["run"]["source_revision"] for s in values}
+    require(len(revisions) == 1, "Native accuracy reports must evaluate the same app revision")
+    if app_revision is not None:
+        require(isinstance(app_revision, str) and re.fullmatch(r"[0-9a-f]{40}", app_revision), "Bind the full evaluated app revision")
+        require(revisions == {app_revision}, "Accuracy evidence does not match the evaluated app revision")
+    versions = {tuple(s["run"][key] for key in ("counter_policy_version", "activity_metric_version", "rep_metric_version")) for s in values}
+    require(len(versions) == 1, "Native accuracy reports use different analysis policies")
+    return sorted(values, key=lambda s: s["run"]["platform"])
+
+
+def device_matrix(rows, limits, runs=None):
     severity = {"nominal": 0, "fair": 1, "serious": 2, "critical": 3}
     seen = set()
     results = []
     families = {"ios": set(), "android": set()}
     required = {"report_sha256", "platform", "device_family", "model_family", "scope", "duration_seconds", "pipeline_p95_ms", "drop_fraction", "battery_fraction_per_hour", "maximum_thermal_level", "camera_sensor_time_aligned", "consent_recorded"}
+    require(isinstance(rows, list), "Expected content-free device matrix rows")
     for row in rows:
-        require(set(row) == required, "Device matrix must be content-free with explicit scope")
+        require(isinstance(row, dict) and set(row) in (required, required | {"run_sha256"}), "Device matrix must be content-free with explicit scope")
         require(isinstance(row["report_sha256"], str) and re.fullmatch(r"[0-9a-f]{64}", row["report_sha256"]) and row["report_sha256"] not in seen, "Duplicate or invalid report pin")
         seen.add(row["report_sha256"])
         require(row["platform"] in families and row["scope"] in ["host", "emulator", "physical_live"], "Unknown device scope")
@@ -96,6 +123,12 @@ def device_matrix(rows, limits):
         require(row["maximum_thermal_level"] is None or row["maximum_thermal_level"] in severity, "Unknown measured thermal state")
         require(all(row[k] is None or row[k] <= 1 for k in ["drop_fraction", "battery_fraction_per_hour"]), "Invalid measured fraction")
         reasons = []
+        run_pin = row.get("run_sha256")
+        require(run_pin is None or isinstance(run_pin, str) and re.fullmatch(r"[0-9a-f]{64}", run_pin), "Invalid evaluated-run binding")
+        if run_pin is None:
+            reasons.append("evaluated_run_binding_missing")
+        elif runs is None or row["platform"] not in runs or run_pin != fingerprint(runs[row["platform"]]):
+            reasons.append("evaluated_run_binding_mismatch")
         if row["scope"] != "physical_live": reasons.append("physical_capture_required")
         if not row["consent_recorded"]: reasons.append("consent_missing")
         if not row["camera_sensor_time_aligned"]: reasons.append("camera_sensor_timing_unqualified")
@@ -105,7 +138,7 @@ def device_matrix(rows, limits):
         thermal = row["maximum_thermal_level"]
         if thermal is None or severity[thermal] > severity[limits["maximum_thermal_level"]]: reasons.append("thermal_unqualified")
         if not reasons: families[row["platform"]].add(row["device_family"])
-        results.append({"platform": row["platform"], "device_family": row["device_family"], "model_family": row["model_family"], "scope": row["scope"], "qualified": not reasons, "reasons": reasons})
+        results.append({"platform": row["platform"], "device_family": row["device_family"], "model_family": row["model_family"], "scope": row["scope"], "run_sha256": run_pin, "qualified": not reasons, "reasons": reasons})
     covered = all(len(values) >= limits["minimum_device_families_per_platform"] for values in families.values())
     return {"qualified": covered and bool(results) and all(row["qualified"] for row in results if row["scope"] == "physical_live"),
             "qualified_families": {k: sorted(v) for k, v in families.items()}, "rows": results}
@@ -130,17 +163,18 @@ def measurement_gates(summary, limits):
 def review_subject(lock, score, devices, app_revision, coaching_spec_sha256):
     require(isinstance(app_revision, str) and re.fullmatch(r"[0-9a-f]{40}", app_revision), "Bind the full evaluated app revision")
     require(isinstance(coaching_spec_sha256, str) and re.fullmatch(r"[0-9a-f]{64}", coaching_spec_sha256), "Bind the reviewed coaching specification")
-    return {"schema_version": 1, "app_revision": app_revision, "coaching_spec_sha256": coaching_spec_sha256,
+    scores = score_inputs(score, app_revision)
+    return {"schema_version": 2, "app_revision": app_revision, "coaching_spec_sha256": coaching_spec_sha256,
             "policy_sha256": lock["policy_sha256"], "benchmark_sha256": lock["policy"]["benchmark_sha256"],
-            "score_sha256": fingerprint(score), "device_matrix_sha256": fingerprint(devices)}
+            "scores_sha256": fingerprint(scores), "device_matrix_sha256": fingerprint(devices)}
 
 
 def prepare_reviews(lock, score, devices, app_revision, coaching_spec_sha256):
     # Use the existing validators even when the measurements legitimately fail.
     # Preparing a packet never turns those failures into approval.
-    assess(lock, score, devices)
+    assess(lock, score, devices, app_revision=app_revision)
     subject = review_subject(lock, score, devices, app_revision, coaching_spec_sha256)
-    return {"schema_version": 1, "subject": subject, "subject_sha256": fingerprint(subject),
+    return {"schema_version": 2, "subject": subject, "subject_sha256": fingerprint(subject),
             "reviews": [{"kind": kind, "status": "pending", "reviewer_id": None, "reviewer_role": role,
                          "human_review_confirmed": False, "independent_review_confirmed": False,
                          "reviewed_at_utc": None, "evidence_sha256": None, "reviewed_context_sha256s": [],
@@ -150,7 +184,7 @@ def prepare_reviews(lock, score, devices, app_revision, coaching_spec_sha256):
 
 def assess_reviews(packet, subject, contexts):
     require(isinstance(packet, dict) and set(packet) == {"schema_version", "subject", "subject_sha256", "reviews"}, "Use the content-free review packet schema")
-    require(type(packet["schema_version"]) is int and packet["schema_version"] == 1 and packet["subject"] == subject
+    require(type(packet["schema_version"]) is int and packet["schema_version"] == 2 and packet["subject"] == subject
             and fingerprint(packet["subject"]) == packet["subject_sha256"] == fingerprint(subject), "Reviews must bind the exact evaluated artifacts")
     reviews = packet["reviews"]
     require(isinstance(reviews, list) and len(reviews) <= len(EXTERNAL_REVIEW_CHECKS), "Invalid review decisions")
@@ -195,8 +229,8 @@ def assess_reviews(packet, subject, contexts):
             "remaining_external_reviews": [kind for kind in EXTERNAL_REVIEW_CHECKS if kind not in accepted]}
 
 
-def assess(lock, score, devices, reviews=None, app_revision=None, coaching_spec_sha256=None):
-    require(lock == freeze(lock["policy"]), "Policy lock was modified")
+def assess_score(lock, score):
+    """Evaluate each platform independently; pooled metrics cannot mask failure."""
     policy = lock["policy"]
     require(score.get("benchmark_sha256") == policy["benchmark_sha256"], "Benchmark binding mismatch")
     failures = []
@@ -206,6 +240,11 @@ def assess(lock, score, devices, reviews=None, app_revision=None, coaching_spec_
     require(isinstance(rows, list) and summary.get("sessions") == len(rows), "Session aggregate disagrees with scored evidence")
     require(all(isinstance(row, dict) and isinstance(row.get("participant_group"), str) and row["participant_group"] and
         isinstance(row.get("source_group"), str) and row["source_group"] for row in rows), "Per-session anonymous cohort bindings required")
+    require(all(isinstance(row.get("id"), str) and row["id"] and isinstance(row.get("context"), dict)
+                and row.get("split") in benchmark.SPLITS for row in rows), "Per-session frozen reference metadata required")
+    require(len({row["id"] for row in rows}) == len(rows), "Duplicate scored session")
+    if score.get("split") != "all":
+        require(all(row["split"] == score.get("split") for row in rows), "Score contains a different reference split")
     require(type(score.get("participant_groups")) is int and type(score.get("source_groups")) is int and
             score["participant_groups"] == len({r["participant_group"] for r in rows}) and
             score["source_groups"] == len({r["source_group"] for r in rows}), "Invalid independent cohort counts")
@@ -229,13 +268,33 @@ def assess(lock, score, devices, reviews=None, app_revision=None, coaching_spec_
         if context_failures: failures.append("supported_context_accuracy")
         if "supported_context_coverage" in context_failures: failures.append("supported_context_coverage")
         context_results.append({"context": required_context, "sessions": len(matching), "metrics": context_metrics, "failures": context_failures, "qualified": not context_failures})
-    matrix = device_matrix(devices, policy["performance"])
+    return {"platform": score["run"]["platform"], "run": score["run"], "score_sha256": fingerprint(score),
+            "qualified": not failures, "failures": list(dict.fromkeys(failures)),
+            "metrics": metrics, "supported_contexts": context_results}
+
+
+def assess(lock, score, devices, reviews=None, app_revision=None, coaching_spec_sha256=None):
+    require(lock == freeze(lock["policy"]), "Policy lock was modified")
+    scores = score_inputs(score, app_revision)
+    results = [assess_score(lock, value) for value in scores]
+    runs = {s["run"]["platform"]: s["run"] for s in scores}
+    failures = [reason for result in results for reason in result["failures"]]
+    missing = sorted({"ios", "android"} - runs.keys())
+    if missing: failures.append("native_platform_accuracy_missing")
+    # Both platforms must score the same frozen sessions and anonymous reference
+    # metadata. Differently selected cohorts cannot establish functional parity.
+    def cohort(value):
+        return sorted((row["id"], fingerprint({key: row[key] for key in ("participant_group", "source_group", "split", "context")})) for row in value["sessions"])
+    require(all(cohort(value) == cohort(scores[0]) for value in scores), "Native accuracy reports score different frozen sessions")
+    matrix = device_matrix(devices, lock["policy"]["performance"], runs)
     if not matrix["qualified"]: failures.append("physical_device_matrix")
-    field_reviews = assess_reviews(reviews, review_subject(lock, score, devices, app_revision, coaching_spec_sha256), policy["supported_contexts"]) if reviews is not None else None
+    field_reviews = assess_reviews(reviews, review_subject(lock, scores, devices, app_revision, coaching_spec_sha256), lock["policy"]["supported_contexts"]) if reviews is not None else None
     remaining_reviews = field_reviews["remaining_external_reviews"] if field_reviews is not None else list(EXTERNAL_REVIEW_CHECKS)
-    return {"schema_version": 1, "scope": "Predeclared evidence readiness; never waives existing CI or form/coaching qualification",
-            "policy_sha256": lock["policy_sha256"], "benchmark_sha256": policy["benchmark_sha256"], "measurement_and_device_gates_pass": not failures,
-            "failures": list(dict.fromkeys(failures)), "metrics": metrics, "supported_contexts": context_results, "device_matrix": matrix,
+    return {"schema_version": 2, "scope": "Per-platform predeclared evidence readiness; never waives existing CI or form/coaching qualification",
+            "app_revision": scores[0]["run"]["source_revision"],
+            "policy_sha256": lock["policy_sha256"], "benchmark_sha256": lock["policy"]["benchmark_sha256"], "measurement_and_device_gates_pass": not failures,
+            "failures": list(dict.fromkeys(failures)), "missing_accuracy_platforms": missing,
+            "platforms": results, "device_matrix": matrix,
             "field_reviews": field_reviews, "remaining_external_reviews": remaining_reviews,
             "reviewed_qualification_gates_pass": not failures and not remaining_reviews}
 
@@ -243,20 +302,21 @@ def assess(lock, score, devices, reviews=None, app_revision=None, coaching_spec_
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["freeze", "assess", "prepare-reviews"]); parser.add_argument("policy", type=Path)
-    parser.add_argument("--score", type=Path); parser.add_argument("--devices", type=Path); parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--score", type=Path, action="append", help="Repeat for the iOS and Android reports on the same frozen sessions")
+    parser.add_argument("--devices", type=Path); parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reviews", type=Path); parser.add_argument("--app-revision"); parser.add_argument("--coaching-spec", type=Path)
     parser.add_argument("--require-field-reviews", action="store_true", help="Fail if any human review is missing, incomplete or rejected")
     args = parser.parse_args(argv)
     try:
         require(args.action == "assess" or (args.reviews is None and not args.require_field_reviews), "Review-required flags apply only to assessment")
         require(args.action != "freeze" or all(value is None for value in [args.score, args.devices, args.app_revision, args.coaching_spec]), "Freeze accepts only a policy and a fresh output")
-        inputs = [path for path in [args.policy, args.score, args.devices, args.reviews, args.coaching_spec] if path is not None]
+        inputs = [args.policy] + (args.score or []) + [path for path in [args.devices, args.reviews, args.coaching_spec] if path is not None]
         require(all(args.output.resolve() != path.resolve() and not (args.output.exists() and path.exists() and args.output.samefile(path)) for path in inputs), "Output would overwrite an immutable input")
         policy = benchmark.read(args.policy)
         if args.action == "freeze": result = freeze(policy)
         else:
             require(args.score and args.devices, "Score and device matrix are required")
-            score, devices = benchmark.read(args.score), benchmark.read(args.devices)
+            score, devices = [benchmark.read(path) for path in args.score], benchmark.read(args.devices)
             spec_pin = hashlib.sha256(args.coaching_spec.read_bytes()).hexdigest() if args.coaching_spec else None
             if args.action == "prepare-reviews": result = prepare_reviews(policy, score, devices, args.app_revision, spec_pin)
             else: result = assess(policy, score, devices, benchmark.read(args.reviews) if args.reviews else None, args.app_revision, spec_pin)

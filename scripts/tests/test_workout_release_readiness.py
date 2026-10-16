@@ -25,37 +25,54 @@ class WorkoutReleaseReadinessTests(unittest.TestCase):
         for i, item in enumerate(rows):
             item.update(id=f'test_{i}', participant_group=f'actor_{i}', source_group=f'capture_{i}', split='test')
             item['context']['camera_view'] = 'front'
-        return dict(benchmark_sha256="a" * 64, evidence_class="independently_reviewed_sessions", split="test", participant_groups=2,
-            source_groups=2, sessions=rows, summary=benchmark.aggregate(rows))
+        return dict(schema_version=1, benchmark_sha256="a" * 64, evidence_class="independently_reviewed_sessions", split="test", participant_groups=2,
+            source_groups=2, sessions=rows, summary=benchmark.aggregate(rows),
+            run=dict(id="authored_ios", platform="ios", backend="authored_contract", source_revision="d" * 40,
+                counter_policy_version=8, activity_metric_version=2, rep_metric_version=1, capture_mode="automatic"))
+    def paired_scores(self, score=None):
+        # Authored contract data only; identical measurements isolate provenance
+        # and gate behavior. Platform-asymmetric tests mutate one report below.
+        first = copy.deepcopy(score if score is not None else self.score())
+        second = copy.deepcopy(first)
+        second["run"].update(id="authored_android", platform="android")
+        return [first, second]
+    def assess(self, lock, score, devices, *args, **kwargs):
+        return module.assess(lock, self.paired_scores(score), devices, *args, **kwargs)
     def devices(self):
-        return [dict(report_sha256=c * 64, platform=p, device_family=f"{p}-family", model_family="pinned", scope="physical_live", duration_seconds=600,
+        runs = {s["run"]["platform"]: s["run"] for s in self.paired_scores()}
+        return [dict(report_sha256=c * 64, run_sha256=module.fingerprint(runs[p]), platform=p, device_family=f"{p}-family", model_family="pinned", scope="physical_live", duration_seconds=600,
             pipeline_p95_ms=80, drop_fraction=.05, battery_fraction_per_hour=.1, maximum_thermal_level="nominal", camera_sensor_time_aligned=True,
             consent_recorded=True) for c, p in [("b", "ios"), ("c", "android")]]
     def test_predeclared_all_evidence_passes_without_claiming_coach_or_usability_review(self):
-        result=module.assess(module.freeze(self.policy()), self.score(), self.devices())
+        result=self.assess(module.freeze(self.policy()), self.score(), self.devices())
         self.assertTrue(result["measurement_and_device_gates_pass"])
         self.assertIn("qualified_coach_review", result["remaining_external_reviews"])
         self.assertFalse(result["reviewed_qualification_gates_pass"])
     def test_synthetic_data_cannot_qualify_regardless_of_scores(self):
         score=self.score(); score["evidence_class"]="synthetic_contract"
-        self.assertFalse(module.assess(module.freeze(self.policy()), score, self.devices())["measurement_and_device_gates_pass"])
+        self.assertFalse(self.assess(module.freeze(self.policy()), score, self.devices())["measurement_and_device_gates_pass"])
     def test_emulator_and_missing_battery_never_establish_physical_parity(self):
+        runs = {s["run"]["platform"]: s["run"] for s in self.paired_scores()}
         rows=self.devices(); rows[1]["scope"]="emulator"
-        self.assertFalse(module.device_matrix(rows, self.policy()["performance"])["qualified"])
+        result = module.device_matrix(rows, self.policy()["performance"], runs)
+        self.assertFalse(result["qualified"])
+        self.assertEqual(result["rows"][1]["reasons"], ["physical_capture_required"])
         rows=self.devices(); rows[0]["battery_fraction_per_hour"]=None
-        self.assertFalse(module.device_matrix(rows, self.policy()["performance"])["qualified"])
+        result = module.device_matrix(rows, self.policy()["performance"], runs)
+        self.assertFalse(result["qualified"])
+        self.assertEqual(result["rows"][0]["reasons"], ["battery_fraction_per_hour_unqualified"])
     def test_lock_source_and_context_binding_cannot_be_changed_after_freeze(self):
         lock=module.freeze(self.policy()); lock["policy"]["limits"]["rep_recall"]=0
-        with self.assertRaises(module.ReadinessError): module.assess(lock,self.score(),self.devices())
+        with self.assertRaises(module.ReadinessError): self.assess(lock,self.score(),self.devices())
         score=self.score(); score["benchmark_sha256"]="d"*64
-        with self.assertRaises(module.ReadinessError): module.assess(module.freeze(self.policy()),score,self.devices())
+        with self.assertRaises(module.ReadinessError): self.assess(module.freeze(self.policy()),score,self.devices())
     def test_missing_metrics_and_unsupported_conditions_fail(self):
         score=self.score();
         for row in score["sessions"]:
             row["context"]["camera_view"] = "side"
             row["labelled_phase_seconds"] = 0
         score["summary"] = benchmark.aggregate(score["sessions"])
-        result=module.assess(module.freeze(self.policy()),score,self.devices())
+        result=self.assess(module.freeze(self.policy()),score,self.devices())
         self.assertIn("hold_error_p95_seconds",result["failures"]); self.assertIn("supported_context_coverage",result["failures"])
     def test_duplicate_or_content_bearing_reports_are_rejected(self):
         rows=self.devices(); rows[1]["report_sha256"]=rows[0]["report_sha256"]
@@ -65,11 +82,13 @@ class WorkoutReleaseReadinessTests(unittest.TestCase):
     def test_draft_and_nonfinite_policies_cannot_be_frozen(self):
         policy=self.policy(); policy["status"]="draft"
         with self.assertRaises(module.ReadinessError): module.freeze(policy)
+        policy=self.policy(); policy["schema_version"]=True
+        with self.assertRaises(module.ReadinessError): module.freeze(policy)
     def test_inconsistent_or_failed_session_evidence_cannot_pass(self):
         score=self.score(); score["summary"]["sessions"]=3
-        with self.assertRaises(module.ReadinessError): module.assess(module.freeze(self.policy()), score, self.devices())
+        with self.assertRaises(module.ReadinessError): self.assess(module.freeze(self.policy()), score, self.devices())
         score=self.score(); score["sessions"][0]["status"]="failed"; score["summary"]=benchmark.aggregate(score["sessions"])
-        self.assertIn("failed_sessions",module.assess(module.freeze(self.policy()),score,self.devices())["failures"])
+        self.assertIn("failed_sessions",self.assess(module.freeze(self.policy()),score,self.devices())["failures"])
         policy=self.policy(); policy["limits"]["rep_recall"]=float('nan')
         with self.assertRaises(module.ReadinessError): module.freeze(policy)
     def test_bad_supported_subgroup_cannot_hide_behind_good_pooled_metrics(self):
@@ -83,18 +102,18 @@ class WorkoutReleaseReadinessTests(unittest.TestCase):
             row['completed_cycles'].update(true_positives=0, false_negatives=1)
         score.update(sessions=rows, summary=benchmark.aggregate(rows), participant_groups=100, source_groups=100)
         policy=self.policy(); policy['supported_contexts'].append(dict(camera_view='side'))
-        result=module.assess(module.freeze(policy),score,self.devices())
-        self.assertGreater(result['metrics']['rep_recall'], .95)
+        result=self.assess(module.freeze(policy),score,self.devices())
+        self.assertGreater(result['platforms'][0]['metrics']['rep_recall'], .95)
         self.assertFalse(result['measurement_and_device_gates_pass'])
-        self.assertIn('rep_recall', result['supported_contexts'][1]['failures'])
+        self.assertIn('rep_recall', result['platforms'][0]['supported_contexts'][1]['failures'])
     def test_cohort_counts_and_pooled_summary_must_match_rows(self):
         score=self.score(); score['participant_groups']=1
-        with self.assertRaises(module.ReadinessError): module.assess(module.freeze(self.policy()),score,self.devices())
+        with self.assertRaises(module.ReadinessError): self.assess(module.freeze(self.policy()),score,self.devices())
         score=self.score(); score['summary']['completed_cycles']['precision']=.9
-        with self.assertRaises(module.ReadinessError): module.assess(module.freeze(self.policy()),score,self.devices())
+        with self.assertRaises(module.ReadinessError): self.assess(module.freeze(self.policy()),score,self.devices())
 
     def approved_reviews(self, lock=None, score=None, devices=None):
-        packet = module.prepare_reviews(lock or module.freeze(self.policy()), score or self.score(),
+        packet = module.prepare_reviews(lock or module.freeze(self.policy()), self.paired_scores(score),
             devices or self.devices(), "d" * 40, "e" * 64)
         contexts = [module.fingerprint(context) for context in self.policy()["supported_contexts"]]
         for index, row in enumerate(packet["reviews"]):
@@ -104,11 +123,11 @@ class WorkoutReleaseReadinessTests(unittest.TestCase):
         return packet
 
     def assess_with_reviews(self, packet, lock=None, score=None, devices=None):
-        return module.assess(lock or module.freeze(self.policy()), score or self.score(), devices or self.devices(),
+        return self.assess(lock or module.freeze(self.policy()), score or self.score(), devices or self.devices(),
             packet, "d" * 40, "e" * 64)
 
     def test_prepared_packet_is_pending_and_cannot_close_field_reviews(self):
-        packet = module.prepare_reviews(module.freeze(self.policy()), self.score(), self.devices(), "d" * 40, "e" * 64)
+        packet = module.prepare_reviews(module.freeze(self.policy()), self.paired_scores(), self.devices(), "d" * 40, "e" * 64)
         result = self.assess_with_reviews(packet)
         self.assertTrue(result["measurement_and_device_gates_pass"])
         self.assertFalse(result["reviewed_qualification_gates_pass"])
@@ -143,7 +162,7 @@ class WorkoutReleaseReadinessTests(unittest.TestCase):
                     (module.freeze(self.policy()), self.score(), self.devices(), "d" * 40, "f" * 64),
                     (module.freeze(policy), self.score(), self.devices(), "d" * 40, "e" * 64)]
         for lock, score, devices, revision, spec in variants:
-            with self.assertRaises(module.ReadinessError): module.assess(lock, score, devices, packet, revision, spec)
+            with self.assertRaises(module.ReadinessError): self.assess(lock, score, devices, packet, revision, spec)
 
     def test_rejected_missing_incomplete_or_nonhuman_reviews_remain_open(self):
         for change in [dict(status="rejected"), dict(human_review_confirmed=False), dict(independent_review_confirmed=False),
@@ -233,6 +252,129 @@ class WorkoutReleaseReadinessTests(unittest.TestCase):
                 for flags in [["--require-field-reviews"], ["--reviews", str(root / "reviews.json")]]:
                     self.assertEqual(module.main([action, str(policy), "--output", str(output)] + flags), 2)
                     self.assertFalse(output.exists())
+
+    def test_one_platform_and_unbound_performance_never_qualify(self):
+        score = self.score()
+        devices = self.devices()
+        for row in devices:
+            row.pop("run_sha256")
+        result = module.assess(module.freeze(self.policy()), score, devices)
+        self.assertEqual(result["missing_accuracy_platforms"], ["android"])
+        self.assertIn("native_platform_accuracy_missing", result["failures"])
+        self.assertFalse(result["measurement_and_device_gates_pass"])
+        self.assertFalse(result["reviewed_qualification_gates_pass"])
+        self.assertTrue(all("evaluated_run_binding_missing" in row["reasons"] for row in result["device_matrix"]["rows"]))
+
+    def test_single_platform_approval_cannot_close_missing_platform_gate(self):
+        lock, score, devices = module.freeze(self.policy()), self.score(), self.devices()
+        packet = module.prepare_reviews(lock, score, devices, "d" * 40, "e" * 64)
+        approved = self.approved_reviews()
+        packet["reviews"] = approved["reviews"]
+        result = module.assess(lock, score, devices, packet, "d" * 40, "e" * 64)
+        self.assertEqual(result["remaining_external_reviews"], [])
+        self.assertFalse(result["reviewed_qualification_gates_pass"])
+
+    def test_each_platform_must_pass_without_pooling(self):
+        scores = self.paired_scores()
+        for row in scores[1]["sessions"]:
+            row["completed_cycles"].update(true_positives=0, false_negatives=1)
+        scores[1]["summary"] = benchmark.aggregate(scores[1]["sessions"])
+        result = module.assess(module.freeze(self.policy()), scores, self.devices())
+        platforms = {row["platform"]: row for row in result["platforms"]}
+        self.assertTrue(platforms["ios"]["qualified"])
+        self.assertIn("rep_recall", platforms["android"]["failures"])
+        self.assertFalse(result["measurement_and_device_gates_pass"])
+
+    def test_duplicate_or_invalid_native_run_provenance_is_rejected(self):
+        for mutate in [lambda s: s[1]["run"].update(platform="ios"),
+                       lambda s: s[1]["run"].update(source_revision="f" * 40),
+                       lambda s: s[1]["run"].update(activity_metric_version=3),
+                       lambda s: s[0]["run"].update(capture_mode="manual"),
+                       lambda s: s[0].update(schema_version=2),
+                       lambda s: s[0].update(schema_version=True),
+                       lambda s: s[0].pop("run")]:
+            scores = self.paired_scores(); mutate(scores)
+            with self.assertRaises(module.ReadinessError):
+                module.assess(module.freeze(self.policy()), scores, self.devices())
+
+    def test_reviewed_revision_must_be_the_actual_evaluated_revision(self):
+        scores = self.paired_scores()
+        for score in scores:
+            score["run"]["source_revision"] = "f" * 40
+        with self.assertRaises(module.ReadinessError):
+            module.prepare_reviews(module.freeze(self.policy()), scores, self.devices(), "d" * 40, "e" * 64)
+        with self.assertRaises(module.ReadinessError):
+            module.assess(module.freeze(self.policy()), scores, self.devices(), app_revision="d" * 40)
+
+    def test_both_platforms_must_score_identical_frozen_reference_sessions(self):
+        for field, value in [("id", "different"), ("participant_group", "different"),
+                             ("source_group", "different"), ("context", dict(camera_view="side"))]:
+            scores = self.paired_scores(); scores[1]["sessions"][0][field] = value
+            with self.assertRaises(module.ReadinessError):
+                module.assess(module.freeze(self.policy()), scores, self.devices())
+
+    def test_device_reports_bind_platform_backend_revision_and_analysis_policy(self):
+        for key, value in [("platform", "ios"), ("backend", "different_model"),
+                           ("source_revision", "f" * 40), ("counter_policy_version", 9)]:
+            scores = self.paired_scores(); devices = self.devices()
+            wrong_run = dict(scores[1]["run"]); wrong_run[key] = value
+            devices[1]["run_sha256"] = module.fingerprint(wrong_run)
+            result = module.assess(module.freeze(self.policy()), scores, devices)
+            self.assertFalse(result["measurement_and_device_gates_pass"])
+            self.assertIn("evaluated_run_binding_mismatch", result["device_matrix"]["rows"][1]["reasons"])
+
+    def test_legacy_unbound_rows_and_review_packets_cannot_silently_migrate(self):
+        devices = self.devices()
+        for row in devices: row.pop("run_sha256")
+        result = module.assess(module.freeze(self.policy()), self.paired_scores(), devices)
+        self.assertFalse(result["measurement_and_device_gates_pass"])
+        packet = self.approved_reviews(); packet["schema_version"] = 1
+        with self.assertRaises(module.ReadinessError): self.assess_with_reviews(packet)
+
+    def test_report_order_does_not_change_human_review_binding(self):
+        scores = self.paired_scores(); lock = module.freeze(self.policy()); devices = self.devices()
+        self.assertEqual(module.review_subject(lock, scores, devices, "d" * 40, "e" * 64),
+                         module.review_subject(lock, list(reversed(scores)), devices, "d" * 40, "e" * 64))
+
+    def test_cli_accepts_two_score_files_and_binds_both_inputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            values = {"lock": module.freeze(self.policy()), "devices": self.devices(),
+                      "ios": self.paired_scores()[0], "android": self.paired_scores()[1]}
+            for name, value in values.items(): (root / f"{name}.json").write_text(json.dumps(value))
+            base = ["assess", str(root / "lock.json"), "--score", str(root / "ios.json"),
+                    "--score", str(root / "android.json"), "--devices", str(root / "devices.json")]
+            self.assertEqual(module.main(base + ["--output", str(root / "result.json")]), 0)
+            result = json.loads((root / "result.json").read_text())
+            self.assertEqual({row["platform"] for row in result["platforms"]}, {"ios", "android"})
+            original = (root / "android.json").read_bytes()
+            self.assertEqual(module.main(base + ["--output", str(root / "android.json")]), 2)
+            self.assertEqual((root / "android.json").read_bytes(), original)
+
+    def test_actual_scorer_outputs_remain_synthetic_and_unqualified_on_both_platforms(self):
+        root = Path(__file__).resolve().parents[2]
+        labels = benchmark.read(root / "Evaluation/fixtures/workout-benchmark-synthetic.json")
+        predictions = benchmark.read(root / "Evaluation/fixtures/workout-predictions-synthetic.json")
+        frozen = benchmark.freeze(labels)
+        policy = self.policy(); policy["benchmark_sha256"] = frozen["benchmark_sha256"]
+        scores = []
+        for platform in ["ios", "android"]:
+            value = copy.deepcopy(predictions)
+            value["run"].update(id=f"synthetic_{platform}", platform=platform)
+            scores.append(benchmark.score(frozen, value, "all"))
+        result = module.assess(module.freeze(policy), scores, [])
+        self.assertEqual(len(result["platforms"]), 2)
+        self.assertIn("fresh_independent_test_split_required", result["failures"])
+        self.assertIn("physical_device_matrix", result["failures"])
+        self.assertFalse(result["measurement_and_device_gates_pass"])
+        self.assertFalse(result["reviewed_qualification_gates_pass"])
+
+    def test_duplicate_sessions_and_mixed_reference_splits_are_rejected(self):
+        for mutate in [lambda s: s["sessions"][1].update(id=s["sessions"][0]["id"]),
+                       lambda s: s["sessions"][0].update(split="development")]:
+            score = self.score(); mutate(score)
+            with self.assertRaises(module.ReadinessError):
+                self.assess(module.freeze(self.policy()), score, self.devices())
 
     def test_cli_rejects_duplicate_json_keys_without_producing_a_lock(self):
         with tempfile.TemporaryDirectory() as directory:

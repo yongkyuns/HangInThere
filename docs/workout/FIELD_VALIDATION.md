@@ -36,7 +36,8 @@ physical-device policy before tuning with `workout_release_readiness.py freeze`.
 Choose thresholds and cohort requirements with the reviewers; the tooling imposes
 no claim that its synthetic examples are sufficient population evidence.
 
-Run the full frozen test split once after tuning. Preserve failed runs, exclusions
+Run the full frozen test split on both native platforms once after tuning.
+Preserve failed runs, exclusions
 and every original regression gate. A consumed test split requires new independent
 sessions for another release qualification. Score supported conditions individually;
 a pooled passing result cannot hide a failed condition.
@@ -53,6 +54,14 @@ whole-pipeline p95, frame drop fraction, battery fraction per hour, maximum ther
 state and audited camera/sensor clock alignment. Store the original measurement
 report and its SHA-256. Missing measurements stay null. Record physical capture and
 consent explicitly; export the content-free matrix in the existing assessor schema.
+
+Each matrix row must include `run_sha256`, the canonical JSON fingerprint of the
+matching accuracy report's `run` object. This binds platform, backend, app revision,
+analysis-policy versions and automatic capture mode. Use
+`workout_release_readiness.fingerprint(score["run"])` for that value, and audit the
+original physical report against that run before adding the row. A matching hash
+is a binding declaration, not proof that the physical trial occurred. Legacy rows
+without the binding remain readable but cannot qualify physical performance.
 
 ## Usability observations
 
@@ -80,7 +89,8 @@ The coaching specification must match that revision.
 
 ```sh
 python3 scripts/workout_release_readiness.py prepare-reviews local/release.lock.json \
-  --score local/test-score.json --devices local/device-matrix.json \
+  --score local/ios-test-score.json --score local/android-test-score.json \
+  --devices local/device-matrix.json \
   --app-revision "$APP_REVISION" \
   --coaching-spec docs/workout/COACHING_SPEC.md \
   --output local/reviews-v1.json
@@ -95,14 +105,19 @@ credentials, consent, independence or whether a claimed trial occurred. The
 campaign coordinator must audit those facts against the retained originals.
 
 Each decision binds the app revision, coaching specification, frozen policy and
-benchmark, complete score report and device matrix. Changed artifacts require a
+benchmark, both complete score reports and device matrix. The reports must use
+the same evaluated revision, analysis-policy versions and frozen reference
+sessions; each platform and each supported condition must independently pass.
+A missing platform remains a failed gate. Scores from another build cannot be
+approved under the requested app revision. Changed artifacts require a
 new packet and review. Keep prior packets/reports in the audit archive. Status
 changes must have a corresponding dated human decision; CI/model output cannot
 be entered as a qualified coach or observed usability review.
 
 ```sh
 python3 scripts/workout_release_readiness.py assess local/release.lock.json \
-  --score local/test-score.json --devices local/device-matrix.json \
+  --score local/ios-test-score.json --score local/android-test-score.json \
+  --devices local/device-matrix.json \
   --app-revision "$APP_REVISION" \
   --coaching-spec docs/workout/COACHING_SPEC.md \
   --reviews local/reviews-v1.json --require-field-reviews \
@@ -119,8 +134,14 @@ All result paths must be fresh; existing reports and decision packets are never
 overwritten. Use versioned output names for subsequent assessments. Review-required
 flags are assessment-only and are rejected by freeze or packet preparation.
 
-Without `--reviews` or `--require-field-reviews`, the existing measurement-only
-exit behavior is preserved; `remaining_external_reviews` stays open. A passing
+Assessment reports and review packets now use schema version 2. Version 1
+packets require fresh review of the paired evidence; the tool never migrates an
+old approval automatically. The frozen policy and benchmark formats are unchanged.
+One `--score` remains usable for a partial diagnostic, with the missing platform
+listed and qualification false. Report order does not affect review binding.
+
+Without `--reviews` or `--require-field-reviews`, exit status reports only the
+paired measurement/device gates; `remaining_external_reviews` stays open. A passing
 reviewed assessment does not waive original CI failures or establish anatomical
 validity. Close roadmap checkboxes only after the coordinator verifies actual
 evidence, the declared gates pass and required native release checks are satisfied.
