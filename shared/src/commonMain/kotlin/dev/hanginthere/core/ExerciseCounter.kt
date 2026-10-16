@@ -60,9 +60,10 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     var lastEvent: Event? = null; private set
     private val mutableEvents = mutableListOf<Event>()
     val events: List<Event> get() = mutableEvents.toList()
-    private var lastTime: Double? = null
+    private var lastTimestamp: PresentationTime? = null
+    private val lastTime: Double? get() = lastTimestamp?.seconds
     private val pullUpAnchors = mutableMapOf<ArmMeasurement.Side, Sample>()
-    private val pullUpExtendedSince = mutableMapOf<ArmMeasurement.Side, Double>()
+    private val pullUpExtendedSince = mutableMapOf<ArmMeasurement.Side, PresentationTime>()
     private var pullUpEndpointWitnesses = emptySet<ArmMeasurement.Side>()
     private var pullUpSamples = emptyMap<ArmMeasurement.Side, Sample>()
     private var dipSupportAxis: DipSupportMeasurement.Anchor? = null
@@ -70,11 +71,12 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     private var dipAnchor: DipSample? = null
     private var dipTopCandidate: DipSample? = null
     private var dipBottom: DipSample? = null
-    private var dipLastGeometryTime: Double? = null
-    private var dipSupportCandidateSince: Double? = null
+    private var dipLastGeometryTime: PresentationTime? = null
+    private var dipSupportCandidateSince: PresentationTime? = null
     private enum class Endpoint { extended, bent }
     private var endpoint: Endpoint? = null
-    private var endpointSince: Double? = null
+    private var endpointSince: PresentationTime? = null
+    private val endpointElapsedSeconds: Double get() = endpointSince?.let { lastTimestamp?.elapsedSeconds(it) } ?: 0.0
     private var activeAttempt = false
     private data class Sample(val degrees: Double, val shoulderToBarPixels: Double, val imageShortSide: Double)
     private data class DipSample(val degrees: Double?, val supportHeightPixels: Double,
@@ -99,7 +101,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
             return snapshot(PullUpProgress.Stage.paused, cue)
         }
         if (pullUpSamples.isEmpty()) return snapshot(PullUpProgress.Stage.startingHang, PullUpProgress.Cue.hang)
-        val dwell = normalizedProgress(((lastTime ?: 0.0) - (endpointSince ?: lastTime ?: 0.0)) / endpointDwellSeconds)
+        val dwell = normalizedProgress(endpointElapsedSeconds / endpointDwellSeconds)
         val extensionFraction = pullUpSamples.values.minOfOrNull {
             normalizedProgress((it.degrees - bentDegrees) / (extendedDegrees - bentDegrees))
         } ?: 0.0
@@ -149,7 +151,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         val topDegrees = anchor?.degrees
         if (phase == Phase.seekingStart || sample == null || anchor == null || degrees == null || topDegrees == null)
             return snapshot(DipProgress.Stage.startingSupport, DipProgress.Cue.support)
-        val dwell = normalizedProgress(((lastTime ?: 0.0) - (endpointSince ?: lastTime ?: 0.0)) / endpointDwellSeconds)
+        val dwell = normalizedProgress(endpointElapsedSeconds / endpointDwellSeconds)
         val required = requiredDipTravel(anchor)
         val descentTravel = normalizedProgress((anchor.supportHeightPixels - sample.supportHeightPixels) / required)
         fun bendFraction(angle: Double, top: Double): Double {
@@ -197,19 +199,22 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     fun reset() {
         interrupt()
         phase = Phase.seekingStart; observedMovements = 0; partialAttempts = 0; interruptedAttempts = 0
-        trackingIssue = null; lastEvent = null; mutableEvents.clear(); lastTime = null
+        trackingIssue = null; lastEvent = null; mutableEvents.clear(); lastTimestamp = null
         clearEvidence()
     }
 
     fun consume(pose: PoseResult, referenceEdge: BarSegment? = null): Event? {
         if (phase == Phase.finished) return null
-        val time = pose.timestamp.seconds
-        if (!time.isFinite()) return interrupt("invalidTimestamp")
-        val previousTime = lastTime
-        if (previousTime != null && time <= previousTime) return interrupt("nonIncreasingTimestamp")
-        lastTime = time
+        val time = pose.timestamp
+        if (!time.seconds.isFinite()) return interrupt("invalidTimestamp")
+        // Subtract source ticks before converting to seconds. Absolute Double
+        // timestamps lose exact dwell/gap boundaries and can alias fresh frames.
+        val gap = lastTimestamp?.let { time.elapsedSeconds(it) }
+        if (gap != null && !gap.isFinite()) return interrupt("invalidTimestamp")
+        if (gap != null && gap <= 0) return interrupt("nonIncreasingTimestamp")
+        lastTimestamp = time
         var event: Event? = null
-        if (previousTime != null && time - previousTime > maximumGapSeconds) event = interrupt("sourceTimeGap")
+        if (gap != null && gap > maximumGapSeconds) event = interrupt("sourceTimeGap")
         if (referenceEdge == null || !referenceEdge.isValid || !pose.imageSize.isValid ||
             referenceEdge.a.x !in 0.0..pose.imageSize.width || referenceEdge.a.y !in 0.0..pose.imageSize.height ||
             referenceEdge.b.x !in 0.0..pose.imageSize.width || referenceEdge.b.y !in 0.0..pose.imageSize.height)
@@ -217,7 +222,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         return (if (exercise == Exercise.dip) consumeDip(pose, referenceEdge, time) else consumePullUp(pose, referenceEdge, time)) ?: event
     }
 
-    private fun consumePullUp(pose: PoseResult, referenceEdge: BarSegment, time: Double): Event? {
+    private fun consumePullUp(pose: PoseResult, referenceEdge: BarSegment, time: PresentationTime): Event? {
         val measurement = PullUpArmMeasurement(pose)
         if (measurement.arms.isEmpty()) return interrupt(measurement.unavailableReason?.name ?: "unusableArm")
         val shortSide = min(pose.imageSize.width, pose.imageSize.height)
@@ -239,7 +244,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         if (extended || phase == Phase.seekingStart || phase == Phase.ready || phase == Phase.returning) {
             for ((side, sample) in samples) {
                 val since = pullUpExtendedSince[side]
-                if (since != null && time - since >= endpointDwellSeconds) pullUpAnchors[side] = sample
+                if (since != null && time.elapsedSeconds(since) >= endpointDwellSeconds) pullUpAnchors[side] = sample
             }
         }
         if (phase != Phase.seekingStart && !extended && samples.keys.any { pullUpAnchors[it] == null })
@@ -255,12 +260,12 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
             Phase.outbound -> {
                 if (extended) {
                     if (sustainedPullUp(Endpoint.extended, witnesses, time)) {
-                        val event = record(Outcome.partial, time, "returnedBeforeBentEndpoint")
+                        val event = record(Outcome.partial, time.seconds, "returnedBeforeBentEndpoint")
                         armPullUp(); return event
                     }
                 } else if (sustainedPullUp(if (bent) Endpoint.bent else null, witnesses, time)) {
                     phase = Phase.returning; endpointSince = null
-                    val event = record(Outcome.movement, time, "barReferencedTop;chinClearanceNotMeasured")
+                    val event = record(Outcome.movement, time.seconds, "barReferencedTop;chinClearanceNotMeasured")
                     activeAttempt = false; return event
                 }
             }
@@ -271,7 +276,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     }
 
     /** Disjoint left/right endpoint glimpses cannot be stitched into continuous dwell. */
-    private fun sustainedPullUp(next: Endpoint?, witnesses: Set<ArmMeasurement.Side>, time: Double): Boolean {
+    private fun sustainedPullUp(next: Endpoint?, witnesses: Set<ArmMeasurement.Side>, time: PresentationTime): Boolean {
         if (next == null) pullUpEndpointWitnesses = emptySet()
         else if (next != endpoint || endpointSince == null) pullUpEndpointWitnesses = witnesses
         else {
@@ -282,14 +287,14 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         return sustained(next, time)
     }
 
-    private fun consumeDip(pose: PoseResult, referenceEdge: BarSegment, time: Double): Event? {
+    private fun consumeDip(pose: PoseResult, referenceEdge: BarSegment, time: PresentationTime): Event? {
         if (pose.people.size > 1) return interrupt("multiplePeople")
         if (pose.people.isEmpty()) return dipObservationUnavailable("noPerson", time)
         val support = DipSupportMeasurement.create(pose, side, referenceEdge) ?: return dipObservationUnavailable("dipSupportUnclear", time)
         // Shoulders/wrists can outlast the initial elbow witness. An expired
         // candidate must reacquire extension and its grip axis, not remain stuck.
         if (phase == Phase.seekingStart && dipSupportCandidateSince?.let {
-                time - it > maximumDipObservationOutageSeconds
+                time.elapsedSeconds(it) > maximumDipObservationOutageSeconds
             } == true) interrupt("dipSupportNeeded")
         if (dipSupportAxis == null) {
             val axis = DipSupportMeasurement.Anchor.create(support)
@@ -311,7 +316,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
                 dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, sample)
                 val since = dipSupportCandidateSince
                 if (since == null) dipSupportCandidateSince = time
-                else if (time - since >= endpointDwellSeconds && time - since <= maximumDipObservationOutageSeconds)
+                else if (time.elapsedSeconds(since) >= endpointDwellSeconds && time.elapsedSeconds(since) <= maximumDipObservationOutageSeconds)
                     armDip(dipTopCandidate ?: sample)
             }
             Phase.ready -> {
@@ -341,7 +346,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
                 val anchor = dipAnchor ?: return interrupt("missingDipAnchor")
                 if (dipReturnToAnchorEvidence(sample, anchor)) {
                     if (sustained(Endpoint.extended, time)) {
-                        val event = record(Outcome.partial, time, "returnedBeforeBentEndpoint")
+                        val event = record(Outcome.partial, time.seconds, "returnedBeforeBentEndpoint")
                         armDip(dipTopCandidate ?: anchor); return event
                     }
                 } else if (sustained(if (dipReachedBentEndpoint(sample, anchor)) Endpoint.bent else null, time)) {
@@ -356,7 +361,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
                 }
                 if (dipReturnFromBottomEvidence(sample, bottom, anchor)) {
                     if (sustained(Endpoint.extended, time)) {
-                        val event = record(Outcome.movement, time, "barReferencedCycle;dipDepthAndFormNotQualified")
+                        val event = record(Outcome.movement, time.seconds, "barReferencedCycle;dipDepthAndFormNotQualified")
                         armDip(dipTopCandidate ?: sample); return event
                     }
                 } else sustained(null, time)
@@ -429,20 +434,20 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         dipTopCandidate = null
         return false
     }
-    private fun dipObservationUnavailable(reason: String, time: Double): Event? {
+    private fun dipObservationUnavailable(reason: String, time: PresentationTime): Event? {
         trackingIssue = reason; dipSample = null; endpoint = null; endpointSince = null
         val lastGeometry = dipLastGeometryTime ?: return null
-        if (time - lastGeometry <= maximumDipObservationOutageSeconds) return null
+        if (time.elapsedSeconds(lastGeometry) <= maximumDipObservationOutageSeconds) return null
         dipTopCandidate = null; dipSupportCandidateSince = null
         return interrupt(reason)
     }
     private fun dipTopTolerance(sample: DipSample): Double =
         max(dipTopToleranceArmFraction * (dipSupportAxis?.armLength ?: 0.0), 0.01 * sample.imageShortSide)
-    private fun sustained(next: Endpoint?, time: Double): Boolean {
+    private fun sustained(next: Endpoint?, time: PresentationTime): Boolean {
         if (next == null) { endpoint = null; endpointSince = null; return false }
         val since = endpointSince
         if (endpoint != next || since == null) { endpoint = next; endpointSince = time; return false }
-        return time - since >= endpointDwellSeconds
+        return time.elapsedSeconds(since) >= endpointDwellSeconds
     }
     private fun armPullUp() {
         phase = Phase.ready; endpoint = null; endpointSince = null; pullUpEndpointWitnesses = emptySet(); activeAttempt = false

@@ -33,6 +33,145 @@ struct ExerciseCounterTests {
     }
     private func arm(_ counter: inout ExerciseCounter) { feed(&counter, [(0,170),(0.15,170)]) }
 
+    // Original geometry with independently specified source ticks; converting a
+    // large absolute source origin to Double must not change endpoint eligibility.
+    private static func clockPose(_ ticks: Int64, degrees: Double,
+                                  exercise: ExerciseCounter.Exercise,
+                                  side: ArmMeasurement.Side, timescale: Int32 = 1_000_000) -> PoseResult {
+        let base = pose(0, degrees: degrees, exercise: exercise, side: side)
+        return PoseResult(timestamp: PresentationTime(value: ticks, timescale: timescale),
+                          imageSize: base.imageSize, people: base.people,
+                          backend: base.backend, requestRevision: base.requestRevision)
+    }
+
+    @Test func endpointDwellUsesSourceTicksAtEveryOrigin() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for side in ArmMeasurement.Side.allCases {
+                for origin in [Int64(0), 1_100_000, 9_007_199_254_740_992] {
+                    var c = ExerciseCounter(exercise: exercise, side: side)
+                    let frames: [(Int64, Double)] = [
+                        (0,170),(120_000,170),(240_000,80),(360_000,80),(480_000,170),(600_000,170)
+                    ]
+                    for (offset, degrees) in frames {
+                        c.consume(Self.clockPose(origin + offset, degrees: degrees, exercise: exercise, side: side),
+                                  referenceEdge: Self.referenceEdge)
+                        if offset == 120_000 { #expect(c.phase == .ready) }
+                        if offset == 360_000 { #expect(c.phase == .returning) }
+                    }
+                    #expect(c.phase == .ready)
+                    #expect(c.observedMovements == 1)
+                    #expect(c.partialAttempts == 0)
+                    #expect(c.interruptedAttempts == 0)
+                }
+            }
+        }
+    }
+
+    @Test func endpointDwellNeverRoundsUpAOneTickShortHold() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for side in ArmMeasurement.Side.allCases {
+                for origin in [Int64(1_100_000), 9_007_199_254_740_992] {
+                    var c = ExerciseCounter(exercise: exercise, side: side)
+                    func frame(_ offset: Int64, _ degrees: Double) -> PoseResult {
+                        Self.clockPose(origin + offset, degrees: degrees, exercise: exercise, side: side)
+                    }
+                    c.consume(frame(0,170), referenceEdge: Self.referenceEdge)
+                    c.consume(frame(119_999,170), referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == .seekingStart)
+                    c.consume(frame(120_000,170), referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == .ready)
+                    c.consume(frame(240_000,80), referenceEdge: Self.referenceEdge)
+                    c.consume(frame(359_999,80), referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == .outbound)
+                    #expect(c.observedMovements == 0)
+                    c.consume(frame(360_000,80), referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == .returning)
+                    c.consume(frame(480_000,170), referenceEdge: Self.referenceEdge)
+                    c.consume(frame(599_999,170), referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == .returning)
+                    c.consume(frame(600_000,170), referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == .ready)
+                    #expect(c.observedMovements == 1)
+                    #expect(c.interruptedAttempts == 0)
+                }
+            }
+        }
+    }
+
+    @Test func sourceGapUsesExactAllowedBoundaryWithoutExtraTolerance() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for side in ArmMeasurement.Side.allCases {
+                for excess in [Int64(0), 1] {
+                    var c = ExerciseCounter(exercise: exercise, side: side)
+                    let frames: [(Int64, Double)] = [(0,170),(150_000,170),(300_000,80),(650_000 + excess,80)]
+                    for (offset, degrees) in frames {
+                        c.consume(Self.clockPose(offset, degrees: degrees, exercise: exercise, side: side),
+                                  referenceEdge: Self.referenceEdge)
+                    }
+                    if excess == 0 {
+                        #expect(c.phase == .returning)
+                        #expect(c.interruptedAttempts == 0)
+                    } else {
+                        #expect(c.phase == .seekingStart)
+                        #expect(c.observedMovements == 0)
+                        #expect(c.interruptedAttempts == 1)
+                        #expect(c.lastEvent?.reason == "sourceTimeGap")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test func rejectedSourceClocksCannotPoisonCounterRecovery() {
+        let faults: [(Int64, Int64, Int32, String)] = [
+            (0,240_000,1_000_000,"nonIncreasingTimestamp"),
+            (0,239_999,1_000_000,"nonIncreasingTimestamp"),
+            (0,400_000,0,"invalidTimestamp"),
+            (.min,.max,1_000_000,"invalidTimestamp")
+        ]
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for side in ArmMeasurement.Side.allCases {
+                for (origin, badTicks, scale, reason) in faults {
+                    var c = ExerciseCounter(exercise: exercise, side: side)
+                    for (offset, degrees) in [(Int64(0),170.0),(120_000,170),(240_000,80)] {
+                        c.consume(Self.clockPose(origin + offset, degrees: degrees, exercise: exercise, side: side),
+                                  referenceEdge: Self.referenceEdge)
+                    }
+                    #expect(c.phase == .outbound)
+                    c.consume(Self.clockPose(badTicks, degrees: 80, exercise: exercise, side: side, timescale: scale),
+                              referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == .seekingStart)
+                    #expect(c.observedMovements == 0)
+                    #expect(c.interruptedAttempts == 1)
+                    #expect(c.lastEvent?.reason == reason)
+                    for offset in [Int64(360_000),480_000] {
+                        c.consume(Self.clockPose(origin + offset, degrees: 170, exercise: exercise, side: side),
+                                  referenceEdge: Self.referenceEdge)
+                    }
+                    #expect(c.phase == .ready)
+                    #expect(c.interruptedAttempts == 1)
+                }
+            }
+        }
+    }
+
+    @Test func mixedTimescalesRetainNonBoundaryCounterCycles() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            for side in ArmMeasurement.Side.allCases {
+                var c = ExerciseCounter(exercise: exercise, side: side)
+                let frames: [(Int64, Int32, Double)] = [(1_100,1_000,170),(1_250_000,1_000_000,170),
+                    (1_400,1_000,80),(1_550_000,1_000_000,80),(1_700,1_000,170),(1_850_000,1_000_000,170)]
+                for (ticks, scale, degrees) in frames {
+                    c.consume(Self.clockPose(ticks, degrees: degrees, exercise: exercise, side: side, timescale: scale),
+                              referenceEdge: Self.referenceEdge)
+                }
+                #expect(c.phase == .ready)
+                #expect(c.observedMovements == 1)
+                #expect(c.interruptedAttempts == 0)
+            }
+        }
+    }
+
     static func poseWithLowConfidenceElbow(
         _ time: Double,
         degrees: Double,

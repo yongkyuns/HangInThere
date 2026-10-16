@@ -98,6 +98,39 @@ def prepare(output):
                 returned = ending != 'contradicted'
                 add(f'dip-return-{kind}-{side}-{ending}','dip',frames,int(kind=='cycle' and returned),
                     side=side,expected_partial=int(kind=='partial' and returned))
+    # Explicit per-frame phase/count labels protect both engines independently:
+    # exact source boundaries pass, one-tick-short dwell and over-limit gaps fail.
+    def add_clock(name, exercise, side, origin, offsets, phases, movement_at):
+        frames = []
+        counts = []
+        for offset, degrees in offsets:
+            frame = pose(0,degrees,exercise=exercise)
+            frame['timestamp'] = dict(value=origin+offset,timescale=1_000_000)
+            frame['people'][0]['landmarks'] = [p for p in frame['people'][0]['landmarks']
+                                              if p['joint'].startswith(side)]
+            frames.append(frame)
+            counts.append(int(movement_at is not None and offset >= movement_at))
+        add(f'source-clock-{exercise}-{side}-{name}',exercise,frames,counts[-1],side=side,expected_partial=0)
+        for step, phase, count in zip(cases[-1]['steps'],phases,counts):
+            step.update(expectedPhase=phase,expectedMovements=count)
+    for exercise in ('pullUp','dip'):
+        for side in ('left','right'):
+            for name, origin in [('ordinary',1_100_000),('large',9_007_199_254_740_992)]:
+                movement_at = 360_000 if exercise=='pullUp' else 600_000
+                add_clock(name+'-exact',exercise,side,origin,
+                    [(0,170),(120_000,170),(240_000,80),(360_000,80),(480_000,170),(600_000,170)],
+                    ['seekingStart','ready','outbound','returning','returning','ready'],movement_at)
+                add_clock(name+'-short',exercise,side,origin,
+                    [(0,170),(119_999,170),(120_000,170),(240_000,80),(359_999,80),
+                     (360_000,80),(480_000,170),(599_999,170),(600_000,170)],
+                    ['seekingStart','seekingStart','ready','outbound','outbound',
+                     'returning','returning','returning','ready'],movement_at)
+            for excess, kind, end in [(0,'gap','returning'),(1,'gap-over','seekingStart')]:
+                # A dip has only reached bottom here; it cannot earn a rep.
+                add_clock(kind,exercise,side,0,
+                    [(0,170),(150_000,170),(300_000,80),(650_000+excess,80)],
+                    ['seekingStart','ready','outbound',end],
+                    650_000 if exercise=='pullUp' and excess==0 else None)
     output.mkdir(parents=True,exist_ok=True)
     inputs=output/'inputs.json';inputs.write_text(json.dumps(cases,allow_nan=False))
     binary=output/'swift-workout-oracle'

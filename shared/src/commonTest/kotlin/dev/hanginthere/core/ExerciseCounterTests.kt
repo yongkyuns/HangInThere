@@ -48,6 +48,90 @@ class ExerciseCounterTests {
     private fun pullUp() = ExerciseCounter().also(CounterFixtures::arm)
     private fun dip(side: ArmMeasurement.Side = ArmMeasurement.Side.left) = ExerciseCounter(ExerciseCounter.Exercise.dip, side)
 
+    // Keep geometry independent of the exact source clock under test.
+    private fun clockPose(ticks: Long, degrees: Double, exercise: ExerciseCounter.Exercise,
+                          side: ArmMeasurement.Side, timescale: Int = 1_000_000) = CounterFixtures.pose(0.0, degrees, exercise, side)
+        .copy(timestamp = PresentationTime(ticks, timescale))
+
+    @Test fun endpointDwellUsesSourceTicksAtEveryOrigin() {
+        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries)
+            for (origin in listOf(0L, 1_100_000L, 9_007_199_254_740_992L)) {
+                val c = ExerciseCounter(exercise, side)
+                for ((offset, degrees) in listOf(0L to 170.0,120_000L to 170.0,240_000L to 80.0,
+                    360_000L to 80.0,480_000L to 170.0,600_000L to 170.0)) {
+                    c.consume(clockPose(origin + offset, degrees, exercise, side), CounterFixtures.edge)
+                    if (offset == 120_000L) assertEquals(ExerciseCounter.Phase.ready, c.phase)
+                    if (offset == 360_000L) assertEquals(ExerciseCounter.Phase.returning, c.phase)
+                }
+                assertEquals(ExerciseCounter.Phase.ready, c.phase)
+                assertEquals(1, c.observedMovements); assertEquals(0, c.partialAttempts); assertEquals(0, c.interruptedAttempts)
+            }
+    }
+
+    @Test fun endpointDwellNeverRoundsUpAOneTickShortHold() {
+        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries)
+            for (origin in listOf(1_100_000L, 9_007_199_254_740_992L)) {
+                val c = ExerciseCounter(exercise, side)
+                fun frame(offset: Long, degrees: Double) = clockPose(origin + offset, degrees, exercise, side)
+                c.consume(frame(0,170.0), CounterFixtures.edge); c.consume(frame(119_999,170.0), CounterFixtures.edge)
+                assertEquals(ExerciseCounter.Phase.seekingStart, c.phase)
+                c.consume(frame(120_000,170.0), CounterFixtures.edge); assertEquals(ExerciseCounter.Phase.ready, c.phase)
+                c.consume(frame(240_000,80.0), CounterFixtures.edge); c.consume(frame(359_999,80.0), CounterFixtures.edge)
+                assertEquals(ExerciseCounter.Phase.outbound, c.phase); assertEquals(0, c.observedMovements)
+                c.consume(frame(360_000,80.0), CounterFixtures.edge); assertEquals(ExerciseCounter.Phase.returning, c.phase)
+                c.consume(frame(480_000,170.0), CounterFixtures.edge); c.consume(frame(599_999,170.0), CounterFixtures.edge)
+                assertEquals(ExerciseCounter.Phase.returning, c.phase)
+                c.consume(frame(600_000,170.0), CounterFixtures.edge); assertEquals(ExerciseCounter.Phase.ready, c.phase)
+                assertEquals(1, c.observedMovements); assertEquals(0, c.interruptedAttempts)
+            }
+    }
+
+    @Test fun sourceGapUsesExactAllowedBoundaryWithoutExtraTolerance() {
+        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) for (excess in listOf(0L,1L)) {
+            val c = ExerciseCounter(exercise, side)
+            for ((offset, degrees) in listOf(0L to 170.0,150_000L to 170.0,300_000L to 80.0,(650_000L + excess) to 80.0))
+                c.consume(clockPose(offset, degrees, exercise, side), CounterFixtures.edge)
+            if (excess == 0L) {
+                assertEquals(ExerciseCounter.Phase.returning, c.phase); assertEquals(0, c.interruptedAttempts)
+            } else {
+                assertEquals(ExerciseCounter.Phase.seekingStart, c.phase); assertEquals(0, c.observedMovements)
+                assertEquals(1, c.interruptedAttempts); assertEquals("sourceTimeGap", c.lastEvent?.reason)
+            }
+        }
+    }
+
+    @Test fun rejectedSourceClocksCannotPoisonCounterRecovery() {
+        data class Fault(val origin: Long, val badTicks: Long, val scale: Int, val reason: String)
+        val faults = listOf(Fault(0,240_000,1_000_000,"nonIncreasingTimestamp"),
+            Fault(0,239_999,1_000_000,"nonIncreasingTimestamp"),Fault(0,400_000,0,"invalidTimestamp"),
+            Fault(Long.MIN_VALUE,Long.MAX_VALUE,1_000_000,"invalidTimestamp"))
+        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) for (fault in faults) {
+            val c = ExerciseCounter(exercise, side)
+            for ((offset, degrees) in listOf(0L to 170.0,120_000L to 170.0,240_000L to 80.0))
+                c.consume(clockPose(fault.origin + offset, degrees, exercise, side), CounterFixtures.edge)
+            assertEquals(ExerciseCounter.Phase.outbound, c.phase)
+            c.consume(clockPose(fault.badTicks,80.0,exercise,side,fault.scale), CounterFixtures.edge)
+            assertEquals(ExerciseCounter.Phase.seekingStart, c.phase); assertEquals(0, c.observedMovements)
+            assertEquals(1, c.interruptedAttempts); assertEquals(fault.reason, c.lastEvent?.reason)
+            for (offset in listOf(360_000L,480_000L))
+                c.consume(clockPose(fault.origin + offset,170.0,exercise,side), CounterFixtures.edge)
+            assertEquals(ExerciseCounter.Phase.ready, c.phase); assertEquals(1, c.interruptedAttempts)
+        }
+    }
+
+    @Test fun mixedTimescalesRetainNonBoundaryCounterCycles() {
+        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) {
+            val c = ExerciseCounter(exercise, side)
+            val frames = listOf(Triple(1_100L,1_000,170.0),Triple(1_250_000L,1_000_000,170.0),
+                Triple(1_400L,1_000,80.0),Triple(1_550_000L,1_000_000,80.0),
+                Triple(1_700L,1_000,170.0),Triple(1_850_000L,1_000_000,170.0))
+            for ((ticks, scale, degrees) in frames)
+                c.consume(clockPose(ticks,degrees,exercise,side,scale), CounterFixtures.edge)
+            assertEquals(ExerciseCounter.Phase.ready, c.phase); assertEquals(1, c.observedMovements)
+            assertEquals(0, c.interruptedAttempts)
+        }
+    }
+
     @Test fun bilateralPullUpsRequireBothEndpointsRegardlessOfSide() {
         for (side in ArmMeasurement.Side.entries) {
             val c = ExerciseCounter(side = side)

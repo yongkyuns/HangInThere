@@ -4,6 +4,8 @@ import Foundation
 private struct Step: Codable {
     let pose: PoseResult?
     let interrupt: String?
+    let expectedPhase: ExerciseCounter.Phase?
+    let expectedMovements: Int?
 }
 private struct Case: Codable {
     let id: String
@@ -63,11 +65,17 @@ private struct Benchmark: Encodable {
     static func run(_ input: Case) -> Result {
         var counter = ExerciseCounter(exercise: input.exercise, side: input.side)
         var snapshots: [Snapshot] = []
-        for step in input.steps {
+        for (index, step) in input.steps.enumerated() {
             let event: ExerciseCounter.Event?
             if let reason = step.interrupt { event = counter.interrupt(reason: reason) }
             else if let pose = step.pose { event = counter.consume(pose, referenceEdge: input.referenceEdge) }
             else { fatalError("Empty oracle step") }
+            if let phase = step.expectedPhase {
+                precondition(counter.phase == phase, "Phase label mismatch: \(input.id) step \(index)")
+            }
+            if let movements = step.expectedMovements {
+                precondition(counter.observedMovements == movements, "Movement label mismatch: \(input.id) step \(index)")
+            }
             snapshots.append(Snapshot(summary: counter.summary, event: event,
                 pullUpProgress: counter.pullUpProgress, dipProgress: counter.dipProgress))
         }

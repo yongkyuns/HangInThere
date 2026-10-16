@@ -75,9 +75,10 @@ struct ExerciseCounter: Sendable {
     private(set) var trackingIssue: String?
     private(set) var lastEvent: Event?
     private(set) var events: [Event] = []
-    private var lastTime: Double?
+    private var lastTimestamp: PresentationTime?
+    private var lastTime: Double? { lastTimestamp?.seconds }
     private var pullUpAnchors: [ArmMeasurement.Side: Sample] = [:]
-    private var pullUpExtendedSince: [ArmMeasurement.Side: Double] = [:]
+    private var pullUpExtendedSince: [ArmMeasurement.Side: PresentationTime] = [:]
     private var pullUpEndpointWitnesses: Set<ArmMeasurement.Side> = []
     private var pullUpSamples: [ArmMeasurement.Side: Sample] = [:]
     private var dipSupportAxis: DipSupportMeasurement.Anchor?
@@ -85,11 +86,15 @@ struct ExerciseCounter: Sendable {
     private var dipAnchor: DipSample?
     private var dipTopCandidate: DipSample?
     private var dipBottom: DipSample?
-    private var dipLastGeometryTime: Double?
-    private var dipSupportCandidateSince: Double?
+    private var dipLastGeometryTime: PresentationTime?
+    private var dipSupportCandidateSince: PresentationTime?
     private enum Endpoint { case extended, bent }
     private var endpoint: Endpoint?
-    private var endpointSince: Double?
+    private var endpointSince: PresentationTime?
+    private var endpointElapsedSeconds: Double {
+        guard let lastTimestamp, let endpointSince else { return 0 }
+        return lastTimestamp.elapsedSeconds(since: endpointSince)
+    }
     private var activeAttempt = false
 
     private struct Sample: Sendable {
@@ -136,7 +141,7 @@ struct ExerciseCounter: Sendable {
         }
         guard !pullUpSamples.isEmpty else { return snapshot(.startingHang, .hang) }
         let dwell = PullUpProgress.fraction(
-            ((lastTime ?? 0) - (endpointSince ?? lastTime ?? 0)) / Self.endpointDwellSeconds
+            endpointElapsedSeconds / Self.endpointDwellSeconds
         )
         let extensionFraction = pullUpSamples.values.map {
             PullUpProgress.fraction(($0.degrees - Self.bentDegrees)
@@ -207,7 +212,7 @@ struct ExerciseCounter: Sendable {
             return snapshot(.startingSupport, .support)
         }
         let dwell = normalizedProgress(
-            ((lastTime ?? 0) - (endpointSince ?? lastTime ?? 0)) / Self.endpointDwellSeconds
+            endpointElapsedSeconds / Self.endpointDwellSeconds
         )
         let required = requiredDipTravel(anchor)
         let descentTravel = normalizedProgress((anchor.supportHeightPixels - sample.supportHeightPixels) / required)
@@ -281,15 +286,18 @@ struct ExerciseCounter: Sendable {
     @discardableResult
     mutating func consume(_ pose: PoseResult, referenceEdge: BarSegment?) -> Event? {
         guard phase != .finished else { return nil }
-        let time = pose.timestamp.seconds
-        guard time.isFinite else { return interrupt(reason: "invalidTimestamp") }
-        if let lastTime, time <= lastTime {
+        let time = pose.timestamp
+        guard time.seconds.isFinite else { return interrupt(reason: "invalidTimestamp") }
+        // Source-tick subtraction keeps exact dwell/gap boundaries and avoids
+        // aliasing distinct frames at a large absolute source origin.
+        let gap = lastTimestamp.map { time.elapsedSeconds(since: $0) }
+        if let gap, !gap.isFinite { return interrupt(reason: "invalidTimestamp") }
+        if let gap, gap <= 0 {
             return interrupt(reason: "nonIncreasingTimestamp")
         }
-        let previousTime = lastTime
-        lastTime = time
+        lastTimestamp = time
         var event: Event?
-        if let previousTime, time - previousTime > Self.maximumGapSeconds {
+        if let gap, gap > Self.maximumGapSeconds {
             event = interrupt(reason: "sourceTimeGap")
         }
 
@@ -311,7 +319,7 @@ struct ExerciseCounter: Sendable {
     private mutating func consumePullUp(
         _ pose: PoseResult,
         referenceEdge: BarSegment,
-        at time: Double
+        at time: PresentationTime
     ) -> Event? {
         let measurement = PullUpArmMeasurement(pose: pose)
         guard !measurement.arms.isEmpty else {
@@ -339,7 +347,7 @@ struct ExerciseCounter: Sendable {
         // bent arm cannot borrow the other shoulder's distance to fabricate travel.
         if extended || phase == .seekingStart || phase == .ready || phase == .returning {
             for (side, sample) in samples {
-                if let since = pullUpExtendedSince[side], time - since >= Self.endpointDwellSeconds {
+                if let since = pullUpExtendedSince[side], time.elapsedSeconds(since: since) >= Self.endpointDwellSeconds {
                     pullUpAnchors[side] = sample
                 }
             }
@@ -365,14 +373,14 @@ struct ExerciseCounter: Sendable {
         case .outbound:
             if extended {
                 if sustainedPullUp(.extended, witnesses: witnesses, at: time) {
-                    let event = record(.partial, at: time, reason: "returnedBeforeBentEndpoint")
+                    let event = record(.partial, at: time.seconds, reason: "returnedBeforeBentEndpoint")
                     armPullUp()
                     return event
                 }
             } else if sustainedPullUp(bent ? .bent : nil, witnesses: witnesses, at: time) {
                 phase = .returning
                 endpointSince = nil
-                let event = record(.movement, at: time,
+                let event = record(.movement, at: time.seconds,
                                    reason: "barReferencedTop;chinClearanceNotMeasured")
                 activeAttempt = false
                 return event
@@ -390,7 +398,7 @@ struct ExerciseCounter: Sendable {
     // Dwell needs at least one continuously observed arm. Alternating disjoint
     // left/right endpoint glimpses cannot be stitched into a sustained endpoint.
     private mutating func sustainedPullUp(
-        _ next: Endpoint?, witnesses: Set<ArmMeasurement.Side>, at time: Double
+        _ next: Endpoint?, witnesses: Set<ArmMeasurement.Side>, at time: PresentationTime
     ) -> Bool {
         if next == nil {
             pullUpEndpointWitnesses = []
@@ -409,7 +417,7 @@ struct ExerciseCounter: Sendable {
     private mutating func consumeDip(
         _ pose: PoseResult,
         referenceEdge: BarSegment,
-        at time: Double
+        at time: PresentationTime
     ) -> Event? {
         guard pose.people.count <= 1 else {
             return interrupt(reason: "multiplePeople")
@@ -424,7 +432,7 @@ struct ExerciseCounter: Sendable {
         // its allowed outage expires, reacquire extension and a fresh grip axis
         // instead of leaving an expired candidate unable to arm indefinitely.
         if phase == .seekingStart, let since = dipSupportCandidateSince,
-           time - since > Self.maximumDipObservationOutageSeconds {
+           time.elapsedSeconds(since: since) > Self.maximumDipObservationOutageSeconds {
             interrupt(reason: "dipSupportNeeded")
         }
         if dipSupportAxis == nil {
@@ -463,8 +471,8 @@ struct ExerciseCounter: Sendable {
             if dipSupportCandidateSince == nil {
                 dipSupportCandidateSince = time
             } else if let since = dipSupportCandidateSince,
-                      time - since >= Self.endpointDwellSeconds,
-                      time - since <= Self.maximumDipObservationOutageSeconds {
+                      time.elapsedSeconds(since: since) >= Self.endpointDwellSeconds,
+                      time.elapsedSeconds(since: since) <= Self.maximumDipObservationOutageSeconds {
                 armDip(dipTopCandidate ?? sample)
             }
 
@@ -523,7 +531,7 @@ struct ExerciseCounter: Sendable {
             }
             if dipReturnToAnchorEvidence(sample, to: anchor) {
                 if sustained(.extended, at: time) {
-                    let event = record(.partial, at: time, reason: "returnedBeforeBentEndpoint")
+                    let event = record(.partial, at: time.seconds, reason: "returnedBeforeBentEndpoint")
                     armDip(dipTopCandidate ?? anchor)
                     return event
                 }
@@ -546,7 +554,7 @@ struct ExerciseCounter: Sendable {
             }
             if dipReturnFromBottomEvidence(sample, from: bottom, cycleAnchor: anchor) {
                 if sustained(.extended, at: time) {
-                    let event = record(.movement, at: time,
+                    let event = record(.movement, at: time.seconds,
                                        reason: "barReferencedCycle;dipDepthAndFormNotQualified")
                     armDip(dipTopCandidate ?? sample)
                     return event
@@ -685,7 +693,7 @@ struct ExerciseCounter: Sendable {
         return false
     }
 
-    private mutating func dipObservationUnavailable(reason: String, at time: Double) -> Event? {
+    private mutating func dipObservationUnavailable(reason: String, at time: PresentationTime) -> Event? {
         trackingIssue = reason
         dipSample = nil
 
@@ -695,7 +703,7 @@ struct ExerciseCounter: Sendable {
         endpoint = nil
         endpointSince = nil
         guard let lastGeometry = dipLastGeometryTime else { return nil }
-        guard time - lastGeometry > Self.maximumDipObservationOutageSeconds else { return nil }
+        guard time.elapsedSeconds(since: lastGeometry) > Self.maximumDipObservationOutageSeconds else { return nil }
         dipTopCandidate = nil
         dipSupportCandidateSince = nil
         return interrupt(reason: reason)
@@ -706,7 +714,7 @@ struct ExerciseCounter: Sendable {
             0.01 * sample.imageShortSide)
     }
 
-    private mutating func sustained(_ next: Endpoint?, at time: Double) -> Bool {
+    private mutating func sustained(_ next: Endpoint?, at time: PresentationTime) -> Bool {
         guard let next else {
             endpoint = nil
             endpointSince = nil
@@ -717,7 +725,7 @@ struct ExerciseCounter: Sendable {
             endpointSince = time
             return false
         }
-        return time - since >= Self.endpointDwellSeconds
+        return time.elapsedSeconds(since: since) >= Self.endpointDwellSeconds
     }
 
     private mutating func armPullUp() {

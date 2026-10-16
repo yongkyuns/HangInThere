@@ -136,6 +136,15 @@ are preserved rather than silently reclassified.
   the existing shoulder/wrist evidence during an elbow-confidence gap.
   CI runs these common regressions on the JVM and the host Kotlin Native target,
   alongside the independent Swift counter oracle and native Apple integration.
+  Counter dwell, per-arm baseline acquisition, observation outages and frame-gap
+  checks retain source timestamps and subtract source ticks before converting
+  to seconds. Exact 120 ms endpoints and 350 ms allowed gaps therefore use the
+  same eligibility at different source origins, without rounding up shorter
+  holds or tolerating longer gaps. Invalid, non-increasing and overflowing
+  timestamp differences interrupt evidence. Mixed timescales retain the existing
+  elapsed-time helper's floating-seconds fallback; exact cross-clock boundaries
+  are not promised. Published event seconds and the version 8 thresholds remain
+  unchanged.
 - Preserve an accepted rep even when its full return is unavailable. Missing
   return/peak measurements are null. Partial and interrupted attempts remain
   distinct records; they do not contribute to accepted counts. Analytics use the

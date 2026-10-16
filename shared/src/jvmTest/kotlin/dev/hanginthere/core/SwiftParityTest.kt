@@ -11,7 +11,8 @@ import kotlin.test.assertTrue
 
 /** The oracle is built from production Swift, never from expected Kotlin output. */
 class SwiftParityTest {
-    @Serializable data class Step(val pose: PoseResult? = null, val interrupt: String? = null)
+    @Serializable data class Step(val pose: PoseResult? = null, val interrupt: String? = null,
+        val expectedPhase: ExerciseCounter.Phase? = null, val expectedMovements: Int? = null)
     @Serializable data class Input(val id: String, val exercise: ExerciseCounter.Exercise,
         val side: ArmMeasurement.Side, val referenceEdge: BarSegment? = null,
         val expectedMovements: Int, val steps: List<Step>, val expectedPartialAttempts: Int? = null)
@@ -22,9 +23,11 @@ class SwiftParityTest {
 
     private fun run(input: Input): Pair<List<Snapshot>, Snapshot> {
         val counter = ExerciseCounter(input.exercise, input.side)
-        val snapshots = input.steps.map { step ->
+        val snapshots = input.steps.mapIndexed { index, step ->
             val event = step.interrupt?.let { counter.interrupt(it) }
                 ?: step.pose?.let { counter.consume(it, input.referenceEdge) }
+            step.expectedPhase?.let { assertEquals(it, counter.phase, "${input.id} step $index phase") }
+            step.expectedMovements?.let { assertEquals(it, counter.observedMovements, "${input.id} step $index movements") }
             Snapshot(counter.summary, event, counter.pullUpProgress, counter.dipProgress)
         }
         val event = counter.finish()
@@ -61,6 +64,12 @@ class SwiftParityTest {
         for (side in ArmMeasurement.Side.entries) for (kind in listOf("cycle", "partial"))
             for (ending in listOf("witness", "contradicted", "reacquired"))
                 assertTrue("dip-return-$kind-$side-$ending" in ids, "Missing dip return witness regression")
+        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) {
+            for (origin in listOf("ordinary", "large")) for (kind in listOf("exact", "short"))
+                assertTrue("source-clock-$exercise-$side-$origin-$kind" in ids, "Missing exact source dwell regression")
+            for (kind in listOf("gap", "gap-over"))
+                assertTrue("source-clock-$exercise-$side-$kind" in ids, "Missing exact source gap regression")
+        }
         var frames = 0
         for (case in cases) {
             val row=case.jsonObject; val input=json.decodeFromJsonElement<Input>(row.getValue("input"))
