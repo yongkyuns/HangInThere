@@ -123,3 +123,9 @@ contracts and the unchanged legacy temporal tests. Only hard-coded synthetic
 fixtures are used by the new benchmark CI step. Independent annotation,
 source verification, representative collection and predeclared release gates
 remain open in roadmap #31.
+
+The required Dataset evaluation host job installs FFmpeg and FFprobe before the
+regressions. This keeps the real VFR fixture-encoding and metadata-stripping
+transcode tests active in CI; a missing media-tool installation fails the job
+instead of silently leaving those tests skipped. These tests create synthetic
+recordings and do not read private recordings or credentials.

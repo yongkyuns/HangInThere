@@ -21,6 +21,12 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
+      - name: Install required media test tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y ffmpeg
+          ffmpeg -version
+          ffprobe -version
       - name: Install host-only test dependencies
         run: |
           python3 -m venv /tmp/hit-host-tests
