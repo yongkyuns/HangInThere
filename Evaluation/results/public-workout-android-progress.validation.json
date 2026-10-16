@@ -1,0 +1,158 @@
+{
+  "android_verification": {
+    "compiled_test_classes_sha256": {
+      "android/app/build/tmp/kotlin-classes/debugAndroidTest/dev/hanginthere/android/NativeReplayEvaluator.class": "2c6d90ed5f8ed55b39b353a5cb605f89accac38ecf5f735abc8b8a0501b8f521",
+      "android/app/build/tmp/kotlin-classes/debugAndroidTest/dev/hanginthere/android/NativeReplayProgressTest.class": "a6b362719efe3d83a9251eb5d4b75bd4839c38f8d5b7b2b3bb784d45777ba1ad",
+      "android/app/build/tmp/kotlin-classes/debugAndroidTest/dev/hanginthere/evaluation/PublicReplayProgress.class": "c0400c52709d39b2c62aece36fc1e9dd82d939eecd438ec679ab88c4d0ac098a"
+    },
+    "elapsed_seconds": 22.151204724097624,
+    "exit_code": 0,
+    "instrumentation_executed": false,
+    "instrumentation_kotlin_compile_forced": true,
+    "unit_task_final_state": "UP-TO-DATE after successful same-source unit execution in the prior local compile"
+  },
+  "artifact_sha256": {
+    "android-compile-final-invocation-local.json": "c218ec7707e92df5a3206c65445161b7e563437263e1166a7bdfd6e186ad54b1",
+    "android-compile-final.log": "3d7cb1110cbd915eae560c9244161189361b9c5792225982e9c2758cf636c975",
+    "android-compile-invocation-local.json": "e281f2f9ab25b95f67bb9c941faeada08773885b6d4f0c42323f53507f05a691",
+    "android-compile.log": "20c2880867a6f56daf4c494dc24570d9bfd26e824a8629230c3b47aa7ba93234",
+    "android-verified-invocation-local.json": "c5ed1a28054da4957616b56e90e9dda0c63acf978d92933b2474932ffafdecb0",
+    "android-verified.log": "4fc5ccdf1097b095e1b2a36e5775bdcec617b64a07584abdad7cfa56763b0d93",
+    "core-check.log": "94086d431286dc61cbde97be9d909ddf450269b8f62ea657e93845327b6a6d7e",
+    "jvm-invocation-local.json": "344289106ad9d2bb84882f708cbedbd7d37558c3cc74c5f07ab2fb457b515bd6",
+    "jvm-verified-invocation-local.json": "73a8450e5947a3a941d8f526274490eafaff0c837f73a9a0485115813907a0f2",
+    "jvm-verified.log": "b2b8e6a56748b02d8a42dd5e86045eccccf29f8d705e3d9fc26c99175aaacf02",
+    "jvm.log": "f81c49790d5be74bfe6f736d6a4cbfb670088c0ca60393c718a45e4b94847ca7",
+    "kotlin-parity.json": "753477fb41ed133fa8866de2a487ac28691a845dea3eab2a646b78ca0c99804e",
+    "kotlin-progress-rows.json": "bc880e59bd89823bb354f14544230a5c5995e0ee12965344183d8f0507c136fd",
+    "oracles.log": "5c184fcac41d091decc4e14390acd9a968c32ee0754ec37218b337a9755cf60a",
+    "verified-test-summary.json": "db3c6fd96564b4e3499f3536ed233f0b3f6a846f2f7c8366348a5f4547939972",
+    "wire-check.log": "63fb9efba2b4cd348e25766d76674100f35bcd8cbc04d15b20dd7d42818935fa"
+  },
+  "authored_contract_completed_return_seconds": 12.75,
+  "authored_kotlin_python_contract": {
+    "accepted": 2,
+    "all_exact_completed_counts": false,
+    "all_inputs_processed": false,
+    "cases": 2,
+    "completed": 1,
+    "scope": "authored Kotlin/JVM-to-Python wire contract; no native accuracy qualification"
+  },
+  "changed_files_sha256": {
+    ".github/workflows/workout-analysis.yml": "4d9276b7e95b5d13e2d3f438780989a9d30c0aa5d24bc7bb56b2ef7cbd5fd877",
+    "Evaluation/PUBLIC_WORKOUT_DATASETS.md": "fc5f49a9547ec1a8f3c412371198db78330ff57ecaede4e14ffb89f261d2ee35",
+    "Evaluation/android/PublicReplayProgress.kt": "3d465aaaac2dbcc1ce90091bc0190e9647fa08692be970475acdb0249b06e5d2",
+    "Evaluation/androidTests/PublicReplayProgressTests.kt": "9d0ad71b8236197cc2da3ab0549a6b2c0477cef3725c7b285a9348919e48c2fc",
+    "android/app/build.gradle.kts": "aced1deae796e8471bf22849af4fcf5a56d9ac21b8ff340334064e12f6bf229a",
+    "android/app/src/androidTest/java/dev/hanginthere/android/NativeReplayEvaluator.kt": "ab2981a113b7c7e62eedf16d03f8b57a3c0ae1f4df9cb7124804b9d74e6ceeb7",
+    "android/app/src/androidTest/java/dev/hanginthere/android/NativeReplayProgressTest.kt": "555a2e77edf492ba4ac51e0ad44b35fb4fa6f5baa6689c1128423862ea88977c",
+    "android/app/src/androidTest/java/dev/hanginthere/android/PublicWorkoutDatasetEvaluationTest.kt": "a69659e915a0743a4c66a1d4f4fd6a2c964fc13107c69a3e6b418d0ffcc5fbf6",
+    "scripts/check-replay-progress-contract.py": "509c0c8e195cccc74b58e59012a718f556069c57ee891586e8aa75b211a8d0c6",
+    "shared/build.gradle.kts": "d4bfc072287ff8d02031036f6b4de3a99baf47d2941bccf1d955881d7d9dd134"
+  },
+  "core_budget": {
+    "passed": true,
+    "scope": "same-host authored counter; camera and model excluded",
+    "summary": "Same-host core p95: Swift 20.2\u00b5s, Kotlin 4.8\u00b5s (0.24\u00d7); core budget<1ms. Camera/model excluded.",
+    "threshold_milliseconds": 1
+  },
+  "evaluation_classes_absent_from_shipping_jvm_jar_and_android_main": true,
+  "held_out_accuracy_qualified": false,
+  "independent_code_review": "Passed; completed-return coverage finding resolved with shared capture lifecycle regression",
+  "initial_local_attempts": [
+    {
+      "exit_code": 1,
+      "kind": "stale local setup oracle",
+      "reason": "Required-regression guard rejected old 85-case default oracle; fresh 93-case production Swift oracle used for final passes"
+    },
+    {
+      "exit_code": 1,
+      "kind": "local Android SDK setup",
+      "reason": "Workspace had placeholder SDK packages and no accepted-license copies; installed proper SDK packages using existing accepted global licenses"
+    },
+    {
+      "exit_code": 0,
+      "kind": "preliminary Android compile",
+      "reason": "Final counting-pass guard changed during compilation; not used for final source binding",
+      "source_snapshot_stable": false
+    }
+  ],
+  "jvm_verification": {
+    "elapsed_seconds": 12.96881726803258,
+    "exit_code": 0,
+    "fresh_swift_counter_cases": 30,
+    "fresh_swift_setup_cases": 93,
+    "observed_geometry_cases": 17
+  },
+  "local_evidence_directory": "build/android-progress-prefix",
+  "native_corpus_accuracy_rerun": false,
+  "native_instrumentation_regressions": {
+    "api29_execution": "pending CI",
+    "api35_execution": "pending CI",
+    "compiled": [
+      "failure after three actual acquisition frames",
+      "failure immediately after actual positive native acceptance"
+    ],
+    "completed_return_boundary": "authored shared-runtime regression through the same capture wrapper; no native return claim"
+  },
+  "native_positive_fixture_prior_evidence": {
+    "29": {
+      "accepted_seconds": [
+        1.933333
+      ],
+      "completed_seconds": [],
+      "counting_source_ended": true,
+      "counting_source_frames": 108,
+      "retained_report_sha256": "986d58ecc20459d4072708d7ac3e09da2e2cb9a62fb1901a4746a2a807ced1ee"
+    },
+    "35": {
+      "accepted_seconds": [
+        1.933333
+      ],
+      "completed_seconds": [],
+      "counting_source_ended": true,
+      "counting_source_frames": 108,
+      "retained_report_sha256": "cd7f97d7ca70674458466652935b93dabb889ce9fd28a4d418270ff2c89e7eaa"
+    }
+  },
+  "native_positive_fixture_proves_return": false,
+  "oracle_sha256": {
+    "setup-oracle/geometry-inputs.json": "c1d236ceb8a81c4c5188bb2cef0e833d622f474bb83a3f90540f2ad2d9365d8e",
+    "setup-oracle/oracle.json": "e8bb20606439a20247f3a41fa8ba7a353471fa7bf7bdb8e0f806ef02593f9804",
+    "workout-oracle/oracle.json": "b05629a1a753b2b7a585c223050b794be0ca57233c5cf331ea1ccf3cab52cd97"
+  },
+  "production_source_trees": {
+    "android/app/src/main": "5f80d327d5a3b9b55f1b100a8e39be6a6797d12a",
+    "ios/HangInThere": "6e79301d0cc0b665f248f348de13cfcf2bbf7d69",
+    "models": "d282537de641f9cd52daf4e28409d05940ca4c3b",
+    "shared/src/commonMain": "56e5cc89045eb7de3474a5abdc427bac68353dc8"
+  },
+  "production_sources_unchanged_from": "69ceaa4af9a93be9b29acd6017b1b8dba59db142",
+  "progress_regressions": 9,
+  "raw_pose_traces_media_device_identifiers_credentials_or_private_recordings_published": false,
+  "recorded_source_file_count": 106,
+  "recorded_sources_match_commit": true,
+  "release_qualified": false,
+  "schema_version": 1,
+  "scope": "Android interrupted-evaluation source evidence; local JVM/unit and instrumentation compilation, not native Android execution or field accuracy qualification",
+  "simulator_failures_repaired": false,
+  "source_revision": "1e0c85822d6ac4a61dc70431fbeb467dd49b990c",
+  "source_snapshot_sha256": "84f26d8e92e40111ce61cba4243d4ac2ad96cf5b832c44e0daa6c2e7e6e13ef8",
+  "sources_unchanged_during_final_runs": true,
+  "sustained_physical_device_performance_qualified": false,
+  "tampered_contract_rejected": true,
+  "tests": {
+    "android_unit": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 31
+    },
+    "jvm": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 343
+    }
+  }
+}
