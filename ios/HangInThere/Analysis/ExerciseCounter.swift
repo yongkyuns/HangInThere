@@ -647,6 +647,9 @@ struct ExerciseCounter: Sendable {
             dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
             return true
         }
+        // Visible flexion contradicts the prior top; a later missing elbow
+        // cannot reuse that witness to complete a new endpoint dwell.
+        dipTopCandidate = nil
         return false
     }
 
@@ -678,6 +681,7 @@ struct ExerciseCounter: Sendable {
             dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, with: sample)
             return true
         }
+        dipTopCandidate = nil
         return false
     }
 

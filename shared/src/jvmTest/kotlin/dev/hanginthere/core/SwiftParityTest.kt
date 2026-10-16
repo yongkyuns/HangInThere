@@ -14,7 +14,7 @@ class SwiftParityTest {
     @Serializable data class Step(val pose: PoseResult? = null, val interrupt: String? = null)
     @Serializable data class Input(val id: String, val exercise: ExerciseCounter.Exercise,
         val side: ArmMeasurement.Side, val referenceEdge: BarSegment? = null,
-        val expectedMovements: Int, val steps: List<Step>)
+        val expectedMovements: Int, val steps: List<Step>, val expectedPartialAttempts: Int? = null)
     @Serializable data class Snapshot(val summary: ExerciseCounter.Summary,
         val event: ExerciseCounter.Event? = null, val pullUpProgress: PullUpProgress? = null,
         val dipProgress: DipProgress? = null)
@@ -29,6 +29,7 @@ class SwiftParityTest {
         }
         val event = counter.finish()
         assertEquals(input.expectedMovements, counter.observedMovements, input.id)
+        input.expectedPartialAttempts?.let { assertEquals(it, counter.partialAttempts, input.id) }
         return snapshots to Snapshot(counter.summary, event, counter.pullUpProgress, counter.dipProgress)
     }
 
@@ -56,6 +57,10 @@ class SwiftParityTest {
         assertEquals(8, report.getValue("policyVersion").jsonPrimitive.int)
         val cases = report.getValue("cases").jsonArray
         assertTrue(cases.size >= 25, "Parity fixture unexpectedly empty or reduced")
+        val ids = cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }.toSet()
+        for (side in ArmMeasurement.Side.entries) for (kind in listOf("cycle", "partial"))
+            for (ending in listOf("witness", "contradicted", "reacquired"))
+                assertTrue("dip-return-$kind-$side-$ending" in ids, "Missing dip return witness regression")
         var frames = 0
         for (case in cases) {
             val row=case.jsonObject; val input=json.decodeFromJsonElement<Input>(row.getValue("input"))

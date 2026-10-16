@@ -29,14 +29,17 @@ def pose(t, degrees=170, exercise='pullUp', right=None, missing=False, people=1,
 
 def prepare(output):
     cases = []
-    def add(name, exercise, frames, expected, **kw):
+    def add(name, exercise, frames, expected, *, side='left', expected_partial=None, **kw):
         rotation, scale = kw.get('rotation',0), kw.get('scale',1)
         c,s=math.cos(rotation),math.sin(rotation)
         def pt(x,y):return dict(x=(c*(x-500)-s*(y-500)+500)*scale,y=(s*(x-500)+c*(y-500)+500)*scale)
-        edge = dict(a=pt(100,500),b=pt(900,500)) if exercise=='pullUp' else dict(a=pt(300,480),b=pt(300,620))
+        wrist_x = 300 if side == 'left' else 700
+        edge = dict(a=pt(100,500),b=pt(900,500)) if exercise=='pullUp' else dict(a=pt(wrist_x,480),b=pt(wrist_x,620))
         steps = [dict(interrupt=f) if isinstance(f,str) else
                  dict(pose=f if isinstance(f,dict) else pose(f[0],f[1],exercise=exercise,**kw)) for f in frames]
-        cases.append(dict(id=name,exercise=exercise,side='left',referenceEdge=edge,expectedMovements=expected,steps=steps))
+        case = dict(id=name,exercise=exercise,side=side,referenceEdge=edge,expectedMovements=expected,steps=steps)
+        if expected_partial is not None: case['expectedPartialAttempts'] = expected_partial
+        cases.append(case)
     cycle=[(0,170),(.15,170),(.3,120),(.45,80),(.6,80),(.75,170),(.9,170)]
     for ex in ['pullUp','dip']:
         add(ex+'-one',ex,cycle,1)
@@ -70,6 +73,31 @@ def prepare(output):
     add('dip-start-elbow-outage-boundary','dip',[(0,140)] +
         [elbow_hole(i / 10) for i in range(1,8)] +
         [(.75,140),(.9,70),(1.05,70),(1.2,140),(1.35,140)],1)
+    # Contradictory actual arm evidence revokes a top witness, independently of
+    # the shoulder/wrist geometry. Missing elbows alone may still sustain one.
+    def dip_frame(t, degrees, side, *, top=False, visible=True):
+        frame = pose(t,170 if top else degrees,exercise='dip')
+        points = [p for p in frame['people'][0]['landmarks'] if p['joint'].startswith(side)]
+        if top:
+            shoulder, elbow, wrist = [p['position'] for p in points]
+            elbow.update(x=wrist['x']+(wrist['y']-shoulder['y'])/(2*math.tan(math.radians(degrees/2))),
+                         y=(shoulder['y']+wrist['y'])/2)
+        if not visible: points[1]['confidence'] = .1
+        frame['people'][0]['landmarks'] = points
+        return frame
+    for side in ('left','right'):
+        for kind, bottom, contradiction in [('cycle',80,140),('partial',110,110)]:
+            for ending in ('witness','contradicted','reacquired'):
+                frames = [dip_frame(t,a,side) for t,a in [(0,170),(.15,170),(.3,bottom),(.45,bottom)]]
+                frames.append(dip_frame(.6,170,side,top=True))
+                if ending != 'witness': frames.append(dip_frame(.65,contradiction,side,top=True))
+                frames.append(dip_frame(.8,170,side,top=True,visible=False))
+                if ending != 'witness': frames.append(dip_frame(.95,170,side,top=True,visible=False))
+                if ending == 'reacquired':
+                    frames += [dip_frame(1.1,170,side,top=True),dip_frame(1.25,170,side,top=True,visible=False)]
+                returned = ending != 'contradicted'
+                add(f'dip-return-{kind}-{side}-{ending}','dip',frames,int(kind=='cycle' and returned),
+                    side=side,expected_partial=int(kind=='partial' and returned))
     output.mkdir(parents=True,exist_ok=True)
     inputs=output/'inputs.json';inputs.write_text(json.dumps(cases,allow_nan=False))
     binary=output/'swift-workout-oracle'

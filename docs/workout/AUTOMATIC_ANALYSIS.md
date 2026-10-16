@@ -129,6 +129,13 @@ are preserved rather than silently reclassified.
   its counting milestone at the upper endpoint; it closes its motion record on
   the observed return. A dip is accepted on the return to top support. The count
   policy, geometry gates and confidence thresholds remain version 8.
+  Dip return witnesses are revoked by a reliable angle that contradicts top
+  support. A later missing elbow cannot restore that witness or complete its
+  dwell; fresh observed extension is required. This applies to both completed
+  cycles and partial returns. An uncontradicted top may still be sustained by
+  the existing shoulder/wrist evidence during an elbow-confidence gap.
+  CI runs these common regressions on the JVM and the host Kotlin Native target,
+  alongside the independent Swift counter oracle and native Apple integration.
 - Preserve an accepted rep even when its full return is unavailable. Missing
   return/peak measurements are null. Partial and interrupted attempts remain
   distinct records; they do not contribute to accepted counts. Analytics use the

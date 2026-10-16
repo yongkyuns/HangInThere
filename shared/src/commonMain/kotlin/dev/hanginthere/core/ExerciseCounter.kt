@@ -406,6 +406,9 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         if (sample.degrees == null && dipTopCandidate != null) {
             dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, sample); return true
         }
+        // Visible flexion contradicts the prior top; a later missing elbow
+        // cannot reuse that witness to complete a new endpoint dwell.
+        dipTopCandidate = null
         return false
     }
     private fun dipReturnFromBottomEvidence(sample: DipSample, bottom: DipSample, cycleAnchor: DipSample): Boolean {
@@ -423,6 +426,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         if (sample.degrees == null && dipTopCandidate != null) {
             dipTopCandidate = mergedDipTopCandidate(dipTopCandidate, sample); return true
         }
+        dipTopCandidate = null
         return false
     }
     private fun dipObservationUnavailable(reason: String, time: Double): Event? {

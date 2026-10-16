@@ -11,6 +11,7 @@ private struct Case: Codable {
     let side: ArmMeasurement.Side
     let referenceEdge: BarSegment?
     let expectedMovements: Int
+    let expectedPartialAttempts: Int?
     let steps: [Step]
 }
 private struct Snapshot: Encodable {
@@ -73,6 +74,10 @@ private struct Benchmark: Encodable {
         let event = counter.finish()
         precondition(counter.observedMovements == input.expectedMovements,
             "Ground truth mismatch: \(input.id) expected \(input.expectedMovements), got \(counter.observedMovements)")
+        if let partials = input.expectedPartialAttempts {
+            precondition(counter.partialAttempts == partials,
+                "Partial label mismatch: \(input.id) expected \(partials), got \(counter.partialAttempts)")
+        }
         return Result(input: input, snapshots: snapshots, final: Snapshot(summary: counter.summary,
             event: event, pullUpProgress: counter.pullUpProgress, dipProgress: counter.dipProgress))
     }

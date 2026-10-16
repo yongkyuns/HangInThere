@@ -374,6 +374,65 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 0)
     }
 
+    // Keep the observed shoulder/wrist fixed while varying the measured elbow.
+    // This isolates arm evidence from the independent support-height gate.
+    private static func dipTopPose(_ time: Double, degrees: Double = 170,
+                                   side: ArmMeasurement.Side, elbowVisible: Bool = true) -> PoseResult {
+        let base = pose(time, exercise: .dip, side: side)
+        let points = base.people[0].landmarks
+        let shoulder = points[0].position
+        let wrist = points[2].position
+        let elbow = Point2D(x: wrist.x + (wrist.y - shoulder.y) / (2 * tan(degrees * .pi / 360)),
+                            y: (shoulder.y + wrist.y) / 2)
+        return PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+                          people: [PoseObservation(landmarks: points.map {
+                              $0.joint == side.joints[1]
+                                  ? Landmark(joint: $0.joint, position: elbow, confidence: elbowVisible ? 1 : 0.1) : $0
+                          })], backend: base.backend, requestRevision: base.requestRevision)
+    }
+
+    private func verifyDipReturnWitness(fullCycle: Bool) {
+        for side in ArmMeasurement.Side.allCases {
+            for contradicted in [false, true] {
+                var c = ExerciseCounter(exercise: .dip, side: side)
+                // 110° departs support but its shoulder travel falls short of
+                // the bottom gate; its later return can only be a partial.
+                feed(&c, [(0,170),(0.15,170),(0.3,fullCycle ? 80 : 110),(0.45,fullCycle ? 80 : 110)])
+                let activePhase: ExerciseCounter.Phase = fullCycle ? .returning : .outbound
+                #expect(c.phase == activePhase)
+                c.consume(Self.dipTopPose(0.6, side: side), referenceEdge: Self.referenceEdge)
+                if contradicted {
+                    c.consume(Self.dipTopPose(0.65, degrees: fullCycle ? 140 : 110, side: side),
+                              referenceEdge: Self.referenceEdge)
+                }
+                c.consume(Self.dipTopPose(0.8, side: side, elbowVisible: false), referenceEdge: Self.referenceEdge)
+                if contradicted {
+                    c.consume(Self.dipTopPose(0.95, side: side, elbowVisible: false), referenceEdge: Self.referenceEdge)
+                    #expect(c.phase == activePhase)
+                    #expect(c.observedMovements == 0)
+                    #expect(c.partialAttempts == 0)
+                    #expect(c.events.isEmpty)
+                    c.consume(Self.dipTopPose(1.1, side: side), referenceEdge: Self.referenceEdge)
+                    #expect(c.observedMovements == 0)
+                    #expect(c.partialAttempts == 0)
+                    c.consume(Self.dipTopPose(1.25, side: side, elbowVisible: false), referenceEdge: Self.referenceEdge)
+                }
+                #expect(c.observedMovements == (fullCycle ? 1 : 0))
+                #expect(c.partialAttempts == (fullCycle ? 0 : 1))
+                #expect(c.interruptedAttempts == 0)
+                #expect(c.lastEvent?.sourceSeconds == (contradicted ? 1.25 : 0.8))
+            }
+        }
+    }
+
+    @Test func contradictedDipReturnCannotReuseTopWitnessAcrossElbowOutage() {
+        verifyDipReturnWitness(fullCycle: true)
+    }
+
+    @Test func contradictedPartialDipReturnNeedsFreshTopWitness() {
+        verifyDipReturnWitness(fullCycle: false)
+    }
+
     @Test func lowConfidenceShoulderCannotAcquireDipStart() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         c.consume(

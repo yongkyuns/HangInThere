@@ -214,6 +214,50 @@ class ExerciseCounterTests {
         CounterFixtures.feed(c, 0.9 to 140.0, 1.05 to 140.0)
         assertEquals(1, c.observedMovements)
     }
+
+    // Vary the observed elbow while preserving independent top geometry.
+    private fun dipTopPose(time: Double, side: ArmMeasurement.Side, degrees: Double = 170.0,
+                           elbowVisible: Boolean = true): PoseResult {
+        val base = CounterFixtures.pose(time, exercise = ExerciseCounter.Exercise.dip, side = side)
+        val points = base.people.single().landmarks
+        val shoulder = points[0].position; val wrist = points[2].position
+        val elbow = Point2D(wrist.x + (wrist.y - shoulder.y) / (2 * tan(degrees * PI / 360)),
+            (shoulder.y + wrist.y) / 2)
+        return base.copy(people = listOf(PoseObservation(points.map {
+            if (it.joint == side.joints[1]) it.copy(position = elbow, confidence = if (elbowVisible) 1.0 else .1) else it
+        })))
+    }
+    private fun verifyDipReturnWitness(fullCycle: Boolean) {
+        for (side in ArmMeasurement.Side.entries) for (contradicted in listOf(false, true)) {
+            val c = dip(side)
+            // 110° starts an attempt without enough shoulder travel for bottom.
+            val bottom = if (fullCycle) 80.0 else 110.0
+            CounterFixtures.feed(c, 0.0 to 170.0, .15 to 170.0, .3 to bottom, .45 to bottom)
+            val activePhase = if (fullCycle) ExerciseCounter.Phase.returning else ExerciseCounter.Phase.outbound
+            assertEquals(activePhase, c.phase)
+            c.consume(dipTopPose(.6, side), CounterFixtures.edge)
+            if (contradicted) c.consume(dipTopPose(.65, side, if (fullCycle) 140.0 else 110.0), CounterFixtures.edge)
+            c.consume(dipTopPose(.8, side, elbowVisible = false), CounterFixtures.edge)
+            if (contradicted) {
+                c.consume(dipTopPose(.95, side, elbowVisible = false), CounterFixtures.edge)
+                assertEquals(activePhase, c.phase)
+                assertEquals(0, c.observedMovements); assertEquals(0, c.partialAttempts); assertTrue(c.events.isEmpty())
+                c.consume(dipTopPose(1.1, side), CounterFixtures.edge)
+                assertEquals(0, c.observedMovements); assertEquals(0, c.partialAttempts)
+                c.consume(dipTopPose(1.25, side, elbowVisible = false), CounterFixtures.edge)
+            }
+            assertEquals(if (fullCycle) 1 else 0, c.observedMovements)
+            assertEquals(if (fullCycle) 0 else 1, c.partialAttempts)
+            assertEquals(0, c.interruptedAttempts)
+            assertEquals(if (contradicted) 1.25 else .8, c.lastEvent?.sourceSeconds)
+        }
+    }
+    @Test fun contradictedDipReturnCannotReuseTopWitnessAcrossElbowOutage() {
+        verifyDipReturnWitness(fullCycle = true)
+    }
+    @Test fun contradictedPartialDipReturnNeedsFreshTopWitness() {
+        verifyDipReturnWitness(fullCycle = false)
+    }
     @Test fun lowConfidenceShoulderCannotAcquireStart() {
         val c = dip()
         for (time in listOf(0.0, 0.15)) c.consume(CounterFixtures.lowJoint(time, 140.0, c.exercise, c.side, 0), CounterFixtures.edge)
