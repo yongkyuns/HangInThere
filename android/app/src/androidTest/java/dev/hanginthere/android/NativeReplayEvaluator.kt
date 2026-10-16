@@ -13,6 +13,7 @@ import dev.hanginthere.android.session.AnalysisPipeline
 import dev.hanginthere.android.session.ReplayOutcome
 import dev.hanginthere.android.vision.PoseEstimator
 import dev.hanginthere.core.*
+import dev.hanginthere.evaluation.PublicReplayProgress
 import kotlinx.serialization.json.*
 import java.io.File
 
@@ -82,7 +83,8 @@ internal class NativeReplayEvaluator(private val app: Context) {
         }
     }
     fun evaluateAutomatic(id: String, output: File, file: File, expectedExercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side, expected: Int,
-                                         expectedFrames: Int, expectedPts: List<Long>): JsonObject {
+                                         expectedFrames: Int, expectedPts: List<Long>,
+                                         afterFrame: ((Boolean, WorkoutRuntime) -> Unit)? = null): JsonObject {
         val times = mutableListOf<Double>(); var acquired = false; var acquisitionSeconds: Double? = null
         var acquisitionReady = false; var acquisitionReadySeconds: Double? = null
         var movements = 0; var selected: ExerciseCounter.Exercise? = null; var firstCountSource: Double? = null
@@ -91,8 +93,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         var countingSourceFrames = 0; var countingSourceEnded = false; var countingPassStarted = false
         var outcome: ReplayOutcome? = null; var endReason: LiveSetSession.EndReason? = null
         var finalSetupIssue: String? = null
-        var events: JsonElement = JsonArray(emptyList())
-        var completedRepSeconds: JsonElement = JsonArray(emptyList())
+        val progress = PublicReplayProgress(expectedFrames, expectedPts)
         var acquisitionFrames = 0; var acquisitionBothArmFrames = 0; var acquisitionReferenceFrames = 0
         var contourSampleFrames = 0; var contourEvidenceFrames = 0; var contourErrorFrames = 0
         val acquisitionExerciseFrames = linkedMapOf<String, Int>()
@@ -119,100 +120,101 @@ internal class NativeReplayEvaluator(private val app: Context) {
         val elapsedStart = System.nanoTime()
         try {
             AnalysisPipeline(app, WorkoutExerciseSelection.automatic, side).use { pipeline ->
-                fun pass(acquire: Boolean): Boolean {
-                    File(output, "$id-production-${if (acquire) "acquisition" else "counting"}.jsonl").bufferedWriter().use { trace ->
-                        VideoFrames(app, Uri.fromFile(file)).use { reader ->
-                            decoderMimeTypes += reader.decoderMimeType
-                            decoderDiagnostics += reader.decoderDiagnostics
-                            var passFrames = 0
-                            while (true) {
-                                // Match the ViewModel: an interrupted set cannot resume counting later pixels.
-                                if (!acquire && pipeline.runtime.snapshot.phase == LiveSetSession.Phase.finished) {
-                                    countingSourceFrames = passFrames
-                                    return false
+                progress.captureOnExit(pipeline.runtime, { countingPassStarted }) {
+                    fun pass(acquire: Boolean): Boolean {
+                        progress.beginPass()
+                        File(output, "$id-production-${if (acquire) "acquisition" else "counting"}.jsonl").bufferedWriter().use { trace ->
+                            VideoFrames(app, Uri.fromFile(file)).use { reader ->
+                                decoderMimeTypes += reader.decoderMimeType
+                                decoderDiagnostics += reader.decoderDiagnostics
+                                var passFrames = 0
+                                while (true) {
+                                    // Match the ViewModel: an interrupted set cannot resume counting later pixels.
+                                    if (!acquire && pipeline.runtime.snapshot.phase == LiveSetSession.Phase.finished) {
+                                        countingSourceFrames = passFrames
+                                        return false
+                                    }
+                                    val started = System.nanoTime()
+                                    val frame = reader.next() ?: break
+                                    frame.use {
+                                        val time = it.presentationTimeUs / 1e6
+                                        progress.checkNext(it.presentationTimeUs)
+                                        val sample = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
+                                        val result = pipeline.process(it.bitmap, it.presentationTimeUs, sample)
+                                        reader.decodedColorEncoding?.let { encoding -> colorEncodings += encoding.description }
+                                        // Include the production UI ownership copy, never merely model inference.
+                                        it.bitmap.copy(Bitmap.Config.ARGB_8888, false).recycle()
+                                        times += (System.nanoTime() - started) / 1e6
+                                        // Diagnostic serialization is intentionally outside the measured native path.
+                                        if (acquire) {
+                                            acquisitionFrames++
+                                            val grip = when (val assessment = AutomaticPullUpBar.assessGrip(result.pose)) {
+                                                is AutomaticPullUpBar.Grip -> "eligible"
+                                                is AutomaticPullUpBar.GripRejection -> assessment.name
+                                            }
+                                            pullUpGripFrames[grip] = (pullUpGripFrames[grip] ?: 0) + 1
+                                            if (PullUpArmMeasurement(result.pose).arms.size == 2) acquisitionBothArmFrames++
+                                            if (result.snapshot.referenceEdge != null) acquisitionReferenceFrames++
+                                            result.apparatus?.let { observation ->
+                                                contourSampleFrames++
+                                                if (observation.candidates.any { it.isNotEmpty() }) contourEvidenceFrames++
+                                                if (observation.errors.any { it != null }) contourErrorFrames++
+                                            }
+                                            result.snapshot.exercise?.name?.let { key ->
+                                                acquisitionExerciseFrames[key] = (acquisitionExerciseFrames[key] ?: 0) + 1
+                                            }
+                                            val issue = result.snapshot.setupIssue ?: "none"
+                                            acquisitionIssueFrames[issue] = (acquisitionIssueFrames[issue] ?: 0) + 1
+                                            val state = result.snapshot.acquisitionState.name
+                                            acquisitionStateFrames[state] = (acquisitionStateFrames[state] ?: 0) + 1
+                                            // Count actual eligible-edge observations once, never cached frame states.
+                                            pipeline.runtime.referenceStabilityDiagnostic?.takeIf {
+                                                it.sourceSeconds == result.pose.timestamp.seconds
+                                            }?.status?.name?.let { key ->
+                                                referenceStabilitySamples[key] = (referenceStabilitySamples[key] ?: 0) + 1
+                                            }
+                                        }
+                                        trace.write(buildJsonObject {
+                                            put("frameIndex", passFrames); put("sourcePtsMicroseconds", it.presentationTimeUs)
+                                            put("pose", Json.encodeToJsonElement(result.pose))
+                                            put("snapshot", Json.encodeToJsonElement(result.snapshot))
+                                            // Preserve the exact observations consumed by Auto so a setup
+                                            // failure can be replayed without reconstructing native pixels.
+                                            put("apparatus", result.apparatus?.let { Json.encodeToJsonElement(it) } ?: JsonNull)
+                                        }.toString()); trace.newLine()
+                                        passFrames++; decodedFrames++
+                                        if (result.pose.people.size == 1) peopleFrames++ else if (result.pose.people.size > 1) multiplePeopleFrames++
+                                        selected = result.snapshot.exercise
+                                        finalSetupIssue = result.snapshot.setupIssue
+                                        if (result.snapshot.referenceEdge != null) { acquired = true; if (acquisitionSeconds == null) acquisitionSeconds = time }
+                                        if (acquire && pipeline.runtime.isReplayAcquisitionReady) {
+                                            acquisitionReady = true; acquisitionReadySeconds = time
+                                        }
+                                        movements = result.snapshot.observedMovements
+                                        if (!acquire && result.snapshot.phase == LiveSetSession.Phase.running && firstCountSource == null) firstCountSource = time
+                                        val memory = Debug.MemoryInfo(); Debug.getMemoryInfo(memory); peakPss = maxOf(peakPss, memory.totalPss)
+                                        peakNative = maxOf(peakNative, Debug.getNativeHeapAllocatedSize())
+                                        val heap = Runtime.getRuntime(); peakJava = maxOf(peakJava, heap.totalMemory() - heap.freeMemory())
+                                        progress.observe(it.presentationTimeUs)
+                                        afterFrame?.invoke(acquire, pipeline.runtime)
+                                    }
+                                    if (acquire && acquisitionReady) break
                                 }
-                                val started = System.nanoTime()
-                                val frame = reader.next() ?: break
-                                frame.use {
-                                    val time = it.presentationTimeUs / 1e6
-                                    check(passFrames < expectedPts.size && it.presentationTimeUs == expectedPts[passFrames]) {
-                                        "Production source PTS mismatch at $passFrames: ${it.presentationTimeUs}"
-                                    }
-                                    val sample = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
-                                    val result = pipeline.process(it.bitmap, it.presentationTimeUs, sample)
-                                    reader.decodedColorEncoding?.let { encoding -> colorEncodings += encoding.description }
-                                    // Include the production UI ownership copy, never merely model inference.
-                                    it.bitmap.copy(Bitmap.Config.ARGB_8888, false).recycle()
-                                    times += (System.nanoTime() - started) / 1e6
-                                    // Diagnostic serialization is intentionally outside the measured native path.
-                                    if (acquire) {
-                                        acquisitionFrames++
-                                        val grip = when (val assessment = AutomaticPullUpBar.assessGrip(result.pose)) {
-                                            is AutomaticPullUpBar.Grip -> "eligible"
-                                            is AutomaticPullUpBar.GripRejection -> assessment.name
-                                        }
-                                        pullUpGripFrames[grip] = (pullUpGripFrames[grip] ?: 0) + 1
-                                        if (PullUpArmMeasurement(result.pose).arms.size == 2) acquisitionBothArmFrames++
-                                        if (result.snapshot.referenceEdge != null) acquisitionReferenceFrames++
-                                        result.apparatus?.let { observation ->
-                                            contourSampleFrames++
-                                            if (observation.candidates.any { it.isNotEmpty() }) contourEvidenceFrames++
-                                            if (observation.errors.any { it != null }) contourErrorFrames++
-                                        }
-                                        result.snapshot.exercise?.name?.let { key ->
-                                            acquisitionExerciseFrames[key] = (acquisitionExerciseFrames[key] ?: 0) + 1
-                                        }
-                                        val issue = result.snapshot.setupIssue ?: "none"
-                                        acquisitionIssueFrames[issue] = (acquisitionIssueFrames[issue] ?: 0) + 1
-                                        val state = result.snapshot.acquisitionState.name
-                                        acquisitionStateFrames[state] = (acquisitionStateFrames[state] ?: 0) + 1
-                                        // Count actual eligible-edge observations once, never cached frame states.
-                                        pipeline.runtime.referenceStabilityDiagnostic?.takeIf {
-                                            it.sourceSeconds == result.pose.timestamp.seconds
-                                        }?.status?.name?.let { key ->
-                                            referenceStabilitySamples[key] = (referenceStabilitySamples[key] ?: 0) + 1
-                                        }
-                                    }
-                                    trace.write(buildJsonObject {
-                                        put("frameIndex", passFrames); put("sourcePtsMicroseconds", it.presentationTimeUs)
-                                        put("pose", Json.encodeToJsonElement(result.pose))
-                                        put("snapshot", Json.encodeToJsonElement(result.snapshot))
-                                        // Preserve the exact observations consumed by Auto so a setup
-                                        // failure can be replayed without reconstructing native pixels.
-                                        put("apparatus", result.apparatus?.let { Json.encodeToJsonElement(it) } ?: JsonNull)
-                                    }.toString()); trace.newLine()
-                                    passFrames++; decodedFrames++
-                                    if (result.pose.people.size == 1) peopleFrames++ else if (result.pose.people.size > 1) multiplePeopleFrames++
-                                    selected = result.snapshot.exercise
-                                    finalSetupIssue = result.snapshot.setupIssue
-                                    if (result.snapshot.referenceEdge != null) { acquired = true; if (acquisitionSeconds == null) acquisitionSeconds = time }
-                                    if (acquire && pipeline.runtime.isReplayAcquisitionReady) {
-                                        acquisitionReady = true; acquisitionReadySeconds = time
-                                    }
-                                    movements = result.snapshot.observedMovements
-                                    if (!acquire && result.snapshot.phase == LiveSetSession.Phase.running && firstCountSource == null) firstCountSource = time
-                                    val memory = Debug.MemoryInfo(); Debug.getMemoryInfo(memory); peakPss = maxOf(peakPss, memory.totalPss)
-                                    peakNative = maxOf(peakNative, Debug.getNativeHeapAllocatedSize())
-                                    val heap = Runtime.getRuntime(); peakJava = maxOf(peakJava, heap.totalMemory() - heap.freeMemory())
-                                }
-                                if (acquire && acquisitionReady) break
+                                if (!(acquire && acquisitionReady)) progress.finishPass()
+                                if (!acquire) countingSourceFrames = passFrames
+                                return !(acquire && acquisitionReady)
                             }
-                            check((acquire && acquisitionReady) || passFrames == expectedFrames) { "Production decoded $passFrames/$expectedFrames source frames" }
-                            if (!acquire) countingSourceFrames = passFrames
-                            return !(acquire && acquisitionReady)
                         }
                     }
+                    pass(true)
+                    if (acquisitionReady && pipeline.rewindReplay()) { countingPassStarted = true; countingSourceEnded = pass(false) }
+                    endReason = pipeline.runtime.session.endReason
+                    finalSetupIssue = pipeline.runtime.snapshot.setupIssue
+                    outcome = ReplayOutcome.atEnd(pipeline.runtime.session.analyzedFrames, acquired, !countingPassStarted || countingSourceEnded,
+                        pipeline.runtime.snapshot.setupIssue, endReason)
+                    pipeline.runtime.stop()
+                    movements = pipeline.runtime.snapshot.observedMovements
                 }
-                pass(true)
-                if (acquisitionReady && pipeline.rewindReplay()) { countingPassStarted = true; countingSourceEnded = pass(false) }
-                endReason = pipeline.runtime.session.endReason
-                finalSetupIssue = pipeline.runtime.snapshot.setupIssue
-                outcome = ReplayOutcome.atEnd(pipeline.runtime.session.analyzedFrames, acquired, !countingPassStarted || countingSourceEnded,
-                    pipeline.runtime.snapshot.setupIssue, endReason)
-                pipeline.runtime.stop()
-                movements = pipeline.runtime.snapshot.observedMovements
-                events = Json.encodeToJsonElement(pipeline.runtime.session.counter.events)
-                completedRepSeconds = Json.encodeToJsonElement(pipeline.runtime.session.record.completedReps.map { requireNotNull(it.returnedAt) })
             }
             return buildJsonObject {
                 put("acquiredActualContours", acquired); put("acquisitionSourceSeconds", acquisitionSeconds?.let(::JsonPrimitive) ?: JsonNull)
@@ -226,8 +228,9 @@ internal class NativeReplayEvaluator(private val app: Context) {
                 put("setupIssue", finalSetupIssue?.let(::JsonPrimitive) ?: JsonNull)
                 put("endReason", endReason?.name?.let(::JsonPrimitive) ?: JsonNull)
                 put("countingPassStarted", countingPassStarted); put("countingSourceEnded", countingSourceEnded)
-                put("countingSourceFrames", countingSourceFrames); put("events", events)
-                put("completedRepSeconds", completedRepSeconds)
+                put("countingSourceFrames", countingSourceFrames); put("events", Json.encodeToJsonElement(progress.events))
+                put("completedRepSeconds", Json.encodeToJsonElement(progress.completedRepSeconds))
+                put("publicProgress", progress.snapshot(outcome?.kind?.name))
                 put("acquisitionEvidence", acquisitionEvidence())
                 put("decodedFrames", decodedFrames); put("singlePersonFrames", peopleFrames); put("multiplePersonFrames", multiplePeopleFrames)
                 put("pipelineWithDisplayCopyLatencyMillis", NativeEvaluationMetrics.latency(times)); put("elapsedSeconds", (System.nanoTime() - elapsedStart) / 1e9)
@@ -246,6 +249,14 @@ internal class NativeReplayEvaluator(private val app: Context) {
             }
             return buildJsonObject {
             put("functionalParity", false); put("acquiredActualContours", acquired)
+            val partial = progress.snapshot(null)
+            put("publicProgress", partial)
+            put("replayOutcome", ReplayOutcome.Kind.analysisFailed.name)
+            put("selectedExercise", selected?.name?.let(::JsonPrimitive) ?: JsonNull)
+            put("countingPassStarted", countingPassStarted); put("countingSourceEnded", false)
+            put("countingSourceFrames", if (countingPassStarted) partial.getValue("frames").jsonPrimitive.int else 0)
+            put("events", Json.encodeToJsonElement(progress.events)); put("completedRepSeconds", Json.encodeToJsonElement(progress.completedRepSeconds))
+            put("observedMovements", movements); put("decodedFrames", decodedFrames)
             put("acquisitionEvidence", acquisitionEvidence())
             put("decoderMimeTypes", JsonArray(decoderMimeTypes.map(::JsonPrimitive)))
             put("decoderDiagnostics", Json.encodeToJsonElement(decoderDiagnostics.toList()))

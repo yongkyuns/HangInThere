@@ -113,8 +113,9 @@ EOF and event clocks before preserving a combined report. Individual native
 report hashes remain attached. A missing, duplicate, changed or misassigned shard
 cannot claim full-corpus success. Failed cases remain failed.
 
-Apple reports with `progress_evidence_version=1` retain a verified source prefix
-when inference or an operational watchdog interrupts replay. Each row binds its
+Apple and Android reports with `progress_evidence_version=1` retain a verified source prefix
+after caught inference/replay failures (including Apple's operational watchdog).
+Each row binds its
 observed frame count and last source PTS; events after that endpoint are rejected.
 The snapshot reads the production counter and existing shared completed-cycle
 eligibility before controller cleanup. An active review can contribute already
@@ -129,6 +130,23 @@ no claim of this additional observed-prefix validation. Native Mac CI exercises
 the collector on actual decoded synthetic frames and the shipping analytics,
 including late inference failures and active-review snapshots; Python contracts
 cover endpoint bounds, versioning, shard preservation and failed CLI exits.
+
+Android additionally checks each decoded microsecond PTS before native processing,
+records it only after the frame completes, and resets the prefix on counting-pass
+rewind. A late exception snapshots the shared runtime before pipeline cleanup;
+acquisition events cannot enter counting totals. Early EOF or a mismatched/extra
+PTS invalidates evidence rather than disguising a source failure as interruption.
+The evaluation-only Kotlin collector and its tests are compiled into the JVM and
+Android instrumentation test targets, never into either shipping core or app.
+API29/API35 CI also injects failures into real decoder/model replay before setup
+and immediately after the required positive clip's acceptance. Native execution
+and actual corpus accuracy remain separate gates.
+That positive clip has no shared-eligible returned cycle. A separate authored
+shared-runtime test uses the same capture wrapper, throws before/after return,
+resets the runtime and verifies the captured return remains intact. Shared CI
+also feeds its actual Kotlin scalar rows through the Python scorer. This checks
+the wire contract without presenting authored motion as native accuracy evidence.
+Forced process termination cannot manufacture a finished report.
 
 The initial hosted Apple attempt completed 31 clips before the 45-minute job
 limit stopped it; it has no complete native report or qualified full-batch score.

@@ -6,6 +6,7 @@ import dev.hanginthere.core.ArmMeasurement
 import dev.hanginthere.core.AutomaticReferenceStability
 import dev.hanginthere.core.AutomaticPullUpBar
 import dev.hanginthere.core.ExerciseCounter
+import dev.hanginthere.evaluation.PublicReplayProgress
 import kotlinx.serialization.json.*
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
@@ -53,9 +54,9 @@ class PublicWorkoutDatasetEvaluationTest {
                 val result = evaluator.evaluateAutomatic(id, output, file, ExerciseCounter.Exercise.pullUp,
                     ArmMeasurement.Side.left, expected, frames, pts)
                 check(hash(file.readBytes()) == media.getValue("sha256").jsonPrimitive.content)
-                val outcome = result["replayOutcome"]?.jsonPrimitive?.contentOrNull
-                val complete = outcome == "complete" && result["countingSourceEnded"]?.jsonPrimitive?.boolean == true
-                val status = if (complete) "processed" else if (outcome == "setupUnavailable") "setupUnavailable" else if (outcome == "interrupted") "interrupted" else "failed"
+                val progress = result.getValue("publicProgress").jsonObject
+                val status = progress.getValue("status").jsonPrimitive.content
+                val complete = status == "processed"
                 if (complete || status == "setupUnavailable") {
                     val evidence = result.getValue("acquisitionEvidence").jsonObject
                     val acquisitionFrames = evidence.getValue("frames").jsonPrimitive.int
@@ -83,17 +84,10 @@ class PublicWorkoutDatasetEvaluationTest {
                     }
                     check(evidence.getValue("resolvedExerciseFrames").jsonObject.values.sumOf { it.jsonPrimitive.int } in 0..acquisitionFrames)
                 }
-                val measured = complete || status == "interrupted"
-                val accepted = if (measured) result.getValue("events").jsonArray.filter {
-                    it.jsonObject.getValue("outcome").jsonPrimitive.content == "movement"
-                }.map { it.jsonObject.getValue("sourceSeconds") } else emptyList()
                 reports += buildJsonObject {
-                    put("id", id); put("sha256", media.getValue("sha256")); put("status", status)
-                    put("frames", if (complete || status == "setupUnavailable") frames else result["countingSourceFrames"]?.jsonPrimitive?.intOrNull ?: 0)
-                    put("source_clock_verified", complete || status == "setupUnavailable")
+                    put("id", id); put("sha256", media.getValue("sha256"))
+                    progress.forEach { (key, value) -> put(key, value) }
                     put("selected_exercise", result["selectedExercise"] ?: JsonNull)
-                    put("acceptance_seconds", JsonArray(accepted))
-                    put("completed_seconds", if (measured) result.getValue("completedRepSeconds") else JsonArray(emptyList()))
                     put("has_native_error", "error" in result)
                     put("native", result.filterKeys { it in setOf("replayOutcome", "setupIssue", "countingSourceFrames", "decodedFrames", "singlePersonFrames", "multiplePersonFrames", "elapsedSeconds", "pipelineWithDisplayCopyLatencyMillis", "acquisitionEvidence") }.let(::JsonObject))
                 }
@@ -101,9 +95,9 @@ class PublicWorkoutDatasetEvaluationTest {
                 // Preserve the failed case and continue. Raw error descriptions
                 // can include partial serialized poses, so keep only its type.
                 reports += buildJsonObject {
-                    put("id", id); put("sha256", media.getValue("sha256")); put("status", "failed")
-                    put("frames", 0); put("source_clock_verified", false); put("selected_exercise", JsonNull)
-                    put("acceptance_seconds", JsonArray(emptyList())); put("completed_seconds", JsonArray(emptyList()))
+                    put("id", id); put("sha256", media.getValue("sha256"))
+                    PublicReplayProgress.failed().forEach { (key, value) -> put(key, value) }
+                    put("selected_exercise", JsonNull)
                     put("failure_type", failure.javaClass.simpleName)
                 }
             } finally { file.delete() }
@@ -113,6 +107,7 @@ class PublicWorkoutDatasetEvaluationTest {
             put("run_id", runId)
             put("platform", "android_emulator"); put("backend", "production MediaPipe CPU/OpenCV native video replay")
             put("counter_policy_version", ExerciseCounter.policyVersion)
+            put("progress_evidence_version", 1)
             put("exercise_selection", "production automatic exercise acquisition"); put("cases", JsonArray(reports))
         }.toString()
         Files.newBufferedWriter(File(output, "report.json").toPath(), Charsets.UTF_8,

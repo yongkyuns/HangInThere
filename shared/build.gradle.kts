@@ -17,7 +17,13 @@ kotlin {
     sourceSets {
         commonMain.dependencies { implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0") }
         commonTest.dependencies { implementation(kotlin("test")) }
+        // Evaluation contracts compile into tests only, never the shipping framework.
+        getByName("jvmTest").kotlin.srcDirs("../Evaluation/android", "../Evaluation/androidTests")
     }
+}
+tasks.named<org.gradle.api.tasks.testing.Test>("jvmTest") {
+    // Missing evidence must rerun the exporting test even with cached test outputs.
+    providers.environmentVariable("PUBLIC_REPLAY_PROGRESS_REPORT").orNull?.let { outputs.file(it) }
 }
 if (!appleOnly) extensions.configure<com.android.build.gradle.LibraryExtension> {
     namespace = "dev.hanginthere.core"

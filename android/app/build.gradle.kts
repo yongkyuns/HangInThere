@@ -26,6 +26,7 @@ android {
         externalNativeBuild { cmake { arguments += "-DANDROID_STL=c++_shared" } }
     }
     sourceSets["main"].assets.srcDir("../../models/grip")
+    sourceSets["androidTest"].java.srcDirs("../../Evaluation/android", "../../Evaluation/androidTests")
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging {

@@ -31,7 +31,10 @@ jobs:
           WORKOUT_ORACLE: ${{ github.workspace }}/build/workout-oracle/oracle.json
           WORKOUT_PARITY_REPORT: ${{ github.workspace }}/build/workout-oracle/kotlin-parity.json
           SETUP_ORACLE: ${{ github.workspace }}/build/setup-oracle/oracle.json
+          PUBLIC_REPLAY_PROGRESS_REPORT: ${{ github.workspace }}/build/replay-progress-kotlin.json
         run: ./gradlew -Pworkout.appleOnly=true :shared:jvmTest --console=plain
+      - name: Check actual Kotlin interrupted evidence through Python scoring
+        run: python3 scripts/check-replay-progress-contract.py build/replay-progress-kotlin.json
       - name: Check common counting performance budget
         run: python3 scripts/check-android-evaluation.py --core build/workout-oracle/kotlin-parity.json
       - name: Shipping Kotlin to Swift bridge and host performance budget
@@ -44,6 +47,7 @@ jobs:
           name: workout-analysis-contracts
           path: |
             build/workout-analysis/apple-bridge-check.json
+            build/replay-progress-kotlin.json
             build/workout-analysis/native-benchmark-session.json
             build/workout-analysis/native-authored-records.json
             build/workout-analysis/render/*.png
