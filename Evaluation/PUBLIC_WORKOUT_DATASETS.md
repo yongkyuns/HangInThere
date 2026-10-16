@@ -148,6 +148,18 @@ also feeds its actual Kotlin scalar rows through the Python scorer. This checks
 the wire contract without presenting authored motion as native accuracy evidence.
 Forced process termination cannot manufacture a finished report.
 
+At source `6857c48`, hosted API29 and API35 each execute and pass all eleven
+new progress regressions: nine shared collector tests and two injected-failure
+tests through the actual decoder/model pipeline. Each native suite passes 59
+cases with three optional skips; none of the new tests skips. The hosted Kotlin
+rows also pass the Python contract. A fresh production Swift build reproduces
+all six native-observation comparisons across 896 source frames, matching the
+hosted reports exactly. The [CI validation record](results/public-workout-progress-ci-6857c48.validation.json)
+binds the tree-equivalent CI checkout, artifact digests and test outcomes.
+This closes the earlier native-execution pending note; it does not rerun the
+33-video corpus. Original cropped-pull-up/dip accuracy and Apple simulator
+failures remain open, along with independent accuracy and physical-device gates.
+
 The initial hosted Apple attempt completed 31 clips before the 45-minute job
 limit stopped it; it has no complete native report or qualified full-batch score.
 Hosted VM inference was substantially slower than the local Mac. Sharding bounds

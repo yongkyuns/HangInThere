@@ -28,6 +28,17 @@ do not qualify simulator inference or repair production replay latency.
 
 ## Runtime evidence
 
+[CI at `6857c48`](https://github.com/yongkyuns/HangInThere/actions/runs/38829240479)
+passes all 317 native Mac tests: 306 Swift Testing cases and 11 XCTest cases.
+Simulator mechanics passes 13 XCTest cases and 299 of 300 Swift Testing
+methods, including the new interrupted-progress regression. Its single failed
+method retains the eight original pinned H264 color assertions. All eight
+simulator Vision methods still fail; logs retain Code 9 and the missing model
+weights. The [source-bound CI record](../Evaluation/results/public-workout-progress-ci-6857c48.validation.json)
+verifies that the actual CI merge checkout has the same entire Git tree as this
+source. These results preserve the existing failures and do not qualify a repair
+for intermittent replay latency.
+
 [CI after the fixture repair at `2bf303c`](https://github.com/yongkyuns/HangInThere/actions/runs/38161936276)
 passes all 282 Mac tests and the unsigned Release iPhone build. Simulator
 mechanics passes 281/282 methods; its only failure is the original eight H264
