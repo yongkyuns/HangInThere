@@ -15,6 +15,14 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 READER = 'ios/HangInThere/Capture/VideoReplayReader.swift'
 RUNNERS = ('scripts/test-ios.sh', 'scripts/profile-replay.py')
+BUILD_INPUTS = (
+    'scripts/build-workout-core.sh', 'scripts/prepare-grip-sdk.sh',
+    'gradlew', 'gradle.properties', 'build.gradle.kts', 'settings.gradle.kts',
+    'gradle/wrapper/gradle-wrapper.jar', 'gradle/wrapper/gradle-wrapper.properties',
+    'shared/build.gradle.kts',
+    'models/grip/hand_landmarker.task', 'models/grip/pose_landmarker_lite.task',
+)
+SOURCE_TREES = ('ios', 'shared/src/commonMain')
 CONTEXT = b'CIContext(options: [.cacheIntermediates: false])'
 SOFTWARE = b'CIContext(options: [.cacheIntermediates: false, .useSoftwareRenderer: true])'
 spec = importlib.util.spec_from_file_location('native_tools', ROOT / 'scripts/diagnose-apple-decoder.py')
@@ -23,14 +31,15 @@ spec.loader.exec_module(native)
 
 
 def snapshot(root, destination, renderer):
-    """Copy only committed iOS sources/resources and the two test runners."""
+    """Copy committed native sources and their explicit production build inputs."""
     if renderer not in ('automatic', 'software'):
         raise ValueError('Unknown renderer')
     commit = native.run(['git', '-C', str(root), 'rev-parse', 'HEAD']).stdout.strip()
     # Git, not filesystem recursion, supplies the allow-list. Untracked files,
     # ignored build outputs and Data/local never enter the variant checkout.
     tree = subprocess.run(['git', '-C', str(root), 'ls-tree', '-r', '-z', commit,
-                           '--', 'ios', *RUNNERS], capture_output=True, check=True, timeout=30)
+                           '--', *SOURCE_TREES, *RUNNERS, *BUILD_INPUTS],
+                          capture_output=True, check=True, timeout=30)
     original = {}
     for record in tree.stdout.split(b'\0'):
         if not record:
@@ -39,7 +48,8 @@ def snapshot(root, destination, renderer):
         mode, kind, _oid = attributes.split()
         path = name.decode('utf-8')
         if (mode not in (b'100644', b'100755') or kind != b'blob'
-                or not (path.startswith('ios/') or path in RUNNERS)
+                or not (any(path.startswith(tree + '/') for tree in SOURCE_TREES)
+                        or path in RUNNERS or path in BUILD_INPUTS)
                 or '..' in Path(path).parts):
             raise ValueError(f'Unsupported snapshot entry: {path}')
         data = subprocess.run(['git', '-C', str(root), 'show', f'{commit}:{path}'],
@@ -49,8 +59,11 @@ def snapshot(root, destination, renderer):
         output.write_bytes(data)
         output.chmod(0o755 if mode == b'100755' else 0o644)
         original[path] = hashlib.sha256(data).hexdigest()
-    if READER not in original or any(path not in original for path in RUNNERS):
-        raise ValueError('Committed snapshot lacks the native reader or test runners')
+    missing = sorted(set((READER, *RUNNERS, *BUILD_INPUTS)) - original.keys())
+    if missing:
+        raise ValueError(f'Committed snapshot lacks required build inputs: {missing}')
+    if not any(path.startswith('shared/src/commonMain/') and path.endswith('.kt') for path in original):
+        raise ValueError('Committed snapshot lacks shared production Kotlin sources')
     reader = destination / READER
     baseline = reader.read_bytes()
     if baseline.count(CONTEXT) != 1:
@@ -150,7 +163,8 @@ def main():
         checkout = Path(work)
         try:
             provenance = snapshot(ROOT, checkout, args.renderer)
-            provenance['scope'] = 'Source-copy rendering experiment; no inference/decoder substitution or latency repair qualification'
+            provenance['scope'] = ('Source-copy Core Image option experiment; eligible frames use the unchanged '
+                                   'bitmap renderer in both variants. No renderer execution or latency repair qualification')
             (directory / 'source.json').write_text(json.dumps(provenance, indent=2) + '\n')
             verify_snapshot(checkout, provenance['variant_sha256'])
             if args.prepare_only:

@@ -2,6 +2,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -24,17 +25,23 @@ class SnapshotContracts(unittest.TestCase):
         self.copy = Path(self.work.name) / 'copy'
         self.copy.mkdir()
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True, timeout=10)
-        for path, data in {
+        inputs = {path: b'committed build input\n' for path in probe.BUILD_INPUTS}
+        inputs.update({
             probe.READER: b'let context = ' + probe.CONTEXT + b'\n',
             probe.RUNNERS[0]: b'#!/bin/bash\nexit 65\n',
             probe.RUNNERS[1]: b'# profile helper\n',
             'ios/HangInThereTests/Fixtures/decoder/example.bin': b'\x00\xff\x02',
+            'shared/src/commonMain/kotlin/example.kt': b'// production source\n',
+            'shared/build/private-output': b'never copy',
+            'gradle/credentials.properties': b'never copy',
             'Data/local/private-example': b'never copy',
-        }.items():
+        })
+        for path, data in inputs.items():
             output = self.root / path
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_bytes(data)
         (self.root / probe.RUNNERS[0]).chmod(0o755)
+        (self.root / 'gradlew').chmod(0o755)
         self.commit()
 
     def commit(self):
@@ -51,10 +58,46 @@ class SnapshotContracts(unittest.TestCase):
         self.assertEqual(report['baseline_sha256'], report['variant_sha256'])
         self.assertEqual((self.copy / probe.READER).read_bytes(), b'let context = ' + probe.CONTEXT + b'\n')
         self.assertFalse((self.copy / 'Data').exists())
+        self.assertFalse((self.copy / 'shared/build').exists())
+        self.assertFalse((self.copy / 'gradle/credentials.properties').exists())
         self.assertFalse((self.copy / 'ios/ignored-example').exists())
         self.assertEqual((self.copy / 'ios/HangInThereTests/Fixtures/decoder/example.bin').read_bytes(), b'\x00\xff\x02')
         self.assertTrue((self.copy / probe.RUNNERS[0]).stat().st_mode & 0o100)
         probe.verify_snapshot(self.copy, report['variant_sha256'])
+
+    def test_missing_build_input_or_shared_source_fails_before_native_execution(self):
+        for path in ('scripts/build-workout-core.sh', 'shared/src/commonMain/kotlin/example.kt'):
+            with self.subTest(path=path):
+                original = (self.root / path).read_bytes()
+                (self.root / path).unlink()
+                self.commit()
+                with self.assertRaisesRegex(ValueError, 'Committed snapshot lacks'):
+                    probe.snapshot(self.root, self.copy, 'automatic')
+                (self.root / path).write_bytes(original)
+                self.commit()
+
+    def test_production_project_build_inputs_are_in_committed_snapshot(self):
+        # Inspect the actual Xcode project, independently of the driver's list.
+        # Stub runners alone cannot detect missing production build phases.
+        with tempfile.TemporaryDirectory() as work:
+            checkout = Path(work)
+            report = probe.snapshot(ROOT, checkout, 'automatic')
+            project = (checkout / 'ios/HangInThere.xcodeproj/project.pbxproj').read_text()
+            helpers = set(re.findall(r'scripts/[\w-]+\.sh', project))
+            models = set(re.findall(r'\.\./(models/[\w/.-]+\.task)', project))
+            self.assertTrue(helpers)
+            self.assertTrue(models)
+            required = helpers | models | {
+                'gradlew', 'gradle.properties', 'build.gradle.kts', 'settings.gradle.kts',
+                'gradle/wrapper/gradle-wrapper.jar', 'gradle/wrapper/gradle-wrapper.properties',
+                'shared/build.gradle.kts',
+            }
+            self.assertFalse(required - report['variant_sha256'].keys())
+            self.assertTrue(list((checkout / 'shared/src/commonMain').rglob('*.kt')))
+            self.assertTrue((checkout / 'gradlew').stat().st_mode & 0o100)
+            self.assertFalse((checkout / 'Data').exists())
+            self.assertFalse((checkout / 'android').exists())
+            probe.verify_snapshot(checkout, report['variant_sha256'])
 
     def test_software_changes_exactly_one_context_option_and_leaves_root_untouched(self):
         before = (self.root / probe.READER).read_bytes()

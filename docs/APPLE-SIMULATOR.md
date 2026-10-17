@@ -177,7 +177,9 @@ color failures and replay deadlines stay active. Native failures propagate to
 the job, even when the other variant succeeds. Sampling is disabled in both
 trials. Apple documents that [`useSoftwareRenderer`](https://developer.apple.com/documentation/coreimage/cicontextoption/usesoftwarerenderer)
 has no effect on platforms without OpenCL. The trial records the requested
-option; it does not verify which renderer actually executes. Separate hosted
+option; it does not verify which renderer actually executes. Eligible frames
+use the production bitmap renderer in both variants, so the option comparison
+only concerns frames that reach the Core Image fallback. Separate hosted
 runs can expose associated failures but their timings alone do not establish
 a cause or device performance parity.
 
@@ -206,7 +208,10 @@ CI suites. The original Vision checks and replay deadlines are unchanged.
 Run `python3 scripts/diagnose-replay-render.py --renderer automatic` or
 `--renderer software` for the isolated full-mechanics trial. `--prepare-only`
 verifies the committed source copy without claiming native execution. The
-driver copies only Git-tracked iOS files and test runners, preserves results,
+driver copies only Git-tracked iOS files, shared production Kotlin sources,
+bundled grip models and explicitly allowed Gradle/build helpers. Java 17 is
+required; the optional CI job installs it just as the required native jobs do.
+Missing build inputs fail before native execution. The driver preserves results
 and cleans up its own simulator on completion, failure or cancellation.
 
 For the direct decoder comparison, see the
