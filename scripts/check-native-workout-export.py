@@ -14,6 +14,11 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('session', type=Path)
 args = parser.parse_args()
 row = json.loads(args.session.read_text())
+records = json.loads(args.session.with_name('native-authored-records.json').read_text())
+versions = {(rep['countPolicyVersion'], record['activity']['metricVersion'], rep['metricVersion'])
+            for record in records for rep in record['reps']}
+assert versions == {(8, 3, 2)}, 'Native metric versions must match the evaluated engine'
+counter_version, activity_version, rep_version = next(iter(versions))
 assert row['id'] == 'native_authored' and row['capture_sha256'] == 'a' * 64
 assert row['span_seconds'] == [0, 4] and row['status'] == 'processed'
 assert row['observed_intervals'] == [[0, .75], [2, 2.75]]
@@ -39,7 +44,8 @@ row = json.loads(args.session.read_text())
 lock = freeze(labels)
 predictions = dict(schema_version=1, timebase='source_pts_seconds', completed_cycle_definition='start_extreme_return',
     benchmark_sha256=lock['benchmark_sha256'], run=dict(id='native_authored_contract', platform='ios', backend='authored',
-        source_revision='a'*40, counter_policy_version=8, activity_metric_version=2, rep_metric_version=1, capture_mode='automatic'), sessions=[row])
+        source_revision='a'*40, counter_policy_version=counter_version, activity_metric_version=activity_version,
+        rep_metric_version=rep_version, capture_mode='automatic'), sessions=[row])
 result = score(lock, predictions)
 assert result['summary']['completed_cycles']['true_positives'] == 2
 assert result['summary']['completed_cycles']['false_positives'] == 0

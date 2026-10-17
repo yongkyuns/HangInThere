@@ -93,7 +93,7 @@ Loss and recovery contracts cover both exercises in common tests, the independen
 Swift setup oracle and the shipping Apple bridge. Counting thresholds are unchanged;
 these guards cannot restore an obscured arm or compensate for camera zoom.
 
-Phase direction uses shared source-time stabilization (activity metric version 2).
+Phase direction uses shared source-time stabilization (activity metric version 3).
 A bounded 64-sample, 0.24-second window fits the observed piecewise-linear elbow
 trajectory with time weighting, so redundant samples do not change a linear
 motion's rate. Motion/hold thresholds have hysteresis, and reversals require
@@ -105,13 +105,36 @@ Brief observed stationary intervals can establish holds without waiting for an
 older moving window to decay. Changing visible arms, unusable input, release,
 timestamp faults and source gaps reset this evidence.
 
+Version 3 keeps an observed bilateral endpoint separate from direction-filter
+restarts. Losing/reacquiring an arm midway through a return cannot turn the new
+angle into a top/bottom hold. A known endpoint can be reacquired with both arms;
+an endpoint hidden before bilateral observation remains unknown for that cycle.
+
+Rep metric version 2 publishes joint peak and outbound/return split timings only
+for a continuously comparable bilateral trajectory. A missing arm can make the
+lowest remaining paired sample occur during the return; that sample must not be
+reported as the cycle peak. Such records keep measured counts, completed-return
+evidence, available per-arm angles and coverage, but their joint peak/split timings
+stay null. Existing metric versions remain immutable and separate comparison keys.
+
 These are descriptive engineering defaults pending annotated phase validation.
 Transitions can lag while evidence accumulates; the timeline is not backdated
-across that delay. Raw angles, peak/return timing, policy-v8 counter inputs and
+across that delay. Raw angles, policy-v8 counter inputs and
 completed-cycle eligibility are unchanged. Hang/top-support credit still uses
 the existing bilateral endpoint checks on fresh source intervals, independently
 of the direction fit. Saved activity version 1 remains readable; its measurements
 are preserved rather than silently reclassified.
+
+After automatic identity qualifies, shared `WorkoutSetupRecovery` can retain the
+observed setup through one-arm loss for at most 0.35 source seconds from the last
+bilateral pose. The current arm must still match the exercise, its prior wrist
+within 2% of the image short side, and shoulder within 8%. Missing frames cannot
+renew this deadline. Crowds, no person, changed resolution, contradictory geometry,
+invalid/reversed/duplicate clocks, expiry and independently detected camera motion
+invalidate recovery. Both apps reset readiness during the dropout and require
+fresh bilateral evidence before starting. No missing frame earns identity dwell,
+apparatus observations, practice time or a rep. Android calls the common policy;
+iOS uses its source-tick/raw-joint bridge rather than a second recovery algorithm.
 
 - Start observing after actual apparatus, exercise identity, camera motion and
   scene checks qualify. The new readiness gate uses 0.12 seconds of consecutive

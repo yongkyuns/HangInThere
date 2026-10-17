@@ -213,7 +213,7 @@ class WorkoutLibraryTests {
     }
     @Test fun profilesPreserveCountAndPhaseVersions() {
         assertEquals(2, WorkoutExerciseProfiles.all.size)
-        assertTrue(WorkoutExerciseProfiles.all.all { it.countPolicyVersion == ExerciseCounter.policyVersion && it.phaseMetricVersion == 2 })
+        assertTrue(WorkoutExerciseProfiles.all.all { it.countPolicyVersion == ExerciseCounter.policyVersion && it.phaseMetricVersion == 3 })
     }
     @Test fun liveRecordsCannotBeReviewedAndInvalidInputsFailClosed() {
         assertFailsWith<IllegalArgumentException> { WorkoutCorrections.project(record("a").copy(endReason = "running")) }
@@ -324,7 +324,7 @@ class WorkoutLibraryTests {
         assertEquals(listOf(11.0, 21.0), session.sets[1].seconds)
         assertFailsWith<IllegalArgumentException> { WorkoutBenchmarkExport.session("capture", "a".repeat(64), listOf(0.0, 30.0), listOf(completed), listOf(11.0), listOf(listOf(11.0, 12.0))) }
         assertFailsWith<IllegalArgumentException> { WorkoutBenchmarkExport.session("capture", "a".repeat(64), listOf(0.0, 30.0), listOf(completed.copy(activity = completed.activity!!.copy(timelineTruncated = true))), listOf(0.0), listOf(listOf(0.0, 10.0))) }
-        val output = WorkoutRecordCodec.json.encodeToString(WorkoutBenchmarkExport.prediction("b".repeat(64), WorkoutBenchmarkRun("run", "ios", "authored", "c".repeat(40)), listOf(session)))
+        val output = WorkoutRecordCodec.json.encodeToString(WorkoutBenchmarkExport.prediction("b".repeat(64), WorkoutBenchmarkRun("run", "ios", "authored", "c".repeat(40), activityMetricVersion = 2, repMetricVersion = 1), listOf(session)))
         assertTrue(output.contains("\"completed_cycle_definition\":\"start_extreme_return\"")); assertFalse(output.contains("trackedAtEpochMilliseconds"))
     }
     @Test fun benchmarkHoldCreditUsesExplicitSourceIntervalAndNeverInventsLegacyTiming() {

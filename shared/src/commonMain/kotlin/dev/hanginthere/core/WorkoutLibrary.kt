@@ -71,6 +71,7 @@ object WorkoutLibrary {
             require(record.reps.size <= 1000 && record.reps.all { it.setId == record.id && it.startedAt.isFinite() &&
                 it.closedAt.isFinite() && it.closedAt >= it.startedAt })
             record.reps.forEach { rep ->
+                require(rep.metricVersion in 1..WorkoutAnalysis.metricVersion)
                 require(rep.ordinal in 1..1000 && rep.id.length in 1..128 && rep.startedAt >= 0)
                 require(listOfNotNull(rep.extremeAt, rep.acceptedAt, rep.returnedAt).all { it.isFinite() && it in rep.startedAt..rep.closedAt })
                 require(rep.returnedAt == null || rep.acceptedAt == null || rep.returnedAt >= rep.acceptedAt)
@@ -85,7 +86,7 @@ object WorkoutLibrary {
                 }
             }
             record.activity?.let { activity ->
-                require(activity.metricVersion in 1..2)
+                require(activity.metricVersion in 1..WorkoutPhaseAnalysis.metricVersion)
                 require(listOf(activity.longestHangSeconds, activity.longestSupportSeconds, activity.observedSeconds, activity.elapsedSeconds).all { it.isFinite() && it >= 0 })
                 require(activity.observedSeconds <= activity.elapsedSeconds + 1e-6)
                 require(activity.totals.map { it.phase }.distinct().size == activity.totals.size && activity.totals.all { it.observedSeconds.isFinite() && it.observedSeconds >= 0 && it.observedSeconds <= activity.elapsedSeconds + 1e-6 })

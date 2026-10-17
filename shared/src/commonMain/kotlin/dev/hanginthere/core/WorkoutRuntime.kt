@@ -59,6 +59,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private var lastDeliveredSceneObservation:SceneObservation?=null
     val handsFreeStart=HandsFreeSetStart()
     private val identity=AutomaticExerciseDetection()
+    private val setupRecovery=WorkoutSetupRecovery()
     private val apparatus=AutomaticApparatusReference()
     var confirmedBar:ConfirmedBar?=null;private set
     private var activeExercise=selection.exercise ?: ExerciseCounter.Exercise.pullUp
@@ -97,9 +98,11 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         if(automaticWorkouts && !replayReview && session.phase==LiveSetSession.Phase.finished && WorkoutLifecycle.shouldResume(session.endReason?.name)){val lost=session.endReason==LiveSetSession.EndReason.trackingLost;captureCompletedSet();nextSet();if(lost) clearSetup()}
         if(!input.cameraReady){interrupt(LiveSetSession.EndReason.cameraFailure);issue="cameraUnavailable";return snapshot}
         if(confirmedBar!=null && confirmedBar!!.imageSize!=pose.imageSize){interrupt(LiveSetSession.EndReason.setupInvalidated);issue="barReferenceUnavailable";return snapshot}
+        var recoveringSetup=false
         if(session.phase==LiveSetSession.Phase.idle && selection==WorkoutExerciseSelection.automatic && replayExercise==null) {
             val previous=identity.exercise;val previousApparatus=identity.apparatusCandidate
-            identity.observe(pose)
+            recoveringSetup=setupRecovery.retain(pose,previous)
+            if(!recoveringSetup) identity.observe(pose)
             if(previousApparatus!=identity.apparatusCandidate || (previous!=null && identity.exercise==null)) {
                 activeExercise=identity.apparatusCandidate ?: activeExercise
                 clearSetup();session.reset(activeExercise,side)
@@ -114,7 +117,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             selection==WorkoutExerciseSelection.automatic && replayExercise==null &&
             PullUpArmMeasurement(pose).arms.size!=2
         var acquiredThisFrame=false
-        if(session.phase==LiveSetSession.Phase.idle && confirmedBar==null && motionFresh && framingReady && !input.paused && (selection.exercise!=null || identity.apparatusCandidate!=null) && input.candidates.isNotEmpty()) {
+        if(session.phase==LiveSetSession.Phase.idle && confirmedBar==null && !recoveringSetup && motionFresh && framingReady && !input.paused && (selection.exercise!=null || identity.apparatusCandidate!=null) && input.candidates.isNotEmpty()) {
             if(lastAcquisitionSeconds==null || (seconds-lastAcquisitionSeconds!!)>=AutomaticPullUpBar.samplingInterval) {
                 lastAcquisitionSeconds=seconds
                 val proposal=apparatus.observe(pose,activeExercise,side,input.candidates)
@@ -236,7 +239,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     }
     private fun clearAcquisition(){apparatus.reset();lastAcquisitionSeconds=null;handsFreeStart.reset();automaticStart.reset()}
     private fun clearFramingFeedback(){framingHint=null;framingFeedback.reset()}
-    private fun clearSetup(){clearAcquisition();confirmedBar=null;phoneOrientation.reset();staticScene.reset();lastDeliveredSceneObservation=null;generation++;issue="barReferenceNeeded";clearFramingFeedback()}
+    private fun clearSetup(){clearAcquisition();setupRecovery.reset();confirmedBar=null;phoneOrientation.reset();staticScene.reset();lastDeliveredSceneObservation=null;generation++;issue="barReferenceNeeded";clearFramingFeedback()}
     companion object {
         const val motionMaximumAgeSeconds=.5
         const val sceneMaximumAgeSeconds=StaticSceneStability.maximumObservationGapSeconds

@@ -139,7 +139,7 @@ class WorkoutPhaseTests {
         analysis.observe(frame(0.0),ExerciseCounter.Phase.ready)
         analysis.observe(frame(.1),ExerciseCounter.Phase.ready)
         val current=analysis.activity
-        assertEquals(2,current.metricVersion)
+        assertEquals(3,current.metricVersion)
         val historical=current.copy(metricVersion=1)
         val json=WorkoutRecordCodec.json.encodeToString(historical)
         assertEquals(historical,WorkoutRecordCodec.json.decodeFromString<WorkoutActivity>(json))

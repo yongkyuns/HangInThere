@@ -55,6 +55,7 @@ jobs:
           name: workout-analysis-contracts
           path: |
             build/workout-analysis/apple-bridge-check.json
+            build/workout-analysis/reliability-bridge-check.json
             build/replay-progress-kotlin.json
             build/workout-analysis/native-benchmark-session.json
             build/workout-analysis/native-authored-records.json

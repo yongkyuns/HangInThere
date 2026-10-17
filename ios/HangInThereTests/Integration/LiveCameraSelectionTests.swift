@@ -5,6 +5,45 @@ import Testing
 
 @MainActor @Suite(.serialized)
 struct LiveCameraSelectionTests {
+    @Test func briefSingleArmLossRetainsQualifiedIdentityWithoutReadinessAndCannotRenewExpiry() {
+        for exercise in ExerciseCounter.Exercise.allCases {
+            let controller = LiveCameraPreviewController()
+            func frame(_ ticks: Int64, missing: Bool = false) -> PoseResult {
+                let original = exercise == .pullUp ? AutomaticPullUpBarTests().pose(Double(ticks) / 1e6)
+                    : AutomaticDipRailsTests().pose(Double(ticks) / 1e6)
+                return PoseResult(timestamp: .init(value: ticks, timescale: 1_000_000), imageSize: original.imageSize,
+                    people: original.people.map { person in PoseObservation(landmarks: person.landmarks.filter {
+                        !missing || ![PoseJoint.rightShoulder, .rightElbow, .rightWrist].contains($0.joint)
+                    }) }, backend: original.backend, requestRevision: original.requestRevision)
+            }
+            for ticks: Int64 in [0,200_000,400_000,700_000,800_000] { controller.observeExerciseSelection(frame(ticks)) }
+            #expect(controller.resolvedExercise == exercise)
+            for ticks: Int64 in [900_000,1_000_000,1_150_000] {
+                controller.observeExerciseSelection(frame(ticks, missing: true))
+                #expect(controller.resolvedExercise == exercise)
+                #expect(controller.handsFreeStart.state == .waiting)
+                #expect(controller.liveSet.phase == .idle)
+                #expect(controller.currentBar == nil)
+            }
+            controller.observeExerciseSelection(frame(1_150_001, missing: true))
+            #expect(controller.resolvedExercise == nil)
+            #expect(!controller.startSet())
+
+            // Exercise the actual final readiness method used by frame delivery;
+            // the recovery frame must not seed the next bilateral dwell.
+            let fresh = LiveCameraPreviewController()
+            for ticks: Int64 in [0,200_000,400_000,700_000,800_000] { fresh.observeExerciseSelection(frame(ticks)) }
+            fresh.observeExerciseSelection(frame(900_000, missing: true))
+            #expect(!fresh.observeHandsFreeReadiness(frame(900_000, missing: true), eligible: true))
+            fresh.observeExerciseSelection(frame(1_020_000))
+            #expect(!fresh.observeHandsFreeReadiness(frame(1_020_000), eligible: true))
+            fresh.observeExerciseSelection(frame(1_139_999))
+            #expect(!fresh.observeHandsFreeReadiness(frame(1_139_999), eligible: true))
+            fresh.observeExerciseSelection(frame(1_140_000))
+            #expect(fresh.observeHandsFreeReadiness(frame(1_140_000), eligible: true))
+        }
+    }
+
     @Test func automaticIdentityChangesCounterAndRailRoleWithoutStartingOrInventingApparatus() async {
         let controller = LiveCameraPreviewController()
         controller.configureWorkout(selection: .automatic, side: .right)

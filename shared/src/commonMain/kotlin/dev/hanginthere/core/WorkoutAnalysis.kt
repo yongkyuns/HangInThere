@@ -120,6 +120,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
         val left = AngleAccumulator(); val right = AngleAccumulator()
         var extreme: Double? = null; var accepted: Double? = null
         var minimumMeanAngle: Double? = null
+        var comparableExtreme = true
         var acceptanceReason: String? = null
         var previous: MotionSample? = null
         var usableSeconds = 0.0
@@ -130,6 +131,11 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
             val old = previous
             val dt = old?.let { (sample.seconds - it.seconds).takeIf { d -> d > 0 && d <= ExerciseCounter.maximumGapSeconds && it.usable && sample.usable } }
             val meanAngle = if(sample.leftDegrees!=null && sample.rightDegrees!=null) (sample.leftDegrees+sample.rightDegrees)*.5 else null
+            // Switching from a paired angle to one arm and back can put the
+            // lowest remaining paired sample on the return. Its timestamp is
+            // not a measured cycle peak. Keep the count and per-arm integrals,
+            // but withhold the split timing for this non-comparable trajectory.
+            if (!sample.usable || sample.released || meanAngle?.isFinite() != true) comparableExtreme = false
             if(measureExtreme && sample.usable && meanAngle!=null && (minimumMeanAngle==null || meanAngle<minimumMeanAngle!!)){minimumMeanAngle=meanAngle;extreme=sample.seconds}
             left.observe(sample.leftDegrees, sample.seconds, old?.leftDegrees, dt, sample.usable)
             right.observe(sample.rightDegrees, sample.seconds, old?.rightDegrees, dt, sample.usable)
@@ -149,14 +155,15 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
         fun record(setId: String, exercise: ExerciseCounter.Exercise, end: Double, reason: String, returned: Boolean): RepRecord {
             val duration = max(0.0, end - start)
             val l = left.metrics(duration); val r = right.metrics(duration)
-            return RepRecord("$setId:rep:$ordinal", setId, ordinal, exercise, start, extreme, accepted,
+            val measuredExtreme = extreme.takeIf { comparableExtreme }
+            return RepRecord("$setId:rep:$ordinal", setId, ordinal, exercise, start, measuredExtreme, accepted,
                 end.takeIf { returned }, end, reason, if (accepted != null) "accepted" else if (reason == "partial") "partial" else "interrupted",
-                extreme?.minus(start), if (returned && extreme != null) end - extreme!! else null, l, r,
+                measuredExtreme?.minus(start), if (returned && measuredExtreme != null) end - measuredExtreme else null, l, r,
                 if (heightMin != null && heightMax != null) heightMax!! - heightMin!! else null,
                 if ((l.coverage ?: 0.0) >= .99 && (r.coverage ?: 0.0) >= .99 && left.extremeAt != null && right.extremeAt != null)
                     abs(left.extremeAt!! - right.extremeAt!!) else null,
                 usableSeconds, if (duration > 0) (usableSeconds / duration).coerceIn(0.0, 1.0) else null,
-                samples.toList(), truncated, acceptanceReason=acceptanceReason)
+                samples.toList(), truncated, metricVersion=metricVersion, acceptanceReason=acceptanceReason)
         }
     }
     private val phases = WorkoutPhaseAnalysis(setId, exercise)
@@ -217,6 +224,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
     private fun withGrip(rep:RepRecord)=if(exercise==ExerciseCounter.Exercise.pullUp && grips.hasObservation)rep.copy(grip=grips.summarize(rep.startedAt,rep.closedAt)) else rep
     fun recordsJson(): String = json.encodeToString(records)
     companion object {
+        const val metricVersion = 2
         const val maximumCurveSamples = 256
         val json = Json { encodeDefaults = true; explicitNulls = true }
     }

@@ -7,6 +7,7 @@ import WorkoutCore
 struct WorkoutAnalysisBridgeCheck {
     @MainActor static func main() async throws {
         if CommandLine.arguments.count > 1 { try checkSavedObservations(); return }
+        try WorkoutReliabilityBridgeCheck.run()
         var completed: [WorkoutSetRecord] = []
         let reference = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
         func pose(_ time: Double, _ angle: Double, exercise: ExerciseCounter.Exercise) -> PoseResult {
@@ -278,8 +279,8 @@ struct WorkoutAnalysisBridgeCheck {
             completed.append(set)
             let rep = set.reps[0]
             guard rep.left.mean != nil, rep.right.mean != nil,
-                  rep.durationCoverage == 1, rep.countPolicyVersion == 8, rep.metricVersion == 1,
-                  set.activity?.metricVersion == 2 else { fatalError("Bridge lost metric validity or phase version") }
+                  rep.durationCoverage == 1, rep.countPolicyVersion == 8, rep.metricVersion == 2,
+                  set.activity?.metricVersion == 3 else { fatalError("Bridge lost metric validity or phase version") }
             guard set.completedCount == 1, set.completedReps == [rep], rep.isCompleteForAnalytics else {
                 fatalError("Shipping Apple analytics omitted a completed rep")
             }
@@ -647,14 +648,14 @@ struct WorkoutAnalysisBridgeCheck {
     }
     @MainActor private static func checkSavedObservations() throws {
         let args = CommandLine.arguments
-        guard args.count == 9, let exercise = ExerciseCounter.Exercise(rawValue: args[1]),
+        guard (args.count == 9 || args.count == 10), let exercise = ExerciseCounter.Exercise(rawValue: args[1]),
               let side = ArmMeasurement.Side(rawValue: args[2]), let expected = Int(args[7]) else {
-            fatalError("Usage: apple-bridge-check exercise side ax ay bx by expected observations.jsonl")
+            fatalError("Usage: apple-bridge-check exercise side ax ay bx by expected observations.jsonl [fresh-analysis.json]")
         }
         let coords = args[3...6].map { Double($0)! }
         let reference = BarSegment(a: Point2D(x: coords[0], y: coords[1]), b: Point2D(x: coords[2], y: coords[3]))
         precondition(reference.isValid)
-        let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
+        let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise, recordCalendarTime: false)
         var counter = ExerciseCounter(exercise: exercise, side: side)
         var frames = 0
         for line in try String(contentsOfFile: args[8], encoding: .utf8).split(separator: "\n") {
@@ -673,7 +674,10 @@ struct WorkoutAnalysisBridgeCheck {
               counter.observedMovements == expected, set.acceptedCount == expected else {
             fatalError("Saved-observation count changed or accepted records were lost")
         }
-        print("Saved-observation regression: \(exercise), \(frames) frames, \(set.acceptedCount)/\(expected) accepted records. No new inference or form qualification.")
+        if args.count == 10 {
+            try JSONEncoder().encode(set).write(to: URL(fileURLWithPath: args[9]), options: .withoutOverwriting)
+        }
+        print("Saved-observation regression: \(exercise), \(frames) frames, \(set.acceptedCount)/\(expected) accepted records, \(set.completedCount) completed cycles. No new inference or form qualification.")
     }
 
 }

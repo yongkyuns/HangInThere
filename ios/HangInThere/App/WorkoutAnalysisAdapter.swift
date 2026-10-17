@@ -31,6 +31,7 @@ final class WorkoutAnalysisAdapter {
     @ObservationIgnored private lazy var engine = makeEngine(exercise: .pullUp)
     @ObservationIgnored private var jointIndices: [PoseJoint: Int32] = [:]
     @ObservationIgnored private lazy var framingBridge = WorkoutFramingBridge()
+    @ObservationIgnored private lazy var setupRecovery = WorkoutSetupRecoveryBridge()
     private(set) var framingHint: String?
     @ObservationIgnored private var revision: Int32 = -1
     private(set) var reps: [WorkoutRepRecord] = []
@@ -101,6 +102,15 @@ final class WorkoutAnalysisAdapter {
         engine.readyAt(sourceValue: time.value, sourceTimescale: time.timescale, eligible: eligible)
     }
     func resetReadiness() { engine.resetReadiness() }
+    func resetSetupRecovery() { setupRecovery.reset() }
+    func retainSetup(_ pose: PoseResult, exercise: ExerciseCounter.Exercise?) -> Bool {
+        let payload = poseTransport(pose)
+        do {
+            return try setupRecovery.retain(sourceValue: pose.timestamp.value, sourceTimescale: pose.timestamp.timescale,
+                width: pose.imageSize.width, height: pose.imageSize.height, peopleCount: Int32(pose.people.count),
+                joints: payload.joints, triples: payload.triples, exercise: exercise?.rawValue)
+        } catch { setupRecovery.reset(); return false }
+    }
     private func makeJointIndices(_ names: [String]) -> [PoseJoint: Int32] {
         Dictionary(uniqueKeysWithValues: PoseJoint.allCases.map { joint in
             guard let index = names.firstIndex(of: joint.rawValue) else { preconditionFailure("Unsupported pose joint: \(joint)") }

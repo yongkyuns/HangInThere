@@ -25,6 +25,8 @@ internal class WorkoutPhaseAnalysis(private val setId: String, private val exerc
     private var previous: MotionSample? = null
     private var previousKind: WorkoutMotionPhase? = null
     private var minimumMovementAngle: Double? = null
+    private var witnessedEndpointAngle: Double? = null
+    private var bilateralContinuity = false
     private val motionDirection = WorkoutPhaseDirection()
     private var first: Double? = null
     private var highWater: Double? = null
@@ -83,12 +85,14 @@ internal class WorkoutPhaseAnalysis(private val setId: String, private val exerc
         return changed || checkpoint
     }
     private fun classify(sample: MotionSample, phase: ExerciseCounter.Phase, old: MotionSample?): WorkoutMotionPhase {
-        if (sample.released) { motionDirection.reset(); return WorkoutMotionPhase.release }
-        if (!sample.usable) { motionDirection.reset(); return WorkoutMotionPhase.unobserved }
+        if (sample.released) { clearEndpoint(); motionDirection.reset(); return WorkoutMotionPhase.release }
+        if (!sample.usable) { clearEndpoint(); motionDirection.reset(); return WorkoutMotionPhase.unobserved }
         val angles = listOfNotNull(sample.leftDegrees, sample.rightDegrees).filter { it.isFinite() }
         val threshold = if (exercise == ExerciseCounter.Exercise.pullUp) ExerciseCounter.extendedDegrees else ExerciseCounter.minimumDipSupportDegrees
         if (phase == ExerciseCounter.Phase.ready || phase == ExerciseCounter.Phase.seekingStart) {
             minimumMovementAngle = null
+            witnessedEndpointAngle = null
+            bilateralContinuity = angles.size == 2
             motionDirection.reset()
             // A counted hang/support duration requires both visible arm chains.
             if (angles.size == 2 && angles.all { it >= threshold })
@@ -96,11 +100,18 @@ internal class WorkoutPhaseAnalysis(private val setId: String, private val exerc
             return if (phase == ExerciseCounter.Phase.ready && angles.size != 2) WorkoutMotionPhase.unobserved else WorkoutMotionPhase.acquiring
         }
         if (phase == ExerciseCounter.Phase.outbound || phase == ExerciseCounter.Phase.returning) {
-            val mean = angles.takeIf { it.isNotEmpty() }?.average()
+            val mean = angles.takeIf { it.size == 2 }?.average()
             val direction = motionDirection.observe(sample, old)
-            if (motionDirection.restarted) minimumMovementAngle = null
-            if(mean != null) minimumMovementAngle = minOf(minimumMovementAngle ?: mean,mean)
-            if (direction == WorkoutMotionDirection.stationary) return if(phase == ExerciseCounter.Phase.returning && mean != null && mean <= (minimumMovementAngle ?: mean)+3) {
+            if (angles.size != 2) bilateralContinuity = false
+            // Filter restarts must not establish a new endpoint at the current
+            // return angle. Keep an already witnessed bilateral endpoint across
+            // arm loss; an unseen endpoint remains unknown until a new cycle.
+            if (old == null) clearEndpoint()
+            if (mean != null) minimumMovementAngle = minOf(minimumMovementAngle ?: mean, mean)
+            if (phase == ExerciseCounter.Phase.returning && mean != null && (bilateralContinuity || witnessedEndpointAngle != null))
+                witnessedEndpointAngle = minOf(witnessedEndpointAngle ?: minimumMovementAngle ?: mean, mean)
+            if (direction == WorkoutMotionDirection.stationary) return if(phase == ExerciseCounter.Phase.returning && mean != null &&
+                witnessedEndpointAngle?.let { mean <= it + 3 } == true) {
                 if(exercise == ExerciseCounter.Exercise.pullUp) WorkoutMotionPhase.peakHold else WorkoutMotionPhase.bottomHold
             } else WorkoutMotionPhase.effortHold
             if (direction != null) return if (direction == WorkoutMotionDirection.decreasing) {
@@ -112,11 +123,13 @@ internal class WorkoutPhaseAnalysis(private val setId: String, private val exerc
         }
         return WorkoutMotionPhase.acquiring
     }
-    fun interrupt() { previous = null; previousKind = null; minimumMovementAngle = null; motionDirection.reset(); broken = true }
+    private fun clearEndpoint() { minimumMovementAngle = null; witnessedEndpointAngle = null; bilateralContinuity = false }
+    fun interrupt() { previous = null; previousKind = null; clearEndpoint(); motionDirection.reset(); broken = true }
     val activity get() = WorkoutActivity(spans.toList(), WorkoutMotionPhase.entries.map { WorkoutPhaseTotal(it, totals[it] ?: 0.0) },
         longestHang, longestSupport, totals.values.sum(),
-        if (first != null && highWater != null) highWater!!-first!! else 0.0, truncated, metricVersion = 2)
+        if (first != null && highWater != null) highWater!!-first!! else 0.0, truncated, metricVersion = metricVersion)
     companion object {
+        const val metricVersion = 3
         const val maximumSpans = 256
         const val checkpointSeconds = 1.0
     }

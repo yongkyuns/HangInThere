@@ -15,7 +15,7 @@ class WorkoutPhaseDirectionTests {
             val expected = if (exercise == ExerciseCounter.Exercise.pullUp) WorkoutMotionPhase.peakHold else WorkoutMotionPhase.bottomHold
             assertEquals(expected, activity.phases.last().phase)
             assertTrue(activity.phases.size < 8, "Small stationary jitter created a fragmented phase timeline")
-            assertEquals(2, activity.metricVersion)
+            assertEquals(3, activity.metricVersion)
             assertEquals(0.0, activity.longestHangSeconds)
             assertEquals(0.0, activity.longestSupportSeconds)
         }
@@ -164,8 +164,8 @@ class WorkoutPhaseDirectionTests {
             assertEquals(170.0, assertNotNull(rep.right.maximum), 1e-9)
             assertEquals(1.0, rep.durationCoverage)
             assertEquals(8, rep.countPolicyVersion)
-            assertEquals(1, rep.metricVersion)
-            assertEquals(2, session.record.activity!!.metricVersion)
+            assertEquals(2, rep.metricVersion)
+            assertEquals(3, session.record.activity!!.metricVersion)
         }
     }
 }

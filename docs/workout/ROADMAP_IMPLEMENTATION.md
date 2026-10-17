@@ -88,8 +88,9 @@ reported completion manufactures a measured cycle.
 ## Storage and migration limits
 
 The application layer, correction ledger, after-set/insight policy and backup each
-have explicit version 1 contracts; raw count policy 8 and phase metric 2 remain
-unchanged. New optional fields are backward readable. `observedStartedAt` records
+have explicit version 1 contracts; raw count policy 8 remains unchanged. New
+analysis emits rep metric 2 and phase metric 3; prior metric versions remain readable
+and immutable. New optional fields are backward readable. `observedStartedAt` records
 the credited suffix of a phase without altering its measured duration. Historical
 partial-credit spans without that timing remain readable but cannot be fabricated
 into a full benchmark phase interval.

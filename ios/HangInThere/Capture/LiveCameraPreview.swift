@@ -214,11 +214,15 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var lastSceneRegistrationMilliseconds: Double?
     private(set) var sceneRegistrationFailures = 0
     private(set) var bar: ConfirmedBar? {
-        didSet { if oldValue != bar { resetFramingFeedback() } }
+        didSet {
+            if oldValue != bar { resetFramingFeedback() }
+            if bar == nil { resetSetupRecovery() }
+        }
     }
     private(set) var automaticBarState: AutomaticPullUpBar.State = .lookingForGrip
     private(set) var exerciseSelection: WorkoutExerciseSelection = .automatic
     private var automaticExercise = AutomaticExerciseDetection()
+    private var recoveringAutomaticSetup = false
     private(set) var handsFreeStartEnabled = true
     private(set) var handsFreeStart = HandsFreeSetStart()
     private(set) var liveSet = LiveSetSession()
@@ -599,7 +603,7 @@ final class LiveCameraPreviewController: NSObject {
     var setupReadiness: LiveSetupReadiness {
         LiveSetupReadiness(
             cameraReady: isCameraReady,
-            framing: framing.state,
+            framing: latestPose.map { hasStartingPoseEvidence($0) } == false ? .selectedArmHidden : framing.state,
             barConfirmed: currentBar != nil,
             phoneStable: phoneOrientation.state.allowsLiveSet,
             sceneStable: sceneIsReady
@@ -653,10 +657,16 @@ final class LiveCameraPreviewController: NSObject {
     // Also exercised without starting capture in controller regression tests.
     // No automatic identity changes are allowed during a set or debug recording.
     func observeExerciseSelection(_ pose: PoseResult) {
+        recoveringAutomaticSetup = false
         guard exerciseSelection == .automatic, liveSet.phase == .idle,
               !debugCaptureState.isActive, pendingBarMotionSample == nil else { return }
         let previous = automaticExercise.exercise
         let previousApparatus = automaticExercise.apparatusCandidate
+        if workoutAnalysis.retainSetup(pose, exercise: previous) {
+            recoveringAutomaticSetup = true
+            resetHandsFreeStart()
+            return
+        }
         let next = automaticExercise.observe(pose)
         if previousApparatus != automaticExercise.apparatusCandidate || (previous != nil && next == nil) {
             applyWorkout(exercise: automaticExercise.apparatusCandidate ?? exercise, side: trackingSide)
@@ -712,12 +722,18 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func resetAutomaticBarSetup() {
+        resetSetupRecovery()
         analyzer?.resetGripInference()
         resetHandsFreeStart()
         automaticBarTask?.cancel()
         automaticBarTask = nil
         lastAutomaticBarSeconds = nil
         resetAutomaticBarObservation()
+    }
+
+    private func resetSetupRecovery() {
+        recoveringAutomaticSetup = false
+        workoutAnalysis.resetSetupRecovery()
     }
 
     private func resetAutomaticBarObservation(_ state: AutomaticPullUpBar.State = .lookingForGrip) {
@@ -764,6 +780,7 @@ final class LiveCameraPreviewController: NSObject {
         }
         // Shared readiness uses only fresh source frames after real apparatus,
         // motion and scene qualification. No gesture or countdown is required.
+        eligible = eligible && hasStartingPoseEvidence(frame.pose)
         if !eligible || workoutDetailsPresented { qualifiedStartPose = nil }
         if let previous = qualifiedStartPose {
             let gap = frame.pose.timestamp.elapsedSeconds(since: previous.timestamp)
@@ -773,7 +790,7 @@ final class LiveCameraPreviewController: NSObject {
         }
         let baseline = qualifiedStartPose
         if eligible && qualifiedStartPose == nil { qualifiedStartPose = frame.pose }
-        if workoutAnalysis.ready(at: frame.pose.timestamp,
+        if observeHandsFreeReadiness(frame.pose,
             eligible: eligible && !workoutDetailsPresented) {
             if startSet(discardQueuedFrame: false), let baseline, let reference = currentBar?.referenceEdge {
                 liveSet.consume(baseline, referenceEdge: reference)
@@ -783,8 +800,18 @@ final class LiveCameraPreviewController: NSObject {
         }
     }
 
+    private func hasStartingPoseEvidence(_ pose: PoseResult) -> Bool {
+        exerciseSelection != .automatic || (!recoveringAutomaticSetup && PullUpArmMeasurement(pose: pose).arms.count == 2)
+    }
+
+    // The final readiness gate is also exercised without camera authorization.
+    func observeHandsFreeReadiness(_ pose: PoseResult, eligible: Bool) -> Bool {
+        workoutAnalysis.ready(at: pose.timestamp, eligible: eligible && hasStartingPoseEvidence(pose))
+    }
+
     private func maybeFindAutomaticBar(_ frame: ProcessedFrame) {
         guard exerciseSelection.exercise != nil || automaticExercise.apparatusCandidate != nil,
+              !recoveringAutomaticSetup,
               liveSet.phase == .idle, bar == nil,
               pendingBarMotionSample == nil, automaticBarTask == nil,
               debugCaptureAllowsBarSetup, framing.state.isReady,
@@ -817,6 +844,9 @@ final class LiveCameraPreviewController: NSObject {
             }
             guard self.setupGeneration == token else { return }
             self.automaticBarTask = nil
+            // The result belongs to the last bilateral frame. During bounded
+            // recovery, neither accept it nor erase the earlier observed dwell.
+            guard !self.recoveringAutomaticSetup else { return }
             guard !Task.isCancelled, self.isCameraReady, !self.suspended,
                   self.liveSet.phase == .idle, self.bar == nil,
                   self.pendingBarMotionSample == nil, self.debugCaptureAllowsBarSetup,
