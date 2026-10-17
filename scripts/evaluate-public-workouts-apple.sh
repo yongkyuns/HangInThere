@@ -19,6 +19,7 @@ paths += [root/p for p in ['ios/HangInThere/App/WorkoutAnalysisAdapter.swift',
     'scripts/evaluate-public-workouts-apple.sh']]
 paths += [pathlib.Path(sys.argv[2])/'WorkoutCore.framework/WorkoutCore']
 snapshot = {'source_revision': subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip(),
+    'source_dirty': bool(subprocess.check_output(['git','-C',str(root),'status','--porcelain','--untracked-files=no'],text=True).strip()),
     'source_sha256': {str(p.relative_to(root)):evaluation.digest(p) for p in paths},
     'toolchain': subprocess.check_output(['xcrun','swift','--version'],text=True).strip()}
 pathlib.Path(sys.argv[3]).write_text(json.dumps(snapshot))

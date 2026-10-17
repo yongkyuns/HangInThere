@@ -334,6 +334,32 @@ source frames. This is not fresh inference, independent motion-metric annotation
 held-out accuracy or physical-device performance qualification. No private media,
 observations or credentials are added to public CI/artifacts.
 
+The temporal diagnostic has two independent replay modes. The original raw-pose
+counter check retains its frozen apparatus references, including unavailable
+references. The selected-exercise check runs the production Apple
+`ReplayController`, automatic contour acquisition and shared counter/analytics
+with each frozen clip's explicit exercise and side. Legacy repetition manifests
+still default to pull-up/left; new manifests select dips explicitly. This mode
+does not exercise live Auto identity or readiness and cannot qualify them.
+
+Selected replay records unchanged raw observations by source PTS, including
+acquisition/rewind, with people-count histograms, per-arm rejection reasons,
+bilateral coverage, apparatus-search eligibility and consecutive starting-pose
+candidate duration. These diagnostics distinguish missing pose support from
+apparatus acquisition failures without selecting people or altering confidence.
+Full source-clock coverage and compatible raw totals are required. Interrupted
+prefixes cannot publish future returns; unavailable setup retains every missed
+movement. Reports bind the compiled sources, framework, executable, media and
+frozen reference hashes; a local modified checkout is marked explicitly.
+
+CI separates selected-replay integrity from movement accuracy. The accuracy job
+re-scores every original event with `--require-exact-events` and fails on misses,
+extras or unavailable setup. Successful compilation, completed decoding and
+diagnostic output never waive those failures. Artifacts contain scalar evidence
+and public references, without videos. Foreground selection or focused-pose
+experiments require demonstrated counting benefit and athlete-continuity/negative
+validation before changing the production detector.
+
 Existing public Android accuracy failures and Apple simulator decoder/model
 blockers remain separate visible gates. Synthetic/shared tests cannot turn those
 into qualified accuracy. Physical Android camera, thermal, memory and energy parity

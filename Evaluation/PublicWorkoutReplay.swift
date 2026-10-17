@@ -1,55 +1,9 @@
 import Foundation
-import Synchronization
 import CryptoKit
-import CoreGraphics
-
-// Observe the production estimator's unchanged output, keeping one latest
-// observation per source PTS across acquisition/rewind rather than double-counting.
-private final class PublicPoseQuality: PoseEstimator {
-    private struct Quality: Sendable {
-        let singlePerson: Bool
-        let left: String
-        let right: String
-        let canSearch: Bool
-    }
-    private let frames = Mutex<[Double: Quality]>([:])
-    func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
-        let pose = try VisionPoseEstimator().estimate(image: image, timestamp: timestamp)
-        let quality = Quality(singlePerson: pose.people.count == 1,
-            left: ArmMeasurement(pose: pose, side: .left).unavailableReason?.rawValue ?? "available",
-            right: ArmMeasurement(pose: pose, side: .right).unavailableReason?.rawValue ?? "available",
-            canSearch: AutomaticApparatusReference.search(pose: pose, exercise: .pullUp) != nil)
-        frames.withLock { $0[timestamp.seconds] = quality }
-        return pose
-    }
-    var summary: [String: Any] {
-        frames.withLock { values in
-            let samples = Array(values.values)
-            return ["unique_source_frames": samples.count,
-                "single_person_frames": samples.filter(\.singlePerson).count,
-                "both_arm_frames": samples.filter { $0.left == "available" && $0.right == "available" }.count,
-                "pullup_search_frames": samples.filter(\.canSearch).count,
-                "left_arm_status_counts": Dictionary(grouping: samples, by: \.left).mapValues(\.count),
-                "right_arm_status_counts": Dictionary(grouping: samples, by: \.right).mapValues(\.count)]
-        }
-    }
-}
 
 // This entry point drives the actual native replay controller and shipping Apple
 // analysis bridge. It does not reimplement acquisition, counting or analytics.
 @main private enum PublicWorkoutReplay {
-    private struct Manifest: Decodable {
-        struct Case: Decodable {
-            struct Media: Decodable { let path: String; let sha256: String }
-            let id: String
-            let media: Media
-            let sourcePtsSeconds: [Double]
-        }
-        let schemaVersion: Int
-        let scope: String
-        let heldOutQualification: Bool
-        let cases: [Case]
-    }
     @MainActor static func main() async throws {
         guard [5, 7].contains(CommandLine.arguments.count) else { throw failure("Usage: public-replay MANIFEST ROOT OUTPUT REVISION [SHARD_INDEX SHARD_COUNT]") }
         let manifestURL = URL(fileURLWithPath: CommandLine.arguments[1])
@@ -59,7 +13,7 @@ private final class PublicPoseQuality: PoseEstimator {
         let manifestHash = SHA256.hash(data: manifestData).map { String(format: "%02x", $0) }.joined()
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        let manifest = try decoder.decode(Manifest.self, from: manifestData)
+        let manifest = try decoder.decode(PublicReplayManifest.self, from: manifestData)
         let shardIndex = CommandLine.arguments.count == 7 ? Int(CommandLine.arguments[5]) : 0
         let shardCount = CommandLine.arguments.count == 7 ? Int(CommandLine.arguments[6]) : 1
         guard manifest.schemaVersion == 1, manifest.scope == "public_repetition_diagnostic",
@@ -74,10 +28,11 @@ private final class PublicPoseQuality: PoseEstimator {
             let media = item.media
             var report: [String: Any] = ["id": id, "sha256": media.sha256, "status": "failed", "frames": 0,
                 "acceptance_seconds": [Double](), "completed_seconds": [Double](), "source_clock_verified": false,
-                "selected_exercise": "pullUp"]
+                "selected_exercise": item.selectedExercise.rawValue, "tracking_side": item.trackingSide.rawValue]
             let clock = PublicReplayClock()
-            let quality = PublicPoseQuality()
+            let quality = PublicPoseQuality(exercise: item.selectedExercise)
             let model = ReplayController(estimator: quality, trace: clock.observe)
+            model.configureCounting(exercise: item.selectedExercise, side: item.trackingSide)
             let started = ContinuousClock.now
             var verifiedURL: URL?
             var finished = false
@@ -107,6 +62,8 @@ private final class PublicPoseQuality: PoseEstimator {
             if finished, progress.status == "failed" { report["error"] = "Replay frame/source-clock integrity failed" }
             report["tracking_coverage"] = model.trackingCoverage.map { $0 as Any } ?? NSNull()
             report["automatic_bar_state"] = String(describing: model.automaticBarState)
+            report["selected_exercise"] = model.counter.exercise.rawValue
+            report["tracking_side"] = model.counter.side.rawValue
             model.close()
             report["pose_quality"] = quality.summary
             report["elapsed_seconds"] = ReplayTrace.milliseconds(since: started) / 1000
@@ -119,7 +76,9 @@ private final class PublicPoseQuality: PoseEstimator {
             "counter_policy_version": ExerciseCounter.policyVersion, "request_revision": 1,
             "progress_evidence_version": 1,
             "shard_index": shardIndex, "shard_count": shardCount,
-            "exercise_selection": "pullUp selected in production native replay", "cases": reports]
+            "exercise_selection": manifest.cases.allSatisfy { $0.selectedExercise == .pullUp }
+                ? "pullUp selected in production native replay" : "per-case exercise selected in production native replay",
+            "replay_configuration_version": 1, "cases": reports]
         try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys])
             .write(to: output, options: .withoutOverwriting)
     }

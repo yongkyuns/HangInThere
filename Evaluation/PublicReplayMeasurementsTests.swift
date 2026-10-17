@@ -1,4 +1,6 @@
 import Testing
+import Foundation
+import CoreGraphics
 @testable import HangInThere
 
 struct PublicReplayMeasurementsTests {
@@ -65,5 +67,91 @@ struct PublicReplayMeasurementsTests {
             #expect(result.acceptanceSeconds.isEmpty)
         }
         #expect(measure(Array(source.prefix(4)), completed: [12.75]).status == "failed")
+    }
+}
+
+struct PublicReplayConfigurationTests {
+    private func decode(_ fields: [String: Any] = [:]) throws -> PublicReplayManifest {
+        var item: [String: Any] = ["id": "dip", "media": ["path": "videos/dip.mp4", "sha256": String(repeating: "a", count: 64)],
+            "source_pts_seconds": [0.0, 0.1]]
+        item.merge(fields) { _, value in value }
+        let manifest: [String: Any] = ["schema_version": 1, "scope": "public_repetition_diagnostic",
+            "held_out_qualification": false, "cases": [item]]
+        let decoder = JSONDecoder(); decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(PublicReplayManifest.self, from: JSONSerialization.data(withJSONObject: manifest))
+    }
+
+    @Test func legacyPullupAndExplicitDipSelectTheirDeclaredExerciseAndSide() throws {
+        let legacy = try decode().cases[0]
+        #expect(legacy.selectedExercise == .pullUp && legacy.trackingSide == .left)
+        let dip = try decode(["selected_exercise": "dip", "tracking_side": "right"]).cases[0]
+        #expect(dip.selectedExercise == .dip && dip.trackingSide == .right)
+    }
+
+    @Test func invalidOrNullExplicitConfigurationCannotSilentlyBecomePullups() {
+        for fields: [String: Any] in [["selected_exercise": "automatic"], ["selected_exercise": NSNull()],
+                                     ["tracking_side": "nearest"], ["tracking_side": NSNull()]] {
+            #expect(throws: DecodingError.self) { try decode(fields) }
+        }
+    }
+}
+
+struct PublicPoseQualityTests {
+    private func support(_ ticks: Int64, missing: Bool = false, people: Int = 1) -> PoseResult {
+        let original = AutomaticDipRailsTests().pose(Double(ticks) / 1e6)
+        let person = PoseObservation(landmarks: original.people[0].landmarks.filter {
+            !missing || ![PoseJoint.rightShoulder, .rightElbow, .rightWrist].contains($0.joint)
+        })
+        return PoseResult(timestamp: .init(value: ticks, timescale: 1_000_000), imageSize: original.imageSize,
+            people: Array(repeating: person, count: people), backend: original.backend, requestRevision: original.requestRevision)
+    }
+
+    @Test func dipSearchAndStartingDiagnosticsUseDipGeometry() {
+        let dip = PublicPoseQualityRecorder(exercise: .dip)
+        let pullup = PublicPoseQualityRecorder(exercise: .pullUp)
+        for ticks: Int64 in [0, 200_000, 400_000] { dip.observe(support(ticks)); pullup.observe(support(ticks)) }
+        #expect(dip.summary["dip_search_frames"] as? Int == 3)
+        #expect(dip.summary["starting_pose_candidate_frames"] as? Int == 3)
+        #expect(dip.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.4)
+        #expect(dip.summary["pullup_search_frames"] == nil)
+        #expect(pullup.summary["pullup_search_frames"] as? Int == 0)
+        #expect(pullup.summary["starting_pose_candidate_frames"] as? Int == 0)
+    }
+
+    @Test func sourceGapBoundaryAndMissingArmSplitSupportEvidence() {
+        let boundary = PublicPoseQualityRecorder(exercise: .dip)
+        for ticks: Int64 in [0, 350_000, 700_001] { boundary.observe(support(ticks)) }
+        #expect(boundary.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.35)
+        let loss = PublicPoseQualityRecorder(exercise: .dip)
+        for ticks: Int64 in [0, 200_000, 400_000, 600_000, 800_000] {
+            loss.observe(support(ticks, missing: ticks == 400_000))
+        }
+        #expect(loss.summary["both_arm_frames"] as? Int == 4)
+        #expect(loss.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.2)
+    }
+
+    @Test func rewindKeepsLatestRawObservationPerSourceTimeWithoutDoubleCredit() {
+        let quality = PublicPoseQualityRecorder(exercise: .dip)
+        for _ in 0..<2 { for ticks: Int64 in [0, 200_000, 400_000] { quality.observe(support(ticks)) } }
+        quality.observe(support(200_000, missing: true))
+        #expect(quality.summary["unique_source_frames"] as? Int == 3)
+        #expect(quality.summary["both_arm_frames"] as? Int == 2)
+        #expect(quality.summary["longest_starting_pose_candidate_seconds"] as? Double == 0)
+    }
+
+    @Test func instrumentationPreservesAllOriginalPeopleAndLandmarks() throws {
+        struct Fixed: PoseEstimator {
+            let pose: PoseResult
+            func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult { pose }
+        }
+        let original = support(0, people: 2)
+        let observed = PublicPoseQuality(exercise: .dip, estimator: Fixed(pose: original))
+        let context = try #require(CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue))
+        let image = try #require(context.makeImage())
+        #expect(try observed.estimate(image: image, timestamp: original.timestamp) == original)
+        #expect(observed.summary["people_count_histogram"] as? [String: Int] == ["2": 1])
+        #expect(observed.summary["both_arm_frames"] as? Int == 0)
+        #expect(observed.summary["left_arm_status_counts"] as? [String: Int] == ["multiplePeople": 1])
     }
 }
