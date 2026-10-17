@@ -352,7 +352,8 @@ final class ReplayController {
         var candidates: [[BarLineCandidate]] = []
         do {
             for region in grip.regions {
-                candidates.append(try await barDetector.detect(image: frame.image, region: region))
+                candidates.append(try await barDetector.detect(image: frame.image, region: region,
+                    minimumObservedLength: grip.minimumObservedLength))
                 guard isCurrent(token, playToken) else { return false }
             }
         }

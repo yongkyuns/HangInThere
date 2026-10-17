@@ -224,7 +224,7 @@ class PlatformEvaluationTest {
                                     val crop = AutomaticApparatusReference.search(pose, exercise)
                                     if (crop != null) {
                                         val contourStart = System.nanoTime()
-                                        candidates += crop.regions.sumOf { region -> detector.detect(it.bitmap, region).size }
+                                        candidates += crop.regions.sumOf { region -> detector.detect(it.bitmap, region, crop.minimumObservedLength).size }
                                         contourLatencies += (System.nanoTime() - contourStart) / 1e6
                                     }
                                     val sourceSize = fixture["referenceImageSize"]?.jsonObject

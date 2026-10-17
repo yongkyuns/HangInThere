@@ -21,7 +21,7 @@ private actor TestBarDetector: BarEdgeDetector {
     private(set) var requests = 0
     let delay: Duration
     init(delay: Duration = .zero) { self.delay = delay }
-    func detect(image: CGImage, region: BarRegion) async throws -> [BarLineCandidate] {
+    func detect(image: CGImage, region: BarRegion, minimumObservedLength: Double?) async throws -> [BarLineCandidate] {
         requests += 1
         if delay > .zero { try await Task.sleep(for: delay) }
         return [.init(edge: .init(a: .init(x: 45, y: 20), b: .init(x: 115, y: 20)), geometryScore: 70)]
@@ -41,11 +41,13 @@ private struct DipSupportEstimator: PoseEstimator {
 }
 private actor TestDipRailDetector: BarEdgeDetector {
     private(set) var requests=0
+    private(set) var requestedMinimumLengths: [Double?] = []
     let delay:Duration
     let sharedBar:Bool
     init(delay:Duration = .zero,sharedBar:Bool = false){self.delay=delay;self.sharedBar=sharedBar}
-    func detect(image:CGImage,region:BarRegion) async throws -> [BarLineCandidate] {
+    func detect(image:CGImage,region:BarRegion,minimumObservedLength:Double?) async throws -> [BarLineCandidate] {
         requests+=1
+        requestedMinimumLengths.append(minimumObservedLength)
         if delay > .zero {try await Task.sleep(for:delay)}
         let x=(region.minX+region.maxX)/2
         let scale=Double(image.height)/96
@@ -239,6 +241,8 @@ private actor TestDipRailDetector: BarEdgeDetector {
         #expect(model.currentBar?.sourceTime.seconds == 1.4)
         #expect(model.countingFrames == 6)
         #expect(await detector.requests == 12, "Both local handles and shared-bar support are checked at each of four acquisition observations.")
+        let requestedLengths = await detector.requestedMinimumLengths
+        #expect(requestedLengths == Array(repeating: 24.0, count: 12))
     }
     @Test func sharedDipBarAcquiresAndRewindsForEitherTrackedHand() async throws {
         let url=try await VideoTestSupport.makeVideo(timestamps:[0,35,70,105,140,175].map {CMTime(value:$0,timescale:100)},width:320,height:192)

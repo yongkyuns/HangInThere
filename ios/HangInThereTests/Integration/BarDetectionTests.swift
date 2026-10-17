@@ -6,6 +6,18 @@ import Testing
 // Real Apple contour requests on original analytic pixels, independent of the
 // human-pose model and its known simulator asset failure. Not real-bar accuracy.
 @Suite struct BarDetectionTests {
+    @Test func shortHandleExtractionUsesRequestedObservedLength() async throws {
+        let image = try makeImage(width: 320, height: 320) { x, y in
+            (100...112).contains(x) && (120...167).contains(y)
+        }
+        let region = BarRegion(Point2D(x: 60, y: 80), Point2D(x: 260, y: 280))
+        let detector = VisionBarDetector()
+        #expect(try await detector.detect(image: image, region: region).isEmpty)
+        let edges = try await detector.detect(image: image, region: region, minimumObservedLength: 40)
+        try #require(edges.count == 2)
+        let pair = try #require(BarFitter.pair(edges[0].edge, edges[1].edge, minimumLength: 40))
+        #expect(pair.firstEdge.length < 50 && pair.secondEdge.length < 50)
+    }
     @Test(arguments: [false, true])
     func actualContoursLocalizeBothPolaritiesInOffsetCrop(bright: Bool) async throws {
         let image = try makeImage(width:640,height:360,bright:bright) { x,y in

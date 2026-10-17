@@ -3,6 +3,15 @@ import Testing
 @testable import HangInThere
 
 @Suite struct BarGeometryTests {
+    @Test func rejectsInvalidRequestedObservedLength() {
+        for minimum in [Double.nan, .infinity, -.infinity, -1, 1.999] {
+            #expect(throws: BarFitError.invalidMinimumObservedLength) {
+                try BarLineFitter.candidates(contours: [],
+                    region: BarRegion(Point2D(x: 0, y: 0), Point2D(x: 100, y: 100)),
+                    size: ImageSize(width: 100, height: 100), minimumObservedLength: minimum)
+            }
+        }
+    }
     let size = ImageSize(width: 640, height: 360)
     var region: BarRegion { BarRegion(Point2D(x: 20, y: 40), Point2D(x: 620, y: 220)) }
     func line(_ ax: Double, _ ay: Double, _ bx: Double, _ by: Double) -> BarSegment {

@@ -14,6 +14,56 @@ class SetupPoliciesTest {
     }
     private fun mapLandmarks(p:PoseResult,change:(Landmark)->Landmark) = p.copy(
         people=p.people.map { person -> PoseObservation(person.landmarks.map(change)) })
+    @Test fun dipSearchPreservesShortObservedSegmentsOfCurvedHandles() {
+        val frame=pose(0.0)
+        val search=assertNotNull(AutomaticApparatusReference.search(frame,ExerciseCounter.Exercise.dip))
+        val minimum=assertNotNull(search.minimumObservedLength)
+        assertEquals(40.0,minimum)
+        assertNull(assertNotNull(AutomaticApparatusReference.search(pose(0.0,false),ExerciseCounter.Exercise.pullUp)).minimumObservedLength)
+        val candidates=listOf(250.0,750.0).zip(search.regions).map { (x,region) ->
+            val contours=listOf(0.0,10.0).map { offset -> listOf(
+                Point2D(x-10+offset,555.0),Point2D(x-10+offset,600.0),
+                Point2D(x+offset,640.0),Point2D(x+25+offset,675.0)) }
+            assertTrue(BarLineFitter.candidates(contours,region,size).isEmpty())
+            BarLineFitter.candidates(contours,region,size,minimum)
+        }
+        for(side in ArmMeasurement.Side.entries) {
+            val adapter=AutomaticApparatusReference()
+            for(time in listOf(0.0,.3,.6)) assertNull(adapter.observe(pose(time),ExerciseCounter.Exercise.dip,side,candidates))
+            val bar=assertNotNull(adapter.observe(pose(1.0),ExerciseCounter.Exercise.dip,side,candidates))
+            val x=if(side==ArmMeasurement.Side.left) 250.0 else 750.0
+            assertEquals(x,bar.referenceEdge.a.x,1e-8);assertEquals(x,bar.referenceEdge.b.x,1e-8)
+            assertEquals(555.0,bar.referenceEdge.a.y,1e-8);assertEquals(600.0,bar.referenceEdge.b.y,1e-8)
+        }
+    }
+    @Test fun smallCropKeepsFreshPartialSilhouettesAfterPairedSupport() {
+        fun frame(time:Double)=mapLandmarks(pose(time)) { landmark ->
+            landmark.copy(position=Point2D(landmark.position.x*.192,landmark.position.y*.192))
+        }.copy(imageSize=ImageSize(192.0,192.0))
+        val search=assertNotNull(AutomaticApparatusReference.search(frame(0.0),ExerciseCounter.Exercise.dip))
+        val minimum=assertNotNull(search.minimumObservedLength)
+        assertEquals(24.0,minimum)
+        fun observed(partial:Boolean)=listOf(48.0,144.0).zip(search.regions).map { (x,region) ->
+            val contours=(if(partial) listOf(x) else listOf(x-3,x)).map { px ->
+                listOf(Point2D(px,110.6),Point2D(px,if(partial)130.6 else if(px==x)140.6 else 139.6)) }
+            BarLineFitter.candidates(contours,region,frame(0.0).imageSize,minimum).also {
+                assertEquals(if(partial)1 else 2,it.size)
+            }
+        }
+        val paired=observed(false);val fresh=observed(true)
+        for(side in ArmMeasurement.Side.entries) {
+            val adapter=AutomaticApparatusReference()
+            assertNull(adapter.observe(frame(0.0),ExerciseCounter.Exercise.dip,side,paired))
+            for(time in listOf(.3,.6)) {
+                assertNull(adapter.observe(frame(time),ExerciseCounter.Exercise.dip,side,fresh))
+                assertEquals(AutomaticPullUpBar.State.holding,adapter.state)
+            }
+            // Short fresh evidence sustains dwell, but the confirmed edge must
+            // still satisfy the unchanged 24px validity requirement.
+            val bar=assertNotNull(adapter.observe(frame(1.0),ExerciseCounter.Exercise.dip,side,paired))
+            assertEquals(30.0,bar.referenceEdge.length,1e-8)
+        }
+    }
     @Test fun gripAssessmentPreservesObservedCropAndSuccessType() {
         val p=pose(0.0,false)
         val grip=assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(p))
@@ -76,6 +126,47 @@ class SetupPoliciesTest {
     }
     private fun line(x:Double,y0:Double=590.0,y1:Double=700.0)=BarLineCandidate(BarSegment(Point2D(x,y0),Point2D(x,y1)),y1-y0)
     private fun rails()=listOf(listOf(line(250.0),line(258.0)),listOf(line(750.0),line(758.0)))
+    @Test fun observedHandlesMayBeginAtTheGripWithoutAnArtificialGap() {
+        for(offset in listOf(0.0,10.0,39.0)) for(reversed in listOf(false,true)) {
+            val handles=listOf(listOf(240.0,250.0),listOf(740.0,750.0)).map { xs ->
+                xs.map { x ->
+                    val edge=line(x,550+offset,670+offset)
+                    if(reversed) edge.copy(edge=BarSegment(edge.edge.b,edge.edge.a)) else edge
+                }
+            }
+            for(side in ArmMeasurement.Side.entries) {
+                val policy=AutomaticDipRails()
+                assertNull(policy.observe(pose(0.0),side,handles))
+                val silhouettes=handles.map{listOf(it[1])}
+                for(time in listOf(.3,.6)) assertNull(policy.observe(pose(time),side,silhouettes))
+                val bar=assertNotNull(policy.observe(pose(1.0),side,silhouettes))
+                assertEquals(handles[if(side==ArmMeasurement.Side.left) 0 else 1][1].edge.ordered,bar.referenceEdge)
+                assertEquals(AutomaticPullUpBar.State.locked,policy.state)
+            }
+        }
+    }
+    @Test fun evenASmallExtensionAboveTheGripCannotBecomeARail() {
+        val forearms=listOf(listOf(240.0,250.0),listOf(740.0,750.0)).map { xs ->
+            xs.map{line(it,549.999,669.999)}
+        }
+        for(side in ArmMeasurement.Side.entries) {
+            val policy=AutomaticDipRails()
+            for(time in listOf(0.0,.3,.6,1.0)) assertNull(policy.observe(pose(time),side,forearms))
+            assertNotEquals(AutomaticPullUpBar.State.locked,policy.state)
+        }
+    }
+    @Test fun aWitnessedHandleStillNeedsFreshEvidenceBelowTheGrip() {
+        val paired=listOf(listOf(240.0,250.0),listOf(740.0,750.0)).map { xs ->
+            xs.map{line(it,550.0,670.0)}
+        }
+        for(side in ArmMeasurement.Side.entries) {
+            val policy=AutomaticDipRails()
+            policy.observe(pose(0.0),side,paired)
+            for(time in listOf(.3,.6,1.0)) assertNull(policy.observe(pose(time),side,
+                listOf(listOf(line(250.0,549.999,669.999)),listOf(line(750.0,549.999,669.999)))))
+            assertNotEquals(AutomaticPullUpBar.State.locked,policy.state)
+        }
+    }
     private fun sharedBar() = listOf(555.0,575.0).map { y ->
         BarLineCandidate(BarSegment(Point2D(200.0,y),Point2D(800.0,y)),600.0)
     }

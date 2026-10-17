@@ -806,7 +806,8 @@ final class LiveCameraPreviewController: NSObject {
             var candidates: [[BarLineCandidate]] = []
             do {
                 for region in grip.regions {
-                    candidates.append(try await automaticBarDetector.detect(image: frame.image, region: region))
+                    candidates.append(try await automaticBarDetector.detect(image: frame.image, region: region,
+                        minimumObservedLength: grip.minimumObservedLength))
                 }
             } catch {
                 guard self.setupGeneration == token else { return }

@@ -96,9 +96,17 @@ enum BarLineFitter {
     // observed contour fragments, but never extends past the outermost samples.
     // Clutter retains the strongest 512 observed segments for grouping. The
     // 200,000-point and four-million simplification-operation guards still apply.
+    // An apparatus search may lower the retention floor for observed support.
+    // Never raise the original floor: shorter fresh silhouettes can maintain
+    // an already paired rail through partial occlusion in a small crop.
     static func candidates(contours: [[Point2D]], region: BarRegion,
-                           size: ImageSize) throws -> [BarLineCandidate] {
+                           size: ImageSize, minimumObservedLength: Double? = nil) throws -> [BarLineCandidate] {
         guard region.isValid(in: size) else { throw BarFitError.invalidRegion }
+        if let minimumObservedLength {
+            guard minimumObservedLength.isFinite, minimumObservedLength >= 2 else {
+                throw BarFitError.invalidMinimumObservedLength
+            }
+        }
         guard contours.reduce(0, { $0 + $1.count }) <= BarFitter.maximumPoints else {
             throw BarFitError.tooComplex
         }
@@ -126,6 +134,7 @@ enum BarLineFitter {
         }
 
         let major = max(region.width, region.height)
+        let minimumLength = min(0.25 * major, minimumObservedLength ?? .infinity)
         let maximumGap = min(45.0, 0.20 * major)
         var groups: [Group] = []
         // Preserve the original order for ordinary frames. Over-capacity frames
@@ -174,7 +183,7 @@ enum BarLineFitter {
         var result: [BarLineCandidate] = []
         for group in groups {
             let edge = group.edge
-            guard edge.isValid, edge.length >= 0.25 * major,
+            guard edge.isValid, edge.length >= minimumLength,
                   !isCropBorder(edge, region: region) else { continue }
             result.append(BarLineCandidate(edge: edge, geometryScore: edge.length))
         }
@@ -274,7 +283,7 @@ enum BarLineFitter {
     }
 }
 
-enum BarFitError: Error { case tooComplex, invalidRegion, invalidContour }
+enum BarFitError: Error { case tooComplex, invalidRegion, invalidContour, invalidMinimumObservedLength }
 
 enum BarFitter {
     static let maximumPoints = 200_000

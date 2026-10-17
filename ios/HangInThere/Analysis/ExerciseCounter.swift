@@ -481,12 +481,12 @@ struct ExerciseCounter: Sendable {
                 return interrupt(reason: "missingDipAnchor")
             }
 
-            // Near-extension samples allow the local top to follow posture
-            // changes between reps. The grip and axis remain fixed; descent
-            // with bent arms cannot drag this baseline toward the bottom.
+            // Improve the witnessed top while waiting, but never follow a
+            // gradual descent downward. armDip establishes a fresh local top
+            // after each completed cycle; grip and support axis stay fixed.
             if let degrees = sample.degrees, degrees >= Self.extendedDegrees {
-                anchor = DipSample(degrees: degrees,
-                    supportHeightPixels: sample.supportHeightPixels,
+                anchor = DipSample(degrees: maxDipDegrees(anchor.degrees, degrees),
+                    supportHeightPixels: max(anchor.supportHeightPixels, sample.supportHeightPixels),
                     imageShortSide: sample.imageShortSide,
                     otherDegrees: maxDipDegrees(anchor.otherDegrees, sample.otherDegrees))
                 dipAnchor = anchor
@@ -511,10 +511,9 @@ struct ExerciseCounter: Sendable {
                 dipAnchor = anchor
             }
 
-            if isDipSupportLike(sample) {
-                _ = sustained(nil, at: time)
-                return nil
-            }
+            // Support-like is an acquisition sanity check. In a frontal view,
+            // a real descent can retain an obtuse projected elbow; departure
+            // must follow the acquired angle and shoulder-travel baseline.
             if dipHasDeparted(sample, from: anchor) {
                 activeAttempt = true
                 phase = .outbound

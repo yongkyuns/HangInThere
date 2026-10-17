@@ -321,9 +321,10 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
             }
             Phase.ready -> {
                 var anchor = dipAnchor ?: return interrupt("missingDipAnchor")
-                // The local top follows near-extension posture changes only; grip/axis stay frozen.
+                // Improve the witnessed top, never drag it down during descent.
+                // armDip establishes a fresh local top after each completed cycle.
                 if (sample.degrees != null && sample.degrees >= extendedDegrees) {
-                    anchor = DipSample(sample.degrees, sample.supportHeightPixels, sample.imageShortSide,
+                    anchor = DipSample(maxDipDegrees(anchor.degrees, sample.degrees), max(anchor.supportHeightPixels,sample.supportHeightPixels), sample.imageShortSide,
                         maxDipDegrees(anchor.otherDegrees, sample.otherDegrees))
                     dipAnchor = anchor
                 } else if (sample.supportHeightPixels > anchor.supportHeightPixels) {
@@ -335,7 +336,8 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
                         maxDipDegrees(anchor.otherDegrees, sample.otherDegrees))
                     dipAnchor = anchor
                 }
-                if (isDipSupportLike(sample)) { sustained(null, time); return null }
+                // An obtuse projected elbow can still descend from its acquired
+                // top. The support-like acquisition check must not mask motion.
                 if (dipHasDeparted(sample, anchor)) {
                     activeAttempt = true; phase = Phase.outbound; endpoint = null; endpointSince = null
                     dipTopCandidate = null; dipBottom = null

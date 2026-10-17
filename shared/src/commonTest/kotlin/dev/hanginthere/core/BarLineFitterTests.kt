@@ -8,6 +8,14 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class BarLineFitterTests {
+    @Test fun rejectsInvalidRequestedObservedLength() {
+        for(minimum in listOf(Double.NaN,Double.POSITIVE_INFINITY,Double.NEGATIVE_INFINITY,-1.0,1.999)) {
+            val error=assertFailsWith<BarFitException> {
+                BarLineFitter.candidates(emptyList(),BarRegion(0.0,0.0,100.0,100.0),ImageSize(100.0,100.0),minimum)
+            }
+            assertEquals("invalidMinimumObservedLength",error.message)
+        }
+    }
     private val size = ImageSize(1000.0, 1000.0)
     private val region = BarRegion(0.0, 0.0, 1000.0, 1000.0)
     private fun line(x: Double, y: Double, length: Double) =

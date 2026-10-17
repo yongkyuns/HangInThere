@@ -87,6 +87,12 @@ class SetupSwiftParityTest {
         val cases=oracle.getValue("cases").jsonArray
         assertTrue(cases.size>=72,"Setup parity cases reduced")
         val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
+        for(side in ArmMeasurement.Side.entries) {
+            for(offset in listOf(0,10,39)) assertTrue("dip-handle-at-grip-$offset-$side" in ids,
+                "Missing observed handle at grip regression")
+            for(kind in listOf("above-grip-rejected","witness-above-grip-rejected"))
+                assertTrue("dip-$kind-$side" in ids,"Missing above-grip evidence regression")
+        }
         assertTrue(ids.containsAll(listOf("dip-native-overlap-left","dip-native-overlap-right",
             "pullUp-exact-source-dwell","pullUp-one-microsecond-short-source-dwell",
             "pullUp-qualified-identity-through-flexion","pullUp-flexion-then-fresh-hang-start",

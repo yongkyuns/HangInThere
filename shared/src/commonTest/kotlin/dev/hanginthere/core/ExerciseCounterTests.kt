@@ -29,6 +29,19 @@ object CounterFixtures {
         return base.copy(people = listOf(PoseObservation(landmarks)))
     }
     fun noPerson(time: Double): PoseResult = pose(time).copy(people = emptyList())
+    fun projectedDip(time: Double, degrees: Double, armScale: Double, otherDegrees: Double = degrees): PoseResult {
+        val base = bilateral(time, degrees, otherDegrees, exercise = ExerciseCounter.Exercise.dip)
+        val person = base.people[0]
+        val landmarks = ArmMeasurement.Side.entries.flatMap { side ->
+            val wrist = person.landmark(side.joints[2])!!.position
+            side.joints.map { joint ->
+                val point = person.landmark(joint)!!
+                point.copy(position = Point2D(wrist.x + (point.position.x - wrist.x) * armScale,
+                    wrist.y + (point.position.y - wrist.y) * armScale))
+            }
+        }
+        return base.copy(people = listOf(PoseObservation(landmarks)))
+    }
     fun lowJoint(time: Double, degrees: Double, exercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side,
         jointIndex: Int): PoseResult {
         val base = pose(time, degrees, exercise, side)
@@ -45,6 +58,47 @@ object CounterFixtures {
 }
 
 class ExerciseCounterTests {
+    @Test fun projectedDipsAboveSupportAngleStillCompleteThreeRelativeCycles() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = ExerciseCounter(ExerciseCounter.Exercise.dip, side)
+            val x = if(side==ArmMeasurement.Side.left) 300.0 else 700.0
+            val rail = BarSegment(Point2D(x,500.0),Point2D(x,620.0))
+            repeat(3) { rep ->
+                val origin = rep.toDouble()
+                for ((offset,degrees,scale) in listOf(Triple(0.0,170.0,1.0), Triple(.15,170.0,1.0),
+                        Triple(.3,156.0,.95), Triple(.45,127.0,.7), Triple(.6,127.0,.7)))
+                    c.consume(CounterFixtures.projectedDip(origin+offset,degrees,scale),rail)
+                assertEquals(rep,c.observedMovements)
+                assertEquals(ExerciseCounter.Phase.returning,c.phase)
+                for (offset in listOf(.75,.9))
+                    c.consume(CounterFixtures.projectedDip(origin+offset,170.0,1.0),rail)
+                assertEquals(rep+1,c.observedMovements)
+            }
+            for (time in listOf(3.0,3.15))
+                c.consume(CounterFixtures.projectedDip(time,125.0,.7),rail)
+            c.finish()
+            assertEquals(3,c.observedMovements)
+            assertEquals(1,c.interruptedAttempts)
+        }
+    }
+    @Test fun projectedDipStillRequiresTravelAndOppositeArmBending() {
+        for (side in ArmMeasurement.Side.entries) for (missingTravel in listOf(true,false)) {
+            val c = ExerciseCounter(ExerciseCounter.Exercise.dip, side)
+            val x = if(side==ArmMeasurement.Side.left) 300.0 else 700.0
+            val rail = BarSegment(Point2D(x,500.0),Point2D(x,620.0))
+            for (time in listOf(0.0,.15))
+                c.consume(CounterFixtures.projectedDip(time,170.0,1.0),rail)
+            for (time in listOf(.3,.45)) {
+                val left = if(!missingTravel && side==ArmMeasurement.Side.right) 170.0 else 125.0
+                val right = if(!missingTravel && side==ArmMeasurement.Side.left) 170.0 else 125.0
+                c.consume(CounterFixtures.projectedDip(time,left,if(missingTravel) 1.0 else .7,right),rail)
+            }
+            for (time in listOf(.6,.75))
+                c.consume(CounterFixtures.projectedDip(time,170.0,1.0),rail)
+            assertEquals(0,c.observedMovements)
+            assertEquals(1,c.partialAttempts)
+        }
+    }
     private fun pullUp() = ExerciseCounter().also(CounterFixtures::arm)
     private fun dip(side: ArmMeasurement.Side = ArmMeasurement.Side.left) = ExerciseCounter(ExerciseCounter.Exercise.dip, side)
 

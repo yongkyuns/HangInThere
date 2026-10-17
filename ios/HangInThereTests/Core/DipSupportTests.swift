@@ -22,6 +22,77 @@ import Testing
             })], backend: base.backend, requestRevision: base.requestRevision)
     }
 
+    // Original projected geometry: depth motion can shorten image-plane arm
+    // segments while the wrists stay fixed and elbow estimates remain obtuse.
+    static func projectedPose(_ time: Double, degrees: Double, armScale: Double,
+                              otherDegrees: Double? = nil) -> PoseResult {
+        let base = pose(time, degrees: degrees, otherDegrees: otherDegrees ?? degrees)
+        let person = base.people[0]
+        let landmarks = ArmMeasurement.Side.allCases.flatMap { side -> [Landmark] in
+            let wrist = person.landmark(side.joints[2])!.position
+            return side.joints.map { joint in
+                let landmark = person.landmark(joint)!
+                return Landmark(joint: joint, position: .init(
+                    x: wrist.x + (landmark.position.x - wrist.x) * armScale,
+                    y: wrist.y + (landmark.position.y - wrist.y) * armScale), confidence: landmark.confidence)
+            }
+        }
+        return PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+            people: [.init(landmarks: landmarks)], backend: base.backend, requestRevision: base.requestRevision)
+    }
+
+    @Test func projectedDipsAboveSupportAngleStillCompleteThreeRelativeCycles() {
+        for side in ArmMeasurement.Side.allCases {
+            var counter = ExerciseCounter(exercise: .dip, side: side)
+            let x = side == .left ? 500.0 : 700.0
+            let rail = BarSegment(a: .init(x: x, y: 500), b: .init(x: x, y: 620))
+            for rep in 0..<3 {
+                let origin = Double(rep)
+                for (offset, degrees, scale) in [(0.0,170.0,1.0),(0.15,170,1),
+                                                (0.3,156,0.95),(0.45,127,0.7),(0.6,127,0.7)] {
+                    counter.consume(Self.projectedPose(origin + offset, degrees: degrees, armScale: scale), referenceEdge: rail)
+                }
+                #expect(counter.observedMovements == rep)
+                #expect(counter.phase == .returning)
+                for offset in [0.75, 0.9] {
+                    counter.consume(Self.projectedPose(origin + offset, degrees: 170, armScale: 1), referenceEdge: rail)
+                }
+                #expect(counter.observedMovements == rep + 1)
+            }
+            // An unfinished fourth cycle remains excluded from the rep count.
+            for time in [3.0, 3.15] {
+                counter.consume(Self.projectedPose(time, degrees: 125, armScale: 0.7), referenceEdge: rail)
+            }
+            counter.finish()
+            #expect(counter.observedMovements == 3)
+            #expect(counter.interruptedAttempts == 1)
+        }
+    }
+
+    @Test func projectedDipStillRequiresTravelAndOppositeArmBending() {
+        for side in ArmMeasurement.Side.allCases {
+            for missingTravel in [true, false] {
+                var counter = ExerciseCounter(exercise: .dip, side: side)
+                let rail = BarSegment(a: .init(x: side == .left ? 500 : 700, y: 500),
+                                      b: .init(x: side == .left ? 500 : 700, y: 620))
+                for time in [0.0, 0.15] {
+                    counter.consume(Self.projectedPose(time, degrees: 170, armScale: 1), referenceEdge: rail)
+                }
+                for time in [0.3, 0.45] {
+                    let left = !missingTravel && side == .right ? 170.0 : 125.0
+                    let right = !missingTravel && side == .left ? 170.0 : 125.0
+                    counter.consume(Self.projectedPose(time, degrees: left,
+                        armScale: missingTravel ? 1 : 0.7, otherDegrees: right), referenceEdge: rail)
+                }
+                for time in [0.6, 0.75] {
+                    counter.consume(Self.projectedPose(time, degrees: 170, armScale: 1), referenceEdge: rail)
+                }
+                #expect(counter.observedMovements == 0)
+                #expect(counter.partialAttempts == 1)
+            }
+        }
+    }
+
     @Test func verticalRailCountsFullCycleAndScalesWithAthlete() {
         for scale in [0.5, 1.0, 1.5] {
             var counter = ExerciseCounter(exercise: .dip)

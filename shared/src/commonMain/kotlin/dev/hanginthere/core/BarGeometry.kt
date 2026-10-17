@@ -137,7 +137,9 @@ object BarLineFitter {
         val offset=points.sumOf{it.x*(-uy)+it.y*ux}/points.size;val ts=points.map{it.x*ux+it.y*uy}
         val t0=ts.min();val t1=ts.max();return if(t1>t0) Fit(ux,uy,offset,t0,t1) else null
     }
-    fun candidates(contours:List<List<Point2D>>,region:BarRegion,size:ImageSize):List<BarLineCandidate> {
+    fun candidates(contours:List<List<Point2D>>,region:BarRegion,size:ImageSize,minimumObservedLength:Double?=null):List<BarLineCandidate> {
+        if(!region.isValid(size)) throw BarFitException("invalidRegion")
+        if(minimumObservedLength!=null && (!minimumObservedLength.isFinite() || minimumObservedLength<2)) throw BarFitException("invalidMinimumObservedLength")
         BarFitter.requireComplexity(contours,region,size)
         var budget=4_000_000;val segments=mutableListOf<BarSegment>()
         var exceededCapacity = false
@@ -182,7 +184,10 @@ object BarLineFitter {
             }
             if(group!=null){group.points.addAll(points);fit(group.points)?.let{group.fit=it}} else fit(points)?.let{groups.add(Group(points.toMutableList(),it))}
         }
-        val results=groups.mapNotNull{g -> val edge=g.fit.edge;if(edge.isValid && edge.length>=.25*major && !BarFitter.cropBorder(edge,region,2.0,true)) BarLineCandidate(edge,edge.length) else null}.sortedWith(compareByDescending<BarLineCandidate>{it.geometryScore}.thenBy{it.edge.midpoint.y}.thenBy{it.edge.midpoint.x})
+        // Only lower the existing floor; small crops must retain fresh partial
+        // silhouettes that sustain an independently paired rail.
+        val minimumLength=min(.25*major,minimumObservedLength ?: Double.POSITIVE_INFINITY)
+        val results=groups.mapNotNull{g -> val edge=g.fit.edge;if(edge.isValid && edge.length>=minimumLength && !BarFitter.cropBorder(edge,region,2.0,true)) BarLineCandidate(edge,edge.length) else null}.sortedWith(compareByDescending<BarLineCandidate>{it.geometryScore}.thenBy{it.edge.midpoint.y}.thenBy{it.edge.midpoint.x})
         val unique=mutableListOf<BarLineCandidate>();results.forEach{c -> if(unique.none{it.edge.distance(c.edge.midpoint)<2 && c.edge.distance(it.edge.midpoint)<2}) unique.add(c)}
         return unique.take(12)
     }

@@ -13,6 +13,23 @@ import kotlin.math.abs
 /** Synthetic pixels exercise native extraction, not pose-model or human accuracy. */
 @RunWith(AndroidJUnit4::class)
 class ObservedEdgesTest {
+    @Test fun requestedObservedLengthRetainsShortNativeHandleSilhouettes() {
+        val pixels=IntArray(320*320) { index ->
+            val x=index%320;val y=index/320
+            if(x in 100..112 && y in 120..167) Color.BLACK else Color.WHITE
+        }
+        val bitmap=Bitmap.createBitmap(pixels,320,320,Bitmap.Config.ARGB_8888)
+        try {
+            val detector=ObservedEdges()
+            val region=BarRegion(60.0,80.0,260.0,280.0)
+            assertTrue(detector.detect(bitmap,region).isEmpty())
+            val edges=detector.detect(bitmap,region,40.0)
+            assertEquals(2,edges.size)
+            val pair=BarFitter.pair(edges[0].edge,edges[1].edge,40.0)
+            assertNotNull("Native adapter must forward the search's retention floor",pair)
+            assertTrue(requireNotNull(pair).firstEdge.length<50 && pair.secondEdge.length<50)
+        } finally { bitmap.recycle() }
+    }
     @Test fun noisyThinAndWideRailsEarnBilateralDwellWithoutChangingInputPixels() {
         val detector = ObservedEdges()
         for (width in listOf(4, 12)) for (side in ArmMeasurement.Side.entries) {

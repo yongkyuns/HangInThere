@@ -31,6 +31,10 @@ support with both hands visible. Separate local contour searches require paired
 visible handle edges, then stable grip/rail evidence before calibrating the selected
 anatomical rail. A fresh matching edge can maintain an already witnessed handle
 through partial occlusion. The rails may project vertically.
+The search retains observed straight fragments of curved handles down to the
+existing paired-support minimum (24 pixels or 4% of the image short side).
+Their visible endpoints may begin at the grip; an edge extending above the
+grip cannot qualify. No endpoints or silhouettes are inferred.
 
 A third bounded crop searches for a straight bar shared by both hands. Every
 sample must supply a fresh paired silhouette with finite overlapping support

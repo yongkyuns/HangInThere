@@ -3,13 +3,18 @@ import Foundation
 import Vision
 
 protocol BarEdgeDetector: Sendable {
-    func detect(image: CGImage, region: BarRegion) async throws -> [BarLineCandidate]
+    func detect(image: CGImage, region: BarRegion, minimumObservedLength: Double?) async throws -> [BarLineCandidate]
+}
+extension BarEdgeDetector {
+    func detect(image: CGImage, region: BarRegion) async throws -> [BarLineCandidate] {
+        try await detect(image: image, region: region, minimumObservedLength: nil)
+    }
 }
 
 // Image-only edge extraction for setup; no trained bar model or inferred line.
 // The caller supplies a manual or pose-guided region and decides how to confirm it.
 actor VisionBarDetector: BarEdgeDetector {
-    func detect(image: CGImage, region: BarRegion) throws -> [BarLineCandidate] {
+    func detect(image: CGImage, region: BarRegion, minimumObservedLength: Double? = nil) throws -> [BarLineCandidate] {
         try Task.checkCancellation()
         let size = ImageSize(width: Double(image.width), height: Double(image.height))
         guard region.isValid(in: size) else { throw BarFitError.invalidRegion }
@@ -49,7 +54,8 @@ actor VisionBarDetector: BarEdgeDetector {
                 }
             }
             try Task.checkCancellation()
-            return try BarLineFitter.candidates(contours: contours, region: cropRegion, size: size)
+            return try BarLineFitter.candidates(contours: contours, region: cropRegion, size: size,
+                                              minimumObservedLength: minimumObservedLength)
         }
     }
 }

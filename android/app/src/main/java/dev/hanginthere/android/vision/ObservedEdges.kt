@@ -12,7 +12,7 @@ import kotlin.math.floor
 /** Image-only silhouette contours. Geometry ranking never claims semantic bar confidence. */
 class ObservedEdges {
     init { check(OpenCVLoader.initLocal()) { "OpenCV could not load" } }
-    fun detect(bitmap: Bitmap, region: BarRegion): List<BarLineCandidate> {
+    fun detect(bitmap: Bitmap, region: BarRegion, minimumObservedLength: Double? = null): List<BarLineCandidate> {
         val size = ImageSize(bitmap.width.toDouble(), bitmap.height.toDouble())
         require(region.isValid(size))
         val left = floor(region.minX).toInt(); val top = floor(region.minY).toInt()
@@ -30,7 +30,7 @@ class ObservedEdges {
             Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE)
             require(contours.sumOf { it.rows() } <= 80_000) { "Contour complexity limit" }
             val observed = contours.map { contour -> contour.toArray().map { Point2D(it.x + left, it.y + top) } }
-            return BarLineFitter.candidates(observed, BarRegion(Point2D(left.toDouble(), top.toDouble()), Point2D((left + width).toDouble(), (top + height).toDouble())), size)
+            return BarLineFitter.candidates(observed, BarRegion(Point2D(left.toDouble(), top.toDouble()), Point2D((left + width).toDouble(), (top + height).toDouble())), size, minimumObservedLength)
         } finally {
             contours.forEach { it.release() }; hierarchy.release(); edges.release(); gray.release(); pixels.release()
             if (crop !== bitmap) crop.recycle()

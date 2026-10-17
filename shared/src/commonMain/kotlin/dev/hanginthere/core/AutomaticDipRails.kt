@@ -90,7 +90,7 @@ class AutomaticDipRails {
         var rails=if(witnessedRails.size==2) (0..1).mapNotNull { index ->
             val witness=witnessedRails[index]
             val matching=local[index].map{it.edge}.filter {
-                it.distance(grip.hands[index])<=short*.12 && min(it.a.y,it.b.y)>=grip.hands[index].y+short*.04 &&
+                it.distance(grip.hands[index])<=short*.12 && isBelowGrip(it,grip.hands[index]) &&
                     AutomaticReferenceStability.sameLine(witness.edge,it,short*.01,5.0,.3)
             }.sortedWith(compareBy<BarSegment>{witness.edge.perpendicularDistance(it.midpoint)}.thenByDescending{it.length}).firstOrNull()
             matching?.let{ObservedRail(witness.pair,it.ordered)}
@@ -129,15 +129,20 @@ class AutomaticDipRails {
         fun select(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize):BarSegment? {
             return selection(candidates,hand,size)?.edge
         }
+        fun minimumPairLength(size:ImageSize):Double=max(24.0,min(size.width,size.height)*.04)
+        private fun isBelowGrip(edge:BarSegment,hand:Point2D):Boolean {
+            // Observed handles may meet the grasp; forearm edges above it may not.
+            return min(edge.a.y,edge.b.y)>=hand.y
+        }
         private fun selection(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize):ObservedRail? {
             if(!size.isValid || !hand.isFinite) return null
             val short=min(size.width,size.height);val bounds=BarRegion(0.0,0.0,size.width,size.height)
             val tubes=mutableListOf<Pair<BarCandidate,BarSegment>>()
             for(i in candidates.indices) for(j in i+1 until candidates.size) {
-                val pair=BarFitter.pair(candidates[i].edge,candidates[j].edge,max(24.0,short*.04)) ?: continue
+                val pair=BarFitter.pair(candidates[i].edge,candidates[j].edge,minimumPairLength(size)) ?: continue
                 if(!listOf(pair.firstEdge.a,pair.firstEdge.b,pair.secondEdge.a,pair.secondEdge.b).all{bounds.contains(it)} || pair.centerline.distance(hand)>short*.12 || pair.centerline.midpoint.y<hand.y+short*.025) continue
                 val a=candidates[i].edge;val b=candidates[j].edge
-                if(min(a.a.y,a.b.y)<hand.y+short*.04 || min(b.a.y,b.b.y)<hand.y+short*.04) continue
+                if(!isBelowGrip(a,hand) || !isBelowGrip(b,hand)) continue
                 val edge=if(a.length==b.length){if(a.distance(hand)<=b.distance(hand)) a else b} else if(a.length>b.length) a else b
                 // Rank only complete proposals; an unreachable silhouette must
                 // not hide a valid rail merely because its centerline is near.
@@ -153,7 +158,7 @@ class AutomaticDipRails {
     }
 }
 class AutomaticApparatusReference {
-    @Serializable data class Search(val hands:List<Point2D>,val regions:List<BarRegion>) {
+    @Serializable data class Search(val hands:List<Point2D>,val regions:List<BarRegion>,val minimumObservedLength:Double?=null) {
         fun matches(other:Search,size:ImageSize)=hands.size==other.hands.size && hands.zip(other.hands).all{hypot(it.first.x-it.second.x,it.first.y-it.second.y)<=min(size.width,size.height)*.02}
     }
     private var pullUp=AutomaticPullUpBar();private var dip=AutomaticDipRails();private var sharedDipBar=AutomaticDipBar()
@@ -174,6 +179,6 @@ class AutomaticApparatusReference {
         return shared
     }
     companion object {
-        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region))};ExerciseCounter.Exercise.dip -> AutomaticDipRails.grip(pose)?.let{Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)))}}
+        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region))};ExerciseCounter.Exercise.dip -> AutomaticDipRails.grip(pose)?.let{Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)),AutomaticDipRails.minimumPairLength(pose.imageSize))}}
     }
 }

@@ -57,6 +57,29 @@ def prepare(output):
     add('pullUp-opposite-still', 'pullUp', cycle,0,right=170)
     add('pullUp-single-visible', 'pullUp',cycle,1,missing=True)
     add('dip-opposite-still', 'dip',cycle,0,right=170)
+    # Independent labels for frontal projection: shorter projected segments can
+    # accompany meaningful shoulder travel while every elbow stays above 120°.
+    def projected_dip(t, degrees, arm_scale, right=None):
+        frame = pose(t,degrees,exercise='dip',right=right)
+        points = frame['people'][0]['landmarks']
+        wrists = {p['joint'][:-5]:dict(p['position']) for p in points if p['joint'].endswith('Wrist')}
+        for point in points:
+            side = 'left' if point['joint'].startswith('left') else 'right'
+            wrist = wrists[side]
+            point['position'] = {axis:wrist[axis]+(point['position'][axis]-wrist[axis])*arm_scale for axis in ('x','y')}
+        return frame
+    for side in ('left','right'):
+        cycles = [projected_dip(rep+t,a,scale) for rep in range(3)
+                  for t,a,scale in [(0,170,1),(.15,170,1),(.3,156,.95),(.45,127,.7),(.6,127,.7),(.75,170,1),(.9,170,1)]]
+        cycles += [projected_dip(t,125,.7) for t in (3,3.15)]
+        add('dip-projected-three-and-incomplete-'+side,'dip',cycles,3,side=side,expected_partial=0)
+        for kind in ('insufficient-travel','opposite-still'):
+            frames = [projected_dip(t,170,1) for t in (0,.15)]
+            left = 170 if kind=='opposite-still' and side=='right' else 125
+            right = 170 if kind=='opposite-still' and side=='left' else 125
+            frames += [projected_dip(t,left,1 if kind=='insufficient-travel' else .7,right) for t in (.3,.45)]
+            frames += [projected_dip(t,170,1) for t in (.6,.75)]
+            add('dip-projected-'+kind+'-'+side,'dip',frames,0,side=side,expected_partial=1)
     # Reliable shoulders/wrists do not keep an expired extension witness alive.
     # Explicit one-cycle labels prevent two engines from sharing a recovery bug.
     def elbow_hole(t):

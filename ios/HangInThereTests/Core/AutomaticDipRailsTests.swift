@@ -12,6 +12,117 @@ import Testing
     }
     var rails: [[BarLineCandidate]] { [[rail(490),rail(500)], [rail(690),rail(700)]] }
 
+    @Test func observedHandlesMayBeginAtTheGripWithoutAnArtificialGap() throws {
+        for offset in [0.0, 10.0, 39.0] {
+            for reversed in [false, true] {
+                let handles = [[490.0, 500.0], [690.0, 700.0]].map { xs in
+                    xs.map { rail($0, y: 500 + offset, reversed: reversed) }
+                }
+                for side in ArmMeasurement.Side.allCases {
+                    var policy = AutomaticDipRails()
+                    #expect(policy.observe(pose: pose(0), side: side, candidates: handles) == nil)
+                    // A fresh matching silhouette must sustain each independently
+                    // paired handle, even when its visible end reaches the grasp.
+                    let silhouettes = handles.map { [$0[1]] }
+                    for time in [0.3, 0.6] {
+                        #expect(policy.observe(pose: pose(time), side: side, candidates: silhouettes) == nil)
+                    }
+                    let proposal = policy.observe(pose: pose(1), side: side, candidates: silhouettes)
+                    let bar = try #require(proposal)
+                    #expect(bar.referenceEdge == handles[side == .left ? 0 : 1][1].edge.ordered)
+                    #expect(policy.state == .locked)
+                }
+            }
+        }
+    }
+
+    @Test func dipSearchPreservesShortObservedSegmentsOfCurvedHandles() throws {
+        let frame = pose(0)
+        let search = try #require(AutomaticApparatusReference.search(pose: frame, exercise: .dip))
+        let minimum = try #require(search.minimumObservedLength)
+        #expect(minimum == 40)
+        let candidates = try zip([500.0, 700.0], search.regions.prefix(2)).map { x, region in
+            let contours = [0.0, 10.0].map { offset in
+                [(x - 10 + offset, 505.0), (x - 10 + offset, 550.0),
+                 (x + offset, 590.0), (x + 25 + offset, 625.0)].map { Point2D(x: $0.0, y: $0.1) }
+            }
+            #expect(try BarLineFitter.candidates(contours: contours, region: region, size: frame.imageSize).isEmpty)
+            return try BarLineFitter.candidates(contours: contours, region: region, size: frame.imageSize,
+                                               minimumObservedLength: minimum)
+        }
+        for side in ArmMeasurement.Side.allCases {
+            var adapter = AutomaticApparatusReference()
+            for time in [0.0, 0.3, 0.6] {
+                #expect(adapter.observe(pose: pose(time), exercise: .dip, side: side, candidates: candidates) == nil)
+            }
+            let proposal = adapter.observe(pose: pose(1), exercise: .dip, side: side, candidates: candidates)
+            let bar = try #require(proposal)
+            let x = side == .left ? 500.0 : 700.0
+            #expect(abs(bar.referenceEdge.a.x - x) < 1e-8 && abs(bar.referenceEdge.b.x - x) < 1e-8)
+            #expect(bar.referenceEdge.a.y == 505 && bar.referenceEdge.b.y == 550)
+        }
+    }
+
+    @Test func smallCropKeepsFreshPartialSilhouettesAfterPairedSupport() throws {
+        func frame(_ time: Double) -> PoseResult {
+            DipSupportTests.pose(time, scale: 0.192, otherDegrees: 170)
+        }
+        let search = try #require(AutomaticApparatusReference.search(pose: frame(0), exercise: .dip))
+        let minimum = try #require(search.minimumObservedLength)
+        #expect(minimum == 24)
+        func observed(partial: Bool) throws -> [[BarLineCandidate]] {
+            try zip([96.0, 134.4], search.regions.prefix(2)).map { x, region in
+                let contours = (partial ? [x] : [x - 3, x]).map { px in
+                    [Point2D(x: px, y: 101), Point2D(x: px, y: partial ? 121 : (px == x ? 131 : 130))]
+                }
+                let result = try BarLineFitter.candidates(contours: contours, region: region,
+                    size: frame(0).imageSize, minimumObservedLength: minimum)
+                #expect(result.count == (partial ? 1 : 2))
+                return result
+            }
+        }
+        let paired = try observed(partial: false), fresh = try observed(partial: true)
+        for side in ArmMeasurement.Side.allCases {
+            var adapter = AutomaticApparatusReference()
+            #expect(adapter.observe(pose: frame(0), exercise: .dip, side: side, candidates: paired) == nil)
+            for time in [0.3, 0.6] {
+                #expect(adapter.observe(pose: frame(time), exercise: .dip, side: side, candidates: fresh) == nil)
+                #expect(adapter.state == .holding)
+            }
+            // The final confirmed edge still needs 24px; short fresh evidence
+            // sustains dwell until the full observed silhouette is visible.
+            let proposal = adapter.observe(pose: frame(1), exercise: .dip, side: side, candidates: paired)
+            let bar = try #require(proposal)
+            #expect(abs(bar.referenceEdge.length - 30) < 1e-8)
+        }
+    }
+
+    @Test func evenASmallExtensionAboveTheGripCannotBecomeARail() {
+        let forearms = [[490.0, 500.0], [690.0, 700.0]].map { xs in
+            xs.map { rail($0, y: 499.999) }
+        }
+        for side in ArmMeasurement.Side.allCases {
+            var policy = AutomaticDipRails()
+            for time in [0.0, 0.3, 0.6, 1.0] {
+                #expect(policy.observe(pose: pose(time), side: side, candidates: forearms) == nil)
+            }
+            #expect(policy.state != .locked)
+        }
+    }
+
+    @Test func aWitnessedHandleStillNeedsFreshEvidenceBelowTheGrip() {
+        let paired = [[490.0, 500.0], [690.0, 700.0]].map { xs in xs.map { rail($0, y: 500) } }
+        for side in ArmMeasurement.Side.allCases {
+            var policy = AutomaticDipRails()
+            _ = policy.observe(pose: pose(0), side: side, candidates: paired)
+            for time in [0.3, 0.6, 1.0] {
+                #expect(policy.observe(pose: pose(time), side: side,
+                    candidates: [[rail(500, y: 499.999)], [rail(700, y: 499.999)]]) == nil)
+            }
+            #expect(policy.state != .locked)
+        }
+    }
+
     var sharedBar: [BarLineCandidate] { [505.0,515.0].map { y in
         .init(edge:.init(a:.init(x:450,y:y),b:.init(x:750,y:y)),geometryScore:300)
     } }

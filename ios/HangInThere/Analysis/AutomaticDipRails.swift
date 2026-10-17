@@ -139,6 +139,16 @@ struct AutomaticDipRails: Sendable {
         selection(candidates: candidates, hand: hand, size: size)?.edge
     }
 
+    static func minimumPairLength(in size: ImageSize) -> Double {
+        max(24, min(size.width, size.height) * 0.04)
+    }
+
+    private static func isBelowGrip(_ edge: BarSegment, hand: Point2D) -> Bool {
+        // A handle can be visible immediately below the grasp. An artificial
+        // gap discards that observed support; edges above the wrist still fail.
+        min(edge.a.y, edge.b.y) >= hand.y
+    }
+
     private static func selection(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize) -> ObservedRail? {
         guard size.isValid, hand.isFinite else { return nil }
         let short = min(size.width, size.height)
@@ -147,14 +157,13 @@ struct AutomaticDipRails: Sendable {
         for i in candidates.indices {
             for j in candidates.indices where j > i {
                 guard let pair = BarFitter.pair(candidates[i].edge, candidates[j].edge,
-                    minimumLength: max(24, short * 0.04)),
+                    minimumLength: Self.minimumPairLength(in: size)),
                     bounds.contains(pair.firstEdge.a), bounds.contains(pair.firstEdge.b),
                     bounds.contains(pair.secondEdge.a), bounds.contains(pair.secondEdge.b),
                     pair.centerline.distance(to: hand) <= short * 0.12,
                     pair.centerline.midpoint.y >= hand.y + short * 0.025 else { continue }
                 let a = candidates[i].edge, b = candidates[j].edge
-                guard min(a.a.y, a.b.y) >= hand.y + short * 0.04,
-                      min(b.a.y, b.b.y) >= hand.y + short * 0.04 else { continue }
+                guard Self.isBelowGrip(a, hand: hand), Self.isBelowGrip(b, hand: hand) else { continue }
                 let edge = a.length == b.length ? (a.distance(to: hand) <= b.distance(to: hand) ? a : b)
                     : (a.length > b.length ? a : b)
                 // Rank only complete proposals. A nearby fitted centerline
@@ -204,7 +213,7 @@ struct AutomaticDipRails: Sendable {
                 let witness = witnessedRails[index]
                 let matching = local[index].map(\.edge).filter {
                     $0.distance(to: grip.hands[index]) <= short * 0.12
-                        && min($0.a.y, $0.b.y) >= grip.hands[index].y + short * 0.04
+                        && Self.isBelowGrip($0, hand: grip.hands[index])
                         && AutomaticReferenceStability.sameLine(witness.edge, $0,
                             tolerance: short * 0.01, angleDegrees: 5, overlapFraction: 0.3)
                 }.sorted {
@@ -257,6 +266,10 @@ struct AutomaticApparatusReference: Sendable {
     struct Search: Sendable {
         let hands: [Point2D]
         let regions: [BarRegion]
+        let minimumObservedLength: Double?
+        init(hands: [Point2D], regions: [BarRegion], minimumObservedLength: Double? = nil) {
+            self.hands = hands; self.regions = regions; self.minimumObservedLength = minimumObservedLength
+        }
         func matches(_ other: Search, size: ImageSize) -> Bool {
             hands.count == other.hands.count && zip(hands, other.hands).allSatisfy {
                 hypot($0.x - $1.x, $0.y - $1.y) <= min(size.width, size.height) * 0.02
@@ -277,7 +290,10 @@ struct AutomaticApparatusReference: Sendable {
         case .dip:
             guard let grip = AutomaticDipRails.grip(in: pose) else { return nil }
             let shared = AutomaticDipBar.region(grip: grip, size: pose.imageSize)
-            return Search(hands: grip.hands, regions: grip.regions + (shared.map { [$0] } ?? []))
+            // Retain observed curved-handle fragments that are long enough for
+            // paired support, rather than imposing a whole-crop length first.
+            return Search(hands: grip.hands, regions: grip.regions + (shared.map { [$0] } ?? []),
+                          minimumObservedLength: AutomaticDipRails.minimumPairLength(in: pose.imageSize))
         }
     }
     mutating func observe(pose: PoseResult, exercise: ExerciseCounter.Exercise,

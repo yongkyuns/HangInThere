@@ -96,6 +96,17 @@ def prepare(output):
             True,True,side=side)
     single=[[candidate(x,545,x,660)] for x in [300,700]]
     add('dip-single-edges-are-not-rails','dip',[step(i/10,'dip',candidates=single) for i in range(56)],False,False)
+    for side in ('left','right'):
+        for offset in (0,10,39):
+            handles = [[candidate(x,500+offset,x,620+offset) for x in xs] for xs in ((290,300),(690,700))]
+            frames = [step(i/10,'dip',candidates=handles if i<3 else [[h[1]] for h in handles]) for i in range(56)]
+            add(f'dip-handle-at-grip-{offset}-{side}','dip',frames,True,True,side=side)
+        above = [[candidate(x,499.999,x,619.999) for x in xs] for xs in ((290,300),(690,700))]
+        add('dip-above-grip-rejected-'+side,'dip',
+            [step(i/10,'dip',candidates=above) for i in range(56)],False,False,side=side)
+        paired = [[candidate(x,500,x,620) for x in xs] for xs in ((290,300),(690,700))]
+        frames = [step(i/10,'dip',candidates=paired if i<3 else [[h[1]] for h in above]) for i in range(56)]
+        add('dip-witness-above-grip-rejected-'+side,'dip',frames,False,False,side=side)
     forearms=[[candidate(x,480,x,660),candidate(x+8,480,x+8,660)] for x in [300,700]]
     add('dip-forearm-silhouettes','dip',[step(i/10,'dip',candidates=forearms) for i in range(56)],False,False)
     partial=[step(i/10,'dip') for i in range(56)]

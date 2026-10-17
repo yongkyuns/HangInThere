@@ -61,6 +61,9 @@ class SwiftParityTest {
         val cases = report.getValue("cases").jsonArray
         assertTrue(cases.size >= 25, "Parity fixture unexpectedly empty or reduced")
         val ids = cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }.toSet()
+        for(side in ArmMeasurement.Side.entries)
+            for(kind in listOf("three-and-incomplete","insufficient-travel","opposite-still"))
+                assertTrue("dip-projected-$kind-$side" in ids,"Missing projected dip regression")
         for (side in ArmMeasurement.Side.entries) for (kind in listOf("cycle", "partial"))
             for (ending in listOf("witness", "contradicted", "reacquired"))
                 assertTrue("dip-return-$kind-$side-$ending" in ids, "Missing dip return witness regression")

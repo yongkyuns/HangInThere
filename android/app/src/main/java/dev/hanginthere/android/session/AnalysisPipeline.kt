@@ -72,7 +72,7 @@ class AnalysisPipeline(private val context: Context, selection: WorkoutExerciseS
         val detectionDue = lastDetectionSeconds?.let { seconds - it >= AutomaticPullUpBar.samplingInterval } ?: true
         val apparatus = if (search != null && detectionDue) {
             lastDetectionSeconds = seconds
-            val detections = search.regions.map { region -> runCatching { edges.detect(bitmap, region) } }
+            val detections = search.regions.map { region -> runCatching { edges.detect(bitmap, region, search.minimumObservedLength) } }
             ApparatusObservation(search, detections.map { it.getOrElse { emptyList() } },
                 detections.map { it.exceptionOrNull()?.let { error ->
                     "${error.javaClass.simpleName}: ${error.message.orEmpty()}".take(500)
