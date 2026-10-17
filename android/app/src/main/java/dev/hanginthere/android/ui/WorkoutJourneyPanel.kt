@@ -1,5 +1,6 @@
 package dev.hanginthere.android.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,7 +28,8 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlinx.coroutines.launch
 
-internal fun WorkoutQuality.color(): Color = when(level) {
+internal fun WorkoutQuality.color(): Color = journeyQualityColor(level)
+private fun journeyQualityColor(level: String): Color = when(level) {
     "steady" -> Color(0xFF008577)
     "pace", "range" -> Color(0xFFB96900)
     "practice" -> Color(0xFF6554C0)
@@ -99,6 +101,7 @@ internal fun WorkoutQuality.color(): Color = when(level) {
         } else load(false)
     }
     val workout = (loadedWorkouts ?: report.workouts).firstOrNull { it.id == selectedWorkoutId }
+    BackHandler(enabled = workout != null) { selectedWorkoutId = null }
     val historyScroll = rememberLazyListState()
     val detailScroll = rememberLazyListState()
     LaunchedEffect(selectedWorkoutId) { if (selectedWorkoutId != null) detailScroll.scrollToItem(0) }
@@ -151,8 +154,14 @@ internal fun WorkoutQuality.color(): Color = when(level) {
                     if (selectedDay != null) TextButton(onClick = { selectedDay = null }) { Text("Show all") }
                 }
                 JourneyCalendar(report.days, selectedDay) { selectedDay = if (selectedDay == it) null else it }
-                Text("Consistent · Varied · Recorded · Practice · Limited view",
-                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        JourneyLegend("Consistent", "steady"); JourneyLegend("Varied", "pace"); JourneyLegend("Recorded", "recorded")
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        JourneyLegend("Practice", "practice"); JourneyLegend("Limited view", "limited")
+                    }
+                }
                 Text(selectedDay?.let { dayLabel(it, "MMMM d") } ?: "Recent workouts", style = MaterialTheme.typography.titleLarge)
                 if (visible.isEmpty()) Text(if (selectedDay == null) "Your first workout starts here" else "No recent workout on this day",
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -169,6 +178,13 @@ internal fun WorkoutQuality.color(): Color = when(level) {
                 if (cursor != null) TextButton(onClick = { scope.launch { load(true) } }, enabled = !loading) { Text("Earlier workouts") }
             }
         }
+    }
+}
+
+@Composable private fun JourneyLegend(title: String, level: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Box(Modifier.size(5.dp).background(journeyQualityColor(level), androidx.compose.foundation.shape.CircleShape))
+        Text(title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -214,12 +230,15 @@ internal fun WorkoutQuality.color(): Color = when(level) {
             Text(set.exercise.title,style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
             Box(Modifier.clickable { explain=true }) { JourneyQualityBadge(set.quality) }
             val hold=set.holdSeconds?.takeIf { it>0 }
-            Text(if(set.completedReps>0)"${set.completedReps}" else hold?.let { String.format(Locale.ROOT,"%.1f",it) } ?: "Practice",style=MaterialTheme.typography.displayLarge)
-            Text(if(set.completedReps>0) if(set.completedReps==1)"completed rep" else "completed reps" else if(hold!=null)"seconds of practice" else "Holds and attempts count",style=MaterialTheme.typography.titleMedium)
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                set.holdSeconds?.let { JourneyMetric(journeySeconds(it),if(set.exercise==ExerciseCounter.Exercise.pullUp)"Longest hang" else "Support hold",Modifier.weight(1f)) }
-                set.outwardSeconds?.let { JourneyMetric(journeySeconds(it),if(set.exercise==ExerciseCounter.Exercise.pullUp)"To peak" else "To bottom",Modifier.weight(1f)) }
-                set.returnSeconds?.let { JourneyMetric(journeySeconds(it),"Return",Modifier.weight(1f)) }
+            Text(if(set.completedReps>0)"${set.completedReps}" else hold?.let(::journeySeconds) ?: "Practice",style=MaterialTheme.typography.displayLarge)
+            Text(if(set.completedReps>0) if(set.completedReps==1)"completed rep" else "completed reps" else if(hold!=null)
+                if(set.exercise==ExerciseCounter.Exercise.pullUp)"Longest hang" else "Support hold" else "Holds and attempts",style=MaterialTheme.typography.titleMedium)
+            if(set.completedReps>0 && set.holdSeconds!=null || set.outwardSeconds!=null || set.returnSeconds!=null) {
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                    if(set.completedReps>0)set.holdSeconds?.let { JourneyMetric(journeySeconds(it),if(set.exercise==ExerciseCounter.Exercise.pullUp)"Longest hang" else "Support hold",Modifier.weight(1f)) }
+                    set.outwardSeconds?.let { JourneyMetric(journeySeconds(it),if(set.exercise==ExerciseCounter.Exercise.pullUp)"To peak" else "To bottom",Modifier.weight(1f)) }
+                    set.returnSeconds?.let { JourneyMetric(journeySeconds(it),"Return",Modifier.weight(1f)) }
+                }
             }
             if(set.reportedReps>0)Text("${set.reportedReps} user-reported reps",style=MaterialTheme.typography.labelMedium)
         }

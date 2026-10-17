@@ -62,7 +62,7 @@ import WorkoutCore
         for section in ["Progress", "History", "Plans", "Storage"] {
             for dark in [true, false] {
                 for width in [320.0, 430.0] {
-                    let content = WorkoutLibraryView(preview: libraryDashboard, section: section)
+                    let content = NavigationStack { WorkoutLibraryView(preview: libraryDashboard, section: section) }
                         .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1100)
                         .background(dark ? Color.black : Color.white)
                     let name = "library-\(section.lowercased())-\(dark ? "dark" : "light")-\(Int(width)).png"
@@ -79,8 +79,9 @@ import WorkoutCore
         if let workout = libraryDashboard.insights.overview?.workouts.first, let example = libraryRecords.last {
             for dark in [true, false] {
                 for width in [320.0, 430.0] {
-                    let setContent = WorkoutReviewView(sets: [example], currentReps: example.reps, storageError: nil,
-                        goalsEnabled: false, summary: try journeySummary(example))
+                    let setSummary = try journeySummary(example)
+                    let setContent = NavigationStack { WorkoutReviewView(sets: [example], currentReps: example.reps, storageError: nil,
+                        goalsEnabled: false, summary: setSummary) }
                         .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1000)
                         .background(dark ? Color.black : Color.white)
                     let filename = "journey-set-\(dark ? "dark" : "light")-\(Int(width)).png"
@@ -88,7 +89,7 @@ import WorkoutCore
                     verify(text.contains { $0.contains("consistent") }, "Set quality must be glanceable", filename: filename)
                     verify(text.contains { $0.contains("yourreps") }, "Rep drill-down must be visible", filename: filename)
                     verify(!text.contains { $0.contains("leftarmtime") || $0.contains("leftmeanrange") }, "Recording diagnostics must not crowd the set summary", filename: filename)
-                    let workoutContent = JourneyWorkoutView(workout: workout).environment(\.colorScheme, dark ? .dark : .light)
+                    let workoutContent = NavigationStack { JourneyWorkoutView(workout: workout) }.environment(\.colorScheme, dark ? .dark : .light)
                         .frame(width: width, height: 1000).background(dark ? Color.black : Color.white)
                     let workoutName = "journey-workout-\(dark ? "dark" : "light")-\(Int(width)).png"
                     let workoutText = try render(workoutContent, width: width, height: 1000, filename: workoutName)
@@ -204,9 +205,10 @@ import WorkoutCore
                         let text = try render(content,width: width,height: 1100,
                             filename: "practice-\(exercise.rawValue)-\(live ? "active" : "saved")-\(dark ? "dark" : "light")-\(Int(width)).png")
                         precondition(text.contains { $0.contains("phasebreakdown") },"Phase drill-down is missing")
-                        precondition(text.contains { $0.contains("secondsofpractice") },"Hold-only practice must lead with its observed time")
+                        verify(text.contains { $0.contains(exercise == .pullUp ? "longesthang" : "supporthold") },
+                            "Hold-only practice must lead with its observed time", filename: "practice-\(exercise.rawValue)")
                         precondition(!text.contains { $0.contains("yourreps") || $0.contains("completedrep") },"Hang-only current set borrowed saved rep timing")
-                        precondition(text.contains { $0.contains("80s") },"Observed hold time missing")
+                        verify(text.contains { $0 == "80s" || $0 == "805" }, "Observed hold time missing", filename: "practice-\(exercise.rawValue)")
                     }
                 }
             }

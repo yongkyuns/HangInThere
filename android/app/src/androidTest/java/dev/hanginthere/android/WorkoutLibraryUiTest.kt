@@ -46,6 +46,9 @@ class WorkoutLibraryUiTest {
         compose.onNodeWithTag("workout-history-list").performScrollToNode(hasText("Set 1 · Pull-up"))
         compose.onNodeWithText("Set 1 · Pull-up").performClick()
         assertEquals(records.last().id, opened.get())
+        compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
+        compose.onNodeWithTag("workout-history-list").performScrollToNode(hasText(oldestDate))
+        compose.onNodeWithText(oldestDate).assertIsDisplayed()
     }
     @Test fun setSummaryRevealsRepCurvesOnlyAfterDrillDown() {
         val angles=AngleMetrics(80.0,170.0,125.0,2.0,1.0)
@@ -112,7 +115,7 @@ class WorkoutLibraryUiTest {
             compose.onNodeWithTag("workout-history-list").performScrollToNode(hasText("Set 1 · Pull-up"))
             compose.onNodeWithText("Set 1 · Pull-up").performClick()
             compose.waitUntil(10000) { compose.onAllNodesWithText("Set summary").fetchSemanticsNodes().isNotEmpty() }
-            compose.onNodeWithText("seconds of practice").assertIsDisplayed()
+            compose.onNodeWithText("Longest hang").assertIsDisplayed()
             compose.onNodeWithText("Left mean / range",substring=true).assertDoesNotExist()
             compose.onAllNodesWithText("Done").onLast().performClick()
             compose.onNodeWithText("More").performClick()

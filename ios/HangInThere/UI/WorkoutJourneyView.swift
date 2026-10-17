@@ -84,7 +84,7 @@ struct WorkoutJourneyView: View {
         return overview.workouts.filter { day.workoutIds.contains($0.id) }
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        LazyVStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Last 28 days").font(.subheadline).foregroundStyle(.secondary)
                 HStack(alignment: .top) {
@@ -165,6 +165,7 @@ struct WorkoutJourneyView: View {
 }
 struct JourneyWorkoutRow: View {
     let workout: JourneyWorkoutSummary
+    var showsDisclosure = true
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
@@ -174,7 +175,7 @@ struct JourneyWorkoutRow: View {
                     Text(workout.exercises.map(\.title).joined(separator: " · ")).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                if showsDisclosure { Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary) }
             }
             HStack {
                 Text("\(workout.completedReps) reps · \(workout.setCount) \(workout.setCount == 1 ? "set" : "sets")").font(.subheadline.weight(.medium))
@@ -189,7 +190,7 @@ struct JourneyWorkoutView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 22) {
-                JourneyWorkoutRow(workout: workout)
+                JourneyWorkoutRow(workout: workout, showsDisclosure: false)
                 Text("Sets").font(.title2.bold())
                 ForEach(Array(workout.sets.enumerated()), id: \.element.id) { index, set in
                     NavigationLink { JourneySetDestination(summary: set) } label: {

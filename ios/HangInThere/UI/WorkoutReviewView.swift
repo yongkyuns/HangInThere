@@ -99,16 +99,19 @@ struct WorkoutReviewView: View {
                 Button { showsRating = true } label: { JourneyQualityBadge(quality: set.quality) }.buttonStyle(.plain)
                     .popover(isPresented: $showsRating) { Text(set.quality.explanation).font(.subheadline).padding().frame(idealWidth: 280) }
             }
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(set.completedReps > 0 ? "\(set.completedReps)" : set.holdSeconds.flatMap { $0 > 0 ? String(format: "%.1f", $0) : nil } ?? "Practice")
+            VStack(alignment: .leading, spacing: 4) {
+                Text(set.completedReps > 0 ? "\(set.completedReps)" : set.holdSeconds.flatMap { $0 > 0 ? seconds($0) : nil } ?? "Practice")
                     .font(.system(size: resultSize, weight: .semibold, design: .rounded)).monospacedDigit()
-                Text(set.completedReps > 0 ? (set.completedReps == 1 ? "completed rep" : "completed reps") : ((set.holdSeconds ?? 0) > 0 ? "seconds of practice" : ""))
+                Text(set.completedReps > 0 ? (set.completedReps == 1 ? "completed rep" : "completed reps") :
+                    ((set.holdSeconds ?? 0) > 0 ? (set.exercise == .pullUp ? "Longest hang" : "Support hold") : "Holds and attempts"))
                     .font(.headline).foregroundStyle(.secondary)
             }.accessibilityElement(children: .combine)
-            HStack(alignment: .top, spacing: 12) {
-                if let value = set.holdSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "Longest hang" : "Support hold") }
-                if let value = set.outwardSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "To peak" : "To bottom") }
-                if let value = set.returnSeconds { JourneyMetric(value: seconds(value), label: "Return") }
+            if set.completedReps > 0 && set.holdSeconds != nil || set.outwardSeconds != nil || set.returnSeconds != nil {
+                HStack(alignment: .top, spacing: 12) {
+                    if set.completedReps > 0, let value = set.holdSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "Longest hang" : "Support hold") }
+                    if let value = set.outwardSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "To peak" : "To bottom") }
+                    if let value = set.returnSeconds { JourneyMetric(value: seconds(value), label: "Return") }
+                }
             }
             if set.reportedReps > 0 { Text("\(set.reportedReps) user-reported \(set.reportedReps == 1 ? "rep" : "reps")").font(.caption).foregroundStyle(.secondary) }
         }.journeyCard()
