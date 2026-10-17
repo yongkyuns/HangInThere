@@ -73,13 +73,15 @@ struct WorkoutReviewView: View {
                     ContentUnavailableView("Summary unavailable", systemImage: "exclamationmark.circle", description: Text(summaryError))
                 } else if record != nil { ProgressView() }
                 else { ContentUnavailableView("Your next workout starts here", systemImage: "figure.strengthtraining.traditional") }
-                if showsLibraryLink && goalsEnabled {
-                    NavigationLink { WorkoutLibraryView() } label: {
-                        HStack { Label("Workout history", systemImage: "calendar"); Spacer(); Image(systemName: "chevron.right") }.font(.headline).journeyCard()
-                    }.buttonStyle(.plain)
-                }
             }.padding()
         }.navigationTitle(selectedRepId == nil ? "Set summary" : "Rep details")
+            .toolbar {
+                if showsLibraryLink && goalsEnabled && selectedRepId == nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        NavigationLink { WorkoutLibraryView() } label: { Label("History", systemImage: "calendar") }
+                    }
+                }
+            }
             .task(id: summaryKey) {
                 guard suppliedSummary == nil, let record else { return }
                 do {

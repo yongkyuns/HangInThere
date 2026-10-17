@@ -247,10 +247,11 @@ replace the native store without changing analysis or the versioned JSON records
 
 The camera remains the live workout surface. Analysis is a read-only hierarchy:
 **28-day history → workout → set → rep**. A set opens with its completed result,
-an observed-consistency rating, three relevant metrics and one automatic coaching
+an observed-consistency rating, key metrics and one automatic coaching
 focus. Phase timelines, grip review, arm curves and recording evidence appear
 only when requested. Context forms, manual plans, corrections and storage are
 secondary menu destinations; none is required to see progress or a next step.
+History stays in the set-summary toolbar so long rep lists cannot bury the overview.
 
 `WorkoutJourney` owns the projections and coaching in common Kotlin. Native DTOs
 and SwiftUI/Compose views format and navigate those projections. The projections
@@ -264,7 +265,7 @@ Range differences greater than 20% of the median or total-duration differences
 greater than 35% produce a specific focus. Missing coverage is unknown; coverage
 below 80% produces **Limited view**, not a poor movement grade. Holds and attempts
 remain **Practice**; unfinished attempts never contribute to completed timing or
-range statistics. Unknown timing remains blank rather than becoming zero.
+range statistics. Unknown timing stays unavailable rather than becoming zero.
 
 Calendar activity uses each source set's local day, including workouts crossing
 midnight. Presentation merges cannot move activity to another date. Unique workout

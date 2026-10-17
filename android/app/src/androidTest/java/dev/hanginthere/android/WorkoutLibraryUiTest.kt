@@ -64,10 +64,13 @@ class WorkoutLibraryUiTest {
         val interrupted=reps.last().copy(id="ui-set:rep:3",ordinal=3,acceptedAt=null,returnedAt=null,closeReason="trackingLost")
         val record=WorkoutSetRecord("ui-set",ExerciseCounter.Exercise.dip,0.0,6.0,"disengaged",reps+interrupted,"authored",1)
         compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
-            dev.hanginthere.android.ui.WorkoutReviewDialog(current=record.reps,history=emptyList(),error=null,currentSet=record,showsLibraryLink=false) {}
+            dev.hanginthere.android.ui.WorkoutReviewDialog(current=record.reps,history=emptyList(),error=null,currentSet=record) {}
         } } }
         compose.onNodeWithText("Set summary").assertIsDisplayed()
         compose.onNodeWithText("completed reps").assertIsDisplayed()
+        compose.onNodeWithText("History").assertIsDisplayed().performClick()
+        compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+        compose.onAllNodesWithText("Done").onLast().performClick()
         compose.onNodeWithText("Elbow angle",substring=true).assertDoesNotExist()
         compose.onNodeWithText("Rep 3").assertDoesNotExist()
         compose.onNodeWithText("Rep 1").performScrollTo().performClick()

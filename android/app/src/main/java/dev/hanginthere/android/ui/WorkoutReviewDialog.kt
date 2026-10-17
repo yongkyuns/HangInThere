@@ -43,7 +43,10 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
             Column {
                 TopAppBar(title={Text(if(selected==null)"Set summary" else "Rep details")},navigationIcon={
                     if(selected!=null)TextButton(onClick={selectedRep=null}) { Text("Back") }
-                },actions={TextButton(onClick=onClose) { Text("Done") }})
+                },actions={
+                    if(goalsEnabled && showsLibraryLink && selected==null)TextButton(onClick={library=true}) { Text("History") }
+                    TextButton(onClick=onClose) { Text("Done") }
+                })
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {
                     error?.let { Text(it,color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall) }
                     if(selected!=null) {
@@ -79,7 +82,6 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
                         if(record?.activity!=null && showsSourcePhases)JourneyDisclosure("Phase breakdown") { WorkoutPracticePanel(record) }
                         if(record?.exercise==ExerciseCounter.Exercise.pullUp && showsSourcePhases)JourneyDisclosure("Grip and variation") { WorkoutGripPanel(record,goalsEnabled) }
                     } else Text("Your next workout starts here",style=MaterialTheme.typography.headlineSmall)
-                    if(goalsEnabled && showsLibraryLink && selected==null)OutlinedButton(onClick={library=true},modifier=Modifier.fillMaxWidth()) { Text("Workout history") }
                 }
             }
         }
