@@ -23,6 +23,7 @@ BUILD_INPUTS = (
     'models/grip/hand_landmarker.task', 'models/grip/pose_landmarker_lite.task',
 )
 SOURCE_TREES = ('ios', 'shared/src/commonMain')
+SIMULATOR_INVENTORY_TIMEOUT = 180
 CONTEXT = b'CIContext(options: [.cacheIntermediates: false])'
 SOFTWARE = b'CIContext(options: [.cacheIntermediates: false, .useSoftwareRenderer: true])'
 spec = importlib.util.spec_from_file_location('native_tools', ROOT / 'scripts/diagnose-apple-decoder.py')
@@ -165,13 +166,18 @@ def main():
             provenance = snapshot(ROOT, checkout, args.renderer)
             provenance['scope'] = ('Source-copy Core Image option experiment; eligible frames use the unchanged '
                                    'bitmap renderer in both variants. No renderer execution or latency repair qualification')
+            provenance['simulator_inventory_timeout_seconds'] = SIMULATOR_INVENTORY_TIMEOUT
             (directory / 'source.json').write_text(json.dumps(provenance, indent=2) + '\n')
             verify_snapshot(checkout, provenance['variant_sha256'])
             if args.prepare_only:
                 exit_code = 0
             else:
                 sdk = native.run(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version']).stdout.strip()
-                devices = json.loads(native.run(['xcrun', 'simctl', 'list', 'devices', 'available', '--json']).stdout)
+                # Cold CoreSimulator startup can exceed the generic 60s command
+                # limit before any device exists. Bound this read-only setup
+                # separately; do not retry tests or choose another destination.
+                devices = json.loads(native.run(['xcrun', 'simctl', 'list', 'devices', 'available', '--json'],
+                                                timeout=SIMULATOR_INVENTORY_TIMEOUT).stdout)
                 runtime, device_type = native.select_simulator(devices, sdk)
                 provenance.update(sdk_version=sdk, runtime=runtime, owned_simulator_name=simulator_name,
                                   xcode=native.run(['xcodebuild', '-version']).stdout.strip())

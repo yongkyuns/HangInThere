@@ -213,6 +213,9 @@ bundled grip models and explicitly allowed Gradle/build helpers. Java 17 is
 required; the optional CI job installs it just as the required native jobs do.
 Missing build inputs fail before native execution. The driver preserves results
 and cleans up its own simulator on completion, failure or cancellation.
+Initial read-only simulator inventory has a separate three-minute cold-start
+budget. Exhausting it remains a driver failure with no native-test result;
+it does not retry tests or substitute another destination.
 
 For the direct decoder comparison, see the
 [strict native probe instructions](../ios/HangInThereTests/Fixtures/decoder/README.md).

@@ -125,6 +125,29 @@ class SnapshotContracts(unittest.TestCase):
 
 
 class DriverContracts(unittest.TestCase):
+    def test_initial_inventory_has_a_separate_bound_and_timeout_stays_fatal(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            calls = []
+            def run(command, **kwargs):
+                calls.append((command, kwargs))
+                if '--show-sdk-version' in command:
+                    return subprocess.CompletedProcess(command, 0, '26.3', '')
+                self.assertEqual(command, ['xcrun', 'simctl', 'list', 'devices', 'available', '--json'])
+                self.assertEqual(kwargs, {'timeout': 180})
+                raise RuntimeError('Timed out after 180s: xcrun simctl list devices')
+            with patch.object(probe, 'ROOT', root), patch.object(probe, 'snapshot', return_value={'variant_sha256': {}}), \
+                 patch.object(probe, 'verify_snapshot'), patch.object(probe.native, 'run', side_effect=run), \
+                 patch.object(probe.signal, 'signal'), patch.object(sys, 'argv', ['probe', '--renderer', 'software']):
+                self.assertEqual(probe.main(), 1)
+            self.assertEqual(len(calls), 2)  # No retries, simulator mutations or native tests.
+            directory = next(root.glob('build/apple-replay-render/software/*'))
+            result = json.loads((directory / 'result.json').read_text())
+            self.assertIsNone(result['native_tests_exit_code'])
+            self.assertEqual(json.loads((directory / 'cleanup.json').read_text()), [])
+            source = json.loads((directory / 'source.json').read_text())
+            self.assertEqual(source['simulator_inventory_timeout_seconds'], 180)
+
     def test_cleanup_confirms_shutdown_or_deletion_without_hiding_other_errors(self):
         for state, expected in (('Shutdown', True), (None, True), ('Booted', False)):
             with self.subTest(state=state):
