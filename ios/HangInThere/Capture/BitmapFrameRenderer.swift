@@ -1,3 +1,4 @@
+import Accelerate
 import CoreGraphics
 import CoreVideo
 import Foundation
@@ -41,17 +42,16 @@ enum BitmapFrameRenderer {
                        isolation: isolated (any Actor)? = #isolation) -> CGImage? {
         guard supports(buffer, geometry: geometry, colorSpace: colorSpace,
                        maximumDimension: maximumDimension), let colorSpace,
-              let pixels = opaquePixels(buffer),
-              let provider = CGDataProvider(data: pixels as CFData),
-              let source = CGImage(width: CVPixelBufferGetWidth(buffer), height: CVPixelBufferGetHeight(buffer),
-                  bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: CVPixelBufferGetWidth(buffer) * 4,
-                  space: colorSpace,
-                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue
-                      | CGBitmapInfo.byteOrder32Little.rawValue),
-                  provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent) else { return nil }
-        // A canonical identity frame needs only its owned copy, not another
-        // bitmap allocation, color conversion or draw.
-        if geometry.coreImageTransform == .init(), colorSpace.name == CGColorSpace.sRGB { return source }
+              let pixels = opaquePixels(buffer) else { return nil }
+        let width = CVPixelBufferGetWidth(buffer), height = CVPixelBufferGetHeight(buffer)
+        // Canonical sRGB needs no color conversion. Move whole BGRA pixels
+        // instead of asking a bitmap context to rotate and convert channels.
+        if colorSpace.name == CGColorSpace.sRGB,
+           let oriented = orientedPixels(pixels, width: width, height: height,
+                                         transform: geometry.topLeftTransform),
+           let image = image(oriented, width: Int(geometry.outputSize.width),
+                             height: Int(geometry.outputSize.height), colorSpace: colorSpace) { return image }
+        guard let source = image(pixels, width: width, height: height, colorSpace: colorSpace) else { return nil }
         guard let outputSpace = CGColorSpace(name: CGColorSpace.sRGB),
               let context = CGContext(data: nil, width: Int(geometry.outputSize.width),
                   height: Int(geometry.outputSize.height), bitsPerComponent: 8, bytesPerRow: 0,
@@ -63,6 +63,65 @@ enum BitmapFrameRenderer {
         context.concatenate(CGAffineTransform(a: t.a, b: t.b, c: t.c, d: t.d, tx: t.tx, ty: t.ty))
         context.draw(source, in: CGRect(x: 0, y: 0, width: source.width, height: source.height))
         return context.makeImage()
+    }
+
+    private static func image(_ pixels: Data, width: Int, height: Int, colorSpace: CGColorSpace) -> CGImage? {
+        guard let provider = CGDataProvider(data: pixels as CFData) else { return nil }
+        return CGImage(width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: width * 4,
+            space: colorSpace, bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue
+                | CGBitmapInfo.byteOrder32Little.rawValue), provider: provider, decode: nil,
+            shouldInterpolate: false, intent: .defaultIntent)
+    }
+
+    private enum PixelOperation {
+        case rotate(UInt8), horizontal, vertical
+    }
+
+    private static func orientedPixels(_ pixels: Data, width: Int, height: Int, transform t: Affine2D) -> Data? {
+        switch (t.a, t.b, t.c, t.d) {
+        case (1, 0, 0, 1): return pixels
+        case (0, 1, -1, 0):
+            return transformPixels(pixels, width: width, height: height, operation: .rotate(UInt8(kRotate90DegreesClockwise)))
+        case (-1, 0, 0, -1):
+            return transformPixels(pixels, width: width, height: height, operation: .rotate(UInt8(kRotate180DegreesClockwise)))
+        case (0, -1, 1, 0):
+            return transformPixels(pixels, width: width, height: height, operation: .rotate(UInt8(kRotate270DegreesClockwise)))
+        case (-1, 0, 0, 1): return transformPixels(pixels, width: width, height: height, operation: .horizontal)
+        case (1, 0, 0, -1): return transformPixels(pixels, width: width, height: height, operation: .vertical)
+        case (0, 1, 1, 0), (0, -1, -1, 0):
+            guard let rotated = transformPixels(pixels, width: width, height: height,
+                operation: .rotate(UInt8(kRotate90DegreesClockwise))) else { return nil }
+            return transformPixels(rotated, width: height, height: width,
+                                   operation: t.b == 1 ? .horizontal : .vertical)
+        default: return nil
+        }
+    }
+
+    private static func transformPixels(_ pixels: Data, width: Int, height: Int, operation: PixelOperation) -> Data? {
+        let swapsAxes: Bool
+        if case .rotate(let turns) = operation { swapsAxes = turns % 2 == 1 } else { swapsAxes = false }
+        let outputWidth = swapsAxes ? height : width, outputHeight = swapsAxes ? width : height
+        var output = Data(count: pixels.count)
+        let succeeded = pixels.withUnsafeBytes { source in
+            output.withUnsafeMutableBytes { destination in
+                guard let input = source.baseAddress, let result = destination.baseAddress else { return false }
+                // vImage's four-channel geometry operations also accept BGRA;
+                // source bytes are read-only and every operation writes elsewhere.
+                var src = vImage_Buffer(data: UnsafeMutableRawPointer(mutating: input),
+                    height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: width * 4)
+                var dst = vImage_Buffer(data: result, height: vImagePixelCount(outputHeight),
+                    width: vImagePixelCount(outputWidth), rowBytes: outputWidth * 4)
+                let flags = vImage_Flags(kvImageNoFlags)
+                let status: vImage_Error
+                switch operation {
+                case .rotate(let turns): status = vImageRotate90_ARGB8888(&src, &dst, turns, [0, 0, 0, 0], flags)
+                case .horizontal: status = vImageHorizontalReflect_ARGB8888(&src, &dst, flags)
+                case .vertical: status = vImageVerticalReflect_ARGB8888(&src, &dst, flags)
+                }
+                return status == kvImageNoError
+            }
+        }
+        return succeeded ? output : nil
     }
 
     private static func opaquePixels(_ buffer: CVPixelBuffer) -> Data? {

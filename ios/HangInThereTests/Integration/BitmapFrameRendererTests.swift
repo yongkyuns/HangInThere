@@ -10,43 +10,50 @@ struct BitmapFrameRendererTests {
         .init(a: 0, b: 1, c: 1, d: 0), .init(a: 0, b: -1, c: -1, d: 0)
     ]
 
-    @Test(arguments: 0..<8)
-    func everyQuarterTurnAndReflectionPreservesPixelCenters(index: Int) throws {
-        let buffer = try makeBuffer(width: 13, height: 7)
-        #expect(CVPixelBufferGetBytesPerRow(buffer) > 13 * 4, "Exercise decoder row padding.")
-        let geometry = try #require(OrientedGeometry(sourceSize: .init(width: 13, height: 7),
+    @Test(arguments: 0..<8, [(13, 7), (14, 7), (13, 8), (1, 1), (1, 7), (13, 1)])
+    func everyQuarterTurnAndReflectionPreservesPixelCenters(index: Int, size: (Int, Int)) throws {
+        let (width, height) = size
+        let buffer = try makeBuffer(width: width, height: height)
+        #expect(CVPixelBufferGetBytesPerRow(buffer) > width * 4, "Exercise decoder row padding.")
+        let geometry = try #require(OrientedGeometry(sourceSize: .init(width: Double(width), height: Double(height)),
             preferredTransform: Self.transforms[index]))
         let image = try #require(BitmapFrameRenderer.render(buffer, geometry: geometry,
             colorSpace: CGColorSpace(name: CGColorSpace.sRGB), maximumDimension: 1280))
         #expect(image.width == Int(geometry.outputSize.width))
         #expect(image.height == Int(geometry.outputSize.height))
         let pixels = try rgba(image)
-        for y in 0..<7 { for x in 0..<13 {
+        for y in 0..<height { for x in 0..<width {
             let p = geometry.topLeftTransform.apply(.init(x: Double(x) + 0.5, y: Double(y) + 0.5))
             let offset = (Int(p.y) * image.width + Int(p.x)) * 4
             #expect(Array(pixels[offset..<offset + 4]) == color(x: x, y: y))
         } }
     }
 
-    @Test(arguments: ["sRGB", "rec709", "p3"])
-    func sdrColorConversionMatchesTheExistingRenderWithinOneLevel(profile: String) throws {
+    @Test(arguments: ["sRGB", "rec709", "p3"], 0..<8)
+    func sdrColorConversionMatchesTheExistingRenderWithinOneLevel(profile: String, index: Int) throws {
         let name = profile == "p3" ? CGColorSpace.displayP3 : profile == "rec709" ? CGColorSpace.itur_709 : CGColorSpace.sRGB
         let space = try #require(CGColorSpace(name: name))
         let buffer = try makeBuffer(width: 256, height: 64)
         CVBufferSetAttachment(buffer, kCVImageBufferCGColorSpaceKey, space, .shouldPropagate)
-        let geometry = try #require(OrientedGeometry(sourceSize: .init(width: 256, height: 64), preferredTransform: .init()))
+        let geometry = try #require(OrientedGeometry(sourceSize: .init(width: 256, height: 64),
+                                                    preferredTransform: Self.transforms[index]))
         let source = CIImage(cvPixelBuffer: buffer)
         let bitmap = try #require(BitmapFrameRenderer.render(buffer, geometry: geometry,
             colorSpace: source.colorSpace, maximumDimension: 1280))
-        let legacy = try #require(CIContext(options: [.cacheIntermediates: false]).createCGImage(source, from: source.extent))
+        let t = geometry.coreImageTransform
+        let normalized = source.transformed(by: .init(a: t.a, b: t.b, c: t.c, d: t.d, tx: t.tx, ty: t.ty))
+        let legacy = try #require(CIContext(options: [.cacheIntermediates: false]).createCGImage(normalized,
+            from: CGRect(x: 0, y: 0, width: geometry.outputSize.width, height: geometry.outputSize.height)))
         let left = try rgba(bitmap), right = try rgba(legacy)
         #expect(zip(left, right).allSatisfy { abs(Int($0) - Int($1)) <= 1 })
         if profile == "sRGB" { #expect(left == right) }
     }
 
-    @Test func renderedImageOwnsPixelsAcrossDecoderBufferReuse() throws {
+    @Test(arguments: 0..<8)
+    func renderedImageOwnsPixelsAcrossDecoderBufferReuse(index: Int) throws {
         let buffer = try makeBuffer(width: 13, height: 7)
-        let geometry = try #require(OrientedGeometry(sourceSize: .init(width: 13, height: 7), preferredTransform: .init()))
+        let geometry = try #require(OrientedGeometry(sourceSize: .init(width: 13, height: 7),
+                                                    preferredTransform: Self.transforms[index]))
         let image = try #require(BitmapFrameRenderer.render(buffer, geometry: geometry,
             colorSpace: CGColorSpace(name: CGColorSpace.sRGB), maximumDimension: 1280))
         let before = try rgba(image)

@@ -17,12 +17,15 @@ Successful reruns alone do not establish a repair for intermittent stalls.
 
 The production replay reader normalizes unscaled, opaque SDR BGRA frames with
 owned CPU bitmap storage when the track transform is an integer quarter-turn or
-reflection. Identity sRGB frames return their owned copy directly; other eligible RGB
-frames use a bitmap context for orientation and color conversion. Its sRGB
+reflection. Canonical sRGB frames use pixel-only Accelerate rotations/reflections,
+preserving BGRA channel ordering; identity returns the owned copy directly. Other
+eligible RGB profiles keep the bitmap context for orientation and color conversion. Its sRGB
 destination matches Core Image's [default output contract](https://developer.apple.com/documentation/coreimage/cicontextoption/outputcolorspace).
-Tests cover every pixel center in all eight orientations, padded rows, buffer
-reuse and sRGB/Rec.709/Display P3 comparisons (exact sRGB, at most one channel
-level for the other tested profiles).
+Tests cover every pixel center in all eight orientations across odd/even and
+single-pixel dimensions, padded rows and buffer reuse in each orientation.
+sRGB/Rec.709/Display P3 comparisons cover all orientations (exact sRGB, at most
+one channel level for the other tested profiles). A failed pixel-only operation
+retains the bitmap-context path; no color-profile conversion is approximated.
 
 Resampling, arbitrary transforms, HDR/extended or unavailable color spaces,
 non-BGRA or nonopaque surfaces, and unavailable CPU pixels keep the existing
