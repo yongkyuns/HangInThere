@@ -24,11 +24,24 @@ import WorkoutCore
             let id = "library-preview-\(index)"
             row["id"] = id
             row["trackedAtEpochMilliseconds"] = Int64(Date().timeIntervalSince1970 * 1000) - Int64(3 - index) * 86_400_000
-            var rep = completed; rep["id"] = id + ":rep:1"; rep["setId"] = id
-            row["reps"] = [rep]
+            var examples: [[String: Any]] = []
+            var cursor = 0.0
+            for ordinal in 1...3 {
+                let duration = index == 1 && ordinal == 3 ? 6.0 : 3.0
+                var rep = completed; rep["id"] = id + ":rep:\(ordinal)"; rep["setId"] = id; rep["ordinal"] = ordinal
+                rep["startedAt"] = cursor; rep["extremeAt"] = cursor + duration / 3
+                rep["acceptedAt"] = cursor + duration / 3; rep["returnedAt"] = cursor + duration; rep["closedAt"] = cursor + duration
+                rep["outboundSeconds"] = duration / 3; rep["returnSeconds"] = duration * 2 / 3; rep["usableDurationSeconds"] = duration
+                rep["samples"] = (completed["samples"] as! [[String: Any]]).map { point in
+                    var value = point; value["seconds"] = cursor + (point["seconds"] as! Double) * duration / 3; return value
+                }
+                for side in ["left", "right"] { var angle = rep[side] as! [String: Any]; angle["observedSeconds"] = duration; rep[side] = angle }
+                examples.append(rep); cursor += duration
+            }
+            row["reps"] = examples; row["endedAt"] = cursor
             row["activity"] = ["phases": [], "totals": [["phase": "hang", "observedSeconds": 1.0]],
-                "longestHangSeconds": 1.0, "longestSupportSeconds": 0.0, "observedSeconds": 3.0,
-                "elapsedSeconds": 3.0, "timelineTruncated": false, "metricVersion": 2] as [String: Any]
+                "longestHangSeconds": 1.0, "longestSupportSeconds": 0.0, "observedSeconds": cursor,
+                "elapsedSeconds": cursor, "timelineTruncated": false, "metricVersion": 2] as [String: Any]
             libraryRecords.append(try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: row)))
         }
         library = try libraryBridge.registerJson(stateJson: library, recordsJson: String(decoding: JSONEncoder().encode(libraryRecords), as: UTF8.self))
@@ -54,12 +67,32 @@ import WorkoutCore
                         .background(dark ? Color.black : Color.white)
                     let name = "library-\(section.lowercased())-\(dark ? "dark" : "light")-\(Int(width)).png"
                     let text = try render(content, width: width, height: 1100, filename: name)
-                    let expected = ["Progress": "comparecompletedcycles", "History": "reviewandcorrect", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
+                    let expected = ["Progress": "yourpractice", "History": "reviewandcorrect", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
                     verify(text.contains { $0.contains(expected) }, "Workout library section missing: \(section)", filename: name)
                     if section == "Plans" {
                         verify(text.contains { $0.contains("setsmeetthistarget") }, "Saved plan progress is missing", filename: name)
                         verify(text.contains { $0.contains("plannedfor") }, "Saved plan date is missing", filename: name)
                     }
+                }
+            }
+        }
+        if let workout = libraryDashboard.insights.overview?.workouts.first, let example = libraryRecords.last {
+            for dark in [true, false] {
+                for width in [320.0, 430.0] {
+                    let setContent = WorkoutReviewView(sets: [example], currentReps: example.reps, storageError: nil,
+                        goalsEnabled: false, summary: try journeySummary(example))
+                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1000)
+                        .background(dark ? Color.black : Color.white)
+                    let filename = "journey-set-\(dark ? "dark" : "light")-\(Int(width)).png"
+                    let text = try render(setContent, width: width, height: 1000, filename: filename)
+                    verify(text.contains { $0.contains("consistent") }, "Set quality must be glanceable", filename: filename)
+                    verify(text.contains { $0.contains("yourreps") }, "Rep drill-down must be visible", filename: filename)
+                    verify(!text.contains { $0.contains("leftarmtime") || $0.contains("leftmeanrange") }, "Recording diagnostics must not crowd the set summary", filename: filename)
+                    let workoutContent = JourneyWorkoutView(workout: workout).environment(\.colorScheme, dark ? .dark : .light)
+                        .frame(width: width, height: 1000).background(dark ? Color.black : Color.white)
+                    let workoutName = "journey-workout-\(dark ? "dark" : "light")-\(Int(width)).png"
+                    let workoutText = try render(workoutContent, width: width, height: 1000, filename: workoutName)
+                    verify(workoutText.contains { $0.contains("set1") }, "Workout must lead to its sets", filename: workoutName)
                 }
             }
         }
@@ -119,7 +152,8 @@ import WorkoutCore
             for dark in [true, false] {
                 for width in [320.0, 430.0] {
                     let content = WorkoutReviewView(sets: records, currentReps: current, storageError: nil,
-                        selectedRepId: prefix == "history-" ? set.completedReps.first?.id : nil, goalsEnabled: false)
+                        selectedRepId: prefix == "history-" ? set.completedReps.first?.id : nil, goalsEnabled: false,
+                        summary: try journeySummary(records.first!))
                         .environment(\.colorScheme, dark ? .dark : .light)
                         .frame(width: width, height: 1000)
                         .background(dark ? Color.black : Color.white)
@@ -127,7 +161,7 @@ import WorkoutCore
                         filename: "\(prefix)\(dark ? "dark" : "light")-\(Int(width)).png")
                     precondition(!text.contains { $0.contains("rep2") || $0.contains("rep3") }, "Unfinished reps appeared in analytics")
                     if prefix == "history-" {
-                        precondition(text.contains { $0.contains("rep1accepted") }, "Completed history selection must reveal its details independently of the current timing chart")
+                        precondition(text.contains { $0 == "rep1" || $0.contains("rep1") }, "Completed history selection must reveal its details independently of the current timing chart")
                     }
                 }
             }
@@ -164,14 +198,14 @@ import WorkoutCore
                 for dark in [true,false] {
                     for width in [320.0,430.0] {
                         let content = WorkoutReviewView(sets: live ? [set] : [practiceSet],currentReps: [],storageError: nil,
-                            currentSet: live ? practiceSet : nil,goalsEnabled: false)
+                            currentSet: live ? practiceSet : nil,goalsEnabled: false, summary: try journeySummary(practiceSet))
                             .environment(\.colorScheme,dark ? .dark : .light)
                             .frame(width: width,height: 1100).background(dark ? Color.black : Color.white)
                         let text = try render(content,width: width,height: 1100,
                             filename: "practice-\(exercise.rawValue)-\(live ? "active" : "saved")-\(dark ? "dark" : "light")-\(Int(width)).png")
-                        precondition(text.contains { $0.contains("setphases") },"Beginner set phases missing")
-                        precondition(text.contains { $0.contains("0completedreps") },"Zero-rep practice borrowed another set's reps")
-                        precondition(!text.contains { $0.contains("reptiming") || $0.contains("rep1accepted") },"Hang-only current set borrowed saved rep timing")
+                        precondition(text.contains { $0.contains("phasebreakdown") },"Phase drill-down is missing")
+                        precondition(text.contains { $0.contains("secondsofpractice") },"Hold-only practice must lead with its observed time")
+                        precondition(!text.contains { $0.contains("yourreps") || $0.contains("completedrep") },"Hang-only current set borrowed saved rep timing")
                         precondition(text.contains { $0.contains("80s") },"Observed hold time missing")
                     }
                 }
@@ -224,6 +258,11 @@ import WorkoutCore
                 }
             }
         }
+    }
+
+    @MainActor private static func journeySummary(_ record: WorkoutSetRecord) throws -> JourneySetSummary {
+        let input = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
+        return try JSONDecoder().decode(JourneySetSummary.self, from: Data(WorkoutJourneyBridge().setJson(recordJson: input).utf8))
     }
 
     /// Optimized preconditions trap without a useful CI message. Print the

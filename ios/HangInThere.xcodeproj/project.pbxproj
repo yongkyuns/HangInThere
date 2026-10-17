@@ -5,6 +5,10 @@
 	};
 	objectVersion = 56;
 	objects = {
+		0FC2E90A76F940C19D3E26EA = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutJourneyView.swift"; sourceTree = "<group>";};
+		E10CBBD612FF4DBEB35151C9 = {isa = PBXBuildFile; fileRef = 0FC2E90A76F940C19D3E26EA;};
+		EC7D773AE44E4768B82A3082 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutJourneyRecords.swift"; sourceTree = "<group>";};
+		115FB741222F4E80B8C9AB0F = {isa = PBXBuildFile; fileRef = EC7D773AE44E4768B82A3082;};
 		ACC100000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLibraryStoreTests.swift; sourceTree = "<group>";};
 		ACC200000000000000000002 = {isa = PBXBuildFile; fileRef = ACC100000000000000000002;};
 		ACC100000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutLibraryView.swift"; sourceTree = "<group>";};
@@ -353,6 +357,8 @@
 				ACB100000000000000000004,
 				AAA100000000000000000004,
 				AAA100000000000000000005,
+				EC7D773AE44E4768B82A3082,
+				0FC2E90A76F940C19D3E26EA,
 				AAA100000000000000000003,
 				AAA100000000000000000002,
 				AAA100000000000000000001,
@@ -717,6 +723,8 @@
 				ACB200000000000000000004,
 				AAA200000000000000000004,
 				AAA200000000000000000005,
+				115FB741222F4E80B8C9AB0F,
+				E10CBBD612FF4DBEB35151C9,
 				AAA200000000000000000003,
 				AAA200000000000000000002,
 				AAA200000000000000000001,

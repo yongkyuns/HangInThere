@@ -42,6 +42,8 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
     var history by remember { mutableStateOf<List<WorkoutReviewedSet>>(emptyList()) }
     var key by remember { mutableStateOf<String?>(null) }
     var tab by remember { mutableIntStateOf(0) }
+    var options by remember { mutableStateOf(false) }
+    var journeyDetail by remember { mutableStateOf<Pair<WorkoutSetDigest,List<WorkoutSetRecord>>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf<WorkoutSetRecord?>(null) }
     var evidenceRecord by remember { mutableStateOf<WorkoutSetRecord?>(null) }
@@ -66,6 +68,18 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
         try { withContext(Dispatchers.IO) { store.libraryCommand(command) }; load(); onSuccess() }
         catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = failure.message }
     } }
+    fun openJourneySet(set:WorkoutSetDigest) { scope.launch {
+        try {
+            journeyDetail=withContext(Dispatchers.IO) {
+                val state=store.libraryForReview()
+                val digest=WorkoutJourney.reviewedSet(state,set.id)
+                digest to digest.sourceSetIds.map { requireNotNull(store.libraryRecord(it)) { "Set is no longer available" } }
+            }
+        } catch(failure:Throwable) { if(failure is kotlinx.coroutines.CancellationException)throw failure;error=failure.message }
+    } }
+    suspend fun journeyPage(day:Long?,cursor:WorkoutJourneyCursor?)=withContext(Dispatchers.IO) {
+        WorkoutJourney.page(store.libraryForReview(),System.currentTimeMillis(),TimeZone.getDefault().getOffset(System.currentTimeMillis())/60000,day,cursor)
+    }
     val backupExport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) scope.launch {
             try { val text = requireNotNull(exportText); withContext(Dispatchers.IO) { requireNotNull(context.contentResolver.openOutputStream(uri)).use { it.write(text.toByteArray()) } }; exportText = null }
@@ -94,13 +108,27 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize()) {
             Column {
-                TopAppBar(title = { Text("Workout library") }, actions = { TextButton(onClick = onClose) { Text("Done") } })
-                ScrollableTabRow(selectedTabIndex = tab) { listOf("Progress", "History", "Plans", "Storage").forEachIndexed { index, title -> Tab(selected = tab == index, onClick = { tab = index }, text = { Text(title) }) } }
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                TopAppBar(title = { Text(when(tab){1 -> "Recordings";2 -> "Plans";3 -> "Storage";4 -> "Trends";else -> "Your progress"}) },
+                    navigationIcon = { if(tab!=0)TextButton(onClick={tab=0}) { Text("Back") } }, actions = {
+                        Box {
+                            TextButton(onClick={options=true}) { Text("More") }
+                            DropdownMenu(expanded=options,onDismissRequest={options=false}) {
+                                listOf("Goals and trends" to 4,"Manage recordings" to 1,"Training plans" to 2,"Storage and export" to 3).forEach { (title,index) ->
+                                    DropdownMenuItem(text={Text(title)},onClick={tab=index;options=false})
+                                }
+                            }
+                        }
+                        TextButton(onClick = onClose) { Text("Done") }
+                    })
+                error?.let { Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error) }
+                if(tab==0 && dashboard!=null) {
+                    dashboard?.insights?.overview?.let { overview ->
+                        WorkoutJourneyPanel(overview,loadPage=::journeyPage,modifier=Modifier.weight(1f),onOpenSet=::openJourneySet)
+                    }
+                } else Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     val current = dashboard
                     if (current == null) CircularProgressIndicator() else when (tab) {
-                        0 -> {
+                        4 -> {
                             val report = current.insights
                             Text(report.focus.title, style = MaterialTheme.typography.headlineSmall)
                             Text(report.focus.message); Text(report.focus.limitation, style = MaterialTheme.typography.bodySmall)
@@ -217,6 +245,10 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
                 }
             }
         }
+    }
+    journeyDetail?.let { (summary,sources) ->
+        WorkoutReviewDialog(current=sources.flatMap { it.reps },history=sources,error=null,
+            showsLibraryLink=false,summaryOverride=summary,onClose={journeyDetail=null})
     }
     editing?.let { record -> LibraryCorrectionDialog(record, editCorrection, errorMessage = error, onClose = { editing = null }) { correction ->
         apply(WorkoutLibraryCommand("review", setId = record.id, correction = correction, atEpochMilliseconds = System.currentTimeMillis())) { editing = null }

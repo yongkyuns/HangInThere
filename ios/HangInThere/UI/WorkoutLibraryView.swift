@@ -52,6 +52,7 @@ struct LibrarySession: Decodable, Identifiable, Sendable {
 struct LibraryPlanItem: Decodable, Identifiable, Sendable { let id: String; let exercise: ExerciseCounter.Exercise; let metric: String; let target: Double; let sets: Int; let context: LibraryContext }
 struct LibraryPlanResult: Decodable, Identifiable, Sendable { let planId: String; let title: String; let status: String; let completedItems: Int; let totalItems: Int; let workoutId: String?; let candidateWorkoutIds: [String]; let scheduledDay: Int64?; let items: [LibraryPlanItem]; let measuredValues: [Double]; var id: String { planId } }
 struct LibraryInsights: Decodable, Sendable {
+    let overview: JourneyOverview?
     let sessions: [LibrarySession]; let comparisonKeys: [String]; let selectedComparisonKey: String?
     let unclassifiedSets: Int; let trend: [LibraryTrend]; let weekly: [LibraryWeek]; let practiceDays: Int
     let consistencyDaysLast28: Int; let plateau: Bool?; let goal: WorkoutGoalRecord?; let suggestedGoal: WorkoutGoalRecord?
@@ -73,7 +74,7 @@ struct WorkoutLibraryDocument: FileDocument {
 
 /// Review/application actions never reconfigure or pause an active camera.
 struct WorkoutLibraryView: View {
-    private enum Tab: String, CaseIterable { case progress = "Progress", history = "History", plans = "Plans", storage = "Storage" }
+    private enum Tab: String, CaseIterable { case progress = "Progress", history = "History", plans = "Plans", storage = "Storage", trends = "Trends" }
     @State private var tab = Tab.progress
     @State private var dashboard: LibraryDashboard?
     @State private var history: [LibrarySet] = []
@@ -112,21 +113,36 @@ struct WorkoutLibraryView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Library section", selection: $tab) { ForEach(Tab.allCases, id: \.self) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).padding()
+            if tab != .progress {
+                HStack { Button("Back to progress", systemImage: "chevron.left") { tab = .progress }; Spacer() }.padding()
+            }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
                     if let error { Text(error).foregroundStyle(.orange).accessibilityLabel("Library error: \(error)") }
                     if let dashboard {
                         switch tab {
-                        case .progress: progress(dashboard.insights)
+                        case .progress:
+                            if let overview = dashboard.insights.overview { WorkoutJourneyView(overview: overview) }
+                            else { ContentUnavailableView("Record your first workout", systemImage: "chart.bar") }
                         case .history: historyList(dashboard)
                         case .plans: plans(dashboard.insights)
                         case .storage: storage(dashboard)
+                        case .trends: progress(dashboard.insights)
                         }
                     } else { ProgressView("Loading workout library…") }
                 }.padding()
             }
-        }.navigationTitle("Workout library")
+        }.navigationTitle(tab == .progress ? "Your progress" : tab.rawValue)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button("Goals and trends") { tab = .trends }
+                        Button("Manage recordings") { tab = .history }
+                        Button("Training plans") { tab = .plans }
+                        Button("Storage and export") { tab = .storage }
+                    } label: { Image(systemName: "ellipsis.circle") }
+                }
+            }
             .task { if !previewMode { await load() } }
             .sheet(item: $editing) { record in
                 NavigationStack {

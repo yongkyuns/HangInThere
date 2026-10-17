@@ -14,6 +14,30 @@ final class WorkoutLibraryStoreTests: XCTestCase {
         var values = values; values["atEpochMilliseconds"] = 200_000
         return String(decoding: try JSONSerialization.data(withJSONObject: values), as: UTF8.self)
     }
+    func testJourneyDrillUsesSharedCorrectionsAndNullableDayBridge() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("journey-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = WorkoutRecordStore(directory: root); let original = record()
+        try await store.save(original)
+        let data = try await store.libraryJourneySet(id: original.id)
+        let summary = try JSONDecoder().decode(JourneySetSummary.self, from: Data(data.utf8))
+        XCTAssertEqual(summary.quality.level, "practice")
+        XCTAssertEqual(summary.holdSeconds, 8)
+        XCTAssertEqual(summary.completedReps, 0)
+        let offsetMilliseconds = Int64(TimeZone.current.secondsFromGMT()) * 1_000
+        let localDay = Int64(floor(Double(original.trackedAtEpochMilliseconds! + offsetMilliseconds) / 86_400_000))
+        let pageJSON = try await store.libraryJourneyPage(day: localDay, cursor: nil)
+        let page = try JSONDecoder().decode(JourneyPage.self, from: Data(pageJSON.utf8))
+        XCTAssertEqual(page.workouts.count, 1)
+        XCTAssertEqual(page.workouts.first?.sets.first?.id, original.id)
+        _ = try await store.libraryCommand(command(["action": "review", "setId": original.id, "correction": ["exercise": "dip"]]))
+        let correctedJSON = try await store.libraryJourneySet(id: original.id)
+        let corrected = try JSONDecoder().decode(JourneySetSummary.self, from: Data(correctedJSON.utf8))
+        XCTAssertEqual(corrected.exercise, .dip)
+        XCTAssertNil(corrected.holdSeconds)
+        _ = try await store.libraryCommand(command(["action": "delete", "setId": original.id]))
+        do { _ = try await store.libraryJourneySet(id: original.id); XCTFail("Deleted set must not reopen") } catch { }
+    }
     func testAfterSetRefreshAppliesReviewsAndRecognizesDeletion() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

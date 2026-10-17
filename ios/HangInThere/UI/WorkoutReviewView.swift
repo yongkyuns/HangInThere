@@ -2,7 +2,8 @@ import SwiftUI
 import Charts
 import WorkoutCore
 
-/// Read-only presentation: opening this view never pauses or resets the camera.
+/// Summaries first; motion curves and recording evidence live on rep routes.
+/// Opening analysis never pauses, configures or resets the camera.
 struct WorkoutReviewView: View {
     let sets: [WorkoutSetRecord]
     let currentReps: [WorkoutRepRecord]
@@ -10,183 +11,169 @@ struct WorkoutReviewView: View {
     let currentSet: WorkoutSetRecord?
     let goalsEnabled: Bool
     let showsLibraryLink: Bool
-    @State private var selectedSet: String?
-    @State private var selectedAttempt: String?
-    @State private var progressExercise = ExerciseCounter.Exercise.pullUp
-    @State private var progressReport: WorkoutProgressReport?
-    @State private var progressError: String?
-    @State private var editingGoal = false
-    @State private var goalRevision = 0
-    @State private var selectedRep: String?
-    init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil, currentSet: WorkoutSetRecord? = nil, goalsEnabled: Bool = true, showsLibraryLink: Bool = true) {
+    let selectedRepId: String?
+    private let suppliedSummary: JourneySetSummary?
+    @State private var summary: JourneySetSummary?
+    @State private var summaryError: String?
+    @State private var showsRating = false
+    @ScaledMetric(relativeTo: .largeTitle) private var resultSize = 60.0
+
+    init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil,
+         currentSet: WorkoutSetRecord? = nil, goalsEnabled: Bool = true, showsLibraryLink: Bool = true,
+         summary: JourneySetSummary? = nil) {
         self.sets = sets; self.currentReps = currentReps; self.storageError = storageError
-        self.currentSet = currentSet; self.goalsEnabled = goalsEnabled
-        self.showsLibraryLink = showsLibraryLink
-        _progressExercise = State(initialValue: currentSet?.exercise ?? sets.first?.exercise ?? .pullUp)
-        _selectedRep = State(initialValue: selectedRepId)
+        self.currentSet = currentSet; self.goalsEnabled = goalsEnabled; self.showsLibraryLink = showsLibraryLink
+        self.selectedRepId = selectedRepId; self.suppliedSummary = summary
+        _summary = State(initialValue: summary)
     }
-    private var progressKey: String { progressExercise.rawValue + ":" + String(goalRevision) + ":" + sets.map { $0.id + $0.endReason }.joined(separator: ",") }
-    private var practiceSets: [WorkoutSetRecord] { sets.filter(\.hasPractice) }
-    private var practice: WorkoutSetRecord? { practiceSets.first { $0.id == selectedSet } ?? currentSet ?? practiceSets.first }
-    private var attempts: [WorkoutRepRecord] { (practice?.reps ?? currentReps).filter { !$0.isCompleteForAnalytics } }
-    private var completedSets: [WorkoutSetRecord] { sets.filter { $0.completedCount > 0 } }
-    private var completedCurrent: [WorkoutRepRecord] { currentReps.filter(\.isCompleteForAnalytics) }
-    private var reps: [WorkoutRepRecord] { (selectedSet != nil || currentSet != nil || currentReps.isEmpty) ? practice?.completedReps ?? [] : completedCurrent }
-    private var selected: WorkoutRepRecord? { (completedCurrent + completedSets.flatMap(\.completedReps)).first { $0.id == selectedRep } ?? reps.last }
+    private var record: WorkoutSetRecord? { currentSet ?? sets.first { set in set.reps.contains { $0.id == selectedRepId } } ?? sets.first }
+    private var sourceReps: [WorkoutRepRecord] { currentSet.map { $0.reps } ?? (sets.isEmpty ? currentReps : sets.flatMap(\.reps)) }
+    private var summaryKey: String { record.map { $0.id + $0.endReason + String($0.reps.count) + String($0.reps.last?.closedAt ?? 0) } ?? "empty" }
+    private var completed: [JourneyRepSummary] { summary?.reps.filter { $0.status == "completed" } ?? [] }
+    private var practice: [JourneyRepSummary] { summary?.reps.filter { $0.status != "completed" && $0.status != "excluded" } ?? [] }
+    private var maximumRepSeconds: Double { max(1, completed.compactMap(\.totalSeconds).max() ?? 0) }
+    private var showsSourcePhases: Bool {
+        guard let record, let summary else { return false }
+        return suppliedSummary == nil || summary.id == record.id && summary.exercise == record.exercise &&
+            summary.completedReps == record.completedCount && summary.reportedReps == 0 &&
+            summary.practiceAttempts == record.reps.count - record.completedCount
+    }
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
-                if let storageError { Text(storageError).foregroundStyle(.orange) }
-                if goalsEnabled { Text("Original measurements. The workout library applies your reviews to progress.").font(.caption).foregroundStyle(.secondary) }
-                if goalsEnabled && showsLibraryLink {
-                    NavigationLink("Workout library · trends, plans and corrections") { WorkoutLibraryView() }
-                        .font(.headline)
-                }
-                if let practice {
-                    WorkoutPracticeView(set: practice)
-                    if practice.exercise == .pullUp { WorkoutGripView(set: practice, allowsCorrections: goalsEnabled) }
-                }
-                if reps.isEmpty {
-                    if selected == nil && practice == nil && currentReps.isEmpty {
-                        ContentUnavailableView("Your motion, rep by rep", systemImage: "chart.xyaxis.line",
-                            description: Text("Hangs, support holds and partial attempts are practice. Completed cycles appear in rep timing."))
-                    }
-                } else {
-                    Text("Rep timing").font(.title2.bold())
-                    Text("Tap a rep to inspect it. Only completed reps are included; unfinished attempts are excluded.")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                    timingChart
-                }
-                if let selected { repDetails(selected) }
-                if !attempts.isEmpty {
-                    DisclosureGroup("Practice attempts · \(attempts.count)") {
-                        Text("Review what was observed and why a completed cycle was not recorded. These attempts are excluded from completed-rep statistics.").font(.caption)
-                        ForEach(attempts) { attempt in
-                            Button("Attempt \(attempt.ordinal) · \((try? attempt.evidenceAssessment(setEndReason: endReason(for: attempt)))?.title ?? "Evidence unavailable")") { selectedAttempt = attempt.id }
-                                .padding(.vertical, 4)
+                if let storageError { Text(storageError).font(.caption).foregroundStyle(.orange) }
+                if let requested = sourceReps.first(where: { $0.id == selectedRepId }) {
+                    WorkoutRepDetailView(rep: requested, endReason: record?.endReason)
+                } else if let summary {
+                    headline(summary)
+                    JourneyCoachingCard(coaching: summary.coaching)
+                    if !completed.isEmpty {
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack { Text("Your reps").font(.title3.bold()); Spacer(); Text("Tap to explore").font(.caption).foregroundStyle(.secondary) }
+                            HStack(spacing: 14) {
+                                Label(summary.exercise == .pullUp ? "Pull" : "Lower", systemImage: "circle.fill").foregroundStyle(.blue)
+                                Label(summary.exercise == .pullUp ? "Lower" : "Press", systemImage: "circle.fill").foregroundStyle(Color.blue.opacity(0.5))
+                            }.font(.caption)
+                            ForEach(completed) { rep in repLink(rep) }
                         }
-                        if let attempt = attempts.first(where: { $0.id == selectedAttempt }) { repDetails(attempt) }
                     }
-                }
-                Picker("Exercise progress", selection: $progressExercise) {
-                    Text("Pull-up").tag(ExerciseCounter.Exercise.pullUp)
-                    Text("Dip").tag(ExerciseCounter.Exercise.dip)
-                }.pickerStyle(.segmented)
-                if let progressReport, !goalsEnabled {
-                    WorkoutProgressView(report: progressReport, onEditGoal: goalsEnabled ? { editingGoal = true } : nil)
-                }
-                if let progressError { Text(progressError).foregroundStyle(.orange) }
-                else if progressReport == nil && !goalsEnabled { ProgressView("Loading progress history…") }
-                if !practiceSets.isEmpty {
-                    Text("Saved sets").font(.title2.bold())
-                    ForEach(practiceSets) { set in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Button("\(set.exercise.title) · \(set.completedCount) \(set.completedCount == 1 ? "rep" : "reps")") {
-                                selectedSet = set.id; selectedAttempt = nil; selectedRep = set.completedReps.last?.id
-                            }.font(.headline).buttonStyle(.plain)
-                            if let time = set.trackedAtEpochMilliseconds {
-                                Text(Date(timeIntervalSince1970: Double(time) / 1000).formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                            Text(set.endReason == "disengaged" ? "Automatically completed" :
-                                 set.endReason == "manual" ? "Ended manually" : "Interrupted")
-                                .font(.caption).foregroundStyle(.secondary)
-                            ForEach(set.completedReps) { rep in
-                                Button("Rep \(rep.ordinal) · \(seconds(rep.outboundSeconds)) outward / \(seconds(rep.returnSeconds)) return") {
-                                    // History is shown below, without reconfiguring active tracking.
-                                    selectedRep = rep.id; selectedSet = set.id
-                                }.buttonStyle(.plain)
-                            }
-                        }.padding().frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
+                    if !practice.isEmpty {
+                        DisclosureGroup("Other attempts · \(practice.count)") {
+                            VStack(spacing: 12) { ForEach(practice) { rep in repLink(rep) } }.padding(.top, 12)
+                        }
                     }
+                    if let record, record.activity != nil, showsSourcePhases {
+                        DisclosureGroup("Phase breakdown") { WorkoutPracticeView(set: record).padding(.top, 12) }
+                    }
+                    if let record, record.exercise == .pullUp, showsSourcePhases {
+                        DisclosureGroup("Grip and variation") { WorkoutGripView(set: record, allowsCorrections: goalsEnabled).padding(.top, 12) }
+                    }
+                } else if let summaryError {
+                    ContentUnavailableView("Summary unavailable", systemImage: "exclamationmark.circle", description: Text(summaryError))
+                } else if record != nil { ProgressView() }
+                else { ContentUnavailableView("Your next workout starts here", systemImage: "figure.strengthtraining.traditional") }
+                if showsLibraryLink && goalsEnabled {
+                    NavigationLink { WorkoutLibraryView() } label: {
+                        HStack { Label("Workout history", systemImage: "calendar"); Spacer(); Image(systemName: "chevron.right") }.font(.headline).journeyCard()
+                    }.buttonStyle(.plain)
                 }
-                Text("Angles are projected camera measurements. Counts use observed movement criteria; depth, lockout and exercise form are not verified.")
-                    .font(.footnote).foregroundStyle(.secondary)
             }.padding()
-        }.navigationTitle("Workout analysis")
-            .task(id: progressKey) { await refreshProgress() }
-            .sheet(isPresented: $editingGoal) {
-                if let progressReport {
-                    WorkoutGoalEditor(report: progressReport) { metric, target in
-                        try WorkoutGoalStore.shared.setGoal(exercise: progressReport.exercise, metric: metric, target: target)
-                        goalRevision += 1
-                    }
-                }
-            }
-    }
-    private func refreshProgress() async {
-        // Shipping progress lives in the context-aware library. Legacy projection
-        // remains available for SDK-free render/evaluation fixtures.
-        guard !goalsEnabled else { return }
-        let exercise = progressExercise
-        progressReport = nil
-        do {
-            if goalsEnabled {
-                let archive = try await WorkoutRecordStore.shared.progressEvidence(excludingSetId: currentSet?.endReason == "running" ? currentSet?.id : nil)
-                let bridge = WorkoutProgressBridge()
-                let recent = try sets.map { record in
+        }.navigationTitle(selectedRepId == nil ? "Set summary" : "Rep details")
+            .task(id: summaryKey) {
+                guard suppliedSummary == nil, let record else { return }
+                do {
                     let input = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
-                    return try JSONDecoder().decode(WorkoutProgressEvidence.self, from: Data(try bridge.evidenceJson(recordJson: input).utf8))
-                }
-                guard !Task.isCancelled, exercise == progressExercise else { return }
-                progressReport = try WorkoutGoalStore.shared.report(evidence: recent + archive.filter { archived in !recent.contains { $0.id == archived.id } }, exercise: exercise)
-            } else {
-                let history = String(decoding: try JSONEncoder().encode(sets.map(\.progressInput)), as: UTF8.self)
-                let json = try WorkoutProgressBridge().reportJson(historyJson: history, exercise: progressExercise.rawValue, goalJson: nil)
-                progressReport = try JSONDecoder().decode(WorkoutProgressReport.self, from: Data(json.utf8))
+                    let json = try WorkoutJourneyBridge().setJson(recordJson: input)
+                    try Task.checkCancellation()
+                    summary = try JSONDecoder().decode(JourneySetSummary.self, from: Data(json.utf8))
+                    summaryError = nil
+                } catch is CancellationError { } catch { summaryError = error.localizedDescription }
             }
-            progressError = nil
-        } catch { progressError = "Progress could not be loaded: \(error.localizedDescription)" }
     }
-    private var timingChart: some View {
-        Chart(Array(reps.suffix(12))) { rep in
-            if let outward = rep.outboundSeconds {
-                BarMark(xStart: .value("Seconds", 0), xEnd: .value("Seconds", outward),
-                        y: .value("Rep", "\(rep.ordinal)"), height: .fixed(18))
-                    .foregroundStyle(.cyan).accessibilityLabel("Rep \(rep.ordinal) outward")
-                    .accessibilityValue(seconds(outward))
-                if let back = rep.returnSeconds {
-                    BarMark(xStart: .value("Seconds", outward), xEnd: .value("Seconds", outward + back),
-                            y: .value("Rep", "\(rep.ordinal)"), height: .fixed(18))
-                        .foregroundStyle(.orange).accessibilityLabel("Rep \(rep.ordinal) return")
-                        .accessibilityValue(seconds(back))
-                }
+    private func headline(_ set: JourneySetSummary) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .top) {
+                Text(set.exercise.title).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Button { showsRating = true } label: { JourneyQualityBadge(quality: set.quality) }.buttonStyle(.plain)
+                    .popover(isPresented: $showsRating) { Text(set.quality.explanation).font(.subheadline).padding().frame(idealWidth: 280) }
             }
-        }
-        .chartXAxisLabel("Seconds · outward (blue), return (orange)")
-        .frame(minHeight: max(100, CGFloat(min(12, reps.count)) * 32 + 56), maxHeight: 400)
-        .chartOverlay { proxy in
-            GeometryReader { geometry in
-                Rectangle().fill(.clear).contentShape(Rectangle()).onTapGesture { point in
-                    if let frame = proxy.plotFrame,
-                       let ordinal: String = proxy.value(atY: point.y - geometry[frame].minY) {
-                        selectedRep = reps.first { "\($0.ordinal)" == ordinal }?.id
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(set.completedReps > 0 ? "\(set.completedReps)" : set.holdSeconds.flatMap { $0 > 0 ? String(format: "%.1f", $0) : nil } ?? "Practice")
+                    .font(.system(size: resultSize, weight: .semibold, design: .rounded)).monospacedDigit()
+                Text(set.completedReps > 0 ? (set.completedReps == 1 ? "completed rep" : "completed reps") : ((set.holdSeconds ?? 0) > 0 ? "seconds of practice" : ""))
+                    .font(.headline).foregroundStyle(.secondary)
+            }.accessibilityElement(children: .combine)
+            HStack(alignment: .top, spacing: 12) {
+                if let value = set.holdSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "Longest hang" : "Support hold") }
+                if let value = set.outwardSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "To peak" : "To bottom") }
+                if let value = set.returnSeconds { JourneyMetric(value: seconds(value), label: "Return") }
+            }
+            if set.reportedReps > 0 { Text("\(set.reportedReps) user-reported \(set.reportedReps == 1 ? "rep" : "reps")").font(.caption).foregroundStyle(.secondary) }
+        }.journeyCard()
+    }
+    @ViewBuilder private func repLink(_ item: JourneyRepSummary) -> some View {
+        if let rep = sourceReps.first(where: { $0.id == item.id }) {
+            NavigationLink {
+                ScrollView { WorkoutRepDetailView(rep: rep, endReason: sets.first { $0.id == rep.setId }?.endReason ?? record?.endReason, status: item.status).padding() }
+                    .navigationTitle(item.status == "completed" ? "Rep \(item.ordinal)" : "Attempt \(item.ordinal)")
+            } label: {
+                VStack(spacing: 10) {
+                    HStack {
+                        Label(item.status == "completed" ? "Rep \(item.ordinal)" : "Attempt \(item.ordinal)", systemImage: item.quality.symbol)
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(item.quality.color)
+                        Spacer()
+                        Text(item.status == "completed" ? item.totalSeconds.map(seconds) ?? "—" : item.status == "reported" ? "Reported" : item.status == "unobserved" ? "Unconfirmed" : "Practice")
+                            .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).foregroundStyle(.tertiary)
                     }
-                }
-            }
+                    if item.status == "completed", item.totalSeconds != nil {
+                        GeometryReader { geometry in
+                            HStack(spacing: 2) {
+                                Capsule().fill(Color.blue).frame(width: max(0, geometry.size.width * (item.outwardSeconds ?? 0) / maximumRepSeconds - 1))
+                                Capsule().fill(Color.blue.opacity(0.35)).frame(width: max(0, geometry.size.width * (item.returnSeconds ?? 0) / maximumRepSeconds - 1))
+                                Spacer(minLength: 0)
+                            }
+                        }.frame(height: 6).accessibilityHidden(true)
+                    }
+                }.padding(14).background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 14))
+            }.buttonStyle(.plain)
         }
     }
-    private func endReason(for rep: WorkoutRepRecord) -> String? {
-        if currentSet?.id == rep.setId { return currentSet?.endReason }
-        return sets.first { $0.id == rep.setId }?.endReason
-    }
-    private func repDetails(_ rep: WorkoutRepRecord) -> some View {
-        let assessment = try? rep.evidenceAssessment(setEndReason: endReason(for: rep))
-        return VStack(alignment: .leading, spacing: 12) {
-            Text(rep.isCompleteForAnalytics ? "Rep \(rep.ordinal) · \(rep.outcome)" : "Attempt \(rep.ordinal) · incomplete").font(.title3.bold())
-            WorkoutEvidenceView(assessment: assessment)
-            if rep.samples.isEmpty {
-                Text("Detailed motion is unavailable. The rep summary is preserved.").foregroundStyle(.secondary)
-            } else { angleChart(rep) }
-            Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 8) {
-                GridRow { Text("Time to extreme"); Text(seconds(rep.outboundSeconds)).monospacedDigit() }
-                GridRow { Text("Return"); Text(seconds(rep.returnSeconds)).monospacedDigit() }
-                GridRow { Text("Left mean / range"); Text(angleText(rep.left)).monospacedDigit() }
-                GridRow { Text("Right mean / range"); Text(angleText(rep.right)).monospacedDigit() }
-            }.font(.subheadline)
-            if rep.curveTruncated && !rep.samples.isEmpty { Text("The chart shows the most recent motion; averages include all observed intervals.").font(.caption) }
+    private func seconds(_ value: Double) -> String { String(format: "%.1fs", value) }
+}
+
+struct WorkoutRepDetailView: View {
+    let rep: WorkoutRepRecord
+    let endReason: String?
+    var status: String? = nil
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Text((status == "completed" || status == nil && rep.isCompleteForAnalytics) ? "Rep \(rep.ordinal)" : "Attempt \(rep.ordinal)").font(.title2.bold())
+            if status != "completed", !rep.isCompleteForAnalytics,
+               let assessment = try? rep.evidenceAssessment(setEndReason: endReason) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(assessment.title).font(.headline)
+                    if let reason = assessment.reason { Text(reason).font(.subheadline).foregroundStyle(.secondary) }
+                }
+            }
+            if !rep.samples.isEmpty { angleChart(rep) }
+            else { ContentUnavailableView("Motion curve unavailable", systemImage: "chart.xyaxis.line", description: Text("The timing summary is saved.")) }
+            HStack(alignment: .top, spacing: 16) {
+                JourneyMetric(value: seconds(rep.outboundSeconds), label: rep.exercise == .pullUp ? "To peak" : "To bottom")
+                JourneyMetric(value: seconds(rep.returnSeconds), label: "Return")
+            }
+            DisclosureGroup("Camera measurements") {
+                Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 10) {
+                    GridRow { Text("Left mean / range"); Text(angleText(rep.left)).monospacedDigit() }
+                    GridRow { Text("Right mean / range"); Text(angleText(rep.right)).monospacedDigit() }
+                }.font(.subheadline).padding(.top, 12)
+            }
+            DisclosureGroup("Original recording") {
+                WorkoutEvidenceView(assessment: try? rep.evidenceAssessment(setEndReason: endReason)).padding(.top, 12)
+            }
+            if rep.curveTruncated && !rep.samples.isEmpty { Text("The curve shows recent motion; timing uses the full observation.").font(.caption).foregroundStyle(.secondary) }
         }
     }
     private struct AnglePoint: Identifiable {

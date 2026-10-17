@@ -245,11 +245,32 @@ replace the native store without changing analysis or the versioned JSON records
 
 ## Review UI
 
-The camera remains the live workout surface. The analysis button opens a read-only
-review that does not pause tracking. Native Swift Charts/Compose plots show rep
-phase times, independent left/right angle curves, gaps and coverage. Historical
-rep selection is independent of the active workout. Expired curves show an
-unavailable message while retaining the timing/angle summary.
+The camera remains the live workout surface. Analysis is a read-only hierarchy:
+**28-day history → workout → set → rep**. A set opens with its completed result,
+an observed-consistency rating, three relevant metrics and one automatic coaching
+focus. Phase timelines, grip review, arm curves and recording evidence appear
+only when requested. Context forms, manual plans, corrections and storage are
+secondary menu destinations; none is required to see progress or a next step.
+
+`WorkoutJourney` owns the projections and coaching in common Kotlin. Native DTOs
+and SwiftUI/Compose views format and navigate those projections. The projections
+do not change counts or saved measurements and never run on the camera frame path.
+Both historical summaries and drills apply the same correction ledger. Original
+measurements remain available under recording details.
+
+Ratings describe consistency, not anatomical form or effort. Two or more completed
+reps with sufficient bilateral/time coverage are needed for consistency analysis.
+Range differences greater than 20% of the median or total-duration differences
+greater than 35% produce a specific focus. Missing coverage is unknown; coverage
+below 80% produces **Limited view**, not a poor movement grade. Holds and attempts
+remain **Practice**; unfinished attempts never contribute to completed timing or
+range statistics. Unknown timing remains blank rather than becoming zero.
+
+Calendar activity uses each source set's local day, including workouts crossing
+midnight. Presentation merges cannot move activity to another date. Unique workout
+totals do not double-count a session spanning two days. The first 100 workout
+summaries are bounded; older and selected-day history use revision-bound cursors.
+Expired curves retain timing summaries and an explicit unavailable state.
 
 ## Validation and qualification
 

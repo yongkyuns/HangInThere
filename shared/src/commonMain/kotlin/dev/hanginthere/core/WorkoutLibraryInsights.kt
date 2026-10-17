@@ -24,7 +24,8 @@ import kotlin.math.abs
     val trend: List<WorkoutComparablePoint>, val weekly: List<WorkoutWeeklyPractice>, val practiceDays: Int,
     val consistencyDaysLast28: Int, val plateau: Boolean?, val goal: WorkoutGoal?, val suggestedGoal: WorkoutGoal?,
     val goalBest: Double?, val goalAchieved: Boolean, val milestones: List<WorkoutMilestone>,
-    val focus: WorkoutCoachFocus, val plans: List<WorkoutPlanResult>, val policyVersion: Int = 1)
+    val focus: WorkoutCoachFocus, val plans: List<WorkoutPlanResult>, val policyVersion: Int = 1,
+    val overview: WorkoutJourneyReport? = null)
 
 /** Descriptive camera evidence. No fitness/medical prescription or anatomical validity claim. */
 object WorkoutInsights {
@@ -163,6 +164,6 @@ object WorkoutInsights {
         }
         return WorkoutLibraryInsights(sessions.take(100), keys, selected, sets.count { it.comparisonKey == null }, points, weekly, days.size,
             days.count { it in (today - 27)..today }, plateau, chosen, suggestion, goalBest, chosen != null && goalBest != null && goalBest >= chosen.target,
-            milestones, focus, plans)
+            milestones, focus, plans, overview = WorkoutJourney.report(state, now, offset))
     }
 }

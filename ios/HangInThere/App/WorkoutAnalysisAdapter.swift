@@ -513,6 +513,13 @@ actor WorkoutRecordStore {
         let json = try WorkoutFeedbackBridge().librarySummaryJson(stateJson: state, setId: id)
         return try JSONDecoder().decode(WorkoutAfterSetReport.self, from: Data(json.utf8))
     }
+    func libraryJourneySet(id: String) throws -> String {
+        try WorkoutJourneyBridge().reviewedSetJson(stateJson: libraryState(), setId: id)
+    }
+    func libraryJourneyPage(day: Int64?, cursor: String?) throws -> String {
+        try WorkoutJourneyBridge().pageJson(stateJson: libraryState(), nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000),
+            utcOffsetMinutes: Int32(TimeZone.current.secondsFromGMT() / 60), day: day.map { KotlinLong(longLong: $0) }, cursorJson: cursor)
+    }
     func libraryDashboard(key: String?, cursor: String?, now: Int64, offset: Int32) throws -> String {
         let prior = try libraryState()
         let bridge = WorkoutLibraryBridge()
