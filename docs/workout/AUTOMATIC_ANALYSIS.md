@@ -252,6 +252,8 @@ focus. Phase timelines, grip review, arm curves and recording evidence appear
 only when requested. Context forms, manual plans, corrections and storage are
 secondary menu destinations; none is required to see progress or a next step.
 History stays in the set-summary toolbar so long rep lists cannot bury the overview.
+Read-only replay review can switch between supplied recordings through **Sets**,
+without mixing a current hold with timing from an older set.
 
 `WorkoutJourney` owns the projections and coaching in common Kotlin. Native DTOs
 and SwiftUI/Compose views format and navigate those projections. The projections

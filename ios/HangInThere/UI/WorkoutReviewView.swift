@@ -16,6 +16,7 @@ struct WorkoutReviewView: View {
     @State private var summary: JourneySetSummary?
     @State private var summaryError: String?
     @State private var showsRating = false
+    @State private var selectedSetId: String?
     @ScaledMetric(relativeTo: .largeTitle) private var resultSize = 60.0
 
     init(sets: [WorkoutSetRecord], currentReps: [WorkoutRepRecord], storageError: String?, selectedRepId: String? = nil,
@@ -26,8 +27,9 @@ struct WorkoutReviewView: View {
         self.selectedRepId = selectedRepId; self.suppliedSummary = summary
         _summary = State(initialValue: summary)
     }
-    private var record: WorkoutSetRecord? { currentSet ?? sets.first { set in set.reps.contains { $0.id == selectedRepId } } ?? sets.first }
-    private var sourceReps: [WorkoutRepRecord] { currentSet.map { $0.reps } ?? (sets.isEmpty ? currentReps : sets.flatMap(\.reps)) }
+    private var localSets: [WorkoutSetRecord] { currentSet.map { current in [current] + sets.filter { $0.id != current.id } } ?? sets }
+    private var record: WorkoutSetRecord? { localSets.first { $0.id == selectedSetId } ?? currentSet ?? sets.first { set in set.reps.contains { $0.id == selectedRepId } } ?? sets.first }
+    private var sourceReps: [WorkoutRepRecord] { selectedSetId != nil ? record?.reps ?? [] : currentSet.map { $0.reps } ?? (sets.isEmpty ? currentReps : sets.flatMap(\.reps)) }
     private var summaryKey: String { record.map { $0.id + $0.endReason + String($0.reps.count) + String($0.reps.last?.closedAt ?? 0) } ?? "empty" }
     private var completed: [JourneyRepSummary] { summary?.reps.filter { $0.status == "completed" } ?? [] }
     private var practice: [JourneyRepSummary] { summary?.reps.filter { $0.status != "completed" && $0.status != "excluded" } ?? [] }
@@ -79,6 +81,17 @@ struct WorkoutReviewView: View {
                 if showsLibraryLink && goalsEnabled && selectedRepId == nil {
                     ToolbarItem(placement: .primaryAction) {
                         NavigationLink { WorkoutLibraryView() } label: { Label("History", systemImage: "calendar") }
+                    }
+                }
+                if !goalsEnabled && suppliedSummary == nil && localSets.count > 1 && selectedRepId == nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        Menu("Sets", systemImage: "square.stack") {
+                            ForEach(Array(localSets.enumerated()), id: \.element.id) { index, set in
+                                Button("Set \(index + 1) · \(set.exercise.title)") {
+                                    if set.id != record?.id { selectedSetId = set.id; summary = nil; summaryError = nil }
+                                }
+                            }
+                        }
                     }
                 }
             }

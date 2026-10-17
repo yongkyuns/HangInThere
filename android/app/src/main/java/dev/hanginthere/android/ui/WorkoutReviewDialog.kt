@@ -26,10 +26,13 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
     currentSet: WorkoutSetRecord? = null, goalsEnabled: Boolean = true, showsLibraryLink: Boolean = true,
     summaryOverride: WorkoutSetDigest? = null, onClose: () -> Unit) {
     var selectedRep by remember { mutableStateOf<String?>(null) }
+    var selectedSetId by remember { mutableStateOf<String?>(null) }
+    var setsMenu by remember { mutableStateOf(false) }
     var library by remember { mutableStateOf(false) }
-    val record=currentSet ?: history.firstOrNull()
+    val localSets = currentSet?.let { listOf(it) + history.filter { old -> old.id != it.id } } ?: history
+    val record=localSets.firstOrNull { it.id==selectedSetId } ?: currentSet ?: history.firstOrNull()
     val summary=remember(record,summaryOverride) { summaryOverride ?: record?.let(WorkoutJourney::set) }
-    val sources=currentSet?.reps ?: history.takeIf { it.isNotEmpty() }?.flatMap { it.reps } ?: current
+    val sources=if(selectedSetId!=null)record?.reps.orEmpty() else currentSet?.reps ?: history.takeIf { it.isNotEmpty() }?.flatMap { it.reps } ?: current
     val selected=sources.firstOrNull { it.id==selectedRep }
     val completed=summary?.reps.orEmpty().filter { it.status=="completed" }
     val attempts=summary?.reps.orEmpty().filter { it.status!="completed" && it.status!="excluded" }
@@ -45,6 +48,14 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
                     if(selected!=null)TextButton(onClick={selectedRep=null}) { Text("Back") }
                 },actions={
                     if(goalsEnabled && showsLibraryLink && selected==null)TextButton(onClick={library=true}) { Text("History") }
+                    if(!goalsEnabled && summaryOverride==null && localSets.size>1 && selected==null)Box {
+                        TextButton(onClick={setsMenu=true}) { Text("Sets") }
+                        DropdownMenu(expanded=setsMenu,onDismissRequest={setsMenu=false}) {
+                            localSets.forEachIndexed { index, set ->
+                                DropdownMenuItem(text={Text("Set ${index+1} · ${set.exercise.title}")},onClick={selectedSetId=set.id;selectedRep=null;setsMenu=false})
+                            }
+                        }
+                    }
                     TextButton(onClick=onClose) { Text("Done") }
                 })
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(20.dp)) {

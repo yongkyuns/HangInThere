@@ -88,15 +88,15 @@ class WorkoutActionsTest {
                 WorkoutReviewDialog(analysis.records,listOf(set),null,goalsEnabled=false) { closed=true }
             } }
         }
-        compose.onNodeWithText("Hangs, support holds and partial attempts are practice. Completed cycles appear in rep timing.").assertIsDisplayed()
+        compose.onNodeWithText("Your reps").assertDoesNotExist()
+        compose.onNodeWithText("completed rep", substring = true).assertDoesNotExist()
         compose.onAllNodesWithText("Rep 1", substring = true).assertCountEquals(0)
         compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertDoesNotExist()
-        compose.onNodeWithText("Saved sets").assertExists()
-        compose.onNodeWithText("Practice attempts · 1").assertExists()
-        compose.onNodeWithText("Practice attempts · 1").performScrollTo().performClick()
-        compose.onNodeWithText("Attempt 1 · Return not recorded").performScrollTo().performClick()
+        compose.onNodeWithText("Other attempts · 1", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("Attempt 1").performScrollTo().performClick()
         compose.onNodeWithText("Return not recorded").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("The movement reached the counting position, but its return was not recorded. A completed rep cannot be confirmed.").assertExists()
+        compose.onNodeWithText("Original recording", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("The movement reached the counting position, but its return was not recorded. A completed rep cannot be confirmed.").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Done").performClick()
         assertTrue(closed)
     }
@@ -113,11 +113,12 @@ class WorkoutActionsTest {
         compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
             WorkoutReviewDialog(emptyList(),listOf(recovered),null,goalsEnabled=false) {}
         } } }
-        compose.onNodeWithText("Practice attempts · 1").performScrollTo().performClick()
-        compose.onNodeWithText("Attempt 1 · Observation interrupted").performScrollTo().performClick()
+        compose.onNodeWithText("Other attempts · 1", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("Attempt 1").performScrollTo().performClick()
         compose.onNodeWithText("Observation interrupted").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Interrupted recording recovered").assertExists()
         compose.onNodeWithText("In progress").assertDoesNotExist()
+        compose.onNodeWithText("Original recording", substring = true).performScrollTo().performClick()
         compose.onNodeWithText("A return was observed",substring=true).assertDoesNotExist()
         assertTrue(recovered.reps.single().closeReason=="inProgress")
     }
@@ -142,18 +143,22 @@ class WorkoutActionsTest {
         compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
             WorkoutReviewDialog(set.reps,listOf(set),null,goalsEnabled=false) {}
         } } }
-        compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertExists()
-        compose.onNodeWithText("${exercise.title} · 1 rep · Interrupted").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("completed rep").assertIsDisplayed()
+        compose.onNodeWithText("Rep 1").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertDoesNotExist()
         compose.onAllNodesWithText("Rep 2", substring = true).assertCountEquals(0)
         compose.onAllNodesWithText("Rep 3", substring = true).assertCountEquals(0)
+        compose.onNodeWithText("Rep 1").performClick()
+        compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertExists()
+        compose.onNodeWithText("Rep details").assertIsDisplayed()
         // Completed history remains selectable while the current set contains
         // only unfinished attempts and therefore has no timing bars.
         compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
             WorkoutReviewDialog(set.reps.drop(1),listOf(set),null,goalsEnabled=false) {}
         } } }
-        compose.onNodeWithText("Rep 1 ·", substring = true).performScrollTo().performClick()
-        compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Rep 1").performScrollTo().performClick()
+        compose.onNodeWithText("Rep details").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Left and right elbow angles for rep 1; missing intervals are gaps").assertExists()
         compose.onAllNodesWithText("Rep 2", substring = true).assertCountEquals(0)
         compose.onAllNodesWithText("Rep 3", substring = true).assertCountEquals(0)
     }
@@ -171,12 +176,20 @@ class WorkoutActionsTest {
         compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
             WorkoutReviewDialog(emptyList(),listOf(older),null,currentSet=hold,goalsEnabled=false) {}
         } } }
-        compose.onNodeWithText("Set phases").assertIsDisplayed()
-        compose.onNodeWithText("Rep timing").assertDoesNotExist()
-        compose.onNodeWithText("Rep 1 · accepted").assertDoesNotExist()
-        compose.onNodeWithText("Pull-up · 1 rep · Ended manually").performScrollTo().performClick()
-        compose.onNodeWithText("Rep timing").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Rep 1 · accepted").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Longest hang").assertIsDisplayed()
+        compose.onNodeWithText("5.0s").assertIsDisplayed()
+        compose.onNodeWithText("Your reps").assertDoesNotExist()
+        compose.onNodeWithText("Rep 1").assertDoesNotExist()
+        compose.onNodeWithText("Phase breakdown", substring = true).performScrollTo().performClick()
+        compose.onNodeWithText("Set phases").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Sets").performClick()
+        compose.onNodeWithText("Set 2 · Pull-up").performClick()
+        compose.onNodeWithText("Your reps").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Rep 1").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Sets").performClick()
+        compose.onNodeWithText("Set 1 · Pull-up").performClick()
+        compose.onNodeWithText("Your reps").assertDoesNotExist()
+        compose.onNodeWithText("Rep 1").assertDoesNotExist()
     }
     @Test fun terminalReplayFailureCannotRenderStaleEndSetAction() {
         val runtime = WorkoutRuntime()
