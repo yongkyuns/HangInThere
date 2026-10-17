@@ -115,7 +115,8 @@ for a continuously comparable bilateral trajectory. A missing arm can make the
 lowest remaining paired sample occur during the return; that sample must not be
 reported as the cycle peak. Such records keep measured counts, completed-return
 evidence, available per-arm angles and coverage, but their joint peak/split timings
-stay null. Existing metric versions remain immutable and separate comparison keys.
+and bilateral peak-offset timings stay null. High overall coverage cannot recover
+an arm's hidden endpoint. Existing metric versions remain immutable and separate comparison keys.
 
 These are descriptive engineering defaults pending annotated phase validation.
 Transitions can lag while evidence accumulates; the timeline is not backdated

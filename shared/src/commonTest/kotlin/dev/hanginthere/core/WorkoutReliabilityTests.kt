@@ -136,6 +136,26 @@ class WorkoutReliabilityTests {
         }
     }
 
+    @Test fun highAverageCoverageCannotInventBilateralPeakOffsetAcrossABriefOcclusion() {
+        for (exercise in ExerciseCounter.Exercise.entries) {
+            val analysis = WorkoutAnalysis("brief-peak-gap", exercise)
+            analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready, null)
+            for (i in 1..1000) {
+                val time = i / 1000.0
+                val angle = 80.0 + kotlin.math.abs(time - .5) * 180
+                val phase = if (i == 1000) ExerciseCounter.Phase.ready else if (i < 550) ExerciseCounter.Phase.outbound else ExerciseCounter.Phase.returning
+                val accepted = if (exercise == ExerciseCounter.Exercise.pullUp) i == 550 else i == 1000
+                analysis.observe(sample(time, angle, angle.takeUnless { i == 500 }), phase,
+                    if (accepted) ExerciseCounter.Event(ExerciseCounter.Outcome.movement, time, "observed") else null)
+            }
+            val rep = analysis.records.single()
+            assertTrue(rep.isCompleteForAnalytics)
+            assertTrue(rep.left.coverage!! > .99 && rep.right.coverage!! > .99)
+            assertNull(rep.extremeAt)
+            assertNull(rep.bilateralExtremeOffsetSeconds)
+        }
+    }
+
     @Test fun losingAnArmMidReturnCannotRelabelMidrangeAsEndpointHold() {
         for (exercise in ExerciseCounter.Exercise.entries) {
             val analysis = WorkoutPhaseAnalysis("mid-return", exercise)

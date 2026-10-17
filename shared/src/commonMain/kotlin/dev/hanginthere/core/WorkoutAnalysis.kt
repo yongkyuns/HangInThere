@@ -160,7 +160,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
                 end.takeIf { returned }, end, reason, if (accepted != null) "accepted" else if (reason == "partial") "partial" else "interrupted",
                 measuredExtreme?.minus(start), if (returned && measuredExtreme != null) end - measuredExtreme else null, l, r,
                 if (heightMin != null && heightMax != null) heightMax!! - heightMin!! else null,
-                if ((l.coverage ?: 0.0) >= .99 && (r.coverage ?: 0.0) >= .99 && left.extremeAt != null && right.extremeAt != null)
+                if (comparableExtreme && (l.coverage ?: 0.0) >= .99 && (r.coverage ?: 0.0) >= .99 && left.extremeAt != null && right.extremeAt != null)
                     abs(left.extremeAt!! - right.extremeAt!!) else null,
                 usableSeconds, if (duration > 0) (usableSeconds / duration).coerceIn(0.0, 1.0) else null,
                 samples.toList(), truncated, metricVersion=metricVersion, acceptanceReason=acceptanceReason)
