@@ -1,0 +1,54 @@
+{
+  "appSourceRevision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b",
+  "coreCounterParity": {
+    "cases": 30,
+    "checksum": 8892.549907689074,
+    "frames": 259,
+    "iterations": 100,
+    "p50NanosecondsPerFrame": 11981.918918918918,
+    "p95NanosecondsPerFrame": 24158.03861003861,
+    "scope": "same-host core only; includes counter initialization; excludes inference and camera",
+    "swift": {
+      "cases": 30,
+      "checksum": 8892.549907689074,
+      "framesPerIteration": 259,
+      "iterations": 100,
+      "p50NanosecondsPerFrame": 38752.62548262548,
+      "p95NanosecondsPerFrame": 62280.984555984556,
+      "scope": "same-host core only; includes counter initialization, excludes pose inference and camera"
+    }
+  },
+  "jvmTests": 307,
+  "kotlinNativeTests": 305,
+  "publicContracts": 41,
+  "scope": "authored host policy/FFI validation; camera/model/physical performance excluded",
+  "setupParity": {
+    "cases": 85,
+    "frames": 4846,
+    "geometryCases": 17,
+    "matched": true,
+    "scope": "every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference"
+  },
+  "shippingAppleBridge": {
+    "activeReps": 222,
+    "cases": 2,
+    "frames": 2000,
+    "framingCases": 8,
+    "framingFeedbackCases": 19,
+    "framingFrames": 2000,
+    "framingHostBridgeP95Milliseconds": 0.110007,
+    "gripCorrectionCases": 2,
+    "gripFrames": 2000,
+    "gripHostBridgeP95Milliseconds": 1.677946,
+    "gripInferenceCases": 2,
+    "gripTransportCases": 1,
+    "hostBridgeP95Milliseconds": 1.956446,
+    "passed": true,
+    "persistenceSets": 55,
+    "practiceCases": 2,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "sceneQualificationCases": 3,
+    "timestampRegressionCases": 4
+  },
+  "swiftCoreTests": 239
+}

@@ -10,6 +10,70 @@ concurrency:
   group: temporal-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
+  selected-replay:
+    name: Selected-exercise replay integrity (not accuracy)
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Check selected-exercise routing and fail-closed evidence regressions
+        run: python3 -m unittest scripts.tests.test_temporal_native_replay Evaluation.tests.test_temporal scripts.tests.test_public_workout_datasets
+      - name: Prepare unchanged frozen public videos and selected-exercise manifest
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-temporal-pilot.py --cache Data/external/temporal --output Data/local/temporal-selected --fetch
+          python3 scripts/temporal_native_replay.py prepare --reference Data/local/temporal-selected/reference.json --manifest Data/local/temporal-selected/manifest.json --root Data/local/temporal-selected --output build/temporal-selected/input
+          cp Data/local/temporal-selected/reference.json build/temporal-selected/reference.json
+      - name: Run production selected pull-up and dip replay with automatic contours
+        run: ./scripts/evaluate-public-workouts-apple.sh build/temporal-selected/input/manifest.json build/temporal-selected/input build/temporal-selected/native-report.json
+      - name: Verify full source evidence and score every original movement label
+        run: |
+          python3 scripts/temporal_native_replay.py score --reference build/temporal-selected/reference.json --manifest build/temporal-selected/input/manifest.json --native build/temporal-selected/native-report.json --output build/temporal-selected/report.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('build/temporal-selected/report.json').read_text())
+          assert report['all_inputs_processed'], 'Selected replay did not consume the full frozen sources'
+          assert [c['exercise'] for c in report['clips']] == ['pullUp', 'dip', 'dip', 'dip']
+          assert [c['event_metrics']['reference_events'] for c in report['clips']] == [1, 10, 6, 9]
+          if not report['all_events_matched']:
+              print('::warning::Selected replay integrity passed; movement accuracy remains failed in its separate fatal check')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: temporal-selected-replay
+          retention-days: 7
+          if-no-files-found: error
+          # Scalar evidence and already-public references only. No video glob.
+          path: |
+            build/temporal-selected/*.json
+            build/temporal-selected/input/manifest.json
+
+  selected-replay-accuracy:
+    name: Selected-exercise movement accuracy
+    needs: selected-replay
+    if: ${{ !cancelled() && needs.selected-replay.result != 'cancelled' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: temporal-selected-replay
+          path: build/temporal-selected
+      - name: Preserve missed, extra and setup-unavailable movements as fatal accuracy failures
+        run: python3 scripts/temporal_native_replay.py score --reference build/temporal-selected/reference.json --manifest build/temporal-selected/input/manifest.json --native build/temporal-selected/native-report.json --output build/temporal-selected/strict-report.json --require-exact-events
+
   temporal:
     name: Real video event counts (not form qualification)
     runs-on: macos-15

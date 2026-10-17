@@ -1,0 +1,544 @@
+{
+  "app_source_revision": "f61a1460dc945a3a1592d911e73b86531d424a73",
+  "compile_flags": [
+    "-Onone",
+    "-swift-version",
+    "6",
+    "-parse-as-library"
+  ],
+  "generalization_beyond_this_clip_established": false,
+  "independent_review": "no actionable findings; all source hashes and observed summary verified",
+  "native_output_sha256": "52fc9818a8c12cecc2c2810fa43b1b8ce1cc6a45f0717a5159f64fc011a192a6",
+  "native_run_exit_code": 0,
+  "previous_audit_local_path": "build/public-scene-investigation-v2/countix_Ace4EsUWyYc.audit.json",
+  "previous_audit_sha256": "3851ad860e40d16bc5bed32b598cd4e3bc92496fe9f05a964cf6ea2ec1098d86",
+  "production_policy_changed": false,
+  "production_thresholds_changed": false,
+  "provenance": {
+    "case_id": "countix_Ace4EsUWyYc",
+    "executable_sha256": "16107f77c7100a0be233fee96737db61dfc4f68afb52a201e8f07dd5c3e3d8a5",
+    "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+    "media_sha256": "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+    "scope": "experimental observed-edge continuity comparison; no production policy change or physical accuracy qualification",
+    "sources_sha256": {
+      "build/pullup-edge-continuity/EdgeContinuityProbe.swift": "f81b53bb4385ed086d8107fd137733146617e1c89977fc37e888ca5acc242c40",
+      "ios/HangInThere/Analysis/ArmMeasurement.swift": "3aa7733af9f17592e2dfb904097b704d16bf7b20ec2e2b4b8cc2eca376c1dc15",
+      "ios/HangInThere/Analysis/AutomaticDipBar.swift": "052c3d270ac46f156a1b519ec90aea802b3f783d969e66ca2bdcd55b3c4f95cb",
+      "ios/HangInThere/Analysis/AutomaticDipRails.swift": "67275e7e7193c6e86a7bb355dcc3bab17de9d687c553f03d6c7a50efa29589c2",
+      "ios/HangInThere/Analysis/AutomaticExerciseDetection.swift": "1bdf7e3587eabf6acae2f9af9ef9d9fda9d9aaf37df55b094a5bc7d5507056d4",
+      "ios/HangInThere/Analysis/AutomaticPullUpBar.swift": "0af39d5a240a01f49269087f75cecefd82ef732536706eec29818ce9f6809ae6",
+      "ios/HangInThere/Analysis/BarGeometry.swift": "17e34ac1372cfb44829d11c36a3de060952f7b3a80a0d0fa57be1e94c829a069",
+      "ios/HangInThere/Analysis/DipProgress.swift": "62a595e04db4d072a10d5ef5f550dd1074a3caaf8336e6dc9febc9f87e46468d",
+      "ios/HangInThere/Analysis/DipSupportMeasurement.swift": "1af6ef8f1b9e19c7d72e8acfc2f3e94a82ed3d82b989091adead6c4369da3e10",
+      "ios/HangInThere/Analysis/ExerciseCounter.swift": "f12bf0531a66979ccf1d57c9d70926c833b8a1676c2529dc9344bc6cb32412a7",
+      "ios/HangInThere/Analysis/Geometry.swift": "a2cdcb62f6102cacc923c9906b17c6aec8d673bae1b92b46d4a90ddf139e1374",
+      "ios/HangInThere/Analysis/HandsFreeSetStart.swift": "df3632e247da2a3942ba5e8e9950d6c07fd17acfdd1f17d12946ccdf7c0bccfa",
+      "ios/HangInThere/Analysis/LiveDeviceQualification.swift": "42b64ccaf9973083389ed40a389b263b3fe604b55e7ccd9ffbd1d99e50f604be",
+      "ios/HangInThere/Analysis/LiveFramingAssessment.swift": "5b07cb1d3458f23813d75452087bf9bc23ce952085359eb82596d91322619e2c",
+      "ios/HangInThere/Analysis/LiveSetSession.swift": "6af32430adc615c9226b0c3f13ac0ae1fb514ccae266d0c92b4e9fee486ee1d4",
+      "ios/HangInThere/Analysis/PhoneOrientationStability.swift": "1ef63589c74158f15ac45d30b33ed17e332db38d9c6861eb05135835d6b02fb7",
+      "ios/HangInThere/Analysis/PoseObservation.swift": "845b863d334f225dbc73d248ef310a66e3dff7fd7f3026923b4e9c988c394504",
+      "ios/HangInThere/Analysis/PullUpArmMeasurement.swift": "0939b33758e92b4acf54e1b3aa4bbc4f286cd423a5466e4f58b367ef3a704d5d",
+      "ios/HangInThere/Analysis/PullUpProgress.swift": "e9fd60723ef85fbf8963090e84210b50fc7c6135f29ffeb800230293ee988241",
+      "ios/HangInThere/Analysis/ReplayTimeline.swift": "dd8276cd489f9eaff9360731ae01cdc31dfa8b2cffc8467bac7281ec552cbcf1",
+      "ios/HangInThere/Analysis/StaticSceneStability.swift": "ea626cbf92c9745fc91740368874b86893e23842ccedde1b5666a013a2c7d10a",
+      "ios/HangInThere/Analysis/WorkoutGripRecords.swift": "9ace15bc9c3a486013ce7da31c7217729c5d52d25dedac83d2b782c5980636fd",
+      "ios/HangInThere/Analysis/WorkoutRecords.swift": "d90bbafe2956b1f8e9d65c6cfe1002bb189181e622c99ef389c03c5f0e820267",
+      "ios/HangInThere/Capture/VideoReplayReader.swift": "a627dc9e18946d9d891ff90906c830a1217fcdc10af27ba75bec8e6264f789d3",
+      "ios/HangInThere/Pose/VisionBarDetector.swift": "7b4b191b1631222001eae2f8386ed76ab4ba5768e8bc08b26a41698c74e38125",
+      "ios/HangInThere/Pose/VisionPoseEstimator.swift": "11c3a118980b0dae3877db30751e04ea4572eed4d7845900ccc1573da0998dd6",
+      "ios/HangInThere/Pose/VisionStaticSceneRegistration.swift": "fbd8a52fe6118bbe4c6620a080f8ebcda801f6dd2213ef1fd4e954f011ff75d4"
+    }
+  },
+  "reference_acquisition_gain_established": false,
+  "reproduction_compile_sources": [
+    "Evaluation/EdgeContinuityProbe.swift",
+    "ios/HangInThere/Analysis/ArmMeasurement.swift",
+    "ios/HangInThere/Analysis/AutomaticDipBar.swift",
+    "ios/HangInThere/Analysis/AutomaticDipRails.swift",
+    "ios/HangInThere/Analysis/AutomaticExerciseDetection.swift",
+    "ios/HangInThere/Analysis/AutomaticPullUpBar.swift",
+    "ios/HangInThere/Analysis/BarGeometry.swift",
+    "ios/HangInThere/Analysis/DipProgress.swift",
+    "ios/HangInThere/Analysis/DipSupportMeasurement.swift",
+    "ios/HangInThere/Analysis/ExerciseCounter.swift",
+    "ios/HangInThere/Analysis/Geometry.swift",
+    "ios/HangInThere/Analysis/HandsFreeSetStart.swift",
+    "ios/HangInThere/Analysis/LiveDeviceQualification.swift",
+    "ios/HangInThere/Analysis/LiveFramingAssessment.swift",
+    "ios/HangInThere/Analysis/LiveSetSession.swift",
+    "ios/HangInThere/Analysis/PhoneOrientationStability.swift",
+    "ios/HangInThere/Analysis/PoseObservation.swift",
+    "ios/HangInThere/Analysis/PullUpArmMeasurement.swift",
+    "ios/HangInThere/Analysis/PullUpProgress.swift",
+    "ios/HangInThere/Analysis/ReplayTimeline.swift",
+    "ios/HangInThere/Analysis/StaticSceneStability.swift",
+    "ios/HangInThere/Analysis/WorkoutGripRecords.swift",
+    "ios/HangInThere/Analysis/WorkoutRecords.swift",
+    "ios/HangInThere/Capture/VideoReplayReader.swift",
+    "ios/HangInThere/Pose/VisionBarDetector.swift",
+    "ios/HangInThere/Pose/VisionPoseEstimator.swift",
+    "ios/HangInThere/Pose/VisionStaticSceneRegistration.swift"
+  ],
+  "retained_experimental_source": {
+    "compiled_from_identical_local_staging_source": true,
+    "path": "Evaluation/EdgeContinuityProbe.swift",
+    "sha256": "f81b53bb4385ed086d8107fd137733146617e1c89977fc37e888ca5acc242c40"
+  },
+  "samples": [
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 0,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 0.32,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 0.64,
+        "stableSeconds": 0,
+        "status": "candidateStarted"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 0.64,
+        "stableSeconds": 0,
+        "status": "candidateStarted"
+      },
+      "seconds": 0.64,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 0.96,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 0.96,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 0.96,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 1.28,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 1.28,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 1.28,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 1.6,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 1.6,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 1.6,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 1.92,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 1.92,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 1.92,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 2.24,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 2.56,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 2.88,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 3.2,
+        "stableSeconds": 0,
+        "status": "candidateStarted"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 3.2,
+        "stableSeconds": 0,
+        "status": "candidateStarted"
+      },
+      "seconds": 3.2,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 2,
+        "sourceSeconds": 3.52,
+        "stableSeconds": 0.32,
+        "status": "accumulating"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 1,
+      "probeDiagnostic": {
+        "observations": 2,
+        "sourceSeconds": 3.52,
+        "stableSeconds": 0.32,
+        "status": "accumulating"
+      },
+      "seconds": 3.52,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 3.84,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 3.84,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 3.84,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 2,
+        "sourceSeconds": 4.16,
+        "stableSeconds": 0.32,
+        "status": "accumulating"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 2,
+      "probeDiagnostic": {
+        "observations": 2,
+        "sourceSeconds": 4.16,
+        "stableSeconds": 0.32,
+        "status": "accumulating"
+      },
+      "seconds": 4.16,
+      "selectionChanged": true
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 3,
+        "sourceSeconds": 4.48,
+        "stableSeconds": 0.64,
+        "status": "accumulating"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 1,
+      "probeDiagnostic": {
+        "observations": 3,
+        "sourceSeconds": 4.48,
+        "stableSeconds": 0.64,
+        "status": "accumulating"
+      },
+      "seconds": 4.48,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 4.8,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 4.8,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 4.8,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 5.12,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 5.12,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 5.12,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 5.44,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 5.76,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 6.08,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 6.4,
+        "stableSeconds": 0,
+        "status": "candidateStarted"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 6.4,
+        "stableSeconds": 0,
+        "status": "candidateStarted"
+      },
+      "seconds": 6.4,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 6.72,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 6.72,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 6.72,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 7.04,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 7.04,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 7.04,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 7.36,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 7.36,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 7.36,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 7.68,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 7.68,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 7.68,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 8,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 8,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 8,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 2,
+        "sourceSeconds": 8.32,
+        "stableSeconds": 0.32,
+        "status": "accumulating"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 1,
+      "probeDiagnostic": {
+        "observations": 2,
+        "sourceSeconds": 8.32,
+        "stableSeconds": 0.32,
+        "status": "accumulating"
+      },
+      "seconds": 8.32,
+      "selectionChanged": false
+    },
+    {
+      "baselineDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 8.64,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "baselineState": "holding",
+      "freshMatchingEdges": 0,
+      "probeDiagnostic": {
+        "observations": 1,
+        "sourceSeconds": 8.64,
+        "stableSeconds": 0,
+        "status": "edgeChanged"
+      },
+      "seconds": 8.64,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "ambiguous",
+      "freshMatchingEdges": 0,
+      "seconds": 8.96,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 9.28,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 9.6,
+      "selectionChanged": false
+    },
+    {
+      "baselineState": "lookingForGrip",
+      "freshMatchingEdges": 0,
+      "seconds": 9.92,
+      "selectionChanged": false
+    }
+  ],
+  "scope": "one exposed public clip; selected pull-up native decode/pose/contours and experimental fresh-witness edge preference; no physical bar labels or accuracy claim",
+  "summary": {
+    "baseline_lock_seconds": null,
+    "baseline_longest_dwell": 0.64,
+    "baseline_matches_prior_sample_states": true,
+    "baseline_statuses": {
+      "accumulating": 4,
+      "candidateStarted": 3,
+      "edgeChanged": 13,
+      "notEligible": 12
+    },
+    "frames": 250,
+    "probe_lock_seconds": null,
+    "probe_longest_dwell": 0.64,
+    "probe_statuses": {
+      "accumulating": 4,
+      "candidateStarted": 3,
+      "edgeChanged": 13,
+      "notEligible": 12
+    },
+    "selection_changed_frames": 1
+  }
+}

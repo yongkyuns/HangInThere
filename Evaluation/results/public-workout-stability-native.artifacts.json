@@ -1,0 +1,72 @@
+{
+  "artifact_archives": [
+    {
+      "archive_sha256": "7c52addd037a56cde5c0bd390f69f8d89a9f420598ed1e7b229df12224aeaead",
+      "id": 11936943872,
+      "name": "public-workout-android-api-29",
+      "source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b"
+    },
+    {
+      "archive_sha256": "28324f09f5be5634b33aa39436bd8011c6d548bf5dc8e3aeaad051892cbf9a17",
+      "id": 11936699381,
+      "name": "public-workout-android-api-35",
+      "source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b"
+    },
+    {
+      "archive_sha256": "568498f4e4a8b392f6788e1ddee9ecc7bf4461111db077399c54593e1e0691fc",
+      "id": 11937213365,
+      "name": "public-workout-apple",
+      "source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b"
+    },
+    {
+      "archive_sha256": "2703acd8fe4e591a0e72d1753b5bba36cbf9eec841f59d87141071485c7451cd",
+      "id": 11936982273,
+      "name": "public-workout-apple-shard-0",
+      "source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b"
+    },
+    {
+      "archive_sha256": "898867c2d92a7ede40526d59875723e01fdea6385d20dbbdfcc1e4fe1e09e363",
+      "id": 11935399963,
+      "name": "public-workout-apple-shard-1",
+      "source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b"
+    }
+  ],
+  "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+  "retained_report_sha256": {
+    "public-workout-stability-native-android-api29.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-stability-native-android-api29.native.json": "3a7ad57d386ca7650d3add7c2b34662d760fa4d726f56e090d635864e5a1128e",
+    "public-workout-stability-native-android-api29.score.json": "63385a62b6d72e58721e7a8a300db3ab727bf1c9632ec428a2d55fc9a220dd97",
+    "public-workout-stability-native-android-api35.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-stability-native-android-api35.native.json": "fc55f7cb5fe435db8765e80f59ff378cd546e7272389a98406fa7e3d64f0a309",
+    "public-workout-stability-native-android-api35.score.json": "63385a62b6d72e58721e7a8a300db3ab727bf1c9632ec428a2d55fc9a220dd97",
+    "public-workout-stability-native-apple-shard0.native.json": "2cc77403fee1246599e992de993de5951f85e6eb8a0ac9d44317a0e96beb39a6",
+    "public-workout-stability-native-apple-shard0.provenance.json": "e0bc9a54821633797ab25b14b8110dda8ae1d68e05efcf83419076b50ac0448d",
+    "public-workout-stability-native-apple-shard1.native.json": "b62b0df5af2c505a818b5166f5cfa7e495516a068bcf85b7522669598ebe85da",
+    "public-workout-stability-native-apple-shard1.provenance.json": "2ce239ece463cc73a1fa1248893339a9a81272d7933a23eddb6148d518d25da2",
+    "public-workout-stability-native-apple.native.json": "b45c61751b4d79f8b8936c7069b2b709f6afed4a0416c31581ed730fe5601652",
+    "public-workout-stability-native-apple.score.json": "6e201ff161568e6bc67faeaf22fad9c20c15c91eb47cdfccf39105cbe7559293"
+  },
+  "schema_version": 1,
+  "source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b",
+  "verification": {
+    "apple_framework_and_executable_hash_scope": "CI provenance; not independently reproduced locally",
+    "apple_report_provenance_hashes": true,
+    "git_source_hashes_per_apple_shard": 34,
+    "github_archive_digests": true,
+    "independent_merge_and_three_scores_byte_match_hosted": true
+  },
+  "workflow_outcome": {
+    "accuracy_job_conclusion": "failure",
+    "accuracy_job_id": 116170360375,
+    "accuracy_job_log_sha256": "0bc26fba2e689e747fce3745d93909a045ad2bcfe42c21a3d2baa845415569b2",
+    "all_exact_completed_counts": false,
+    "all_inputs_processed": true,
+    "all_native_and_contract_jobs": "success",
+    "conclusion": "failure",
+    "failure": "Published repetition diagnostic accuracy remains failed; this is not field qualification",
+    "status": "completed",
+    "three_reports_have_matching_manifest_and_source": true
+  },
+  "workflow_run_id": 38651765115,
+  "workflow_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38651765115"
+}

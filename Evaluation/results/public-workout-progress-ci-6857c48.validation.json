@@ -1,0 +1,664 @@
+{
+  "actual_ci_checkout": "3d8f7123243b9ef85085ec7570054437dfa8fd33",
+  "android": {
+    "29": {
+      "connected_junit_sha256": "5c91d894adcf5464c38f82c515b65a3a8df67f33b0cc5606bd44775e86cb00f1",
+      "connected_tests": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 59,
+        "skipped": 3,
+        "tests": 62
+      },
+      "native_cases": [
+        {
+          "automatic_movements": 1,
+          "completed_rep_seconds": [],
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "id": "pullup_margin",
+          "progress": {
+            "acceptance_seconds": [
+              1.933333
+            ],
+            "completed_seconds": [],
+            "frames": 108,
+            "progress_evidence": {
+              "observed_source_end_seconds": 3.566666,
+              "schema_version": 1,
+              "source_prefix_verified": true
+            },
+            "source_clock_verified": true,
+            "status": "processed"
+          }
+        },
+        {
+          "automatic_movements": 0,
+          "completed_rep_seconds": [],
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "id": "pullup_smoke",
+          "progress": {
+            "acceptance_seconds": [],
+            "completed_seconds": [],
+            "frames": 40,
+            "progress_evidence": {
+              "observed_source_end_seconds": 3.9,
+              "schema_version": 1,
+              "source_prefix_verified": true
+            },
+            "source_clock_verified": true,
+            "status": "setupUnavailable"
+          }
+        },
+        {
+          "automatic_movements": 0,
+          "completed_rep_seconds": [],
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "id": "dip_controlled_pexels",
+          "progress": {
+            "acceptance_seconds": [],
+            "completed_seconds": [],
+            "frames": 300,
+            "progress_evidence": {
+              "observed_source_end_seconds": 11.96,
+              "schema_version": 1,
+              "source_prefix_verified": true
+            },
+            "source_clock_verified": true,
+            "status": "setupUnavailable"
+          }
+        }
+      ],
+      "native_report_sha256": "9bb044a0f8de35df4fc51cea7b9fc4f8788932eab9c40a12067a11728dad7077",
+      "new_native_decoder_model_failure_tests_passed": 2,
+      "new_progress_test_ids": [
+        "dev.hanginthere.android.NativeReplayProgressTest/nativeFailureAfterAcceptanceCannotInventAReturn",
+        "dev.hanginthere.android.NativeReplayProgressTest/nativeFailureDuringAcquisitionKeepsOnlyVerifiedPrefix",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/acceptedWithoutReturnRemainsIncomplete",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/acquisitionEventsCannotBecomeCountingTotals",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/badMissingOrChangedClocksCannotRetainMeasurements",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/eventsMustBeFiniteOrderedAndInsideObservedPrefix",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/expectedClockIsOwnedAndUnrepresentableSecondClocksAreRejected",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/failedBlockCapturesActualSharedReturnsBeforeCleanup",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/fullRunAndUnavailableSetupKeepTheirOriginalOutcomes",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/lateFailureRetainsClosedReturnsWithoutClaimingEof",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/rewindCannotCreditAnEarlierAcquisitionPass"
+      ],
+      "new_progress_tests_passed": 11,
+      "new_shared_collector_tests_passed": 9,
+      "optional_skipped_test_ids": [
+        "dev.hanginthere.android.ImportedRecordingEvaluationTest/importedRecordingsUseProductionAutoAndSeparateManualDiagnostics",
+        "dev.hanginthere.android.PoseModeEvaluationTest/compareTrackingAndIndependentFrames",
+        "dev.hanginthere.android.PublicWorkoutDatasetEvaluationTest/publicVideosUseTheProductionReplayAndAnalysis"
+      ],
+      "original_capture_accuracy_failed_cases": [
+        "pullup_smoke",
+        "dip_controlled_pexels"
+      ],
+      "original_capture_accuracy_passed": false,
+      "unit_tests": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 31,
+        "skipped": 0,
+        "tests": 31
+      }
+    },
+    "35": {
+      "connected_junit_sha256": "28f598af6f005021251e41da953935e2fbfe601676c18b9b5a92f70c3089edc2",
+      "connected_tests": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 59,
+        "skipped": 3,
+        "tests": 62
+      },
+      "native_cases": [
+        {
+          "automatic_movements": 1,
+          "completed_rep_seconds": [],
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "id": "pullup_margin",
+          "progress": {
+            "acceptance_seconds": [
+              1.933333
+            ],
+            "completed_seconds": [],
+            "frames": 108,
+            "progress_evidence": {
+              "observed_source_end_seconds": 3.566666,
+              "schema_version": 1,
+              "source_prefix_verified": true
+            },
+            "source_clock_verified": true,
+            "status": "processed"
+          }
+        },
+        {
+          "automatic_movements": 0,
+          "completed_rep_seconds": [],
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "id": "pullup_smoke",
+          "progress": {
+            "acceptance_seconds": [],
+            "completed_seconds": [],
+            "frames": 40,
+            "progress_evidence": {
+              "observed_source_end_seconds": 3.9,
+              "schema_version": 1,
+              "source_prefix_verified": true
+            },
+            "source_clock_verified": true,
+            "status": "setupUnavailable"
+          }
+        },
+        {
+          "automatic_movements": 0,
+          "completed_rep_seconds": [],
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "id": "dip_controlled_pexels",
+          "progress": {
+            "acceptance_seconds": [],
+            "completed_seconds": [],
+            "frames": 300,
+            "progress_evidence": {
+              "observed_source_end_seconds": 11.96,
+              "schema_version": 1,
+              "source_prefix_verified": true
+            },
+            "source_clock_verified": true,
+            "status": "setupUnavailable"
+          }
+        }
+      ],
+      "native_report_sha256": "acf80739c5bc5bfc28bb8d3ba5a8eeee206667e60011d07aec03fb4d89c7dcb5",
+      "new_native_decoder_model_failure_tests_passed": 2,
+      "new_progress_test_ids": [
+        "dev.hanginthere.android.NativeReplayProgressTest/nativeFailureAfterAcceptanceCannotInventAReturn",
+        "dev.hanginthere.android.NativeReplayProgressTest/nativeFailureDuringAcquisitionKeepsOnlyVerifiedPrefix",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/acceptedWithoutReturnRemainsIncomplete",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/acquisitionEventsCannotBecomeCountingTotals",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/badMissingOrChangedClocksCannotRetainMeasurements",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/eventsMustBeFiniteOrderedAndInsideObservedPrefix",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/expectedClockIsOwnedAndUnrepresentableSecondClocksAreRejected",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/failedBlockCapturesActualSharedReturnsBeforeCleanup",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/fullRunAndUnavailableSetupKeepTheirOriginalOutcomes",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/lateFailureRetainsClosedReturnsWithoutClaimingEof",
+        "dev.hanginthere.evaluation.PublicReplayProgressTests/rewindCannotCreditAnEarlierAcquisitionPass"
+      ],
+      "new_progress_tests_passed": 11,
+      "new_shared_collector_tests_passed": 9,
+      "optional_skipped_test_ids": [
+        "dev.hanginthere.android.ImportedRecordingEvaluationTest/importedRecordingsUseProductionAutoAndSeparateManualDiagnostics",
+        "dev.hanginthere.android.PoseModeEvaluationTest/compareTrackingAndIndependentFrames",
+        "dev.hanginthere.android.PublicWorkoutDatasetEvaluationTest/publicVideosUseTheProductionReplayAndAnalysis"
+      ],
+      "original_capture_accuracy_failed_cases": [
+        "pullup_smoke",
+        "dip_controlled_pexels"
+      ],
+      "original_capture_accuracy_passed": false,
+      "unit_tests": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 31,
+        "skipped": 0,
+        "tests": 31
+      }
+    }
+  },
+  "apple_host_bridge": {
+    "budget_milliseconds": 5,
+    "frames_per_bridge_loop": 2000,
+    "p95_milliseconds": {
+      "acquisitionFramingHostBridgeP95Milliseconds": 0.341458,
+      "framingHostBridgeP95Milliseconds": 0.225375,
+      "gripHostBridgeP95Milliseconds": 1.19275,
+      "gripVisibilityFramingHostBridgeP95Milliseconds": 0.39175,
+      "hostBridgeP95Milliseconds": 1.50675,
+      "overheadFramingHostBridgeP95Milliseconds": 0.334375,
+      "readinessHostBridgeP95Milliseconds": 0.0005
+    },
+    "passed": true,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "readiness_assertions": 18
+  },
+  "apple_native_mac": {
+    "failures": 0,
+    "log_sha256": "152957f000730874634bfd61fd948ab54aec8159f0a07ebb6997af396b84806a",
+    "passed": true,
+    "swift_testing_passed": 306,
+    "total_passed": 317,
+    "xctest_passed": 11
+  },
+  "apple_simulator": {
+    "failures_repaired": false,
+    "intermittent_replay_latency_repair_qualified": false,
+    "mechanics": {
+      "failed_assertions": 8,
+      "failed_method": "pinnedH264DecodesVFRAndPortraitPixelsWithoutVision",
+      "new_interruption_progress_regression_passed": true,
+      "swift_testing_failed_methods": 1,
+      "swift_testing_methods": 300,
+      "xctest_passed": 13
+    },
+    "vision": {
+      "failed_methods": 8,
+      "methods": 8,
+      "missing_model_weights_observed": true,
+      "vision_code_9_observed": true
+    }
+  },
+  "ci_checkout_entire_tree_matches_source": true,
+  "downloaded_artifacts": [
+    {
+      "bytes": 154236283,
+      "github_digest_verified": true,
+      "id": 12019367394,
+      "name": "android-api-29",
+      "sha256": "efd7c80f029437e73ad1f3a61b2fcfc7565be17fb9a43b5514fe041078f73f99"
+    },
+    {
+      "bytes": 154066943,
+      "github_digest_verified": true,
+      "id": 12019150972,
+      "name": "android-api-35",
+      "sha256": "cd3206bfcd60e6fe9a424fc69026a3f87dc2bfef2d2399bdbfd444aaa3915c9b"
+    },
+    {
+      "bytes": 687,
+      "github_digest_verified": true,
+      "id": 12019268623,
+      "name": "android-swift-api-29",
+      "sha256": "777c75317218bc1ea2a7c4ba2249c366d56a64f93c70e1ee14b6a39db7466b5f"
+    },
+    {
+      "bytes": 687,
+      "github_digest_verified": true,
+      "id": 12019688165,
+      "name": "android-swift-api-35",
+      "sha256": "28f9a57a847e4a2695cc7d1f366ff0d957593b11b7812fd660e5e3bc66d20430"
+    },
+    {
+      "bytes": 420297,
+      "github_digest_verified": true,
+      "id": 12016054412,
+      "name": "shared-parity",
+      "sha256": "cb90dc41409b83004bce5a09e709f8a977c1d97625e554e720d13b21689c750c"
+    },
+    {
+      "bytes": 4286354,
+      "github_digest_verified": true,
+      "id": 12017353539,
+      "name": "workout-analysis-contracts",
+      "sha256": "d42077ef034bc31b1b682c514bc98727e7a0615f8633bc3040edbbe864533d8a"
+    },
+    {
+      "bytes": 40356,
+      "github_digest_verified": true,
+      "id": 12018593722,
+      "name": "p0-native-results",
+      "sha256": "a4d6f20f294eb74eaac5e649e48e7812d61db6999626f154469139d4cba5ce6d"
+    }
+  ],
+  "follows_local_validation_record": "public-workout-android-progress.validation.json",
+  "fresh_local_swift_reproduction": {
+    "elapsed_seconds": 42.41602853988297,
+    "executable_sha256": "00bcdbeb1efb70365144933d28e04edd0c36065727683b4b51c05c457bf9363d",
+    "matches_hosted_reports_exactly": true,
+    "platforms": {
+      "29": {
+        "cases": 3,
+        "frames": 448,
+        "matches_hosted": true
+      },
+      "35": {
+        "cases": 3,
+        "frames": 448,
+        "matches_hosted": true
+      }
+    },
+    "scope": "Production Swift counter on actual native Android observations; same counter inputs, not independent pose accuracy",
+    "source_files_unchanged": true,
+    "source_revision": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+    "source_seconds_tolerance": 1e-09,
+    "source_sha256": {
+      "Evaluation/CountReplay.swift": "96edb2e7e0cff2b6c93c701ddcfa4ff77931f458bac1ac5d9a79e1e89f9f4370",
+      "ios/HangInThere/Analysis/ArmMeasurement.swift": "3aa7733af9f17592e2dfb904097b704d16bf7b20ec2e2b4b8cc2eca376c1dc15",
+      "ios/HangInThere/Analysis/AutomaticDipBar.swift": "052c3d270ac46f156a1b519ec90aea802b3f783d969e66ca2bdcd55b3c4f95cb",
+      "ios/HangInThere/Analysis/AutomaticDipRails.swift": "67275e7e7193c6e86a7bb355dcc3bab17de9d687c553f03d6c7a50efa29589c2",
+      "ios/HangInThere/Analysis/AutomaticExerciseDetection.swift": "2d0202054d6b14e6d4bbd45d1c9ed65972e9829536d66babbda495d2bfa2bbd2",
+      "ios/HangInThere/Analysis/AutomaticPullUpBar.swift": "0af39d5a240a01f49269087f75cecefd82ef732536706eec29818ce9f6809ae6",
+      "ios/HangInThere/Analysis/BarGeometry.swift": "17e34ac1372cfb44829d11c36a3de060952f7b3a80a0d0fa57be1e94c829a069",
+      "ios/HangInThere/Analysis/DipProgress.swift": "62a595e04db4d072a10d5ef5f550dd1074a3caaf8336e6dc9febc9f87e46468d",
+      "ios/HangInThere/Analysis/DipSupportMeasurement.swift": "1af6ef8f1b9e19c7d72e8acfc2f3e94a82ed3d82b989091adead6c4369da3e10",
+      "ios/HangInThere/Analysis/ExerciseCounter.swift": "f12bf0531a66979ccf1d57c9d70926c833b8a1676c2529dc9344bc6cb32412a7",
+      "ios/HangInThere/Analysis/Geometry.swift": "a2cdcb62f6102cacc923c9906b17c6aec8d673bae1b92b46d4a90ddf139e1374",
+      "ios/HangInThere/Analysis/HandsFreeSetStart.swift": "df3632e247da2a3942ba5e8e9950d6c07fd17acfdd1f17d12946ccdf7c0bccfa",
+      "ios/HangInThere/Analysis/LiveDeviceQualification.swift": "42b64ccaf9973083389ed40a389b263b3fe604b55e7ccd9ffbd1d99e50f604be",
+      "ios/HangInThere/Analysis/LiveFramingAssessment.swift": "5b07cb1d3458f23813d75452087bf9bc23ce952085359eb82596d91322619e2c",
+      "ios/HangInThere/Analysis/LiveSetSession.swift": "6af32430adc615c9226b0c3f13ac0ae1fb514ccae266d0c92b4e9fee486ee1d4",
+      "ios/HangInThere/Analysis/PhoneOrientationStability.swift": "1ef63589c74158f15ac45d30b33ed17e332db38d9c6861eb05135835d6b02fb7",
+      "ios/HangInThere/Analysis/PoseObservation.swift": "845b863d334f225dbc73d248ef310a66e3dff7fd7f3026923b4e9c988c394504",
+      "ios/HangInThere/Analysis/PullUpArmMeasurement.swift": "0939b33758e92b4acf54e1b3aa4bbc4f286cd423a5466e4f58b367ef3a704d5d",
+      "ios/HangInThere/Analysis/PullUpProgress.swift": "e9fd60723ef85fbf8963090e84210b50fc7c6135f29ffeb800230293ee988241",
+      "ios/HangInThere/Analysis/ReplayTimeline.swift": "dd8276cd489f9eaff9360731ae01cdc31dfa8b2cffc8467bac7281ec552cbcf1",
+      "ios/HangInThere/Analysis/StaticSceneStability.swift": "ea626cbf92c9745fc91740368874b86893e23842ccedde1b5666a013a2c7d10a",
+      "ios/HangInThere/Analysis/WorkoutGripRecords.swift": "9ace15bc9c3a486013ce7da31c7217729c5d52d25dedac83d2b782c5980636fd",
+      "ios/HangInThere/Analysis/WorkoutRecords.swift": "d90bbafe2956b1f8e9d65c6cfe1002bb189181e622c99ef389c03c5f0e820267"
+    },
+    "total_cases": 6,
+    "total_source_frames": 896
+  },
+  "held_out_accuracy_qualified": false,
+  "historical_local_record_preserved": true,
+  "hosted_kotlin_python_wire_contract": {
+    "acceptances": 2,
+    "actual_kotlin_scalar_rows_sha256": "bc880e59bd89823bb354f14544230a5c5995e0ee12965344183d8f0507c136fd",
+    "all_rows_interrupted": true,
+    "cases": 2,
+    "closed_return_seconds": 12.75,
+    "closed_returns": 1,
+    "eof_claimed": false,
+    "exact_count_success_claimed": false,
+    "passed": true,
+    "scope": "Authored real shared runtime; positive native clip has no completed return",
+    "tampered_rows_rejected": true
+  },
+  "independent_review": "Passed final retained-record, documentation and bounded-update review by independent reviewer; no actionable findings",
+  "independently_rerun_existing_checks": [
+    {
+      "accuracy_failure_retained": false,
+      "api": 29,
+      "check": "native",
+      "exit_code": 0
+    },
+    {
+      "accuracy_failure_retained": false,
+      "api": 29,
+      "check": "setup",
+      "exit_code": 0
+    },
+    {
+      "accuracy_failure_retained": true,
+      "api": 29,
+      "check": "accuracy",
+      "exit_code": 1
+    },
+    {
+      "accuracy_failure_retained": false,
+      "api": 35,
+      "check": "native",
+      "exit_code": 0
+    },
+    {
+      "accuracy_failure_retained": false,
+      "api": 35,
+      "check": "setup",
+      "exit_code": 0
+    },
+    {
+      "accuracy_failure_retained": true,
+      "api": 35,
+      "check": "accuracy",
+      "exit_code": 1
+    },
+    {
+      "check": "matching-native-inputs",
+      "exit_code": 0
+    },
+    {
+      "check": "hosted-actual-Kotlin-to-Python",
+      "exit_code": 0
+    }
+  ],
+  "local_evidence_directory": "build/android-progress-ci-6857c48",
+  "local_evidence_sha256": {
+    "api29-accuracy-check.log": "689e81e1c8c07f16c9a9e90efae505e7e1aa0d7a87cb195f1fb1dc7174736688",
+    "api29-native-check.log": "38487803877863740b4fc517075c2952cb3fc67a567d2dc57e9a2fee3a8f3bca",
+    "api29-reproduced-swift-parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "api29-setup-check.log": "9c8bba8f0cf360ef5b4dc328201e4b47fe15fd0656cca64dbc9c1167b567f1bf",
+    "api35-accuracy-check.log": "689e81e1c8c07f16c9a9e90efae505e7e1aa0d7a87cb195f1fb1dc7174736688",
+    "api35-native-check.log": "5e65120debfefb48fc73faa768a2a5a6920c2520622d66b0ce74094ee827cf19",
+    "api35-reproduced-swift-parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "api35-setup-check.log": "9c8bba8f0cf360ef5b4dc328201e4b47fe15fd0656cca64dbc9c1167b567f1bf",
+    "checks-local.json": "89c3bb6a6f75db63c90a98d2f27ed83becdfe9c516ba3eccb2f77556c4e96b15",
+    "fresh-swift-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "hosted-wire-check.log": "63fb9efba2b4cd348e25766d76674100f35bcd8cbc04d15b20dd7d42818935fa",
+    "ios-mechanics-job.log": "2563858220b803f3aa362589494e5af9a906fc986d8e37f4667d5bf1e3224c84",
+    "ios-vision-job.log": "3a80610b7cc20e08ed8e7d5d35ccd6befb6068d80617907830f72821ac3472b2",
+    "matching-inputs-check.log": "8e36063cfb8d89e8acb70d1d0621edfd3a47874ce324d0b9b6eb7619e6668333",
+    "swift-reproduction-local.json": "5826552a5197eda23072fe69cfe26888624d1c9ca7e009938caddeddbcb23d00"
+  },
+  "native_33_video_corpus_rerun": false,
+  "new_physical_device_qualification": false,
+  "open_gates": [
+    "Original-capture pullup_smoke and dip_controlled_pexels accuracy",
+    "Simulator H264 color and Vision model loading; intermittent replay latency",
+    "Independent consented annotated holdout and predeclared supported-condition accuracy",
+    "Sustained physical iOS and Android live-camera/sensor/latency/drop/battery/thermal qualification",
+    "Qualified coaching review and observed beginner usability in gym conditions"
+  ],
+  "production_source_trees": {
+    "android/app/src/main": "5f80d327d5a3b9b55f1b100a8e39be6a6797d12a",
+    "ios/HangInThere": "6e79301d0cc0b665f248f348de13cfcf2bbf7d69",
+    "models": "d282537de641f9cd52daf4e28409d05940ca4c3b",
+    "shared/src/commonMain": "56e5cc89045eb7de3474a5abdc427bac68353dc8"
+  },
+  "production_sources_unchanged_from": "69ceaa4af9a93be9b29acd6017b1b8dba59db142",
+  "raw_pose_traces_media_apks_device_identifiers_credentials_or_private_recordings_published": false,
+  "recorded_at_utc": "2026-10-16T02:32:33.534343+00:00",
+  "release_qualified": false,
+  "render_artifacts": {
+    "paired_files_verified": true,
+    "png_ocr_pairs": 104,
+    "scope": "Hosted render/OCR checks and archive inventory; no fresh visual inspection this pass"
+  },
+  "schema_version": 1,
+  "scope": "Completed hosted native Android interrupted-evaluation regressions and source-bound CI follow-up; engineering evidence, not independent exercise accuracy or field qualification",
+  "selected_workflow_jobs": {
+    "38829240235": [
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240235/job/116744172730",
+        "id": 116744172730,
+        "name": "common-and-apple-bridge"
+      }
+    ],
+    "38829240306": [
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116743893168",
+        "id": 116743893168,
+        "name": "Swift and Kotlin policy parity"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116743893271",
+        "id": 116743893271,
+        "name": "Native Android API 35"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116743893354",
+        "id": 116743893354,
+        "name": "Software HDR decoder contracts"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116743893371",
+        "id": 116743893371,
+        "name": "Native Android API 29"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116765858123",
+        "id": 116765858123,
+        "name": "Swift replay of Android model observations (29)"
+      },
+      {
+        "conclusion": "failure",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116765858153",
+        "id": 116765858153,
+        "name": "Original capture accuracy diagnostics (29)"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116765858181",
+        "id": 116765858181,
+        "name": "Swift replay of Android model observations (35)"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116765858234",
+        "id": 116765858234,
+        "name": "Identical public evaluation inputs"
+      },
+      {
+        "conclusion": "failure",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306/job/116765858309",
+        "id": 116765858309,
+        "name": "Original capture accuracy diagnostics (35)"
+      }
+    ],
+    "38829240479": [
+      {
+        "conclusion": "failure",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240479/job/116743893165",
+        "id": 116743893165,
+        "name": "iOS simulator mechanics"
+      },
+      {
+        "conclusion": "failure",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240479/job/116743893355",
+        "id": 116743893355,
+        "name": "iOS simulator vision"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240479/job/116743893510",
+        "id": 116743893510,
+        "name": "Native macOS real-Vision and replay integration"
+      },
+      {
+        "conclusion": "skipped",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240479/job/116743894571",
+        "id": 116743894571,
+        "name": "Native decoder diagnostic ${{ matrix.platform }}"
+      },
+      {
+        "conclusion": "skipped",
+        "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240479/job/116743894932",
+        "id": 116743894932,
+        "name": "Replay render comparison ${{ matrix.renderer }}"
+      }
+    ]
+  },
+  "shared_jvm_tests": {
+    "shared-parity": {
+      "errors": 0,
+      "failures": 0,
+      "passed": 343,
+      "skipped": 0,
+      "tests": 343
+    },
+    "workout-analysis-contracts": {
+      "errors": 0,
+      "failures": 0,
+      "passed": 343,
+      "skipped": 0,
+      "tests": 343
+    }
+  },
+  "source_git_tree": "4a8011d01924c697161257ec80a8d473f4a97cd9",
+  "source_revision": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+  "sustained_physical_device_performance_qualified": false,
+  "workflows": [
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240235",
+      "id": 38829240235,
+      "name": "Shared workout analysis",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240253",
+      "id": 38829240253,
+      "name": "Public workout repetition diagnostics",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240271",
+      "id": 38829240271,
+      "name": "Controlled movement qualification",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240288",
+      "id": 38829240288,
+      "name": "Session qualification",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240306",
+      "id": 38829240306,
+      "name": "Android parity",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240406",
+      "id": 38829240406,
+      "name": "Debug session contracts",
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240479",
+      "id": 38829240479,
+      "name": "iOS P0",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240484",
+      "id": 38829240484,
+      "name": "Temporal movement diagnostic",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "event": "pull_request",
+      "head_sha": "6857c481b1a4c06fcd2abcd2c07d0b5f0c299c2e",
+      "html_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38829240547",
+      "id": 38829240547,
+      "name": "Dataset evaluation",
+      "status": "completed"
+    }
+  ]
+}

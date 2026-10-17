@@ -1,0 +1,63 @@
+{
+  "artifact_archives": [
+    {
+      "archive_sha256": "05610d385ac448ce4016f7d2ff3fc6df8b9a6f149ee393a0a6c5a3bfa77695b6",
+      "id": 12003077497,
+      "name": "public-workout-android-api-29",
+      "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
+    },
+    {
+      "archive_sha256": "978f92c8ab77eabe511a83baa096fde091e2a28f3a6585070a2ef43905f4103a",
+      "id": 12002653144,
+      "name": "public-workout-android-api-35",
+      "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
+    },
+    {
+      "archive_sha256": "ed7af919359e9727920effa25f7064f12bd023175f6f869838ae1da340628a76",
+      "id": 12002254111,
+      "name": "public-workout-apple-shard-0",
+      "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
+    },
+    {
+      "archive_sha256": "5578b10102649b8e7279462a51f56a2902824cbc4905cb9eb44d6f9d8ed0f4c6",
+      "id": 12003351886,
+      "name": "public-workout-apple-shard-1",
+      "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
+    },
+    {
+      "archive_sha256": "ad8e9b95a457a0811d3f5c28331bf3b4f2fd5acbb15881a4669a1e4d831a4a9d",
+      "id": 12003857148,
+      "name": "public-workout-apple",
+      "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
+    }
+  ],
+  "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+  "retained_report_sha256": {
+    "public-workout-identity-clock-native-android-api29.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-identity-clock-native-android-api29.native.json": "69e419fa769eb54301b12fe3d54a595e5bdac3a3efe09ac9b37dfbb0a57f7e62",
+    "public-workout-identity-clock-native-android-api29.score.json": "6ea1b2842777196fd48ba12c21e9c52dbf89ad8dad869736b46ae4bb8c947ffc",
+    "public-workout-identity-clock-native-android-api35.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-identity-clock-native-android-api35.native.json": "59fe8e560e2e956b1c6251c3aa2d154a9c5c799c4738035b99d4cf33b9a66249",
+    "public-workout-identity-clock-native-android-api35.score.json": "6ea1b2842777196fd48ba12c21e9c52dbf89ad8dad869736b46ae4bb8c947ffc",
+    "public-workout-identity-clock-native-apple-shard0.native.json": "cd76f2d176e401180f023d17f7a95cf58e460553b6ee6f606a2627923cf4a043",
+    "public-workout-identity-clock-native-apple-shard0.provenance.json": "c54c7d04bacf0607b577c018e9241875e4b1996e11cb42a09f21f5ebf2f6074b",
+    "public-workout-identity-clock-native-apple-shard1.native.json": "f978d6d9b7afe73a7b86b6020a2c28a44d47de303d0f94bd36bb0cdf923eb922",
+    "public-workout-identity-clock-native-apple-shard1.provenance.json": "79271badfa9a7f27872df51e48404bb6d6f9c84c7890f23ae6c32e8956c1c0e9",
+    "public-workout-identity-clock-native-apple.native.json": "7e83bf1e461943f7af16db3401caaf19543d75aa35b58e1c331c729c080160f5",
+    "public-workout-identity-clock-native-apple.score.json": "85822d7898f240208b035451f422cf46798d3d224bcfccb3eeb481ec6ab3bbfa"
+  },
+  "schema_version": 1,
+  "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f",
+  "verification": {
+    "apple_aggregate_origin": "Local independent aggregation/scoring of two verified CI native shards; subsequently byte-verified against completed hosted merge job 116643349952",
+    "apple_framework_and_executable_hash_scope": "CI provenance; not independently reproduced locally",
+    "apple_report_provenance_hashes": true,
+    "git_source_hashes_per_apple_shard": 34,
+    "github_archive_digests": true,
+    "hosted_final_accuracy_conclusion": "Not yet observed; hosted Apple aggregation and all native jobs succeeded; independent scores still fail exact published counts",
+    "independent_android_scores_byte_match_hosted": true,
+    "independent_apple_merge_and_score_byte_match_hosted": true
+  },
+  "workflow_run_id": 38793588018,
+  "workflow_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38793588018"
+}

@@ -1,0 +1,53 @@
+{
+  "artifact_archives": [
+    {
+      "archive_sha256": "119e6c5d062b2b185eb21d62fce0c258fa20ceb0e7956e10998dc909b6cf2364",
+      "id": 11924605585,
+      "name": "public-workout-android-api-29",
+      "source_revision": "e73e57c827d5ba68c7668438ecf702a0ad9b0418"
+    },
+    {
+      "archive_sha256": "c8513d4aec0b965eda29e2f6f4a75570ef10c57a1a6a11eff7b2bb011c8ecbaf",
+      "id": 11925187068,
+      "name": "public-workout-android-api-35",
+      "source_revision": "e73e57c827d5ba68c7668438ecf702a0ad9b0418"
+    },
+    {
+      "archive_sha256": "ec8467f5ee88bd5c70517da416d3a88619c0176d15dd83473f27292055a5ab2b",
+      "id": 11924863478,
+      "name": "public-workout-apple-shard-0",
+      "source_revision": "e73e57c827d5ba68c7668438ecf702a0ad9b0418"
+    },
+    {
+      "archive_sha256": "9d199f2da22590ed87c0143b5192f3f9e546fbc8a2b755a6fc6eb7e1d617323d",
+      "id": 11924772224,
+      "name": "public-workout-apple-shard-1",
+      "source_revision": "e73e57c827d5ba68c7668438ecf702a0ad9b0418"
+    },
+    {
+      "archive_sha256": "e1ab3690443caad06e9a4fd735e0d84fdce266c6ee6ec300c457fce37a20cbdf",
+      "id": 11927402462,
+      "name": "public-workout-apple",
+      "source_revision": "e73e57c827d5ba68c7668438ecf702a0ad9b0418"
+    }
+  ],
+  "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+  "retained_report_sha256": {
+    "public-workout-identity-android-api29.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-identity-android-api29.native.json": "e5803ba1a05c1e0f5dabc2829f046098d7218e4f8fb5383c291714be1b7bfb64",
+    "public-workout-identity-android-api29.score.json": "7b054627798882051cd8759907eaea11233e7e3539d1f5e974b14ef3af90ede5",
+    "public-workout-identity-android-api35.model.json": "6d5bf7ad52a8ab17e04410bf491779a0b2053292203ad953312ec2a05f0a89f2",
+    "public-workout-identity-android-api35.native.json": "110005150ea32b184e5c6cbd8a3f49dc419b1dae91b578641a04a5060f9e463b",
+    "public-workout-identity-android-api35.score.json": "7b054627798882051cd8759907eaea11233e7e3539d1f5e974b14ef3af90ede5",
+    "public-workout-identity-apple-shard0.native.json": "3ec4176664f1f2bb7a876299d19f8d3f377798f791214bbd2e5be8985c6882b3",
+    "public-workout-identity-apple-shard0.provenance.json": "5e79a9a9bd814f71b97a0d60770a84ca826d105fab757abbd48033d4cc2e8b9d",
+    "public-workout-identity-apple-shard1.native.json": "3a646cfc747bdac0054eb093d83c38402094a41b531d3f154c15a337c339afbe",
+    "public-workout-identity-apple-shard1.provenance.json": "ff06ee698b1c0ac5cafd1489529fb5083345b2f9a8f44910128f3894f54a19ff",
+    "public-workout-identity-apple.native.json": "0b57f83a5659a79c9f971d50b45fa77fc33a1d2fa1f6983a10fb49a51b2c860a",
+    "public-workout-identity-apple.score.json": "d2641ff92a11f180b17825e3859f85ea7c9d7613c60e4398a55104ec9fa97392"
+  },
+  "schema_version": 1,
+  "source_revision": "e73e57c827d5ba68c7668438ecf702a0ad9b0418",
+  "workflow_run_id": 38619298337,
+  "workflow_url": "https://github.com/yongkyuns/HangInThere/actions/runs/38619298337"
+}

@@ -8,9 +8,11 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 xcrun swiftc -Onone -swift-version 6 -parse-as-library \
-  "$ROOT"/HangInThere/Analysis/*.swift \
-  "$ROOT/HangInThere/Capture/VideoReplayReader.swift" \
-  "$ROOT/HangInThere/Pose/VisionPoseEstimator.swift" \
-  "$ROOT/HangInThere/Pose/VisionBarDetector.swift" \
+  "$ROOT"/ios/HangInThere/Analysis/*.swift \
+  "$ROOT/ios/HangInThere/Capture/VideoReplayReader.swift" \
+  "$ROOT/ios/HangInThere/Capture/BitmapFrameRenderer.swift" \
+  "$ROOT/ios/HangInThere/Pose/VisionPoseEstimator.swift" \
+  "$ROOT/ios/HangInThere/Pose/VisionBarDetector.swift" \
+  "$ROOT/ios/HangInThere/Pose/VisionStaticSceneRegistration.swift" \
   "$ROOT/Evaluation/AutomaticBarAudit.swift" -o "$WORK/automatic-bar-audit"
 "$WORK/automatic-bar-audit" "$1" "$2"

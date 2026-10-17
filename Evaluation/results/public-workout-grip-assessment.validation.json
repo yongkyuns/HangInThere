@@ -1,0 +1,104 @@
+{
+  "accuracy_gain_established": false,
+  "apple_bridge_script_exit_code": 0,
+  "apple_executable_sha256": "a276d769bc8cde785ff8b45b08c7d0690a94b371eae1d7e30c9b4bbce077c928",
+  "apple_ffi": {
+    "activeReps": 222,
+    "cases": 2,
+    "frames": 2000,
+    "framingCases": 12,
+    "framingFeedbackCases": 19,
+    "framingFrames": 2000,
+    "framingHostBridgeP95Milliseconds": 0.260913,
+    "gripCorrectionCases": 2,
+    "gripFrames": 2000,
+    "gripHostBridgeP95Milliseconds": 3.692934,
+    "gripInferenceCases": 2,
+    "gripTransportCases": 1,
+    "hostBridgeP95Milliseconds": 3.015573,
+    "overheadFramingFrames": 2000,
+    "overheadFramingHostBridgeP95Milliseconds": 0.301328,
+    "passed": true,
+    "persistenceSets": 55,
+    "practiceCases": 2,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "sceneQualificationCases": 3,
+    "timestampRegressionCases": 4
+  },
+  "apple_framework_sha256": "6b1275841c16ccf706289d3b7148875c0a6e0ee21acf2b1ea2bdb116e7f9952d",
+  "changed_code_sha256": {
+    "android/app/src/androidTest/java/dev/hanginthere/android/NativeReplayEvaluator.kt": "adc1397c4a68c85192c0c2d1985c4deb6aaf7bce763ccf430ff3adaa1ecf9af7",
+    "android/app/src/androidTest/java/dev/hanginthere/android/PublicWorkoutDatasetEvaluationTest.kt": "204ddb283965f43e77a2ed20e3c19c365caedf6f0ffaf3d0c9c66c2aedd1e068",
+    "scripts/check-android-evaluation.py": "7c6ce4d4c5a74559b412ed0f99c6c2d2d6a64a7c5006f42396150c27c770e573",
+    "scripts/tests/test_android_evaluation.py": "d1de082d1c07ad53c8e8619a02a10aeec4f2cd4611a9b66de36096bc38eb55e0",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticPullUpBar.kt": "ea1029028f61a0ef84a7a5f57eb57c3f83d76b99dd5fa2f5a92c65d668a5962a",
+    "shared/src/commonTest/kotlin/dev/hanginthere/core/SetupPoliciesTest.kt": "36aa05773ea891eef8bd5989db8eaf8da49537524f659bf90feea80e09d29e3d"
+  },
+  "common_tests": {
+    "jvmTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 315
+    },
+    "macosX64Test": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 313
+    }
+  },
+  "count_policy_version": 8,
+  "counter_parity": {
+    "cases": 30,
+    "checksum": 8892.549907689074,
+    "frames": 259,
+    "iterations": 100,
+    "p50NanosecondsPerFrame": 12709.305019305019,
+    "p95NanosecondsPerFrame": 127950.88803088803,
+    "scope": "same-host core only; includes counter initialization; excludes inference and camera",
+    "swift": {
+      "cases": 30,
+      "checksum": 8892.549907689074,
+      "framesPerIteration": 259,
+      "iterations": 100,
+      "p50NanosecondsPerFrame": 38752.62548262548,
+      "p95NanosecondsPerFrame": 62280.984555984556,
+      "scope": "same-host core only; includes counter initialization, excludes pose inference and camera"
+    }
+  },
+  "existing_1ms_core_and_5ms_host_budgets_unchanged": true,
+  "grip_assessment_version": 1,
+  "host_budget_results": {
+    "framingHostBridgeP95Milliseconds": true,
+    "gripHostBridgeP95Milliseconds": true,
+    "hostBridgeP95Milliseconds": true,
+    "overheadFramingHostBridgeP95Milliseconds": true
+  },
+  "independent_code_and_evidence_review": "no actionable findings",
+  "local_full_bridge_check_passed": true,
+  "logs_sha256": {
+    "apple-bridge.log": "8f8ad81129f68bbd85ce36049d9fef7361cf4d43b7deaaea00512076e535b122",
+    "grip-contract-tests.log": "85eb1a18c8b35e51449e4e3493c44cff854fdab6967fb87b1678fda57f9d9cb4",
+    "kotlin-tests.log": "36db0790ede4e88786c9b6a13e8d5d79461da3e8fdccb40b12dd5902efde149b",
+    "python-tests.log": "5899f691806b38ff3556a23ccc8951e1e7e6f86f6091310a16f82ab5bfd6413d"
+  },
+  "native_android_source_validation": "pending fresh hosted CI; local SDK installation unsuitable",
+  "native_export_source_normalization": "passed; shipping script completed after bridge performance gates",
+  "new_native_grip_histogram_on_public_corpus": "not yet measured",
+  "physical_device_performance_qualified": false,
+  "python_contract_tests": {
+    "affected_class_after_final_type_guards": 17,
+    "failed": 0,
+    "full_suite": 87
+  },
+  "scope": "typed shared grip assessment and counts-only Android evaluation observer; no changed eligibility, acquisition or rep-count rules",
+  "setup_parity": {
+    "cases": 85,
+    "frames": 4846,
+    "geometryCases": 17,
+    "matched": true,
+    "scope": "every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference"
+  },
+  "source_revision": "f0c5aece91ee31011a607ed3550cc5210087315e"
+}

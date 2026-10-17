@@ -1,0 +1,590 @@
+{
+  "backend" : "Apple Vision 2D",
+  "cases" : [
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 42.688756709000003,
+      "frames" : 150,
+      "id" : "countix___rd8woSLiM",
+      "pose_quality" : {
+        "both_arm_frames" : 0,
+        "left_arm_status_counts" : {
+          "lowConfidence" : 2,
+          "noPerson" : 148
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "missingJoint" : 2,
+          "noPerson" : 148
+        },
+        "single_person_frames" : 2,
+        "unique_source_frames" : 150
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "20acdb4425aa9acd8dfb8da46be09d5e57ba95583a376bb59a4b4a485b64ff6a",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 37.400228959000003,
+      "frames" : 146,
+      "id" : "countix_0ep0izfSjIY",
+      "pose_quality" : {
+        "both_arm_frames" : 117,
+        "left_arm_status_counts" : {
+          "available" : 143,
+          "multiplePeople" : 3
+        },
+        "pullup_search_frames" : 77,
+        "right_arm_status_counts" : {
+          "available" : 117,
+          "lowConfidence" : 18,
+          "missingJoint" : 8,
+          "multiplePeople" : 3
+        },
+        "single_person_frames" : 143,
+        "unique_source_frames" : 146
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "954eaa87667c63f1abc352f40afb0d91eeba6503945e4dd7c705934aa794e831",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 38.221240208000005,
+      "frames" : 151,
+      "id" : "countix_6EPqA_hS1jc",
+      "pose_quality" : {
+        "both_arm_frames" : 4,
+        "left_arm_status_counts" : {
+          "available" : 9,
+          "missingJoint" : 13,
+          "multiplePeople" : 129
+        },
+        "pullup_search_frames" : 2,
+        "right_arm_status_counts" : {
+          "available" : 7,
+          "lowConfidence" : 10,
+          "missingJoint" : 5,
+          "multiplePeople" : 129
+        },
+        "single_person_frames" : 22,
+        "unique_source_frames" : 151
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "eee7810c4aee5c732c8c1897471244ea29c64d6d2fce38d93eb7d8c1b7b3a0b3",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 90.90098058400001,
+      "frames" : 300,
+      "id" : "countix_88hPGnxh_Go",
+      "pose_quality" : {
+        "both_arm_frames" : 300,
+        "left_arm_status_counts" : {
+          "available" : 300
+        },
+        "pullup_search_frames" : 218,
+        "right_arm_status_counts" : {
+          "available" : 300
+        },
+        "single_person_frames" : 300,
+        "unique_source_frames" : 300
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "f5dcfabac111631cae436fe47388d9112f9f6c631e59e6be5c7df267c6040fb2",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 60.405093833000002,
+      "frames" : 250,
+      "id" : "countix_Ace4EsUWyYc",
+      "pose_quality" : {
+        "both_arm_frames" : 250,
+        "left_arm_status_counts" : {
+          "available" : 250
+        },
+        "pullup_search_frames" : 165,
+        "right_arm_status_counts" : {
+          "available" : 250
+        },
+        "single_person_frames" : 250,
+        "unique_source_frames" : 250
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 85.720835999999991,
+      "frames" : 300,
+      "id" : "countix_GK9zE0RGQ4c",
+      "pose_quality" : {
+        "both_arm_frames" : 0,
+        "left_arm_status_counts" : {
+          "available" : 1,
+          "lowConfidence" : 3,
+          "missingJoint" : 5,
+          "noPerson" : 291
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "available" : 1,
+          "lowConfidence" : 3,
+          "missingJoint" : 5,
+          "noPerson" : 291
+        },
+        "single_person_frames" : 9,
+        "unique_source_frames" : 300
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "cc227516531d6f2093986979b0ec6d973e32efaa375e8f1b3bfd255e4c81dec1",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 65.094967999999994,
+      "frames" : 300,
+      "id" : "countix_Itbz9_ghSfc",
+      "pose_quality" : {
+        "both_arm_frames" : 131,
+        "left_arm_status_counts" : {
+          "available" : 161,
+          "lowConfidence" : 3,
+          "missingJoint" : 24,
+          "multiplePeople" : 75,
+          "noPerson" : 37
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "available" : 131,
+          "lowConfidence" : 24,
+          "missingJoint" : 32,
+          "multiplePeople" : 75,
+          "noPerson" : 37,
+          "shortProjectedSegment" : 1
+        },
+        "single_person_frames" : 188,
+        "unique_source_frames" : 300
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "52f8710cfd2624698e7767bda36076a7acbb8747a9f7e6fb1043209437478e8c",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 64.620264415999998,
+      "frames" : 300,
+      "id" : "countix_XNFGt0WPASQ",
+      "pose_quality" : {
+        "both_arm_frames" : 2,
+        "left_arm_status_counts" : {
+          "available" : 2,
+          "multiplePeople" : 298
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "available" : 2,
+          "multiplePeople" : 298
+        },
+        "single_person_frames" : 2,
+        "unique_source_frames" : 300
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "ed04cc69f008ec5829162810a5ffde6c8e44a3488ab0d66e52cee0f68a629fa8",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 58.535850749999994,
+      "frames" : 300,
+      "id" : "countix_Yt7_BnVkoUM",
+      "pose_quality" : {
+        "both_arm_frames" : 153,
+        "left_arm_status_counts" : {
+          "available" : 199,
+          "lowConfidence" : 32,
+          "missingJoint" : 2,
+          "noPerson" : 67
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "available" : 172,
+          "lowConfidence" : 61,
+          "noPerson" : 67
+        },
+        "single_person_frames" : 233,
+        "unique_source_frames" : 300
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "932ee3c41ae9314e89e19b72b3a06c77b36f33a6fa3c32f534b7070d1d630d44",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 34.398506083000001,
+      "frames" : 134,
+      "id" : "countix_aleOhE3pmCk",
+      "pose_quality" : {
+        "both_arm_frames" : 2,
+        "left_arm_status_counts" : {
+          "available" : 22,
+          "lowConfidence" : 44,
+          "missingJoint" : 11,
+          "noPerson" : 57
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "available" : 9,
+          "lowConfidence" : 51,
+          "missingJoint" : 17,
+          "noPerson" : 57
+        },
+        "single_person_frames" : 77,
+        "unique_source_frames" : 134
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "044632bc9f887bd6f30cb408a46f01d1c5351545fada0ca7a95fa0c8f7e92276",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 58.222711832999998,
+      "frames" : 240,
+      "id" : "countix_eMRW1vKyy9o",
+      "pose_quality" : {
+        "both_arm_frames" : 166,
+        "left_arm_status_counts" : {
+          "available" : 187,
+          "lowConfidence" : 19,
+          "missingJoint" : 7,
+          "multiplePeople" : 16,
+          "noPerson" : 11
+        },
+        "pullup_search_frames" : 115,
+        "right_arm_status_counts" : {
+          "available" : 185,
+          "lowConfidence" : 18,
+          "missingJoint" : 10,
+          "multiplePeople" : 16,
+          "noPerson" : 11
+        },
+        "single_person_frames" : 213,
+        "unique_source_frames" : 240
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "d29d7ab0339ddc451e9410094eb26181f47d627c62da6c97538662d57d53d96b",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 71.710703999999993,
+      "frames" : 253,
+      "id" : "countix_fw3FnkqViKo",
+      "pose_quality" : {
+        "both_arm_frames" : 41,
+        "left_arm_status_counts" : {
+          "available" : 51,
+          "lowConfidence" : 57,
+          "missingJoint" : 10,
+          "noPerson" : 135
+        },
+        "pullup_search_frames" : 17,
+        "right_arm_status_counts" : {
+          "available" : 46,
+          "lowConfidence" : 52,
+          "missingJoint" : 20,
+          "noPerson" : 135
+        },
+        "single_person_frames" : 118,
+        "unique_source_frames" : 253
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "9df9bfa38a229b6784e2e37ddae4205047c69877f0893fa55c6fd612991a794f",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 52.815032000000002,
+      "frames" : 250,
+      "id" : "countix_wKNOQ5_6xgw",
+      "pose_quality" : {
+        "both_arm_frames" : 250,
+        "left_arm_status_counts" : {
+          "available" : 250
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "available" : 250
+        },
+        "single_person_frames" : 250,
+        "unique_source_frames" : 250
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "c6e17a85d4e24fbf0fc0d4e3363e0dda8d1546301a542e8a5b1cec54318f448a",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 63.257451125000003,
+      "frames" : 300,
+      "id" : "countix_zHonAu4yl8I",
+      "pose_quality" : {
+        "both_arm_frames" : 194,
+        "left_arm_status_counts" : {
+          "available" : 247,
+          "lowConfidence" : 22,
+          "missingJoint" : 6,
+          "noPerson" : 24,
+          "shortProjectedSegment" : 1
+        },
+        "pullup_search_frames" : 38,
+        "right_arm_status_counts" : {
+          "available" : 204,
+          "lowConfidence" : 58,
+          "missingJoint" : 13,
+          "noPerson" : 24,
+          "shortProjectedSegment" : 1
+        },
+        "single_person_frames" : 276,
+        "unique_source_frames" : 300
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "f6cf005ba96fbcb9ed0804c34abbc031e42722b3ac7dce7fa3639c65a5e890db",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 52.495774540999996,
+      "frames" : 240,
+      "id" : "countix_zWV8fZ9spHs",
+      "pose_quality" : {
+        "both_arm_frames" : 0,
+        "left_arm_status_counts" : {
+          "lowConfidence" : 3,
+          "missingJoint" : 21,
+          "noPerson" : 216
+        },
+        "pullup_search_frames" : 0,
+        "right_arm_status_counts" : {
+          "lowConfidence" : 15,
+          "missingJoint" : 9,
+          "noPerson" : 216
+        },
+        "single_person_frames" : 24,
+        "unique_source_frames" : 240
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "6b879abaaf4b1d49e761bbc16525288279ef52d01c114f964bbbca822de3c78d",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "lookingForGrip",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 222.57245491699999,
+      "frames" : 936,
+      "id" : "repcount_stu10_39",
+      "pose_quality" : {
+        "both_arm_frames" : 100,
+        "left_arm_status_counts" : {
+          "available" : 123,
+          "lowConfidence" : 18,
+          "missingJoint" : 2,
+          "multiplePeople" : 773,
+          "noPerson" : 7,
+          "shortProjectedSegment" : 13
+        },
+        "pullup_search_frames" : 7,
+        "right_arm_status_counts" : {
+          "available" : 106,
+          "lowConfidence" : 35,
+          "missingJoint" : 1,
+          "multiplePeople" : 773,
+          "noPerson" : 7,
+          "shortProjectedSegment" : 14
+        },
+        "single_person_frames" : 156,
+        "unique_source_frames" : 936
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "4fad39aadc66cc4375fe926b5e4c20f44c7b2059b0076af4f47cd95a466eeac4",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    },
+    {
+      "acceptance_seconds" : [
+
+      ],
+      "automatic_bar_state" : "holding",
+      "completed_seconds" : [
+
+      ],
+      "elapsed_seconds" : 391.38055179200001,
+      "frames" : 1799,
+      "id" : "repcount_stu1_37",
+      "pose_quality" : {
+        "both_arm_frames" : 1330,
+        "left_arm_status_counts" : {
+          "available" : 1415,
+          "lowConfidence" : 288,
+          "missingJoint" : 12,
+          "multiplePeople" : 5,
+          "noPerson" : 79
+        },
+        "pullup_search_frames" : 626,
+        "right_arm_status_counts" : {
+          "available" : 1553,
+          "lowConfidence" : 154,
+          "missingJoint" : 8,
+          "multiplePeople" : 5,
+          "noPerson" : 79
+        },
+        "single_person_frames" : 1715,
+        "unique_source_frames" : 1799
+      },
+      "selected_exercise" : "pullUp",
+      "sha256" : "c2fba8f59e13934c0048978469b87f6287c6fc44f09fb812c78d12ff32098037",
+      "source_clock_verified" : true,
+      "status" : "setupUnavailable",
+      "tracking_coverage" : null
+    }
+  ],
+  "counter_policy_version" : 8,
+  "exercise_selection" : "pullUp selected in production native replay",
+  "manifest_sha256" : "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+  "platform" : "apple_host",
+  "request_revision" : 1,
+  "schema_version" : 1,
+  "shard_count" : 2,
+  "shard_index" : 0,
+  "source_revision" : "e73e57c827d5ba68c7668438ecf702a0ad9b0418"
+}

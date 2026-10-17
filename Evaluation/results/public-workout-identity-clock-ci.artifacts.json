@@ -1,0 +1,186 @@
+{
+  "artifact_archives": [
+    {
+      "archive_sha256": "230fd719200656b5c8ef66fc117660db8fed26fa88f1eb717ae57961402674fb",
+      "id": 12002211112,
+      "name": "workout-analysis-contracts",
+      "run_id": 38793587842
+    },
+    {
+      "archive_sha256": "2b7ada57e9818f6c16a99f992e6d5e7582ad926a8903354b111a49f3b6e871ce",
+      "id": 12000889928,
+      "name": "shared-parity",
+      "run_id": 38793587816
+    },
+    {
+      "archive_sha256": "22e32509ae0b757e9c19cb3dd63a4b81562e5b1812a4adf33e4011e31bebc316",
+      "id": 12003076951,
+      "name": "android-swift-api-29",
+      "run_id": 38793587816
+    },
+    {
+      "archive_sha256": "1470c98a09a5c23a9e4ad85b7702e24cf294490664d94e1d2b3500f0f31ab06d",
+      "id": 12003141338,
+      "name": "android-swift-api-35",
+      "run_id": 38793587816
+    }
+  ],
+  "checkout_commit": "df5e5aa2c6adb5f72627c3fe7242c95b74ca2955",
+  "checkout_tree_matches_workflow_head": true,
+  "checkout_tree_sha": "951aed4016dca53c6d35a41ade3b0fc442f7b7a3",
+  "ios_p0": {
+    "mechanics": {
+      "conclusion": "failure",
+      "failing_test": "pinnedH264DecodesVFRAndPortraitPixelsWithoutVision",
+      "issues": 8,
+      "job_id": 116624495717,
+      "log_sha256": "4cb3753061427cfb662cc1693aae1912fccc0debf8c1d494dbc740bf65a2f472",
+      "swift_testing_tests": 299
+    },
+    "native_macos_conclusion": "success",
+    "native_macos_job": 116624495900,
+    "run_id": 38793587801,
+    "scope": "existing CI simulator blockers; not physical-device qualification",
+    "source_revision": "0607776024e485fd4cf99d1009c1ebe1f499a10f",
+    "vision": {
+      "conclusion": "failure",
+      "error": "Vision Code9 missing cnn_human_pose.espresso.weights",
+      "issues": 8,
+      "job_id": 116624495412,
+      "log_sha256": "448df883cf63128a9cf298f69c916763cecda31d0d43c08b823adcce17e88ad8",
+      "tests": 8
+    }
+  },
+  "jvm_tests": {
+    "shared-parity": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 328
+    },
+    "workout-analysis-contracts": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 328
+    }
+  },
+  "local_failed_timings_preserved": true,
+  "native_android": {
+    "api29": {
+      "cases": [
+        {
+          "auto_movements": 1,
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "role": "positive",
+          "rounded_peak_pss_mib": 440.1,
+          "rounded_pipeline_p95_ms": 128.4,
+          "rounded_pose_p95_ms": 76.5
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 433.9,
+          "rounded_pipeline_p95_ms": 91.5,
+          "rounded_pose_p95_ms": 76.5
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 312.1,
+          "rounded_pipeline_p95_ms": 164.5,
+          "rounded_pose_p95_ms": 79.3
+        }
+      ],
+      "job_conclusion": "success",
+      "job_id": 116624672267,
+      "log_section": "actual check-android-evaluation --native step; unit-test fixture output excluded",
+      "log_sha256": "de584260db8e974c377380906e0122aa04d467653f4b02006f9f311d54a0b96f",
+      "scope": "CI-native emulator regression budgets; rounded scalar log summaries; physical camera/device performance excluded"
+    },
+    "api35": {
+      "cases": [
+        {
+          "auto_movements": 1,
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "role": "positive",
+          "rounded_peak_pss_mib": 423.1,
+          "rounded_pipeline_p95_ms": 135.0,
+          "rounded_pose_p95_ms": 91.3
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 418.8,
+          "rounded_pipeline_p95_ms": 101.8,
+          "rounded_pose_p95_ms": 90.2
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 302.8,
+          "rounded_pipeline_p95_ms": 164.5,
+          "rounded_pose_p95_ms": 93.7
+        }
+      ],
+      "job_conclusion": "success",
+      "job_id": 116624672705,
+      "log_section": "actual check-android-evaluation --native step; unit-test fixture output excluded",
+      "log_sha256": "163e1a3d6a215daec00e8b5820a63823221dd6e6a24b07d77854c7a765f52a71",
+      "scope": "CI-native emulator regression budgets; rounded scalar log summaries; physical camera/device performance excluded"
+    }
+  },
+  "native_export_source_normalization": "independently checked from verified archive",
+  "original_accuracy": {
+    "api29": "failure",
+    "api35": "failure",
+    "dip_controlled_pexels": {
+      "auto": 0,
+      "expected": 9,
+      "fixed": 0
+    },
+    "pullup_smoke": {
+      "auto": 0,
+      "expected": 1,
+      "fixed": 0
+    },
+    "run_id": 38793587816
+  },
+  "retained_report_sha256": {
+    "public-workout-identity-clock-ci.android-api29.parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "public-workout-identity-clock-ci.android-api35.parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "public-workout-identity-clock-ci.bridge.json": "9c8893604ec40eed6a3a52286a3a6560ae7a1fcdab93fa46f050e51d7ca728dc",
+    "public-workout-identity-clock-ci.core.json": "02f6e2c6121aad219041ea64cefad4e5a69a22ad1cc82500dfa4b0bd38bffbc9"
+  },
+  "scope": "completed identity-clock CI at 0607776; excludes experimental continuity comparisons and physical devices",
+  "shared_apple_ci": {
+    "conclusion": "success",
+    "job_id": 116624686527,
+    "render_ocr_count": 104,
+    "render_png_count": 104,
+    "run_id": 38793587842
+  },
+  "workflow_head_sha": "0607776024e485fd4cf99d1009c1ebe1f499a10f"
+}

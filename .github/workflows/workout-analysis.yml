@@ -1,0 +1,65 @@
+name: Shared workout analysis
+on:
+  pull_request:
+  push:
+    branches: [main, 'codex/android-parity']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: workout-analysis-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  common-and-apple-bridge:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Verify shared grip model pins
+        run: python3 scripts/verify-grip-models.py
+      - name: Generate production Swift policy and setup oracles
+        run: |
+          python3 scripts/prepare-workout-oracle.py
+          python3 scripts/prepare-setup-oracle.py
+      - name: Shared metrics, lifecycle and persistence contract tests
+        env:
+          WORKOUT_ORACLE: ${{ github.workspace }}/build/workout-oracle/oracle.json
+          WORKOUT_PARITY_REPORT: ${{ github.workspace }}/build/workout-oracle/kotlin-parity.json
+          SETUP_ORACLE: ${{ github.workspace }}/build/setup-oracle/oracle.json
+          PUBLIC_REPLAY_PROGRESS_REPORT: ${{ github.workspace }}/build/replay-progress-kotlin.json
+        run: ./gradlew -Pworkout.appleOnly=true :shared:jvmTest --console=plain
+      - name: Shared Kotlin Native contract tests
+        run: |
+          case "$(uname -m)" in
+            arm64) workout_native_tests=macosArm64Test ;;
+            x86_64) workout_native_tests=macosX64Test ;;
+            *) echo "Unsupported Kotlin Native host architecture" >&2; exit 1 ;;
+          esac
+          ./gradlew -Pworkout.appleOnly=true ":shared:$workout_native_tests" --console=plain
+      - name: Check actual Kotlin interrupted evidence through Python scoring
+        run: python3 scripts/check-replay-progress-contract.py build/replay-progress-kotlin.json
+      - name: Check common counting performance budget
+        run: python3 scripts/check-android-evaluation.py --core build/workout-oracle/kotlin-parity.json
+      - name: Shipping Kotlin to Swift bridge and host performance budget
+        run: ./scripts/test-workout-bridge.sh
+      - name: Render shipping Swift Charts view in narrow/wide and light/dark layouts
+        run: ./scripts/render-workout-review.sh
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: workout-analysis-contracts
+          path: |
+            build/workout-analysis/apple-bridge-check.json
+            build/workout-analysis/reliability-bridge-check.json
+            build/replay-progress-kotlin.json
+            build/workout-analysis/native-benchmark-session.json
+            build/workout-analysis/native-authored-records.json
+            build/workout-analysis/render/*.png
+            build/workout-analysis/render/*.ocr.json
+            shared/build/test-results/jvmTest/*.xml
+            shared/build/test-results/macos*Test/*.xml
