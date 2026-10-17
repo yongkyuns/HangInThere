@@ -59,7 +59,8 @@ import WorkoutCore
             "insights": try JSONSerialization.jsonObject(with: Data(libraryBridge.insightsJson(stateJson: library, comparisonKey: nil, nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000), utcOffsetMinutes: 0).utf8)),
             "mediaPolicy": ["enabled": false, "maximumClips": 20, "maximumBytes": 209715200, "maximumAgeDays": 30], "media": [], "diagnosticsConsent": false, "revision": 5]
         let libraryDashboard = try JSONDecoder().decode(LibraryDashboard.self, from: JSONSerialization.data(withJSONObject: dashboardJSON))
-        for section in ["Progress", "History", "Plans", "Storage"] {
+        let journeyOnly = CommandLine.arguments.contains("--journey-only")
+        for section in journeyOnly ? ["Progress"] : ["Progress", "History", "Plans", "Storage"] {
             for dark in [true, false] {
                 for width in [320.0, 430.0] {
                     let content = NavigationStack { WorkoutLibraryView(preview: libraryDashboard, section: section) }
@@ -97,6 +98,7 @@ import WorkoutCore
                 }
             }
         }
+        if journeyOnly { return }
         var unfinished = completed
         unfinished["id"] = "preview:rep:2"; unfinished["ordinal"] = 2
         unfinished["returnedAt"] = NSNull(); unfinished["returnSeconds"] = NSNull()

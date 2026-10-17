@@ -52,8 +52,8 @@ struct WorkoutReviewView: View {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack { Text("Your reps").font(.title3.bold()); Spacer(); Text("Tap to explore").font(.caption).foregroundStyle(.secondary) }
                             HStack(spacing: 14) {
-                                Label(summary.exercise == .pullUp ? "Pull" : "Lower", systemImage: "circle.fill").foregroundStyle(.blue)
-                                Label(summary.exercise == .pullUp ? "Lower" : "Press", systemImage: "circle.fill").foregroundStyle(Color.blue.opacity(0.5))
+                                phaseLegend(summary.exercise == .pullUp ? "Pull" : "Lower", color: .blue)
+                                phaseLegend(summary.exercise == .pullUp ? "Lower" : "Press", color: Color.blue.opacity(0.5))
                             }.font(.caption)
                             ForEach(completed) { rep in repLink(rep) }
                         }
@@ -143,6 +143,9 @@ struct WorkoutReviewView: View {
                 }.padding(14).background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 14))
             }.buttonStyle(.plain)
         }
+    }
+    private func phaseLegend(_ title: String, color: Color) -> some View {
+        Label { Text(title).foregroundStyle(.secondary) } icon: { Image(systemName: "circle.fill").foregroundStyle(color) }
     }
     private func seconds(_ value: Double) -> String { String(format: "%.1fs", value) }
 }

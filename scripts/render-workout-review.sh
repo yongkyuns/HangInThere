@@ -12,4 +12,5 @@ xcrun swiftc -swift-version 6 -O -whole-module-optimization -parse-as-library -t
   ios/HangInThere/UI/WorkoutReviewView.swift ios/HangInThere/UI/WorkoutJourneyView.swift ios/HangInThere/UI/WorkoutLibraryView.swift ios/HangInThere/UI/WorkoutPracticeView.swift ios/HangInThere/UI/WorkoutGripView.swift \
   ios/HangInThere/UI/LiveWorkoutOverlay.swift ios/HangInThere/UI/ExerciseProgressView.swift \
   Evaluation/WorkoutReviewRender.swift -o build/workout-analysis/render-review
-build/workout-analysis/render-review
+# --journey-only limits visual checks to the progressive analysis routes.
+build/workout-analysis/render-review "$@"
