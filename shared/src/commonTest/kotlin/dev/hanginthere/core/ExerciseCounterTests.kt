@@ -274,6 +274,130 @@ class ExerciseCounterTests {
         CounterFixtures.feed(c, 0.0 to 140.0, 0.15 to 140.0, 0.3 to 70.0, 0.45 to 70.0, 0.6 to 140.0, 0.75 to 140.0)
         assertEquals(1, c.observedMovements); assertEquals(0, c.interruptedAttempts)
     }
+    @Test fun briefDipReturnCannotMergeTheNextDescentIntoOneCompletedRep() {
+        for (side in ArmMeasurement.Side.entries) for (bottom in listOf(80.0, 110.0)) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 170.0, .15 to 170.0, .3 to bottom, .45 to bottom,
+                .6 to 170.0, .65 to 140.0, .7 to 80.0)
+            assertEquals(0, c.observedMovements)
+            assertEquals(0, c.partialAttempts)
+            assertEquals(1, c.interruptedAttempts)
+            assertEquals("returnNotSustained", c.lastEvent?.reason)
+            assertEquals(ExerciseCounter.Phase.seekingStart, c.phase)
+            assertEquals(DipProgress.Cue.reacquireSupport, c.dipProgress?.cue)
+            // A later top reacquires a baseline; it cannot close the old attempt.
+            CounterFixtures.feed(c, .75 to 80.0, .9 to 170.0, 1.05 to 170.0)
+            assertEquals(0, c.observedMovements)
+            CounterFixtures.feed(c, 1.2 to 80.0, 1.35 to 80.0, 1.5 to 170.0, 1.65 to 170.0)
+            assertEquals(1, c.observedMovements)
+            assertEquals(listOf(1.65), c.events.filter { it.outcome == ExerciseCounter.Outcome.movement }.map { it.sourceSeconds })
+        }
+    }
+    @Test fun dipUpperJitterAndSubTopBouncesDoNotInventANewAttempt() {
+        for (side in ArmMeasurement.Side.entries) for (upperJitter in listOf(true, false)) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0)
+            if (upperJitter) CounterFixtures.feed(c, .6 to 170.0, .65 to 160.0, .75 to 170.0)
+            else CounterFixtures.feed(c, .6 to 120.0, .75 to 80.0, .9 to 170.0, 1.05 to 170.0)
+            assertEquals(1, c.observedMovements)
+            assertEquals(0, c.partialAttempts)
+        }
+    }
+    @Test fun dipReturnUsesActualHeightAndAngleWitnessesTogether() {
+        for (side in ArmMeasurement.Side.entries) for (returns in listOf(
+                listOf(150.0 to 0.0, 170.0 to 0.0), listOf(150.0 to 0.0, 170.0 to 10.0),
+                listOf(170.0 to 10.0, 150.0 to 0.0))) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0)
+            for ((index, witness) in returns.withIndex())
+                c.consume(dipTopPose(.6 + index * .05, side, witness.first, heightDrop = witness.second), CounterFixtures.edge)
+            // A short elbow outage cannot erase negative evidence of a return.
+            c.consume(dipTopPose(.67, side, elbowVisible = false), CounterFixtures.edge)
+            c.consume(dipTopPose(.7, side, 140.0, heightDrop = 40.0), CounterFixtures.edge)
+            assertEquals(0, c.observedMovements)
+            assertEquals(1, c.interruptedAttempts)
+            assertEquals("returnNotSustained", c.lastEvent?.reason)
+        }
+    }
+    @Test fun dipDepartureBoundaryPlateauIsNotAnObservedReturn() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            for ((time, degrees, drop) in listOf(Triple(0.0,170.0,0.0), Triple(.15,170.0,0.0),
+                    Triple(.3,150.0,10.0), Triple(.34,150.0,10.0), Triple(.38,130.0,20.0),
+                    Triple(.53,130.0,20.0), Triple(.6,170.0,0.0), Triple(.75,170.0,0.0)))
+                c.consume(dipTopPose(time, side, degrees, heightDrop = drop, supportSpan = 100.0), CounterFixtures.edge)
+            assertEquals(1, c.observedMovements)
+            assertEquals(0, c.interruptedAttempts)
+            assertEquals(0, c.partialAttempts)
+        }
+    }
+    @Test fun outboundDipReturnRetainsLowAngleAtTheSameHeight() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            val frames = listOf(Triple(0.0,170.0,0.0), Triple(.15,170.0,0.0), Triple(.3,150.0,15.0),
+                Triple(.34,130.0,15.0), Triple(.38,150.0,0.0), Triple(.42,130.0,20.0))
+            for ((time, degrees, drop) in frames)
+                c.consume(dipTopPose(time, side, degrees, heightDrop = drop, supportSpan = 100.0), CounterFixtures.edge)
+            assertEquals(1, c.interruptedAttempts)
+            assertEquals("returnNotSustained", c.lastEvent?.reason)
+            assertEquals(0, c.observedMovements)
+            for ((time, degrees, drop) in listOf(Triple(.57,130.0,20.0), Triple(.7,170.0,0.0), Triple(.85,170.0,0.0),
+                    Triple(.99,130.0,20.0), Triple(1.14,130.0,20.0), Triple(1.29,170.0,0.0), Triple(1.44,170.0,0.0)))
+                c.consume(dipTopPose(time, side, degrees, heightDrop = drop, supportSpan = 100.0), CounterFixtures.edge)
+            assertEquals(1, c.observedMovements)
+            assertEquals(1.44, c.lastEvent?.sourceSeconds)
+        }
+    }
+    @Test fun outboundDipReturnCannotCombineSeparateLowExtrema() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            for ((time, degrees, drop) in listOf(Triple(0.0,170.0,0.0), Triple(.15,170.0,0.0),
+                    Triple(.3,150.0,20.0), Triple(.34,130.0,15.0), Triple(.38,150.0,7.0),
+                    Triple(.42,130.0,20.0), Triple(.57,130.0,20.0), Triple(.7,170.0,0.0), Triple(.85,170.0,0.0)))
+                c.consume(dipTopPose(time, side, degrees, heightDrop = drop, supportSpan = 100.0), CounterFixtures.edge)
+            assertEquals(0, c.interruptedAttempts)
+            assertEquals(1, c.observedMovements)
+        }
+    }
+    @Test fun separateDipReturnWitnessesCannotInventCombinedMaximumGeometry() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0)
+            c.consume(dipTopPose(.6, side, 150.0), CounterFixtures.edge)
+            c.consume(dipTopPose(.65, side, 170.0, heightDrop = 10.0), CounterFixtures.edge)
+            // The 150° sample has insufficient flexion; the 170° sample has
+            // insufficient travel. Their separate maxima are not a witness.
+            c.consume(dipTopPose(.7, side, 140.0, heightDrop = 25.0), CounterFixtures.edge)
+            assertEquals(0, c.interruptedAttempts)
+            c.consume(dipTopPose(.85, side, 170.0, heightDrop = 10.0), CounterFixtures.edge)
+            c.consume(dipTopPose(1.0, side, 170.0, heightDrop = 10.0), CounterFixtures.edge)
+            assertEquals(1, c.observedMovements)
+        }
+    }
+    @Test fun unresolvedDipReturnHistoryIsBoundedAndRequiresFreshSupport() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0)
+            for (index in 0..64)
+                c.consume(dipTopPose(.6 + index * .001, side, 151.0 + index * .1, heightDrop = index * .05), CounterFixtures.edge)
+            assertEquals(0, c.observedMovements)
+            assertEquals(1, c.interruptedAttempts)
+            assertEquals("dipReturnUnresolved", c.lastEvent?.reason)
+            assertEquals(ExerciseCounter.Phase.seekingStart, c.phase)
+            assertEquals(DipProgress.Cue.reacquireSupport, c.dipProgress?.cue)
+        }
+    }
+    @Test fun sourceInterruptionRevokesUnconfirmedDipReturn() {
+        for (side in ArmMeasurement.Side.entries) {
+            val c = dip(side)
+            CounterFixtures.feed(c, 0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0, .6 to 170.0, .6 to 170.0)
+            assertEquals("nonIncreasingTimestamp", c.lastEvent?.reason)
+            CounterFixtures.feed(c, .8 to 170.0, .95 to 170.0, 1.1 to 80.0, 1.25 to 80.0, 1.4 to 170.0, 1.55 to 170.0)
+            assertEquals(1, c.observedMovements)
+            assertEquals(1, c.interruptedAttempts)
+            assertEquals(1.55, c.lastEvent?.sourceSeconds)
+        }
+    }
     @Test fun dipStartCanSurviveShortPersonDropout() {
         val c = dip()
         CounterFixtures.feed(c, 0.0 to 140.0)
@@ -355,14 +479,20 @@ class ExerciseCounterTests {
 
     // Vary the observed elbow while preserving independent top geometry.
     private fun dipTopPose(time: Double, side: ArmMeasurement.Side, degrees: Double = 170.0,
-                           elbowVisible: Boolean = true): PoseResult {
+                           elbowVisible: Boolean = true, heightDrop: Double = 0.0,
+                           supportSpan: Double = 240 * sin(85 * PI / 180)): PoseResult {
         val base = CounterFixtures.pose(time, exercise = ExerciseCounter.Exercise.dip, side = side)
         val points = base.people.single().landmarks
-        val shoulder = points[0].position; val wrist = points[2].position
+        val wrist = points[2].position
+        val shoulder = points[0].position.copy(y = wrist.y - supportSpan + heightDrop)
         val elbow = Point2D(wrist.x + (wrist.y - shoulder.y) / (2 * tan(degrees * PI / 360)),
             (shoulder.y + wrist.y) / 2)
         return base.copy(people = listOf(PoseObservation(points.map {
-            if (it.joint == side.joints[1]) it.copy(position = elbow, confidence = if (elbowVisible) 1.0 else .1) else it
+            when (it.joint) {
+                side.joints[0] -> it.copy(position = shoulder)
+                side.joints[1] -> it.copy(position = elbow, confidence = if (elbowVisible) 1.0 else .1)
+                else -> it
+            }
         })))
     }
     private fun verifyDipReturnWitness(fullCycle: Boolean) {

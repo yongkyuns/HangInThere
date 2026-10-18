@@ -70,6 +70,10 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     private var dipSample: DipSample? = null
     private var dipAnchor: DipSample? = null
     private var dipTopCandidate: DipSample? = null
+    // Negative evidence only: a witnessed but unconfirmed return cannot be
+    // followed by another descent inside the same completed-cycle record.
+    private val dipUnconfirmedReturns = DipWitnesses()
+    private val dipOutboundLows = DipWitnesses()
     private var dipBottom: DipSample? = null
     private var dipLastGeometryTime: PresentationTime? = null
     private var dipSupportCandidateSince: PresentationTime? = null
@@ -81,6 +85,21 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     private data class Sample(val degrees: Double, val shoulderToBarPixels: Double, val imageShortSide: Double)
     private data class DipSample(val degrees: Double?, val supportHeightPixels: Double,
         val imageShortSide: Double, val otherDegrees: Double?)
+    /** Bounded frontier of actual samples, ordered by caller-supplied evidence
+     * keys. Dominance never combines coordinates from different observations. */
+    private class DipWitnesses {
+        private data class Entry(val sample: DipSample, val height: Double, val angle: Double)
+        private val entries = mutableListOf<Entry>()
+        fun any(predicate: (DipSample) -> Boolean) = entries.any { predicate(it.sample) }
+        fun clear() = entries.clear()
+        fun retain(sample: DipSample, height: Double, angle: Double): Boolean {
+            if (entries.any { it.height >= height && it.angle >= angle }) return true
+            entries.removeAll { it.height <= height && it.angle <= angle }
+            if (entries.size >= 64) return false
+            entries.add(Entry(sample, height, angle))
+            return true
+        }
+    }
 
     val armTracking: String get() = if (exercise == Exercise.pullUp) "bothUsableArms" else "selectedGripWithAvailableArms"
 
@@ -137,7 +156,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
             val cue = when (issue) {
                 "barReferenceUnavailable" -> DipProgress.Cue.setRail
                 "dipGripMoved" -> DipProgress.Cue.reestablishGrip
-                "dipSupportNeeded", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp" -> DipProgress.Cue.reacquireSupport
+                "dipSupportNeeded", "returnNotSustained", "dipReturnUnresolved", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp" -> DipProgress.Cue.reacquireSupport
                 else -> DipProgress.Cue.showArms
             }
             return snapshot(DipProgress.Stage.paused, cue)
@@ -307,6 +326,8 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
             min(pose.imageSize.width, pose.imageSize.height), support.otherDegrees)
         dipSample = sample; dipLastGeometryTime = time
         trackingIssue = if (support.degrees == null) "lowConfidence" else null
+        if ((phase == Phase.outbound || phase == Phase.returning) &&
+                dipUnconfirmedReturns.any { dipHasDeparted(sample, it) }) return interrupt("returnNotSustained")
         when (phase) {
             Phase.seekingStart -> {
                 if (!isDipSupportLike(sample)) {
@@ -341,6 +362,8 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
                 if (dipHasDeparted(sample, anchor)) {
                     activeAttempt = true; phase = Phase.outbound; endpoint = null; endpointSince = null
                     dipTopCandidate = null; dipBottom = null
+                    dipOutboundLows.clear()
+                    if (!retainDipWitness(sample, upper = false)) return interrupt("dipReturnUnresolved")
                     sustained(if (dipReachedBentEndpoint(sample, anchor)) Endpoint.bent else null, time)
                 }
             }
@@ -351,9 +374,15 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
                         val event = record(Outcome.partial, time.seconds, "returnedBeforeBentEndpoint")
                         armDip(dipTopCandidate ?: anchor); return event
                     }
+                    // Departure and partial-return height gates touch. A
+                    // plateau there is not an ascent from an observed low.
+                    if (dipOutboundLows.any { dipHasDeparted(it, sample) } && !retainDipWitness(sample))
+                        return interrupt("dipReturnUnresolved")
                 } else if (sustained(if (dipReachedBentEndpoint(sample, anchor)) Endpoint.bent else null, time)) {
                     phase = Phase.returning; dipBottom = sample; endpoint = null; endpointSince = null; dipTopCandidate = null
+                    dipOutboundLows.clear()
                 }
+                if (phase == Phase.outbound && !retainDipWitness(sample, upper = false)) return interrupt("dipReturnUnresolved")
             }
             Phase.returning -> {
                 val anchor = dipAnchor ?: return interrupt("missingDipCycleAnchor")
@@ -366,6 +395,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
                         val event = record(Outcome.movement, time.seconds, "barReferencedCycle;dipDepthAndFormNotQualified")
                         armDip(dipTopCandidate ?: sample); return event
                     }
+                    if (!retainDipWitness(sample)) return interrupt("dipReturnUnresolved")
                 } else sustained(null, time)
             }
             Phase.finished -> Unit
@@ -396,6 +426,14 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         val degrees = sample.degrees ?: return false; val anchorDegrees = anchor.degrees ?: return false
         val travel = anchor.supportHeightPixels - sample.supportHeightPixels
         return travel >= dipDepartureTravelFraction * requiredDipTravel(anchor) && anchorDegrees - degrees >= minimumDipDepartureDegrees
+    }
+    /** Both histories can only invalidate a merged attempt, never supply dwell
+     * or replace the confirmed bottom. Missing angles cannot create witnesses. */
+    private fun retainDipWitness(sample: DipSample, upper: Boolean = true): Boolean {
+        val degrees = sample.degrees ?: return true
+        return if (upper) dipUnconfirmedReturns.retain(sample,
+            sample.supportHeightPixels - dipDepartureTravelFraction * requiredDipTravel(sample), degrees)
+        else dipOutboundLows.retain(sample, -sample.supportHeightPixels, -degrees)
     }
     private fun dipReachedBentEndpoint(sample: DipSample, anchor: DipSample): Boolean {
         val degrees = sample.degrees ?: return false; val anchorDegrees = anchor.degrees ?: return false
@@ -456,12 +494,16 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     }
     private fun armDip(sample: DipSample) {
         phase = Phase.ready; dipAnchor = sample; dipTopCandidate = null; dipBottom = null; dipSupportCandidateSince = null
+        dipUnconfirmedReturns.clear()
+        dipOutboundLows.clear()
         endpoint = null; endpointSince = null; activeAttempt = false; trackingIssue = null
     }
     private fun clearEvidence() {
         pullUpAnchors.clear(); pullUpExtendedSince.clear(); pullUpEndpointWitnesses = emptySet()
         dipSupportAxis = null; dipSample = null; dipAnchor = null; pullUpSamples = emptyMap()
         dipTopCandidate = null; dipBottom = null; dipSupportCandidateSince = null; dipLastGeometryTime = null
+        dipUnconfirmedReturns.clear()
+        dipOutboundLows.clear()
         endpoint = null; endpointSince = null; activeAttempt = false
     }
     fun interrupt(reason: String = "inferenceFailure"): Event? {

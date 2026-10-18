@@ -7,6 +7,33 @@ import kotlinx.serialization.decodeFromString
 class WorkoutAnalysisTests {
     private fun frame(time:Double, angle:Double?, usable:Boolean=true, released:Boolean=false) = MotionSample(time,angle,angle,angle?.div(1000),usable,released)
     private fun event(time:Double) = ExerciseCounter.Event(ExerciseCounter.Outcome.movement,time,"policy v8")
+    @Test fun unconfirmedDipReturnStaysOutOfCompletedTimingAndTheNextRepStartsFresh() {
+        for (side in ArmMeasurement.Side.entries) for (bottom in listOf(80.0, 110.0)) {
+            val session = LiveSetSession()
+            session.start(ExerciseCounter.Exercise.dip, side)
+            for ((time, degrees) in listOf(0.0 to 170.0, .15 to 170.0, .3 to bottom, .45 to bottom,
+                    .6 to 170.0, .65 to 140.0, .7 to 80.0, .75 to 80.0, .9 to 170.0, 1.05 to 170.0,
+                    1.2 to 80.0, 1.35 to 80.0, 1.5 to 170.0, 1.65 to 170.0))
+                session.consume(CounterFixtures.bilateral(time, degrees, degrees, exercise = ExerciseCounter.Exercise.dip), CounterFixtures.edge)
+            session.finish()
+            val record = session.record
+            assertEquals(2, record.reps.size)
+            val interrupted = record.reps.first()
+            assertEquals("returnNotSustained", interrupted.closeReason)
+            assertNull(interrupted.acceptedAt)
+            assertNull(interrupted.returnedAt)
+            assertNull(interrupted.returnSeconds)
+            assertFalse(WorkoutEvidence.assess(interrupted).angleComparisonEligible)
+            assertEquals("Return position was not confirmed before another descent", WorkoutEvidence.assess(interrupted).reason)
+            val completed = record.completedReps.single()
+            assertEquals(1, record.completedCount)
+            assertEquals(2, completed.ordinal)
+            assertTrue(completed.startedAt >= 1.05)
+            assertTrue(completed.samples.all { it.seconds >= 1.05 })
+            assertEquals(1.65, completed.returnedAt)
+            assertTrue(completed.outboundSeconds!! <= .3 + 1e-9)
+        }
+    }
     @Test fun pullUpAcceptanceAndReturnAreDifferentMilestones() {
         val a=WorkoutAnalysis("set",ExerciseCounter.Exercise.pullUp)
         a.observe(frame(0.0,170.0),ExerciseCounter.Phase.ready,null)

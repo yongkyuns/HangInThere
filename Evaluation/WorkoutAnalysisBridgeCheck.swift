@@ -356,6 +356,38 @@ struct WorkoutAnalysisBridgeCheck {
                 }
             }
         }
+        // The actual Swift counter must close an unconfirmed upper return
+        // before another descent; the Kotlin analytics must retain that
+        // interruption separately from the next completed cycle.
+        for side in ArmMeasurement.Side.allCases {
+            for bottom in [80.0, 110.0] {
+                let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: .dip)
+                var counter = ExerciseCounter(exercise: .dip, side: side)
+                for (time, angle) in [(0.0,170.0),(0.15,170),(0.3,bottom),(0.45,bottom),(0.6,170),(0.65,140),
+                    (0.7,80),(0.75,80),(0.9,170),(1.05,170),(1.2,80),(1.35,80),(1.5,170),(1.65,170)] {
+                    let p = pose(time, angle, exercise: .dip)
+                    let before = counter.events.count
+                    counter.consume(p, referenceEdge: reference)
+                    _ = analysis.consume(p, reference: reference, counter: counter,
+                        event: counter.events.count > before ? counter.events.last : nil, automaticFinish: false)
+                }
+                guard let set = analysis.finish(reason: "manual"), set.reps.count == 2,
+                      set.completedCount == 1, counter.observedMovements == 1,
+                      let completed = set.completedReps.first, completed.ordinal == 2,
+                      completed.startedAt >= 1.05, completed.returnedAt == 1.65,
+                      completed.samples.allSatisfy({ $0.seconds >= 1.05 }) else {
+                    fatalError("Shipping Apple bridge merged an unconfirmed dip return into another cycle")
+                }
+                let interrupted = set.reps[0]
+                let evidence = try interrupted.evidenceAssessment(setEndReason: set.endReason)
+                guard interrupted.closeReason == "returnNotSustained", interrupted.acceptedAt == nil,
+                      interrupted.returnedAt == nil, interrupted.returnSeconds == nil,
+                      evidence.status == "interrupted", !evidence.angleComparisonEligible,
+                      evidence.reason == "Return position was not confirmed before another descent" else {
+                    fatalError("Shipping Apple analytics credited an interrupted dip return")
+                }
+            }
+        }
         // A recovered journal may retain inProgress in the raw attempt. Its
         // saved review must never imply the camera is still tracking it.
         let recoveryAnalysis = WorkoutAnalysisAdapter(); recoveryAnalysis.start(exercise: .pullUp)
@@ -631,6 +663,7 @@ struct WorkoutAnalysisBridgeCheck {
             "acquisitionFeedbackCases": acquisitionFeedbackChecks, "acquisitionFramingFrames": 2000,
             "acquisitionFramingHostBridgeP95Milliseconds": acquisitionP95,
             "readinessCases": readinessChecks, "readinessFrames": 2000,
+            "unconfirmedDipReturnCases": 4,
             "readinessHostBridgeP95Milliseconds": readinessP95,
             "sceneQualificationCases": 3, "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])

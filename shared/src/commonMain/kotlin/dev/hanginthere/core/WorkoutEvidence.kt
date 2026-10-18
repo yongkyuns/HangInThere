@@ -96,6 +96,8 @@ object WorkoutEvidence {
         "inferenceFailure", "cameraFailure" -> "Camera or pose processing interrupted"
         "phoneMoved", "sceneShifted", "sceneScaled" -> "Camera or scene moved"
         "barReferenceUnavailable", "invalidBarGeometry", "setupInvalidated", "dipGripMoved" -> "Equipment reference changed or unavailable"
+        "returnNotSustained" -> "Return position was not confirmed before another descent"
+        "dipReturnUnresolved" -> "Return position could not be confirmed; reacquire top support"
         else -> "Observation ended without a confirmed return"
     }
 

@@ -57,6 +57,68 @@ def prepare(output):
     add('pullUp-opposite-still', 'pullUp', cycle,0,right=170)
     add('pullUp-single-visible', 'pullUp',cycle,1,missing=True)
     add('dip-opposite-still', 'dip',cycle,0,right=170)
+    # A fleeting upper return is not a completed endpoint. A second observed
+    # descent must close that attempt before it can contaminate another rep.
+    for side in ('left', 'right'):
+        frames = [(0,170),(.15,170),(.3,80),(.45,80),(.6,170),(.65,140),(.7,80),
+                  (.75,80),(.9,170),(1.05,170),(1.2,80),(1.35,80),(1.5,170),(1.65,170)]
+        add('dip-unconfirmed-return-reacquisition-'+side, 'dip', frames, 1, side=side, expected_partial=0)
+        phases = ['seekingStart','ready','outbound','returning','returning','returning','seekingStart',
+                  'seekingStart','seekingStart','ready','outbound','returning','returning','ready']
+        for index, (step, phase) in enumerate(zip(cases[-1]['steps'], phases)):
+            step.update(expectedPhase=phase, expectedMovements=int(index == len(phases) - 1))
+        partial_frames = frames[:2] + [(.3,110),(.45,110)] + frames[4:]
+        add('dip-unconfirmed-return-partial-reacquisition-'+side, 'dip', partial_frames, 1, side=side, expected_partial=0)
+        partial_phases = phases[:3] + ['outbound','outbound','outbound'] + phases[6:]
+        for index, (step, phase) in enumerate(zip(cases[-1]['steps'], partial_phases)):
+            step.update(expectedPhase=phase, expectedMovements=int(index == len(partial_phases) - 1))
+        for kind, tail in [('upper-jitter',[(.6,170),(.65,160),(.75,170)]),
+                           ('sub-top-bounce',[(.6,120),(.75,80),(.9,170),(1.05,170)])]:
+            add('dip-unconfirmed-return-'+kind+'-'+side, 'dip', frames[:4]+tail, 1, side=side, expected_partial=0)
+    # Height and angle vary independently. No synthetic maximum may substitute
+    # for one actually observed upper-return witness.
+    def dip_return_pose(t, degrees, side, drop=0, visible=True, span=None, bilateral=False):
+        frame = pose(t, 170, exercise='dip')
+        points = {p['joint']:p for p in frame['people'][0]['landmarks']}
+        for arm in (('left','right') if bilateral else (side,)):
+            shoulder = points[arm+'Shoulder']['position']
+            wrist = points[arm+'Wrist']['position']
+            shoulder['y'] = (shoulder['y'] if span is None else wrist['y']-span)+drop
+            elbow = points[arm+'Elbow']
+            elbow['position'] = dict(x=wrist['x']+(wrist['y']-shoulder['y'])/(2*math.tan(math.radians(degrees/2))),
+                                     y=(shoulder['y']+wrist['y'])/2)
+            elbow['confidence'] = 1 if visible else .1
+        return frame
+    for side in ('left','right'):
+        baseline = [pose(t,a,exercise='dip') for t,a in [(0,170),(.15,170),(.3,80),(.45,80)]]
+        for label, returns in [('same-height',[(150,0),(170,0)]),
+                               ('higher-angle-lower',[(150,0),(170,10)]),
+                               ('higher-angle-first',[(170,10),(150,0)])]:
+            frames = baseline+[dip_return_pose(.6+i*.05,a,side,drop) for i,(a,drop) in enumerate(returns)]
+            frames += [dip_return_pose(.67,170,side,visible=False),dip_return_pose(.7,140,side,40)]
+            add('dip-return-witness-'+label+'-'+side,'dip',frames,0,side=side,expected_partial=0)
+            cases[-1]['steps'][-1]['expectedPhase'] = 'seekingStart'
+        frames = baseline+[dip_return_pose(t,a,side,drop) for t,a,drop in
+            [(.6,150,0),(.65,170,10),(.7,140,25),(.85,170,10),(1,170,10)]]
+        add('dip-return-no-synthetic-maxima-'+side,'dip',frames,1,side=side,expected_partial=0)
+        frames = baseline+[dip_return_pose(.6+i*.001,151+i*.1,side,i*.05) for i in range(65)]
+        add('dip-return-bounded-history-'+side,'dip',frames,0,side=side,expected_partial=0)
+        cases[-1]['steps'][-1]['expectedPhase'] = 'seekingStart'
+        frames = baseline+[pose(t,a,exercise='dip') for t,a in
+            [(.6,170),(.6,170),(.8,170),(.95,170),(1.1,80),(1.25,80),(1.4,170),(1.55,170)]]
+        add('dip-return-source-reset-'+side,'dip',frames,1,side=side,expected_partial=0)
+        frames = [dip_return_pose(t,a,side,drop,span=100,bilateral=True) for t,a,drop in
+            [(0,170,0),(.15,170,0),(.3,150,10),(.34,150,10),(.38,130,20),(.53,130,20),(.6,170,0),(.75,170,0)]]
+        add('dip-departure-plateau-'+side,'dip',frames,1,side=side,expected_partial=0)
+        frames = [dip_return_pose(t,a,side,drop,span=100,bilateral=True) for t,a,drop in
+            [(0,170,0),(.15,170,0),(.3,150,15),(.34,130,15),(.38,150,0),(.42,130,20),
+             (.57,130,20),(.7,170,0),(.85,170,0),(.99,130,20),(1.14,130,20),(1.29,170,0),(1.44,170,0)]]
+        add('dip-outbound-low-witness-'+side,'dip',frames,1,side=side,expected_partial=0)
+        cases[-1]['steps'][5]['expectedPhase'] = 'seekingStart'
+        cases[-1]['steps'][5]['expectedMovements'] = 0
+        frames = [dip_return_pose(t,a,side,drop,span=100,bilateral=True) for t,a,drop in
+            [(0,170,0),(.15,170,0),(.3,150,20),(.34,130,15),(.38,150,7),(.42,130,20),(.57,130,20),(.7,170,0),(.85,170,0)]]
+        add('dip-outbound-no-combined-lows-'+side,'dip',frames,1,side=side,expected_partial=0)
     # Independent labels for frontal projection: shorter projected segments can
     # accompany meaningful shoulder travel while every elbow stays above 120°.
     def projected_dip(t, degrees, arm_scale, right=None):

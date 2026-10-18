@@ -85,6 +85,9 @@ struct ExerciseCounter: Sendable {
     private var dipSample: DipSample?
     private var dipAnchor: DipSample?
     private var dipTopCandidate: DipSample?
+    // This can only invalidate an attempt; it never supplies return/count dwell.
+    private var dipUnconfirmedReturns = DipWitnesses()
+    private var dipOutboundLows = DipWitnesses()
     private var dipBottom: DipSample?
     private var dipLastGeometryTime: PresentationTime?
     private var dipSupportCandidateSince: PresentationTime?
@@ -108,6 +111,25 @@ struct ExerciseCounter: Sendable {
         let supportHeightPixels: Double
         let imageShortSide: Double
         let otherDegrees: Double?
+    }
+    // A bounded frontier preserves actual samples. Caller-supplied evidence
+    // keys never combine coordinates from different observations.
+    private struct DipWitnesses: Sendable {
+        private struct Entry: Sendable {
+            let sample: DipSample
+            let height: Double
+            let angle: Double
+        }
+        private var entries: [Entry] = []
+        func contains(where predicate: (DipSample) -> Bool) -> Bool { entries.contains { predicate($0.sample) } }
+        mutating func clear() { entries.removeAll(keepingCapacity: true) }
+        mutating func retain(_ sample: DipSample, height: Double, angle: Double) -> Bool {
+            if entries.contains(where: { $0.height >= height && $0.angle >= angle }) { return true }
+            entries.removeAll { $0.height <= height && $0.angle <= angle }
+            guard entries.count < 64 else { return false }
+            entries.append(Entry(sample: sample, height: height, angle: angle))
+            return true
+        }
     }
 
     init(exercise: Exercise = .pullUp, side: ArmMeasurement.Side = .left) {
@@ -194,7 +216,7 @@ struct ExerciseCounter: Sendable {
             switch trackingIssue {
             case "barReferenceUnavailable": cue = .setRail
             case "dipGripMoved": cue = .reestablishGrip
-            case "dipSupportNeeded", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp":
+            case "dipSupportNeeded", "returnNotSustained", "dipReturnUnresolved", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp":
                 cue = .reacquireSupport
             default: cue = .showArms
             }
@@ -454,6 +476,10 @@ struct ExerciseCounter: Sendable {
         dipSample = sample
         dipLastGeometryTime = time
         trackingIssue = support.degrees == nil ? "lowConfidence" : nil
+        if (phase == .outbound || phase == .returning),
+           dipUnconfirmedReturns.contains(where: { dipHasDeparted(sample, from: $0) }) {
+            return interrupt(reason: "returnNotSustained")
+        }
 
         switch phase {
         case .seekingStart:
@@ -521,6 +547,8 @@ struct ExerciseCounter: Sendable {
                 endpointSince = nil
                 dipTopCandidate = nil
                 dipBottom = nil
+                dipOutboundLows.clear()
+                if !retainDipWitness(sample, upper: false) { return interrupt(reason: "dipReturnUnresolved") }
                 _ = sustained(dipReachedBentEndpoint(sample, from: anchor) ? .bent : nil, at: time)
             }
 
@@ -534,13 +562,20 @@ struct ExerciseCounter: Sendable {
                     armDip(dipTopCandidate ?? anchor)
                     return event
                 }
+                // The departure/partial-return height gates touch. Require
+                // actual ascent before treating a plateau as return evidence.
+                if dipOutboundLows.contains(where: { dipHasDeparted($0, from: sample) }), !retainDipWitness(sample) {
+                    return interrupt(reason: "dipReturnUnresolved")
+                }
             } else if sustained(dipReachedBentEndpoint(sample, from: anchor) ? .bent : nil, at: time) {
                 phase = .returning
                 dipBottom = sample
+                dipOutboundLows.clear()
                 endpoint = nil
                 endpointSince = nil
                 dipTopCandidate = nil
             }
+            if phase == .outbound, !retainDipWitness(sample, upper: false) { return interrupt(reason: "dipReturnUnresolved") }
 
         case .returning:
             guard let anchor = dipAnchor, var bottom = dipBottom else {
@@ -558,6 +593,7 @@ struct ExerciseCounter: Sendable {
                     armDip(dipTopCandidate ?? sample)
                     return event
                 }
+                if !retainDipWitness(sample) { return interrupt(reason: "dipReturnUnresolved") }
             } else {
                 _ = sustained(nil, at: time)
             }
@@ -618,6 +654,17 @@ struct ExerciseCounter: Sendable {
         let travel = anchor.supportHeightPixels - sample.supportHeightPixels
         return travel >= Self.dipDepartureTravelFraction * required &&
             anchorDegrees - degrees >= Self.minimumDipDepartureDegrees
+    }
+
+    // Both histories can only invalidate attempts. They cannot supply dwell or
+    // replace the confirmed bottom; missing angles cannot create witnesses.
+    private mutating func retainDipWitness(_ sample: DipSample, upper: Bool = true) -> Bool {
+        guard let degrees = sample.degrees else { return true }
+        if upper {
+            let height = sample.supportHeightPixels - Self.dipDepartureTravelFraction * requiredDipTravel(sample)
+            return dipUnconfirmedReturns.retain(sample, height: height, angle: degrees)
+        }
+        return dipOutboundLows.retain(sample, height: -sample.supportHeightPixels, angle: -degrees)
     }
 
     private func dipReachedBentEndpoint(_ sample: DipSample, from anchor: DipSample) -> Bool {
@@ -739,6 +786,8 @@ struct ExerciseCounter: Sendable {
         phase = .ready
         dipAnchor = sample
         dipTopCandidate = nil
+        dipUnconfirmedReturns.clear()
+        dipOutboundLows.clear()
         dipBottom = nil
         dipSupportCandidateSince = nil
         endpoint = nil
@@ -761,6 +810,8 @@ struct ExerciseCounter: Sendable {
         dipAnchor = nil
         pullUpSamples = [:]
         dipTopCandidate = nil
+        dipUnconfirmedReturns.clear()
+        dipOutboundLows.clear()
         dipBottom = nil
         dipSupportCandidateSince = nil
         dipLastGeometryTime = nil

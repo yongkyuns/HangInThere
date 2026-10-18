@@ -381,6 +381,136 @@ struct ExerciseCounterTests {
         #expect(c.interruptedAttempts == 0)
         #expect(c.lastEvent?.reason == "barReferencedCycle;dipDepthAndFormNotQualified")
     }
+    @Test(arguments: [80.0, 110.0]) func briefDipReturnCannotMergeTheNextDescentIntoOneCompletedRep(bottom: Double) {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            feed(&c, [(0,170),(0.15,170),(0.3,bottom),(0.45,bottom),(0.6,170),(0.65,140),(0.7,80)])
+            #expect(c.observedMovements == 0)
+            #expect(c.partialAttempts == 0)
+            #expect(c.interruptedAttempts == 1)
+            #expect(c.lastEvent?.reason == "returnNotSustained")
+            #expect(c.phase == .seekingStart)
+            #expect(c.dipProgress?.cue == .reacquireSupport)
+            feed(&c, [(0.75,80),(0.9,170),(1.05,170)])
+            #expect(c.observedMovements == 0)
+            feed(&c, [(1.2,80),(1.35,80),(1.5,170),(1.65,170)])
+            #expect(c.observedMovements == 1)
+            #expect(c.events.filter { $0.outcome == .movement }.map(\.sourceSeconds) == [1.65])
+        }
+    }
+    @Test func dipUpperJitterAndSubTopBouncesDoNotInventANewAttempt() {
+        for side in ArmMeasurement.Side.allCases {
+            for upperJitter in [true, false] {
+                var c = ExerciseCounter(exercise: .dip, side: side)
+                feed(&c, [(0,170),(0.15,170),(0.3,80),(0.45,80)])
+                if upperJitter { feed(&c, [(0.6,170),(0.65,160),(0.75,170)]) }
+                else { feed(&c, [(0.6,120),(0.75,80),(0.9,170),(1.05,170)]) }
+                #expect(c.observedMovements == 1)
+                #expect(c.partialAttempts == 0)
+            }
+        }
+    }
+    @Test func dipReturnUsesActualHeightAndAngleWitnessesTogether() {
+        for side in ArmMeasurement.Side.allCases {
+            for returns in [[(150.0,0.0),(170.0,0.0)], [(150.0,0.0),(170.0,10.0)], [(170.0,10.0),(150.0,0.0)]] {
+                var c = ExerciseCounter(exercise: .dip, side: side)
+                feed(&c, [(0,170),(0.15,170),(0.3,80),(0.45,80)])
+                for (index, witness) in returns.enumerated() {
+                    c.consume(Self.dipTopPose(0.6 + Double(index) * 0.05, degrees: witness.0,
+                        side: side, heightDrop: witness.1), referenceEdge: Self.referenceEdge)
+                }
+                c.consume(Self.dipTopPose(0.67, side: side, elbowVisible: false), referenceEdge: Self.referenceEdge)
+                c.consume(Self.dipTopPose(0.7, degrees: 140, side: side, heightDrop: 40), referenceEdge: Self.referenceEdge)
+                #expect(c.observedMovements == 0)
+                #expect(c.interruptedAttempts == 1)
+                #expect(c.lastEvent?.reason == "returnNotSustained")
+            }
+        }
+    }
+    @Test func dipDepartureBoundaryPlateauIsNotAnObservedReturn() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            for (time, degrees, drop) in [(0.0,170.0,0.0),(0.15,170.0,0.0),(0.3,150.0,10.0),
+                (0.34,150.0,10.0),(0.38,130.0,20.0),(0.53,130.0,20.0),(0.6,170.0,0.0),(0.75,170.0,0.0)] {
+                c.consume(Self.dipTopPose(time, degrees: degrees, side: side, heightDrop: drop, supportSpan: 100),
+                    referenceEdge: Self.referenceEdge)
+            }
+            #expect(c.observedMovements == 1)
+            #expect(c.interruptedAttempts == 0)
+            #expect(c.partialAttempts == 0)
+        }
+    }
+    @Test func outboundDipReturnRetainsLowAngleAtTheSameHeight() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            for (time, degrees, drop) in [(0.0,170.0,0.0),(0.15,170.0,0.0),(0.3,150.0,15.0),
+                (0.34,130.0,15.0),(0.38,150.0,0.0),(0.42,130.0,20.0)] {
+                c.consume(Self.dipTopPose(time, degrees: degrees, side: side, heightDrop: drop, supportSpan: 100),
+                    referenceEdge: Self.referenceEdge)
+            }
+            #expect(c.interruptedAttempts == 1)
+            #expect(c.lastEvent?.reason == "returnNotSustained")
+            #expect(c.observedMovements == 0)
+            for (time, degrees, drop) in [(0.57,130.0,20.0),(0.7,170.0,0.0),(0.85,170.0,0.0),
+                (0.99,130.0,20.0),(1.14,130.0,20.0),(1.29,170.0,0.0),(1.44,170.0,0.0)] {
+                c.consume(Self.dipTopPose(time, degrees: degrees, side: side, heightDrop: drop, supportSpan: 100),
+                    referenceEdge: Self.referenceEdge)
+            }
+            #expect(c.observedMovements == 1)
+            #expect(c.lastEvent?.sourceSeconds == 1.44)
+        }
+    }
+    @Test func outboundDipReturnCannotCombineSeparateLowExtrema() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            for (time, degrees, drop) in [(0.0,170.0,0.0),(0.15,170.0,0.0),(0.3,150.0,20.0),
+                (0.34,130.0,15.0),(0.38,150.0,7.0),(0.42,130.0,20.0),(0.57,130.0,20.0),(0.7,170.0,0.0),(0.85,170.0,0.0)] {
+                c.consume(Self.dipTopPose(time, degrees: degrees, side: side, heightDrop: drop, supportSpan: 100),
+                    referenceEdge: Self.referenceEdge)
+            }
+            #expect(c.interruptedAttempts == 0)
+            #expect(c.observedMovements == 1)
+        }
+    }
+    @Test func separateDipReturnWitnessesCannotInventCombinedMaximumGeometry() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            feed(&c, [(0,170),(0.15,170),(0.3,80),(0.45,80)])
+            c.consume(Self.dipTopPose(0.6, degrees: 150, side: side), referenceEdge: Self.referenceEdge)
+            c.consume(Self.dipTopPose(0.65, degrees: 170, side: side, heightDrop: 10), referenceEdge: Self.referenceEdge)
+            c.consume(Self.dipTopPose(0.7, degrees: 140, side: side, heightDrop: 25), referenceEdge: Self.referenceEdge)
+            #expect(c.interruptedAttempts == 0)
+            c.consume(Self.dipTopPose(0.85, degrees: 170, side: side, heightDrop: 10), referenceEdge: Self.referenceEdge)
+            c.consume(Self.dipTopPose(1, degrees: 170, side: side, heightDrop: 10), referenceEdge: Self.referenceEdge)
+            #expect(c.observedMovements == 1)
+        }
+    }
+    @Test func unresolvedDipReturnHistoryIsBoundedAndRequiresFreshSupport() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            feed(&c, [(0,170),(0.15,170),(0.3,80),(0.45,80)])
+            for index in 0...64 {
+                c.consume(Self.dipTopPose(0.6 + Double(index) * 0.001, degrees: 151 + Double(index) * 0.1,
+                    side: side, heightDrop: Double(index) * 0.05), referenceEdge: Self.referenceEdge)
+            }
+            #expect(c.observedMovements == 0)
+            #expect(c.interruptedAttempts == 1)
+            #expect(c.lastEvent?.reason == "dipReturnUnresolved")
+            #expect(c.phase == .seekingStart)
+            #expect(c.dipProgress?.cue == .reacquireSupport)
+        }
+    }
+    @Test func sourceInterruptionRevokesUnconfirmedDipReturn() {
+        for side in ArmMeasurement.Side.allCases {
+            var c = ExerciseCounter(exercise: .dip, side: side)
+            feed(&c, [(0,170),(0.15,170),(0.3,80),(0.45,80),(0.6,170),(0.6,170)])
+            #expect(c.lastEvent?.reason == "nonIncreasingTimestamp")
+            feed(&c, [(0.8,170),(0.95,170),(1.1,80),(1.25,80),(1.4,170),(1.55,170)])
+            #expect(c.observedMovements == 1)
+            #expect(c.interruptedAttempts == 1)
+            #expect(c.lastEvent?.sourceSeconds == 1.55)
+        }
+    }
     @Test func dipCanAcquireSupportAcrossShortPersonDropout() {
         var c = ExerciseCounter(exercise: .dip, side: .right)
         c.consume(
@@ -516,16 +646,18 @@ struct ExerciseCounterTests {
     // Keep the observed shoulder/wrist fixed while varying the measured elbow.
     // This isolates arm evidence from the independent support-height gate.
     private static func dipTopPose(_ time: Double, degrees: Double = 170,
-                                   side: ArmMeasurement.Side, elbowVisible: Bool = true) -> PoseResult {
+                                   side: ArmMeasurement.Side, elbowVisible: Bool = true, heightDrop: Double = 0,
+                                   supportSpan: Double = 240 * sin(85 * .pi / 180)) -> PoseResult {
         let base = pose(time, exercise: .dip, side: side)
         let points = base.people[0].landmarks
-        let shoulder = points[0].position
         let wrist = points[2].position
+        let shoulder = Point2D(x: points[0].position.x, y: wrist.y - supportSpan + heightDrop)
         let elbow = Point2D(x: wrist.x + (wrist.y - shoulder.y) / (2 * tan(degrees * .pi / 360)),
                             y: (shoulder.y + wrist.y) / 2)
         return PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
                           people: [PoseObservation(landmarks: points.map {
-                              $0.joint == side.joints[1]
+                              $0.joint == side.joints[0] ? Landmark(joint: $0.joint, position: shoulder, confidence: $0.confidence)
+                              : $0.joint == side.joints[1]
                                   ? Landmark(joint: $0.joint, position: elbow, confidence: elbowVisible ? 1 : 0.1) : $0
                           })], backend: base.backend, requestRevision: base.requestRevision)
     }

@@ -44,7 +44,7 @@ class WorkoutEvidenceTests {
 
     @Test fun interruptedObservationsCannotBecomeProgressRangeEvenWithFullPrefixCoverage() {
         for (reason in listOf("trackingLost", "sourceTimeGap", "invalidTimestamp", "nonIncreasingTimestamp",
-            "inferenceFailure", "multiplePeople", "futureInterruptionReason")) {
+            "inferenceFailure", "multiplePeople", "returnNotSustained", "dipReturnUnresolved", "futureInterruptionReason")) {
             for (accepted in listOf(false, true)) {
                 val rep = record().copy(acceptedAt = .3.takeIf { accepted }, returnedAt = null, closeReason = reason, outcome = "interrupted")
                 val evidence = WorkoutEvidence.assess(rep)
@@ -63,6 +63,13 @@ class WorkoutEvidenceTests {
             assertEquals(if (reason == "inProgress") WorkoutAttemptStatus.inProgress else WorkoutAttemptStatus.ended, evidence.status)
             assertFalse(evidence.explanation.contains("was interrupted"))
         }
+    }
+    @Test fun unresolvedReturnDoesNotAssertAnotherDescent() {
+        val assessment = WorkoutEvidence.assess(record().copy(acceptedAt = null, returnedAt = null,
+            closeReason = "dipReturnUnresolved", outcome = "interrupted"))
+        assertEquals("Return position could not be confirmed; reacquire top support", assessment.reason)
+        assertEquals(WorkoutAttemptStatus.interrupted, assessment.status)
+        assertFalse(assessment.angleComparisonEligible)
     }
 
     @Test fun missingOrInvalidCoverageRemainsUnavailableWithoutBorrowingTheOtherArm() {
