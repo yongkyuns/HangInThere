@@ -188,8 +188,25 @@ joint triples into this shared policy rather than copying its rules.
   dwell; fresh observed extension is required. This applies to both completed
   cycles and partial returns. An uncontradicted top may still be sustained by
   the existing shoulder/wrist evidence during an elbow-confidence gap.
+  A witnessed upper return that has not earned its dwell cannot merge a later
+  descent into the same cycle. Meaningful departure from that observed return
+  interrupts the attempt as `returnNotSustained` and requires fresh top-support
+  acquisition. The interrupted attempt stays out of completed-rep timing and
+  angle comparisons; the next completed rep starts from its own baseline.
+  This also separates a shallow first attempt from a later complete cycle.
+  Shallow attempts require actual ascent before a top becomes return evidence;
+  a plateau at the departure boundary cannot invent a second effort. Negative
+  evidence retains actual low/upper height-angle pairs, never combined extrema
+  or a replacement for the confirmed counting bottom. Dominated witnesses are
+  discarded; either unresolved frontier exceeding 64 witnesses also interrupts
+  as `dipReturnUnresolved`, requiring fresh
+  support without asserting a descent or growing without bound.
   CI runs these common regressions on the JVM and the host Kotlin Native target,
   alongside the independent Swift counter oracle and native Apple integration.
+  Gradle tracks both oracle files and all configured parity exports. A CI
+  regression exercises unchanged inputs, changed snapshots, changed report
+  paths and deleted reports, preventing stale cached tests from standing in for
+  fresh Swift/Kotlin comparisons.
   Counter dwell, per-arm baseline acquisition, observation outages and frame-gap
   checks retain source timestamps and subtract source ticks before converting
   to seconds. Exact 120 ms endpoints and 350 ms allowed gaps therefore use the
