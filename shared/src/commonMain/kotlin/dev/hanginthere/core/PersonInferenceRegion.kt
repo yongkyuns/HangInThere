@@ -19,7 +19,9 @@ data class PersonInferenceRegion(val left: Int, val top: Int, val width: Int, va
     fun restore(prediction: PoseResult, source: ImageSize): PoseResult {
         require(isValidFor(source) && prediction.imageSize == ImageSize(width.toDouble(), height.toDouble()) &&
             prediction.gripObservation == null) { "Restore body-only crop predictions before grip inference" }
-        return prediction.copy(imageSize = source, people = prediction.people.map { person ->
+        // Pixel translation does not restore a crop model's camera calibration
+        // or depth frame. Preserve raw crop output separately for diagnostics.
+        return prediction.copy(imageSize = source, estimatedWorldConvention = null, people = prediction.people.map { person ->
             PoseObservation(person.landmarks.filter { point ->
                 point.position.isFinite && point.position.x in 0.0..width.toDouble() && point.position.y in 0.0..height.toDouble()
             }.map { point -> point.copy(position = Point2D(point.position.x + left, point.position.y + top)) })

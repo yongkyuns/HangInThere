@@ -43,7 +43,8 @@ class PoseEstimator private constructor(context: Context, private val mode: Runn
         val result = try {
             if (mode == RunningMode.IMAGE) detector.detect(image) else detector.detectForVideo(image, milliseconds)
         } finally { image.close() }
-        val people = result.landmarks().map { points ->
+        val world = PoseWorldLandmarks.map(result.landmarks().size, result.worldLandmarks(), JOINTS)
+        val people = result.landmarks().mapIndexed { personIndex, points ->
             val landmarks = JOINTS.map { (joint, index) ->
                 val point = points[index]
                 // Raw backend visibility/presence scores, not Apple Vision probabilities.
@@ -56,11 +57,12 @@ class PoseEstimator private constructor(context: Context, private val mode: Runn
             }
             middle(PoseJoint.neck, PoseJoint.leftShoulder, PoseJoint.rightShoulder)
             middle(PoseJoint.root, PoseJoint.leftHip, PoseJoint.rightHip)
-            PoseObservation(landmarks)
+            PoseObservation(landmarks, world?.get(personIndex))
         }
         val backend = if (mode == RunningMode.IMAGE) "MediaPipe Heavy CPU IMAGE visibility/presence minimum"
             else "MediaPipe Heavy CPU visibility/presence minimum"
-        return PoseResult(PresentationTime(presentationTimeUs, 1_000_000), ImageSize(bitmap.width.toDouble(), bitmap.height.toDouble()), people, backend, 1)
+        return PoseResult(PresentationTime(presentationTimeUs, 1_000_000), ImageSize(bitmap.width.toDouble(), bitmap.height.toDouble()), people, backend, 1,
+            estimatedWorldConvention = EstimatedBodyGeometry.convention.takeIf { world != null && people.isNotEmpty() })
     }
     override fun close() = detector.close()
     companion object {

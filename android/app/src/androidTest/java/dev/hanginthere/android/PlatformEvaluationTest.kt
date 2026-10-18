@@ -191,6 +191,7 @@ class PlatformEvaluationTest {
                 val latencies = mutableListOf<Double>(); val decodeLatencies = mutableListOf<Double>(); val contourLatencies = mutableListOf<Double>(); val sceneLatencies = mutableListOf<Double>()
                 var sceneValidFrames = 0; var sceneLastSeconds: Double? = null
                 var frames = 0; var peopleFrames = 0; var multiplePeopleFrames = 0; var candidates = 0
+                var worldFrames = 0; var estimatedBodyGeometryFrames = 0
                 var peakPssKb = 0; var peakJavaBytes = 0L; var peakNativeBytes = 0L
                 val started = System.nanoTime()
                 val lines = File(output, "$id-observations.jsonl").bufferedWriter()
@@ -214,6 +215,17 @@ class PlatformEvaluationTest {
                                     assertEquals(it.bitmap.width.toDouble(), pose.imageSize.width, 0.0)
                                     assertEquals(it.bitmap.height.toDouble(), pose.imageSize.height, 0.0)
                                     if (pose.people.size == 1) peopleFrames++ else if (pose.people.size > 1) multiplePeopleFrames++
+                                    if (pose.people.isNotEmpty()) {
+                                        assertEquals(EstimatedBodyGeometry.convention, pose.estimatedWorldConvention)
+                                        pose.people.forEach { person ->
+                                            val estimated = requireNotNull(person.estimatedWorldLandmarks)
+                                            val original = person.landmarks.filter { point -> point.joint !in setOf(PoseJoint.neck, PoseJoint.root) }
+                                            assertEquals(original.map { point -> point.joint }, estimated.map { point -> point.joint })
+                                            assertTrue(estimated.all { point -> point.position.isFinite })
+                                        }
+                                        worldFrames++
+                                        if (ArmMeasurement.Side.entries.any { side -> EstimatedBodyGeometry.measure(pose, side) != null }) estimatedBodyGeometryFrames++
+                                    }
                                     if (frames == 0) registration.freeze(it.bitmap)
                                     if (sceneLastSeconds?.let { last -> pose.timestamp.seconds - last >= AutomaticPullUpBar.samplingInterval } != false) {
                                         val sceneStart = System.nanoTime(); val evidence = registration.observe(it.bitmap)
@@ -266,6 +278,7 @@ class PlatformEvaluationTest {
                 reports += buildJsonObject {
                     put("id", id); put("qualificationRole", requireNotNull(role)); put("sha256", checksum); put("exercise", exercise.name); put("side", side.name)
                     put("frames", frames); put("singlePersonFrames", peopleFrames); put("multiplePersonFrames", multiplePeopleFrames)
+                    put("estimatedWorldFrames", worldFrames); put("estimatedBodyGeometryFrames", estimatedBodyGeometryFrames)
                     put("observedCandidates", candidates); put("expectedMovements", expected); put("observedMovements", counter.observedMovements)
                     put("functionalParity", fixedEdgeMatches && productionMatches); put("fixedEdgeMovementParity", fixedEdgeMatches)
                     put("accuracyFailures", Json.encodeToJsonElement(caseAccuracyFailures))

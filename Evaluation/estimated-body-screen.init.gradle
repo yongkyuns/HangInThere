@@ -1,0 +1,13 @@
+allprojects { project ->
+ afterEvaluate {
+  if (project.name == 'shared') {
+   project.tasks.register('estimatedBodyGeometryScreen', JavaExec) {
+    workingDir project.rootProject.projectDir
+    dependsOn project.tasks.named('jvmTestClasses')
+    classpath = project.tasks.named('jvmTest').get().classpath
+    mainClass.set('dev.hanginthere.evaluation.EstimatedBodyGeometryDiagnostic')
+    args project.providers.gradleProperty('estimatedBody.input').get(), project.providers.gradleProperty('estimatedBody.output').get()
+   }
+  }
+ }
+}

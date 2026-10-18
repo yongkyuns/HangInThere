@@ -9,6 +9,12 @@ struct Point2D: Codable, Equatable, Sendable {
     var isFinite: Bool { x.isFinite && y.isFinite }
 }
 
+struct Point3D: Codable, Equatable, Sendable {
+    let x: Double
+    let y: Double
+    let z: Double
+}
+
 struct ImageSize: Codable, Equatable, Sendable {
     let width: Double
     let height: Double
@@ -39,12 +45,26 @@ struct Landmark: Codable, Equatable, Sendable {
 
 struct PoseObservation: Codable, Equatable, Sendable {
     let landmarks: [Landmark]
+    let estimatedWorldLandmarks: [EstimatedWorldLandmark]?
+
+    init(landmarks: [Landmark], estimatedWorldLandmarks: [EstimatedWorldLandmark]? = nil) {
+        self.landmarks = landmarks
+        self.estimatedWorldLandmarks = estimatedWorldLandmarks
+    }
 
     func landmark(_ joint: PoseJoint, minimumConfidence: Double = 0.3) -> Landmark? {
         landmarks.first { $0.joint == joint && $0.isVisible(minimumConfidence: minimumConfidence) }
     }
 
     var visibleLandmarkCount: Int { landmarks.filter { $0.isVisible() }.count }
+}
+
+// Primary same-request model output. Vision 2D leaves this unavailable; a grip
+// model's separately scheduled estimates cannot supply primary body depth.
+struct EstimatedWorldLandmark: Codable, Equatable, Sendable {
+    let joint: PoseJoint
+    let position: Point3D
+    let confidence: Double
 }
 
 struct PresentationTime: Codable, Equatable, Sendable {
@@ -69,6 +89,7 @@ struct PoseResult: Codable, Equatable, Sendable {
     let backend: String
     let requestRevision: Int
     var gripObservation: WorkoutGripObservation? = nil
+    var estimatedWorldConvention: String? = nil
 
     // P0 draws each returned skeleton separately; it does not claim to select or
     // persist the identity of an athlete. Counting/identity continuity is P1/P2.

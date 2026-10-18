@@ -1,0 +1,867 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-18T08:36:06.670903+00:00",
+  "scope": "Public development experiments and same-frame estimated-world measurement foundation; no production counter promotion",
+  "sourceBaseRevision": "3f4e11d3ec1306cab4b61f5536e61954dfe38186",
+  "productionGate": {
+    "sourceRevision": "3f4e11d3ec1306cab4b61f5536e61954dfe38186",
+    "frames": 1866,
+    "matched": 1,
+    "missed": 25,
+    "extra": 0,
+    "strictExitCode": 3,
+    "remainsFatal": true
+  },
+  "rectangleCrop": {
+    "completedClips": {
+      "pullup_censored": 180,
+      "dip_rear": 789,
+      "dip_side": 597
+    },
+    "controlledComplete": false,
+    "controlledRowsBothAttempts": 145,
+    "terminalExitCodeBothAttempts": 138,
+    "promoted": false
+  },
+  "projectiveRegistration": {
+    "authoredFalsifications": 10,
+    "sourceFrames": 300,
+    "qualifiedFrames": 14,
+    "promoted": false
+  },
+  "estimatedCycles": {
+    "producer": "MediaPipe Python0.10.21 Heavy CPU VIDEO; not native Android SDK",
+    "modelSha256": "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
+    "firstCandidate": {
+      "controlledMatches": 7,
+      "reference": 9,
+      "rejected": true,
+      "reasons": [
+        "authored curl accepted",
+        "unbounded endpoint semantics",
+        "clock fence fault",
+        "opposite-arm evidence ignored"
+      ]
+    },
+    "revisedCandidate": {
+      "authoredControls": 28,
+      "sourceCoverage": [
+        {
+          "id": "dip_rear",
+          "expected": 789,
+          "completed": 789
+        },
+        {
+          "id": "dip_side",
+          "expected": 597,
+          "completed": 597
+        },
+        {
+          "id": "dip_controlled_pexels",
+          "expected": 300,
+          "completed": 300
+        }
+      ],
+      "left": {
+        "matched": 5,
+        "missed": 20,
+        "extra": 0
+      },
+      "right": {
+        "matched": 0,
+        "missed": 25,
+        "extra": 0
+      },
+      "controlledLeft": {
+        "matched": 5,
+        "missed": 4,
+        "extra": 0
+      },
+      "promoted": false,
+      "load": "unverified",
+      "form": "unverified",
+      "apparatus": "unobserved"
+    }
+  },
+  "sharedMeasurementValidation": {
+    "jvmTests": 466,
+    "nativeTests": 447,
+    "androidUnitTests": 34,
+    "swiftCoreTests": 273,
+    "androidLintErrors": 0,
+    "instrumentationCompiled": true,
+    "counterOracleCases": 98,
+    "counterOracleFrames": 951,
+    "setupOracleCases": 127,
+    "setupOracleFrames": 7022,
+    "authoredGeometryAbiChecks": 11,
+    "geometryQueryFrames": 2000,
+    "geometryQueryHostP95Milliseconds": 0.025039,
+    "queryTimingExcludes": [
+      "payload construction",
+      "SDK inference",
+      "camera",
+      "physical device"
+    ],
+    "savedMeasurementComparison": {
+      "scope": "Python research measurements versus compiled common geometry on actual saved Heavy observations; not native SDK/device parity",
+      "frames": 1686,
+      "measured_arm_comparisons": 1818,
+      "maximum_absolute_difference": {
+        "degrees": 5.684341886080802e-14,
+        "upper": 2.842170943040401e-14,
+        "arm": 1.1102230246251565e-16,
+        "torso": 1.1102230246251565e-16,
+        "height": 1.1102230246251565e-16,
+        "axial": 2.220446049250313e-16
+      }
+    },
+    "nativeSdkPredictionParity": false
+  },
+  "implementationFiles": [
+    {
+      "path": "Evaluation/EstimatedBodyGeometryBridgeCheck.swift",
+      "bytes": 4636,
+      "sha256": "2c9a871c1d11b50210979c91979b8e29597715c13a709b8ae66e16982c72c6da"
+    },
+    {
+      "path": "Evaluation/WorkoutAnalysisBridgeCheck.swift",
+      "bytes": 60188,
+      "sha256": "b0ce7d2bc000b8aa84abe6b7f207713f00b99fb05177faf22012a020ce680fb6"
+    },
+    {
+      "path": "Evaluation/android/EstimatedBodyGeometryDiagnostic.kt",
+      "bytes": 7442,
+      "sha256": "d326b132d68cbdc255b9ad8a2f150c14f78f36b594d3e1cd7844473d7405ca47"
+    },
+    {
+      "path": "Evaluation/androidTests/EstimatedBodyGeometryDiagnosticTests.kt",
+      "bytes": 4097,
+      "sha256": "1f3f4a4757a60584f40c651c3e384affe7793b21c2310ef2b1feb4f61eb5edd1"
+    },
+    {
+      "path": "Evaluation/estimated-body-screen.init.gradle",
+      "bytes": 535,
+      "sha256": "7574755eb1a7ac4296477213ce0037776a517dc9bb0883047f904332ea31a2a2"
+    },
+    {
+      "path": "Evaluation/results/dip-estimated-world-screen.md",
+      "bytes": 6784,
+      "sha256": "3751113ebebf804abbfdec6d2a031d2b4ee8122162221fd2d406d2b02ff14da5"
+    },
+    {
+      "path": "android/app/src/androidTest/java/dev/hanginthere/android/PlatformEvaluationTest.kt",
+      "bytes": 25949,
+      "sha256": "5419bfd36d99d55cef61f03bd7794819cf900e34726e5e8354c6def3d118613b"
+    },
+    {
+      "path": "android/app/src/main/java/dev/hanginthere/android/vision/PoseEstimator.kt",
+      "bytes": 5440,
+      "sha256": "7024499d975d331988726b1bdc02df320b3483b3b983a6d13f4c23ced6c579b4"
+    },
+    {
+      "path": "android/app/src/main/java/dev/hanginthere/android/vision/PoseWorldLandmarks.kt",
+      "bytes": 1019,
+      "sha256": "88496083384d97fb379a56d482efba2c1b334f673a9f182443a532e0b959d11f"
+    },
+    {
+      "path": "android/app/src/test/java/dev/hanginthere/android/PoseWorldLandmarksTest.kt",
+      "bytes": 2279,
+      "sha256": "f97f257c7d83e69a50caf043f3eececb39a3032f24ee0e8a5cd2900b41997678"
+    },
+    {
+      "path": "ios/HangInThere/Analysis/PoseObservation.swift",
+      "bytes": 3353,
+      "sha256": "72da17b271dd446fc52ab85e801c4f9621fe4a24856f37f8cd046725a622d02c"
+    },
+    {
+      "path": "scripts/test-workout-bridge.sh",
+      "bytes": 980,
+      "sha256": "b41946a47af65ee86cbb49a46792394f6b244957fe6f51d068d0122ae16d8450"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/dev/hanginthere/core/EstimatedBodyGeometry.kt",
+      "bytes": 3099,
+      "sha256": "eb92b1958356282f13ea94e91dfa4c520a1ba05c34b4b42356ba8ab046751251"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/dev/hanginthere/core/PersonInferenceRegion.kt",
+      "bytes": 3752,
+      "sha256": "1e5acce329b173ff107e4d6bef5c0408ad46a2f78e917550123f47ba7d2bcfaf"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/dev/hanginthere/core/PoseObservation.kt",
+      "bytes": 3225,
+      "sha256": "a7b0e92e78facebf9973296b6f104184ccc5fc5105ec310cd1e3fb9c97459e47"
+    },
+    {
+      "path": "shared/src/commonTest/kotlin/dev/hanginthere/core/EstimatedBodyGeometryTests.kt",
+      "bytes": 9375,
+      "sha256": "15f98cb6cdec8baa17bc9a55b1e6a7d632e7ddeb0c0ece83002b9bf9b8954322"
+    }
+  ],
+  "retainedLocalPublicFiles": [
+    {
+      "path": "build/dip-adaptive-cycle-goal/adaptive-world-cycle-left.json",
+      "bytes": 85887,
+      "sha256": "0819ad7b1e318cbdcc10b8c5e0728b896964716b5e1b80ddecbac8f9dc8c84a8"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/adaptive-world-cycle-right.json",
+      "bytes": 39205,
+      "sha256": "dc492c7f0cd7838e2cfe0c0373f029476a1b810928d7a2e1fd3411fb1e31acb0"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/adaptive-world-cycle-screen.py",
+      "bytes": 6472,
+      "sha256": "d952791f74dc3198c5a8165ef2d2afb6972badc930f76a2e507162751e2cea8b"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-dip_controlled_pexels-left.json",
+      "bytes": 95852,
+      "sha256": "9cc86f5107b3b6a7384fe12f5532b361be5748a7640e886631a2796bec56466b"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-dip_controlled_pexels-right.json",
+      "bytes": 103527,
+      "sha256": "9aaf27f82f03fae91e4e8d033a6f94d89b5e6fe6c55101ab2253b9178382afcc"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-dip_rear-left.json",
+      "bytes": 266544,
+      "sha256": "c8fe4b0b6323ba34e51e27a91e9006791993095bcc03f3eb9c0e80292002ab85"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-dip_rear-right.json",
+      "bytes": 268336,
+      "sha256": "f2ed73275f5824c76bceb07873dddc83adb82c415e5d467acf53c9526828d404"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-dip_side-left.json",
+      "bytes": 177279,
+      "sha256": "c28519a4eb05a9081024cb30dd7905f3220655dd9b44c508ffba35e4915e1e95"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-dip_side-right.json",
+      "bytes": 196132,
+      "sha256": "f271b782b1d603b6d434a1ef3841f2d7433b1dcc6e270ef347f92c13dcf1ff60"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-summary.json",
+      "bytes": 11105,
+      "sha256": "06f1dcc04788a65c5063f8a3282a308cea4e7000616673f44536b73223f543be"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded-tests.log",
+      "bytes": 3451,
+      "sha256": "7a39ff4ba14094d3b23297d55a955e58fc9e50cea0320405c63b0798dbf1a59f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/bounded_cycle.py",
+      "bytes": 8957,
+      "sha256": "cabee130c660a460d14b9e8fb77c47cd45326ffb19c34a95291ccd190bd79723"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-counter-oracle/oracle.json",
+      "bytes": 2587253,
+      "sha256": "78b5d8c1ea5d62cf3ede408f000f3dcab61165107ae9df12f9f92569218e2ed7"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-oracle-shared-validation.log",
+      "bytes": 694,
+      "sha256": "c4af01897dc3143074aa682076495f8a6d650ff1508db817352ff4357f9434b5"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-setup-oracle/oracle.json",
+      "bytes": 32663299,
+      "sha256": "5358c3256e2e110e0501b7544a1127653f2404450475b7ad3b926463aa823428"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/android-unit-results/TEST-dev.hanginthere.android.AttitudeHistoryTest.xml",
+      "bytes": 613,
+      "sha256": "e79365cb371e496dbfe49db61b98603d2669fe60e56aeb008c2acc00c6739e8b"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/android-unit-results/TEST-dev.hanginthere.android.PoseWorldLandmarksTest.xml",
+      "bytes": 816,
+      "sha256": "6591a4bea89d5cea28e66b0746cd548606c9ae5ea0b729e3c8afc72fdb85894e"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/android-unit-results/TEST-dev.hanginthere.android.ReplayOutcomeTest.xml",
+      "bytes": 1439,
+      "sha256": "edcd402a802d4d78139e041607f5ffdcb0908df7ca72a29f5253fe157741851a"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/android-unit-results/TEST-dev.hanginthere.android.VideoColorPolicyTest.xml",
+      "bytes": 1759,
+      "sha256": "af5bdeea3466867b7be0d69b4fca41835e298c17104e9ea3b43d5f72f0d2884e"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/android-unit-results/TEST-dev.hanginthere.android.VideoDecoderPolicyTest.xml",
+      "bytes": 1834,
+      "sha256": "2762b51e4c44666014af3dec7e77ddf1073882591551c875a76419a9387b7276"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/android-unit-results/TEST-dev.hanginthere.android.VideoTransformTest.xml",
+      "bytes": 484,
+      "sha256": "f75c33bf3f7f7f0388c2b68195bc72f9a724d9dee963ca828a30e3cb0b4b6b73"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/apple-bridge-check.json",
+      "bytes": 1356,
+      "sha256": "27606bca3a84103b7a2aadc11f969bf4a2e21405d6f09f7e8f6b0b070807d423"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.AutomaticReferenceStabilityTest.xml",
+      "bytes": 1153,
+      "sha256": "134190d9da8ff8d016dea61fd4a3f36c8aded4e7b6fba30e9e83a53df578e580"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.AutomaticWorkoutIntegrationTests.xml",
+      "bytes": 1303,
+      "sha256": "b049e0f75c7ecb903f61406fbaeb257d01714e35cc95e202e7060ed348b456fa"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.BarLineFitterTests.xml",
+      "bytes": 1853,
+      "sha256": "a1c807f8fbba70fc7ee50654f9f24b8ebd1d9d94eca164c0d046dcd58a2d42e1"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.DipAcquisitionStartTests.xml",
+      "bytes": 1469,
+      "sha256": "aab8355b40c5eb6eeef3467cd9eaa35ec17e234e45edca60ea23c8ea5ca680bf"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.DipContactAcquisitionTests.xml",
+      "bytes": 1502,
+      "sha256": "7c7bcca159b2eab91580eb6c640a595c019d3270e5efa023fa9b0dca4dcbba4a"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.EstimatedBodyGeometryTests.xml",
+      "bytes": 2448,
+      "sha256": "3691e529244308e7ce06c961fea6663abe1e12d411990b09110178313ba4d2a8"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.ExerciseCounterTests.xml",
+      "bytes": 8294,
+      "sha256": "ba8c08897eb118bdc4198d084169d41d1471df384e9667d68a06d460b951b72e"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.ForegroundAssociationTests.xml",
+      "bytes": 3509,
+      "sha256": "6657ddb2661aa11f73be692f11f08d0f5f9ba241a6a449f24290ca8d54cb6283"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.MeasurementTests.xml",
+      "bytes": 1932,
+      "sha256": "0374ad8ba6adcf43c3230e65a0592c3c19ecc72195e1e51146f7f2239396f9e5"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.PersonInferenceRegionTests.xml",
+      "bytes": 1131,
+      "sha256": "e31bb652b4fcee16c7eb86d68fe9f520a9a01df4da40bb2346b005df58cdf102"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.ProgressTests.xml",
+      "bytes": 2741,
+      "sha256": "8e46d87b2fb9ba019e70d39b3bed2bb2e6dc954b836fa472a5e7fd9a97327bf9"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.SetupPoliciesTest.xml",
+      "bytes": 8103,
+      "sha256": "04ff8a265a46c2e582b1bb522166f3a63e3a85d4baac3db02afd8eacf114fd5f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.SetupSwiftParityTest.xml",
+      "bytes": 501,
+      "sha256": "f1688d7cfc8dc037913807010bea4d500118a2ec6c487da441abbb98f6ef75ea"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.SourceTimeBigIntegerTests.xml",
+      "bytes": 694,
+      "sha256": "bec583037d45601edac2cf473228560fb87719855a4fe604e0670ff0bf60ce45"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.SourceTimeComparisonTests.xml",
+      "bytes": 1309,
+      "sha256": "45701b280ff8a0ad99141584d1cfeb1e1c61812d787295ac2f8e6660b9ae0857"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.StaticSceneEvidenceTests.xml",
+      "bytes": 2305,
+      "sha256": "7af6a086134d35af6d6dc9ea440bc7cbae9984be526aece8972589966735622f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.SwiftParityTest.xml",
+      "bytes": 481,
+      "sha256": "7fa2adac66eb251e6a3098a6e9b0d2dcf5b606b1ccbe161134ba16e2fdac5e6f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutAcquisitionGuidanceTests.xml",
+      "bytes": 1298,
+      "sha256": "28f24ba49a1b79ef53233722fe696b67287447ced45243dfafae7ae31d9490a4"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutAnalysisTests.xml",
+      "bytes": 3093,
+      "sha256": "5a05af8e0831bd12c2181cea2ff7ba022afcc2ee12b4d2d55367c81189065a2c"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutEvidenceTests.xml",
+      "bytes": 2282,
+      "sha256": "4981931e2fb036538ee855bfcc9b6184510c7cc41d5d4f942fc7140f4c77b3e7"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutFramingFeedbackTests.xml",
+      "bytes": 1298,
+      "sha256": "c62dba177882a7b0056f400a7c97f6569f73f70a2c5ab9f938b46c384774ce31"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutFramingGuidanceTests.xml",
+      "bytes": 2495,
+      "sha256": "745d2905f0b4ba9d89f25bc13eab265e4f8aaa0718142a712893b0369bbd6ec9"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutGripReleaseTests.xml",
+      "bytes": 500,
+      "sha256": "17f5588fd1ef574f50b1a1de9dc9ba6c948868741835d15f13d95caa360badd9"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutGripTests.xml",
+      "bytes": 4057,
+      "sha256": "58b79386e08a30c59d1acd0c651fffecf2bd7792ff84afa9e4e48b3cb12bc127"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutJourneyTests.xml",
+      "bytes": 2510,
+      "sha256": "a62bbcd66fab5dfa59f0b6fe03e5f88b6910e6671e360c495d246b579c0e3e2d"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutLibraryTests.xml",
+      "bytes": 5991,
+      "sha256": "4f4998e44dcce46cb09e885773fc110f143b6e7b974550cab56feee990f788f0"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutPhaseDirectionTests.xml",
+      "bytes": 2023,
+      "sha256": "17610c5bb97e0157105ca3e0da619dcbd3d2bdd2ea8fb5df67aaee3475e655f1"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutPhaseTests.xml",
+      "bytes": 2086,
+      "sha256": "46c7d7e5e67f11e6c40c4bf28e76ab6ccddbcd95ba35bff58a80600aba4cbc2f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutProgressionTests.xml",
+      "bytes": 1919,
+      "sha256": "9fd192b27056503bdc35813f57bd3079b69409bdf14c84479a948182b3336f36"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutReadinessClockTests.xml",
+      "bytes": 2172,
+      "sha256": "1f78c3f78107486dba1f755b2b87419bc7415a199222c26f8df3c6400bc845ca"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutRecoveryTests.xml",
+      "bytes": 1122,
+      "sha256": "84bd94e21387f03d7618dff631abcb424f4cf4e17a02b1b3de92d8772127d2ec"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutReliabilityTests.xml",
+      "bytes": 2401,
+      "sha256": "0ec509d027de7ff6407a9946d07a751af238a09bb5fdd256487ab65661207ef6"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutSourceTimelineTests.xml",
+      "bytes": 801,
+      "sha256": "04edf6e8991c40accc9631efc8f8708a4e6faeed55cb6ae5834d6894688e4bb6"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.core.WorkoutStartFeedbackTests.xml",
+      "bytes": 921,
+      "sha256": "7af1d27f62e8be5b833157009cc5dbe900afb22baf47bb3eecb543d72c1439d9"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.evaluation.EstimatedBodyGeometryDiagnosticTests.xml",
+      "bytes": 1721,
+      "sha256": "c791bf6a55d4238b9f2be9e39eab8910b9a4b6a56f0b91a0eb442e159e0b85ba"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/jvm-results/TEST-dev.hanginthere.evaluation.PublicReplayProgressTests.xml",
+      "bytes": 1722,
+      "sha256": "436c1edaf56b345a2677a7fcb6c3bcdd379dbb86d277a44023cb2322904b2983"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/kotlin-counter-parity.json",
+      "bytes": 529,
+      "sha256": "2d5728cb671a7f36f1626518ab02b1389a51f5f6e70c29648d28f528ce9bd4a6"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/kotlin-setup-parity.json",
+      "bytes": 215,
+      "sha256": "693e044c46eab148fa2248a255c10dc8c254cfa946aaf20f80ef36166d416b42"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.AutomaticReferenceStabilityTest.xml",
+      "bytes": 1172,
+      "sha256": "2d9f94ab8cdad6b015245bf36c511772fa5bf734c1bbad31311318ec68ba7f50"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.AutomaticWorkoutIntegrationTests.xml",
+      "bytes": 1333,
+      "sha256": "0238d21363409e37e220ee704b7b8d6ae54e2ae91d61771611e32a0758c9f72f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.BarLineFitterTests.xml",
+      "bytes": 1904,
+      "sha256": "4fab3e7ada77e7ab940c3753312241e6956286886ff858a6dec00572b88e59c0"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.DipAcquisitionStartTests.xml",
+      "bytes": 1504,
+      "sha256": "918e60df999a6aed61f6274d9f38aa6265c8758b95d9611fe3b620929b161b62"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.DipContactAcquisitionTests.xml",
+      "bytes": 1538,
+      "sha256": "a711caff9c488d24c3d752e8ea2d0661cf83ed8ecb3cbaa8f6a87b28613ab9d5"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.EstimatedBodyGeometryTests.xml",
+      "bytes": 2504,
+      "sha256": "77e1ac20acd9f518c392ba7014554985d85253eb12b729ad9d6b417334299b52"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.ExerciseCounterTests.xml",
+      "bytes": 8597,
+      "sha256": "5f808020cd5081b739b0b8e5aa2f63f54d0b7afa8a640fb5d954d03a6583fb07"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.ForegroundAssociationTests.xml",
+      "bytes": 3606,
+      "sha256": "3312268dd057d50405d5b6a7e56b2ecdff7c206a981dcd56755878976b07334e"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.MeasurementTests.xml",
+      "bytes": 1984,
+      "sha256": "ea97fd8a70b2a6b6b124376a3459b7af901f44de598d6706c21c57e18d9f59b6"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.PersonInferenceRegionTests.xml",
+      "bytes": 1156,
+      "sha256": "f6d597ef90456fed8b3ae6ff2e538c2cd1d76930f47768b4b54655a921e28cdc"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.ProgressTests.xml",
+      "bytes": 2832,
+      "sha256": "e3d488a3fcd459bf7697a2fb8ffffed1cffe7161bee373d8e1ea14c2f3474079"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.SetupPoliciesTest.xml",
+      "bytes": 8358,
+      "sha256": "9e8624684977ca332b56cc8e0b9feae5d109100c684f160f30ce4c467b5c5c87"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.SourceTimeComparisonTests.xml",
+      "bytes": 1339,
+      "sha256": "c5d34fac3df97012b3ed66d14fff989d2595b31d0242d1cf20c62292c4fa1580"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.StaticSceneEvidenceTests.xml",
+      "bytes": 2372,
+      "sha256": "923eef35ed99b1ca0d69673ee4bb2050398534e0f4e5701c6cdfcbd026a5ebff"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutAcquisitionGuidanceTests.xml",
+      "bytes": 1334,
+      "sha256": "747a63844b96bf4e1f9736d52938c212e14d5de0091bd9b7beace233bb65c649"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutAnalysisTests.xml",
+      "bytes": 3190,
+      "sha256": "fef1ad18ccc2390b805fd64bab97cd8f64e57f80f7918f5c0094889b4a3943cd"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutEvidenceTests.xml",
+      "bytes": 2342,
+      "sha256": "0467b2f206dd195e3165e80c192cea93d739d86711015465c530608516f51a8f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutFramingFeedbackTests.xml",
+      "bytes": 1334,
+      "sha256": "8d679b7e94dd8e279633a566fcd3125ca6412fabb2a46fc8d8ce907d39621d78"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutFramingGuidanceTests.xml",
+      "bytes": 2563,
+      "sha256": "5c26398b0cd364cce74688c91b65e05b5347a68350e310f74de5c559b37c2c9b"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutGripReleaseTests.xml",
+      "bytes": 505,
+      "sha256": "bd485e71152c971609e33581373b0a419fca8db21a4b840633069f236e75a3e9"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutGripTests.xml",
+      "bytes": 4181,
+      "sha256": "7488d015a901fd480ba0482aa30e45e68d68e157b1d7c7a4cf2e23a2f8d479d6"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutJourneyTests.xml",
+      "bytes": 2579,
+      "sha256": "b34695fb5450e5be04506793da4edd7d20822635c92b2e31fb8a2529c3bb14d9"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutLibraryTests.xml",
+      "bytes": 6185,
+      "sha256": "c8f8087bfd1e9addad643f7afc7428f738a386706c044eea87a26536028e0d96"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutPhaseDirectionTests.xml",
+      "bytes": 2084,
+      "sha256": "3c9c7a5d49a041e2b60b02fba3d76c67d807b0a8a9d668a369cf19a0e6a632a9"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutPhaseTests.xml",
+      "bytes": 2152,
+      "sha256": "999174406ad3c1a54a6cc80c10a5183a7c9b0dc37185014babcb72bbe93db322"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutProgressionTests.xml",
+      "bytes": 1970,
+      "sha256": "5add7f2384c5658ba882830366d8bd425714fdceca1f81d1c8960ad6a1709627"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutReadinessClockTests.xml",
+      "bytes": 2228,
+      "sha256": "d62740c5905c97c8e2c2672ab6a2bcf85595a4f0f044fe5fedb511f3c6d4afa0"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutRecoveryTests.xml",
+      "bytes": 1147,
+      "sha256": "f8ba49dd81663d7f31708613c6f247fd4b11b62236b8d8f03db26c8b7e0620ae"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutReliabilityTests.xml",
+      "bytes": 2468,
+      "sha256": "8f1d9678b5a22de575ac0961aa28fa2f3d8d165568a5a149a9e7a9ae40116d3e"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutSourceTimelineTests.xml",
+      "bytes": 816,
+      "sha256": "7cad4cced72f75ed44d4ec785aa6f9be144cd2690ccbf9fb3eeb426df768c9c5"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/native-results/TEST-dev.hanginthere.core.WorkoutStartFeedbackTests.xml",
+      "bytes": 937,
+      "sha256": "d82b6955de87b5a7c6d160dad81b8cca9368aecec8d36c2b7c6ae5ac6a00331b"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/final-validation/reliability-bridge-check.json",
+      "bytes": 385,
+      "sha256": "712cc89e16f32a9c4d87f5f6932248cefda1a43ab5be5791deefe9f29f65004f"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/heavy-video/dip_rear.jsonl",
+      "bytes": 6631041,
+      "sha256": "b7780032d12e6de18da12409ff65e5deae5060beaa432159cc41a358ad96a6d5"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/heavy-video/dip_side.jsonl",
+      "bytes": 4240720,
+      "sha256": "da65f785b9bcb7336019917f23447d4bcf2c3507aac88dc87cc8992fe35e7f2d"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/infer-other-sources.py",
+      "bytes": 3224,
+      "sha256": "8537681eb3b06a29634f04473368064d22085e7540109fb24be8632f57884139"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/infer.log",
+      "bytes": 1577,
+      "sha256": "ebe8b20fa98c4b3d268fb2a2dfbcf4dc60c9d995cbc8de377b29737cb2f497e5"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/run_bounded.py",
+      "bytes": 3191,
+      "sha256": "8d287ba0b3c1c12dc11d464e4c04e69273015e5142936126e70bdeff359ef078"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/shared-world-comparison-pinned.json",
+      "bytes": 456,
+      "sha256": "6216a98eb0a657ce0dd76f82a990db886031627f455e95921a1c97438b5759e7"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/shared-world-final-validation.log",
+      "bytes": 5806,
+      "sha256": "93a70fe759cf372a084e926b0cc8b8ba86a1cabb12baffbfd00396ac422229a5"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/shared-world-measurements-pinned/dip_controlled_pexels.jsonl",
+      "bytes": 108232,
+      "sha256": "49b81d8b198a3948493160e6e9e49419b58e2c20963aebc5c9045269ba621afe"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/shared-world-measurements-pinned/dip_rear.jsonl",
+      "bytes": 292965,
+      "sha256": "bae49c42f19ec28d925843f96dcbbefd28939a83337116bec8cdd5ac1c98f9b1"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/shared-world-measurements-pinned/dip_side.jsonl",
+      "bytes": 206348,
+      "sha256": "8751bb0a34f3bf5ceb6d16cdd04801bed66625c298501d8b441fc2a41541b8ca"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/shared-world-measurements-pinned/summary.json",
+      "bytes": 1531,
+      "sha256": "42038dfdd9bb608ad051dc53e8abcfa4a90aa10862aeda79eccce13874940cdd"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/shared-world-screen-pinned.log",
+      "bytes": 2012,
+      "sha256": "8fde30c9d2d65eedd3fee578a023ae072f50de1c8379197af0e5d4f0296bab24"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/swift-core.log",
+      "bytes": 49697,
+      "sha256": "f2082f354faf590a6cc0bff514128c0a90c1da94ccbcb195e2548bc915c48207"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/test_bounded_cycle.py",
+      "bytes": 8873,
+      "sha256": "1425475f6f8037f59d0092f748d92dc228ef51aebbd497b2e8fe88de9d2774ee"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/world-bridge-final.log",
+      "bytes": 2190,
+      "sha256": "02744d3a9ed7bfacc63a956b10c63abc3764377ae00873baf7ae511c7536ebc1"
+    },
+    {
+      "path": "build/dip-adaptive-cycle-goal/world-diagnostic-inputs.json",
+      "bytes": 1881,
+      "sha256": "cfbdf174b13870326cc2961462ab3eab914b0afaf1ca68019473f61060c937a5"
+    },
+    {
+      "path": "build/dip-heavy-provider-goal/heavy-video/dip_controlled_pexels.jsonl",
+      "bytes": 2138759,
+      "sha256": "2ac91dd0dc347bd230d82cd0988d498345a3e66f7e4dfe8fc6756dbad15a6c1c"
+    },
+    {
+      "path": "build/dip-heavy-provider-goal/readiness-restored-native-report.json",
+      "bytes": 6648,
+      "sha256": "b8440eb0d76b37208f4b6e2fdb885b5bf2ee0b067ed02e7c9a61532cff5696fd"
+    },
+    {
+      "path": "build/dip-heavy-provider-goal/readiness-restored-native-report.json.provenance.json",
+      "bytes": 5113,
+      "sha256": "406dd19d94b297623293be22f4df747588ccbf13cd9c275ef986bd9105aa1fa2"
+    },
+    {
+      "path": "build/dip-heavy-provider-goal/readiness-strict-score.json",
+      "bytes": 8870,
+      "sha256": "f4303e94077eb76b5e31c8f4fd83cf33b91f9b94cba5951f739f739b4198811e"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/PersonRectangleScreen.four-clips.swift.txt",
+      "bytes": 9775,
+      "sha256": "c2b8ccb02aa4acac9952fc95ee38765e75e12b7da5fd61ec94e256a90bcc9dee"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/PersonRectangleScreen.swift",
+      "bytes": 10020,
+      "sha256": "443420345c730142504ed04511da63a473a997f0fe252c8d79bd9f551cc7dd5b"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/isolated/dip_controlled_pexels.jsonl",
+      "bytes": 634077,
+      "sha256": "d2dbb9d24a6c1e906cd5b105f334a7cfc654beeb3af1187e1eba518e1c7808a4"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/mapping-source-screen-partial.json",
+      "bytes": 1141621,
+      "sha256": "ab64ee50f0b32b67dfe94efd9f7c6411a1bc832347542c61058ccf730fbae398"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/mapping-src/PoseRectangleMatchScreenTests.kt",
+      "bytes": 4627,
+      "sha256": "5785b0efa814caabc37a9cb8c40a66c4a545e4da8c6d563aad7528f398c09827"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/run-isolated-control.log",
+      "bytes": 50,
+      "sha256": "588d80aa205098738d1b3027c9d42c8e24e8a64af60ce07105ee69e939853831"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/run-visible.log",
+      "bytes": 339,
+      "sha256": "0343d42d90c2175eb76572c3da7656a67029fe32d9bb307137f9bce1dd88320c"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/visible-intersection/dip_controlled_pexels.jsonl",
+      "bytes": 634150,
+      "sha256": "b85777acfee80f34a0530f2ce2a4ac38cc668b9fbdc70b690f414a431a5ee85e"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/visible-intersection/dip_rear.jsonl",
+      "bytes": 12075978,
+      "sha256": "161ed9ac62356c3fd91a81ecb9e51b023b80f38e90370e4a3b5203d18593b69b"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/visible-intersection/dip_side.jsonl",
+      "bytes": 2998928,
+      "sha256": "58cb3a86f3fff6a204843ec3f4f92df9c41d9d9e8d90e6e8b9de894376d58c0c"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/visible-intersection/pullup_censored.jsonl",
+      "bytes": 602529,
+      "sha256": "83db059cc6f2bf47eeadfd620958c250e890c8cb049473561ee2f652d57ff7db"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/visual-audit/dip_rear.png",
+      "bytes": 1478652,
+      "sha256": "d971a8a3fbce51606d117d02cde22fdcbe7052af2d1ccb1c97ac428240d151d9"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/visual-audit/dip_side.png",
+      "bytes": 991063,
+      "sha256": "5b480077ae69563cd7850ae50e6d91a3da18bc7e8794423e3c65cc529a5e05c2"
+    },
+    {
+      "path": "build/dip-person-rectangle-goal/visual-audit/render.py",
+      "bytes": 2320,
+      "sha256": "53a4cd62bab9d5bcc4def22b5ac912283d34e16cc65c123d508711badf343ae9"
+    },
+    {
+      "path": "build/dip-projective-registration-goal/controlled-sift-projective-anchor-summary.json",
+      "bytes": 790,
+      "sha256": "d90347d3a9aa12085c9ace3f632759fe734c6363b0188a51c1ad7c5dc560e941"
+    },
+    {
+      "path": "build/dip-projective-registration-goal/controlled-sift-projective-anchor.jsonl",
+      "bytes": 1064861,
+      "sha256": "56c29675fd6a03a6c73097803c3cb9bf26608706a4ec18e54866aa35d40f1dac"
+    },
+    {
+      "path": "build/dip-projective-registration-goal/projective_sift.py",
+      "bytes": 6005,
+      "sha256": "59f2519c8b8220cf5d843f23d65c2bd53c23e48b29be9020675585d04ae14308"
+    },
+    {
+      "path": "build/dip-projective-registration-goal/run-sift-screen.py",
+      "bytes": 4183,
+      "sha256": "2c0b2d2c2c6a01d3588f5bfbbaf4daf939bb5ecf802a2a9f816b47040bd6ef42"
+    },
+    {
+      "path": "build/dip-projective-registration-goal/sift-falsification.json",
+      "bytes": 50438,
+      "sha256": "b4ea466870430c041a644a16994c1b121d21cbdfd16664a999a096e9d894703b"
+    },
+    {
+      "path": "build/dip-projective-registration-goal/sift-falsification.py",
+      "bytes": 3148,
+      "sha256": "0fdb869818cb4581c30f6e4a0568bf7adc05d12d60bd90260392690f0aee54ec"
+    }
+  ],
+  "privateInputsUsed": false,
+  "goalComplete": false
+}

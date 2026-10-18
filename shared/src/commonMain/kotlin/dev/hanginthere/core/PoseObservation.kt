@@ -8,6 +8,13 @@ data class Point2D(val x: Double, val y: Double) {
     val isFinite: Boolean get() = x.isFinite() && y.isFinite()
 }
 
+/** Model-estimated coordinates, not calibrated physical distance. Their axes
+ * and origin are declared by [PoseResult.estimatedWorldConvention]. */
+@Serializable
+data class Point3D(val x: Double, val y: Double, val z: Double) {
+    val isFinite: Boolean get() = x.isFinite() && y.isFinite() && z.isFinite()
+}
+
 @Serializable
 data class ImageSize(val width: Double, val height: Double) {
     val isValid: Boolean get() = width.isFinite() && height.isFinite() && width > 0 && height > 0
@@ -29,7 +36,15 @@ data class Landmark(val joint: PoseJoint, val position: Point2D, val confidence:
 }
 
 @Serializable
-data class PoseObservation(val landmarks: List<Landmark>) {
+data class EstimatedWorldLandmark(val joint: PoseJoint, val position: Point3D, val confidence: Double) {
+    fun isVisible(minimumConfidence: Double = 0.3): Boolean =
+        position.isFinite && confidence.isFinite() && confidence > 0 &&
+            confidence >= minimumConfidence && confidence <= 1
+}
+
+@Serializable
+data class PoseObservation(val landmarks: List<Landmark>,
+    val estimatedWorldLandmarks: List<EstimatedWorldLandmark>? = null) {
     fun landmark(joint: PoseJoint, minimumConfidence: Double = 0.3): Landmark? =
         landmarks.firstOrNull { it.joint == joint && it.isVisible(minimumConfidence) }
     val visibleLandmarkCount: Int get() = landmarks.count { it.isVisible() }
@@ -57,4 +72,7 @@ data class PoseResult(
     val backend: String,
     val requestRevision: Int,
     val gripObservation: GripObservation? = null,
+    // Only same-request, same-person SDK observations belong here. A separately
+    // scheduled grip/body inference cannot fill missing primary depth.
+    val estimatedWorldConvention: String? = null,
 )

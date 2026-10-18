@@ -8,6 +8,7 @@ struct WorkoutAnalysisBridgeCheck {
     @MainActor static func main() async throws {
         if CommandLine.arguments.count > 1 { try checkSavedObservations(); return }
         try WorkoutReliabilityBridgeCheck.run()
+        let estimatedGeometry = try EstimatedBodyGeometryBridgeCheck.run()
         var completed: [WorkoutSetRecord] = []
         let reference = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
         func pose(_ time: Double, _ angle: Double, exercise: ExerciseCounter.Exercise) -> PoseResult {
@@ -714,13 +715,15 @@ struct WorkoutAnalysisBridgeCheck {
         let readinessP95 = readinessLatencies[Int(Double(readinessLatencies.count - 1) * 0.95)]
         // Retain every measured path before enforcing budgets, so a slow analysis
         // path cannot hide the framing measurements. Failure still exits nonzero.
-        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95, acquisitionP95, readinessP95].allSatisfy { $0 < 5 }
+        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95, acquisitionP95, readinessP95, estimatedGeometry.p95].allSatisfy { $0 < 5 }
         let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 12, "framingFrames": 2000, "overheadFramingFrames": 2000, "overheadFramingHostBridgeP95Milliseconds": overheadP95, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": withinHostBudgets, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "gripVisibilityCases": 7, "gripVisibilityFeedbackCases": 3, "gripVisibilityFramingFrames": 2000,
             "gripVisibilityFramingHostBridgeP95Milliseconds": gripVisibilityP95,
             "acquisitionFeedbackCases": acquisitionFeedbackChecks, "acquisitionFramingFrames": 2000,
             "acquisitionFramingHostBridgeP95Milliseconds": acquisitionP95,
             "readinessCases": readinessChecks, "readinessFrames": 2000,
+            "estimatedBodyGeometryCases": estimatedGeometry.checks, "estimatedBodyGeometryFrames": 2000,
+            "estimatedBodyGeometryHostBridgeP95Milliseconds": estimatedGeometry.p95,
             "unconfirmedDipReturnCases": 4,
             "readinessHostBridgeP95Milliseconds": readinessP95,
             "sceneQualificationCases": 3, "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified"]
