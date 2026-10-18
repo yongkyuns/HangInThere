@@ -137,6 +137,21 @@ fresh bilateral evidence before starting. No missing frame earns identity dwell,
 apparatus observations, practice time or a rep. Android calls the common policy;
 iOS uses its source-tick/raw-joint bridge rather than a second recovery algorithm.
 
+Dip equipment acquisition and set-start geometry are separate. Supported,
+measurable bilateral wrists can guide the same observed rail/shared-bar search
+during elbow flexion. Confidence, hand spacing/height, body-edge exclusion,
+fresh paired contours and apparatus stability requirements are unchanged. Search
+alone cannot identify an exercise or start a set. The original bilateral
+extended top-support predicate still qualifies Auto identity; that identity can
+then survive flexion while the current bilateral support evidence agrees.
+`WorkoutStartEvidence` supplies both apps' current-frame starting check. Auto
+requires the original starting pose. Both exercises also require the tracked grip
+at the confirmed reference; explicitly selected dips retain their selected-arm
+fallback. Bending or missing evidence resets readiness and its baseline; a fresh
+top position must earn the full source-time dwell even when identity and apparatus
+remain retained. The Swift adapter transports the original source ticks and raw
+joint triples into this shared policy rather than copying its rules.
+
 - Start observing after actual apparatus, exercise identity, camera motion and
   scene checks qualify. The new readiness gate uses 0.12 seconds of consecutive
   source frames; a qualified prior frame seeds the counter's existing starting

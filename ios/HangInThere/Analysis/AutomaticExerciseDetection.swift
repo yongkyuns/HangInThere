@@ -42,6 +42,7 @@ struct AutomaticExerciseDetection: Sendable {
     static func candidate(in pose: PoseResult) -> ExerciseCounter.Exercise? {
         guard let candidate = apparatusCandidate(in: pose) else { return nil }
         if candidate == .pullUp, !PullUpArmMeasurement(pose: pose).isExtended { return nil }
+        if candidate == .dip, !AutomaticDipRails.isStartingPosition(pose) { return nil }
         return candidate
     }
 

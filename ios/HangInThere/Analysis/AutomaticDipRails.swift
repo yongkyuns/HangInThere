@@ -83,8 +83,9 @@ struct AutomaticReferenceStability: Sendable {
     }
 }
 
-// Both hands must show top support and have independently observed local rail
-// edges. Never use the line between wrists, a body segment, or a rack box as a rail.
+// Both measurable supported wrists can locate independently observed rails
+// during flexion. Starting a set separately requires extended top support.
+// Never use the line between wrists, a body segment, or a rack box as a rail.
 struct AutomaticDipRails: Sendable {
     struct Grip: Sendable {
         let hands: [Point2D] // Anatomical left, right, in unmirrored pixels.
@@ -109,12 +110,20 @@ struct AutomaticDipRails: Sendable {
     mutating func reset() { self = Self() }
 
     static func grip(in pose: PoseResult) -> Grip? {
+        grip(in: pose, requiresTopSupport: false)
+    }
+
+    static func isStartingPosition(_ pose: PoseResult) -> Bool {
+        grip(in: pose, requiresTopSupport: true) != nil
+    }
+
+    private static func grip(in pose: PoseResult, requiresTopSupport: Bool) -> Grip? {
         guard pose.imageSize.isValid, pose.timestamp.seconds.isFinite else { return nil }
         let arms = PullUpArmMeasurement(pose: pose).arms
         guard arms.count == 2 else { return nil }
         let short = min(pose.imageSize.width, pose.imageSize.height)
         guard arms.allSatisfy({
-            $0.estimate.elbowDegrees + 1e-6 >= DipSupportMeasurement.startingDegrees
+            (!requiresTopSupport || $0.estimate.elbowDegrees + 1e-6 >= DipSupportMeasurement.startingDegrees)
                 && $0.wrist.y - $0.shoulder.y >= 0.35 * ($0.estimate.upperArmPixels + $0.estimate.forearmPixels)
         }) else { return nil }
         let hands = arms.map(\.wrist)

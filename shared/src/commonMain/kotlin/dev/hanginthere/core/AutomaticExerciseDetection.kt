@@ -35,7 +35,14 @@ class AutomaticExerciseDetection {
     fun lock():Boolean {if(exercise==null) return false;isLocked=true;return true}
     companion object {
         const val minimumStableSeconds=.6
-        fun candidate(pose:PoseResult):ExerciseCounter.Exercise? {val candidate=apparatusCandidate(pose) ?: return null;return if(candidate==ExerciseCounter.Exercise.pullUp && !PullUpArmMeasurement(pose).isExtended) null else candidate}
+        fun candidate(pose:PoseResult):ExerciseCounter.Exercise? {
+            val candidate=apparatusCandidate(pose) ?: return null
+            val starting=when(candidate) {
+                ExerciseCounter.Exercise.pullUp -> PullUpArmMeasurement(pose).isExtended
+                ExerciseCounter.Exercise.dip -> AutomaticDipRails.isStartingPosition(pose)
+            }
+            return candidate.takeIf{starting}
+        }
         fun apparatusCandidate(pose:PoseResult):ExerciseCounter.Exercise? {val pullUp=AutomaticApparatusReference.search(pose,ExerciseCounter.Exercise.pullUp)!=null;val dip=AutomaticApparatusReference.search(pose,ExerciseCounter.Exercise.dip)!=null;return if(pullUp==dip) null else if(pullUp) ExerciseCounter.Exercise.pullUp else ExerciseCounter.Exercise.dip}
     }
 }

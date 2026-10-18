@@ -50,6 +50,19 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
     fun ready(seconds: Double, eligible: Boolean) = start.observe(seconds, eligible)
     fun readyAt(sourceValue:Long,sourceTimescale:Int,eligible:Boolean)=
         start.observe(PresentationTime(sourceValue,sourceTimescale),eligible)
+    /** Current source-frame evidence only; actual apparatus/camera qualification
+     * and readiness dwell remain separate. No state is advanced by this query. */
+    @Throws(IllegalArgumentException::class)
+    fun isStartingPose(sourceValue:Long,sourceTimescale:Int,width:Double,height:Double,peopleCount:Int,
+                       joints:IntArray,triples:DoubleArray,exercise:String,automatic:Boolean,
+                       side:String,reference:DoubleArray):Boolean {
+        require(peopleCount>=0 && joints.all{it in PoseJoint.entries.indices} && reference.size in listOf(0,4))
+        val pose=workoutBridgePose(0.0,width,height,peopleCount,joints,triples)
+            .copy(timestamp=PresentationTime(sourceValue,sourceTimescale))
+        val edge=if(reference.size==4) BarSegment(Point2D(reference[0],reference[1]),Point2D(reference[2],reference[3])) else null
+        return WorkoutStartEvidence.hasStartingPose(pose,ExerciseCounter.Exercise.valueOf(exercise),automatic,
+            ArmMeasurement.Side.valueOf(side),edge)
+    }
     fun resetReadiness() = start.reset()
     fun interrupt(reason: String) { analysis.interrupt(reason); boundary.breakContinuity() }
     fun finish(reason: String) { analysis.finish(reason);endReason=reason }

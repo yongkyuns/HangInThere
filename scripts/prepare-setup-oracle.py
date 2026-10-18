@@ -73,6 +73,19 @@ def prepare(output):
     add('dip-crossed-legs-optional','dip',[step(i/10,'dip',crossed_legs=True) for i in range(56)],True,True)
     add('dip-right-reference','dip',[step(i/10,'dip') for i in range(56)],True,True,side='right')
     shared=[candidate(200,y,800,y) for y in [505,515]]
+    # Apparatus can be measured during flexion, independently of top-support
+    # identity/start qualification. Both observed apparatus modes retain dwell.
+    for side in ['left','right']:
+        for mode, edges in [('rails', step(0,'dip')['candidates']), ('shared-bar', [[],[],shared])]:
+            bent=[step(i/10,'dip',degrees=100,candidates=edges) for i in range(56)]
+            add(f'dip-flexed-acquisition-{mode}-{side}','dip',bent,True,False,side=side,
+                identity=[None]*len(bent))
+            recovering=bent[:10]+[step(i/10,'dip',candidates=edges) for i in range(10,66)]
+            add(f'dip-flexed-then-top-start-{mode}-{side}','dip',recovering,True,True,side=side)
+            retained=[step(i/10,'dip',degrees=170 if i<7 or i>=20 else 100,candidates=edges)
+                for i in range(66)]
+            add(f'dip-qualified-identity-through-flexion-{mode}-{side}','dip',retained,True,True,side=side,
+                identity=[None]*6+['dip']*60)
     shared_cases=[
         ('observed',shared,True),
         ('single-edge',shared[:1],False),

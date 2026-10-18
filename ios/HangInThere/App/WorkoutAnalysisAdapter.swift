@@ -101,6 +101,19 @@ final class WorkoutAnalysisAdapter {
     func ready(at time: PresentationTime, eligible: Bool) -> Bool {
         engine.readyAt(sourceValue: time.value, sourceTimescale: time.timescale, eligible: eligible)
     }
+    func hasStartingPose(_ pose: PoseResult, exercise: ExerciseCounter.Exercise, automatic: Bool,
+                         side: ArmMeasurement.Side, reference: BarSegment?) -> Bool {
+        let payload = poseTransport(pose)
+        let values = reference.map { [$0.a.x, $0.a.y, $0.b.x, $0.b.y] } ?? []
+        let edge = KotlinDoubleArray(size: Int32(values.count))
+        for (i, value) in values.enumerated() { edge.set(index: Int32(i), value: value) }
+        do {
+            return try engine.isStartingPose(sourceValue: pose.timestamp.value, sourceTimescale: pose.timestamp.timescale,
+                width: pose.imageSize.width, height: pose.imageSize.height,
+                peopleCount: Int32(pose.people.count), joints: payload.joints, triples: payload.triples,
+                exercise: exercise.rawValue, automatic: automatic, side: side.rawValue, reference: edge)
+        } catch { return false }
+    }
     func resetReadiness() { engine.resetReadiness() }
     func resetSetupRecovery() { setupRecovery.reset() }
     func retainSetup(_ pose: PoseResult, exercise: ExerciseCounter.Exercise?) -> Bool {

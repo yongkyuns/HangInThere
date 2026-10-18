@@ -800,13 +800,14 @@ final class LiveCameraPreviewController: NSObject {
         }
     }
 
-    private func hasStartingPoseEvidence(_ pose: PoseResult) -> Bool {
-        exerciseSelection != .automatic || (!recoveringAutomaticSetup && PullUpArmMeasurement(pose: pose).arms.count == 2)
+    private func hasStartingPoseEvidence(_ pose: PoseResult, reference: BarSegment? = nil) -> Bool {
+        !recoveringAutomaticSetup && workoutAnalysis.hasStartingPose(pose, exercise: exercise,
+            automatic: exerciseSelection == .automatic, side: trackingSide, reference: reference ?? currentBar?.referenceEdge)
     }
 
     // The final readiness gate is also exercised without camera authorization.
-    func observeHandsFreeReadiness(_ pose: PoseResult, eligible: Bool) -> Bool {
-        workoutAnalysis.ready(at: pose.timestamp, eligible: eligible && hasStartingPoseEvidence(pose))
+    func observeHandsFreeReadiness(_ pose: PoseResult, eligible: Bool, reference: BarSegment? = nil) -> Bool {
+        workoutAnalysis.ready(at: pose.timestamp, eligible: eligible && hasStartingPoseEvidence(pose, reference: reference))
     }
 
     private func maybeFindAutomaticBar(_ frame: ProcessedFrame) {

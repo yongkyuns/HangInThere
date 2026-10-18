@@ -62,7 +62,9 @@ class AutomaticReferenceStability {
         }
     }
 }
-/** Independent bilateral rail observations, including local body-edge exclusion. */
+/** Independent bilateral rail observations, including local body-edge exclusion.
+ * Measurable supported wrists can locate apparatus during flexion; starting a
+ * workout separately requires the original extended top-support position. */
 class AutomaticDipRails {
     data class Grip(val hands:List<Point2D>,val regions:List<BarRegion>)
     var state=AutomaticPullUpBar.State.lookingForGrip;private set
@@ -115,12 +117,14 @@ class AutomaticDipRails {
         state=AutomaticPullUpBar.State.locked;return bar
     }
     companion object {
-        fun grip(pose:PoseResult):Grip? {
+        fun grip(pose:PoseResult):Grip? = grip(pose,requiresTopSupport=false)
+        fun isStartingPosition(pose:PoseResult):Boolean = grip(pose,requiresTopSupport=true)!=null
+        private fun grip(pose:PoseResult,requiresTopSupport:Boolean):Grip? {
             if(!pose.imageSize.isValid || !pose.timestamp.seconds.isFinite()) return null
             val arms=PullUpArmMeasurement(pose).arms
             if(arms.size!=2) return null
             val short=min(pose.imageSize.width,pose.imageSize.height)
-            if(!arms.all{it.estimate.elbowDegrees+1e-6>=DipSupportMeasurement.startingDegrees && it.wrist.y-it.shoulder.y>=.35*(it.estimate.upperArmPixels+it.estimate.forearmPixels)}) return null
+            if(!arms.all{(!requiresTopSupport || it.estimate.elbowDegrees+1e-6>=DipSupportMeasurement.startingDegrees) && it.wrist.y-it.shoulder.y>=.35*(it.estimate.upperArmPixels+it.estimate.forearmPixels)}) return null
             val hands=arms.map{it.wrist}
             if(abs(hands[0].x-hands[1].x)<short*.12 || abs(hands[0].y-hands[1].y)>short*.10) return null
             val regions=arms.map{arm -> val hand=arm.wrist;var minX=max(0.0,hand.x-short*.12);var maxX=min(pose.imageSize.width,hand.x+short*.12);if(hand.x-arm.shoulder.x>short*.04) minX=max(minX,(hand.x+arm.shoulder.x)/2);if(arm.shoulder.x-hand.x>short*.04) maxX=min(maxX,(hand.x+arm.shoulder.x)/2);BarRegion(minX,max(0.0,hand.y-short*.08),maxX,min(pose.imageSize.height,hand.y+short*.20))}

@@ -5,8 +5,31 @@ import Testing
 
 @MainActor @Suite(.serialized)
 struct LiveCameraSelectionTests {
+    @Test func retainedDipIdentityCannotCarryReadinessAcrossFlexion() {
+        let controller = LiveCameraPreviewController()
+        let fixture = AutomaticDipRailsTests()
+        for seconds in [0.0, 0.2, 0.4, 0.6] { controller.observeExerciseSelection(fixture.pose(seconds)) }
+        #expect(controller.resolvedExercise == .dip)
+        #expect(!controller.observeHandsFreeReadiness(fixture.pose(0.7), eligible: true, reference: fixture.rails[0][0].edge))
+        let bent = fixture.pose(0.8, degrees: 100)
+        controller.observeExerciseSelection(bent)
+        #expect(controller.resolvedExercise == .dip)
+        #expect(!controller.observeHandsFreeReadiness(bent, eligible: true, reference: fixture.rails[0][0].edge))
+        for ticks: Int64 in [1_000_000, 1_119_999, 1_120_000] {
+            let original = fixture.pose(Double(ticks) / 1e6)
+            let frame = PoseResult(timestamp: .init(value: ticks, timescale: 1_000_000), imageSize: original.imageSize,
+                people: original.people, backend: original.backend, requestRevision: original.requestRevision)
+            controller.observeExerciseSelection(frame)
+            #expect(controller.observeHandsFreeReadiness(frame, eligible: true, reference: fixture.rails[0][0].edge) == (ticks == 1_120_000))
+        }
+        #expect(controller.liveSet.phase == .idle)
+        #expect(controller.liveSet.counter.observedMovements == 0)
+        #expect(controller.currentBar == nil)
+    }
+
     @Test func briefSingleArmLossRetainsQualifiedIdentityWithoutReadinessAndCannotRenewExpiry() {
         for exercise in ExerciseCounter.Exercise.allCases {
+            let reference = exercise == .pullUp ? AutomaticPullUpBarTests().candidate().edge : AutomaticDipRailsTests().rails[0][0].edge
             let controller = LiveCameraPreviewController()
             func frame(_ ticks: Int64, missing: Bool = false) -> PoseResult {
                 let original = exercise == .pullUp ? AutomaticPullUpBarTests().pose(Double(ticks) / 1e6)
@@ -34,13 +57,13 @@ struct LiveCameraSelectionTests {
             let fresh = LiveCameraPreviewController()
             for ticks: Int64 in [0,200_000,400_000,700_000,800_000] { fresh.observeExerciseSelection(frame(ticks)) }
             fresh.observeExerciseSelection(frame(900_000, missing: true))
-            #expect(!fresh.observeHandsFreeReadiness(frame(900_000, missing: true), eligible: true))
+            #expect(!fresh.observeHandsFreeReadiness(frame(900_000, missing: true), eligible: true, reference: reference))
             fresh.observeExerciseSelection(frame(1_020_000))
-            #expect(!fresh.observeHandsFreeReadiness(frame(1_020_000), eligible: true))
+            #expect(!fresh.observeHandsFreeReadiness(frame(1_020_000), eligible: true, reference: reference))
             fresh.observeExerciseSelection(frame(1_139_999))
-            #expect(!fresh.observeHandsFreeReadiness(frame(1_139_999), eligible: true))
+            #expect(!fresh.observeHandsFreeReadiness(frame(1_139_999), eligible: true, reference: reference))
             fresh.observeExerciseSelection(frame(1_140_000))
-            #expect(fresh.observeHandsFreeReadiness(frame(1_140_000), eligible: true))
+            #expect(fresh.observeHandsFreeReadiness(frame(1_140_000), eligible: true, reference: reference))
         }
     }
 

@@ -204,7 +204,13 @@ import Testing
         var detection = AutomaticExerciseDetection()
         for t in [0.0, 0.2, 0.4, 0.7] { _ = detection.observe(pose(.dip, t)) }
         #expect(detection.exercise == .dip)
-        #expect(detection.observe(AutomaticDipRailsTests().pose(0.8, degrees: 90)) == nil)
+        let base = AutomaticDipRailsTests().pose(0.8, degrees: 90)
+        let unclear = PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+            people: [.init(landmarks: base.people[0].landmarks.map { point in
+                Landmark(joint: point.joint, position: point.position,
+                    confidence: point.joint == .rightWrist ? 0.1 : point.confidence)
+            })], backend: base.backend, requestRevision: base.requestRevision)
+        #expect(detection.observe(unclear) == nil)
         for t in [1.0, 1.2, 1.4] { #expect(detection.observe(pose(.dip, t)) == nil) }
         #expect(detection.observe(pose(.dip, 1.7)) == .dip)
     }

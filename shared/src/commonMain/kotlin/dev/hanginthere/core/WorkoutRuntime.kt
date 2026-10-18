@@ -175,7 +175,9 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
             return snapshot
         }
         if(session.phase==LiveSetSession.Phase.idle) {
-            val eligible=issue==null && (activeExercise==ExerciseCounter.Exercise.dip || HandsFreeSetStart.isStartingPosition(pose,bar!!.referenceEdge))
+            val eligible=issue==null && !recoveringSetup && WorkoutStartEvidence.hasStartingPose(pose,activeExercise,
+                automatic=selection==WorkoutExerciseSelection.automatic && replayExercise==null,
+                side=side,reference=bar?.referenceEdge)
             val startGap=qualifiedStartPose?.let{pose.timestamp.elapsedSeconds(it.timestamp)}
             if(!eligible || input.paused || (startGap!=null && (!startGap.isFinite() || startGap<=0 || startGap>ExerciseCounter.maximumGapSeconds))) qualifiedStartPose=null
             val baseline=qualifiedStartPose

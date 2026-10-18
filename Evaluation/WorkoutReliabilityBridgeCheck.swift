@@ -23,6 +23,39 @@ enum WorkoutReliabilityBridgeCheck {
         var cases = 0
         for exercise in ExerciseCounter.Exercise.allCases {
             let adapter = WorkoutAnalysisAdapter()
+            let edge = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
+            for automatic in [false, true] {
+                for angle in [100.0, 170.0] {
+                    let frame = pose(0, angle: angle, exercise: exercise)
+                    precondition(adapter.hasStartingPose(frame, exercise: exercise, automatic: automatic,
+                        side: .left, reference: edge) == (angle == 170))
+                }
+                let top = pose(0, exercise: exercise)
+                let invalid = PoseResult(timestamp: .init(value: 0, timescale: 0), imageSize: top.imageSize,
+                    people: top.people, backend: top.backend, requestRevision: top.requestRevision)
+                precondition(!adapter.hasStartingPose(invalid, exercise: exercise, automatic: automatic,
+                    side: .left, reference: edge))
+                cases += 1
+            }
+            let single = pose(0, exercise: exercise, missing: .right)
+            precondition(!adapter.hasStartingPose(single, exercise: exercise, automatic: true, side: .left, reference: edge))
+            precondition(adapter.hasStartingPose(single, exercise: exercise, automatic: false, side: .left, reference: edge))
+            precondition(!adapter.hasStartingPose(pose(0, exercise: exercise), exercise: exercise,
+                automatic: true, side: .left, reference: nil))
+            for side in ArmMeasurement.Side.allCases {
+                let distant = BarSegment(a: .init(x: 100, y: 100), b: .init(x: 900, y: 100))
+                precondition(!adapter.hasStartingPose(pose(0, exercise: exercise), exercise: exercise,
+                    automatic: true, side: side, reference: distant))
+            }
+            adapter.resetReadiness()
+            precondition(!adapter.ready(at: .init(value: 0, timescale: 1_000_000), eligible: true))
+            for _ in 0..<100 {
+                precondition(adapter.hasStartingPose(pose(120_000, exercise: exercise), exercise: exercise,
+                    automatic: true, side: .left, reference: edge))
+            }
+            precondition(!adapter.ready(at: .init(value: 119_999, timescale: 1_000_000), eligible: true))
+            precondition(adapter.ready(at: .init(value: 120_000, timescale: 1_000_000), eligible: true))
+            cases += 1
             for missing in ArmMeasurement.Side.allCases {
                 adapter.resetSetupRecovery()
                 precondition(!adapter.retainSetup(pose(1_100_000, exercise: exercise), exercise: exercise))
@@ -34,7 +67,6 @@ enum WorkoutReliabilityBridgeCheck {
             }
             adapter.start(exercise: exercise, recordCalendarTime: false)
             var counter = ExerciseCounter(exercise: exercise)
-            let edge = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
             for (ticks, angle, missing): (Int64, Double, ArmMeasurement.Side?) in [
                 (0,170,nil),(150_000,170,nil),(300_000,130,nil),
                 (450_000,80,.right),(600_000,80,.right),(750_000,120,nil),
@@ -56,6 +88,8 @@ enum WorkoutReliabilityBridgeCheck {
         }
         let adapter = WorkoutAnalysisAdapter()
         var latencies: [Double] = []
+        var startingLatencies: [Double] = []
+        let performanceEdge = BarSegment(a: .init(x: 100, y: 500), b: .init(x: 900, y: 500))
         for i in 0..<2000 {
             let missing: ArmMeasurement.Side? = i % 4 == 0 ? nil : .right
             let frame = pose(Int64(i) * 40_000, exercise: .pullUp, missing: missing)
@@ -64,16 +98,29 @@ enum WorkoutReliabilityBridgeCheck {
             let elapsed = start.duration(to: .now).components
             latencies.append(Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15)
             precondition(retained == (missing != nil))
+            let startingAt = ContinuousClock.now
+            // Current live delivery checks the same evidence for its retained
+            // baseline and final dwell. Include both raw transports in the cost.
+            for _ in 0..<2 {
+                precondition(adapter.hasStartingPose(frame, exercise: .pullUp, automatic: true,
+                    side: .left, reference: performanceEdge) == (missing == nil))
+            }
+            let startingElapsed = startingAt.duration(to: .now).components
+            startingLatencies.append(Double(startingElapsed.seconds) * 1000 + Double(startingElapsed.attoseconds) / 1e15)
         }
         latencies.sort()
+        startingLatencies.sort()
         let p95 = latencies[Int(Double(latencies.count - 1) * 0.95)]
+        let startingP95 = startingLatencies[Int(Double(startingLatencies.count - 1) * 0.95)]
         let report: [String: Any] = ["cases": cases, "frames": latencies.count,
-            "setupRecoveryHostBridgeP95Milliseconds": p95, "passed": p95 < 5,
+            "setupRecoveryHostBridgeP95Milliseconds": p95, "startingEvidenceQueriesPerFrame": 2,
+            "startingEvidenceHostBridgeP95Milliseconds": startingP95, "passed": p95 < 5 && startingP95 < 5,
             "scope": "Authored source-clock recovery and observed-metric Swift/shared ABI regressions; no native vision or physical performance qualification"]
         let data = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/reliability-bridge-check.json"), options: .atomic)
         print(String(decoding: data, as: UTF8.self))
         precondition(p95 < 5, "Setup recovery exceeds the existing 5 ms host FFI budget")
+        precondition(startingP95 < 5, "Starting evidence exceeds the existing 5 ms host FFI budget")
     }
 
     private static func require<T>(_ value: T?) throws -> T {

@@ -372,9 +372,17 @@ import Testing
         }
     }
 
-    @Test func loweredArmsMissingHandsOrMultiplePeopleCannotAcquire() {
+    @Test func unsupportedWristsMissingHandsOrMultiplePeopleCannotAcquire() {
         let base = pose(0)
-        for invalid in [pose(0, degrees: 80),
+        // Flexion can guide apparatus search, but remains ineligible to start.
+        #expect(AutomaticDipRails.grip(in: pose(0, degrees: 80)) != nil)
+        #expect(!AutomaticDipRails.isStartingPosition(pose(0, degrees: 80)))
+        let unsupported = PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
+            people: [.init(landmarks: base.people[0].landmarks.map { point in
+                point.joint == .leftWrist ? Landmark(joint: point.joint,
+                    position: .init(x: point.position.x, y: 100), confidence: point.confidence) : point
+            })], backend: base.backend, requestRevision: base.requestRevision)
+        for invalid in [unsupported,
             PoseResult(timestamp: base.timestamp, imageSize: base.imageSize, people: [], backend: base.backend, requestRevision: 0),
             PoseResult(timestamp: base.timestamp, imageSize: base.imageSize, people: base.people + base.people, backend: base.backend, requestRevision: 0),
             PoseResult(timestamp: base.timestamp, imageSize: base.imageSize,
@@ -481,5 +489,64 @@ import Testing
         adapter.reset()
         #expect(adapter.state == .lookingForGrip)
         #expect(adapter.observe(pose:pose(2),exercise:.dip,side:.right,candidates:rails) == nil)
+    }
+}
+
+@Suite struct DipAcquisitionStartTests {
+    @Test func bentSupportCanAcquireObservedRailsOrSharedBarWithoutStartingEvidence() throws {
+        let fixture = AutomaticDipRailsTests()
+        let shared = fixture.sharedBar
+        for side in ArmMeasurement.Side.allCases {
+            for candidates in [fixture.rails, [[], [], shared]] {
+                var identity = AutomaticExerciseDetection(), apparatus = AutomaticApparatusReference()
+                var reference: ConfirmedBar?
+                for seconds in [0.0, 0.3, 0.6, 0.9] {
+                    let pose = fixture.pose(seconds, degrees: 100)
+                    #expect(AutomaticApparatusReference.search(pose: pose, exercise: .dip) != nil)
+                    #expect(!AutomaticDipRails.isStartingPosition(pose))
+                    #expect(identity.observe(pose) == nil)
+                    #expect(identity.apparatusCandidate == .dip)
+                    reference = apparatus.observe(pose: pose, exercise: .dip, side: side, candidates: candidates)
+                }
+                let bar = try #require(reference)
+                #expect(bar.method == .automaticContours)
+                let locked = identity.lock()
+                #expect(!locked)
+                var counter = ExerciseCounter(exercise: .dip, side: side)
+                for seconds in [1.0, 1.1, 1.2] {
+                    counter.consume(fixture.pose(seconds, degrees: 100), referenceEdge: bar.referenceEdge)
+                }
+                #expect(counter.phase == .seekingStart)
+                #expect(counter.events.isEmpty && counter.observedMovements == 0)
+            }
+        }
+    }
+
+    @Test func originalDipTopSupportBoundaryRemainsSeparateFromSearch() {
+        let fixture = AutomaticDipRailsTests()
+        for degrees in [80.0, 100, 139.99, 140, 170] {
+            let pose = fixture.pose(0, degrees: degrees)
+            #expect(AutomaticDipRails.grip(in: pose) != nil)
+            #expect(AutomaticDipRails.isStartingPosition(pose) == (degrees >= 140))
+            #expect(AutomaticExerciseDetection.candidate(in: pose) == (degrees >= 140 ? .dip : nil))
+        }
+    }
+
+    @Test func qualifiedDipIdentitySurvivesFlexionButCannotQualifyAColdBentStart() {
+        let fixture = AutomaticDipRailsTests()
+        var policy = AutomaticExerciseDetection()
+        for time in [0.0, 0.2, 0.4, 0.6] { _ = policy.observe(fixture.pose(time)) }
+        #expect(policy.exercise == .dip)
+        for time in [0.8, 1.0, 1.2, 1.4] {
+            let frame = fixture.pose(time, degrees: 100)
+            #expect(policy.observe(frame) == .dip)
+            #expect(AutomaticExerciseDetection.candidate(in: frame) == nil)
+        }
+        let invalid = fixture.pose(1.6, degrees: 100)
+        let missing = PoseResult(timestamp: invalid.timestamp, imageSize: invalid.imageSize,
+            people: [.init(landmarks: invalid.people[0].landmarks.filter { $0.joint != .rightWrist })],
+            backend: invalid.backend, requestRevision: invalid.requestRevision)
+        #expect(policy.observe(missing) == nil)
+        #expect(policy.observe(fixture.pose(1.8, degrees: 100)) == nil)
     }
 }
