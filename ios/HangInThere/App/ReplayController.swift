@@ -232,6 +232,7 @@ final class ReplayController {
     }
 
     private func beginFrameSession() -> ReplayFrameDiscardSignal {
+        resetAutomaticBarSetup(newSourceEpoch: true)
         frameDiscardSignal.discard()
         frameDiscardSignal = ReplayFrameDiscardSignal()
         return frameDiscardSignal
@@ -333,8 +334,9 @@ final class ReplayController {
         if referenceEdge != nil, counter.trackingIssue == nil { analyzableFrames += 1 }
     }
 
-    private func resetAutomaticBarSetup() {
-        automaticBarPolicy.reset()
+    private func resetAutomaticBarSetup(newSourceEpoch: Bool = false) {
+        if newSourceEpoch { automaticBarPolicy.reset() }
+        else { automaticBarPolicy.invalidateEvidence() }
         automaticBarState = .lookingForGrip
         lastAutomaticBarSeconds = nil
     }
@@ -342,10 +344,15 @@ final class ReplayController {
     private func findAutomaticBar(_ frame: ProcessedFrame, token: UInt64, playToken: UInt64) async -> Bool {
         guard bar == nil else { return false }
         let seconds = frame.pose.timestamp.seconds
+        guard seconds.isFinite else {
+            automaticBarPolicy.invalidateEvidence()
+            automaticBarState = .lookingForGrip
+            return false
+        }
         if let lastAutomaticBarSeconds, seconds - lastAutomaticBarSeconds < AutomaticPullUpBar.samplingInterval { return false }
         lastAutomaticBarSeconds = seconds
         guard let grip = AutomaticApparatusReference.search(pose: frame.pose, exercise: counter.exercise) else {
-            automaticBarPolicy.reset()
+            automaticBarPolicy.invalidateEvidence()
             automaticBarState = .lookingForGrip
             return false
         }
@@ -359,7 +366,7 @@ final class ReplayController {
         }
         catch {
             guard isCurrent(token, playToken) else { return false }
-            automaticBarPolicy.reset()
+            automaticBarPolicy.invalidateEvidence()
             automaticBarState = .findingEdge
             return false
         }

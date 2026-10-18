@@ -319,6 +319,7 @@ final class LiveCameraPreviewController: NSObject {
         guard position != cameraPosition else { return true }
         guard canSwitchCamera else { return false }
         cameraPosition = position
+        automaticBarPolicy.reset()
         automaticExercise.reset()
         clearBar()
         latestFrame = nil
@@ -737,7 +738,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func resetAutomaticBarObservation(_ state: AutomaticPullUpBar.State = .lookingForGrip) {
-        automaticBarPolicy.reset()
+        automaticBarPolicy.invalidateEvidence()
         automaticBarState = state
         workoutAnalysis.resetAcquisitionFramingFeedback()
     }
@@ -1110,6 +1111,7 @@ final class LiveCameraPreviewController: NSObject {
 
         suspended = false
         qualification.reset(startUptimeSeconds: ProcessInfo.processInfo.systemUptime)
+        automaticBarPolicy.reset()
         analyzedFrames = 0
         droppedFrames = 0
         analysisFailures = 0

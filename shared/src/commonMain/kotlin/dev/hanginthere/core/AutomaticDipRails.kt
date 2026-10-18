@@ -140,18 +140,27 @@ class AutomaticDipRails {
             // Separate rails can project to different image heights. Their
             // actual finite edges establish topology during observe().
             if(abs(hands[0].x-hands[1].x)<short*.12) return null
-            val regions=arms.map{arm -> val hand=arm.wrist;var minX=max(0.0,hand.x-short*.12);var maxX=min(pose.imageSize.width,hand.x+short*.12);if(hand.x-arm.shoulder.x>short*.04) minX=max(minX,(hand.x+arm.shoulder.x)/2);if(arm.shoulder.x-hand.x>short*.04) maxX=min(maxX,(hand.x+arm.shoulder.x)/2);BarRegion(minX,max(0.0,hand.y-short*.08),maxX,min(pose.imageSize.height,hand.y+short*.20))}
-            return if(regions.all{it.isValid(pose.imageSize)}) Grip(hands,regions) else null
+            val regions=arms.mapNotNull{contactRegion(it,pose.imageSize)}
+            return if(regions.size==2) Grip(hands,regions) else null
         }
-        fun select(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize):BarSegment? {
-            return selection(candidates,hand,size)?.edge
+        /** Same body-excluding crop for bilateral and single observed contacts. */
+        internal fun contactRegion(arm:PullUpArmMeasurement.Arm,size:ImageSize):BarRegion? {
+            val short=min(size.width,size.height);val hand=arm.wrist
+            var minX=max(0.0,hand.x-short*.12);var maxX=min(size.width,hand.x+short*.12)
+            if(hand.x-arm.shoulder.x>short*.04) minX=max(minX,(hand.x+arm.shoulder.x)/2)
+            if(arm.shoulder.x-hand.x>short*.04) maxX=min(maxX,(hand.x+arm.shoulder.x)/2)
+            return BarRegion(minX,max(0.0,hand.y-short*.08),maxX,min(size.height,hand.y+short*.20))
+                .takeIf{it.isValid(size)}
+        }
+        fun select(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize,requireUnique:Boolean=false):BarSegment? {
+            return selection(candidates,hand,size,requireUnique)?.edge
         }
         fun minimumPairLength(size:ImageSize):Double=max(24.0,min(size.width,size.height)*.04)
         private fun isBelowGrip(edge:BarSegment,hand:Point2D):Boolean {
             // Observed handles may meet the grasp; forearm edges above it may not.
             return min(edge.a.y,edge.b.y)>=hand.y
         }
-        private fun selection(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize):ObservedRail? {
+        private fun selection(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize,requireUnique:Boolean=false):ObservedRail? {
             if(!size.isValid || !hand.isFinite) return null
             val short=min(size.width,size.height);val bounds=BarRegion(0.0,0.0,size.width,size.height)
             val tubes=mutableListOf<Pair<BarCandidate,BarSegment>>()
@@ -170,20 +179,99 @@ class AutomaticDipRails {
             // over offset clutter; eligibility still requires finite support.
             val tube=tubes.sortedWith(compareBy<Pair<BarCandidate,BarSegment>>{it.first.centerline.perpendicularDistance(hand)}
                 .thenByDescending{it.first.geometryScore}.thenBy{it.first.centerline.distance(hand)}).firstOrNull() ?: return null
+            if(requireUnique && tubes.any{!AutomaticReferenceStability.sameLine(tube.first.centerline,it.first.centerline,short*.01)}) return null
             return ObservedRail(tube.first,tube.second.ordered)
         }
     }
 }
-class AutomaticApparatusReference {
-    @Serializable data class Search(val hands:List<Point2D>,val regions:List<BarRegion>,val minimumObservedLength:Double?=null) {
-        fun matches(other:Search,size:ImageSize)=hands.size==other.hands.size && hands.zip(other.hands).all{hypot(it.first.x-it.second.x,it.first.y-it.second.y)<=min(size.width,size.height)*.02}
+/** One currently measurable arm can locate its own rail. This does not infer
+ * a second hand/rail, or bypass bilateral ambiguity when both arms are usable. */
+class AutomaticSingleDipRail {
+    data class Contact(val arm:PullUpArmMeasurement.Arm,val region:BarRegion) {
+        val isSupportLike get()=arm.wrist.y-arm.shoulder.y>=.35*(arm.estimate.upperArmPixels+arm.estimate.forearmPixels)
+        val isStartingPosition get()=isSupportLike && arm.estimate.elbowDegrees+1e-6>=DipSupportMeasurement.startingDegrees
     }
-    private var pullUp=AutomaticPullUpBar();private var dip=AutomaticDipRails();private var sharedDipBar=AutomaticDipBar()
+    private var stability=AutomaticReferenceStability()
+    private var source:Triple<ImageSize,String,Int>?=null
+    private var witnessedSide:ArmMeasurement.Side?=null
+    private var highWater:PresentationTime?=null
+    var state=AutomaticPullUpBar.State.lookingForGrip;private set
+    val referenceStabilityDiagnostic get()=stability.diagnostic.takeIf{state==AutomaticPullUpBar.State.holding || state==AutomaticPullUpBar.State.locked}
+    fun reset(){clearEvidence();source=null;highWater=null}
+    private fun clearEvidence(){stability.reset();witnessedSide=null;state=AutomaticPullUpBar.State.lookingForGrip}
+    fun observe(pose:PoseResult,side:ArmMeasurement.Side,candidates:List<BarLineCandidate>):ConfirmedBar? {
+        if(state==AutomaticPullUpBar.State.locked) return null
+        val context=Triple(pose.imageSize,pose.backend,pose.requestRevision)
+        val gap=highWater?.let{pose.timestamp.elapsedSeconds(it)}
+        if(!pose.timestamp.seconds.isFinite() || gap?.let{!it.isFinite() || it<=0}==true){clearEvidence();return null}
+        highWater=pose.timestamp
+        if(source!=context){clearEvidence();source=context}
+        val contact=contact(pose)?.takeIf{it.arm.side==side} ?: run{clearEvidence();return null}
+        if(witnessedSide!=null && witnessedSide!=contact.arm.side) clearEvidence()
+        if(candidates.size>BarFitter.maximumSegments){clearEvidence();return null}
+        val crop=contact.region.let{BarRegion(floor(it.minX)-1,floor(it.minY)-1,ceil(it.maxX)+1,ceil(it.maxY)+1)}
+        val local=candidates.filter{crop.contains(it.edge.a) && crop.contains(it.edge.b)}
+        val edge=AutomaticDipRails.select(local,contact.arm.wrist,pose.imageSize,requireUnique=true) ?: run {
+            clearEvidence();state=if(candidates.isEmpty()) AutomaticPullUpBar.State.findingEdge else AutomaticPullUpBar.State.ambiguous;return null
+        }
+        witnessedSide=contact.arm.side;state=AutomaticPullUpBar.State.holding
+        if(!stability.observe(listOf(edge),listOf(contact.arm.wrist),pose)) return null
+        val bar=ConfirmedBar(if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail,
+            ConfirmedBar.Method.automaticContours,edge,null,pose.imageSize,pose.timestamp)
+        if(!bar.isValid){clearEvidence();return null}
+        state=AutomaticPullUpBar.State.locked;return bar
+    }
+    companion object {
+        fun contact(pose:PoseResult):Contact? {
+            if(!pose.imageSize.isValid || !pose.timestamp.seconds.isFinite() || pose.people.size!=1) return null
+            val points=pose.people.single().landmarks
+            if(points.size>64) return null
+            // Occlusion is not permission to hide malformed evidence on the
+            // opposite side behind an earlier missing/low-confidence joint.
+            for(joint in ArmMeasurement.Side.entries.flatMap{it.joints}) {
+                val matches=points.filter{it.joint==joint}
+                if(matches.size>1 || matches.any{!it.position.isFinite || !it.confidence.isFinite() || it.confidence !in 0.0..1.0 ||
+                    it.position.x !in 0.0..pose.imageSize.width || it.position.y !in 0.0..pose.imageSize.height}) return null
+            }
+            val arm=PullUpArmMeasurement(pose).arms.singleOrNull() ?: return null
+            val other=if(arm.side==ArmMeasurement.Side.left) ArmMeasurement.Side.right else ArmMeasurement.Side.left
+            val shoulder=points.singleOrNull{it.joint==other.joints[0]}?.takeIf{it.isVisible()}
+            val wrist=points.singleOrNull{it.joint==other.joints[2]}?.takeIf{it.isVisible()}
+            // The elbow may be hidden while an overhead hand is still clear.
+            // Reuse the existing overhead-discrimination boundary; missing
+            // angle evidence cannot erase that contradictory contact evidence.
+            if(shoulder!=null && wrist!=null && shoulder.position.y-wrist.position.y>min(pose.imageSize.width,pose.imageSize.height)*.08) return null
+            return AutomaticDipRails.contactRegion(arm,pose.imageSize)?.let{Contact(arm,it)}
+        }
+    }
+}
+class AutomaticApparatusReference {
+    @Serializable data class Search(val hands:List<Point2D>,val regions:List<BarRegion>,val minimumObservedLength:Double?=null,val gripSides:List<ArmMeasurement.Side> = emptyList()) {
+        fun matches(other:Search,size:ImageSize)=gripSides==other.gripSides && hands.size==other.hands.size && hands.zip(other.hands).all{hypot(it.first.x-it.second.x,it.first.y-it.second.y)<=min(size.width,size.height)*.02}
+    }
+    private var pullUp=AutomaticPullUpBar();private var dip=AutomaticDipRails();private var sharedDipBar=AutomaticDipBar();private var singleDipRail=AutomaticSingleDipRail()
+    private var highWater:PresentationTime?=null
+    private var source:Triple<ImageSize,String,Int>?=null
     var state=AutomaticPullUpBar.State.lookingForGrip;private set
     var referenceStabilityDiagnostic:AutomaticReferenceStability.Diagnostic?=null;private set
-    fun reset(){pullUp=AutomaticPullUpBar();dip=AutomaticDipRails();sharedDipBar=AutomaticDipBar();state=AutomaticPullUpBar.State.lookingForGrip;referenceStabilityDiagnostic=null}
+    fun reset(){clearEvidence();highWater=null;source=null}
+    /** Cancel an observation without activating a new source timestamp epoch. */
+    fun invalidateEvidence(){clearEvidence()}
+    private fun clearEvidence(){pullUp=AutomaticPullUpBar();dip=AutomaticDipRails();sharedDipBar=AutomaticDipBar();singleDipRail=AutomaticSingleDipRail();state=AutomaticPullUpBar.State.lookingForGrip;referenceStabilityDiagnostic=null}
     fun observe(pose:PoseResult,exercise:ExerciseCounter.Exercise,side:ArmMeasurement.Side,candidates:List<List<BarLineCandidate>>):ConfirmedBar? {
+        // Evidence/mode/model resets cannot lower this owner's source clock.
+        // Only explicit source activation through reset() permits a new epoch.
+        val gap=highWater?.let{pose.timestamp.elapsedSeconds(it)}
+        if(!pose.timestamp.seconds.isFinite() || gap?.let{!it.isFinite() || it<=0}==true){clearEvidence();return null}
+        highWater=pose.timestamp
+        val context=Triple(pose.imageSize,pose.backend,pose.requestRevision)
+        if(source!=context){clearEvidence();source=context}
         if(exercise==ExerciseCounter.Exercise.pullUp) return pullUp.observe(pose,candidates.firstOrNull() ?: emptyList()).also{state=pullUp.state;referenceStabilityDiagnostic=pullUp.referenceStabilityDiagnostic}
+        if(candidates.size==1){
+            dip.reset();sharedDipBar.reset()
+            return singleDipRail.observe(pose,side,candidates.single()).also{state=singleDipRail.state;referenceStabilityDiagnostic=singleDipRail.referenceStabilityDiagnostic}
+        }
+        singleDipRail.reset()
         if(candidates.size!=2 && candidates.size!=3){dip.reset();sharedDipBar.reset();state=AutomaticPullUpBar.State.lookingForGrip;referenceStabilityDiagnostic=null;return null}
         val rails=dip.observe(pose,side,candidates.take(2))
         if(dip.state==AutomaticPullUpBar.State.holding || dip.state==AutomaticPullUpBar.State.locked){
@@ -196,6 +284,13 @@ class AutomaticApparatusReference {
         return shared
     }
     companion object {
-        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region))};ExerciseCounter.Exercise.dip -> AutomaticDipRails.apparatusGrip(pose)?.let{Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)),AutomaticDipRails.minimumPairLength(pose.imageSize))}}
+        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){
+            ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region),gripSides=ArmMeasurement.Side.entries)}
+            ExerciseCounter.Exercise.dip -> AutomaticDipRails.apparatusGrip(pose)?.let{
+                Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)),AutomaticDipRails.minimumPairLength(pose.imageSize),ArmMeasurement.Side.entries)
+            } ?: AutomaticSingleDipRail.contact(pose)?.let{
+                Search(listOf(it.arm.wrist),listOf(it.region),AutomaticDipRails.minimumPairLength(pose.imageSize),listOf(it.arm.side))
+            }
+        }
     }
 }

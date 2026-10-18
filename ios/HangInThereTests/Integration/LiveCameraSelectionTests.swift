@@ -5,6 +5,39 @@ import Testing
 
 @MainActor @Suite(.serialized)
 struct LiveCameraSelectionTests {
+    @Test func singleDipContactCanEarnReadinessOnlyWithItsObservedReference() {
+        for side in ArmMeasurement.Side.allCases {
+            let fixture = AutomaticDipRailsTests(), controller = LiveCameraPreviewController()
+            controller.configureWorkout(selection: .automatic, side: side)
+            var acquisition = AutomaticApparatusReference()
+            var bar: ConfirmedBar?
+            for time in [0.0, 0.2, 0.4, 0.6, 0.9] {
+                let frame = fixture.singlePose(time, side: side)
+                controller.observeExerciseSelection(frame)
+                bar = acquisition.observe(pose: frame, exercise: .dip, side: side,
+                    candidates: [fixture.rails[side == .left ? 0 : 1]])
+                #expect(!controller.observeHandsFreeReadiness(frame, eligible: true))
+            }
+            #expect(controller.resolvedExercise == .dip)
+            #expect(controller.barRole == (side == .left ? .leftDipRail : .rightDipRail))
+            let reference = bar?.referenceEdge
+            #expect(reference != nil)
+            for ticks: Int64 in [1_000_000, 1_119_999, 1_120_000] {
+                let original = fixture.singlePose(Double(ticks) / 1e6, side: side)
+                let frame = PoseResult(timestamp: .init(value: ticks, timescale: 1_000_000),
+                    imageSize: original.imageSize, people: original.people,
+                    backend: original.backend, requestRevision: original.requestRevision)
+                controller.observeExerciseSelection(frame)
+                #expect(controller.observeHandsFreeReadiness(frame, eligible: true, reference: reference) == (ticks == 1_120_000))
+            }
+            // The readiness adapter never invents apparatus or starts capture.
+            #expect(controller.currentBar == nil)
+            #expect(controller.liveSet.phase == .idle)
+            #expect(controller.liveSet.counter.observedMovements == 0)
+            #expect(!controller.session.isRunning)
+        }
+    }
+
     @Test func deepDipMotionRetainsLiveAutoContextButRequiresAFreshTopToEarnReadiness() {
         for side in ArmMeasurement.Side.allCases {
             let controller = LiveCameraPreviewController()
@@ -65,7 +98,9 @@ struct LiveCameraSelectionTests {
     }
 
     @Test func briefSingleArmLossRetainsQualifiedIdentityWithoutReadinessAndCannotRenewExpiry() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        // Dips now have a separately qualified single-contact path. Pull-ups
+        // still require bilateral overhead evidence and expire after arm loss.
+        for exercise in [ExerciseCounter.Exercise.pullUp] {
             let reference = exercise == .pullUp ? AutomaticPullUpBarTests().candidate().edge : AutomaticDipRailsTests().rails[0][0].edge
             let controller = LiveCameraPreviewController()
             func frame(_ ticks: Int64, missing: Bool = false) -> PoseResult {

@@ -29,13 +29,16 @@ private actor TestBarDetector: BarEdgeDetector {
 }
 
 private struct DipSupportEstimator: PoseEstimator {
+    var missingSide: ArmMeasurement.Side? = nil
+    var invalidTimestampAt: Double? = nil
     func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
         let points: [(PoseJoint,Double,Double)] = [
             (.leftWrist,115,60),(.leftElbow,113,40),(.leftShoulder,110,20),
             (.rightWrist,45,60),(.rightElbow,47,40),(.rightShoulder,50,20)
         ]
-        return PoseResult(timestamp:timestamp,imageSize:.init(width:Double(image.width),height:Double(image.height)),
-            people:[.init(landmarks:points.map {Landmark(joint:$0.0,position:.init(x:$0.1*Double(image.width)/160,y:$0.2*Double(image.height)/96),confidence:0.9)})],
+        let sourceTime = timestamp.seconds == invalidTimestampAt ? PresentationTime(value: 0, timescale: 0) : timestamp
+        return PoseResult(timestamp:sourceTime,imageSize:.init(width:Double(image.width),height:Double(image.height)),
+            people:[.init(landmarks:points.filter { missingSide?.joints.contains($0.0) != true }.map {Landmark(joint:$0.0,position:.init(x:$0.1*Double(image.width)/160,y:$0.2*Double(image.height)/96),confidence:0.9)})],
             backend:"synthetic dip support",requestRevision:0)
     }
 }
@@ -293,6 +296,52 @@ private actor OverheadContactDetector: BarEdgeDetector {
         #expect(await detector.requests == 12, "Both local handles and shared-bar support are checked at each of four acquisition observations.")
         let requestedLengths = await detector.requestedMinimumLengths
         #expect(requestedLengths == Array(repeating: 24.0, count: 12))
+    }
+    @Test(arguments: ArmMeasurement.Side.allCases)
+    func singleDipContactAcquiresOnlyItsObservedRailAndRewinds(side: ArmMeasurement.Side) async throws {
+        let url = try await VideoTestSupport.makeVideo(timestamps: [0,35,70,105,140,175].map {
+            CMTime(value: $0, timescale: 100)
+        }, width: 320, height: 192)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let other: ArmMeasurement.Side = side == .left ? .right : .left
+        let detector = TestDipRailDetector()
+        let model = ReplayController(estimator: DipSupportEstimator(missingSide: other), barDetector: detector)
+        defer { model.close() }
+        model.configureCounting(exercise: .dip, side: side)
+        model.open(url)
+        try await wait(model, for: "single-contact opening") { model.phase == .paused }
+        model.play()
+        try await wait(model, for: "single-contact completion") { model.phase == .finished }
+        let bar = try #require(model.currentBar)
+        #expect(bar.role == (side == .left ? .leftDipRail : .rightDipRail))
+        #expect(bar.method == .automaticContours && bar.oppositeEdge == nil)
+        #expect(bar.sourceTime.seconds == 1.4)
+        #expect(await detector.requests == 4, "Only the actual hand's contour region is observed.")
+        #expect(model.countingFrames == 6)
+        #expect(model.counter.observedMovements == 0)
+        #expect(model.analysisRecord?.completedCount == 0)
+        let finalPose = try #require(model.frame?.pose)
+        #expect(PullUpArmMeasurement(pose: finalPose).arms.map(\.side) == [side])
+    }
+
+    @Test func invalidPoseClockRevokesPendingSingleRailDwell() async throws {
+        let url = try await VideoTestSupport.makeVideo(timestamps: [0,35,70,105,140,175].map {
+            CMTime(value: $0, timescale: 100)
+        }, width: 320, height: 192)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let detector = TestDipRailDetector()
+        let model = ReplayController(estimator: DipSupportEstimator(missingSide: .right, invalidTimestampAt: 1.4),
+            barDetector: detector)
+        defer { model.close() }
+        model.configureCounting(exercise: .dip, side: .left)
+        model.open(url)
+        try await wait(model, for: "clock-fault opening") { model.phase == .paused }
+        model.play()
+        try await wait(model, for: "clock-fault completion") { model.phase == .finished }
+        #expect(await detector.requests == 4)
+        #expect(model.currentBar == nil)
+        #expect(model.countingFrames == 0)
+        #expect(model.counter.observedMovements == 0)
     }
     @Test func sharedDipBarAcquiresAndRewindsForEitherTrackedHand() async throws {
         let url=try await VideoTestSupport.makeVideo(timestamps:[0,35,70,105,140,175].map {CMTime(value:$0,timescale:100)},width:320,height:192)

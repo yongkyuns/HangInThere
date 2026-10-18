@@ -65,6 +65,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     private var activeExercise=selection.exercise ?: ExerciseCounter.Exercise.pullUp
     private var discardNextSetFrame=false
     private val sourceTimeline=WorkoutSourceTimeline()
+    private var sourceHighWater:PresentationTime?=null
     private val lastFrameAt get()=sourceTimeline.lastSeconds
     private var lastAcquisitionSeconds:Double?=null
     private var replayExercise:ExerciseCounter.Exercise?=null
@@ -97,6 +98,11 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         framingHint=null
         if(automaticWorkouts && !replayReview && session.phase==LiveSetSession.Phase.finished && WorkoutLifecycle.shouldResume(session.endReason?.name)){val lost=session.endReason==LiveSetSession.EndReason.trackingLost;captureCompletedSet();nextSet();if(lost) clearSetup()}
         if(!input.cameraReady){interrupt(LiveSetSession.EndReason.cameraFailure);issue="cameraUnavailable";return snapshot}
+        val sourceDirection=sourceHighWater?.let { SourceTimeComparison.compareElapsed(pose.timestamp,it,sourceZero) }
+        if(session.phase==LiveSetSession.Phase.idle && (!seconds.isFinite() || sourceDirection?.let{it<=0}==true)) {
+            identity.reset();clearSetup();qualifiedStartPose=null;issue="sourceTimestampInvalid";return snapshot
+        }
+        if(seconds.isFinite() && (sourceHighWater==null || sourceDirection?.let{it>0}==true)) sourceHighWater=pose.timestamp
         if(confirmedBar!=null && confirmedBar!!.imageSize!=pose.imageSize){interrupt(LiveSetSession.EndReason.setupInvalidated);issue="barReferenceUnavailable";return snapshot}
         var recoveringSetup=false
         if(session.phase==LiveSetSession.Phase.idle && selection==WorkoutExerciseSelection.automatic && replayExercise==null) {
@@ -110,12 +116,12 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         }
         val motionFresh=isFresh(seconds,input.motionTimestamp,motionMaximumAgeSeconds) && input.attitude!=null
         val framingReady=pose.imageSize.isValid && pose.people.size==1 && (if(selection==WorkoutExerciseSelection.automatic || activeExercise==ExerciseCounter.Exercise.pullUp) PullUpArmMeasurement(pose).arms.isNotEmpty() else ArmMeasurement(pose,side).estimate!=null)
-        // Auto acquisition needs both current-frame chains to distinguish a hang
-        // from support. One arm may still continue an already running set or a
-        // resolved replay; this guidance must not tighten those counting gates.
+        // Pull-up acquisition needs both chains. A single current dip contact
+        // can locate its own observed rail; it never ignores a measurable arm.
+        val singleDipFraming=activeExercise==ExerciseCounter.Exercise.dip && AutomaticSingleDipRail.contact(pose)?.arm?.side==side
         val automaticFramingIncomplete=session.phase==LiveSetSession.Phase.idle &&
             selection==WorkoutExerciseSelection.automatic && replayExercise==null &&
-            PullUpArmMeasurement(pose).arms.size!=2
+            PullUpArmMeasurement(pose).arms.size!=2 && !singleDipFraming
         var acquiredThisFrame=false
         if(session.phase==LiveSetSession.Phase.idle && confirmedBar==null && !recoveringSetup && motionFresh && framingReady && !input.paused && (selection.exercise!=null || identity.apparatusCandidate!=null) && input.candidates.isNotEmpty()) {
             if(lastAcquisitionSeconds==null || (seconds-lastAcquisitionSeconds!!)>=AutomaticPullUpBar.samplingInterval) {
@@ -222,7 +228,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     fun rewindReplay(attitude:PhoneOrientationStability.Quaternion,motionTimestamp:Double):Boolean {
         val bar=confirmedBar ?: return false;val exercise=resolvedExercise ?: return false
         if(!phoneOrientation.calibrate(attitude,motionTimestamp) || !calibrateScene(bar.imageSize)) return false
-        replayExercise=exercise;replayReview=true;activeExercise=exercise;identity.reset();handsFreeStart.reset();session.reset(exercise,side);sourceTimeline.reset();clearFramingFeedback();lastAcquisitionSeconds=null;discardNextSetFrame=false;generation++;return true
+        replayExercise=exercise;replayReview=true;activeExercise=exercise;identity.reset();handsFreeStart.reset();session.reset(exercise,side);sourceTimeline.reset();sourceHighWater=null;apparatus.reset();clearFramingFeedback();lastAcquisitionSeconds=null;discardNextSetFrame=false;generation++;return true
     }
     private fun expectedRole()=if(activeExercise==ExerciseCounter.Exercise.pullUp) ConfirmedBar.Role.pullUpGrip else if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail
     private fun calibrateScene(size:ImageSize):Boolean {
@@ -239,10 +245,11 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         }
         return staticScene.state
     }
-    private fun clearAcquisition(){apparatus.reset();lastAcquisitionSeconds=null;handsFreeStart.reset();automaticStart.reset()}
+    private fun clearAcquisition(){apparatus.invalidateEvidence();lastAcquisitionSeconds=null;handsFreeStart.reset();automaticStart.reset()}
     private fun clearFramingFeedback(){framingHint=null;framingFeedback.reset()}
     private fun clearSetup(){clearAcquisition();setupRecovery.reset();confirmedBar=null;phoneOrientation.reset();staticScene.reset();lastDeliveredSceneObservation=null;generation++;issue="barReferenceNeeded";clearFramingFeedback()}
     companion object {
+        private val sourceZero=SourceTimeLimit(0,1)
         const val motionMaximumAgeSeconds=.5
         const val sceneMaximumAgeSeconds=StaticSceneStability.maximumObservationGapSeconds
         private fun isFresh(frame:Double,sample:Double?,maximumAge:Double)=frame.isFinite() && sample!=null && sample.isFinite() && sample<=frame+.05 && frame-sample<=maximumAge
@@ -264,6 +271,7 @@ object WorkoutSetupGuidance {
         "phoneStabilityNeeded" -> "Keep the camera still while stability is checked"
         "sceneStabilityNeeded", "sceneUnavailable" -> "Keep the camera still with a stable background visible"
         "paused" -> "Close settings to continue setup"
+        "sourceTimestampInvalid" -> "Waiting for fresh video frames"
         else -> null
     }
 }

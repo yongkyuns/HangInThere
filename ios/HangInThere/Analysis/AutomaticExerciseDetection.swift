@@ -32,6 +32,7 @@ struct AutomaticExerciseDetection: Sendable {
     private(set) var exercise: ExerciseCounter.Exercise?
     private(set) var apparatusCandidate: ExerciseCounter.Exercise?
     private(set) var isLocked = false
+    private var witnessSides: [ArmMeasurement.Side] = []
     private var firstTime: PresentationTime?
     private var lastTime: PresentationTime?
     private var imageSize: ImageSize?
@@ -42,7 +43,8 @@ struct AutomaticExerciseDetection: Sendable {
     static func candidate(in pose: PoseResult) -> ExerciseCounter.Exercise? {
         guard let candidate = apparatusCandidate(in: pose) else { return nil }
         if candidate == .pullUp, !PullUpArmMeasurement(pose: pose).isExtended { return nil }
-        if candidate == .dip, !AutomaticDipRails.isStartingPosition(pose) { return nil }
+        if candidate == .dip, !AutomaticDipRails.isStartingPosition(pose),
+           AutomaticSingleDipRail.contact(in: pose)?.isStartingPosition != true { return nil }
         return candidate
     }
 
@@ -52,22 +54,23 @@ struct AutomaticExerciseDetection: Sendable {
         let pullUp = AutomaticApparatusReference.search(pose: pose, exercise: .pullUp) != nil
         // Contact search can continue through deep bends. Pose identity still
         // requires current support geometry, independently of apparatus search.
-        let dip = AutomaticDipRails.grip(in: pose) != nil
+        let dip = AutomaticDipRails.grip(in: pose) != nil || AutomaticSingleDipRail.contact(in: pose)?.isSupportLike == true
         guard pullUp != dip else { return nil }
         return pullUp ? .pullUp : .dip
     }
 
     // Preserve an actually witnessed dip search context through a deep bend,
-    // using fresh bilateral contact below the shoulders. Queries earn no dwell
+    // using fresh observed contact below the shoulders. Queries earn no dwell
     // and cannot establish identity or reuse an expired/image-changed context.
     func searchCandidate(in pose: PoseResult) -> ExerciseCounter.Exercise? {
         if let fresh = Self.apparatusCandidate(in: pose) { return fresh }
         guard apparatusCandidate == .dip, imageSize == pose.imageSize, let lastTime else { return nil }
         let gap = pose.timestamp.elapsedSeconds(since: lastTime)
         guard gap.isFinite, gap >= 0, gap <= HandsFreeSetStart.maximumFrameGap,
-              AutomaticDipRails.apparatusGrip(in: pose) != nil else { return nil }
+              AutomaticApparatusReference.search(pose: pose, exercise: .dip) != nil else { return nil }
         let arms = PullUpArmMeasurement(pose: pose).arms
-        return arms.count == 2 && arms.allSatisfy({ $0.wrist.y > $0.shoulder.y }) ? .dip : nil
+        guard arms.map(\.side) == witnessSides else { return nil }
+        return !arms.isEmpty && arms.allSatisfy({ $0.wrist.y > $0.shoulder.y }) ? .dip : nil
     }
 
     @discardableResult
@@ -83,10 +86,12 @@ struct AutomaticExerciseDetection: Sendable {
                 reset(); return nil
             }
         }
-        if apparatusCandidate != next || imageSize != pose.imageSize {
+        let sides = PullUpArmMeasurement(pose: pose).arms.map(\.side)
+        if apparatusCandidate != next || imageSize != pose.imageSize || witnessSides != sides {
             reset()
             apparatusCandidate = next
             imageSize = pose.imageSize
+            witnessSides = sides
         }
         lastTime = pose.timestamp
         // Bending during the first pull must not discard already qualified

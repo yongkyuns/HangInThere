@@ -144,12 +144,14 @@ class DipContactAcquisitionTests {
         }
     }
 
-    @Test fun missingArmOrHandStillCannotProvideContactEvidence() {
+    @Test fun missingBilateralContactRequiresASeparateSingleGripSearch() {
         val full = pose(0.0, deep = true)
         for (joint in listOf(PoseJoint.leftWrist, PoseJoint.rightWrist, PoseJoint.leftElbow, PoseJoint.rightElbow)) {
             val missing = full.copy(people = full.people.map { PoseObservation(it.landmarks.filter { point -> point.joint != joint }) })
             assertNull(AutomaticDipRails.apparatusGrip(missing))
-            assertNull(AutomaticApparatusReference.search(missing, ExerciseCounter.Exercise.dip))
+            val search = assertNotNull(AutomaticApparatusReference.search(missing, ExerciseCounter.Exercise.dip))
+            assertEquals(1, search.hands.size)
+            assertEquals(1, search.regions.size)
         }
         assertNull(AutomaticDipRails.apparatusGrip(full.copy(people = full.people + full.people)))
         assertNull(AutomaticDipRails.apparatusGrip(full.copy(timestamp = PresentationTime(0, 0))))

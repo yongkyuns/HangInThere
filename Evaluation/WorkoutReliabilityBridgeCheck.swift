@@ -37,9 +37,16 @@ enum WorkoutReliabilityBridgeCheck {
                     side: .left, reference: edge))
                 cases += 1
             }
-            let single = pose(0, exercise: exercise, missing: .right)
-            precondition(!adapter.hasStartingPose(single, exercise: exercise, automatic: true, side: .left, reference: edge))
-            precondition(adapter.hasStartingPose(single, exercise: exercise, automatic: false, side: .left, reference: edge))
+            for side in ArmMeasurement.Side.allCases {
+                let other: ArmMeasurement.Side = side == .left ? .right : .left
+                let single = pose(0, exercise: exercise, missing: other)
+                precondition(adapter.hasStartingPose(single, exercise: exercise, automatic: true,
+                    side: side, reference: edge) == (exercise == .dip))
+                precondition(adapter.hasStartingPose(single, exercise: exercise, automatic: false, side: side, reference: edge))
+                precondition(!adapter.hasStartingPose(single, exercise: exercise, automatic: true, side: other, reference: edge))
+                precondition(!adapter.hasStartingPose(single, exercise: exercise, automatic: true, side: side, reference: nil))
+                cases += 1
+            }
             precondition(!adapter.hasStartingPose(pose(0, exercise: exercise), exercise: exercise,
                 automatic: true, side: .left, reference: nil))
             for side in ArmMeasurement.Side.allCases {

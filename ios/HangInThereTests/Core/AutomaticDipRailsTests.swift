@@ -3,8 +3,185 @@ import Testing
 @testable import HangInThere
 
 @Suite struct AutomaticDipRailsTests {
+    @Test func oneVisibleArmCanAcquireOnlyItsObservedRail() throws {
+        for side in ArmMeasurement.Side.allCases {
+            func single(_ time: Double, degrees: Double = 170) -> PoseResult {
+                let frame = pose(time, degrees: degrees)
+                let opposite: ArmMeasurement.Side = side == .left ? .right : .left
+                return PoseResult(timestamp: frame.timestamp, imageSize: frame.imageSize,
+                    people: frame.people.map { person in PoseObservation(landmarks: person.landmarks.filter {
+                        !opposite.joints.contains($0.joint)
+                    }) }, backend: frame.backend, requestRevision: frame.requestRevision)
+            }
+            let search = try #require(AutomaticApparatusReference.search(pose: single(0), exercise: .dip))
+            #expect(search.hands.count == 1 && search.regions.count == 1)
+            let observed = rails[side == .left ? 0 : 1]
+            var acquisition = AutomaticApparatusReference(), identity = AutomaticExerciseDetection()
+            var reference: ConfirmedBar?
+            for time in [0.0, 0.3, 0.6, 0.9] {
+                let frame = single(time)
+                #expect(AutomaticExerciseDetection.candidate(in: frame) == .dip)
+                _ = identity.observe(frame)
+                reference = acquisition.observe(pose: frame, exercise: .dip, side: side, candidates: [observed])
+            }
+            #expect(identity.exercise == .dip)
+            let bar = try #require(reference)
+            #expect(observed.contains { $0.edge.ordered == bar.referenceEdge })
+            #expect(bar.oppositeEdge == nil)
+            var counter = ExerciseCounter(exercise: .dip, side: side)
+            for (time, angle) in [(1.0,170.0),(1.15,170),(1.3,80),(1.45,80),(1.6,170),(1.75,170),
+                                   (1.9,80),(2.05,80),(2.2,120)] {
+                counter.consume(single(time, degrees: angle), referenceEdge: bar.referenceEdge)
+            }
+            counter.finish()
+            #expect(counter.observedMovements == 1)
+            #expect(counter.interruptedAttempts == 1)
+        }
+    }
+
     func pose(_ time: Double, degrees: Double = 170, shift: Double = 0) -> PoseResult {
         DipSupportTests.pose(time, degrees: degrees, shift: .init(x: shift, y: 0), otherDegrees: degrees)
+    }
+    func singlePose(_ time: Double, side: ArmMeasurement.Side = .left) -> PoseResult {
+        let frame = pose(time)
+        let opposite: ArmMeasurement.Side = side == .left ? .right : .left
+        return PoseResult(timestamp: frame.timestamp, imageSize: frame.imageSize,
+            people: frame.people.map { person in PoseObservation(landmarks: person.landmarks.filter {
+                !opposite.joints.contains($0.joint)
+            }) }, backend: frame.backend, requestRevision: frame.requestRevision)
+    }
+
+    @Test func singleContactCannotHideMalformedOppositeEvidence() {
+        let frame = singlePose(0)
+        let hidden = Landmark(joint: .rightShoulder, position: .init(x: 700, y: 300), confidence: 0.1)
+        for bad in [Landmark(joint: hidden.joint, position: hidden.position, confidence: .nan),
+                    .init(joint: hidden.joint, position: hidden.position, confidence: 1.01),
+                    .init(joint: hidden.joint, position: .init(x: -1, y: 300), confidence: 0.1),
+                    .init(joint: hidden.joint, position: .init(x: 700, y: .nan), confidence: 0.1)] {
+            let invalid = PoseResult(timestamp: frame.timestamp, imageSize: frame.imageSize,
+                people: frame.people.map { .init(landmarks: $0.landmarks + [bad]) },
+                backend: frame.backend, requestRevision: frame.requestRevision)
+            #expect(AutomaticApparatusReference.search(pose: invalid, exercise: .dip) == nil)
+            #expect(AutomaticExerciseDetection.apparatusCandidate(in: invalid) == nil)
+        }
+        let duplicate = PoseResult(timestamp: frame.timestamp, imageSize: frame.imageSize,
+            people: frame.people.map { .init(landmarks: $0.landmarks + [hidden, hidden]) },
+            backend: frame.backend, requestRevision: frame.requestRevision)
+        #expect(AutomaticSingleDipRail.contact(in: duplicate) == nil)
+    }
+
+    @Test func singleRailRequiresUniquePairedSupportAndItsConfiguredSide() {
+        let above = [rail(490, y: 495), rail(500, y: 495)]
+        let another = [rail(540), rail(550)]
+        for fault in ["unpaired", "ambiguous", "above", "bilateral", "wrongSide"] {
+            var policy = AutomaticSingleDipRail()
+            for time in [0.0, 0.3, 0.6, 0.9, 1.2] {
+                let frame = fault == "bilateral" ? pose(time) : singlePose(time)
+                let candidates = fault == "unpaired" ? [rails[0][0]] : fault == "above" ? above
+                    : fault == "ambiguous" ? rails[0] + another : rails[0]
+                #expect(policy.observe(pose: frame, side: fault == "wrongSide" ? .right : .left,
+                    candidates: candidates) == nil)
+            }
+            #expect(policy.state != .locked)
+        }
+        let contradictory = DipSupportTests.pose(0, degrees: 170, otherDegrees: 100)
+        #expect(AutomaticSingleDipRail.contact(in: contradictory) == nil)
+        #expect(AutomaticExerciseDetection.candidate(in: contradictory) == nil)
+    }
+
+    @Test func singleReferenceClockFaultCannotLowerHighWater() {
+        var policy = AutomaticSingleDipRail()
+        for time in [1.0, 1.3, 1.6, 0.1, 0.4, 0.7, 1.0, 1.3, 1.6, 1.7, 2.0, 2.3] {
+            #expect(policy.observe(pose: singlePose(time), side: .left, candidates: rails[0]) == nil)
+        }
+        #expect(policy.observe(pose: singlePose(2.6), side: .left, candidates: rails[0]) != nil)
+    }
+
+    @Test func singleReferenceNeedsFreshDwellAfterSourceContextChanges() {
+        for revisionChanged in [false, true] {
+            var policy = AutomaticSingleDipRail()
+            for time in [0.0, 0.3, 0.6] {
+                #expect(policy.observe(pose: singlePose(time), side: .left, candidates: rails[0]) == nil)
+            }
+            for time in [0.9, 1.2, 1.5, 1.8] {
+                let frame = singlePose(time)
+                let changed = PoseResult(timestamp: frame.timestamp, imageSize: frame.imageSize, people: frame.people,
+                    backend: revisionChanged ? frame.backend : "new provider",
+                    requestRevision: frame.requestRevision + (revisionChanged ? 1 : 0))
+                let bar = policy.observe(pose: changed, side: .left, candidates: rails[0])
+                #expect((bar != nil) == (time == 1.8))
+            }
+        }
+    }
+
+    @Test func asyncSearchRejectsDifferentAnatomicalContactAtIdenticalPixels() throws {
+        let frame = singlePose(0)
+        let changed = PoseResult(timestamp: frame.timestamp, imageSize: frame.imageSize,
+            people: frame.people.map { person in .init(landmarks: person.landmarks.map { point in
+                let index = ArmMeasurement.Side.left.joints.firstIndex(of: point.joint)!
+                return Landmark(joint: ArmMeasurement.Side.right.joints[index], position: point.position,
+                    confidence: point.confidence)
+            }) }, backend: frame.backend, requestRevision: frame.requestRevision)
+        let left = try #require(AutomaticApparatusReference.search(pose: frame, exercise: .dip))
+        let right = try #require(AutomaticApparatusReference.search(pose: changed, exercise: .dip))
+        #expect(left.hands == right.hands)
+        #expect(!left.matches(right, size: frame.imageSize))
+    }
+
+    @Test func acquisitionOwnerKeepsClockAcrossModeAndProviderChanges() {
+        for changeProvider in [false, true] {
+            var policy = AutomaticApparatusReference()
+            func frame(_ time: Double, changed: Bool = false) -> PoseResult {
+                let original = singlePose(time)
+                return PoseResult(timestamp: original.timestamp, imageSize: original.imageSize, people: original.people,
+                    backend: changed ? "new provider" : original.backend, requestRevision: original.requestRevision)
+            }
+            for time in [1.0, 1.3, 1.6] {
+                #expect(policy.observe(pose: frame(time), exercise: .dip, side: .left, candidates: [rails[0]]) == nil)
+            }
+            #expect(policy.observe(pose: pose(1.7), exercise: .dip, side: .left, candidates: rails) == nil)
+            policy.invalidateEvidence()
+            for time in [0.1, 0.4, 0.7, 1.0, 1.3, 1.6] {
+                #expect(policy.observe(pose: frame(time, changed: changeProvider), exercise: .dip,
+                    side: .left, candidates: [rails[0]]) == nil)
+            }
+            for time in [1.8, 2.1, 2.4, 2.7] {
+                let bar = policy.observe(pose: frame(time, changed: changeProvider), exercise: .dip,
+                    side: .left, candidates: [rails[0]])
+                #expect((bar != nil) == (time == 2.7))
+            }
+            policy.reset()
+            for time in [0.0, 0.3, 0.6, 0.9] {
+                let bar = policy.observe(pose: frame(time), exercise: .dip, side: .left, candidates: [rails[0]])
+                #expect((bar != nil) == (time == 0.9))
+            }
+        }
+    }
+
+    @Test func missingOppositeElbowCannotHideClearlyOverheadContact() {
+        for side in ArmMeasurement.Side.allCases {
+            let other: ArmMeasurement.Side = side == .left ? .right : .left
+            for overhead in [false, true] {
+                var identity = AutomaticExerciseDetection(), policy = AutomaticApparatusReference()
+                var reference: ConfirmedBar?
+                for time in [0.0, 0.3, 0.6, 0.9] {
+                    let original = singlePose(time, side: side)
+                    let partial = [Landmark(joint: other.joints[0], position: .init(x: 600, y: 300), confidence: 1),
+                        Landmark(joint: other.joints[2], position: .init(x: 600, y: overhead ? 200 : 500), confidence: 1)]
+                    let frame = PoseResult(timestamp: original.timestamp, imageSize: original.imageSize,
+                        people: original.people.map { .init(landmarks: $0.landmarks + partial) },
+                        backend: original.backend, requestRevision: original.requestRevision)
+                    #expect((AutomaticSingleDipRail.contact(in: frame) != nil) == !overhead)
+                    #expect((AutomaticApparatusReference.search(pose: frame, exercise: .dip) != nil) == !overhead)
+                    #expect(AutomaticExerciseDetection.candidate(in: frame) == (overhead ? nil : .dip))
+                    _ = identity.observe(frame)
+                    reference = policy.observe(pose: frame, exercise: .dip, side: side,
+                        candidates: [rails[side == .left ? 0 : 1]])
+                }
+                #expect(identity.exercise == (overhead ? nil : .dip))
+                #expect((reference != nil) == !overhead)
+            }
+        }
     }
     func rail(_ x: Double, y: Double = 540, reversed: Bool = false) -> BarLineCandidate {
         let a = Point2D(x: x, y: y), b = Point2D(x: x, y: y + 120)

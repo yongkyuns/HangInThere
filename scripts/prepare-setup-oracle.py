@@ -72,6 +72,43 @@ def prepare(output):
         add(ex+'-scene-outlier',ex,frames(translations=outlier),True,True)
     add('dip-crossed-legs-optional','dip',[step(i/10,'dip',crossed_legs=True) for i in range(56)],True,True)
     add('dip-right-reference','dip',[step(i/10,'dip') for i in range(56)],True,True,side='right')
+    # Exactly one measured arm has its own one-region contour request. The
+    # legacy dip-one-arm case retains two stale bilateral candidate lists and
+    # must still fail: a hidden rail is never fabricated from that input.
+    for side in ['left','right']:
+        def single_step(t, degrees=170, **kw):
+            frame=step(t,'dip',degrees=degrees,**kw)
+            other='right' if side=='left' else 'left'
+            frame['pose']['people'][0]['landmarks']=[p for p in frame['pose']['people'][0]['landmarks']
+                if not p['joint'].startswith(other)]
+            if len(frame['candidates'])==2:
+                frame['candidates']=[frame['candidates'][0 if side=='left' else 1]]
+            return frame
+        add('dip-single-contact-observed-'+side,'dip',[single_step(i/10) for i in range(56)],True,True,side=side)
+        add('dip-single-contact-flexed-'+side,'dip',[single_step(i/10,100) for i in range(56)],True,False,side=side)
+        add('dip-single-contact-flexed-then-top-'+side,'dip',
+            [single_step(i/10,100 if i<15 else 170) for i in range(66)],True,True,side=side)
+        for fault in ['no-edges','unpaired','ambiguous','above','phone','scene','wrong-side','overhead-partial']:
+            frames=[single_step(i/10) for i in range(56)]
+            for frame in frames:
+                edges=frame['candidates'][0]
+                if fault=='no-edges': frame['candidates']=[[]]
+                elif fault=='unpaired': frame['candidates']=[edges[:1]]
+                elif fault=='ambiguous':
+                    x=300 if side=='left' else 700
+                    frame['candidates']=[edges+[candidate(x+50,545,x+50,660),candidate(x+58,545,x+58,660)]]
+                elif fault=='above':
+                    x=300 if side=='left' else 700
+                    frame['candidates']=[[candidate(x,495,x,615),candidate(x+8,495,x+8,615)]]
+                elif fault=='phone': frame['attitude']=None
+                elif fault=='scene': frame['translations']=frame['translations'][:1]
+                elif fault=='overhead-partial':
+                    other='right' if side=='left' else 'left'
+                    frame['pose']['people'][0]['landmarks'] += [
+                        dict(joint=other+'Shoulder',position=dict(x=600,y=300),confidence=1),
+                        dict(joint=other+'Wrist',position=dict(x=600,y=200),confidence=1)]
+            selected=('right' if side=='left' else 'left') if fault=='wrong-side' else side
+            add('dip-single-contact-'+fault+'-'+side,'dip',frames,fault=='scene',False,side=selected)
     shared=[candidate(200,y,800,y) for y in [505,515]]
     # Independent rails can project to unequal image heights. The observed
     # edge at each actual hand must agree; an unrelated old-height rail fails.

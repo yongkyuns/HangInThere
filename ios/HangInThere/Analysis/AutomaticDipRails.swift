@@ -142,23 +142,25 @@ struct AutomaticDipRails: Sendable {
         // Each rail's independently observed finite support establishes its
         // topology; oblique views need not give the hands equal image height.
         guard abs(hands[0].x - hands[1].x) >= short * 0.12 else { return nil }
-        let regions = arms.map { arm in
-            let hand = arm.wrist
-            var minX = max(0, hand.x - short * 0.12), maxX = min(pose.imageSize.width, hand.x + short * 0.12)
-            // In a frontal/oblique view the grip is outside its shoulder. Clip
-            // the torso-facing part of the crop so trouser/torso silhouettes
-            // cannot masquerade as handles below an imperfect wrist estimate.
-            if hand.x - arm.shoulder.x > short * 0.04 { minX = max(minX, (hand.x + arm.shoulder.x) / 2) }
-            if arm.shoulder.x - hand.x > short * 0.04 { maxX = min(maxX, (hand.x + arm.shoulder.x) / 2) }
-            return BarRegion(.init(x: minX, y: max(0, hand.y - short * 0.08)),
-                             .init(x: maxX, y: min(pose.imageSize.height, hand.y + short * 0.20)))
-        }
-        guard regions.allSatisfy({ $0.isValid(in: pose.imageSize) }) else { return nil }
+        let regions = arms.compactMap { contactRegion(arm: $0, size: pose.imageSize) }
+        guard regions.count == 2 else { return nil }
         return Grip(hands: hands, regions: regions)
     }
 
-    static func select(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize) -> BarSegment? {
-        selection(candidates: candidates, hand: hand, size: size)?.edge
+    // Shared body-excluding crop for either contact mode.
+    static func contactRegion(arm: PullUpArmMeasurement.Arm, size: ImageSize) -> BarRegion? {
+        let short = min(size.width, size.height), hand = arm.wrist
+        var minX = max(0, hand.x - short * 0.12), maxX = min(size.width, hand.x + short * 0.12)
+        if hand.x - arm.shoulder.x > short * 0.04 { minX = max(minX, (hand.x + arm.shoulder.x) / 2) }
+        if arm.shoulder.x - hand.x > short * 0.04 { maxX = min(maxX, (hand.x + arm.shoulder.x) / 2) }
+        let region = BarRegion(.init(x: minX, y: max(0, hand.y - short * 0.08)),
+                               .init(x: maxX, y: min(size.height, hand.y + short * 0.20)))
+        return region.isValid(in: size) ? region : nil
+    }
+
+    static func select(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize,
+                       requireUnique: Bool = false) -> BarSegment? {
+        selection(candidates: candidates, hand: hand, size: size, requireUnique: requireUnique)?.edge
     }
 
     static func minimumPairLength(in size: ImageSize) -> Double {
@@ -171,7 +173,8 @@ struct AutomaticDipRails: Sendable {
         min(edge.a.y, edge.b.y) >= hand.y
     }
 
-    private static func selection(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize) -> ObservedRail? {
+    private static func selection(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize,
+                                  requireUnique: Bool = false) -> ObservedRail? {
         guard size.isValid, hand.isFinite else { return nil }
         let short = min(size.width, size.height)
         let bounds = BarRegion(.init(x: 0, y: 0), .init(x: size.width, y: size.height))
@@ -205,6 +208,8 @@ struct AutomaticDipRails: Sendable {
             return $0.pair.centerline.distance(to: hand) < $1.pair.centerline.distance(to: hand)
         }
         guard let tube = tubes.first else { return nil }
+        if requireUnique && !tubes.allSatisfy({ AutomaticReferenceStability.sameLine(
+            tube.pair.centerline, $0.pair.centerline, tolerance: short * 0.01) }) { return nil }
         // Select one of the real silhouette edges, never the fitted centerline.
         return ObservedRail(pair: tube.pair, edge: tube.edge.ordered)
     }
@@ -282,6 +287,86 @@ struct AutomaticDipRails: Sendable {
     }
 }
 
+// One current measured arm can locate its own uniquely observed rail. This
+// neither invents the hidden side nor bypasses ambiguous bilateral evidence.
+struct AutomaticSingleDipRail: Sendable {
+    struct Contact: Sendable {
+        let arm: PullUpArmMeasurement.Arm
+        let region: BarRegion
+        var isSupportLike: Bool {
+            arm.wrist.y - arm.shoulder.y >= 0.35 * (arm.estimate.upperArmPixels + arm.estimate.forearmPixels)
+        }
+        var isStartingPosition: Bool {
+            isSupportLike && arm.estimate.elbowDegrees + 1e-6 >= DipSupportMeasurement.startingDegrees
+        }
+    }
+    private struct Source: Equatable, Sendable { let size: ImageSize; let backend: String; let revision: Int }
+    private var source: Source?
+    private var highWater: PresentationTime?
+    private var witnessedSide: ArmMeasurement.Side?
+    private var stability = AutomaticReferenceStability()
+    private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
+    var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic? {
+        state == .holding || state == .locked ? stability.diagnostic : nil
+    }
+    mutating func reset() { self = Self() }
+    private mutating func clearEvidence() {
+        stability.reset(); witnessedSide = nil; state = .lookingForGrip
+    }
+    static func contact(in pose: PoseResult) -> Contact? {
+        guard pose.imageSize.isValid, pose.timestamp.seconds.isFinite, pose.people.count == 1 else { return nil }
+        let points = pose.people[0].landmarks
+        guard points.count <= 64 else { return nil }
+        // Missing/weak joints do not hide malformed evidence elsewhere in the
+        // hidden chain. The same finite/confidence/image bounds still apply.
+        for joint in ArmMeasurement.Side.allCases.flatMap(\.joints) {
+            let matches = points.filter { $0.joint == joint }
+            guard matches.count <= 1, matches.allSatisfy({ $0.position.isFinite && $0.confidence.isFinite
+                && (0...1).contains($0.confidence) && (0...pose.imageSize.width).contains($0.position.x)
+                && (0...pose.imageSize.height).contains($0.position.y) }) else { return nil }
+        }
+        let arms = PullUpArmMeasurement(pose: pose).arms
+        guard arms.count == 1, let arm = arms.first,
+              let region = AutomaticDipRails.contactRegion(arm: arm, size: pose.imageSize) else { return nil }
+        let other: ArmMeasurement.Side = arm.side == .left ? .right : .left
+        let shoulder = points.first { $0.joint == other.joints[0] && $0.isVisible() }
+        let wrist = points.first { $0.joint == other.joints[2] && $0.isVisible() }
+        // An unavailable elbow cannot hide clearly overhead contact geometry.
+        // This reuses the existing overhead-discrimination boundary.
+        if let shoulder, let wrist,
+           shoulder.position.y - wrist.position.y > min(pose.imageSize.width, pose.imageSize.height) * 0.08 { return nil }
+        return Contact(arm: arm, region: region)
+    }
+    mutating func observe(pose: PoseResult, side: ArmMeasurement.Side,
+                          candidates: [BarLineCandidate]) -> ConfirmedBar? {
+        guard state != .locked else { return nil }
+        let context = Source(size: pose.imageSize, backend: pose.backend, revision: pose.requestRevision)
+        let gap = highWater.map { pose.timestamp.elapsedSeconds(since: $0) }
+        guard pose.timestamp.seconds.isFinite, gap.map({ $0.isFinite && $0 > 0 }) ?? true else {
+            clearEvidence(); return nil
+        }
+        highWater = pose.timestamp
+        if source != context { clearEvidence(); source = context }
+        guard let contact = Self.contact(in: pose), contact.arm.side == side else { clearEvidence(); return nil }
+        if witnessedSide != nil && witnessedSide != contact.arm.side { clearEvidence() }
+        guard candidates.count <= BarFitter.maximumSegments else { clearEvidence(); return nil }
+        let region = contact.region
+        let crop = BarRegion(.init(x: floor(region.minX) - 1, y: floor(region.minY) - 1),
+                             .init(x: ceil(region.maxX) + 1, y: ceil(region.maxY) + 1))
+        let local = candidates.filter { crop.contains($0.edge.a) && crop.contains($0.edge.b) }
+        guard let edge = AutomaticDipRails.select(candidates: local, hand: contact.arm.wrist,
+            size: pose.imageSize, requireUnique: true) else {
+            clearEvidence(); state = candidates.isEmpty ? .findingEdge : .ambiguous; return nil
+        }
+        witnessedSide = contact.arm.side; state = .holding
+        guard stability.observe(edges: [edge], grips: [contact.arm.wrist], pose: pose) else { return nil }
+        let bar = ConfirmedBar(role: side == .left ? .leftDipRail : .rightDipRail, method: .automaticContours,
+            referenceEdge: edge, oppositeEdge: nil, imageSize: pose.imageSize, sourceTime: pose.timestamp)
+        guard bar.isValid else { clearEvidence(); return nil }
+        state = .locked; return bar
+    }
+}
+
 // One acquisition interface for live camera and recorded review. The underlying
 // selectors differ, but cancellation, freshness and camera calibration stay shared.
 struct AutomaticApparatusReference: Sendable {
@@ -289,11 +374,14 @@ struct AutomaticApparatusReference: Sendable {
         let hands: [Point2D]
         let regions: [BarRegion]
         let minimumObservedLength: Double?
-        init(hands: [Point2D], regions: [BarRegion], minimumObservedLength: Double? = nil) {
+        let gripSides: [ArmMeasurement.Side]
+        init(hands: [Point2D], regions: [BarRegion], minimumObservedLength: Double? = nil,
+             gripSides: [ArmMeasurement.Side] = []) {
             self.hands = hands; self.regions = regions; self.minimumObservedLength = minimumObservedLength
+            self.gripSides = gripSides
         }
         func matches(_ other: Search, size: ImageSize) -> Bool {
-            hands.count == other.hands.count && zip(hands, other.hands).allSatisfy {
+            gripSides == other.gripSides && hands.count == other.hands.count && zip(hands, other.hands).allSatisfy {
                 hypot($0.x - $1.x, $0.y - $1.y) <= min(size.width, size.height) * 0.02
             }
         }
@@ -301,31 +389,62 @@ struct AutomaticApparatusReference: Sendable {
     private var pullUp = AutomaticPullUpBar()
     private var dip = AutomaticDipRails()
     private var sharedDipBar = AutomaticDipBar()
+    private var singleDipRail = AutomaticSingleDipRail()
+    private struct Source: Equatable, Sendable { let size: ImageSize; let backend: String; let revision: Int }
+    private var source: Source?
+    private var highWater: PresentationTime?
     private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
     private(set) var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic?
     mutating func reset() { self = Self() }
+    // Cancellation revokes evidence; only reset() activates a new source epoch.
+    mutating func invalidateEvidence() { clearEvidence() }
+    private mutating func clearEvidence() {
+        pullUp.reset(); dip.reset(); sharedDipBar.reset(); singleDipRail.reset()
+        state = .lookingForGrip; referenceStabilityDiagnostic = nil
+    }
     static func search(pose: PoseResult, exercise: ExerciseCounter.Exercise) -> Search? {
         switch exercise {
         case .pullUp:
             guard let grip = AutomaticPullUpBar.grip(in: pose) else { return nil }
-            return Search(hands: [grip.left, grip.right], regions: [grip.region])
+            return Search(hands: [grip.left, grip.right], regions: [grip.region], gripSides: [.left, .right])
         case .dip:
-            guard let grip = AutomaticDipRails.apparatusGrip(in: pose) else { return nil }
+            guard let grip = AutomaticDipRails.apparatusGrip(in: pose) else {
+                guard let contact = AutomaticSingleDipRail.contact(in: pose) else { return nil }
+                return Search(hands: [contact.arm.wrist], regions: [contact.region],
+                    minimumObservedLength: AutomaticDipRails.minimumPairLength(in: pose.imageSize),
+                    gripSides: [contact.arm.side])
+            }
             let shared = AutomaticDipBar.region(grip: grip, size: pose.imageSize)
             // Retain observed curved-handle fragments that are long enough for
             // paired support, rather than imposing a whole-crop length first.
             return Search(hands: grip.hands, regions: grip.regions + (shared.map { [$0] } ?? []),
-                          minimumObservedLength: AutomaticDipRails.minimumPairLength(in: pose.imageSize))
+                          minimumObservedLength: AutomaticDipRails.minimumPairLength(in: pose.imageSize), gripSides: [.left, .right])
         }
     }
     mutating func observe(pose: PoseResult, exercise: ExerciseCounter.Exercise,
                           side: ArmMeasurement.Side, candidates: [[BarLineCandidate]]) -> ConfirmedBar? {
+        // Only explicit reset() activates a new source clock. Mode/context
+        // changes revoke evidence without allowing stale frames to earn dwell.
+        let gap = highWater.map { pose.timestamp.elapsedSeconds(since: $0) }
+        guard pose.timestamp.seconds.isFinite, gap.map({ $0.isFinite && $0 > 0 }) ?? true else {
+            clearEvidence(); return nil
+        }
+        highWater = pose.timestamp
+        let context = Source(size: pose.imageSize, backend: pose.backend, revision: pose.requestRevision)
+        if source != context { clearEvidence(); source = context }
         let bar: ConfirmedBar?
         switch exercise {
         case .pullUp:
             bar = pullUp.observe(pose: pose, candidates: candidates.first ?? []); state = pullUp.state
             referenceStabilityDiagnostic = pullUp.referenceStabilityDiagnostic
         case .dip:
+            if candidates.count == 1 {
+                dip.reset(); sharedDipBar.reset()
+                let single = singleDipRail.observe(pose: pose, side: side, candidates: candidates[0])
+                state = singleDipRail.state; referenceStabilityDiagnostic = singleDipRail.referenceStabilityDiagnostic
+                return single
+            }
+            singleDipRail.reset()
             guard candidates.count == 2 || candidates.count == 3 else {
                 dip.reset(); sharedDipBar.reset(); state = .lookingForGrip; referenceStabilityDiagnostic = nil; return nil
             }

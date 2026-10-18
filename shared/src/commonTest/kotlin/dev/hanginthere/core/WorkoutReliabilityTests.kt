@@ -36,7 +36,8 @@ class WorkoutReliabilityTests {
             val paused = runtime.observe(input(pose(1_000_000, exercise, missing), exercise))
             assertEquals(original, runtime.confirmedBar)
             assertEquals(exercise, paused.exercise)
-            assertEquals("framingIncomplete", paused.setupIssue)
+            assertEquals(if (exercise == ExerciseCounter.Exercise.dip && missing == ArmMeasurement.Side.right) null
+                else "framingIncomplete", paused.setupIssue)
             assertEquals(LiveSetSession.Phase.idle, paused.phase)
             assertEquals(0, paused.observedMovements)
             assertEquals(LiveSetSession.Phase.idle, runtime.observe(input(pose(1_100_000, exercise), exercise)).phase)

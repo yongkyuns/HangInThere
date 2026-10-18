@@ -53,8 +53,8 @@ class WorkoutFramingGuidanceTests {
         assertEquals("Improve lighting · keep the selected arm and hand clear", WorkoutFramingGuidance.setupMessage(
             p, idle = true, barConfirmed = true, automatic = false, pullUp = false, side = ArmMeasurement.Side.right))
         assertNull(WorkoutFramingGuidance.setupMessage(p, true, true, false, false, ArmMeasurement.Side.left))
-        assertEquals("Angle camera so both arms and hands are clear",
-            WorkoutFramingGuidance.setupMessage(p, true, true, true, false, ArmMeasurement.Side.left))
+        assertNull(WorkoutFramingGuidance.setupMessage(p, true, true, true, false, ArmMeasurement.Side.left),
+            "Confirmed dip framing uses the measured selected arm; starting posture remains a separate check")
         assertNull(WorkoutFramingGuidance.setupMessage(p, false, false, true, true, ArmMeasurement.Side.right))
         val runtime = WorkoutRuntime(WorkoutExerciseSelection.dip, ArmMeasurement.Side.right)
         val bar = ConfirmedBar(ConfirmedBar.Role.rightDipRail, ConfirmedBar.Method.manualEdge,

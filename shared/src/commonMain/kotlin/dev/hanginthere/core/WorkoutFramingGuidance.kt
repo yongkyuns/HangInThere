@@ -24,11 +24,12 @@ object WorkoutFramingGuidance {
                              referenceStability: AutomaticReferenceStability.Diagnostic? = null,
                              sourceSeconds: Double = pose.timestamp.seconds): Advice? {
         if (!idle) return null
-        val framingReady = if (automatic) PullUpArmMeasurement(pose).arms.size == 2
+        val singleDip = !pullUp && AutomaticSingleDipRail.contact(pose)?.arm?.side == side
+        val framingReady = if (automatic) PullUpArmMeasurement(pose).arms.size == 2 || singleDip
             else if (pullUp) PullUpArmMeasurement(pose).arms.isNotEmpty()
             else ArmMeasurement(pose, side).estimate != null
         if (barConfirmed && framingReady) return null
-        val armAdvice = advice(pose, requireBothArms = !barConfirmed || automatic || pullUp, side = side)
+        val armAdvice = advice(pose, requireBothArms = !singleDip && (!barConfirmed || automatic || pullUp), side = side)
         if (armAdvice != null) return armAdvice
         val pullUpAssessment = if (!barConfirmed && (automatic || pullUp)) AutomaticPullUpBar.assessGrip(pose) else null
         if (pullUpAssessment != null) {
@@ -53,7 +54,7 @@ object WorkoutFramingGuidance {
                 (if (pullUp) pullUpAssessment is AutomaticPullUpBar.Grip
                     // Contact search also runs through deep flexion and overhead
                     // poses; a starting-position cue still needs dip context.
-                    else AutomaticDipRails.grip(pose) != null))
+                    else AutomaticExerciseDetection.apparatusCandidate(pose) == ExerciseCounter.Exercise.dip))
                 return Advice("Hold your start position · keep the phone steady", acquisition = true)
         }
         return null

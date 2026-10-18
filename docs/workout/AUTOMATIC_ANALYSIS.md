@@ -27,8 +27,8 @@ leaving overhead room. Arm visibility advice takes priority; the equipment hint
 uses the same debounce and caption, including while the bar edge is unclear.
 It does not assert that a bar exists, change the search crop or delay readiness.
 Advice clears on fresh usable framing and camera/selection invalidation, and is
-hidden during running or finished sets. A confirmed manual dip still permits
-the selected arm; automatic acquisition still needs both arms. Advice never
+hidden during running or finished sets. Dips can use the selected measurable
+arm and its independently observed rail; pull-up acquisition needs both arms. Advice never
 changes setup, count, phase-credit or camera-stability gates and cannot repair
 an obscured arm in a saved video. The original failed evaluation clips remain
 fatal accuracy checks. Common tests, shipping Apple FFI contracts/performance,
@@ -132,8 +132,9 @@ bilateral pose. The current arm must still match the exercise, its prior wrist
 within 2% of the image short side, and shoulder within 8%. Missing frames cannot
 renew this deadline. Crowds, no person, changed resolution, contradictory geometry,
 invalid/reversed/duplicate clocks, expiry and independently detected camera motion
-invalidate recovery. Both apps reset readiness during the dropout and require
-fresh bilateral evidence before starting. No missing frame earns identity dwell,
+invalidate recovery. Both apps reset readiness during the dropout. Pull-ups need
+fresh bilateral evidence; a dip can establish fresh single-contact identity and
+its own observed rail after this recovery expires. No missing frame earns identity dwell,
 apparatus observations, practice time or a rep. Android calls the common policy;
 iOS uses its source-tick/raw-joint bridge rather than a second recovery algorithm.
 
@@ -144,9 +145,17 @@ to different image heights; each hand still needs its own actually corresponding
 finite rail. The original hand separation, confidence, body-edge exclusion,
 paired contour, stability and source-clock requirements remain active.
 
-Pose identity still requires supported body geometry, and a new dip identity
-requires the existing extended top hold. Once dip support has actually been seen,
-fresh bilateral contact below both shoulders can preserve its apparatus search
+When exactly one arm is measurable, dip setup may search just that hand's region.
+Only a unique, actually observed paired rail at the selected arm can qualify;
+there is no inferred second rail or fallback around measurable bilateral ambiguity.
+Malformed hidden-chain evidence and a visible overhead opposite hand veto this
+path. A changed anatomical contact set requires fresh identity and rail dwell.
+Cancellation and provider/mode changes preserve the acquisition timestamp fence;
+explicit source activation or replay rewind permits a new source epoch.
+
+Pose identity still requires supported body geometry. A new dip identity needs
+the existing 0.6-second support-posture dwell, independently of starting extension.
+Once dip support has actually been seen, fresh contact below the same measured shoulders can preserve its apparatus search
 through a deep bottom, within the existing source-gap bound. A pure search query
 cannot earn dwell or establish identity. Missing limbs, overhead hands, changed
 geometry, clock faults and expiry revoke this retained context. The live Auto
@@ -155,7 +164,8 @@ the deep pose cannot seed readiness or an analytics baseline. Unequal image hand
 height is now accepted for starting geometry as well as search, with actual rail
 correspondence and all existing extension/support checks retained.
 `WorkoutStartEvidence` supplies both apps' current-frame starting check. Auto
-requires current bilateral extension and support geometry. Both exercises also require the tracked grip
+requires current extension and support geometry of every measurable arm; the
+single-contact dip path requires the selected arm. Both exercises also require the tracked grip
 at the confirmed reference; explicitly selected dips retain their selected-arm
 fallback. Bending or missing evidence resets readiness and its baseline; a fresh
 top position must earn the full source-time dwell even when identity and apparatus

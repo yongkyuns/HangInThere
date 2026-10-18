@@ -122,7 +122,7 @@ struct WorkoutAnalysisBridgeCheck {
               framingAdapter.setupFramingMessage(unclearFraming, idle: true, barConfirmed: true,
                   automatic: false, pullUp: false, side: .left) == nil,
               framingAdapter.setupFramingMessage(unclearFraming, idle: true, barConfirmed: true,
-                  automatic: true, pullUp: false, side: .left) == "Angle camera so both arms and hands are clear",
+                  automatic: true, pullUp: false, side: .left) == nil,
               framingAdapter.setupFramingMessage(unclearFraming, idle: false, barConfirmed: false,
                   automatic: true, pullUp: true, side: .right) == nil else {
             fatalError("Shipping Apple framing advice lost confirmed-dip fallback or leaked into a running set")
