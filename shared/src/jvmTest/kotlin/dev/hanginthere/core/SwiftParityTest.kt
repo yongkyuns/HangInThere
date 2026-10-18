@@ -74,6 +74,13 @@ class SwiftParityTest {
             "dip-return-no-synthetic-maxima", "dip-return-bounded-history", "dip-return-source-reset", "dip-departure-plateau",
             "dip-outbound-low-witness", "dip-outbound-no-combined-lows"))
             assertTrue("$prefix-$side" in ids, "Missing unconfirmed dip return regression")
+        for (side in ArmMeasurement.Side.entries) {
+            for (kind in listOf("outbound", "return", "readyProjected", "readyExtended", "elbowOutage"))
+                for (ending in listOf("", "-recovery"))
+                    assertTrue("dip-new-arm-$kind$ending-$side" in ids, "Missing new dip arm baseline regression")
+            for (prefix in listOf("dip-new-arm-dwell", "dip-anchored-arm-brief-outage", "dip-new-arm-current-return-dwell", "dip-new-arm-initial-bent"))
+                assertTrue("$prefix-$side" in ids, "Missing dip visibility dwell regression")
+        }
         for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) {
             for (origin in listOf("ordinary", "large")) for (kind in listOf("exact", "short"))
                 assertTrue("source-clock-$exercise-$side-$origin-$kind" in ids, "Missing exact source dwell regression")

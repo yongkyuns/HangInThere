@@ -5,6 +5,8 @@
 	};
 	objectVersion = 56;
 	objects = {
+		AB7100000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipArmVisibilityTests.swift; sourceTree = "<group>";};
+		AB7100000000000000000002 = {isa = PBXBuildFile; fileRef = AB7100000000000000000001;};
 		0FC2E90A76F940C19D3E26EA = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutJourneyView.swift"; sourceTree = "<group>";};
 		E10CBBD612FF4DBEB35151C9 = {isa = PBXBuildFile; fileRef = 0FC2E90A76F940C19D3E26EA;};
 		EC7D773AE44E4768B82A3082 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutJourneyRecords.swift"; sourceTree = "<group>";};
@@ -406,6 +408,7 @@
 			children = (
 				C8E44086FBEE2C6809322FFE,
 				0C5C97BB01A5DFA5E5B6704D,
+				AB7100000000000000000001,
 				B2D5F601A8C14F78A12E0201,
 				C3E6A701B9D24A89B23F0201,
 				D4F7B801CAD35B90C3400201,
@@ -821,6 +824,7 @@
 				ACBA66C5AD79A82B40C4DF2D,
 				8CB0AC26F0D1209B6683DBCF,
 				D471AA1A85E637305BAE6A1C,
+				AB7100000000000000000002,
 				B2D5F601A8C14F78A12E0202,
 				C3E6A701B9D24A89B23F0202,
 				D4F7B801CAD35B90C3400202,

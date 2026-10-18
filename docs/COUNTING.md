@@ -43,6 +43,11 @@ Shoulder height is its signed projection along this direction. Rail orientation
 does not determine the movement axis, including when rails project vertically.
 
 - A 0.12s support hold acquires the counter's top baseline.
+  An opposite arm first becoming measurable restarts this hold. If it first
+  appears after acquisition, the counter requires fresh support rather than
+  borrowing the selected arm's baseline or ignoring the new evidence. An active
+  attempt is interrupted; it cannot enter completed-rep analytics. A previously
+  witnessed arm can still be briefly hidden without losing its baseline.
 - Meaningful lowering requires travel of at least
   `max(18% of acquired projected arm length, 2% of image short side)`.
 - Departure requires half that travel and at least 15 degrees of elbow bending.

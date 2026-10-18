@@ -156,7 +156,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
             val cue = when (issue) {
                 "barReferenceUnavailable" -> DipProgress.Cue.setRail
                 "dipGripMoved" -> DipProgress.Cue.reestablishGrip
-                "dipSupportNeeded", "returnNotSustained", "dipReturnUnresolved", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp" -> DipProgress.Cue.reacquireSupport
+                "dipSupportNeeded", "dipArmBaselineUnavailable", "returnNotSustained", "dipReturnUnresolved", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp" -> DipProgress.Cue.reacquireSupport
                 else -> DipProgress.Cue.showArms
             }
             return snapshot(DipProgress.Stage.paused, cue)
@@ -326,6 +326,21 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
             min(pose.imageSize.width, pose.imageSize.height), support.otherDegrees)
         dipSample = sample; dipLastGeometryTime = time
         trackingIssue = if (support.degrees == null) "lowConfidence" else null
+        if (sample.otherDegrees != null) {
+            if (phase == Phase.seekingStart && dipTopCandidate?.otherDegrees == null) {
+                // A new arm cannot borrow time from an earlier single-arm hold.
+                if (!support.isStartingSupport) return interrupt("dipArmBaselineUnavailable")
+                dipTopCandidate = null; dipSupportCandidateSince = null
+            } else if (phase != Phase.seekingStart && dipAnchor?.otherDegrees == null) {
+                // Its first bottom/return observation is not a top baseline.
+                // Reacquire one actual coherent support before the next cycle.
+                val interrupted = interrupt("dipArmBaselineUnavailable")
+                // Interruption guarantees seekingStart. One re-entry can seed
+                // fresh support from this actual frame, never restore a cycle.
+                consumeDip(pose, referenceEdge, time)
+                return interrupted
+            }
+        }
         if ((phase == Phase.outbound || phase == Phase.returning) &&
                 dipUnconfirmedReturns.any { dipHasDeparted(sample, it) }) return interrupt("returnNotSustained")
         when (phase) {

@@ -216,7 +216,7 @@ struct ExerciseCounter: Sendable {
             switch trackingIssue {
             case "barReferenceUnavailable": cue = .setRail
             case "dipGripMoved": cue = .reestablishGrip
-            case "dipSupportNeeded", "returnNotSustained", "dipReturnUnresolved", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp":
+            case "dipSupportNeeded", "dipArmBaselineUnavailable", "returnNotSustained", "dipReturnUnresolved", "sourceTimeGap", "nonIncreasingTimestamp", "invalidTimestamp":
                 cue = .reacquireSupport
             default: cue = .showArms
             }
@@ -476,6 +476,23 @@ struct ExerciseCounter: Sendable {
         dipSample = sample
         dipLastGeometryTime = time
         trackingIssue = support.degrees == nil ? "lowConfidence" : nil
+        if sample.otherDegrees != nil {
+            if phase == .seekingStart, dipTopCandidate?.otherDegrees == nil {
+                // A new arm cannot borrow time from an earlier single-arm hold.
+                guard support.isStartingSupport else {
+                    return interrupt(reason: "dipArmBaselineUnavailable")
+                }
+                dipTopCandidate = nil
+                dipSupportCandidateSince = nil
+            } else if phase != .seekingStart, dipAnchor?.otherDegrees == nil {
+                // Its first bottom/return observation is not a top baseline.
+                let interrupted = interrupt(reason: "dipArmBaselineUnavailable")
+                // Interruption guarantees seekingStart. One re-entry can seed
+                // fresh support from this actual frame, never restore a cycle.
+                _ = consumeDip(pose, referenceEdge: referenceEdge, at: time)
+                return interrupted
+            }
+        }
         if (phase == .outbound || phase == .returning),
            dipUnconfirmedReturns.contains(where: { dipHasDeparted(sample, from: $0) }) {
             return interrupt(reason: "returnNotSustained")

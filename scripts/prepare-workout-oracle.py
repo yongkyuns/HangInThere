@@ -57,6 +57,44 @@ def prepare(output):
     add('pullUp-opposite-still', 'pullUp', cycle,0,right=170)
     add('pullUp-single-visible', 'pullUp',cycle,1,missing=True)
     add('dip-opposite-still', 'dip',cycle,0,right=170)
+    def dip_visibility_pose(t, selected, other, side, elbow_visible=True):
+        frame=pose(t,selected,exercise='dip')
+        points=[p for p in frame['people'][0]['landmarks'] if p['joint'].startswith(side)]
+        if other is not None:
+            points += [p for p in pose(t,other,exercise='dip')['people'][0]['landmarks'] if not p['joint'].startswith(side)]
+        if not elbow_visible:
+            for point in points:
+                if point['joint']==side+'Elbow':point['confidence']=.1
+        frame['people'][0]['landmarks']=points
+        return frame
+    for side in ('left','right'):
+        for scenario in ('outbound','return','readyProjected','readyExtended','elbowOutage'):
+            top=140 if scenario=='readyProjected' else 170
+            if scenario=='return': samples=[(.3,80,None),(.45,80,None),(.6,170,80),(.75,170,80)]
+            elif scenario.startswith('ready'): samples=[(.2,top,170),(.35,110,170),(.5,80,170),(.65,top,170),(.8,top,170)]
+            else:samples=[(.3,110,None),(.45,80,170),(.6,80,170),(.75,170,170),(.9,170,170)]
+            frames=[dip_visibility_pose(t,top,None,side) for t in (0,.15)]
+            frames += [dip_visibility_pose(t,a,o,side,not(scenario=='elbowOutage' and t==.45)) for t,a,o in samples]
+            add(f'dip-new-arm-{scenario}-{side}','dip',frames,0,side=side)
+            recovery=frames+[dip_visibility_pose(t,a,a,side) for t,a in
+                [(1.2,170),(1.35,170),(1.5,80),(1.65,80),(1.8,170),(1.95,170)]]
+            add(f'dip-new-arm-{scenario}-recovery-{side}','dip',recovery,1,side=side)
+            for step in cases[-1]['steps'][:len(frames)]:step['expectedMovements']=0
+        frames=[dip_visibility_pose(t,170,o,side) for t,o in [(0,None),(.1,None),(.15,170),(.25,170),(.3,170)]]
+        add('dip-new-arm-dwell-'+side,'dip',frames,0,side=side)
+        for i,step in enumerate(cases[-1]['steps']):step['expectedPhase']='ready' if i==4 else 'seekingStart'
+        frames=[dip_visibility_pose(t,a,o,side) for t,a,o in [(0,170,170),(.15,170,170),(.3,110,None),
+            (.45,80,None),(.6,80,80),(.75,170,None),(.9,170,170)]]
+        add('dip-anchored-arm-brief-outage-'+side,'dip',frames,1,side=side)
+        frames=[dip_visibility_pose(t,a,o,side) for t,a,o in [(0,170,None),(.15,170,None),(.3,80,None),
+            (.45,80,None),(.6,170,170),(.75,170,170),(.9,80,80),(1.05,80,80),(1.2,170,170),(1.35,170,170)]]
+        add('dip-new-arm-current-return-dwell-'+side,'dip',frames,1,side=side)
+        cases[-1]['steps'][5].update(expectedPhase='ready',expectedMovements=0)
+        frames=[dip_visibility_pose(t,a,o,side) for t,a,o in [(0,170,None),(.05,170,80),(.2,170,80),
+            (.35,80,80),(.5,80,80),(.65,170,170),(.8,170,170),(.95,80,80),(1.1,80,80),(1.25,170,170),(1.4,170,170)]]
+        add('dip-new-arm-initial-bent-'+side,'dip',frames,1,side=side)
+        for i,step in enumerate(cases[-1]['steps'][:7]):
+            step.update(expectedPhase='ready' if i==6 else 'seekingStart',expectedMovements=0)
     # A fleeting upper return is not a completed endpoint. A second observed
     # descent must close that attempt before it can contaminate another rep.
     for side in ('left', 'right'):
