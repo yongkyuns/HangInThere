@@ -1,6 +1,4 @@
-package dev.hanginthere.evaluation
-
-import dev.hanginthere.core.*
+package dev.hanginthere.core
 import java.math.BigInteger
 import kotlin.random.Random
 import kotlin.test.Test
