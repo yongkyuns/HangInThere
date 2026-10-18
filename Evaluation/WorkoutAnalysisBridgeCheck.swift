@@ -30,6 +30,10 @@ struct WorkoutAnalysisBridgeCheck {
             readinessChecks += 1
             return readiness.ready(at: .init(value: ticks, timescale: scale), eligible: eligible)
         }
+        @MainActor func readScalarReady(_ seconds: Double) -> Bool {
+            readinessChecks += 1
+            return readiness.ready(seconds: seconds, eligible: true)
+        }
         guard !readReady(1_100_000), !readReady(1_219_999), readReady(1_220_000) else {
             fatalError("Shipping Apple readiness rounded away the source hold boundary")
         }
@@ -42,6 +46,60 @@ struct WorkoutAnalysisBridgeCheck {
               !readReady(2_290_000), !readReady(2_410_000), readReady(2_530_000),
               readiness.reps.isEmpty, readiness.currentRecord == nil, !readiness.showsSetStarted else {
             fatalError("Shipping Apple readiness reused missing/duplicate/ineligible time or invented a workout")
+        }
+        for exercise in ExerciseCounter.Exercise.allCases {
+            readiness.start(exercise: exercise, recordCalendarTime: false)
+            for origin: Int64 in [9_007_199_254_740_992, -9_007_199_254_740_992] {
+                readiness.resetReadiness()
+                let before: Int64 = origin > 0 ? 9_007_190_247_661_737 : -9_007_190_247_421_738
+                guard !readReady(origin), !readReady(origin + 60_000),
+                      !readReady(before, scale: 999_999), readReady(before + 1, scale: 999_999) else {
+                    fatalError("Shipping Apple readiness rounded a mixed-timescale hold boundary")
+                }
+            }
+            readiness.resetReadiness()
+            guard !readReady(9_007_199_254_740_943),
+                  !readReady(9_007_190_247_891_688, scale: 999_999),
+                  !readReady(9_007_190_247_951_688, scale: 999_999),
+                  !readReady(9_007_190_248_011_688, scale: 999_999),
+                  readReady(9_007_190_248_071_688, scale: 999_999) else {
+                fatalError("Shipping Apple readiness rounded away a mixed-timescale outage")
+            }
+            readiness.resetReadiness()
+            guard !readReady(9_007_199_254_740_929),
+                  readReady(9_007_190_247_891_673, scale: 999_999) else {
+                fatalError("Shipping Apple readiness rounded an allowed gap into an outage")
+            }
+            for fault in ["duplicate", "regression", "invalid", "ineligible"] {
+                readiness.resetReadiness()
+                guard !readReady(1_000_000), !readReady(1_060_000) else { fatalError("Unexpected readiness") }
+                switch fault {
+                case "duplicate": precondition(!readReady(1_060_000))
+                case "regression": precondition(!readReady(1_020_000))
+                case "invalid": precondition(!readReady(0, scale: 0))
+                default: precondition(!readReady(1_120_000, eligible: false))
+                }
+                for ticks: Int64 in [900_000, 960_000, 1_020_000, 1_060_000, 1_180_000, 1_240_000] {
+                    precondition(!readReady(ticks), "An older source timeline earned readiness after a fault")
+                }
+                precondition(readReady(1_300_000))
+            }
+            readiness.resetReadiness()
+            guard !readReady(1_000_000), !readReady(1_060_000),
+                  !readScalarReady(0),
+                  !readReady(0), !readReady(60_000), !readReady(120_000),
+                  !readReady(1_120_000), readReady(1_240_000) else {
+                fatalError("Switching readiness overloads erased the active source fence")
+            }
+            readiness.resetReadiness()
+            guard !readScalarReady(1), !readScalarReady(1.06), !readReady(0),
+                  !readScalarReady(0), !readScalarReady(0.06), !readScalarReady(0.12),
+                  !readScalarReady(1.12), readScalarReady(1.3) else {
+                fatalError("Switching readiness overloads erased the scalar clock fence")
+            }
+            guard readiness.reps.isEmpty, readiness.currentRecord == nil, !readiness.showsSetStarted else {
+                fatalError("Readiness queries must not create workout records or start feedback")
+            }
         }
         let clearFraming = pose(0, 170, exercise: .pullUp)
         let unclearPoints = clearFraming.people[0].landmarks.map { point in

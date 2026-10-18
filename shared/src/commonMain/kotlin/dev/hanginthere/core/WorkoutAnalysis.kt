@@ -267,27 +267,45 @@ class AutomaticSetBoundary {
     companion object { const val releaseDwellSeconds = 1.0; const val outageSeconds = 3.0 }
 }
 
-/** Shared brief source-time readiness gate after actual apparatus/camera qualification. */
+/** Shared brief source-time readiness gate after actual apparatus/camera qualification.
+ * Faults revoke the hold, but only an owner's explicit [reset] forgets the clock
+ * fence. A delayed/regressed frame must not acquire an older start timeline. */
 class AutomaticWorkoutStart {
-    private data class Time(val seconds:Double,val source:PresentationTime?=null) {
-        fun elapsedSince(previous:Time)=if(source!=null && previous.source!=null)
-            source.elapsedSeconds(previous.source) else seconds-previous.seconds
-        fun sameClockKind(other:Time)=(source==null)==(other.source==null)
+    private data class Time(val seconds: Double, val source: PresentationTime? = null) {
+        fun sameClockKind(other: Time) = (source == null) == (other.source == null)
+        fun compareElapsed(previous: Time, limit: SourceTimeLimit): Int? {
+            if (source != null && previous.source != null)
+                return SourceTimeComparison.compareElapsed(source, previous.source, limit)
+            val elapsed = seconds - previous.seconds
+            return elapsed.takeIf { it.isFinite() }?.compareTo(limit.seconds)
+        }
     }
     private var since: Time? = null
     private var last: Time? = null
-    /** Scalar compatibility path; no rounding or invented source ticks. */
-    fun observe(seconds: Double, eligible: Boolean): Boolean = observe(Time(seconds),eligible)
+    /** Scalar compatibility path; reset explicitly before changing clock kinds. */
+    fun observe(seconds: Double, eligible: Boolean): Boolean = observe(Time(seconds), eligible)
     /** Camera adapters preserve the original source clock through the readiness gate. */
-    fun observe(time:PresentationTime,eligible:Boolean):Boolean = observe(Time(time.seconds,time),eligible)
-    private fun observe(time:Time,eligible:Boolean):Boolean {
-        val gap=last?.let{time.elapsedSince(it)}
-        if(!time.seconds.isFinite() || !eligible ||
-            last?.let{!time.sameClockKind(it)}==true ||
-            (gap!=null && (!gap.isFinite() || gap<=0 || gap>ExerciseCounter.maximumGapSeconds))) {reset();return false}
-        last=time
-        if(since==null) since=time
-        return time.elapsedSince(since!!)>=ExerciseCounter.endpointDwellSeconds
+    fun observe(time: PresentationTime, eligible: Boolean): Boolean = observe(Time(time.seconds, time), eligible)
+    private fun observe(time: Time, eligible: Boolean): Boolean {
+        if (!time.seconds.isFinite()) { since = null; return false }
+        val previous = last
+        if (previous != null && !time.sameClockKind(previous)) { since = null; return false }
+        if (previous != null) {
+            val order = time.compareElapsed(previous, zeroLimit)
+            if (order == null || order <= 0) { since = null; return false }
+        }
+        last = time
+        if (!eligible || previous?.let { time.compareElapsed(it, gapLimit)!! > 0 } == true) {
+            since = null; return false
+        }
+        val first = since ?: time.also { since = it }
+        return time.compareElapsed(first, holdLimit)!! >= 0
     }
+    /** Capture/replay owner reset, including a genuinely new source epoch. */
     fun reset() { since = null; last = null }
+    private companion object {
+        val zeroLimit = SourceTimeLimit(0, 1)
+        val holdLimit = SourceTimeLimit(3, 25)
+        val gapLimit = SourceTimeLimit(7, 20)
+    }
 }
