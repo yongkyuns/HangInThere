@@ -120,7 +120,8 @@ def score(reference, manifest, native, manifest_sha, reference_sha):
             ev.require(ev.integer(quality.get(field), 0) and quality[field] <= count, "Invalid raw pose totals")
         ev.require(quality["single_person_frames"] == histogram.get("1", 0)
                    and quality["starting_pose_candidate_frames"] <= quality["apparatus_search_frames"]
-                   <= quality["both_arm_frames"] <= quality["single_person_frames"], "Contradictory raw pose totals")
+                   <= quality["single_person_frames"]
+                   and quality["both_arm_frames"] <= quality["single_person_frames"], "Contradictory raw pose totals")
         for field in ["left_arm_status_counts", "right_arm_status_counts"]:
             statuses = quality.get(field)
             ev.require(isinstance(statuses, dict) and all(ev.integer(v, 0) for v in statuses.values())
@@ -131,6 +132,10 @@ def score(reference, manifest, native, manifest_sha, reference_sha):
         ev.require(left <= single and right <= single
                    and max(0, left + right - single) <= quality["both_arm_frames"] <= min(left, right),
                    "Contradictory available-arm evidence")
+        # Dip search can use exactly one measured contact. Inclusion/exclusion
+        # bounds it by actual arm evidence; pull-up search remains bilateral.
+        measurable = left + right - quality["both_arm_frames"] if ref["exercise"] == "dip" else quality["both_arm_frames"]
+        ev.require(quality["apparatus_search_frames"] <= measurable, "Search exceeds measurable-arm evidence")
         longest = quality.get("longest_starting_pose_candidate_seconds")
         ev.require(ev.number(longest) and 0 <= longest <= ref["span_seconds"][1] - ref["span_seconds"][0],
                    "Invalid starting-pose source duration")

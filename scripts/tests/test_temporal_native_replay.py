@@ -115,6 +115,40 @@ class TemporalNativeReplayTests(unittest.TestCase):
                 self.native = fixture()[2]; mutate(self.native["cases"][0]["pose_quality"])
                 with self.assertRaises(ValueError): self.score()
 
+    def test_single_contact_search_is_bounded_by_the_observed_arm_union(self):
+        quality = self.native["cases"][0]["pose_quality"]
+        quality.update(both_arm_frames=0, right_arm_status_counts={"missingJoint": 7})
+        self.assertTrue(self.score()["all_inputs_processed"])
+        quality.update(left_arm_status_counts={"available": 3, "missingJoint": 4})
+        with self.assertRaises(ValueError): self.score()
+        quality.update(left_arm_status_counts={"available": 2, "missingJoint": 5},
+            right_arm_status_counts={"available": 2, "missingJoint": 5}, both_arm_frames=1,
+            apparatus_search_frames=3, starting_pose_candidate_frames=3,
+            longest_starting_pose_candidate_seconds=.2)
+        self.assertTrue(self.score()["all_inputs_processed"])
+        quality.update(apparatus_search_frames=4)
+        with self.assertRaises(ValueError): self.score()
+
+    def test_pullup_search_still_requires_bilateral_measured_frames(self):
+        for source in [self.reference["clips"][0], self.manifest["cases"][0], self.native["cases"][0]]:
+            source["exercise" if "exercise" in source else "selected_exercise"] = "pullUp"
+        self.reference["clips"][0]["event_definition"] = "observed_start_to_top"
+        quality = self.native["cases"][0]["pose_quality"]
+        quality["exercise"] = "pullUp"
+        self.assertTrue(self.score()["all_inputs_processed"])
+        quality.update(exercise="pullUp", both_arm_frames=0, right_arm_status_counts={"missingJoint": 7})
+        with self.assertRaisesRegex(ValueError, "Search exceeds measurable-arm evidence"): self.score()
+
+    def test_single_contact_search_cannot_erase_original_missed_events(self):
+        row = self.native["cases"][0]
+        row.update(status="setupUnavailable", acceptance_seconds=[], completed_seconds=[])
+        row["pose_quality"].update(both_arm_frames=0, right_arm_status_counts={"missingJoint": 7})
+        result = self.score()
+        self.assertTrue(result["all_inputs_processed"])
+        self.assertFalse(result["all_events_matched"])
+        self.assertEqual(result["clips"][0]["event_metrics"]["false_negatives"], 1)
+        self.assertEqual(self.reference["clips"][0]["events"], [[.4, .5]])
+
     def test_interrupted_raw_observations_must_cover_the_verified_prefix(self):
         row = self.native["cases"][0]
         row.update(status="interrupted", frames=5, source_clock_verified=False, completed_seconds=[])
