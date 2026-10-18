@@ -54,4 +54,11 @@ class PersonInferenceRegionTests {
         assertEquals(ArmMeasurement.UnavailableReason.missingJoint,ArmMeasurement(restored,ArmMeasurement.Side.left).unavailableReason)
         assertEquals(listOf(PoseJoint.leftShoulder,PoseJoint.leftElbow),restored.people.single().landmarks.map { it.joint })
     }
+    @Test fun auxiliaryGripCoordinatesCannotSilentlySurviveABodyCropTransform() {
+        val region = PersonInferenceRegion(100,40,200,300)
+        val prediction = source().copy(imageSize=ImageSize(200.0,300.0),
+            gripObservation=GripObservation(1.23,ImageSize(200.0,300.0),emptyList(),emptyList(),emptyList(),
+                "authored grip fixture","fixture"))
+        assertFailsWith<IllegalArgumentException> { region.restore(prediction,source().imageSize) }
+    }
 }

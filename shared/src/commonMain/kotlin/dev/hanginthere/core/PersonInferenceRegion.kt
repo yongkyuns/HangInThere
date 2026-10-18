@@ -13,10 +13,12 @@ data class PersonInferenceRegion(val left: Int, val top: Int, val width: Int, va
     fun isValidFor(source: ImageSize) = integerImage(source) && left >= 0 && top >= 0 && width > 0 && height > 0 &&
         left.toLong() + width <= source.width.toLong() && top.toLong() + height <= source.height.toLong()
 
-    /** No scaling/reflection/clamping. Predictions outside the actual inference
+    /** Body-only predictions; auxiliary grip inference runs after restoration.
+     * No scaling/reflection/clamping. Predictions outside the actual inference
      * input are unavailable, even if translation would put them in the source. */
     fun restore(prediction: PoseResult, source: ImageSize): PoseResult {
-        require(isValidFor(source) && prediction.imageSize == ImageSize(width.toDouble(), height.toDouble()))
+        require(isValidFor(source) && prediction.imageSize == ImageSize(width.toDouble(), height.toDouble()) &&
+            prediction.gripObservation == null) { "Restore body-only crop predictions before grip inference" }
         return prediction.copy(imageSize = source, people = prediction.people.map { person ->
             PoseObservation(person.landmarks.filter { point ->
                 point.position.isFinite && point.position.x in 0.0..width.toDouble() && point.position.y in 0.0..height.toDouble()

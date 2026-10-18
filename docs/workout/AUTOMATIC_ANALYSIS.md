@@ -360,6 +360,30 @@ and public references, without videos. Foreground selection or focused-pose
 experiments require demonstrated counting benefit and athlete-continuity/negative
 validation before changing the production detector.
 
+`ForegroundAssociation` is a shared, experimental spatial policy; neither native
+detector calls it yet. It accepts source-pixel person rectangles rather than arm
+angles, exercise identity or rep counts. Four consecutive observations spanning
+0.6 source seconds must identify a uniquely dominant region. Subsequent matches
+must stay within both the preceding region and the acquired size/movement
+envelope. Missing or overlapping candidates supply no selected index and cannot
+renew the 0.35-second continuity deadline. Expiry stays lost until an explicit new
+source generation. These version 1 limits are engineering proposals awaiting
+athlete-annotated validation; identical geometry cannot prove personal identity.
+
+The serial native owner must advance that generation together with setup,
+counter and grip-cache resets on rewind, camera/coordinate or model changes.
+Stale generations cannot mutate the current association. Timescale changes
+require a new generation, avoiding absolute-time rounding at continuity limits.
+Associated decisions retain immutable source, timestamp, candidate index and
+region values for future crop requests. An adapter must additionally validate
+returned inference provenance and the person within the crop; a region alone
+provides neither identity nor apparatus evidence. `PersonInferenceRegion.restore`
+accepts body-only predictions, preserves native scores/people and rejects attached
+grip metadata whose coordinates would otherwise remain in the crop frame.
+Auxiliary hand inference follows restoration. Android same-PTS refinement also
+requires a separate native estimator because VIDEO inference rejects repeated
+millisecond timestamps. Raw, cropped and restored observations must stay distinct.
+
 Existing public Android accuracy failures and Apple simulator decoder/model
 blockers remain separate visible gates. Synthetic/shared tests cannot turn those
 into qualified accuracy. Physical Android camera, thermal, memory and energy parity
