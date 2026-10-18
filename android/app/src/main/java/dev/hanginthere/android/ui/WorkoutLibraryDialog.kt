@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -30,17 +31,34 @@ import java.util.Date
 import java.util.TimeZone
 import java.util.UUID
 
-private data class LibraryDashboard(val state: WorkoutLibraryState, val page: WorkoutHistoryPage, val insights: WorkoutLibraryInsights)
+internal data class LibraryDashboard(val state: WorkoutLibraryState, val page: WorkoutHistoryPage, val insights: WorkoutLibraryInsights)
+internal typealias LibraryDashboardLoader = suspend (WorkoutRecordStore, WorkoutHistoryCursor?, String?) -> LibraryDashboard
+
+internal suspend fun loadLibraryDashboard(store: WorkoutRecordStore, cursor: WorkoutHistoryCursor?, key: String?): LibraryDashboard =
+    withContext(Dispatchers.IO) {
+        val state = store.libraryForReview()
+        val now = System.currentTimeMillis()
+        LibraryDashboard(state, WorkoutLibrary.page(state, cursor), WorkoutInsights.report(state, key,
+            now, TimeZone.getDefault().getOffset(now) / 60000))
+    }
+
+private sealed interface LibraryLoadStatus {
+    data object Loading : LibraryLoadStatus
+    data object Ready : LibraryLoadStatus
+    data class Failed(val message: String) : LibraryLoadStatus
+}
 
 /** Native presentation of shared review/application policy. No camera-state mutations. */
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun WorkoutLibraryDialog(recordStore: WorkoutRecordStore? = null, onClose: () -> Unit) {
+@Composable internal fun WorkoutLibraryDialog(recordStore: WorkoutRecordStore? = null,
+    dashboardLoader: LibraryDashboardLoader = ::loadLibraryDashboard, onClose: () -> Unit) {
     val context = LocalContext.current
     val store = recordStore ?: remember(context) { WorkoutRecordStore.live(context.applicationContext) }
     val scope = rememberCoroutineScope()
-    var dashboard by remember { mutableStateOf<LibraryDashboard?>(null) }
-    var history by remember { mutableStateOf<List<WorkoutReviewedSet>>(emptyList()) }
-    var key by remember { mutableStateOf<String?>(null) }
+    var dashboard by remember(store) { mutableStateOf<LibraryDashboard?>(null) }
+    var loadStatus by remember(store) { mutableStateOf<LibraryLoadStatus>(LibraryLoadStatus.Loading) }
+    var history by remember(store) { mutableStateOf<List<WorkoutReviewedSet>>(emptyList()) }
+    var key by remember(store) { mutableStateOf<String?>(null) }
     var tab by remember { mutableIntStateOf(0) }
     var options by remember { mutableStateOf(false) }
     var journeyDetail by remember { mutableStateOf<Pair<WorkoutSetDigest,List<WorkoutSetRecord>>?>(null) }
@@ -54,15 +72,18 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     var exportText by remember { mutableStateOf<String?>(null) }
     suspend fun load(more: Boolean = false) {
+        loadStatus = LibraryLoadStatus.Loading
         try {
             val cursor = if (more) dashboard?.page?.nextCursor else null
-            val next = withContext(Dispatchers.IO) {
-                val state = store.libraryForReview()
-                LibraryDashboard(state, WorkoutLibrary.page(state, cursor), WorkoutInsights.report(state, key,
-                    System.currentTimeMillis(), TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 60000))
-            }
+            val next = dashboardLoader(store, cursor, key)
             dashboard = next; key = next.insights.selectedComparisonKey; history = if (more) history + next.page.sets else next.page.sets; error = null
-        } catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = failure.message }
+            loadStatus = LibraryLoadStatus.Ready
+        } catch (failure: Throwable) {
+            if (failure is kotlinx.coroutines.CancellationException) throw failure
+            loadStatus = LibraryLoadStatus.Failed("Couldn't load your workout history. Try again.")
+            // Do not log records, archive contents, or exception messages containing user data.
+            android.util.Log.e("WorkoutLibrary", "Dashboard load failed: ${failure.javaClass.simpleName}")
+        }
     }
     fun apply(command: WorkoutLibraryCommand, onSuccess: () -> Unit = {}) { scope.launch {
         try { withContext(Dispatchers.IO) { store.libraryCommand(command) }; load(); onSuccess() }
@@ -104,7 +125,7 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
             catch (failure: Throwable) { error = failure.message }
         }
     }
-    LaunchedEffect(Unit) { load() }
+    LaunchedEffect(store, dashboardLoader) { load() }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize()) {
             Column {
@@ -121,13 +142,22 @@ private data class LibraryDashboard(val state: WorkoutLibraryState, val page: Wo
                         TextButton(onClick = onClose) { Text("Done") }
                     })
                 error?.let { Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error) }
+                (loadStatus as? LibraryLoadStatus.Failed)?.let { failure ->
+                    Column(Modifier.padding(horizontal = 16.dp).testTag("workout-library-load-error")) {
+                        Text(failure.message, color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = { scope.launch { load() } }) { Text("Retry") }
+                    }
+                }
                 if(tab==0 && dashboard!=null) {
                     dashboard?.insights?.overview?.let { overview ->
                         WorkoutJourneyPanel(overview,loadPage=::journeyPage,modifier=Modifier.weight(1f),onOpenSet=::openJourneySet)
                     }
                 } else Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     val current = dashboard
-                    if (current == null) CircularProgressIndicator() else when (tab) {
+                    if (current == null) {
+                        if (loadStatus == LibraryLoadStatus.Loading)
+                            CircularProgressIndicator(Modifier.testTag("workout-library-loading"))
+                    } else when (tab) {
                         4 -> {
                             val report = current.insights
                             Text(report.focus.title, style = MaterialTheme.typography.headlineSmall)

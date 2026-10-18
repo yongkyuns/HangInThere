@@ -6,7 +6,10 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import dev.hanginthere.android.session.WorkoutRecordStore
 import dev.hanginthere.android.ui.WorkoutLibraryDialog
+import dev.hanginthere.android.ui.LibraryDashboardLoader
+import dev.hanginthere.android.ui.loadLibraryDashboard
 import dev.hanginthere.core.*
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Rule
 import org.junit.Test
 import org.junit.Assert.assertEquals
@@ -18,9 +21,53 @@ import java.util.Date
 import java.util.TimeZone
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicInteger
 
 class WorkoutLibraryUiTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @Test fun libraryWaitsForTheActualLoadBeforeShowingHistory() {
+        val root = File(compose.activity.cacheDir, "library-ui-test-${UUID.randomUUID()}")
+        val store = WorkoutRecordStore(compose.activity.applicationContext, root)
+        val release = CompletableDeferred<Unit>()
+        val loader: LibraryDashboardLoader = { source, cursor, key ->
+            release.await()
+            loadLibraryDashboard(source, cursor, key)
+        }
+        try {
+            compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+                WorkoutLibraryDialog(recordStore = store, dashboardLoader = loader) {}
+            } } }
+            compose.onNodeWithTag("workout-library-loading").assertIsDisplayed()
+            compose.onNodeWithText("Your practice").assertDoesNotExist()
+            compose.onNodeWithText("Retry").assertDoesNotExist()
+            release.complete(Unit)
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("workout-library-loading").assertDoesNotExist()
+            compose.onNodeWithTag("workout-library-load-error").assertDoesNotExist()
+        } finally { release.cancel(); root.deleteRecursively() }
+    }
+    @Test fun nullMessageLoadFailureStopsLoadingAndCanRetry() {
+        val root = File(compose.activity.cacheDir, "library-ui-test-${UUID.randomUUID()}")
+        val store = WorkoutRecordStore(compose.activity.applicationContext, root)
+        val attempts = AtomicInteger()
+        val loader: LibraryDashboardLoader = { source, cursor, key ->
+            if (attempts.incrementAndGet() == 1) throw IllegalStateException()
+            loadLibraryDashboard(source, cursor, key)
+        }
+        try {
+            compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+                WorkoutLibraryDialog(recordStore = store, dashboardLoader = loader) {}
+            } } }
+            compose.waitUntil(10_000) { compose.onAllNodesWithTag("workout-library-load-error").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("Couldn't load your workout history. Try again.").assertIsDisplayed()
+            compose.onNodeWithTag("workout-library-loading").assertDoesNotExist()
+            compose.onNodeWithText("Your practice").assertDoesNotExist()
+            compose.onNodeWithText("Retry").performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("workout-library-load-error").assertDoesNotExist()
+            assertEquals(2, attempts.get())
+        } finally { root.deleteRecursively() }
+    }
     @Test fun olderPagedWorkoutCanOpenItsSet() {
         val now = 20_000L * 86_400_000
         val records = (0..109).map { index ->
