@@ -17,6 +17,15 @@ struct StaticSceneRegistrationReference: Sendable {
 struct StaticSceneRegistrationMeasurement: Sendable {
     let translations: [StaticSceneStability.PatchTranslation]
     let globalScaleFraction: Double?
+    // Optional evaluation evidence, in column-major order. Never used by policy.
+    let diagnosticHomography: [Double]?
+
+    init(translations: [StaticSceneStability.PatchTranslation], globalScaleFraction: Double?,
+         diagnosticHomography: [Double]? = nil) {
+        self.translations = translations
+        self.globalScaleFraction = globalScaleFraction
+        self.diagnosticHomography = diagnosticHomography
+    }
 }
 
 protocol StaticSceneRegistering: Sendable {
@@ -28,6 +37,12 @@ protocol StaticSceneRegistering: Sendable {
 // A separate full-frame homography supplies the scale signal because local corner
 // homographies proved too fragile in synthetic qualification.
 actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
+    private let includeDiagnosticHomography: Bool
+
+    init(includeDiagnosticHomography: Bool = false) {
+        self.includeDiagnosticHomography = includeDiagnosticHomography
+    }
+
     enum RegistrationError: LocalizedError {
         case invalidGeometry
         case incompatibleGeometry
@@ -99,14 +114,17 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
             ))
         }
 
+        var diagnosticHomography: [Double]?
         let globalScale = homographicScaleMeasurement(
             reference: reference.image,
-            current: image
+            current: image,
+            diagnosticHomography: &diagnosticHomography
         )
 
         return StaticSceneRegistrationMeasurement(
             translations: translations,
-            globalScaleFraction: globalScale
+            globalScaleFraction: globalScale,
+            diagnosticHomography: diagnosticHomography
         )
     }
 
@@ -145,7 +163,8 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
 
     private func homographicScaleMeasurement(
         reference: CGImage,
-        current: CGImage
+        current: CGImage,
+        diagnosticHomography: inout [Double]?
     ) -> Double? {
         let request = VNHomographicImageRegistrationRequest(
             targetedCGImage: reference,
@@ -165,6 +184,11 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
 
         guard let observation = request.results?.first else { return nil }
         let matrix = observation.warpTransform
+        if includeDiagnosticHomography {
+            diagnosticHomography = [matrix.columns.0.x, matrix.columns.0.y, matrix.columns.0.z,
+                matrix.columns.1.x, matrix.columns.1.y, matrix.columns.1.z,
+                matrix.columns.2.x, matrix.columns.2.y, matrix.columns.2.z].map(Double.init)
+        }
 
         let h22 = Double(matrix.columns.2.z)
         guard h22.isFinite, abs(h22) > 1e-9 else { return nil }

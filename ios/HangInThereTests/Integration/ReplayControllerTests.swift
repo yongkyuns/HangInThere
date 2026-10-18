@@ -341,7 +341,8 @@ struct ReplayControllerTests {
         defer { try? FileManager.default.removeItem(at: url) }
         let movement: ControlledSceneWorker.Response = scale ? .scaled : .shifted
         let worker = ControlledSceneWorker(responses: [.stable, movement, movement, .stable])
-        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        let evidence = RecordingSceneTrace()
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker, sceneTrace: evidence.observe)
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -358,6 +359,10 @@ struct ReplayControllerTests {
                 "The still-unreturned analytics attempt is interrupted exactly once.")
         #expect(model.analysisRecord?.completedCount == 0, "Camera interruption cannot become a completed analytics rep.")
         #expect(model.analysisRecord?.endReason == reason)
+        #expect(evidence.events.map(\.sourceSeconds) == [0, 0.3, 0.6])
+        #expect(evidence.events.allSatisfy { $0.calibrationSeconds == 0 })
+        #expect(evidence.events.map(\.stateAfter) == ["stable", "stable", "moved"])
+        #expect(evidence.events.last?.movementKind == (scale ? "scale" : "translation"))
     }
 
     @Test func unavailableRegistrationRevokesEarlierEvidenceWithoutLosingSourceFrames() async throws {
@@ -365,7 +370,8 @@ struct ReplayControllerTests {
         let url = try await VideoTestSupport.makeVideo(timestamps: times)
         defer { try? FileManager.default.removeItem(at: url) }
         let worker = ControlledSceneWorker(responses: [.stable, .unavailable, .unavailable])
-        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        let evidence = RecordingSceneTrace()
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker, sceneTrace: evidence.observe)
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -377,6 +383,8 @@ struct ReplayControllerTests {
         #expect(model.counter.observedMovements == 0)
         #expect(model.analysisRecord?.completedCount == 0)
         #expect(model.countingFrames == times.count && model.analyzableFrames == 2)
+        #expect(evidence.events.map(\.sourceSeconds) == [0, 0.3, 0.6])
+        #expect(evidence.events.dropFirst().allSatisfy { $0.measurement == nil && $0.stateAfter == "calibrating" })
     }
 
     @Test func cameraMovementInterruptsAnOutboundCounterAttemptBeforeAcceptance() async throws {
@@ -572,6 +580,12 @@ struct ReplayControllerTests {
 
 // Synthetic scene evidence isolates controller/FFI lifecycle tests from the
 // native registration algorithm, which has separate real-pixel integration tests.
+private final class RecordingSceneTrace: Sendable {
+    private let storage = OSAllocatedUnfairLock(initialState: [ReplaySceneTrace]())
+    func observe(_ event: ReplaySceneTrace) { storage.withLock { $0.append(event) } }
+    var events: [ReplaySceneTrace] { storage.withLock { $0 } }
+}
+
 actor ControlledSceneWorker: StaticSceneRegistering {
     enum Response: Equatable, Sendable { case stable, shifted, scaled, unavailable }
     private let responses: [Response]

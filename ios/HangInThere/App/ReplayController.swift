@@ -18,6 +18,18 @@ struct BarSetupFrame: Identifiable, Sendable {
     let generation: UInt64
 }
 
+// Read-only qualification evidence. No images or workout records are retained.
+struct ReplaySceneTrace: Sendable {
+    typealias Handler = @Sendable (ReplaySceneTrace) -> Void
+    let sourceSeconds: Double
+    let calibrationSeconds: Double
+    let imageSize: ImageSize
+    let measurement: StaticSceneRegistrationMeasurement?
+    let stateBefore: String
+    let stateAfter: String
+    let movementKind: String?
+}
+
 @MainActor @Observable
 final class ReplayController {
     private(set) var counter = ExerciseCounter()
@@ -52,6 +64,7 @@ final class ReplayController {
     @ObservationIgnored private var automaticBarPolicy = AutomaticApparatusReference()
     @ObservationIgnored private var lastAutomaticBarSeconds: Double?
     @ObservationIgnored private let sceneWorker: any StaticSceneRegistering
+    @ObservationIgnored private let sceneTrace: ReplaySceneTrace.Handler?
     @ObservationIgnored private let scene = WorkoutSceneBridge()
     @ObservationIgnored private var sceneReference: StaticSceneRegistrationReference?
     @ObservationIgnored private var lastSceneSeconds: Double?
@@ -60,12 +73,14 @@ final class ReplayController {
 
     init(estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector(),
          trace: ReplayTrace.Handler? = nil, gripObserverFactory: (@Sendable (ExerciseCounter.Exercise) -> any GripObservationScheduling)? = nil,
-         sceneWorker: any StaticSceneRegistering = VisionStaticSceneRegistrationWorker()) {
+         sceneWorker: any StaticSceneRegistering = VisionStaticSceneRegistrationWorker(),
+         sceneTrace: ReplaySceneTrace.Handler? = nil) {
         self.estimator = estimator
         self.trace = trace
         self.gripObserverFactory = gripObserverFactory
         self.barDetector = barDetector
         self.sceneWorker = sceneWorker
+        self.sceneTrace = sceneTrace
         self.reader = VideoReplayReader(estimator: estimator, trace: trace, gripObserver: gripObserverFactory?(.pullUp))
     }
 
@@ -425,7 +440,7 @@ final class ReplayController {
     // Registration compares actual current pixels with the exact bar-source
     // image. Rewind resets evidence clocks, never the calibration pixels.
     private func qualifyScene(_ frame: ProcessedFrame, token: UInt64, playToken: UInt64? = nil) async -> Bool {
-        guard bar != nil, sceneMovementReason == nil, let reference = sceneReference else { return true }
+        guard let calibrationBar = bar, sceneMovementReason == nil, let reference = sceneReference else { return true }
         let seconds = frame.pose.timestamp.seconds
         if let lastSceneSeconds, seconds.isFinite,
            seconds - lastSceneSeconds >= 0,
@@ -446,8 +461,12 @@ final class ReplayController {
             values.set(index: Int32(index * 2), value: patch.dxPixels)
             values.set(index: Int32(index * 2 + 1), value: patch.dyPixels)
         }
+        let stateBefore = scene.state
         _ = scene.observe(seconds: seconds, translations: values,
             scaleFraction: measurement?.globalScaleFraction ?? .nan)
+        sceneTrace?(.init(sourceSeconds: seconds, calibrationSeconds: calibrationBar.sourceTime.seconds,
+            imageSize: reference.imageSize, measurement: measurement, stateBefore: stateBefore,
+            stateAfter: scene.state, movementKind: scene.movementKind))
         if scene.state == "moved", sceneMovementReason == nil {
             let reason = scene.movementKind == "scale" ? "sceneScaled" : "sceneShifted"
             sceneMovementReason = reason

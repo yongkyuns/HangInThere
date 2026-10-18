@@ -2,17 +2,23 @@ package dev.hanginthere.android
 
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import dev.hanginthere.android.session.WorkoutRecordStore
 import dev.hanginthere.android.ui.WorkoutLibraryDialog
 import dev.hanginthere.android.ui.LibraryDashboardLoader
 import dev.hanginthere.android.ui.loadLibraryDashboard
+import dev.hanginthere.android.ui.LibraryLoadEvent
 import dev.hanginthere.core.*
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Rule
 import org.junit.Test
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import android.util.Log
 import androidx.compose.ui.semantics.SemanticsNode
 import java.io.File
@@ -22,9 +28,93 @@ import java.util.TimeZone
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 class WorkoutLibraryUiTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @Test fun defaultLoaderSurvivesParentRecompositionAndReopensFresh() {
+        val root = File(compose.activity.cacheDir, "library-ui-test-${UUID.randomUUID()}")
+        val store = WorkoutRecordStore(compose.activity.applicationContext, root)
+        store.save(hangRecord(UUID.randomUUID().toString(), System.currentTimeMillis()))
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        val owner = thread(name = "LibraryUiStoreGate", isDaemon = true) {
+            synchronized(store) { entered.countDown(); release.await(30, TimeUnit.SECONDS) }
+        }
+        val visible = mutableStateOf(true)
+        val parentRevision = mutableIntStateOf(0)
+        val committedRevision = AtomicInteger(-1)
+        val events = CopyOnWriteArrayList<LibraryLoadEvent>()
+        try {
+            assertTrue(entered.await(3, TimeUnit.SECONDS))
+            compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+                val revision = parentRevision.intValue
+                Text("Parent $revision")
+                if (visible.value) WorkoutLibraryDialog(recordStore = store,
+                    loadObserver = { events.add(it) },
+                    onClose = { if (revision >= 0) visible.value = false })
+                SideEffect { committedRevision.set(revision) }
+            } } }
+            compose.waitUntil(10_000) { events.any { it.stage == "load.enter" } }
+            compose.onNodeWithTag("workout-library-loading").assertIsDisplayed()
+            repeat(3) { index ->
+                // The callback captures the value, so each revision changes a
+                // dialog parameter instead of only recomposing sibling text.
+                compose.runOnIdle { parentRevision.intValue = index + 1 }
+                compose.waitUntil(10_000) { committedRevision.get() == index + 1 }
+            }
+            assertEquals(1, events.count { it.stage == "load.enter" })
+            assertTrue(events.none { it.stage == "ready.assigned" })
+            release.countDown(); owner.join(3_000)
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(10_000) { events.any { it.stage == "published.ready" } }
+            compose.runOnUiThread { visible.value = false }
+            compose.waitUntil(10_000) { events.any { it.stage == "disposed" } }
+            compose.runOnUiThread { visible.value = true }
+            compose.waitUntil(10_000) { events.count { it.stage == "published.ready" } == 2 }
+            compose.onNodeWithText("Your practice").assertIsDisplayed()
+            val requests = events.filter { it.stage == "load.enter" }
+            assertEquals(2, requests.size)
+            assertEquals(2, requests.map { it.composition }.distinct().size)
+            assertTrue(requests.all { it.request == 1 })
+        } finally {
+            release.countDown(); owner.join(3_000)
+            compose.runOnUiThread { compose.activity.setContent {} }
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun disposingLibraryCancelsItsOutstandingLoadWithoutPublishingReady() {
+        val root = File(compose.activity.cacheDir, "library-ui-test-${UUID.randomUUID()}")
+        val store = WorkoutRecordStore(compose.activity.applicationContext, root)
+        val release = CompletableDeferred<Unit>()
+        val loader: LibraryDashboardLoader = { source, cursor, key ->
+            release.await(); loadLibraryDashboard(source, cursor, key)
+        }
+        val visible = mutableStateOf(true)
+        val events = CopyOnWriteArrayList<LibraryLoadEvent>()
+        try {
+            compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+                if (visible.value) WorkoutLibraryDialog(recordStore = store, dashboardLoader = loader,
+                    loadObserver = { events.add(it) }) {}
+            } } }
+            compose.waitUntil(10_000) { events.any { it.stage == "load.enter" } }
+            compose.onNodeWithTag("workout-library-loading").assertIsDisplayed()
+            compose.runOnUiThread { visible.value = false }
+            compose.waitUntil(10_000) { events.any { it.stage == "load.cancelled" } && events.any { it.stage == "disposed" } }
+            release.complete(Unit)
+            compose.waitForIdle()
+            assertTrue(events.none { it.stage == "ready.assigned" || it.stage == "published.ready" })
+            compose.onNodeWithText("Your practice").assertDoesNotExist()
+        } finally {
+            release.cancel()
+            compose.runOnUiThread { compose.activity.setContent {} }
+            root.deleteRecursively()
+        }
+    }
     @Test fun libraryWaitsForTheActualLoadBeforeShowingHistory() {
         val root = File(compose.activity.cacheDir, "library-ui-test-${UUID.randomUUID()}")
         val store = WorkoutRecordStore(compose.activity.applicationContext, root)
@@ -134,8 +224,7 @@ class WorkoutLibraryUiTest {
         val store = WorkoutRecordStore(compose.activity.applicationContext, root)
         val id = UUID.randomUUID().toString()
         val time = System.currentTimeMillis()
-        val record = WorkoutSetRecord(id, ExerciseCounter.Exercise.pullUp, 0.0, 8.0, "manual", emptyList(), "authored", 1,
-            trackedAtEpochMilliseconds = time, activity = WorkoutActivity(emptyList(), listOf(WorkoutPhaseTotal(WorkoutMotionPhase.hang, 8.0)), 8.0, 0.0, 8.0, 8.0, false, 2))
+        val record = hangRecord(id, time)
         store.save(record)
         val context = WorkoutContext(assistance = WorkoutAssistance.none, addedLoadKg = 0.0, equipment = "test bar", cameraView = "front")
         store.libraryCommand(WorkoutLibraryCommand("review", setId = id, correction = WorkoutReviewCorrection(context = context), atEpochMilliseconds = time))
@@ -195,4 +284,9 @@ class WorkoutLibraryUiTest {
             compose.onNodeWithText("No upload runs automatically. Backup and video export do not grant training consent.").performScrollTo().assertIsDisplayed()
         } finally { root.deleteRecursively() }
     }
+
+    private fun hangRecord(id: String, time: Long) = WorkoutSetRecord(id, ExerciseCounter.Exercise.pullUp,
+        0.0, 8.0, "manual", emptyList(), "authored", 1, trackedAtEpochMilliseconds = time,
+        activity = WorkoutActivity(emptyList(), listOf(WorkoutPhaseTotal(WorkoutMotionPhase.hang, 8.0)),
+            8.0, 0.0, 8.0, 8.0, false, 2))
 }

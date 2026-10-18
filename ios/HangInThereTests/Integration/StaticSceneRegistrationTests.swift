@@ -73,6 +73,7 @@ struct StaticSceneRegistrationTests {
             timestamp: 0.1
         )
         #expect(policy.state == .stable)
+        #expect(measurement.diagnosticHomography == nil, "Shipping registration does not retain diagnostic matrices.")
         let shared = bridge(measurement, times: [0.1])
         #expect(shared.state == "stable" && shared.isReady(seconds: 0.1))
         #expect(!shared.isReady(seconds: 0.91), "Queries cannot freshen the registration clock.")
@@ -87,11 +88,14 @@ struct StaticSceneRegistrationTests {
             VisionStaticSceneRegistrationWorker.makeReference(image: referenceImage)
         )
 
-        let worker = VisionStaticSceneRegistrationWorker()
+        let worker = VisionStaticSceneRegistrationWorker(includeDiagnosticHomography: true)
         let measurement = try await worker.measure(
             reference: reference,
             image: scaledImage
         )
+
+        let matrix = try #require(measurement.diagnosticHomography)
+        #expect(matrix.count == 9 && matrix.allSatisfy(\.isFinite))
 
         let scale = try #require(measurement.globalScaleFraction)
         #expect(scale >= HangInThere.StaticSceneStability.scaleThresholdFraction)

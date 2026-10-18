@@ -36,10 +36,14 @@ internal typealias LibraryDashboardLoader = suspend (WorkoutRecordStore, Workout
 
 internal suspend fun loadLibraryDashboard(store: WorkoutRecordStore, cursor: WorkoutHistoryCursor?, key: String?): LibraryDashboard =
     withContext(Dispatchers.IO) {
+        LibraryLoadDiagnostics.io("io.enter", store)
         val state = store.libraryForReview()
+        LibraryLoadDiagnostics.io("io.store.return", store)
         val now = System.currentTimeMillis()
         LibraryDashboard(state, WorkoutLibrary.page(state, cursor), WorkoutInsights.report(state, key,
-            now, TimeZone.getDefault().getOffset(now) / 60000))
+            now, TimeZone.getDefault().getOffset(now) / 60000)).also {
+            LibraryLoadDiagnostics.io("io.return", store)
+        }
     }
 
 private sealed interface LibraryLoadStatus {
@@ -51,9 +55,16 @@ private sealed interface LibraryLoadStatus {
 /** Native presentation of shared review/application policy. No camera-state mutations. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun WorkoutLibraryDialog(recordStore: WorkoutRecordStore? = null,
-    dashboardLoader: LibraryDashboardLoader = ::loadLibraryDashboard, onClose: () -> Unit) {
+    dashboardLoader: LibraryDashboardLoader = ::loadLibraryDashboard,
+    loadObserver: ((LibraryLoadEvent) -> Unit)? = null, onClose: () -> Unit) {
     val context = LocalContext.current
     val store = recordStore ?: remember(context) { WorkoutRecordStore.live(context.applicationContext) }
+    val observer by rememberUpdatedState(loadObserver)
+    val diagnostics = remember(store) { LibraryLoadDiagnostics(store) }
+    fun emit(stage: String, request: Int? = null) {
+        val event = if (request == null) diagnostics.event(stage) else diagnostics.event(stage, request)
+        observer?.invoke(event)
+    }
     val scope = rememberCoroutineScope()
     var dashboard by remember(store) { mutableStateOf<LibraryDashboard?>(null) }
     var loadStatus by remember(store) { mutableStateOf<LibraryLoadStatus>(LibraryLoadStatus.Loading) }
@@ -72,15 +83,22 @@ private sealed interface LibraryLoadStatus {
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     var exportText by remember { mutableStateOf<String?>(null) }
     suspend fun load(more: Boolean = false) {
+        val request = diagnostics.beginRequest()
+        observer?.invoke(request)
         loadStatus = LibraryLoadStatus.Loading
         try {
             val cursor = if (more) dashboard?.page?.nextCursor else null
             val next = dashboardLoader(store, cursor, key)
+            emit("loader.return", request.request)
             dashboard = next; key = next.insights.selectedComparisonKey; history = if (more) history + next.page.sets else next.page.sets; error = null
             loadStatus = LibraryLoadStatus.Ready
+            diagnostics.assigned(request.request)
+            emit("ready.assigned", request.request)
         } catch (failure: Throwable) {
-            if (failure is kotlinx.coroutines.CancellationException) throw failure
+            if (failure is kotlinx.coroutines.CancellationException) { emit("load.cancelled", request.request); throw failure }
             loadStatus = LibraryLoadStatus.Failed("Couldn't load your workout history. Try again.")
+            diagnostics.assigned(request.request)
+            emit("load.failed", request.request)
             // Do not log records, archive contents, or exception messages containing user data.
             android.util.Log.e("WorkoutLibrary", "Dashboard load failed: ${failure.javaClass.simpleName}")
         }
@@ -125,7 +143,11 @@ private sealed interface LibraryLoadStatus {
             catch (failure: Throwable) { error = failure.message }
         }
     }
-    LaunchedEffect(store, dashboardLoader) { load() }
+    LaunchedEffect(store, dashboardLoader) {
+        emit("effect.enter")
+        try { load() } finally { emit("effect.finish") }
+    }
+    DisposableEffect(store) { onDispose { emit("disposed") } }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize()) {
             Column {
@@ -142,6 +164,17 @@ private sealed interface LibraryLoadStatus {
                         TextButton(onClick = onClose) { Text("Done") }
                     })
                 error?.let { Text(it, Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error) }
+                // Capture the status and request rendered by this dialog, before
+                // SideEffect runs. Reading them later can describe a newer load.
+                val renderedStatus = when (loadStatus) {
+                    LibraryLoadStatus.Loading -> "loading"
+                    LibraryLoadStatus.Ready -> "ready"
+                    is LibraryLoadStatus.Failed -> "failed"
+                }
+                val renderedRequest = diagnostics.publicationRequest()
+                SideEffect {
+                    diagnostics.publication(renderedStatus, renderedRequest)?.let { observer?.invoke(it) }
+                }
                 (loadStatus as? LibraryLoadStatus.Failed)?.let { failure ->
                     Column(Modifier.padding(horizontal = 16.dp).testTag("workout-library-load-error")) {
                         Text(failure.message, color = MaterialTheme.colorScheme.error)

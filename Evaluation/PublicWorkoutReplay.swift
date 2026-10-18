@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import os
 
 // This entry point drives the actual native replay controller and shipping Apple
 // analysis bridge. It does not reimplement acquisition, counting or analytics.
@@ -31,7 +32,10 @@ import CryptoKit
                 "selected_exercise": item.selectedExercise.rawValue, "tracking_side": item.trackingSide.rawValue]
             let clock = PublicReplayClock()
             let quality = PublicPoseQuality(exercise: item.selectedExercise)
-            let model = ReplayController(estimator: quality, trace: clock.observe)
+            let sceneTrace = PublicSceneTrace()
+            let model = ReplayController(estimator: quality, trace: clock.observe,
+                sceneWorker: VisionStaticSceneRegistrationWorker(includeDiagnosticHomography: true),
+                sceneTrace: sceneTrace.observe)
             model.configureCounting(exercise: item.selectedExercise, side: item.trackingSide)
             let started = ContinuousClock.now
             var verifiedURL: URL?
@@ -63,6 +67,7 @@ import CryptoKit
             report["tracking_coverage"] = model.trackingCoverage.map { $0 as Any } ?? NSNull()
             report["automatic_bar_state"] = String(describing: model.automaticBarState)
             report["camera_tracking_issue"] = model.cameraTrackingIssue.map { $0 as Any } ?? NSNull()
+            report["scene_registration_evidence"] = sceneTrace.report
             report["selected_exercise"] = model.counter.exercise.rawValue
             report["tracking_side"] = model.counter.side.rawValue
             model.close()
@@ -99,4 +104,44 @@ import CryptoKit
         return digest.finalize().map { String(format: "%02x", $0) }.joined()
     }
     private static func failure(_ message: String) -> NSError { NSError(domain: "PublicWorkoutReplay", code: 1, userInfo: [NSLocalizedDescriptionKey: message]) }
+}
+
+// Bounded metadata from actual, accepted controller observations. This does not
+// run another registration, simulate policy, or change counting availability.
+private final class PublicSceneTrace: Sendable {
+    private struct State: Sendable {
+        var samples: [ReplaySceneTrace] = []
+        var truncated = false
+    }
+    private let state = OSAllocatedUnfairLock(initialState: State())
+    private static let maximumSamples = 512
+
+    func observe(_ event: ReplaySceneTrace) {
+        state.withLock {
+            guard $0.samples.count < Self.maximumSamples else { $0.truncated = true; return }
+            $0.samples.append(event)
+        }
+    }
+
+    var report: [String: Any] {
+        let value = state.withLock { $0 }
+        let samples: [[String: Any]] = value.samples.map { event in
+            let matrix = event.measurement?.diagnosticHomography
+            return [
+                "source_seconds": event.sourceSeconds,
+                "calibration_seconds": event.calibrationSeconds,
+                "reference_width": event.imageSize.width,
+                "reference_height": event.imageSize.height,
+                "measurement_available": event.measurement != nil,
+                "translations_pixels": event.measurement?.translations.map { [$0.dxPixels, $0.dyPixels] } ?? [],
+                "scale_fraction": event.measurement?.globalScaleFraction.map { $0 as Any } ?? NSNull(),
+                "homography_column_major": matrix.map { $0.map { $0.isFinite ? $0 as Any : NSNull() } as Any } ?? NSNull(),
+                "homography_nonfinite_indices": matrix.map { values in values.indices.filter { !values[$0].isFinite } } ?? [],
+                "state_before": event.stateBefore, "state_after": event.stateAfter,
+                "movement_kind": event.movementKind.map { $0 as Any } ?? NSNull()
+            ]
+        }
+        return ["samples": samples, "truncated": value.truncated, "maximum_samples": Self.maximumSamples,
+            "scope": "Actual native measurements and controller source-time qualification; diagnostic metadata, no physical scale or camera-motion ground truth."]
+    }
 }
