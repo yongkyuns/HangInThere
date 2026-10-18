@@ -50,16 +50,31 @@ struct AutomaticExerciseDetection: Sendable {
     // can guide contour acquisition, but cannot identify/start a workout yet.
     static func apparatusCandidate(in pose: PoseResult) -> ExerciseCounter.Exercise? {
         let pullUp = AutomaticApparatusReference.search(pose: pose, exercise: .pullUp) != nil
-        let dip = AutomaticApparatusReference.search(pose: pose, exercise: .dip) != nil
+        // Contact search can continue through deep bends. Pose identity still
+        // requires current support geometry, independently of apparatus search.
+        let dip = AutomaticDipRails.grip(in: pose) != nil
         guard pullUp != dip else { return nil }
         return pullUp ? .pullUp : .dip
+    }
+
+    // Preserve an actually witnessed dip search context through a deep bend,
+    // using fresh bilateral contact below the shoulders. Queries earn no dwell
+    // and cannot establish identity or reuse an expired/image-changed context.
+    func searchCandidate(in pose: PoseResult) -> ExerciseCounter.Exercise? {
+        if let fresh = Self.apparatusCandidate(in: pose) { return fresh }
+        guard apparatusCandidate == .dip, imageSize == pose.imageSize, let lastTime else { return nil }
+        let gap = pose.timestamp.elapsedSeconds(since: lastTime)
+        guard gap.isFinite, gap >= 0, gap <= HandsFreeSetStart.maximumFrameGap,
+              AutomaticDipRails.apparatusGrip(in: pose) != nil else { return nil }
+        let arms = PullUpArmMeasurement(pose: pose).arms
+        return arms.count == 2 && arms.allSatisfy({ $0.wrist.y > $0.shoulder.y }) ? .dip : nil
     }
 
     @discardableResult
     mutating func observe(_ pose: PoseResult) -> ExerciseCounter.Exercise? {
         guard !isLocked else { return exercise }
         let seconds = pose.timestamp.seconds
-        guard seconds.isFinite, let next = Self.apparatusCandidate(in: pose) else {
+        guard seconds.isFinite, let next = searchCandidate(in: pose) else {
             reset(); return nil
         }
         if let lastTime {

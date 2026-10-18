@@ -121,14 +121,27 @@ struct AutomaticDipRails: Sendable {
         guard pose.imageSize.isValid, pose.timestamp.seconds.isFinite else { return nil }
         let arms = PullUpArmMeasurement(pose: pose).arms
         guard arms.count == 2 else { return nil }
-        let short = min(pose.imageSize.width, pose.imageSize.height)
         guard arms.allSatisfy({
             (!requiresTopSupport || $0.estimate.elbowDegrees + 1e-6 >= DipSupportMeasurement.startingDegrees)
                 && $0.wrist.y - $0.shoulder.y >= 0.35 * ($0.estimate.upperArmPixels + $0.estimate.forearmPixels)
         }) else { return nil }
+        return apparatusGrip(in: pose, arms: arms)
+    }
+
+    // Measured contact locates apparatus through every elbow/shoulder phase.
+    // It never supplies starting evidence, and both arm chains remain required.
+    static func apparatusGrip(in pose: PoseResult) -> Grip? {
+        guard pose.imageSize.isValid, pose.timestamp.seconds.isFinite else { return nil }
+        return apparatusGrip(in: pose, arms: PullUpArmMeasurement(pose: pose).arms)
+    }
+
+    private static func apparatusGrip(in pose: PoseResult, arms: [PullUpArmMeasurement.Arm]) -> Grip? {
+        guard arms.count == 2 else { return nil }
+        let short = min(pose.imageSize.width, pose.imageSize.height)
         let hands = arms.map(\.wrist)
-        guard abs(hands[0].x - hands[1].x) >= short * 0.12,
-              abs(hands[0].y - hands[1].y) <= short * 0.10 else { return nil }
+        // Each rail's independently observed finite support establishes its
+        // topology; oblique views need not give the hands equal image height.
+        guard abs(hands[0].x - hands[1].x) >= short * 0.12 else { return nil }
         let regions = arms.map { arm in
             let hand = arm.wrist
             var minX = max(0, hand.x - short * 0.12), maxX = min(pose.imageSize.width, hand.x + short * 0.12)
@@ -199,7 +212,7 @@ struct AutomaticDipRails: Sendable {
     mutating func observe(pose: PoseResult, side: ArmMeasurement.Side,
                           candidates: [[BarLineCandidate]]) -> ConfirmedBar? {
         guard state != .locked else { return nil }
-        guard let grip = Self.grip(in: pose), candidates.count == 2 else { reset(); return nil }
+        guard let grip = Self.apparatusGrip(in: pose), candidates.count == 2 else { reset(); return nil }
         let short = min(pose.imageSize.width, pose.imageSize.height)
         if witnessedHands.count == 2,
            !zip(witnessedHands, grip.hands).allSatisfy({ hypot($0.x - $1.x, $0.y - $1.y) <= short * 0.02 }) {
@@ -297,7 +310,7 @@ struct AutomaticApparatusReference: Sendable {
             guard let grip = AutomaticPullUpBar.grip(in: pose) else { return nil }
             return Search(hands: [grip.left, grip.right], regions: [grip.region])
         case .dip:
-            guard let grip = AutomaticDipRails.grip(in: pose) else { return nil }
+            guard let grip = AutomaticDipRails.apparatusGrip(in: pose) else { return nil }
             let shared = AutomaticDipBar.region(grip: grip, size: pose.imageSize)
             // Retain observed curved-handle fragments that are long enough for
             // paired support, rather than imposing a whole-crop length first.

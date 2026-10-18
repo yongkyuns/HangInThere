@@ -51,7 +51,9 @@ object WorkoutFramingGuidance {
                 diagnostic.status in liveAcquisitionStatuses && diagnostic.observations > 0 &&
                 diagnostic.stableSeconds.isFinite() && diagnostic.stableSeconds >= 0 &&
                 (if (pullUp) pullUpAssessment is AutomaticPullUpBar.Grip
-                    else AutomaticApparatusReference.search(pose, ExerciseCounter.Exercise.dip) != null))
+                    // Contact search also runs through deep flexion and overhead
+                    // poses; a starting-position cue still needs dip context.
+                    else AutomaticDipRails.grip(pose) != null))
                 return Advice("Hold your start position · keep the phone steady", acquisition = true)
         }
         return null

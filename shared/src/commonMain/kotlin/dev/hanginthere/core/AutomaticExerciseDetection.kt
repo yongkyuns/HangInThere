@@ -15,7 +15,7 @@ class AutomaticExerciseDetection {
     fun reset(){exercise=null;apparatusCandidate=null;isLocked=false;firstTime=null;lastTime=null;imageSize=null;observations=0}
     fun observe(pose:PoseResult):ExerciseCounter.Exercise? {
         if(isLocked) return exercise
-        val seconds=pose.timestamp.seconds;val next=apparatusCandidate(pose)
+        val seconds=pose.timestamp.seconds;val next=searchCandidate(pose)
         if(!seconds.isFinite() || next==null){reset();return null}
         val gap=lastTime?.let{pose.timestamp.elapsedSeconds(it)}
         if(gap!=null && (!gap.isFinite() || gap<=0 || gap>HandsFreeSetStart.maximumFrameGap)){reset();return null}
@@ -32,6 +32,19 @@ class AutomaticExerciseDetection {
         if(observations>=4 && pose.timestamp.elapsedSeconds(firstTime ?: pose.timestamp)>=minimumStableSeconds) exercise=next
         return exercise
     }
+    /** A pure current-frame search query cannot earn identity or source dwell.
+     * After a dip support context was actually seen, fresh bilateral contact
+     * below both shoulders can preserve that apparatus search through a deep
+     * bend. It cannot discover an exercise or qualify a new starting pose. */
+    fun searchCandidate(pose:PoseResult):ExerciseCounter.Exercise? {
+        apparatusCandidate(pose)?.let { return it }
+        if(apparatusCandidate!=ExerciseCounter.Exercise.dip || imageSize!=pose.imageSize) return null
+        val gap=lastTime?.let { pose.timestamp.elapsedSeconds(it) } ?: return null
+        if(!gap.isFinite() || gap<0 || gap>HandsFreeSetStart.maximumFrameGap ||
+            AutomaticDipRails.apparatusGrip(pose)==null) return null
+        val arms=PullUpArmMeasurement(pose).arms
+        return ExerciseCounter.Exercise.dip.takeIf { arms.size==2 && arms.all { it.wrist.y>it.shoulder.y } }
+    }
     fun lock():Boolean {if(exercise==null) return false;isLocked=true;return true}
     companion object {
         const val minimumStableSeconds=.6
@@ -43,6 +56,6 @@ class AutomaticExerciseDetection {
             }
             return candidate.takeIf{starting}
         }
-        fun apparatusCandidate(pose:PoseResult):ExerciseCounter.Exercise? {val pullUp=AutomaticApparatusReference.search(pose,ExerciseCounter.Exercise.pullUp)!=null;val dip=AutomaticApparatusReference.search(pose,ExerciseCounter.Exercise.dip)!=null;return if(pullUp==dip) null else if(pullUp) ExerciseCounter.Exercise.pullUp else ExerciseCounter.Exercise.dip}
+        fun apparatusCandidate(pose:PoseResult):ExerciseCounter.Exercise? {val pullUp=AutomaticApparatusReference.search(pose,ExerciseCounter.Exercise.pullUp)!=null;val dip=AutomaticDipRails.grip(pose)!=null;return if(pullUp==dip) null else if(pullUp) ExerciseCounter.Exercise.pullUp else ExerciseCounter.Exercise.dip}
     }
 }

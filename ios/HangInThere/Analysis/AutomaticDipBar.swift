@@ -72,7 +72,7 @@ struct AutomaticDipBar: Sendable {
     mutating func observe(pose: PoseResult, side: ArmMeasurement.Side,
                           candidates: [BarLineCandidate]) -> ConfirmedBar? {
         guard state != .locked else { return nil }
-        guard let grip = AutomaticDipRails.grip(in: pose),
+        guard let grip = AutomaticDipRails.apparatusGrip(in: pose),
               let region = Self.region(grip: grip, size: pose.imageSize) else { reset(); return nil }
         guard let edge = Self.select(candidates, grip: grip, size: pose.imageSize, region: region) else {
             reset(); state = candidates.isEmpty ? .findingEdge : .ambiguous; return nil

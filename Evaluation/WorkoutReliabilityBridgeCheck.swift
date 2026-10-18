@@ -86,6 +86,24 @@ enum WorkoutReliabilityBridgeCheck {
             precondition(rep.left.minimum != nil && rep.right.minimum != nil && rep.returnedAt != nil)
             cases += 1
         }
+        let contactAdapter = WorkoutAnalysisAdapter()
+        let original = pose(0, exercise: .dip)
+        let uneven = PoseResult(timestamp: original.timestamp, imageSize: original.imageSize,
+            people: original.people.map { person in PoseObservation(landmarks: person.landmarks.map { point in
+                Landmark(joint: point.joint, position: Point2D(x: point.position.x,
+                    y: point.position.y + (ArmMeasurement.Side.right.joints.contains(point.joint) ? 150 : 0)),
+                    confidence: point.confidence)
+            }) }, backend: original.backend, requestRevision: original.requestRevision)
+        for side in ArmMeasurement.Side.allCases {
+            let x = side == .left ? 300.0 : 700.0, y = side == .left ? 500.0 : 650.0
+            let reference = BarSegment(a: .init(x: x, y: y), b: .init(x: x, y: y + 120))
+            precondition(contactAdapter.hasStartingPose(uneven, exercise: .dip, automatic: true,
+                side: side, reference: reference))
+            let distant = BarSegment(a: .init(x: x, y: 100), b: .init(x: x, y: 220))
+            precondition(!contactAdapter.hasStartingPose(uneven, exercise: .dip, automatic: true,
+                side: side, reference: distant))
+            cases += 1
+        }
         let adapter = WorkoutAnalysisAdapter()
         var latencies: [Double] = []
         var startingLatencies: [Double] = []

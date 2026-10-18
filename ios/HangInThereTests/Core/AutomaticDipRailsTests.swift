@@ -550,3 +550,121 @@ import Testing
         #expect(policy.observe(fixture.pose(1.8, degrees: 100)) == nil)
     }
 }
+
+@Suite struct DipContactAcquisitionTests {
+    private func pose(_ seconds: Double, deep: Bool = false, rightHeight: Double = 0) -> PoseResult {
+        let original = DipSupportTests.pose(seconds, otherDegrees: 170)
+        let landmarks = original.people[0].landmarks.map { point -> Landmark in
+            let side = ArmMeasurement.Side.allCases.first { $0.joints.contains(point.joint) }
+            let x = side == .left ? 500.0 : 700.0
+            let position: Point2D
+            if deep && (point.joint == .leftShoulder || point.joint == .rightShoulder) {
+                position = .init(x: x, y: 480)
+            } else if deep && (point.joint == .leftElbow || point.joint == .rightElbow) {
+                position = .init(x: x + 100, y: 400)
+            } else { position = point.position }
+            return .init(joint: point.joint, position: .init(x: position.x,
+                y: position.y + (side == .right ? rightHeight : 0)), confidence: point.confidence)
+        }
+        return .init(timestamp: original.timestamp, imageSize: original.imageSize,
+            people: [.init(landmarks: landmarks)], backend: original.backend, requestRevision: original.requestRevision)
+    }
+    private func rails(_ rightHeight: Double = 0) -> [[BarLineCandidate]] {
+        [500.0, 700.0].enumerated().map { index, x in
+            let y = 540.0 + (index == 1 ? rightHeight : 0)
+            return [x - 10, x].map { px in .init(edge: .init(a: .init(x: px, y: y),
+                b: .init(x: px, y: y + 120)), geometryScore: 120) }
+        }
+    }
+
+    @Test func deepContactCanAcquireWithoutEarningStartingEvidence() throws {
+        let shared = [505.0, 515.0].map { y in
+            BarLineCandidate(edge: .init(a: .init(x: 450, y: y), b: .init(x: 750, y: y)), geometryScore: 300)
+        }
+        for side in ArmMeasurement.Side.allCases {
+            for candidates in [rails(), [[], [], shared]] {
+                var apparatus = AutomaticApparatusReference()
+                var reference: ConfirmedBar?
+                for seconds in [0.0, 0.3, 0.6, 1.0] {
+                    let frame = pose(seconds, deep: true)
+                    #expect(AutomaticDipRails.grip(in: frame) == nil)
+                    #expect(AutomaticApparatusReference.search(pose: frame, exercise: .dip) != nil)
+                    #expect(AutomaticExerciseDetection.candidate(in: frame) == nil)
+                    reference = apparatus.observe(pose: frame, exercise: .dip, side: side, candidates: candidates)
+                }
+                let bar = try #require(reference)
+                var counter = ExerciseCounter(exercise: .dip, side: side)
+                for seconds in [1.1, 1.3, 1.5] { counter.consume(pose(seconds, deep: true), referenceEdge: bar.referenceEdge) }
+                #expect(counter.phase == .seekingStart)
+                #expect(counter.events.isEmpty)
+            }
+        }
+    }
+
+    @Test func unequalImageHeightsRequireTwoActuallyCorrespondingRails() throws {
+        for side in ArmMeasurement.Side.allCases {
+            var apparatus = AutomaticApparatusReference()
+            var reference: ConfirmedBar?
+            for seconds in [0.0, 0.3, 0.6, 1.0] {
+                let frame = pose(seconds, rightHeight: 150)
+                #expect(AutomaticDipRails.isStartingPosition(frame))
+                reference = apparatus.observe(pose: frame, exercise: .dip, side: side, candidates: rails(150))
+            }
+            let bar = try #require(reference)
+            #expect(bar.referenceEdge == rails(150)[side == .left ? 0 : 1][1].edge)
+            var wrong = AutomaticApparatusReference()
+            for seconds in [0.0, 0.3, 0.6, 1.0, 1.3] {
+                #expect(wrong.observe(pose: pose(seconds, rightHeight: 150), exercise: .dip,
+                    side: side, candidates: rails()) == nil)
+            }
+        }
+    }
+
+    @Test func overheadContactSearchCannotEstablishDipPoseIdentity() {
+        for seconds in [0.0, 0.3, 0.6, 1.0] {
+            let frame = AutomaticPullUpBarTests().pose(seconds)
+            #expect(AutomaticApparatusReference.search(pose: frame, exercise: .dip) != nil)
+            #expect(AutomaticDipRails.grip(in: frame) == nil)
+            #expect(AutomaticExerciseDetection.apparatusCandidate(in: frame) == .pullUp)
+        }
+    }
+
+    @Test func witnessedDipContextSurvivesChangingShouldersWithoutEarningNewStartDwell() {
+        var identity = AutomaticExerciseDetection()
+        var apparatus = AutomaticApparatusReference()
+        var reference: ConfirmedBar?
+        for seconds in [0.0, 0.2, 0.4, 0.6, 0.9, 1.2] {
+            let frame = pose(seconds, deep: seconds >= 0.9)
+            for _ in 0..<3 { #expect(identity.searchCandidate(in: frame) == .dip) }
+            _ = identity.observe(frame)
+            #expect(identity.exercise == .dip || seconds < 0.6)
+            reference = apparatus.observe(pose: frame, exercise: .dip, side: .left, candidates: rails()) ?? reference
+        }
+        #expect(reference != nil)
+        #expect(!AutomaticDipRails.isStartingPosition(pose(1.2, deep: true)))
+        for fault in ["gap", "reverse", "duplicate", "overhead", "missing", "size"] {
+            var known = AutomaticExerciseDetection()
+            for seconds in [0.0, 0.2, 0.4, 0.6] { _ = known.observe(pose(seconds)) }
+            var invalid = pose(fault == "gap" ? 1 : fault == "reverse" ? 0.5 : fault == "duplicate" ? 0.6 : 0.8, deep: true)
+            if fault == "overhead" { invalid = AutomaticPullUpBarTests().pose(0.8) }
+            if fault == "missing" {
+                invalid = .init(timestamp: invalid.timestamp, imageSize: invalid.imageSize,
+                    people: [.init(landmarks: invalid.people[0].landmarks.filter { $0.joint != .rightWrist })],
+                    backend: invalid.backend, requestRevision: invalid.requestRevision)
+            }
+            if fault == "size" {
+                invalid = .init(timestamp: invalid.timestamp, imageSize: .init(width: 1100, height: 1100),
+                    people: invalid.people, backend: invalid.backend, requestRevision: invalid.requestRevision)
+            }
+            _ = known.observe(invalid)
+            #expect(known.apparatusCandidate != .dip)
+            #expect(known.searchCandidate(in: pose(1.1, deep: true)) == nil)
+        }
+        var unknown = AutomaticExerciseDetection()
+        for seconds in [0.0, 0.2, 0.4, 0.6, 0.8] {
+            #expect(unknown.searchCandidate(in: pose(seconds, deep: true)) == nil)
+            #expect(unknown.observe(pose(seconds, deep: true)) == nil)
+            #expect(unknown.apparatusCandidate == nil)
+        }
+    }
+}

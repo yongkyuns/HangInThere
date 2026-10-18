@@ -89,7 +89,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
     }
     fun search(pose:PoseResult):AutomaticApparatusReference.Search? {
         if(session.phase!=LiveSetSession.Phase.idle || confirmedBar!=null) return null
-        val exercise=selection.exercise ?: replayExercise ?: AutomaticExerciseDetection.apparatusCandidate(pose) ?: return null
+        val exercise=selection.exercise ?: replayExercise ?: identity.searchCandidate(pose) ?: return null
         return AutomaticApparatusReference.search(pose,exercise)
     }
     fun observe(input:FrameInput):Snapshot {

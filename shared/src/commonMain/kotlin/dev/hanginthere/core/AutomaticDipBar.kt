@@ -13,7 +13,7 @@ class AutomaticDipBar {
 
     fun observe(pose: PoseResult, side: ArmMeasurement.Side, candidates: List<BarLineCandidate>): ConfirmedBar? {
         if (state == AutomaticPullUpBar.State.locked) return null
-        val grip = AutomaticDipRails.grip(pose) ?: run { reset(); return null }
+        val grip = AutomaticDipRails.apparatusGrip(pose) ?: run { reset(); return null }
         val region = region(grip, pose.imageSize) ?: run { reset(); return null }
         val edge = select(candidates, grip, pose.imageSize, region) ?: run {
             reset(); state = if (candidates.isEmpty()) AutomaticPullUpBar.State.findingEdge else AutomaticPullUpBar.State.ambiguous

@@ -81,7 +81,7 @@ class AutomaticDipRails {
     fun reset(){state=AutomaticPullUpBar.State.lookingForGrip;stability=AutomaticReferenceStability();witnessedRails=emptyList();witnessedHands=emptyList()}
     fun observe(pose:PoseResult,side:ArmMeasurement.Side,candidates:List<List<BarLineCandidate>>):ConfirmedBar? {
         if(state==AutomaticPullUpBar.State.locked) return null
-        val grip=grip(pose) ?: run{reset();return null}
+        val grip=apparatusGrip(pose) ?: run{reset();return null}
         if(candidates.size!=2){reset();return null}
         val short=min(pose.imageSize.width,pose.imageSize.height)
         if(witnessedHands.size==2 && !witnessedHands.zip(grip.hands).all{hypot(it.first.x-it.second.x,it.first.y-it.second.y)<=short*.02}) reset()
@@ -123,10 +123,23 @@ class AutomaticDipRails {
             if(!pose.imageSize.isValid || !pose.timestamp.seconds.isFinite()) return null
             val arms=PullUpArmMeasurement(pose).arms
             if(arms.size!=2) return null
-            val short=min(pose.imageSize.width,pose.imageSize.height)
             if(!arms.all{(!requiresTopSupport || it.estimate.elbowDegrees+1e-6>=DipSupportMeasurement.startingDegrees) && it.wrist.y-it.shoulder.y>=.35*(it.estimate.upperArmPixels+it.estimate.forearmPixels)}) return null
+            return apparatusGrip(pose,arms)
+        }
+        /** Apparatus contact is independent of shoulder height and elbow phase.
+         * Both measured arm chains and fresh independently paired edges remain
+         * mandatory. This supplies search geometry, never starting evidence. */
+        fun apparatusGrip(pose:PoseResult):Grip? {
+            if(!pose.imageSize.isValid || !pose.timestamp.seconds.isFinite()) return null
+            return apparatusGrip(pose,PullUpArmMeasurement(pose).arms)
+        }
+        private fun apparatusGrip(pose:PoseResult,arms:List<PullUpArmMeasurement.Arm>):Grip? {
+            if(arms.size!=2) return null
+            val short=min(pose.imageSize.width,pose.imageSize.height)
             val hands=arms.map{it.wrist}
-            if(abs(hands[0].x-hands[1].x)<short*.12 || abs(hands[0].y-hands[1].y)>short*.10) return null
+            // Separate rails can project to different image heights. Their
+            // actual finite edges establish topology during observe().
+            if(abs(hands[0].x-hands[1].x)<short*.12) return null
             val regions=arms.map{arm -> val hand=arm.wrist;var minX=max(0.0,hand.x-short*.12);var maxX=min(pose.imageSize.width,hand.x+short*.12);if(hand.x-arm.shoulder.x>short*.04) minX=max(minX,(hand.x+arm.shoulder.x)/2);if(arm.shoulder.x-hand.x>short*.04) maxX=min(maxX,(hand.x+arm.shoulder.x)/2);BarRegion(minX,max(0.0,hand.y-short*.08),maxX,min(pose.imageSize.height,hand.y+short*.20))}
             return if(regions.all{it.isValid(pose.imageSize)}) Grip(hands,regions) else null
         }
@@ -183,6 +196,6 @@ class AutomaticApparatusReference {
         return shared
     }
     companion object {
-        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region))};ExerciseCounter.Exercise.dip -> AutomaticDipRails.grip(pose)?.let{Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)),AutomaticDipRails.minimumPairLength(pose.imageSize))}}
+        fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region))};ExerciseCounter.Exercise.dip -> AutomaticDipRails.apparatusGrip(pose)?.let{Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)),AutomaticDipRails.minimumPairLength(pose.imageSize))}}
     }
 }

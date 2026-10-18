@@ -137,15 +137,25 @@ fresh bilateral evidence before starting. No missing frame earns identity dwell,
 apparatus observations, practice time or a rep. Android calls the common policy;
 iOS uses its source-tick/raw-joint bridge rather than a second recovery algorithm.
 
-Dip equipment acquisition and set-start geometry are separate. Supported,
-measurable bilateral wrists can guide the same observed rail/shared-bar search
-during elbow flexion. Confidence, hand spacing/height, body-edge exclusion,
-fresh paired contours and apparatus stability requirements are unchanged. Search
-alone cannot identify an exercise or start a set. The original bilateral
-extended top-support predicate still qualifies Auto identity; that identity can
-then survive flexion while the current bilateral support evidence agrees.
+Dip equipment acquisition and set-start geometry are separate. Fresh, measurable
+bilateral arm chains supply wrist regions for observed rail/shared-bar contact,
+independently of elbow phase or shoulder height. Independent rails can project
+to different image heights; each hand still needs its own actually corresponding
+finite rail. The original hand separation, confidence, body-edge exclusion,
+paired contour, stability and source-clock requirements remain active.
+
+Pose identity still requires supported body geometry, and a new dip identity
+requires the existing extended top hold. Once dip support has actually been seen,
+fresh bilateral contact below both shoulders can preserve its apparatus search
+through a deep bottom, within the existing source-gap bound. A pure search query
+cannot earn dwell or establish identity. Missing limbs, overhead hands, changed
+geometry, clock faults and expiry revoke this retained context. The live Auto
+runtime and native controller use this continuity when acquiring apparatus;
+the deep pose cannot seed readiness or an analytics baseline. Unequal image hand
+height is now accepted for starting geometry as well as search, with actual rail
+correspondence and all existing extension/support checks retained.
 `WorkoutStartEvidence` supplies both apps' current-frame starting check. Auto
-requires the original starting pose. Both exercises also require the tracked grip
+requires current bilateral extension and support geometry. Both exercises also require the tracked grip
 at the confirmed reference; explicitly selected dips retain their selected-arm
 fallback. Bending or missing evidence resets readiness and its baseline; a fresh
 top position must earn the full source-time dwell even when identity and apparatus
@@ -413,6 +423,37 @@ policy, including the decoder's 60000-to-90000 timescale transition: 152 acquiri
 continuity. These are geometric statuses without athlete identity annotations,
 body selection or rep scoring. The existing 1/26 production selected-replay result
 and its 25 dip misses remain unresolved.
+
+The follow-up contact correction expands the controlled dip's native apparatus
+search eligibility from 8 to 123 of 300 frames. The full production replay still
+consumes all 1,866 original frames and matches 1/26 movements, with 25 missed dips
+and no extras. Rear and side clips have no usable bilateral frame; the controlled
+clip has only three isolated starting candidates and still cannot acquire setup.
+The unchanged exact-event check exits 3. Search eligibility is not counting
+accuracy. Regression coverage includes live Auto acquisition through deep
+shoulder motion, both independently corresponding unequal-height rails,
+missing/overhead hands, source faults and a fresh top-support baseline after
+return. The starting-position guidance still requires pose support context;
+broader contact search cannot request a dip start during an overhead hang.
+
+Development-only alternative-provider screens do not qualify a replacement.
+Native 3D projections lack per-joint confidence for the existing landmark
+contract. MediaPipe Lite Python VIDEO inference on all 1,866 native-exported
+frames recovers many rear-dip bilateral observations, but replaying those saved
+poses through the preceding production apparatus/counter policy still matches
+only 1/26 movements. This is a Python proxy, not an iOS/Android SDK or device
+parity result. No pose provider, joint confidence, inferred apparatus or counting
+threshold is promoted from these screens.
+
+A further native contour audit on all 1,686 dip-frame PNG exports finds no
+bilateral search interval in the rear/side clips. Visually inspected controlled
+dip proposals include hand/clothing contours, so shorter apparatus dwell would
+not demonstrate genuine rail acquisition. This per-frame diagnostic differs
+from production sampling and cannot qualify setup or counts. A future extractor
+must improve independently annotated finite rail support while rejecting body
+edges and clutter; occluded arms and panning/zooming additionally need separately
+validated capabilities. These diagnostics preserve the original event labels
+and fatal accuracy gates.
 
 Existing public Android accuracy failures and Apple simulator decoder/model
 blockers remain separate visible gates. Synthetic/shared tests cannot turn those

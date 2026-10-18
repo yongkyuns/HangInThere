@@ -73,6 +73,21 @@ def prepare(output):
     add('dip-crossed-legs-optional','dip',[step(i/10,'dip',crossed_legs=True) for i in range(56)],True,True)
     add('dip-right-reference','dip',[step(i/10,'dip') for i in range(56)],True,True,side='right')
     shared=[candidate(200,y,800,y) for y in [505,515]]
+    # Independent rails can project to unequal image heights. The observed
+    # edge at each actual hand must agree; an unrelated old-height rail fails.
+    for side in ['left','right']:
+        for corresponding in [True, False]:
+            uneven=[step(i/10,'dip') for i in range(56)]
+            for frame in uneven:
+                for point in frame['pose']['people'][0]['landmarks']:
+                    if point['joint'] in ['rightShoulder','rightElbow','rightWrist']:
+                        point['position']['y'] += 150
+                if corresponding:
+                    for line in frame['candidates'][1]:
+                        for endpoint in ['a','b']:
+                            line['edge'][endpoint]['y'] += 150
+            add(f'dip-unequal-hand-height-{"observed" if corresponding else "wrong-rail"}-{side}',
+                'dip',uneven,corresponding,corresponding,side=side)
     # Apparatus can be measured during flexion, independently of top-support
     # identity/start qualification. Both observed apparatus modes retain dwell.
     for side in ['left','right']:
@@ -86,6 +101,21 @@ def prepare(output):
                 for i in range(66)]
             add(f'dip-qualified-identity-through-flexion-{mode}-{side}','dip',retained,True,True,side=side,
                 identity=[None]*6+['dip']*60)
+    # A witnessed support context must preserve actual apparatus acquisition
+    # through a deep bottom, without crediting that motion as starting support.
+    for side in ['left','right']:
+        for mode, edges in [('rails', step(0,'dip')['candidates']), ('shared-bar', [[],[],shared])]:
+            for qualified in [False, True]:
+                frames=[step(i/10,'dip',candidates=edges) for i in range(76)]
+                for i in range(7 if qualified else 5, 21):
+                    for point in frames[i]['pose']['people'][0]['landmarks']:
+                        side_x=300 if point['joint'].startswith('left') else 700
+                        if point['joint'].endswith('Shoulder'):
+                            point['position']=dict(x=side_x,y=480)
+                        elif point['joint'].endswith('Elbow'):
+                            point['position']=dict(x=side_x+100,y=400)
+                add(f'dip-deep-contact-{mode}-{"qualified" if qualified else "acquiring"}-{side}',
+                    'dip',frames,True,True,side=side)
     shared_cases=[
         ('observed',shared,True),
         ('single-edge',shared[:1],False),

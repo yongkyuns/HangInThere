@@ -90,7 +90,12 @@ class SetupSwiftParityTest {
         for (side in ArmMeasurement.Side.entries) for (mode in listOf("rails", "shared-bar"))
             for (kind in listOf("flexed-acquisition", "flexed-then-top-start", "qualified-identity-through-flexion"))
                 assertTrue("dip-$kind-$mode-$side" in ids, "Missing independent dip acquisition/start parity case")
+        for(side in ArmMeasurement.Side.entries) for(mode in listOf("rails", "shared-bar"))
+            for(stage in listOf("qualified", "acquiring"))
+                assertTrue("dip-deep-contact-$mode-$stage-$side" in ids, "Missing live Auto deep-contact transition parity")
         for(side in ArmMeasurement.Side.entries) {
+            for(kind in listOf("observed", "wrong-rail"))
+                assertTrue("dip-unequal-hand-height-$kind-$side" in ids, "Missing independently observed rail-height regression")
             for(offset in listOf(0,10,39)) assertTrue("dip-handle-at-grip-$offset-$side" in ids,
                 "Missing observed handle at grip regression")
             for(kind in listOf("above-grip-rejected","witness-above-grip-rejected"))

@@ -5,6 +5,43 @@ import Testing
 
 @MainActor @Suite(.serialized)
 struct LiveCameraSelectionTests {
+    @Test func deepDipMotionRetainsLiveAutoContextButRequiresAFreshTopToEarnReadiness() {
+        for side in ArmMeasurement.Side.allCases {
+            let controller = LiveCameraPreviewController()
+            controller.configureWorkout(selection: .automatic, side: side)
+            let fixture = AutomaticDipRailsTests()
+            let reference = fixture.rails[side == .left ? 0 : 1][0].edge
+            for seconds in [0.0, 0.2, 0.4, 0.6] { controller.observeExerciseSelection(fixture.pose(seconds)) }
+            #expect(controller.resolvedExercise == .dip)
+            for seconds in [0.8, 1.0] {
+                let original = fixture.pose(seconds)
+                let deep = PoseResult(timestamp: original.timestamp, imageSize: original.imageSize,
+                    people: original.people.map { person in PoseObservation(landmarks: person.landmarks.map { point in
+                        let x = ArmMeasurement.Side.right.joints.contains(point.joint) ? 700.0 : 500.0
+                        let position: Point2D
+                        if point.joint == .leftShoulder || point.joint == .rightShoulder { position = .init(x: x, y: 480) }
+                        else if point.joint == .leftElbow || point.joint == .rightElbow { position = .init(x: x + 100, y: 400) }
+                        else { position = point.position }
+                        return Landmark(joint: point.joint, position: position, confidence: point.confidence)
+                    }) }, backend: original.backend, requestRevision: original.requestRevision)
+                #expect(AutomaticDipRails.grip(in: deep) == nil)
+                controller.observeExerciseSelection(deep)
+                #expect(controller.resolvedExercise == .dip)
+                #expect(!controller.observeHandsFreeReadiness(deep, eligible: true, reference: reference))
+            }
+            for ticks: Int64 in [1_100_000, 1_219_999, 1_220_000] {
+                let original = fixture.pose(Double(ticks) / 1e6)
+                let frame = PoseResult(timestamp: .init(value: ticks, timescale: 1_000_000), imageSize: original.imageSize,
+                    people: original.people, backend: original.backend, requestRevision: original.requestRevision)
+                controller.observeExerciseSelection(frame)
+                #expect(controller.observeHandsFreeReadiness(frame, eligible: true, reference: reference) == (ticks == 1_220_000))
+            }
+            #expect(controller.liveSet.phase == .idle)
+            #expect(controller.liveSet.counter.observedMovements == 0)
+            #expect(controller.currentBar == nil)
+        }
+    }
+
     @Test func retainedDipIdentityCannotCarryReadinessAcrossFlexion() {
         let controller = LiveCameraPreviewController()
         let fixture = AutomaticDipRailsTests()
