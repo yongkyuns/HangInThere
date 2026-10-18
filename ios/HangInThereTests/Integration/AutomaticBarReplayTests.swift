@@ -86,6 +86,27 @@ private actor OverheadContactDetector: BarEdgeDetector {
 }
 
 @MainActor @Suite(.serialized) struct AutomaticBarReplayTests {
+    @Test func automaticCalibrationPreservesLockFramePixelsAcrossRewind() async throws {
+        let times = (0...9).map { CMTime(value: Int64($0 * 16), timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times, cyclingQuadrants: true)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker()
+        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: TestBarDetector(), sceneWorker: worker)
+        defer { model.close() }
+        model.open(url)
+        try await wait(model, for: "initial opening") { model.phase == .paused }
+        let firstColor = VideoTestSupport.rgb(try #require(model.frame).image,
+            normalizedTopLeft: .init(x: 0.25, y: 0.25))
+        model.play()
+        try await wait(model, for: "automatic setup and replay") { model.phase == .finished }
+        #expect(model.currentBar?.sourceTime.seconds == 1.12)
+        let referenceColors = await worker.referenceColors
+        #expect(!referenceColors.isEmpty)
+        #expect(referenceColors.allSatisfy { $0 == referenceColors.first })
+        #expect(referenceColors.first != firstColor, "The rewound first frame cannot replace the lock-frame camera reference.")
+        #expect(model.cameraTrackingIssue == nil && model.displayedFrames == times.count)
+    }
+
     func video() async throws -> URL {
         try await VideoTestSupport.makeVideo(timestamps: [0, 35, 70, 105, 140, 175].map { CMTime(value: $0, timescale: 100) })
     }

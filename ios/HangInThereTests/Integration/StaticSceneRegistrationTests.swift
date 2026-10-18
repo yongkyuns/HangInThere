@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
 import Testing
+import WorkoutCore
 @testable import HangInThere
 
 struct StaticSceneRegistrationTests {
@@ -23,7 +24,7 @@ struct StaticSceneRegistrationTests {
         #expect(magnitudes.filter { $0 >= 5 && $0 <= 11 }.count >= 2)
         #expect((measurement.globalScaleFraction ?? 1) < 0.01)
 
-        var policy = StaticSceneStability()
+        var policy = HangInThere.StaticSceneStability()
         let calibrated = policy.calibrate(imageShortSide: 400)
         #expect(calibrated)
         policy.observe(
@@ -38,6 +39,9 @@ struct StaticSceneRegistrationTests {
         )
         #expect(policy.state == .moved)
         #expect(policy.movementKind == .translation)
+        let shared = bridge(measurement, times: [0.1, 0.4])
+        #expect(shared.state == "moved" && shared.movementKind == "translation")
+        #expect(!shared.isReady(seconds: 0.4))
     }
 
     @Test func identicalStaticSceneProducesNearZeroRegistration() async throws {
@@ -60,7 +64,7 @@ struct StaticSceneRegistrationTests {
         let scale = try #require(measurement.globalScaleFraction)
         #expect(scale < 0.005)
 
-        var policy = StaticSceneStability()
+        var policy = HangInThere.StaticSceneStability()
         let calibrated = policy.calibrate(imageShortSide: 400)
         #expect(calibrated)
         policy.observe(
@@ -69,6 +73,9 @@ struct StaticSceneRegistrationTests {
             timestamp: 0.1
         )
         #expect(policy.state == .stable)
+        let shared = bridge(measurement, times: [0.1])
+        #expect(shared.state == "stable" && shared.isReady(seconds: 0.1))
+        #expect(!shared.isReady(seconds: 0.91), "Queries cannot freshen the registration clock.")
     }
 
     @Test func fullFrameHomographyRecoversSyntheticScaleSignal() async throws {
@@ -87,11 +94,11 @@ struct StaticSceneRegistrationTests {
         )
 
         let scale = try #require(measurement.globalScaleFraction)
-        #expect(scale >= StaticSceneStability.scaleThresholdFraction)
+        #expect(scale >= HangInThere.StaticSceneStability.scaleThresholdFraction)
         #expect(scale >= 0.03)
         #expect(scale <= 0.08)
 
-        var policy = StaticSceneStability()
+        var policy = HangInThere.StaticSceneStability()
         let calibrated = policy.calibrate(imageSize: .init(width: 400, height: 400))
         #expect(calibrated)
         policy.observe(
@@ -107,7 +114,24 @@ struct StaticSceneRegistrationTests {
 
         #expect(policy.state == .moved)
         #expect(policy.movementKind == .scale)
-        #expect((policy.latestScaleFraction ?? 0) >= StaticSceneStability.scaleThresholdFraction)
+        #expect((policy.latestScaleFraction ?? 0) >= HangInThere.StaticSceneStability.scaleThresholdFraction)
+        let shared = bridge(measurement, times: [0.1, 0.4])
+        #expect(shared.state == "moved" && shared.movementKind == "scale")
+        #expect(!shared.isReady(seconds: 0.4))
+    }
+
+    private func bridge(_ measurement: StaticSceneRegistrationMeasurement, times: [Double]) -> WorkoutSceneBridge {
+        let shared = WorkoutSceneBridge()
+        #expect(shared.calibrate(width: 400, height: 400))
+        let values = KotlinDoubleArray(size: Int32(measurement.translations.count * 2))
+        for (index, patch) in measurement.translations.enumerated() {
+            values.set(index: Int32(index * 2), value: patch.dxPixels)
+            values.set(index: Int32(index * 2 + 1), value: patch.dyPixels)
+        }
+        for time in times {
+            _ = shared.observe(seconds: time, translations: values, scaleFraction: measurement.globalScaleFraction ?? .nan)
+        }
+        return shared
     }
 
     private func makePatternImage(

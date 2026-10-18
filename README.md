@@ -70,6 +70,10 @@ requires a return near the acquired top with arm recovery and retained grip.
 The counter combines the fixed apparatus reference with Apple Vision body landmarks.
 Missing bar setup cannot count. Partial/interrupted outcomes and explicit **Form unverified**
 status remain; chin clearance and strict dip depth are not yet acceptance criteria.
+Recorded review requires a stationary camera. It checks each sampled frame against
+the original bar-calibration image using the shared scene-stability policy, including
+after rewind. Unavailable camera evidence pauses counting; confirmed view movement
+interrupts the active attempt and excludes its unfinished return from analytics.
 Live video and recorded review show a compact **rep progress meter** at the video
 edge. Pull-ups follow both arms' angle and shoulder-travel evidence, with a separate
 reset meter for returning to the hang. Dips fill the first half through lowering

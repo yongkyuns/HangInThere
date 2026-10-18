@@ -214,7 +214,13 @@ struct ReplayView: View {
 
                     Spacer()
 
-                    if model.currentBar != nil, model.phase != .finished {
+                    if let message = cameraTrackingMessage {
+                        Label(message, systemImage: "exclamationmark.triangle.fill")
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .padding(10)
+                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    } else if model.currentBar != nil, model.phase != .finished {
                         ExerciseProgressView(counter: model.counter)
                     }
 
@@ -498,8 +504,8 @@ struct ReplayView: View {
 
             HStack(spacing: 10) {
                 Label(
-                    model.currentBar == nil ? "Counting off" : "Bar-relative counting",
-                    systemImage: model.currentBar == nil ? "pause.circle" : "checkmark.circle"
+                    model.currentBar == nil || model.cameraTrackingIssue != nil ? "Counting paused" : "Bar-relative counting",
+                    systemImage: model.currentBar == nil || model.cameraTrackingIssue != nil ? "pause.circle" : "checkmark.circle"
                 )
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
@@ -513,7 +519,11 @@ struct ReplayView: View {
                     .background(.thinMaterial, in: Capsule())
             }
 
-            if let issue = model.counter.trackingIssue, model.currentBar != nil {
+            if let message = cameraTrackingMessage {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            } else if let issue = model.counter.trackingIssue, model.currentBar != nil {
                 Label(trackingIssueMessage(issue), systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
@@ -772,8 +782,17 @@ struct ReplayView: View {
         return "Press Play to find the pull-up bar automatically. Keep both hands visible. Replay restarts after the bar locks; manual setup is available if needed."
     }
 
+    private var cameraTrackingMessage: String? {
+        switch model.cameraTrackingIssue {
+        case "sceneShifted", "sceneScaled": "Camera view changed · tracking stopped"
+        case .some: "Camera stability unavailable · tracking paused"
+        case .none: nil
+        }
+    }
+
     private var trackingStatusTitle: String {
         if model.currentBar == nil { return "Setup needed" }
+        if model.cameraTrackingIssue != nil { return "Camera check" }
         if model.phase == .finished { return "Complete" }
         if model.counter.trackingIssue != nil { return "Tracking paused" }
         return "Ready"
@@ -781,6 +800,7 @@ struct ReplayView: View {
 
     private var trackingStatusIcon: String {
         if model.currentBar == nil { return "wrench.and.screwdriver.fill" }
+        if model.cameraTrackingIssue != nil { return "exclamationmark.triangle.fill" }
         if model.phase == .finished { return "checkmark.circle.fill" }
         if model.counter.trackingIssue != nil { return "exclamationmark.triangle.fill" }
         return "checkmark.circle.fill"
@@ -788,6 +808,7 @@ struct ReplayView: View {
 
     private var trackingStatusColor: Color {
         if model.currentBar == nil { return .orange }
+        if model.cameraTrackingIssue != nil { return .orange }
         if model.phase == .finished { return .green }
         if model.counter.trackingIssue != nil { return .orange }
         return .green
@@ -795,6 +816,7 @@ struct ReplayView: View {
 
     private var trackingStatusAccessibility: String {
         switch trackingStatusTitle {
+        case "Camera check": cameraTrackingMessage ?? "Camera stability is unavailable."
         case "Setup needed": "Workout setup needed. Set the bar reference before counting."
         case "Tracking paused": "Tracking paused because required measurements are unavailable."
         case "Complete": "Workout replay complete."

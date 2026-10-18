@@ -184,7 +184,7 @@ struct ReplayControllerTests {
         let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
         let url = try await VideoTestSupport.makeVideo(timestamps: times)
         defer { try? FileManager.default.removeItem(at: url) }
-        let model = ReplayController(estimator: CountingTestEstimator())
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: ControlledSceneWorker())
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -231,7 +231,7 @@ struct ReplayControllerTests {
         let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
         let url = try await VideoTestSupport.makeVideo(timestamps: times)
         defer { try? FileManager.default.removeItem(at: url) }
-        let model = ReplayController(estimator: CountingTestEstimator(lowConfidenceAt: 0.45))
+        let model = ReplayController(estimator: CountingTestEstimator(lowConfidenceAt: 0.45), sceneWorker: ControlledSceneWorker())
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -248,7 +248,7 @@ struct ReplayControllerTests {
         let times = [0,15,30,45,60].map { CMTime(value: $0, timescale: 100) }
         let url = try await VideoTestSupport.makeVideo(timestamps: times)
         defer { try? FileManager.default.removeItem(at: url) }
-        let model = ReplayController(estimator: CountingTestEstimator(failAt: 0.45))
+        let model = ReplayController(estimator: CountingTestEstimator(failAt: 0.45), sceneWorker: ControlledSceneWorker())
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -277,7 +277,7 @@ struct ReplayControllerTests {
         #else
         let trace: ReplayTrace.Handler? = nil
         #endif
-        let model = ReplayController(estimator: CountingTestEstimator(failAt: failAt), trace: trace)
+        let model = ReplayController(estimator: CountingTestEstimator(failAt: failAt), trace: trace, sceneWorker: ControlledSceneWorker())
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -312,7 +312,7 @@ struct ReplayControllerTests {
         let url = try await VideoTestSupport.makeVideo(timestamps: times)
         defer { try? FileManager.default.removeItem(at: url) }
         let clock = PublicReplayClock()
-        let model = ReplayController(estimator: CountingTestEstimator(), trace: clock.observe)
+        let model = ReplayController(estimator: CountingTestEstimator(), trace: clock.observe, sceneWorker: ControlledSceneWorker())
         defer { model.close() }
         model.open(url)
         try await wait { model.phase == .paused || model.phase == .failed }
@@ -333,6 +333,219 @@ struct ReplayControllerTests {
         #expect(model.analysisRecord == nil && model.counter.phase == phase)
     }
     #endif
+
+    @Test(arguments: [false, true])
+    func cameraMovementInterruptsAnUnreturnedAcceptanceAndLatchesThroughEOF(scale: Bool) async throws {
+        let times = [0,15,30,45,60,75,90].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let movement: ControlledSceneWorker.Response = scale ? .scaled : .shifted
+        let worker = ControlledSceneWorker(responses: [.stable, movement, movement, .stable])
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        let reason = scale ? "sceneScaled" : "sceneShifted"
+        #expect(model.phase == .finished && model.displayedFrames == times.count)
+        #expect(model.currentBar != nil, "Keep the authored bar separate from counting qualification.")
+        #expect(model.cameraTrackingIssue == reason)
+        #expect(model.counter.observedMovements == 1, "The pre-confirmation peak remains an observed excursion.")
+        #expect(model.counter.interruptedAttempts == 0, "The peak already closed the provisional counter event.")
+        #expect(model.repAnalysis.filter { $0.closeReason == reason }.count == 1,
+                "The still-unreturned analytics attempt is interrupted exactly once.")
+        #expect(model.analysisRecord?.completedCount == 0, "Camera interruption cannot become a completed analytics rep.")
+        #expect(model.analysisRecord?.endReason == reason)
+    }
+
+    @Test func unavailableRegistrationRevokesEarlierEvidenceWithoutLosingSourceFrames() async throws {
+        let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker(responses: [.stable, .unavailable, .unavailable])
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        #expect(model.phase == .finished && model.displayedFrames == times.count)
+        #expect(model.cameraTrackingIssue == "cameraSceneUnavailable")
+        #expect(model.counter.observedMovements == 0)
+        #expect(model.analysisRecord?.completedCount == 0)
+        #expect(model.countingFrames == times.count && model.analyzableFrames == 2)
+    }
+
+    @Test func cameraMovementInterruptsAnOutboundCounterAttemptBeforeAcceptance() async throws {
+        let times = [0,15,30,45,60,75,90].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker(responses: [.stable, .shifted, .shifted])
+        let model = ReplayController(estimator: CountingTestEstimator(peakAt: 0.6, returnAt: 0.9), sceneWorker: worker)
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        #expect(model.counter.observedMovements == 0 && model.counter.interruptedAttempts == 1)
+        #expect(model.counter.events.filter { $0.reason == "sceneShifted" }.count == 1)
+        #expect(model.analysisRecord?.completedCount == 0)
+        #expect(model.displayedFrames == times.count)
+    }
+
+    @Test func pauseDuringRegistrationRetriesThePendingFrameAndDiscardsTheOldResult() async throws {
+        let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker(responses: [.stable, .unavailable, .stable, .stable], blockedRequest: 2)
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close(); Task { await worker.release() } }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await waitForScene(worker, requests: 2)
+        model.pause()
+        let displayed = model.displayedFrames
+        await worker.release()
+        try await Task.sleep(for: .milliseconds(30))
+        #expect(model.displayedFrames == displayed)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        #expect(model.displayedFrames == times.count)
+        #expect(await worker.requests == 4, "The canceled measurement cannot advance the source sampling clock.")
+        #expect(model.counter.observedMovements == 1 && model.analysisRecord?.completedCount == 1)
+        #expect(model.cameraTrackingIssue == nil)
+    }
+
+    @Test func replacingSourceDuringRegistrationCannotPublishOldCameraEvidence() async throws {
+        let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
+        let first = try await VideoTestSupport.makeVideo(timestamps: times)
+        let second = try await VideoTestSupport.makeVideo(width: 192, height: 128)
+        defer { try? FileManager.default.removeItem(at: first); try? FileManager.default.removeItem(at: second) }
+        let worker = ControlledSceneWorker(responses: [.stable, .shifted], blockedRequest: 2)
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close(); Task { await worker.release() } }
+        model.open(first)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await waitForScene(worker, requests: 2)
+        model.open(second)
+        await worker.release()
+        try await wait { model.phase == .paused || model.phase == .failed }
+        #expect(model.phase == .paused && model.frame?.image.width == 192)
+        #expect(model.currentBar == nil && model.cameraTrackingIssue == nil)
+        #expect(model.displayedFrames == 1 && model.counter.observedMovements == 0)
+    }
+
+    @Test func clearingSetupDuringInitialRewindRegistrationCannotStrandLoading() async throws {
+        let url = try await VideoTestSupport.makeVideo()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker(blockedRequest: 1)
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close(); Task { await worker.release() } }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        let setup = try #require(model.beginBarSetup())
+        let bar = ConfirmedBar(role: model.barRole, method: .manualEdge,
+            referenceEdge: .init(a: .init(x: 16, y: 48), b: .init(x: 144, y: 48)), oppositeEdge: nil,
+            imageSize: setup.frame.pose.imageSize, sourceTime: setup.frame.pose.timestamp)
+        #expect(model.confirmBar(bar, for: setup))
+        try await waitForScene(worker, requests: 1)
+        #expect(model.phase == .loading)
+        model.clearBar()
+        await worker.release()
+        try await wait { model.phase == .paused || model.phase == .failed }
+        #expect(model.phase == .paused && model.displayedFrames == 1)
+        #expect(model.currentBar == nil && model.cameraTrackingIssue == nil)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        #expect(model.displayedFrames == VideoTestSupport.timestamps.count)
+    }
+
+    @Test func clearingSetupDuringRegistrationCannotRestoreItsReference() async throws {
+        let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker(blockedRequest: 2)
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close(); Task { await worker.release() } }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await waitForScene(worker, requests: 2)
+        model.clearBar()
+        await worker.release()
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        #expect(model.currentBar == nil && model.cameraTrackingIssue == nil)
+        #expect(model.counter.observedMovements == 0 && model.displayedFrames == times.count)
+    }
+
+    @Test func laterManualCalibrationKeepsItsExactPixelsWhenRewinding() async throws {
+        let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times, cyclingQuadrants: true)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker()
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close() }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        model.play()
+        try await wait { (model.frame?.pose.timestamp.seconds ?? 0) >= 0.3 || model.phase == .failed }
+        model.pause()
+        let setup = try #require(model.frame)
+        let color = VideoTestSupport.rgb(setup.image, normalizedTopLeft: .init(x: 0.25, y: 0.25))
+        try await confirmCountingBar(model)
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        let colors = await worker.referenceColors
+        #expect(!colors.isEmpty && colors.allSatisfy { $0 == color })
+        #expect(await worker.currentColors.first != color, "The first rewound frame must not become the calibration image.")
+        #expect(model.counter.observedMovements == 1 && model.analysisRecord?.completedCount == 1)
+    }
+
+    @Test func replacingManualSetupDiscardsItsInFlightSceneObservation() async throws {
+        let times = [0,15,30,45,60,75].map { CMTime(value: $0, timescale: 100) }
+        let url = try await VideoTestSupport.makeVideo(timestamps: times, cyclingQuadrants: true)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let worker = ControlledSceneWorker(responses: [.stable, .unavailable], blockedRequest: 2)
+        let model = ReplayController(estimator: CountingTestEstimator(), sceneWorker: worker)
+        defer { model.close(); Task { await worker.release() } }
+        model.open(url)
+        try await wait { model.phase == .paused || model.phase == .failed }
+        try await confirmCountingBar(model)
+        model.play()
+        try await waitForScene(worker, requests: 2)
+        let setup = try #require(model.beginBarSetup())
+        let color = VideoTestSupport.rgb(setup.frame.image, normalizedTopLeft: .init(x: 0.25, y: 0.25))
+        let bar = ConfirmedBar(role: model.barRole, method: .manualEdge,
+            referenceEdge: .init(a: .init(x: 16, y: 48), b: .init(x: 144, y: 48)), oppositeEdge: nil,
+            imageSize: setup.frame.pose.imageSize, sourceTime: setup.frame.pose.timestamp)
+        #expect(model.confirmBar(bar, for: setup))
+        await worker.release()
+        try await wait { model.phase == .paused || model.phase == .failed }
+        model.play()
+        try await wait { model.phase == .finished || model.phase == .failed }
+        let colors = await worker.referenceColors
+        #expect(colors.count >= 3 && colors.dropFirst(2).allSatisfy { $0 == color })
+        #expect(model.currentBar == bar && model.cameraTrackingIssue == nil)
+        #expect(model.displayedFrames == times.count && model.analysisRecord?.completedCount == 1)
+    }
+
+    private func waitForScene(_ worker: ControlledSceneWorker, requests: Int) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        while await worker.requests < requests {
+            guard ContinuousClock.now < deadline else { throw FixtureError.failed("Scene request timed out") }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+    }
 
     private func confirmCountingBar(_ model: ReplayController) async throws {
         let setup = try #require(model.beginBarSetup())
@@ -357,6 +570,33 @@ struct ReplayControllerTests {
     }
 }
 
+// Synthetic scene evidence isolates controller/FFI lifecycle tests from the
+// native registration algorithm, which has separate real-pixel integration tests.
+actor ControlledSceneWorker: StaticSceneRegistering {
+    enum Response: Equatable, Sendable { case stable, shifted, scaled, unavailable }
+    private let responses: [Response]
+    private let blockedRequest: Int?
+    private var continuation: CheckedContinuation<Void, Never>?
+    private(set) var requests = 0
+    private(set) var referenceColors: [[UInt8]] = []
+    private(set) var currentColors: [[UInt8]] = []
+    init(responses: [Response] = [], blockedRequest: Int? = nil) {
+        self.responses = responses; self.blockedRequest = blockedRequest
+    }
+    func release() { continuation?.resume(); continuation = nil }
+    func measure(reference: StaticSceneRegistrationReference, image: CGImage) async throws -> StaticSceneRegistrationMeasurement {
+        requests += 1
+        let number = requests
+        referenceColors.append(VideoTestSupport.rgb(reference.image, normalizedTopLeft: .init(x: 0.25, y: 0.25)))
+        currentColors.append(VideoTestSupport.rgb(image, normalizedTopLeft: .init(x: 0.25, y: 0.25)))
+        if number == blockedRequest { await withCheckedContinuation { continuation = $0 } }
+        let response = number <= responses.count ? responses[number - 1] : .stable
+        if response == .unavailable { throw FixtureError.failed("Unavailable scene registration") }
+        return .init(translations: Array(repeating: .init(dxPixels: response == .shifted ? 20 : 0, dyPixels: 0), count: 4),
+                     globalScaleFraction: response == .scaled ? 0.1 : 0)
+    }
+}
+
 private final class RecordingGripObserver: GripObservationScheduling {
     private struct State: Sendable {
         var enabled = true
@@ -377,6 +617,8 @@ private final class RecordingGripObserver: GripObservationScheduling {
 private struct CountingTestEstimator: PoseEstimator {
     var failAt: Double? = nil
     var lowConfidenceAt: Double? = nil
+    var peakAt = 0.3
+    var returnAt = 0.6
 
     func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
         let time = timestamp.seconds
@@ -384,7 +626,7 @@ private struct CountingTestEstimator: PoseEstimator {
         let confidence = lowConfidenceAt.map { abs(time - $0) < 1e-9 } == true ? 0.1 : 1
         let base = ExerciseCounterTests.pose(
             time,
-            degrees: time >= 0.3 && time < 0.6 ? 80 : 170,
+            degrees: time >= 0.3 && time < peakAt ? 120 : time >= peakAt && time < returnAt ? 80 : 170,
             confidence: confidence
         )
         let scale = min(Double(image.width), Double(image.height)) / 1000

@@ -19,10 +19,15 @@ struct StaticSceneRegistrationMeasurement: Sendable {
     let globalScaleFraction: Double?
 }
 
+protocol StaticSceneRegistering: Sendable {
+    func measure(reference: StaticSceneRegistrationReference, image: CGImage) async throws
+        -> StaticSceneRegistrationMeasurement
+}
+
 // Peripheral patches keep the moving athlete from dominating lateral translation.
 // A separate full-frame homography supplies the scale signal because local corner
 // homographies proved too fragile in synthetic qualification.
-actor VisionStaticSceneRegistrationWorker {
+actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
     enum RegistrationError: LocalizedError {
         case invalidGeometry
         case incompatibleGeometry

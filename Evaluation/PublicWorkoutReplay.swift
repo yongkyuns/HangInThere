@@ -62,6 +62,7 @@ import CryptoKit
             if finished, progress.status == "failed" { report["error"] = "Replay frame/source-clock integrity failed" }
             report["tracking_coverage"] = model.trackingCoverage.map { $0 as Any } ?? NSNull()
             report["automatic_bar_state"] = String(describing: model.automaticBarState)
+            report["camera_tracking_issue"] = model.cameraTrackingIssue.map { $0 as Any } ?? NSNull()
             report["selected_exercise"] = model.counter.exercise.rawValue
             report["tracking_side"] = model.counter.side.rawValue
             model.close()

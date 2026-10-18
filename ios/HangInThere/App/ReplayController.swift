@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import WorkoutCore
 
 enum ReplayPhase: String {
     case idle = "Choose a video"
@@ -34,6 +35,7 @@ final class ReplayController {
     private(set) var durationSeconds = 0.0
     private(set) var countingFrames = 0
     private(set) var analyzableFrames = 0
+    private(set) var cameraTrackingIssue: String?
     @ObservationIgnored private var firstSourceTime = 0.0
     @ObservationIgnored private let estimator: any PoseEstimator
     @ObservationIgnored private let trace: ReplayTrace.Handler?
@@ -49,13 +51,21 @@ final class ReplayController {
     @ObservationIgnored private let barDetector: any BarEdgeDetector
     @ObservationIgnored private var automaticBarPolicy = AutomaticApparatusReference()
     @ObservationIgnored private var lastAutomaticBarSeconds: Double?
+    @ObservationIgnored private let sceneWorker: any StaticSceneRegistering
+    @ObservationIgnored private let scene = WorkoutSceneBridge()
+    @ObservationIgnored private var sceneReference: StaticSceneRegistrationReference?
+    @ObservationIgnored private var lastSceneSeconds: Double?
+    @ObservationIgnored private var sceneGeneration: UInt64 = 0
+    @ObservationIgnored private var sceneMovementReason: String?
 
     init(estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector(),
-         trace: ReplayTrace.Handler? = nil, gripObserverFactory: (@Sendable (ExerciseCounter.Exercise) -> any GripObservationScheduling)? = nil) {
+         trace: ReplayTrace.Handler? = nil, gripObserverFactory: (@Sendable (ExerciseCounter.Exercise) -> any GripObservationScheduling)? = nil,
+         sceneWorker: any StaticSceneRegistering = VisionStaticSceneRegistrationWorker()) {
         self.estimator = estimator
         self.trace = trace
         self.gripObserverFactory = gripObserverFactory
         self.barDetector = barDetector
+        self.sceneWorker = sceneWorker
         self.reader = VideoReplayReader(estimator: estimator, trace: trace, gripObserver: gripObserverFactory?(.pullUp))
     }
 
@@ -79,6 +89,7 @@ final class ReplayController {
               bar.sourceTime == frame?.pose.timestamp,
               bar.sourceTime == setup.frame.pose.timestamp else { return false }
         self.bar = bar
+        sceneReference = VisionStaticSceneRegistrationWorker.makeReference(image: setup.frame.image)
         // Re-run the set from source time zero so every counted frame uses the
         // same independently confirmed fixed apparatus reference.
         restart(preserveBar: true)
@@ -88,6 +99,7 @@ final class ReplayController {
         pause()
         resetAutomaticBarSetup()
         bar = nil
+        resetSceneQualification(preserveReference: false)
         counter.reset()
         resetAnalysisMetrics()
     }
@@ -99,6 +111,7 @@ final class ReplayController {
         pause()
         counter = ExerciseCounter(exercise: exercise, side: side)
         bar = nil
+        resetSceneQualification(preserveReference: false)
         resetAnalysisMetrics()
         if canRestart { restart(preserveBar: false) }
     }
@@ -136,6 +149,7 @@ final class ReplayController {
         displayedFrames = 0
         counter.reset()
         bar = nil
+        resetSceneQualification(preserveReference: false)
         durationSeconds = 0
         resetAnalysisMetrics()
         errorMessage = nil
@@ -175,6 +189,7 @@ final class ReplayController {
         displayedFrames = 0
         counter.reset()
         bar = nil
+        resetSceneQualification(preserveReference: false)
         durationSeconds = 0
         resetAnalysisMetrics()
         phase = .idle
@@ -202,6 +217,7 @@ final class ReplayController {
         counter.reset()
         resetAnalysisMetrics()
         if !preserveBar { bar = nil }
+        resetSceneQualification(preserveReference: preserveBar && bar != nil)
         operation = Task {
             await waitForPreviousOperation(previous)
             guard session == token, !Task.isCancelled else { return }
@@ -209,6 +225,10 @@ final class ReplayController {
                 await currentReader.setGripInferenceEnabled(gripEnabled)
                 let info = try await currentReader.rewind()
                 let first = try await currentReader.nextFrame(discard: discard)
+                guard session == token, !Task.isCancelled else { return }
+                if let first {
+                    guard await qualifyScene(first, token: token) else { return }
+                }
                 guard session == token, !Task.isCancelled else { return }
                 try showFirst(first, info: info)
                 if resumePlayback { play() }
@@ -285,7 +305,7 @@ final class ReplayController {
                     guard isCurrent(token, playToken) else { return }
                     guard let next else {
                         counter.finish()
-                        analysisRecord = workoutAnalysis.finish(reason: "endOfInput")
+                        analysisRecord = workoutAnalysis.finish(reason: sceneMovementReason ?? "endOfInput")
                         phase = .finished
                         operation = nil
                         return
@@ -298,12 +318,15 @@ final class ReplayController {
                     guard isCurrent(token, playToken) else { return }
                     if let bar, bar.imageSize != next.pose.imageSize {
                         self.bar = nil
+                        resetSceneQualification(preserveReference: false)
                         counter.reset()
                         resetAnalysisMetrics()
                     }
                     self.frame = next
                     if await findAutomaticBar(next, token: token, playToken: playToken) { return }
                     guard isCurrent(token, playToken) else { return }
+                    guard await qualifyScene(next, token: token, playToken: playToken),
+                          isCurrent(token, playToken) else { return }
                     consumeForCounting(next.pose)
                     pending = nil
                     displayedFrames += 1
@@ -325,8 +348,13 @@ final class ReplayController {
             trace?(.init(stage: .counting, boundary: .ended, sourceSeconds: pose.timestamp.seconds,
                          milliseconds: ReplayTrace.milliseconds(since: started)))
         }
-        let referenceEdge = currentBar?.referenceEdge
-        if referenceEdge != nil { countingFrames += 1 }
+        // Displayed apparatus geometry is distinct from a currently qualified
+        // counting reference. The counter and analytics receive the same edge.
+        let hasReference = currentBar != nil
+        let referenceEdge = scene.isReady(seconds: pose.timestamp.seconds) ? currentBar?.referenceEdge : nil
+        cameraTrackingIssue = hasReference && referenceEdge == nil
+            ? sceneMovementReason ?? "cameraSceneUnavailable" : nil
+        if hasReference { countingFrames += 1 }
         let eventCount = counter.events.count
         counter.consume(pose, referenceEdge: referenceEdge)
         _ = workoutAnalysis.consume(pose, reference: referenceEdge, counter: counter,
@@ -375,9 +403,57 @@ final class ReplayController {
         automaticBarState = automaticBarPolicy.state
         guard let proposal else { return false }
         bar = proposal
+        sceneReference = VisionStaticSceneRegistrationWorker.makeReference(image: frame.image)
         // Rewind once, then continue automatically so movements preceding bar
         // acquisition are evaluated with the same fixed reference too.
         restart(preserveBar: true, resumePlayback: true)
+        return true
+    }
+
+    private func resetSceneQualification(preserveReference: Bool) {
+        sceneGeneration &+= 1
+        if !preserveReference { sceneReference = nil }
+        lastSceneSeconds = nil
+        sceneMovementReason = nil
+        scene.reset()
+        if let reference = sceneReference {
+            _ = scene.calibrate(width: reference.imageSize.width, height: reference.imageSize.height)
+        }
+        cameraTrackingIssue = bar == nil ? nil : "cameraSceneUnavailable"
+    }
+
+    // Registration compares actual current pixels with the exact bar-source
+    // image. Rewind resets evidence clocks, never the calibration pixels.
+    private func qualifyScene(_ frame: ProcessedFrame, token: UInt64, playToken: UInt64? = nil) async -> Bool {
+        guard bar != nil, sceneMovementReason == nil, let reference = sceneReference else { return true }
+        let seconds = frame.pose.timestamp.seconds
+        if let lastSceneSeconds, seconds.isFinite,
+           seconds - lastSceneSeconds >= 0,
+           seconds - lastSceneSeconds < AutomaticPullUpBar.samplingInterval { return true }
+        let generation = sceneGeneration
+        let measurement = try? await sceneWorker.measure(reference: reference, image: frame.image)
+        guard session == token, !Task.isCancelled,
+              playToken.map({ isCurrent(token, $0) }) ?? true else { return false }
+        // Clearing setup while the first rewound registration is in flight
+        // revokes that evidence, but the decoded frame still opens normally.
+        // A canceled playback/source replacement must instead retain/discard
+        // its pending frame through the owning operation's existing guards.
+        guard sceneGeneration == generation else { return bar == nil && sceneReference == nil }
+        lastSceneSeconds = seconds
+        let patches = measurement?.translations ?? []
+        let values = KotlinDoubleArray(size: Int32(patches.count * 2))
+        for (index, patch) in patches.enumerated() {
+            values.set(index: Int32(index * 2), value: patch.dxPixels)
+            values.set(index: Int32(index * 2 + 1), value: patch.dyPixels)
+        }
+        _ = scene.observe(seconds: seconds, translations: values,
+            scaleFraction: measurement?.globalScaleFraction ?? .nan)
+        if scene.state == "moved", sceneMovementReason == nil {
+            let reason = scene.movementKind == "scale" ? "sceneScaled" : "sceneShifted"
+            sceneMovementReason = reason
+            _ = counter.interrupt(reason: reason)
+            workoutAnalysis.interrupt(reason: reason)
+        }
         return true
     }
 
