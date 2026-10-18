@@ -152,15 +152,15 @@ class AutomaticDipRails {
             return BarRegion(minX,max(0.0,hand.y-short*.08),maxX,min(size.height,hand.y+short*.20))
                 .takeIf{it.isValid(size)}
         }
-        fun select(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize,requireUnique:Boolean=false):BarSegment? {
-            return selection(candidates,hand,size,requireUnique)?.edge
+        fun select(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize,requireUnique:Boolean=false,preferredEdge:BarSegment?=null):BarSegment? {
+            return selection(candidates,hand,size,requireUnique,preferredEdge)?.edge
         }
         fun minimumPairLength(size:ImageSize):Double=max(24.0,min(size.width,size.height)*.04)
         private fun isBelowGrip(edge:BarSegment,hand:Point2D):Boolean {
             // Observed handles may meet the grasp; forearm edges above it may not.
             return min(edge.a.y,edge.b.y)>=hand.y
         }
-        private fun selection(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize,requireUnique:Boolean=false):ObservedRail? {
+        private fun selection(candidates:List<BarLineCandidate>,hand:Point2D,size:ImageSize,requireUnique:Boolean=false,preferredEdge:BarSegment?=null):ObservedRail? {
             if(!size.isValid || !hand.isFinite) return null
             val short=min(size.width,size.height);val bounds=BarRegion(0.0,0.0,size.width,size.height)
             val tubes=mutableListOf<Pair<BarCandidate,BarSegment>>()
@@ -180,6 +180,16 @@ class AutomaticDipRails {
             val tube=tubes.sortedWith(compareBy<Pair<BarCandidate,BarSegment>>{it.first.centerline.perpendicularDistance(hand)}
                 .thenByDescending{it.first.geometryScore}.thenBy{it.first.centerline.distance(hand)}).firstOrNull() ?: return null
             if(requireUnique && tubes.any{!AutomaticReferenceStability.sameLine(tube.first.centerline,it.first.centerline,short*.01)}) return null
+            // Alternating visible lengths must not switch between silhouettes
+            // of one tube. The preferred edge must be freshly observed in this
+            // fully eligible pair and pass unchanged dwell correspondence.
+            if(preferredEdge!=null) {
+                val fresh=listOf(tube.first.firstEdge,tube.first.secondEdge).filter {
+                    it.distance(hand)<=short*.12 && isBelowGrip(it,hand) &&
+                        AutomaticReferenceStability.sameLine(preferredEdge,it,short*.008)
+                }.minByOrNull{preferredEdge.perpendicularDistance(it.midpoint)}
+                if(fresh!=null) return ObservedRail(tube.first,fresh.ordered)
+            }
             return ObservedRail(tube.first,tube.second.ordered)
         }
     }
@@ -194,11 +204,12 @@ class AutomaticSingleDipRail {
     private var stability=AutomaticReferenceStability()
     private var source:Triple<ImageSize,String,Int>?=null
     private var witnessedSide:ArmMeasurement.Side?=null
+    private var witnessedEdge:BarSegment?=null
     private var highWater:PresentationTime?=null
     var state=AutomaticPullUpBar.State.lookingForGrip;private set
     val referenceStabilityDiagnostic get()=stability.diagnostic.takeIf{state==AutomaticPullUpBar.State.holding || state==AutomaticPullUpBar.State.locked}
     fun reset(){clearEvidence();source=null;highWater=null}
-    private fun clearEvidence(){stability.reset();witnessedSide=null;state=AutomaticPullUpBar.State.lookingForGrip}
+    private fun clearEvidence(){stability.reset();witnessedSide=null;witnessedEdge=null;state=AutomaticPullUpBar.State.lookingForGrip}
     fun observe(pose:PoseResult,side:ArmMeasurement.Side,candidates:List<BarLineCandidate>):ConfirmedBar? {
         if(state==AutomaticPullUpBar.State.locked) return null
         val context=Triple(pose.imageSize,pose.backend,pose.requestRevision)
@@ -211,10 +222,10 @@ class AutomaticSingleDipRail {
         if(candidates.size>BarFitter.maximumSegments){clearEvidence();return null}
         val crop=contact.region.let{BarRegion(floor(it.minX)-1,floor(it.minY)-1,ceil(it.maxX)+1,ceil(it.maxY)+1)}
         val local=candidates.filter{crop.contains(it.edge.a) && crop.contains(it.edge.b)}
-        val edge=AutomaticDipRails.select(local,contact.arm.wrist,pose.imageSize,requireUnique=true) ?: run {
+        val edge=AutomaticDipRails.select(local,contact.arm.wrist,pose.imageSize,requireUnique=true,preferredEdge=witnessedEdge) ?: run {
             clearEvidence();state=if(candidates.isEmpty()) AutomaticPullUpBar.State.findingEdge else AutomaticPullUpBar.State.ambiguous;return null
         }
-        witnessedSide=contact.arm.side;state=AutomaticPullUpBar.State.holding
+        witnessedSide=contact.arm.side;witnessedEdge=edge;state=AutomaticPullUpBar.State.holding
         if(!stability.observe(listOf(edge),listOf(contact.arm.wrist),pose)) return null
         val bar=ConfirmedBar(if(side==ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail,
             ConfirmedBar.Method.automaticContours,edge,null,pose.imageSize,pose.timestamp)

@@ -148,6 +148,10 @@ paired contour, stability and source-clock requirements remain active.
 When exactly one arm is measurable, dip setup may search just that hand's region.
 Only a unique, actually observed paired rail at the selected arm can qualify;
 there is no inferred second rail or fallback around measurable bilateral ambiguity.
+When the two silhouettes of that rail alternate visible lengths, acquisition
+retains the same edge only while it is freshly observed within the eligible pair
+and satisfies the existing stability correspondence. A missing pair or a distinct,
+conflicting tube revokes the witness and requires a full fresh acquisition interval.
 Malformed hidden-chain evidence and a visible overhead opposite hand veto this
 path. A changed anatomical contact set requires fresh identity and rail dwell.
 Cancellation and provider/mode changes preserve the acquisition timestamp fence;

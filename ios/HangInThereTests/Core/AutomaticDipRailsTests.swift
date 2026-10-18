@@ -51,6 +51,49 @@ import Testing
             }) }, backend: frame.backend, requestRevision: frame.requestRevision)
     }
 
+    @Test func changingVisibleEdgeLengthsCannotSwitchTheSameSingleRailWitness() throws {
+        for side in ArmMeasurement.Side.allCases {
+            var policy = AutomaticSingleDipRail()
+            let observed = rails[side == .left ? 0 : 1]
+            var bar: ConfirmedBar?
+            for (index, time) in [0.0, 0.3, 0.6, 0.9].enumerated() {
+                let edges = observed.enumerated().map { edgeIndex, candidate in
+                    let edge = candidate.edge
+                    let length = (index + edgeIndex).isMultiple(of: 2) ? 120.0 : 100.0
+                    return BarLineCandidate(edge: .init(a: edge.a, b: .init(x: edge.b.x, y: edge.a.y + length)),
+                                            geometryScore: length)
+                }
+                bar = policy.observe(pose: singlePose(time, side: side), side: side, candidates: edges)
+                if time < 0.9 { #expect(bar == nil) }
+            }
+            let reference = try #require(bar)
+            #expect(reference.referenceEdge.a.x == observed[0].edge.a.x)
+            #expect(reference.referenceEdge.length == 100)
+        }
+    }
+
+    @Test func retainedSingleEdgeCannotBypassFreshPairingOrAmbiguity() {
+        for side in ArmMeasurement.Side.allCases {
+            let observed = rails[side == .left ? 0 : 1]
+            for ambiguous in [false, true] {
+                var policy = AutomaticSingleDipRail()
+                for time in [0.0, 0.3, 0.6] {
+                    #expect(policy.observe(pose: singlePose(time, side: side), side: side, candidates: observed) == nil)
+                }
+                let extra = observed.map { candidate in
+                    BarLineCandidate(edge: .init(a: .init(x: candidate.edge.a.x + 40, y: candidate.edge.a.y),
+                        b: .init(x: candidate.edge.b.x + 40, y: candidate.edge.b.y)), geometryScore: candidate.geometryScore)
+                }
+                #expect(policy.observe(pose: singlePose(0.9, side: side), side: side,
+                    candidates: ambiguous ? observed + extra : [observed[0]]) == nil)
+                for time in [1.0, 1.3, 1.6] {
+                    #expect(policy.observe(pose: singlePose(time, side: side), side: side, candidates: observed) == nil)
+                }
+                #expect(policy.observe(pose: singlePose(1.9, side: side), side: side, candidates: observed) != nil)
+            }
+        }
+    }
+
     @Test func singleContactCannotHideMalformedOppositeEvidence() {
         let frame = singlePose(0)
         let hidden = Landmark(joint: .rightShoulder, position: .init(x: 700, y: 300), confidence: 0.1)

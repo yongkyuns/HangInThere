@@ -88,7 +88,8 @@ class SetupSwiftParityTest {
         assertTrue(cases.size>=72,"Setup parity cases reduced")
         val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
         for(side in ArmMeasurement.Side.entries) for(kind in listOf("observed", "flexed", "flexed-then-top",
-            "no-edges", "unpaired", "ambiguous", "above", "phone", "scene", "wrong-side", "overhead-partial"))
+            "alternating-lengths", "lost-pair", "ambiguous-pair", "no-edges", "unpaired", "ambiguous", "above",
+            "phone", "scene", "wrong-side", "overhead-partial"))
             assertTrue("dip-single-contact-$kind-$side" in ids, "Missing single-contact setup parity regression")
         for (side in ArmMeasurement.Side.entries) for (mode in listOf("rails", "shared-bar"))
             for (kind in listOf("flexed-acquisition", "flexed-then-top-start", "qualified-identity-through-flexion"))

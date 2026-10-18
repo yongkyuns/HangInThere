@@ -159,8 +159,9 @@ struct AutomaticDipRails: Sendable {
     }
 
     static func select(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize,
-                       requireUnique: Bool = false) -> BarSegment? {
-        selection(candidates: candidates, hand: hand, size: size, requireUnique: requireUnique)?.edge
+                       requireUnique: Bool = false, preferredEdge: BarSegment? = nil) -> BarSegment? {
+        selection(candidates: candidates, hand: hand, size: size,
+                  requireUnique: requireUnique, preferredEdge: preferredEdge)?.edge
     }
 
     static func minimumPairLength(in size: ImageSize) -> Double {
@@ -174,7 +175,7 @@ struct AutomaticDipRails: Sendable {
     }
 
     private static func selection(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize,
-                                  requireUnique: Bool = false) -> ObservedRail? {
+                                  requireUnique: Bool = false, preferredEdge: BarSegment? = nil) -> ObservedRail? {
         guard size.isValid, hand.isFinite else { return nil }
         let short = min(size.width, size.height)
         let bounds = BarRegion(.init(x: 0, y: 0), .init(x: size.width, y: size.height))
@@ -210,6 +211,16 @@ struct AutomaticDipRails: Sendable {
         guard let tube = tubes.first else { return nil }
         if requireUnique && !tubes.allSatisfy({ AutomaticReferenceStability.sameLine(
             tube.pair.centerline, $0.pair.centerline, tolerance: short * 0.01) }) { return nil }
+        // Visible lengths can alternate between the two silhouettes of one
+        // physical tube. Keep the old silhouette only if it is freshly observed
+        // in this fully eligible pair, using the unchanged dwell correspondence.
+        if let preferredEdge, let fresh = [tube.pair.firstEdge, tube.pair.secondEdge].filter({
+            $0.distance(to: hand) <= short * 0.12 && Self.isBelowGrip($0, hand: hand)
+                && AutomaticReferenceStability.sameLine(preferredEdge, $0, tolerance: short * 0.008)
+        }).min(by: { preferredEdge.perpendicularDistance(to: $0.midpoint)
+            < preferredEdge.perpendicularDistance(to: $1.midpoint) }) {
+            return ObservedRail(pair: tube.pair, edge: fresh.ordered)
+        }
         // Select one of the real silhouette edges, never the fitted centerline.
         return ObservedRail(pair: tube.pair, edge: tube.edge.ordered)
     }
@@ -304,6 +315,7 @@ struct AutomaticSingleDipRail: Sendable {
     private var source: Source?
     private var highWater: PresentationTime?
     private var witnessedSide: ArmMeasurement.Side?
+    private var witnessedEdge: BarSegment?
     private var stability = AutomaticReferenceStability()
     private(set) var state: AutomaticPullUpBar.State = .lookingForGrip
     var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic? {
@@ -311,7 +323,7 @@ struct AutomaticSingleDipRail: Sendable {
     }
     mutating func reset() { self = Self() }
     private mutating func clearEvidence() {
-        stability.reset(); witnessedSide = nil; state = .lookingForGrip
+        stability.reset(); witnessedSide = nil; witnessedEdge = nil; state = .lookingForGrip
     }
     static func contact(in pose: PoseResult) -> Contact? {
         guard pose.imageSize.isValid, pose.timestamp.seconds.isFinite, pose.people.count == 1 else { return nil }
@@ -355,10 +367,10 @@ struct AutomaticSingleDipRail: Sendable {
                              .init(x: ceil(region.maxX) + 1, y: ceil(region.maxY) + 1))
         let local = candidates.filter { crop.contains($0.edge.a) && crop.contains($0.edge.b) }
         guard let edge = AutomaticDipRails.select(candidates: local, hand: contact.arm.wrist,
-            size: pose.imageSize, requireUnique: true) else {
+            size: pose.imageSize, requireUnique: true, preferredEdge: witnessedEdge) else {
             clearEvidence(); state = candidates.isEmpty ? .findingEdge : .ambiguous; return nil
         }
-        witnessedSide = contact.arm.side; state = .holding
+        witnessedSide = contact.arm.side; witnessedEdge = edge; state = .holding
         guard stability.observe(edges: [edge], grips: [contact.arm.wrist], pose: pose) else { return nil }
         let bar = ConfirmedBar(role: side == .left ? .leftDipRail : .rightDipRail, method: .automaticContours,
             referenceEdge: edge, oppositeEdge: nil, imageSize: pose.imageSize, sourceTime: pose.timestamp)

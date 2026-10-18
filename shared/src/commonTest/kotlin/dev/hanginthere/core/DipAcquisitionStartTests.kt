@@ -26,6 +26,39 @@ class DipAcquisitionStartTests {
         pose(seconds, degrees, if (side == ArmMeasurement.Side.left) ArmMeasurement.Side.right else ArmMeasurement.Side.left)
     private fun observed(side: ArmMeasurement.Side) = rails[if (side == ArmMeasurement.Side.left) 0 else 1]
 
+    @Test fun changingVisibleEdgeLengthsCannotSwitchTheSameSingleRailWitness() {
+        for (side in ArmMeasurement.Side.entries) {
+            val policy = AutomaticSingleDipRail()
+            val observed = observed(side)
+            var bar: ConfirmedBar? = null
+            for ((index, time) in listOf(0.0, .3, .6, .9).withIndex()) {
+                val edges = observed.mapIndexed { edgeIndex, candidate ->
+                    val length = if ((index + edgeIndex) % 2 == 0) 120.0 else 100.0
+                    candidate.copy(edge = candidate.edge.copy(b = candidate.edge.b.copy(y = candidate.edge.a.y + length)),
+                        geometryScore = length)
+                }
+                bar = policy.observe(single(time, side), side, edges)
+                if (time < .9) assertNull(bar)
+            }
+            val reference = assertNotNull(bar)
+            assertEquals(observed[0].edge.a.x, reference.referenceEdge.a.x)
+            assertEquals(100.0, reference.referenceEdge.length)
+        }
+    }
+
+    @Test fun retainedSingleEdgeCannotBypassFreshPairingOrAmbiguity() {
+        for (side in ArmMeasurement.Side.entries) for (ambiguous in listOf(false, true)) {
+            val policy = AutomaticSingleDipRail()
+            val observed = observed(side)
+            for (time in listOf(0.0, .3, .6)) assertNull(policy.observe(single(time, side), side, observed))
+            val extra = observed.map { candidate -> candidate.copy(edge = BarSegment(
+                candidate.edge.a.copy(x = candidate.edge.a.x + 40), candidate.edge.b.copy(x = candidate.edge.b.x + 40))) }
+            assertNull(policy.observe(single(.9, side), side, if (ambiguous) observed + extra else observed.take(1)))
+            for (time in listOf(1.0, 1.3, 1.6)) assertNull(policy.observe(single(time, side), side, observed))
+            assertNotNull(policy.observe(single(1.9, side), side, observed))
+        }
+    }
+
     @Test fun singleMeasuredArmCanAcquireItsRealRailAndStartAutomatically() {
         for (side in ArmMeasurement.Side.entries) {
             val runtime = WorkoutRuntime(side = side, automaticWorkouts = true)

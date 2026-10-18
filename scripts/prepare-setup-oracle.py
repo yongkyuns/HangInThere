@@ -88,6 +88,21 @@ def prepare(output):
         add('dip-single-contact-flexed-'+side,'dip',[single_step(i/10,100) for i in range(56)],True,False,side=side)
         add('dip-single-contact-flexed-then-top-'+side,'dip',
             [single_step(i/10,100 if i<15 else 170) for i in range(66)],True,True,side=side)
+        # Two fresh silhouette edges still describe the same physical tube
+        # when their visible lengths alternate. Never borrow that witness
+        # through a missing pair or a second eligible tube.
+        for fault in ['alternating-lengths','lost-pair','ambiguous-pair']:
+            frames=[]
+            x=300 if side=='left' else 700
+            for i in range(56):
+                edges=[candidate(x+j*10,545,x+j*10,545+(120 if (i+j)%2==0 else 100)) for j in range(2)]
+                if i%8==7:
+                    if fault=='lost-pair': edges=edges[:1]
+                    elif fault=='ambiguous-pair':
+                        edges += [candidate(x+50,545,x+50,665),candidate(x+60,545,x+60,665)]
+                frames.append(single_step(i/10,candidates=[edges]))
+            valid=fault=='alternating-lengths'
+            add('dip-single-contact-'+fault+'-'+side,'dip',frames,valid,valid,side=side)
         for fault in ['no-edges','unpaired','ambiguous','above','phone','scene','wrong-side','overhead-partial']:
             frames=[single_step(i/10) for i in range(56)]
             for frame in frames:
