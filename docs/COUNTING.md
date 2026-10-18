@@ -29,6 +29,12 @@ counts: chin clearance and exercise form are not verified.
 
 ## Dip support and movement
 
+Automatic dip identity uses 0.6 seconds of measurable support posture, including
+flexed elbows. This identifies which apparatus to look for; it cannot start a set.
+Requiring top extension throughout identity acquisition would impose a second,
+longer hold than the separate starting check. Genuine observed apparatus, camera
+stability and fresh top support remain required before counting begins.
+
 A confirmed finite support segment remains mandatory; automatic contour setup
 or manual confirmation can supply it. One athlete's selected
 shoulder and wrist must be unique, in bounds, and meet the existing 0.3 joint-score

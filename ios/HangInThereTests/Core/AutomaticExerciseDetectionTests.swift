@@ -15,6 +15,51 @@ import Testing
             })], backend: original.backend, requestRevision: original.requestRevision)
     }
 
+    @Test func flexedDipSupportIdentifiesExerciseWithoutStartingExtension() {
+        var identity = AutomaticExerciseDetection()
+        let fixture = AutomaticDipRailsTests()
+        for time in [0.0, 0.2, 0.4, 0.6] {
+            let frame = fixture.pose(time, degrees: 100)
+            #expect(AutomaticDipRails.grip(in: frame) != nil)
+            #expect(AutomaticExerciseDetection.candidate(in: frame) == nil)
+            #expect(identity.observe(frame) == (time == 0.6 ? .dip : nil))
+            #expect(!AutomaticDipRails.isStartingPosition(frame))
+            for side in ArmMeasurement.Side.allCases {
+                var counter = ExerciseCounter(exercise: .dip, side: side)
+                _ = counter.consume(frame, referenceEdge: fixture.rails[side == .left ? 0 : 1][0].edge)
+                #expect(counter.phase == .seekingStart)
+                #expect(counter.events.isEmpty)
+            }
+        }
+    }
+
+    @Test func interruptedFlexedDipIdentityRequiresFreshFullSupportDwell() {
+        let fixture = AutomaticDipRailsTests()
+        func support(_ time: Double) -> PoseResult {
+            let frame = fixture.pose(time, degrees: 100)
+            return PoseResult(timestamp: .init(value: Int64((time * 1_000_000).rounded()), timescale: 1_000_000),
+                imageSize: frame.imageSize, people: frame.people, backend: frame.backend,
+                requestRevision: frame.requestRevision)
+        }
+        for missingHand in [false, true] {
+            var identity = AutomaticExerciseDetection()
+            for time in [0.0, 0.2, 0.4] { #expect(identity.observe(support(time)) == nil) }
+            let frame = support(0.5)
+            let interrupted = PoseResult(timestamp: frame.timestamp, imageSize: frame.imageSize,
+                people: frame.people.map { person in PoseObservation(landmarks: person.landmarks.compactMap { point in
+                    if missingHand && point.joint == .rightWrist { return nil }
+                    if !missingHand && (point.joint == .leftShoulder || point.joint == .rightShoulder) {
+                        return Landmark(joint: point.joint,
+                            position: .init(x: point.position.x, y: 480), confidence: point.confidence)
+                    }
+                    return point
+                }) }, backend: frame.backend, requestRevision: frame.requestRevision)
+            #expect(identity.observe(interrupted) == nil)
+            for time in [0.6, 0.8, 1.0, 1.199999] { #expect(identity.observe(support(time)) == nil) }
+            #expect(identity.observe(support(1.2)) == .dip)
+        }
+    }
+
     func identityPose(_ exercise: ExerciseCounter.Exercise, _ ticks: Int64, timescale: Int32 = 1_000_000) -> PoseResult {
         let original = pose(exercise, 0)
         return PoseResult(timestamp: .init(value: ticks, timescale: timescale), imageSize: original.imageSize,

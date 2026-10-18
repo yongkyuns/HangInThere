@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
     automatic,pullUp,dip;
     val exercise:ExerciseCounter.Exercise? get()=when(this){automatic->null;pullUp->ExerciseCounter.Exercise.pullUp;dip->ExerciseCounter.Exercise.dip}
 }
-/** Starting pose identity never substitutes for separately observed apparatus. */
+/** Apparatus posture identifies a dip independently of starting extension.
+ * Identity never substitutes for observed apparatus or current start evidence. */
 class AutomaticExerciseDetection {
     var exercise:ExerciseCounter.Exercise?=null;private set
     var apparatusCandidate:ExerciseCounter.Exercise?=null;private set
@@ -25,7 +26,11 @@ class AutomaticExerciseDetection {
         // that identity through flexion only while fresh bilateral grip evidence
         // still identifies the same apparatus. Set start separately needs a hang.
         if(exercise==next) return exercise
-        if(candidate(pose)!=next){exercise=null;firstTime=null;observations=0;return null}
+        // Dip support can be identified during flexion. Requiring extended
+        // elbows for this entire dwell incorrectly turns identity into a second,
+        // longer start hold. WorkoutStartEvidence still requires a fresh top.
+        val identityPose = if(next==ExerciseCounter.Exercise.dip) apparatusCandidate(pose) else candidate(pose)
+        if(identityPose!=next){exercise=null;firstTime=null;observations=0;return null}
         if(firstTime==null) firstTime=pose.timestamp
         observations++
         // Reuse source-tick subtraction for exact dwell/gap boundaries; no tolerance is added.

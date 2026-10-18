@@ -31,13 +31,14 @@ class DipAcquisitionStartTests {
                 val frame = pose(seconds)
                 assertNotNull(AutomaticApparatusReference.search(frame, ExerciseCounter.Exercise.dip))
                 assertFalse(AutomaticDipRails.isStartingPosition(frame))
-                assertNull(identity.observe(frame))
+                assertEquals(if (seconds == .9) ExerciseCounter.Exercise.dip else null, identity.observe(frame))
+                assertNull(AutomaticExerciseDetection.candidate(frame))
                 assertEquals(ExerciseCounter.Exercise.dip, identity.apparatusCandidate)
                 reference = apparatus.observe(frame, ExerciseCounter.Exercise.dip, side, candidates)
             }
             val bar = assertNotNull(reference)
             assertEquals(ConfirmedBar.Method.automaticContours, bar.method)
-            assertFalse(identity.lock())
+            assertTrue(identity.lock()) // Identity still cannot supply starting extension.
             val counter = ExerciseCounter(ExerciseCounter.Exercise.dip, side)
             for (seconds in listOf(1.0, 1.1, 1.2)) counter.consume(pose(seconds), bar.referenceEdge)
             assertEquals(ExerciseCounter.Phase.seekingStart, counter.phase)

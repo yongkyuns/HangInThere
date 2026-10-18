@@ -504,14 +504,15 @@ import Testing
                     let pose = fixture.pose(seconds, degrees: 100)
                     #expect(AutomaticApparatusReference.search(pose: pose, exercise: .dip) != nil)
                     #expect(!AutomaticDipRails.isStartingPosition(pose))
-                    #expect(identity.observe(pose) == nil)
+                    #expect(identity.observe(pose) == (seconds == 0.9 ? .dip : nil))
+                    #expect(AutomaticExerciseDetection.candidate(in: pose) == nil)
                     #expect(identity.apparatusCandidate == .dip)
                     reference = apparatus.observe(pose: pose, exercise: .dip, side: side, candidates: candidates)
                 }
                 let bar = try #require(reference)
                 #expect(bar.method == .automaticContours)
                 let locked = identity.lock()
-                #expect(!locked)
+                #expect(locked) // Identity is not starting extension or a rep.
                 var counter = ExerciseCounter(exercise: .dip, side: side)
                 for seconds in [1.0, 1.1, 1.2] {
                     counter.consume(fixture.pose(seconds, degrees: 100), referenceEdge: bar.referenceEdge)

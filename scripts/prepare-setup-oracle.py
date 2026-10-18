@@ -88,13 +88,13 @@ def prepare(output):
                             line['edge'][endpoint]['y'] += 150
             add(f'dip-unequal-hand-height-{"observed" if corresponding else "wrong-rail"}-{side}',
                 'dip',uneven,corresponding,corresponding,side=side)
-    # Apparatus can be measured during flexion, independently of top-support
-    # identity/start qualification. Both observed apparatus modes retain dwell.
+    # Dip support posture can identify the exercise during flexion, independently
+    # of fresh top-extension/start qualification. No event labels are changed.
     for side in ['left','right']:
         for mode, edges in [('rails', step(0,'dip')['candidates']), ('shared-bar', [[],[],shared])]:
             bent=[step(i/10,'dip',degrees=100,candidates=edges) for i in range(56)]
             add(f'dip-flexed-acquisition-{mode}-{side}','dip',bent,True,False,side=side,
-                identity=[None]*len(bent))
+                identity=[None]*6+['dip']*(len(bent)-6))
             recovering=bent[:10]+[step(i/10,'dip',candidates=edges) for i in range(10,66)]
             add(f'dip-flexed-then-top-start-{mode}-{side}','dip',recovering,True,True,side=side)
             retained=[step(i/10,'dip',degrees=170 if i<7 or i>=20 else 100,candidates=edges)

@@ -27,6 +27,63 @@ class DipContactAcquisitionTests {
         BarLineCandidate(BarSegment(Point2D(250.0, y), Point2D(750.0, y)), 500.0)
     }
 
+    private fun flexedSupport(seconds: Double): PoseResult = pose(seconds).let { frame ->
+        frame.copy(people = frame.people.map { person -> person.copy(landmarks = person.landmarks.map { point ->
+            when (point.joint) {
+                PoseJoint.leftElbow -> point.copy(position = Point2D(450.0, 350.0))
+                PoseJoint.rightElbow -> point.copy(position = Point2D(850.0, 350.0))
+                else -> point
+            }
+        }) })
+    }
+
+    @Test fun flexedSupportCanIdentifyDipsButCannotSupplyStartingExtension() {
+        val identity = AutomaticExerciseDetection()
+        for (time in listOf(0.0, .2, .4, .6)) {
+            val frame = flexedSupport(time)
+            assertNotNull(AutomaticDipRails.grip(frame))
+            assertNull(AutomaticExerciseDetection.candidate(frame))
+            val found = identity.observe(frame)
+            assertEquals(if (time == .6) ExerciseCounter.Exercise.dip else null, found)
+            for (side in ArmMeasurement.Side.entries) for (automatic in listOf(false, true))
+                assertFalse(WorkoutStartEvidence.hasStartingPose(frame, ExerciseCounter.Exercise.dip,
+                    automatic, side, rails()[if (side == ArmMeasurement.Side.left) 0 else 1][0].edge))
+        }
+    }
+
+    @Test fun interruptedFlexedIdentityNeedsAnEntireFreshSupportDwell() {
+        for (deepOnly in listOf(false, true)) {
+            val identity = AutomaticExerciseDetection()
+            for (time in listOf(0.0, .2, .4)) assertNull(identity.observe(flexedSupport(time)))
+            val interrupted = if (deepOnly) pose(.5, deep = true) else flexedSupport(.5).let { frame ->
+                frame.copy(people = frame.people.map { person -> person.copy(
+                    landmarks = person.landmarks.filter { it.joint != PoseJoint.rightWrist }) })
+            }
+            assertNull(identity.observe(interrupted))
+            for (time in listOf(.6, .8, 1.0, 1.199999)) assertNull(identity.observe(flexedSupport(time)))
+            assertEquals(ExerciseCounter.Exercise.dip, identity.observe(flexedSupport(1.2)))
+        }
+    }
+
+    @Test fun flexedDipAcquisitionStillRequiresFreshTopBeforeLiveCounting() {
+        val runtime = WorkoutRuntime(automaticWorkouts = true)
+        val attitude = PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)!!
+        fun input(time: Double, top: Boolean = false) = WorkoutRuntime.FrameInput(
+            if (top) pose(time) else flexedSupport(time), rails(), attitude, time,
+            List(3) { StaticSceneStability.PatchTranslation(0.0, 0.0) }, 0.0, time)
+        for (i in 0..7) assertEquals(LiveSetSession.Phase.idle, runtime.observe(input(i * .2)).phase)
+        assertEquals(ExerciseCounter.Exercise.dip, runtime.resolvedExercise)
+        assertNotNull(runtime.confirmedBar)
+        assertEquals(0, runtime.session.observedMovements)
+        runtime.observe(input(1.6, top = true))
+        runtime.observe(input(1.719999, top = true))
+        assertEquals(LiveSetSession.Phase.idle, runtime.snapshot.phase)
+        runtime.observe(input(1.72, top = true))
+        assertEquals(LiveSetSession.Phase.running, runtime.snapshot.phase)
+        assertEquals(1.6, runtime.session.firstSourceSeconds)
+        assertEquals(0, runtime.session.observedMovements)
+    }
+
     @Test fun observedContactCanAcquireThroughDeepShoulderMotionWithoutStartingASet() {
         for (side in ArmMeasurement.Side.entries) for (candidates in listOf(rails(), listOf(emptyList(), emptyList(), shared))) {
             val apparatus = AutomaticApparatusReference()

@@ -24,9 +24,9 @@ enum WorkoutExerciseSelection: String, CaseIterable, Sendable {
     }
 }
 
-// Initial starting-pose identity remains valid through motion only while fresh
-// bilateral grip evidence agrees. Actual contours, camera stability and a full
-// starting position still qualify independently before a set can start.
+// Dip support posture identifies the exercise independently of starting extension.
+// Actual contours, camera stability and a fresh full starting position still
+// qualify independently before a set can start.
 struct AutomaticExerciseDetection: Sendable {
     static let minimumStableSeconds = 0.6
     private(set) var exercise: ExerciseCounter.Exercise?
@@ -93,7 +93,10 @@ struct AutomaticExerciseDetection: Sendable {
         // identity or restart apparatus acquisition. This does not earn a rep
         // or relax the separate starting-position requirement.
         if exercise == next { return exercise }
-        guard Self.candidate(in: pose) == next else {
+        // Do not require a second, longer straight-arm hold merely to identify
+        // dip support. Shared starting evidence still needs a fresh top pose.
+        let identityPose = next == .dip ? Self.apparatusCandidate(in: pose) : Self.candidate(in: pose)
+        guard identityPose == next else {
             exercise = nil; firstTime = nil; observations = 0
             return nil
         }
