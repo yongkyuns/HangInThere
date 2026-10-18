@@ -118,16 +118,32 @@ struct PublicPoseQualityTests {
         #expect(pullup.summary["starting_pose_candidate_frames"] as? Int == 0)
     }
 
-    @Test func sourceGapBoundaryAndMissingArmSplitSupportEvidence() {
+    @Test func sourceGapBoundaryAndUnmeasurablePoseSplitSupportCandidates() {
         let boundary = PublicPoseQualityRecorder(exercise: .dip)
         for ticks: Int64 in [0, 350_000, 700_001] { boundary.observe(support(ticks)) }
         #expect(boundary.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.35)
         let loss = PublicPoseQualityRecorder(exercise: .dip)
         for ticks: Int64 in [0, 200_000, 400_000, 600_000, 800_000] {
-            loss.observe(support(ticks, missing: ticks == 400_000))
+            loss.observe(support(ticks, people: ticks == 400_000 ? 0 : 1))
         }
         #expect(loss.summary["both_arm_frames"] as? Int == 4)
+        #expect(loss.summary["starting_pose_candidate_frames"] as? Int == 4)
         #expect(loss.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.2)
+    }
+
+    @Test func oneMeasuredDipContactRemainsARawStartingCandidate() {
+        let quality = PublicPoseQualityRecorder(exercise: .dip)
+        for ticks: Int64 in [0, 200_000, 400_000, 600_000, 800_000] {
+            quality.observe(support(ticks, missing: ticks == 400_000))
+        }
+        #expect(quality.summary["single_person_frames"] as? Int == 5)
+        #expect(quality.summary["both_arm_frames"] as? Int == 4)
+        #expect(quality.summary["starting_pose_candidate_frames"] as? Int == 5)
+        #expect(quality.summary["apparatus_search_frames"] as? Int == 5)
+        #expect(quality.summary["right_arm_status_counts"] as? [String: Int] == ["available": 4, "missingJoint": 1])
+        // This is raw current-frame geometry, not acquired equipment, retained
+        // Auto identity, qualified readiness or credited workout duration.
+        #expect(quality.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.8)
     }
 
     @Test func rewindKeepsLatestRawObservationPerSourceTimeWithoutDoubleCredit() {
@@ -136,7 +152,16 @@ struct PublicPoseQualityTests {
         quality.observe(support(200_000, missing: true))
         #expect(quality.summary["unique_source_frames"] as? Int == 3)
         #expect(quality.summary["both_arm_frames"] as? Int == 2)
+        #expect(quality.summary["starting_pose_candidate_frames"] as? Int == 3)
+        #expect(quality.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.4)
+        quality.observe(support(200_000, people: 0))
+        #expect(quality.summary["unique_source_frames"] as? Int == 3)
+        #expect(quality.summary["starting_pose_candidate_frames"] as? Int == 2)
         #expect(quality.summary["longest_starting_pose_candidate_seconds"] as? Double == 0)
+        quality.observe(support(200_000))
+        #expect(quality.summary["unique_source_frames"] as? Int == 3)
+        #expect(quality.summary["both_arm_frames"] as? Int == 3)
+        #expect(quality.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.4)
     }
 
     @Test func instrumentationPreservesAllOriginalPeopleAndLandmarks() throws {
