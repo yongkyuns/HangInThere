@@ -31,6 +31,7 @@ class ForegroundAssociationTests {
     }
 
     @Test fun sourceTimeDwellRequiresFreshObservationsAtDifferentSourceOrigins() {
+        assertEquals(HandsFreeSetStart.maximumFrameGap, ForegroundAssociation.maximumFrameGap)
         for (origin in listOf(0L, 10_000_000_000_000_000L)) acquire(ForegroundAssociation(source), origin)
         val tracker = ForegroundAssociation(source)
         for (ticks in listOf(0L, 200_000, 400_000, 599_999))
@@ -134,15 +135,13 @@ class ForegroundAssociationTests {
         assertNull(tracker.observe(source, time(800_000), listOf(PersonInferenceRegion(275, 275, 450, 450))).candidateIndex)
     }
 
-    @Test fun timebaseChangesRequireANewEpochEvenDuringAcquisition() {
+    @Test fun nativeRationalTimebaseChangesPreserveExactAcquisitionAndContinuity() {
         val tracker = ForegroundAssociation(source)
-        tracker.observe(source, time(0), listOf(athlete))
-        assertEquals(ForegroundAssociation.Status.lost,
-            tracker.observe(source, PresentationTime(200_000, 2_000_000), listOf(athlete)).status)
-        val next = source.copy(generation = 8); tracker.reset(next)
-        for (ticks in listOf(0L, 400_000, 800_000))
-            assertNull(tracker.observe(next, PresentationTime(ticks, 2_000_000), listOf(athlete)).candidateIndex)
-        assertEquals(0, tracker.observe(next, PresentationTime(1_200_000, 2_000_000), listOf(athlete)).candidateIndex)
+        tracker.observe(source, PresentationTime(0, 60_000), listOf(athlete))
+        for (ticks in listOf(18_000L, 36_000))
+            assertNull(tracker.observe(source, PresentationTime(ticks, 90_000), listOf(athlete)).candidateIndex)
+        assertEquals(0, tracker.observe(source, PresentationTime(54_000, 90_000), listOf(athlete)).candidateIndex)
+        assertEquals(0, tracker.observe(source, PresentationTime(95, 100), listOf(athlete)).candidateIndex)
     }
 
     @Test fun changedTimebaseCannotRoundAnOverlongGapIntoTheAllowedDeadline() {
@@ -152,7 +151,7 @@ class ForegroundAssociationTests {
         val overlong = PresentationTime(10_000_010_000_950_010L, 1_000_001)
         val decision = tracker.observe(source, overlong, listOf(athlete))
         assertEquals(ForegroundAssociation.Status.lost, decision.status)
-        assertEquals(ForegroundAssociation.Reason.clockFault, decision.reason)
+        assertEquals(ForegroundAssociation.Reason.continuityExpired, decision.reason)
         assertNull(decision.candidateIndex)
     }
 

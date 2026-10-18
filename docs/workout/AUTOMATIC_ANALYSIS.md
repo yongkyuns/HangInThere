@@ -372,8 +372,10 @@ athlete-annotated validation; identical geometry cannot prove personal identity.
 
 The serial native owner must advance that generation together with setup,
 counter and grip-cache resets on rewind, camera/coordinate or model changes.
-Stale generations cannot mutate the current association. Timescale changes
-require a new generation, avoiding absolute-time rounding at continuity limits.
+Stale generations cannot mutate the current association. Exact rational source
+comparisons support native timescale changes without absolute-time rounding at
+the continuity/acquisition limits, including large source origins. This bounded
+comparison helper does not change existing counter or analysis timing policies.
 Associated decisions retain immutable source, timestamp, candidate index and
 region values for future crop requests. An adapter must additionally validate
 returned inference provenance and the person within the crop; a region alone
@@ -383,6 +385,19 @@ grip metadata whose coordinates would otherwise remain in the crop frame.
 Auxiliary hand inference follows restoration. Android same-PTS refinement also
 requires a separate native estimator because VIDEO inference rejects repeated
 millisecond timestamps. Raw, cropped and restored observations must stay distinct.
+
+A development screen sampled eight predetermined frames from each of the four
+frozen public temporal clips. Native person-region crop re-inference recovered
+no bilateral arm chain in either rear or side dip sample; the controlled dip
+changed from two to three bilateral frames out of eight without establishing
+starting-pose eligibility. This sparse screen does not establish a counting or
+latency benefit and does not promote a crop adapter. A separate full-source
+side-dip rectangle diagnostic passed all 597 original frames through the shared
+policy, including the decoder's 60000-to-90000 timescale transition: 152 acquiring,
+313 associated and 132 ambiguous decisions, with no clock faults or expired
+continuity. These are geometric statuses without athlete identity annotations,
+body selection or rep scoring. The existing 1/26 production selected-replay result
+and its 25 dip misses remain unresolved.
 
 Existing public Android accuracy failures and Apple simulator decoder/model
 blockers remain separate visible gates. Synthetic/shared tests cannot turn those

@@ -32,7 +32,6 @@ class ForegroundAssociation(initialSource: Source) {
     }
 
     private var source = initialSource
-    private var timescale: Int? = null
     private var lastTime: PresentationTime? = null
     private var matchedAt: PresentationTime? = null
     private var anchor: PersonInferenceRegion? = null
@@ -48,7 +47,7 @@ class ForegroundAssociation(initialSource: Source) {
     fun reset(nextSource: Source) {
         require(nextSource.generation > source.generation)
         source = nextSource
-        lastTime = null; matchedAt = null; anchor = null; acquisitionRegion = null; timescale = null
+        lastTime = null; matchedAt = null; anchor = null; acquisitionRegion = null
         clearAcquisition(); acquired = false; lost = false
     }
 
@@ -58,24 +57,20 @@ class ForegroundAssociation(initialSource: Source) {
             return decision(if (lost) Status.lost else Status.ambiguous, Reason.sourceMismatch)
         if (frameSource != source) return lose(Reason.sourceChanged)
         if (lost) return decision(Status.lost, Reason.resetRequired)
-        // Mixed timebases use a Double fallback in PresentationTime. Do not let
-        // absolute-time rounding extend the exact continuity/acquisition bounds.
-        if (timescale != null && time.timescale != timescale) return lose(Reason.clockFault)
-        val gap = lastTime?.let { time.elapsedSeconds(it) }
-        if (!time.seconds.isFinite() || gap?.isFinite() == false) {
+        val direction = lastTime?.let { SourceTimeComparison.compareElapsed(time, it, zeroLimit) }
+        if (time.timescale <= 0) {
             clearAcquisition()
             return if (acquired) lose(Reason.clockFault) else decision(Status.acquiring, Reason.clockFault)
         }
-        if (gap != null && gap <= 0) {
+        if (direction != null && direction <= 0) {
             clearAcquisition()
             return decision(if (acquired) Status.ambiguous else Status.acquiring, Reason.clockFault)
         }
-        timescale = time.timescale
+        val gapExceeded = lastTime?.let { SourceTimeComparison.compareElapsed(time, it, gapLimit)!! > 0 } ?: false
         lastTime = time
-        val sinceMatch = matchedAt?.let { time.elapsedSeconds(it) }
-        if (acquired && (gap!! > maximumFrameGap || sinceMatch == null ||
-                !sinceMatch.isFinite() || sinceMatch > maximumFrameGap)) return lose(Reason.continuityExpired)
-        if (gap != null && gap > maximumFrameGap) clearAcquisition()
+        val matchExpired = matchedAt?.let { SourceTimeComparison.compareElapsed(time, it, gapLimit)!! > 0 } ?: true
+        if (acquired && (gapExceeded || matchExpired)) return lose(Reason.continuityExpired)
+        if (gapExceeded) clearAcquisition()
         if (candidates.size > maximumCandidates || candidates.any { !it.isValidFor(source.imageSize) })
             return unavailable(Reason.invalidCandidate)
         if (candidates.isEmpty()) return unavailable(Reason.missingCandidates)
@@ -108,7 +103,7 @@ class ForegroundAssociation(initialSource: Source) {
         }
         anchor = region
         observations++
-        if (observations >= minimumObservations && time.elapsedSeconds(firstTime!!) >= acquisitionSeconds) {
+        if (observations >= minimumObservations && SourceTimeComparison.compareElapsed(time, firstTime!!, acquisitionLimit)!! >= 0) {
             acquired = true; matchedAt = time; acquisitionRegion = firstRegion
             clearAcquisition()
             return decision(Status.associated, Reason.matched, selected, time, region)
@@ -150,9 +145,12 @@ class ForegroundAssociation(initialSource: Source) {
 
     companion object {
         const val policyVersion = 1
-        const val acquisitionSeconds = .6
+        private val acquisitionLimit = SourceTimeLimit(3, 5)
+        private val gapLimit = SourceTimeLimit(7, 20)
+        private val zeroLimit = SourceTimeLimit(0, 1)
+        val acquisitionSeconds: Double get() = acquisitionLimit.seconds
         const val minimumObservations = 4
-        const val maximumFrameGap = HandsFreeSetStart.maximumFrameGap
+        val maximumFrameGap: Double get() = gapLimit.seconds
         const val maximumCandidates = 64
         // Frozen engineering proposals, not calibrated identity/quality limits.
         const val minimumAreaFraction = .08
