@@ -5,9 +5,12 @@ set -euo pipefail
 [[ "$(uname -s)" == Darwin ]] || { echo 'Automatic bar audit requires macOS.' >&2; exit 1; }
 [[ $# == 2 ]] || { echo 'Usage: audit-automatic-bar.sh VIDEO OUTPUT.json' >&2; exit 1; }
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PLATFORM_NAME=macosx ARCHS="$(uname -m)" CONFIGURATION=Debug "$ROOT/scripts/build-workout-core.sh"
+FRAMEWORK="$ROOT/build/WorkoutCore/macosx/Debug"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 xcrun swiftc -Onone -swift-version 6 -parse-as-library \
+  -F "$FRAMEWORK" -framework WorkoutCore -lc++ \
   "$ROOT"/ios/HangInThere/Analysis/*.swift \
   "$ROOT/ios/HangInThere/Capture/VideoReplayReader.swift" \
   "$ROOT/ios/HangInThere/Capture/BitmapFrameRenderer.swift" \

@@ -2,6 +2,8 @@ import CoreGraphics
 import Foundation
 import ImageIO
 import Vision
+import WorkoutCore
+import simd
 
 struct StaticSceneRegistrationReference: Sendable {
     struct Patch: Sendable {
@@ -34,8 +36,9 @@ protocol StaticSceneRegistering: Sendable {
 }
 
 // Peripheral patches keep the moving athlete from dominating lateral translation.
-// A separate full-frame homography supplies the scale signal because local corner
-// homographies proved too fragile in synthetic qualification.
+// A separate full-frame homography supplies image-center area scale because
+// local corner homographies proved too fragile in synthetic qualification.
+// Its geometry alone does not establish that it fits the static background.
 actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
     private let includeDiagnosticHomography: Bool
 
@@ -185,29 +188,32 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
         guard let observation = request.results?.first else { return nil }
         let matrix = observation.warpTransform
         if includeDiagnosticHomography {
-            diagnosticHomography = [matrix.columns.0.x, matrix.columns.0.y, matrix.columns.0.z,
-                matrix.columns.1.x, matrix.columns.1.y, matrix.columns.1.z,
-                matrix.columns.2.x, matrix.columns.2.y, matrix.columns.2.z].map(Double.init)
+            diagnosticHomography = Self.columnMajorElements(matrix)
         }
-
-        let h22 = Double(matrix.columns.2.z)
-        guard h22.isFinite, abs(h22) > 1e-9 else { return nil }
-
-        let a = Double(matrix.columns.0.x) / h22
-        let b = Double(matrix.columns.0.y) / h22
-        let c = Double(matrix.columns.1.x) / h22
-        let d = Double(matrix.columns.1.y) / h22
-        let determinant = abs(a * d - b * c)
-        guard determinant.isFinite, determinant > 0 else { return nil }
-
-        let scale = sqrt(determinant)
-        guard scale.isFinite,
+        guard let scale = Self.imageCenterAreaScale(matrix: matrix,
+            width: Double(current.width), height: Double(current.height)),
               scale >= Self.minimumPlausibleHomographicScale,
               scale <= Self.maximumPlausibleHomographicScale
         else { return nil }
 
         let fraction = abs(scale - 1)
         return fraction.isFinite ? fraction : nil
+    }
+
+    // Vision's warp acts on homogeneous image-pixel coordinates. Keep the SDK
+    // matrix boundary here and the perspective differentiation in shared code.
+    static func imageCenterAreaScale(matrix: simd_float3x3, width: Double, height: Double) -> Double? {
+        let elements = columnMajorElements(matrix)
+        let values = KotlinDoubleArray(size: 9)
+        for (index, value) in elements.enumerated() { values.set(index: Int32(index), value: value) }
+        return ImageRegistrationGeometry.shared.areaScaleAtImageCenter(
+            columnMajor: values, width: width, height: height)?.doubleValue
+    }
+
+    private static func columnMajorElements(_ matrix: simd_float3x3) -> [Double] {
+        [matrix.columns.0.x, matrix.columns.0.y, matrix.columns.0.z,
+         matrix.columns.1.x, matrix.columns.1.y, matrix.columns.1.z,
+         matrix.columns.2.x, matrix.columns.2.y, matrix.columns.2.z].map(Double.init)
     }
 
     private static func cornerPatchRects(

@@ -2,9 +2,27 @@ import CoreGraphics
 import Foundation
 import Testing
 import WorkoutCore
+import simd
 @testable import HangInThere
 
 struct StaticSceneRegistrationTests {
+    @Test func visionMatrixTransportPreservesPerspectiveAndPixelCoordinates() throws {
+        let width = 960.0, height = 540.0, zoom = 1.05
+        let x = width / 2, y = height / 2, p = 0.00002, q = -0.00007
+        let offset = p * x + q * y
+        let matrix = simd_float3x3(columns: (
+            SIMD3(Float(zoom + x*p), Float(y*p), Float(p)),
+            SIMD3(Float(x*q), Float(zoom + y*q), Float(q)),
+            SIMD3(Float(x*(1-zoom-offset)), Float(y*(1-zoom-offset)), Float(1-offset))
+        ))
+        let scale = try #require(VisionStaticSceneRegistrationWorker.imageCenterAreaScale(
+            matrix: matrix, width: width, height: height))
+        #expect(abs(scale - zoom) < 1e-6)
+        let invalid = simd_float3x3(columns: (SIMD3(-1, 0, 0), SIMD3(0, 1, 0), SIMD3(0, 0, 1)))
+        #expect(VisionStaticSceneRegistrationWorker.imageCenterAreaScale(
+            matrix: invalid, width: width, height: height) == nil)
+    }
+
     @Test func peripheralTranslationAndGlobalScaleStaySeparated() async throws {
         let referenceImage = try #require(makePatternImage(shiftX: 0, shiftY: 0))
         let movedImage = try #require(makePatternImage(shiftX: 7, shiftY: -5))
@@ -124,6 +142,20 @@ struct StaticSceneRegistrationTests {
         #expect(!shared.isReady(seconds: 0.4))
     }
 
+    @Test func movingForegroundAndCornerGraphicKeepStationaryBackgroundQualified() async throws {
+        let image = try #require(makePatternImage(shiftX: 0, shiftY: 0, subjectOffset: 0))
+        let reference = try #require(VisionStaticSceneRegistrationWorker.makeReference(image: image))
+        let worker = VisionStaticSceneRegistrationWorker()
+        for offset in [-18.0, 12.0, 25.0] {
+            let current = try #require(makePatternImage(shiftX: 0, shiftY: 0, subjectOffset: offset))
+            let measurement = try await worker.measure(reference: reference, image: current)
+            #expect(measurement.translations.filter { hypot($0.dxPixels, $0.dyPixels) < 1 }.count >= 2)
+            #expect(try #require(measurement.globalScaleFraction) < HangInThere.StaticSceneStability.scaleThresholdFraction)
+            let shared = bridge(measurement, times: [0.1, 0.4])
+            #expect(shared.state == "stable" && shared.isReady(seconds: 0.4))
+        }
+    }
+
     private func bridge(_ measurement: StaticSceneRegistrationMeasurement, times: [Double]) -> WorkoutSceneBridge {
         let shared = WorkoutSceneBridge()
         #expect(shared.calibrate(width: 400, height: 400))
@@ -141,7 +173,8 @@ struct StaticSceneRegistrationTests {
     private func makePatternImage(
         shiftX: CGFloat,
         shiftY: CGFloat,
-        scale: CGFloat = 1
+        scale: CGFloat = 1,
+        subjectOffset: CGFloat? = nil
     ) -> CGImage? {
         let width = 400
         let height = 400
@@ -201,6 +234,21 @@ struct StaticSceneRegistrationTests {
             }
         }
 
+        if let subjectOffset {
+            // A moving central subject and animated lower corner graphic leave
+            // the textured background fixed. They are not camera ground truth.
+            context.setFillColor(CGColor(gray: 0.02, alpha: 1))
+            context.fill(CGRect(x: 145 + subjectOffset, y: 70, width: 110, height: 260))
+            context.setFillColor(CGColor(gray: 0.85, alpha: 1))
+            context.fillEllipse(in: CGRect(x: 172 + subjectOffset, y: 300, width: 55, height: 55))
+            context.setFillColor(CGColor(gray: 1, alpha: 1))
+            context.fill(CGRect(x: 285 + subjectOffset / 2, y: 18, width: 105, height: 42))
+            context.setFillColor(CGColor(gray: 0, alpha: 1))
+            for index in 0..<5 {
+                context.fill(CGRect(x: 292 + subjectOffset / 2 + CGFloat(index * 16), y: 28,
+                    width: 8, height: 20))
+            }
+        }
         context.restoreGState()
         return context.makeImage()
     }
