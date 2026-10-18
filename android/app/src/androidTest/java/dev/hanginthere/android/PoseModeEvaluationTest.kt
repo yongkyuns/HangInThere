@@ -15,7 +15,6 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
-import java.nio.ByteBuffer
 import java.security.MessageDigest
 
 /** Opt-in public diagnostic. All models share one decoded source before release. */
@@ -221,11 +220,7 @@ class PoseModeEvaluationTest {
     }
 
     companion object {
-        private fun pixelsHash(bitmap: Bitmap): String {
-            val buffer = ByteBuffer.allocate(bitmap.byteCount)
-            bitmap.copyPixelsToBuffer(buffer)
-            return MessageDigest.getInstance("SHA-256").digest(buffer.array()).hex()
-        }
+        private fun pixelsHash(bitmap: Bitmap) = NativeEvaluationPixels.sha256(bitmap)
         private fun ByteArray.hex() = joinToString("") { "%02x".format(it) }
     }
 }

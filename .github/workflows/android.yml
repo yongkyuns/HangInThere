@@ -13,6 +13,10 @@ on:
         description: Compare the pinned model on full frames and bounded person crops (includes VIDEO/IMAGE comparison)
         type: boolean
         default: false
+      selected_pose_diagnostic:
+        description: Export shipping SDK observations for every frame of the four frozen public videos
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -95,11 +99,15 @@ jobs:
           packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.2.13676358 cmake;3.22.1
           log-accepted-android-sdk-licenses: false
       - name: Prepare pinned public media and model
+        env:
+          SELECTED_POSE_DIAGNOSTIC: ${{ inputs.selected_pose_diagnostic == true && 'true' || 'false' }}
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg autoconf automake libtool pkg-config
           python3 -m unittest discover -s scripts/tests -p 'test_android*.py' -v
-          python3 scripts/prepare-android-fixtures.py
+          fixture_arguments=()
+          if [[ "$SELECTED_POSE_DIAGNOSTIC" == "true" ]]; then fixture_arguments+=(--selected-pose-diagnostic); fi
+          python3 scripts/prepare-android-fixtures.py "${fixture_arguments[@]}"
       - name: Compile APK, check lint and host regressions
         run: ./gradlew :android:app:assembleDebug :android:app:assembleDebugAndroidTest :android:app:lintDebug :android:app:testDebugUnitTest --console=plain
       - name: Verify actual packaged native model and emulator ABI
@@ -114,6 +122,7 @@ jobs:
         env:
           POSE_MODE_DIAGNOSTIC: ${{ inputs.pose_mode_diagnostic == true && 'true' || 'false' }}
           POSE_CROP_DIAGNOSTIC: ${{ inputs.pose_crop_diagnostic == true && 'true' || 'false' }}
+          SELECTED_POSE_DIAGNOSTIC: ${{ inputs.selected_pose_diagnostic == true && 'true' || 'false' }}
         with:
           api-level: ${{ matrix.api }}
           arch: x86_64
@@ -128,6 +137,9 @@ jobs:
       - name: Check required positive, native mechanics and emulator budgets
         if: always()
         run: python3 scripts/check-android-evaluation.py --native build/android-evaluation/report.json
+      - name: Verify complete selected-source native pose export
+        if: ${{ always() && inputs.selected_pose_diagnostic == true }}
+        run: python3 scripts/check-selected-pose-export.py build/android-evaluation
       - name: Verify identical-pixel pose comparison evidence
         if: ${{ always() && inputs.pose_mode_diagnostic == true && inputs.pose_crop_diagnostic != true }}
         run: python3 scripts/check-android-evaluation.py --pose-modes build/android-evaluation/pose-mode-report.json

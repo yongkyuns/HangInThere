@@ -8,7 +8,7 @@ import unittest
 RUNNER=Path(__file__).parents[1]/'run-android-evaluation.sh'
 
 class EvaluationCollectionTests(unittest.TestCase):
-    def run_collection(self, failed=False, crop=False):
+    def run_collection(self, failed=False, crop=False, selected=False):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder); commands=root/'bin';commands.mkdir()
             device=root/'device-evaluation';device.mkdir()
@@ -17,8 +17,11 @@ class EvaluationCollectionTests(unittest.TestCase):
             for directory in [device,output]:
                 (directory/'pose-crop-report.json').write_text('stale')
                 (directory/'pullup_smoke-pose-crops.jsonl').write_text('stale')
+                (directory/'selected-pose-report.json').write_text('stale')
             attribution=root/'android/app/src/androidTest/assets/generated/ATTRIBUTION.txt'
             attribution.parent.mkdir(parents=True);attribution.write_text('public attribution')
+            selected_attribution=attribution.parent/'selected-poses/ATTRIBUTION.txt'
+            selected_attribution.parent.mkdir();selected_attribution.write_text('complete selected attribution')
             adb='''#!/usr/bin/env python3
 import os,sys,shutil
 from pathlib import Path
@@ -43,18 +46,25 @@ if os.environ['MOCK_FAILED']=='true': sys.exit(7)
                 (commands/'java','#!/bin/sh\necho java17\n'),(commands/'git','#!/bin/sh\necho current-head\n')]:
                 path.write_text(text);path.chmod(0o755)
             env=dict(os.environ,PATH=str(commands)+os.pathsep+os.environ['PATH'],MOCK_DEVICE_EVALUATION=str(device),
-                MOCK_FAILED=str(failed).lower(),POSE_CROP_DIAGNOSTIC=str(crop).lower(),POSE_MODE_DIAGNOSTIC='false')
+                MOCK_FAILED=str(failed).lower(),POSE_CROP_DIAGNOSTIC=str(crop).lower(),POSE_MODE_DIAGNOSTIC='false',
+                SELECTED_POSE_DIAGNOSTIC=str(selected).lower())
             result=subprocess.run(['bash',str(RUNNER.resolve())],cwd=root,env=env,capture_output=True,text=True)
             self.assertEqual(result.returncode,7 if failed else 0,result.stderr)
             self.assertFalse((device/'pose-crop-report.json').exists())
             self.assertFalse((output/'pose-crop-report.json').exists())
             self.assertFalse((output/'pullup_smoke-pose-crops.jsonl').exists())
+            self.assertFalse((output/'selected-pose-report.json').exists())
             self.assertEqual((private/'evidence').read_text(),'preserve')
             self.assertEqual((output/'ATTRIBUTION.txt').read_text(),'public attribution')
             self.assertEqual((output/'report.json').exists(),not failed)
             arguments=json.loads((root/'arguments.json').read_text())
             self.assertEqual('-Pandroid.testInstrumentationRunnerArguments.poseCropDiagnostic=true' in arguments,crop)
+            self.assertEqual('-Pandroid.testInstrumentationRunnerArguments.selectedPoseDiagnostic=true' in arguments,selected)
+            self.assertEqual((output/'selected-pose-ATTRIBUTION.txt').exists(),selected)
+            if selected:self.assertEqual((output/'selected-pose-ATTRIBUTION.txt').read_text(),'complete selected attribution')
 
     def test_old_crop_outputs_do_not_enter_a_non_opt_in_run(self): self.run_collection()
     def test_failed_crop_run_cannot_reuse_previous_evidence(self): self.run_collection(failed=True,crop=True)
     def test_successful_crop_run_passes_explicit_instrumentation_argument(self): self.run_collection(crop=True)
+    def test_selected_export_passes_opt_in_and_retains_full_attribution(self): self.run_collection(selected=True)
+    def test_failed_selected_export_cannot_reuse_success(self): self.run_collection(selected=True,failed=True)

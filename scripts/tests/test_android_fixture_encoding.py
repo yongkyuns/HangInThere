@@ -74,6 +74,24 @@ class AndroidFixtureEncodingTests(unittest.TestCase):
                 self.assertEqual(reference['source_sha256'], source_hash)
             self.assertEqual(json.loads(recipe_file.read_text()), frozen_recipe)
             self.assertEqual(hashlib.sha256((cache / (source_hash + '.mp4')).read_bytes()).hexdigest(), source_hash)
+            android_spec = importlib.util.spec_from_file_location('android_selected_assets', SCRIPTS / 'prepare-android-fixtures.py')
+            android = importlib.util.module_from_spec(android_spec); android_spec.loader.exec_module(android)
+            assets = root / 'selected-assets'
+            export = android.selected_pose_assets(root / 'native', assets)
+            self.assertEqual(len(export['clips']), 1)
+            self.assertEqual(export['clips'][0]['expectedFrames'], 14)
+            self.assertEqual((assets / 'encoding_test.mp4').read_bytes(), native.read_bytes())
+            self.assertEqual(export['clips'][0]['sourcePtsMicroseconds'], android.timestamp_evidence(native)['sourcePtsMicroseconds'])
+            self.assertNotIn('events', export['clips'][0])
+            self.assertNotIn('referenceEdge', export['clips'][0])
+            self.assertEqual((assets / 'ATTRIBUTION.txt').read_text(), (root / 'native/ATTRIBUTION.txt').read_text())
+            # A shortened reference cannot silently drop its source. Existing
+            # owned outputs survive failed input validation.
+            reference_file = root / 'native/reference.json'
+            reference = json.loads(reference_file.read_text()); reference['clips'] = []
+            reference_file.write_text(json.dumps(reference))
+            with self.assertRaises(AssertionError): android.selected_pose_assets(root / 'native', assets)
+            self.assertEqual((assets / 'encoding_test.mp4').read_bytes(), native.read_bytes())
 
     def test_android_smoke_preparation_preserves_existing_ios_fixture_bytes(self):
         with tempfile.TemporaryDirectory() as directory:

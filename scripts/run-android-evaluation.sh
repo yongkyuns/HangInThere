@@ -12,6 +12,9 @@ output.mkdir(parents=True)
 PY
 adb shell rm -rf /sdcard/Android/data/dev.hanginthere.android/files/evaluation
 cp android/app/src/androidTest/assets/generated/ATTRIBUTION.txt build/android-evaluation/ATTRIBUTION.txt
+if [[ "${SELECTED_POSE_DIAGNOSTIC:-false}" == "true" ]]; then
+  cp android/app/src/androidTest/assets/generated/selected-poses/ATTRIBUTION.txt build/android-evaluation/selected-pose-ATTRIBUTION.txt
+fi
 # Retain diagnostics even when an accuracy assertion fails. No media/test APK uploads.
 instrumentation_arguments=("--console=plain")
 if [[ "${POSE_MODE_DIAGNOSTIC:-false}" == "true" ]]; then
@@ -19,6 +22,9 @@ if [[ "${POSE_MODE_DIAGNOSTIC:-false}" == "true" ]]; then
 fi
 if [[ "${POSE_CROP_DIAGNOSTIC:-false}" == "true" ]]; then
   instrumentation_arguments+=("-Pandroid.testInstrumentationRunnerArguments.poseCropDiagnostic=true")
+fi
+if [[ "${SELECTED_POSE_DIAGNOSTIC:-false}" == "true" ]]; then
+  instrumentation_arguments+=("-Pandroid.testInstrumentationRunnerArguments.selectedPoseDiagnostic=true")
 fi
 set +e
 ./gradlew :android:app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true "${instrumentation_arguments[@]}"
