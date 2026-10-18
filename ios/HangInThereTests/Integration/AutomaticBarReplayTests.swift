@@ -66,6 +66,22 @@ private actor TestDipRailDetector: BarEdgeDetector {
     }
 }
 
+// Plausible finite handle contours beneath overhead hands. This deliberately
+// allows equipment acquisition while leaving dip support/start unqualified.
+private actor OverheadContactDetector: BarEdgeDetector {
+    private(set) var requests = 0
+    func detect(image: CGImage, region: BarRegion, minimumObservedLength: Double?) async throws -> [BarLineCandidate] {
+        requests += 1
+        let short = Double(min(image.width, image.height))
+        let x = (region.minX + region.maxX) / 2
+        let y = 25 + short * 0.04
+        return [x - 2, x + 2].map {
+            .init(edge: .init(a: .init(x: $0, y: y),
+                             b: .init(x: $0, y: y + max(24, short * 0.04))), geometryScore: 30)
+        }
+    }
+}
+
 @MainActor @Suite(.serialized) struct AutomaticBarReplayTests {
     func video() async throws -> URL {
         try await VideoTestSupport.makeVideo(timestamps: [0, 35, 70, 105, 140, 175].map { CMTime(value: $0, timescale: 100) })
@@ -211,19 +227,53 @@ private actor TestDipRailDetector: BarEdgeDetector {
         #expect(model.displayedFrames == 1)
         #expect(model.automaticBarState == .lookingForGrip)
     }
-    @Test func raisedHandsCannotBeMisclassifiedAsDipSupport() async throws {
+    @Test(arguments: ArmMeasurement.Side.allCases)
+    func raisedHandsCannotBeMisclassifiedAsDipSupport(side: ArmMeasurement.Side) async throws {
         let url = try await video()
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = TestBarDetector()
         let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
         defer { model.close() }
-        model.configureCounting(exercise: .dip, side: .left)
+        model.configureCounting(exercise: .dip, side: side)
         model.open(url)
         try await wait(model, for: "initial opening") { model.phase == .paused }
         model.play()
         try await wait(model, for: "playback completion") { model.phase == .finished }
         #expect(model.bar == nil)
-        #expect(await detector.requests == 0)
+        // Contact search is independent of starting pose. The first displayed
+        // frame is not searched; each remaining frame has three bounded crops.
+        #expect(await detector.requests == 15)
+        #expect(model.countingFrames == 0)
+        #expect(model.analyzableFrames == 0)
+        #expect(model.counter.observedMovements == 0)
+        #expect(model.repAnalysis.isEmpty)
+        #expect(model.analysisRecord?.completedCount == 0)
+    }
+    @Test(arguments: ArmMeasurement.Side.allCases)
+    func overheadEquipmentCannotQualifyADipStartOrCompletedAnalytics(side: ArmMeasurement.Side) async throws {
+        let url = try await VideoTestSupport.makeVideo(
+            timestamps: [0, 35, 70, 105, 140, 175].map { CMTime(value: $0, timescale: 100) },
+            width: 320, height: 192)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let detector = OverheadContactDetector()
+        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
+        defer { model.close() }
+        model.configureCounting(exercise: .dip, side: side)
+        model.open(url)
+        try await wait(model, for: "overhead contact opening") { model.phase == .paused }
+        model.play()
+        try await wait(model, for: "overhead contact completion") { model.phase == .finished }
+        let bar = try #require(model.currentBar)
+        #expect(bar.role == (side == .left ? .leftDipRail : .rightDipRail))
+        #expect(await detector.requests == 12, "Four bilateral acquisition samples, then no redetection after rewind.")
+        #expect(model.countingFrames == 6)
+        #expect(model.counter.observedMovements == 0)
+        #expect(model.counter.events.isEmpty)
+        #expect(model.repAnalysis.isEmpty)
+        #expect(model.analysisRecord?.completedCount == 0)
+        let pose = try #require(model.frame?.pose)
+        #expect(!AutomaticDipRails.isStartingPosition(pose))
+        #expect(DipSupportMeasurement(pose: pose, side: side, referenceEdge: bar.referenceEdge)?.isStartingSupport == false)
     }
     @Test func dipRailsAcquireAutomaticallyAndRewindWithFixedReference() async throws {
         let url=try await VideoTestSupport.makeVideo(timestamps:[0,35,70,105,140,175].map {CMTime(value:$0,timescale:100)},width:320,height:192)

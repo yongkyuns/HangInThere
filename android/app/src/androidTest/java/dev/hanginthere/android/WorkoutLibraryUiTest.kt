@@ -155,6 +155,15 @@ class WorkoutLibraryUiTest {
                     node.children.forEach(::dump)
                 }
                 compose.onAllNodes(isRoot(), useUnmergedTree = true).fetchSemanticsNodes().forEach(::dump)
+                // Keep the original timeout/default loader. A loading node alone
+                // cannot distinguish blocked IO from an effect/publication fault.
+                // Class/line-only stacks expose no workout or exception contents.
+                Thread.getAllStackTraces().entries
+                    .filter { it.key.name == "main" || it.key.name.startsWith("DefaultDispatcher-worker-") }
+                    .sortedWith(compareBy({ it.key.name != "main" }, { it.key.name })).take(16).forEach { (thread, stack) ->
+                        Log.e("WorkoutLibraryUi", "Load timeout: ${thread.name} ${thread.state}")
+                        stack.take(16).forEach { Log.e("WorkoutLibraryUi", it.toString()) }
+                    }
                 throw failure
             }
             compose.onNodeWithText("Your practice").assertIsDisplayed()
