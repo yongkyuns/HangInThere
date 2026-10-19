@@ -82,3 +82,19 @@ This is a geometry primitive for ongoing detection work. It does not emit events
 or change the shipping counter. Source continuity, actual finite apparatus,
 camera stability, grip contact and exercise identity need independent gates;
 displacement and hand retention alone cannot establish a rep, load or dip depth.
+
+`BilateralDipMotion` is a separate version-1 image-motion policy. It requires the
+actual retained two-rail acquisition reference, current matched MCPs, current
+camera evidence, both measured starting arms, bilateral travel and a sustained
+measured return. It preserves exact source-clock dwell/gap bounds and tracks each
+arm's unfinished return as negative evidence, preventing a new descent from being
+joined into an older cycle. Camera movement requires support acquired after that
+movement. Its output is explicitly `imageCycles`, with partial and interrupted
+observations separate; it does not change policy-8 counts or establish anatomical
+depth, form or load. Native owners must preserve acquisition pixel provenance;
+serializing a reference cannot prove that provenance. Common JVM/Native tests and
+actual Apple FFI checks guard the policy. The Apple `native/apple` package supplies
+bounded ordered Canny pixels; `VisionDipObservationWorker` joins fresh native MCP
+observations to the original primary pose and runs common acquisition off the UI
+thread. Live counting/analytics integration and mobile performance qualification
+remain separate work.

@@ -3,14 +3,23 @@ import WorkoutCore
 
 /// Actual stateful Native FFI; authored geometry cannot qualify apparatus or reps.
 enum CurvedDipRailAcquisitionBridgeCheck {
-    static func run() throws -> Int {
-        func json(_ value: Any) throws -> String {
-            String(decoding: try JSONSerialization.data(withJSONObject: value), as: UTF8.self)
-        }
-        func object(_ value: String) throws -> [String: Any] {
-            try JSONSerialization.jsonObject(with: Data(value.utf8)) as! [String: Any]
-        }
+    private static func json(_ value: Any) throws -> String {
+        String(decoding: try JSONSerialization.data(withJSONObject: value), as: UTF8.self)
+    }
+    private static func object(_ value: String) throws -> [String: Any] {
+        try JSONSerialization.jsonObject(with: Data(value.utf8)) as! [String: Any]
+    }
+    static func acquiredReference() throws -> [String: Any] {
         let engine = CurvedDipRailAcquisitionBridge()
+        let rails = try candidates(engine: engine)
+        var result: [String: Any] = [:]
+        for ticks in [0, 300, 600, 900] {
+            result = try object(engine.observeJson(input: json(["pose": BilateralGripDisplacementBridgeCheck.frame(ticks: ticks),
+                "generation": engine.generation, "candidates": rails])))
+        }
+        return result["reference"] as! [String: Any]
+    }
+    private static func candidates(engine: CurvedDipRailAcquisitionBridge) throws -> [[[String: Any]]] {
         let frame = BilateralGripDisplacementBridgeCheck.frame()
         let search = try object(engine.searchJson(input: json(frame))!)
         precondition(search["generation"] as! Int64 == engine.generation)
@@ -30,6 +39,17 @@ enum CurvedDipRailAcquisitionBridgeCheck {
             let all = try JSONSerialization.jsonObject(with: Data(result.utf8)) as! [[String: Any]]
             return [all.max { ($0["supportArcPixels"] as! Double) < ($1["supportArcPixels"] as! Double) }!]
         }
+        return rails
+    }
+    static func run() throws -> Int {
+        func json(_ value: Any) throws -> String {
+            String(decoding: try JSONSerialization.data(withJSONObject: value), as: UTF8.self)
+        }
+        func object(_ value: String) throws -> [String: Any] {
+            try JSONSerialization.jsonObject(with: Data(value.utf8)) as! [String: Any]
+        }
+        let engine = CurvedDipRailAcquisitionBridge()
+        let rails = try candidates(engine: engine)
         func observe(_ ticks: Int, generation: Int64? = nil, values: [[[String: Any]]]? = nil) throws -> [String: Any] {
             try object(engine.observeJson(input: json(["pose": BilateralGripDisplacementBridgeCheck.frame(ticks: ticks),
                 "generation": generation ?? engine.generation, "candidates": values ?? rails])))

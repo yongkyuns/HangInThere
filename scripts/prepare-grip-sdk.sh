@@ -31,3 +31,7 @@ for DOMAIN in Common Vision; do
     fi
   done
 done
+
+# The pixel adapter shares this SDK's private OpenCV; check headers and every
+# required C++ symbol on device and both simulator architectures before linking.
+python3 "$ROOT/native/apple/check-ios-sdk.py" "$DEST"

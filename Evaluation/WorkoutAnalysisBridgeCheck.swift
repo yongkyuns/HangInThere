@@ -14,6 +14,7 @@ struct WorkoutAnalysisBridgeCheck {
         let sceneConsensusChecks = SceneConsensusBridgeCheck.run()
         let observedRailChecks = try ObservedRailFitterBridgeCheck.run()
         let curvedAcquisitionChecks = try CurvedDipRailAcquisitionBridgeCheck.run()
+        let bilateralDipMotionChecks = try BilateralDipMotionBridgeCheck.run()
         var completed: [WorkoutSetRecord] = []
         let reference = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
         func pose(_ time: Double, _ angle: Double, exercise: ExerciseCounter.Exercise) -> PoseResult {
@@ -733,6 +734,7 @@ struct WorkoutAnalysisBridgeCheck {
             "sceneConsensusCases": sceneConsensusChecks,
             "observedRailFitterCases": observedRailChecks,
             "curvedDipRailAcquisitionCases": curvedAcquisitionChecks,
+            "bilateralDipMotionCases": bilateralDipMotionChecks,
             "estimatedBodyGeometryHostBridgeP95Milliseconds": estimatedGeometry.p95,
             "unconfirmedDipReturnCases": 4,
             "readinessHostBridgeP95Milliseconds": readinessP95,

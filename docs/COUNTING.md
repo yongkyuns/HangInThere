@@ -1,5 +1,23 @@
 # Current counting policy (v8)
 
+`BilateralDipMotion` v1 is a separate image-motion engine under integration.
+It uses two fresh, independently observed hand MCP centres, finite curved rail
+boundaries and current scene registration. Both measured arms must establish a
+stable starting support, travel and sustain their return before an image cycle
+is emitted. A missing elbow cannot establish the start or return. Gaps, camera
+movement, stale observations and unresolved returns interrupt that evidence.
+Its output does not verify anatomical depth, form or load and must never be
+serialized as an ExerciseCounter v8 result. The current live/replay controllers
+still use v8; adding this engine and its native adapter does not enable it there.
+
+Local source replay of a labelled four-dip recording from two simultaneous views
+produces four image cycles in each view. The actual Kotlin/Native and JVM engines
+agree on every one of 227 observations. The iOS SDK's OpenCV 4.5.3 extraction
+matches all ordered contour pixels from 304 source crops against the macOS 4.11
+adapter. These checks do not establish Android native vision or physical-phone
+throughput parity. The original public-video accuracy gate remains mandatory
+and currently fails; none of its labels or matching rules have changed.
+
 Pull-up behavior retains policy v7. Dip behavior uses the support-relative policy
 below; saved summaries record `selectedGripWithAvailableArms` for dips.
 

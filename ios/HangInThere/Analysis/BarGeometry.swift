@@ -26,7 +26,7 @@ struct BarSegment: Codable, Equatable, Sendable {
     }
 }
 
-struct BarRegion: Equatable, Sendable {
+struct BarRegion: Codable, Equatable, Sendable {
     let minX: Double, minY: Double, maxX: Double, maxY: Double
     var width: Double { maxX - minX }
     var height: Double { maxY - minY }

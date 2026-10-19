@@ -132,6 +132,8 @@ jobs:
           python3 scripts/prepare-fixtures.py
       - name: Prepare pinned real-video corpus
         run: python3 scripts/prepare-video-corpus.py
+      - name: Native contour pixel adapter tests
+        run: swift test --package-path native/apple
       - name: Native macOS real-model and replay integration
         run: ./scripts/test-apple-host.sh
       - name: Retain native test results and provenance

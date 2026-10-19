@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 python3 "$ROOT/scripts/prepare-fixtures.py" --verify-only
 python3 "$ROOT/scripts/prepare-video-corpus.py" --verify-only
 PLATFORM_NAME=macosx ARCHS="$(uname -m)" CONFIGURATION=Debug "$ROOT/scripts/build-workout-core.sh"
+export OBSERVED_RAIL_PACKAGE="$ROOT/native/apple"
 export WORKOUT_FRAMEWORK="$ROOT/build/WorkoutCore/macosx/Debug"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -29,8 +30,10 @@ cat > "$WORK/Package.swift" <<'SWIFT'
 import PackageDescription
 import Foundation
 let framework = ProcessInfo.processInfo.environment["WORKOUT_FRAMEWORK"]!
-let package = Package(name: "HangInThereAppleHostTests", platforms: [.macOS(.v14)], targets: [
-    .target(name: "HangInThere", swiftSettings: [.unsafeFlags(["-F", framework])],
+let pixels = ProcessInfo.processInfo.environment["OBSERVED_RAIL_PACKAGE"]!
+let package = Package(name: "HangInThereAppleHostTests", platforms: [.macOS(.v14)],
+    dependencies: [.package(path: pixels)], targets: [
+    .target(name: "HangInThere", dependencies: [.product(name: "ObservedRailPixels", package: "apple")], swiftSettings: [.unsafeFlags(["-F", framework])],
             linkerSettings: [.unsafeFlags(["-F", framework, "-framework", "WorkoutCore", "-lc++"])]),
     .testTarget(name: "HangInThereTests", dependencies: ["HangInThere"],
                 resources: [.copy("Fixtures")], swiftSettings: [.unsafeFlags(["-F", framework])])
