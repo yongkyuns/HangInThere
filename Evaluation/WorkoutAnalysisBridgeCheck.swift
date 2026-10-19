@@ -9,6 +9,7 @@ struct WorkoutAnalysisBridgeCheck {
         if CommandLine.arguments.count > 1 { try checkSavedObservations(); return }
         try WorkoutReliabilityBridgeCheck.run()
         let estimatedGeometry = try EstimatedBodyGeometryBridgeCheck.run()
+        let observedCurveChecks = ObservedCurveBridgeCheck.run()
         var completed: [WorkoutSetRecord] = []
         let reference = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
         func pose(_ time: Double, _ angle: Double, exercise: ExerciseCounter.Exercise) -> PoseResult {
@@ -723,6 +724,7 @@ struct WorkoutAnalysisBridgeCheck {
             "acquisitionFramingHostBridgeP95Milliseconds": acquisitionP95,
             "readinessCases": readinessChecks, "readinessFrames": 2000,
             "estimatedBodyGeometryCases": estimatedGeometry.checks, "estimatedBodyGeometryFrames": 2000,
+            "observedCurveGeometryCases": observedCurveChecks,
             "estimatedBodyGeometryHostBridgeP95Milliseconds": estimatedGeometry.p95,
             "unconfirmedDipReturnCases": 4,
             "readinessHostBridgeP95Milliseconds": readinessP95,

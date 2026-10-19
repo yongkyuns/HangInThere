@@ -25,3 +25,11 @@ On macOS, `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` builds the
 simulator framework. The shipping Apple adapter is also exercised by `scripts/test-workout-bridge.sh`.
 Framework compilation alone is not performance qualification. See [architecture and qualification](../docs/ANDROID.md)
 for the native-adapter contracts and remaining platform differences.
+
+`ObservedCurveGeometry` supplies bounded finite-curve distance and correspondence
+for curved feature observations. It compares local directions over the common
+observed subarc so clipping an endpoint cannot create a different tangent window.
+The JVM, Kotlin Native and Apple bridge checks exercise that contract. It is a
+geometry primitive for ongoing curved-support work; the shipping automatic
+apparatus path still requires `ConfirmedBar` and its observed straight edge.
+A curve match alone supplies no grip, body load, workout start or rep evidence.

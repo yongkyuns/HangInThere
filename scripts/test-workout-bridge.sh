@@ -10,7 +10,8 @@ swiftc -swift-version 6 -parse-as-library -O -whole-module-optimization -F "$FRA
   ios/HangInThere/Analysis/*.swift ios/HangInThere/App/WorkoutAnalysisAdapter.swift \
   ios/HangInThere/App/WorkoutProgression.swift ios/HangInThere/App/WorkoutGripReview.swift \
   Evaluation/WorkoutAnalysisBridgeCheck.swift Evaluation/WorkoutReliabilityBridgeCheck.swift \
-  Evaluation/EstimatedBodyGeometryBridgeCheck.swift -o build/workout-analysis/apple-bridge-check
+  Evaluation/EstimatedBodyGeometryBridgeCheck.swift Evaluation/ObservedCurveBridgeCheck.swift \
+  -o build/workout-analysis/apple-bridge-check
 build/workout-analysis/apple-bridge-check "$@"
 
 python3 scripts/check-native-workout-export.py build/workout-analysis/native-benchmark-session.json
