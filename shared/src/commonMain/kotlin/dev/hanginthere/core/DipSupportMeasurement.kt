@@ -10,6 +10,7 @@ data class DipSupportMeasurement private constructor(
 ) {
     companion object {
         const val startingDegrees = 140.0
+        const val gripRetentionArmFraction = 0.12
         fun create(pose: PoseResult, side: ArmMeasurement.Side, referenceEdge: BarSegment): DipSupportMeasurement? {
             if (!pose.imageSize.isValid || !referenceEdge.isValid || pose.people.size != 1 ||
                 !listOf(referenceEdge.a, referenceEdge.b).all { it.x in 0.0..pose.imageSize.width && it.y in 0.0..pose.imageSize.height }) return null
@@ -52,7 +53,7 @@ data class DipSupportMeasurement private constructor(
         }
         fun height(shoulder: Point2D): Double = (shoulder.x - wrist.x) * axis.x + (shoulder.y - wrist.y) * axis.y
         fun retainsGrip(sample: DipSupportMeasurement): Boolean =
-            hypot(sample.wrist.x - wrist.x, sample.wrist.y - wrist.y) <= 0.12 * armLength
+            hypot(sample.wrist.x - wrist.x, sample.wrist.y - wrist.y) <= gripRetentionArmFraction * armLength
         fun isStableStart(sample: DipSupportMeasurement): Boolean = sample.isStartingSupport && retainsGrip(sample) &&
             hypot(sample.shoulder.x - shoulder.x, sample.shoulder.y - shoulder.y) <= 0.08 * armLength
     }
