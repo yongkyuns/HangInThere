@@ -24,3 +24,15 @@ internal object DipRailSearchGeometry {
         }.takeIf { it.isValid(size) }
     }
 }
+
+/** Narrow Apple boundary to the same measured search geometry used on Android.
+ * Inputs keep their original point roles: a body wrist or an independent hand
+ * feature is never replaced here. A failed validation returns no crop, not a
+ * default arm length. No apparatus, contact, identity or count is qualified. */
+class DipRailSearchGeometryBridge {
+    val policyVersion: Int get() = AutomaticDipRails.contactSearchPolicyVersion
+    fun region(shoulderX: Double, shoulderY: Double, gripX: Double, gripY: Double,
+               imageWidth: Double, imageHeight: Double, upperArmPixels: Double): BarRegion? =
+        DipRailSearchGeometry.region(Point2D(shoulderX, shoulderY), Point2D(gripX, gripY),
+            ImageSize(imageWidth, imageHeight), upperArmPixels)
+}

@@ -117,6 +117,8 @@ class AutomaticDipRails {
         state=AutomaticPullUpBar.State.locked;return bar
     }
     companion object {
+        /** Measured-arm search context; contour/qualification rules are unchanged. */
+        const val contactSearchPolicyVersion = 2
         fun grip(pose:PoseResult):Grip? = grip(pose,requiresTopSupport=false)
         fun isStartingPosition(pose:PoseResult):Boolean = grip(pose,requiresTopSupport=true)!=null
         private fun grip(pose:PoseResult,requiresTopSupport:Boolean):Grip? {
@@ -145,7 +147,7 @@ class AutomaticDipRails {
         }
         /** Same body-excluding crop for bilateral and single observed contacts. */
         internal fun contactRegion(arm:PullUpArmMeasurement.Arm,size:ImageSize):BarRegion? {
-            return contactRegion(arm.shoulder,arm.wrist,size)
+            return DipRailSearchGeometry.region(arm.shoulder,arm.wrist,size,arm.estimate.upperArmPixels)
         }
         internal fun contactRegion(shoulder:Point2D,hand:Point2D,size:ImageSize):BarRegion? {
             val short=min(size.width,size.height)

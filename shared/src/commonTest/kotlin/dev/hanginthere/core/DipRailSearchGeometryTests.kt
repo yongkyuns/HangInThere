@@ -8,6 +8,52 @@ import kotlin.math.hypot
 import kotlin.test.*
 
 class DipRailSearchGeometryTests {
+    private fun measured(shoulder: Point2D, wrist: Point2D, upper: Double) = PullUpArmMeasurement.Arm(
+        ArmMeasurement.Side.left, ArmMeasurement.Estimate(150.0, upper, 100.0, .9), shoulder, wrist)
+
+    @Test fun legacyMeasuredArmAndAppleBridgeUseTheSameValidatedSearchContext() {
+        val s = Point2D(602.1220779418945, 143.5483020544052)
+        val w = Point2D(741.2384033203125, 348.49893450737)
+        val radius = 169.32094225849218
+        val arm = measured(s, w, radius)
+        val expected = assertNotNull(DipRailSearchGeometry.region(s, w, size, radius))
+        assertEquals(expected, AutomaticDipRails.contactRegion(arm, size))
+        val bridge = DipRailSearchGeometryBridge()
+        assertEquals(2, bridge.policyVersion)
+        assertEquals(expected, bridge.region(s.x, s.y, w.x, w.y, size.width, size.height, radius))
+        assertEquals(910.5593455788047, expected.maxX, 1e-9)
+        for (bad in listOf(Double.NaN, Double.POSITIVE_INFINITY, 0.0, -1.0)) {
+            assertNull(bridge.region(s.x, s.y, w.x, w.y, size.width, size.height, bad))
+            assertNull(AutomaticDipRails.contactRegion(measured(s, w, bad), size))
+        }
+    }
+
+    @Test fun bilateralAndSingleLegacySearchesExpandOnlyTheirOwnMeasuredArm() {
+        val original = BilateralGripFixtures.frame()
+        val points = original.people.single().landmarks.map { when (it.joint) {
+            PoseJoint.leftShoulder -> it.copy(position = Point2D(150.0, 200.0))
+            PoseJoint.rightShoulder -> it.copy(position = Point2D(550.0, 200.0))
+            else -> it
+        } }
+        val pose = original.copy(people = listOf(PoseObservation(points)))
+        val search = assertNotNull(AutomaticApparatusReference.search(pose, ExerciseCounter.Exercise.dip))
+        val arms = PullUpArmMeasurement(pose).arms
+        assertEquals(3, search.regions.size)
+        for ((index, arm) in arms.withIndex()) {
+            assertEquals(DipRailSearchGeometry.region(arm.shoulder, arm.wrist, pose.imageSize,
+                arm.estimate.upperArmPixels), search.regions[index])
+            val single = pose.copy(people = listOf(PoseObservation(points.filter { it.joint in arm.side.joints })))
+            val contact = assertNotNull(AutomaticSingleDipRail.contact(single))
+            assertEquals(search.regions[index], contact.region)
+        }
+        val asymmetric = pose.copy(people = listOf(PoseObservation(points.map {
+            if (it.joint == PoseJoint.rightElbow) it.copy(position = Point2D(600.0, 500.0)) else it
+        })))
+        val next = assertNotNull(AutomaticApparatusReference.search(asymmetric, ExerciseCounter.Exercise.dip))
+        assertEquals(search.regions[0], next.regions[0])
+        assertTrue(next.regions[1].minX < search.regions[1].minX)
+        assertEquals(search.regions.last(), next.regions.last(), "Shared central-bar context is independent of local crops")
+    }
     private val size = ImageSize(960.0, 540.0)
     // Actual dip_side source frame85 (PTS127628/90000), native full-image
     // independently observed MCP centre and original Lite arm measurement.

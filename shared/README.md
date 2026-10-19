@@ -100,7 +100,14 @@ upper-arm length, while preserving the original body exclusion, vertical range
 and image bounds. Missing arm length or unresolved outward direction retains the
 original crop. This addresses the verified source-frame case where the old crop
 left less than the minimum observed rail arc beside an occluding hand. The association search
-reports `searchPolicyVersion: 2`; curved acquisition reports policy 3. These are
+reports `searchPolicyVersion: 2`; curved acquisition reports policy 3. Legacy
+single-rail and bilateral body-wrist searches now use the same outward recipe
+(`AutomaticDipRails.contactSearchPolicyVersion: 2`). Production Apple builds call
+`DipRailSearchGeometryBridge`; framework-free Swift tests retain an independent
+oracle. A failed bridge validation supplies no crop. Native source regressions
+cover recovered rail geometry and rejected clothing/hand ambiguity; larger
+crops do not establish contact, identity, acquisition or improved rep accuracy.
+These are
 pixel context changes; proposal ambiguity, finite support, dwell, camera and
 repetition rules still apply independently.
 

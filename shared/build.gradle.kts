@@ -22,6 +22,8 @@ kotlin {
     }
 }
 tasks.named<org.gradle.api.tasks.testing.Test>("jvmTest") {
+    inputs.file(rootProject.file("Evaluation/fixtures/legacy-dip-search-context.json"))
+        .withPropertyName("legacyDipSearchContext").withPathSensitivity(PathSensitivity.RELATIVE)
     // These tests read external Swift snapshots and export evidence. Gradle
     // otherwise considers a new oracle/report path identical to a prior run.
     for ((name, relative) in listOf("WORKOUT_ORACLE" to "build/workout-oracle/oracle.json",

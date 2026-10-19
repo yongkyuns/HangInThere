@@ -11,6 +11,7 @@ struct WorkoutAnalysisBridgeCheck {
         let estimatedGeometry = try EstimatedBodyGeometryBridgeCheck.run()
         let observedCurveChecks = ObservedCurveBridgeCheck.run()
         let personRegionChecks = PersonInferenceRegionBridgeCheck.run()
+        let dipSearchGeometry = try DipRailSearchGeometryBridgeCheck.run()
         let bilateralGripChecks = try BilateralGripDisplacementBridgeCheck.run()
         let sceneConsensusChecks = SceneConsensusBridgeCheck.run()
         let observedRailChecks = try ObservedRailFitterBridgeCheck.run()
@@ -723,7 +724,7 @@ struct WorkoutAnalysisBridgeCheck {
         let readinessP95 = readinessLatencies[Int(Double(readinessLatencies.count - 1) * 0.95)]
         // Retain every measured path before enforcing budgets, so a slow analysis
         // path cannot hide the framing measurements. Failure still exits nonzero.
-        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95, acquisitionP95, readinessP95, estimatedGeometry.p95].allSatisfy { $0 < 5 }
+        let withinHostBudgets = [p95, gripP95, framingP95, overheadP95, gripVisibilityP95, acquisitionP95, readinessP95, estimatedGeometry.p95, dipSearchGeometry.p95].allSatisfy { $0 < 5 }
         let result: [String: Any] = ["framingFeedbackCases": 19, "framingCases": 12, "framingFrames": 2000, "overheadFramingFrames": 2000, "overheadFramingHostBridgeP95Milliseconds": overheadP95, "framingHostBridgeP95Milliseconds": framingP95, "gripInferenceCases": 2, "gripCorrectionCases": 2, "gripTransportCases": 1, "gripFrames": 2000, "gripHostBridgeP95Milliseconds": gripP95, "practiceCases": 2, "passed": withinHostBudgets, "cases": 2, "timestampRegressionCases": 4, "frames": 2000, "activeReps": activeSet.acceptedCount, "persistenceSets": 55, "hostBridgeP95Milliseconds": p95,
             "gripVisibilityCases": 7, "gripVisibilityFeedbackCases": 3, "gripVisibilityFramingFrames": 2000,
             "gripVisibilityFramingHostBridgeP95Milliseconds": gripVisibilityP95,
@@ -733,6 +734,8 @@ struct WorkoutAnalysisBridgeCheck {
             "estimatedBodyGeometryCases": estimatedGeometry.checks, "estimatedBodyGeometryFrames": 2000,
             "observedCurveGeometryCases": observedCurveChecks,
             "personInferenceRegionCases": personRegionChecks,
+            "dipRailSearchGeometryCases": dipSearchGeometry.checks,
+            "dipRailSearchGeometryHostBridgeP95Milliseconds": dipSearchGeometry.p95,
             "bilateralGripDisplacementCases": bilateralGripChecks,
             "sceneConsensusCases": sceneConsensusChecks,
             "observedRailFitterCases": observedRailChecks,

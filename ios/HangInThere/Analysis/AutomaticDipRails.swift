@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(WorkoutCore)
+import class WorkoutCore.DipRailSearchGeometryBridge
+#endif
 
 // Shared fixed-reference dwell. Hands locate the search, while every returned
 // segment remains an observed image edge. Supports vertical projected rails.
@@ -147,15 +150,30 @@ struct AutomaticDipRails: Sendable {
         return Grip(hands: hands, regions: regions)
     }
 
-    // Shared body-excluding crop for either contact mode.
+    // Production Apple/Android use the same measured outward search context.
+    // The framework-free implementation remains an independent CI oracle.
+    static let contactSearchPolicyVersion = 2
     static func contactRegion(arm: PullUpArmMeasurement.Arm, size: ImageSize) -> BarRegion? {
+        #if canImport(WorkoutCore)
+        guard let region = DipRailSearchGeometryBridge().region(shoulderX: arm.shoulder.x, shoulderY: arm.shoulder.y,
+            gripX: arm.wrist.x, gripY: arm.wrist.y, imageWidth: size.width, imageHeight: size.height,
+            upperArmPixels: arm.estimate.upperArmPixels) else { return nil }
+        return BarRegion(.init(x: region.minX, y: region.minY), .init(x: region.maxX, y: region.maxY))
+        #else
+        let radius = arm.estimate.upperArmPixels
+        guard size.isValid, arm.shoulder.isFinite, arm.wrist.isFinite, radius.isFinite, radius > 0,
+              [arm.shoulder, arm.wrist].allSatisfy({ (0...size.width).contains($0.x) && (0...size.height).contains($0.y) })
+        else { return nil }
         let short = min(size.width, size.height), hand = arm.wrist
         var minX = max(0, hand.x - short * 0.12), maxX = min(size.width, hand.x + short * 0.12)
         if hand.x - arm.shoulder.x > short * 0.04 { minX = max(minX, (hand.x + arm.shoulder.x) / 2) }
         if arm.shoulder.x - hand.x > short * 0.04 { maxX = min(maxX, (hand.x + arm.shoulder.x) / 2) }
+        if hand.x - arm.shoulder.x > short * 0.04 { maxX = min(size.width, max(maxX, hand.x + radius)) }
+        if arm.shoulder.x - hand.x > short * 0.04 { minX = max(0, min(minX, hand.x - radius)) }
         let region = BarRegion(.init(x: minX, y: max(0, hand.y - short * 0.08)),
                                .init(x: maxX, y: min(size.height, hand.y + short * 0.20)))
         return region.isValid(in: size) ? region : nil
+        #endif
     }
 
     static func select(candidates: [BarLineCandidate], hand: Point2D, size: ImageSize,
