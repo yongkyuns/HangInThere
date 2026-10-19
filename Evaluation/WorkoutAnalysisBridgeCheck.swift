@@ -13,6 +13,7 @@ struct WorkoutAnalysisBridgeCheck {
         let personRegionChecks = PersonInferenceRegionBridgeCheck.run()
         let dipSearchGeometry = try DipRailSearchGeometryBridgeCheck.run()
         let bilateralGripChecks = try BilateralGripDisplacementBridgeCheck.run()
+        let observedWristChecks = try ObservedWristAssociationBridgeCheck.run()
         let sceneConsensusChecks = SceneConsensusBridgeCheck.run()
         let observedRailChecks = try ObservedRailFitterBridgeCheck.run()
         let curvedAcquisitionChecks = try CurvedDipRailAcquisitionBridgeCheck.run()
@@ -737,6 +738,7 @@ struct WorkoutAnalysisBridgeCheck {
             "dipRailSearchGeometryCases": dipSearchGeometry.checks,
             "dipRailSearchGeometryHostBridgeP95Milliseconds": dipSearchGeometry.p95,
             "bilateralGripDisplacementCases": bilateralGripChecks,
+            "observedWristAssociationCases": observedWristChecks,
             "sceneConsensusCases": sceneConsensusChecks,
             "observedRailFitterCases": observedRailChecks,
             "curvedDipRailAcquisitionCases": curvedAcquisitionChecks,

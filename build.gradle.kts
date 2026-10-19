@@ -11,7 +11,7 @@ plugins {
 // Keep evaluation media and unrelated fixtures out of the test APK.
 tasks.register<Sync>("prepareEvaluationTestResources") {
     from(layout.projectDirectory.dir("Evaluation/fixtures")) {
-        include("legacy-dip-search-context.json")
+        include("legacy-dip-search-context.json", "observed-wrist-source.json")
     }
     into(layout.buildDirectory.dir("generated/evaluation-test-resources"))
 }

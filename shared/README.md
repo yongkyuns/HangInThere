@@ -102,6 +102,19 @@ and adds `-wrist_mcp_v1` to its source model ID. Existing acquisition keeps the
 three-MCP default. A format change can therefore revoke future temporal evidence
 without changing the actual pose model or silently mixing feature streams.
 
+`ObservedWristAssociation` provides the narrower wrist-only correspondence for
+partial hand observations. It retains current primary and independent hand wrist
+coordinates separately and needs neither fingers nor elbows. A unique person
+match preserves all overlapping side candidates; multiple hands competing for a
+body wrist and unresolved cross-person hands remain explicit. An empty competition
+list therefore does not prove independent limbs. Providers that actually omit
+joint scores need an explicit capability flag; reported low scores are still
+rejected and handedness confidence never becomes joint confidence. Exact original
+rational timing and tracked-body source binding remain required. Native owners
+retain image and source-epoch ownership. Common, Apple ABI and Android source
+fixture checks protect this contract; it is not connected to counting or apparatus
+acquisition.
+
 Dip pixel searches share `DipRailSearchGeometry`. When the hand is clearly
 lateral to its measured shoulder, it extends the outward edge by the measured
 upper-arm length, while preserving the original body exclusion, vertical range
