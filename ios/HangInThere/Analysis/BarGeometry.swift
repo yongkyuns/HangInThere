@@ -116,7 +116,7 @@ enum BarLineFitter {
         var exceededCapacity = false
         for contour in contours {
             guard contour.count > 1, contour.allSatisfy({ region.contains($0) }) else { continue }
-            let points = try simplify(contour, tolerance: 1.0, budget: &budget)
+            let points = try ContourSimplification.simplify(contour, tolerance: 1.0, budget: &budget)
             for i in 1..<points.count {
                 let edge = BarSegment(a: points[i - 1], b: points[i])
                 if edge.isValid, edge.length >= 2 { segments.append(edge) }
@@ -255,32 +255,6 @@ enum BarLineFitter {
             || (abs(edge.a.y - region.minY) <= tolerance && abs(edge.b.y - region.minY) <= tolerance)
             || (abs(edge.a.y - region.maxY) <= tolerance && abs(edge.b.y - region.maxY) <= tolerance)
     }
-
-    private static func simplify(_ points: [Point2D], tolerance: Double,
-                                 budget: inout Int) throws -> [Point2D] {
-        guard points.count > 2 else { return points }
-        var keep = Set([0, points.count - 1])
-        var stack = [(0, points.count - 1)]
-        while let (a, b) = stack.popLast() {
-            guard b > a + 1 else { continue }
-            let segment = BarSegment(a: points[a], b: points[b])
-            var farthest = a, distance = tolerance
-            for i in (a + 1)..<b {
-                budget -= 1
-                guard budget >= 0 else { throw BarFitError.tooComplex }
-                let d = segment.isValid
-                    ? segment.distance(to: points[i])
-                    : hypot(points[i].x - points[a].x, points[i].y - points[a].y)
-                if d > distance { distance = d; farthest = i }
-            }
-            if farthest != a {
-                keep.insert(farthest)
-                stack.append((a, farthest))
-                stack.append((farthest, b))
-            }
-        }
-        return keep.sorted().map { points[$0] }
-    }
 }
 
 enum BarFitError: Error { case tooComplex, invalidRegion, invalidContour, invalidMinimumObservedLength }
@@ -301,7 +275,7 @@ enum BarFitter {
             guard contour.count > 2, contour.allSatisfy({ region.contains($0) }) else { continue }
             var closed = contour
             if closed.first != closed.last { closed.append(closed[0]) }
-            let points = try simplify(closed, tolerance: 1.5, budget: &workBudget)
+            let points = try ContourSimplification.simplify(closed, tolerance: 1.5, budget: &workBudget)
             for i in 1..<points.count {
                 let line = BarSegment(a: points[i-1], b: points[i]).ordered
                 guard line.isValid, line.length >= minimumLength else { continue }
@@ -372,24 +346,48 @@ enum BarFitter {
         return BarCandidate(firstEdge: BarSegment(a: a, b: b), secondEdge: BarSegment(a: c, b: d),
                             geometryScore: (hi-lo)*abs(dot))
     }
+}
 
-    private static func simplify(_ points: [Point2D], tolerance: Double, budget: inout Int) throws -> [Point2D] {
+// Framework-free Swift oracle and fallback for both observed-edge fitters.
+// Match the common core's squared finite-segment comparison without a tolerance
+// epsilon, and preserve source order when deviations tie.
+enum ContourSimplification {
+    static func simplify(_ points: [Point2D], tolerance: Double,
+                         budget: inout Int) throws -> [Point2D] {
         guard points.count > 2 else { return points }
-        var keep = Set([0, points.count-1])
-        var stack = [(0, points.count-1)]
+        var keep = Set([0, points.count - 1])
+        var stack = [(0, points.count - 1)]
         while let (a, b) = stack.popLast() {
-            guard b > a+1 else { continue }
-            let segment = BarSegment(a: points[a], b: points[b])
-            var farthest = a, distance = tolerance
-            for i in (a+1)..<b {
+            guard b > a + 1 else { continue }
+            var farthest = a, distance = tolerance * tolerance
+            for i in (a + 1)..<b {
                 budget -= 1
                 guard budget >= 0 else { throw BarFitError.tooComplex }
-                let d = segment.isValid ? segment.distance(to: points[i]) : hypot(points[i].x-points[a].x, points[i].y-points[a].y)
+                let d = try squaredDeviation(points[i], from: points[a], to: points[b])
+                guard d.isFinite else { throw BarFitError.invalidContour }
                 if d > distance { distance = d; farthest = i }
             }
-            if farthest != a { keep.insert(farthest); stack.append((a, farthest)); stack.append((farthest, b)) }
+            if farthest != a {
+                keep.insert(farthest)
+                stack.append((a, farthest))
+                stack.append((farthest, b))
+            }
         }
         return keep.sorted().map { points[$0] }
+    }
+
+    private static func squaredDeviation(_ p: Point2D, from a: Point2D, to b: Point2D) throws -> Double {
+        let dx = b.x - a.x, dy = b.y - a.y, px = p.x - a.x, py = p.y - a.y
+        let lengthSquared = dx * dx + dy * dy
+        let projection = px * dx + py * dy
+        guard lengthSquared.isFinite else { throw BarFitError.invalidContour }
+        if lengthSquared < 4 || projection <= 0 { return px * px + py * py }
+        if projection >= lengthSquared {
+            let qx = p.x - b.x, qy = p.y - b.y
+            return qx * qx + qy * qy
+        }
+        let cross = dx * py - dy * px
+        return cross * cross / lengthSquared
     }
 }
 

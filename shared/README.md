@@ -66,6 +66,14 @@ point/run/candidate bounds and a shared work budget prevent bridging rejected
 pixels or unbounded geometry work. Native adapters still own edge extraction;
 this fitter supplies geometric proposals and does not confirm apparatus identity,
 two distinct rails, camera stability, contact, a set start or a repetition.
+Contour simplification compares squared finite-segment deviations at the original
+tolerance, keeping the first source vertex on exact ties. This avoids using a
+rounded `hypot` length twice when selecting vertices on the Canny half-pixel grid.
+Proposals retain contour/run enumeration order; their first position is not a
+quality ranking. Consumers must assess all alternatives. Platform rounding in
+distance metrics must not choose a different proposal or erase an alternative.
+Nonfinite intermediate squared geometry is rejected explicitly instead of
+silently selecting a vertex; the comparison is intended for source-raster pixels.
 The explicit `finiteEdges` mode also retains observed straight subpaths, with the
 same reciprocal finite support, width and work bounds. `aroundGrip` permits a
 tube to project above an independently estimated MCP centre; it uses the supplied

@@ -141,6 +141,13 @@ class ObservedRailFitterTests {
         assertTrue(pairs.any { it.firstContour == 1 && it.secondContour == 2 })
     }
 
+    @Test fun proposalEnumerationDoesNotUseProximityAsASemanticRanking() {
+        val pairs = ObservedRailFitter.candidates(listOf(80.0, 100.0, 115.0).map { RailContour(arc(it), true) },
+            region, size, grip)
+        assertEquals(listOf(0 to 1, 0 to 2, 1 to 2), pairs.map { it.firstContour to it.secondContour })
+        assertTrue(pairs.first().contactDistancePixels > pairs.last().contactDistancePixels)
+    }
+
     @Test fun emittedBoundariesRetainSourceVerticesInsteadOfJoiningIntersectionChords() {
         val contours = listOf(arc(80.0), arc(100.0))
         val pairs = fit()

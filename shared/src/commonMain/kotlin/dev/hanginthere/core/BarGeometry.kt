@@ -99,11 +99,31 @@ object BarFitter {
         val keep=mutableSetOf(0,points.size-1);val stack=mutableListOf(0 to points.size-1)
         while(stack.isNotEmpty()) {
             val (a,b)=stack.removeAt(stack.lastIndex);if(b<=a+1) continue
-            val segment=BarSegment(points[a],points[b]);var farthest=a;var distance=tolerance
-            for(i in a+1 until b) {spend();val d=if(segment.isValid) segment.distance(points[i]) else hypot(points[i].x-points[a].x,points[i].y-points[a].y);if(d>distance){distance=d;farthest=i}}
+            var farthest=a;var distance=tolerance*tolerance
+            for(i in a+1 until b) {
+                spend();val d=squaredDeviation(points[i],points[a],points[b])
+                if(!d.isFinite()) throw BarFitException("invalidContour")
+                if(d>distance){distance=d;farthest=i}
+            }
             if(farthest!=a){keep.add(farthest);stack.add(a to farthest);stack.add(farthest to b)}
         }
         return keep.sorted().map{points[it]}
+    }
+    // Compare squared finite-segment deviations directly. Squaring a rounded
+    // hypot length in the projection and then taking another hypot can choose
+    // different farthest vertices on JVM and Native, even on half-pixel Canny
+    // contours. Equal deviations keep the first source vertex; neither the
+    // simplification tolerance nor the work budget gains an epsilon.
+    private fun squaredDeviation(p:Point2D,a:Point2D,b:Point2D):Double {
+        val dx=b.x-a.x;val dy=b.y-a.y;val px=p.x-a.x;val py=p.y-a.y
+        val lengthSquared=dx*dx+dy*dy
+        val projection=px*dx+py*dy
+        if(!lengthSquared.isFinite()) throw BarFitException("invalidContour")
+        // Preserve the existing short/degenerate-segment fallback to a.
+        if(lengthSquared<4 || projection<=0) return px*px+py*py
+        if(projection>=lengthSquared) {val qx=p.x-b.x;val qy=p.y-b.y;return qx*qx+qy*qy}
+        val cross=dx*py-dy*px
+        return cross*cross/lengthSquared
     }
 }
 /**

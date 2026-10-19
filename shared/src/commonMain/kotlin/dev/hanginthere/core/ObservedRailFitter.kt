@@ -101,8 +101,10 @@ object ObservedRailFitter {
                 matched.arc, matched.narrow, matched.wide, distance)
             if (result.size > maximumCandidates) throw BarFitException("tooComplex")
         }
-        return result.sortedWith(compareBy<ObservedRailCandidate> { it.contactDistancePixels }
-            .thenByDescending { it.supportArcPixels }.thenBy { it.firstContour }.thenBy { it.secondContour })
+        // Preserve contour/run enumeration, including every alternative.
+        // Sub-ULP hypot differences must not reorder equivalent proposals on
+        // JVM and Native. Proximity is a bound, not a semantic quality score.
+        return result
     }
 
     private fun addRuns(points: List<Point2D>, index: Int, dark: Boolean, minimum: Double, size: ImageSize,

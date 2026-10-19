@@ -193,6 +193,29 @@ class CurvedDipRailAcquisitionTests {
         assertNotNull(result)
     }
 
+    @Test fun compatibleAlternativesCanChangeRepresentativeWithoutRestartingObservedDwell() {
+        val engine = CurvedDipRailAcquisition()
+        val hands = assertNotNull(engine.search(pose())).hands
+        val alternatives = candidates.mapIndexed { side, values ->
+            shifted(values.single(), 1.0, hands[side]).copy(firstContour = 2, secondContour = 3)
+        }
+        var result: CurvedDipRailAcquisition.Reference? = null
+        for ((index, time) in listOf(0L, 300L, 600L, 900L).withIndex()) {
+            val values = candidates.mapIndexed { side, original ->
+                if (index % 2 == 0) original + alternatives[side] else listOf(alternatives[side]) + original
+            }
+            result = observe(engine, time, values)
+            assertEquals(index + 1, engine.diagnostic.observations)
+            assertEquals(time / 1000.0, engine.diagnostic.stableSeconds, 1e-12)
+            assertEquals(index == 3, result != null)
+        }
+        val reference = assertNotNull(result)
+        // The last qualifying frame's first compatible observation owns the
+        // representative. A different metric ranking supplies no extra dwell.
+        assertEquals(alternatives[0], reference.left)
+        assertEquals(alternatives[1], reference.right)
+    }
+
     @Test fun malformedAlternativeCannotHideBehindAValidProposal() {
         for (bad in listOf(candidates[0][0].copy(firstContour = -1), candidates[0][0].copy(minimumWidthPixels = Double.NaN),
             candidates[0][0].copy(contactDistancePixels = 0.0))) {

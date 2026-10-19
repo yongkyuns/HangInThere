@@ -3,6 +3,31 @@ import Testing
 @testable import HangInThere
 
 @Suite struct BarGeometryTests {
+    @Test func contourSimplificationUsesExactFiniteSquaredDeviationAndSourceTies() throws {
+        func simplify(_ points: [Point2D], tolerance: Double = 1) throws -> [Point2D] {
+            var budget = 4_000_000
+            return try ContourSimplification.simplify(points, tolerance: tolerance, budget: &budget)
+        }
+        let threshold = [Point2D(x: 0, y: 0), Point2D(x: 2, y: 1), Point2D(x: 6, y: 8)]
+        for sx in [-1.0, 1.0] { for sy in [-1.0, 1.0] {
+            let input = threshold.map { Point2D(x: 100 + sx * $0.x, y: 100 + sy * $0.y) }
+            #expect(try simplify(input) == [input[0], input[2]])
+        } }
+        #expect(try simplify(threshold, tolerance: 0.999999) == threshold)
+        let tied = [Point2D(x: 0, y: 0), Point2D(x: 3, y: 2), Point2D(x: 7, y: 2), Point2D(x: 10, y: 0)]
+        #expect(try simplify(tied, tolerance: 1.5) == [tied[0], tied[1], tied[3]])
+        #expect(try simplify(tied.reversed(), tolerance: 1.5) == [tied[3], tied[2], tied[0]])
+        let outside = [Point2D(x: 0, y: 0), Point2D(x: 20, y: 0.5), Point2D(x: 10, y: 0)]
+        #expect(try simplify(outside) == outside)
+        let short = [Point2D(x: 0, y: 0), Point2D(x: 1.1, y: 0), Point2D(x: 1, y: 0)]
+        #expect(try simplify(short) == short)
+        for scale in [1e100, 1e200] {
+            #expect(throws: BarFitError.invalidContour) {
+                try simplify([Point2D(x: 0, y: 0), Point2D(x: 2 * scale, y: scale), Point2D(x: 6 * scale, y: 8 * scale)])
+            }
+        }
+    }
+
     @Test func rejectsInvalidRequestedObservedLength() {
         for minimum in [Double.nan, .infinity, -.infinity, -1, 1.999] {
             #expect(throws: BarFitError.invalidMinimumObservedLength) {
