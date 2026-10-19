@@ -44,6 +44,15 @@ geometry primitive for ongoing curved-support work; the shipping automatic
 apparatus path still requires `ConfirmedBar` and its observed straight edge.
 A curve match alone supplies no grip, body load, workout start or rep evidence.
 
+`ObservedRailFitter` pairs finite curved contour boundaries using their local
+directions and reciprocal observed support. It retains curved points instead of
+replacing them with chords, keeps competing proposals for acquisition to assess,
+and checks grip proximity only against the paired subarcs. Raw contour adjacency,
+point/run/candidate bounds and a shared work budget prevent bridging rejected
+pixels or unbounded geometry work. Native adapters still own edge extraction;
+this fitter supplies geometric proposals and does not confirm apparatus identity,
+two distinct rails, camera stability, contact, a set start or a repetition.
+
 `BilateralGripDisplacement` measures each shoulder against an independently
 estimated, uniquely associated hand MCP centre. It uses `GripObservation`'s
 original source time and exact tracked-body subset, without requiring auxiliary

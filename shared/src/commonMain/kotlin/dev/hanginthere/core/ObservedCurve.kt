@@ -21,6 +21,16 @@ object ObservedCurveGeometry {
         val length get() = arc.last()
     }
     private data class Projection(val point: Point2D, val distance: Double, val interior: Boolean)
+    internal data class Sampling(val points: List<Point2D>, val arc: List<Double>)
+
+    /** Shared bounded arc sampling for observed-rail fitting and correspondence. */
+    internal fun sampling(curve: ObservedCurve, size: ImageSize): Sampling? {
+        val path = path(curve, size) ?: return null
+        val points = sample(path)
+        return Sampling(points, points.indices.map {
+            if (it == points.lastIndex) path.length else it * sampleSpacingPixels
+        })
+    }
 
     fun isValid(curve: ObservedCurve, size: ImageSize): Boolean = path(curve, size) != null
 
