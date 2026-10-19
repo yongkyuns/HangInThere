@@ -112,7 +112,7 @@ class CurvedDipRailAcquisitionTests {
             assertEquals(.3, engine.diagnostic.stableSeconds)
             for (t in listOf(900L, 1200L)) assertNull(observe(engine, t))
             assertNotNull(observe(engine, 1500))
-            assertEquals(2, engine.reference!!.acquisitionPolicyVersion)
+            assertEquals(3, engine.reference!!.acquisitionPolicyVersion)
         }
     }
     @Test fun alternatingKnownMissingFramesNeverAccrueQualificationTime() {
@@ -132,7 +132,7 @@ class CurvedDipRailAcquisitionTests {
         assertEquals(.6, engine.diagnostic.stableSeconds)
         assertNotNull(observe(engine, 2100))
         assertEquals(.9, engine.diagnostic.stableSeconds)
-        assertEquals(2, engine.diagnostic.policyVersion)
+        assertEquals(3, engine.diagnostic.policyVersion)
     }
     @Test fun aTransientGripSpikeCannotReplaceTheAnchorOrCreditTheRejectedWindow() {
         val engine = CurvedDipRailAcquisition()

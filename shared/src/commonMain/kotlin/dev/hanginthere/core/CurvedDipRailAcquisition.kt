@@ -96,7 +96,10 @@ class CurvedDipRailAcquisition {
         val sample = BilateralGripDisplacement.Sample.create(pose) ?: return null
         if (abs(sample.left.wrist.x - sample.right.wrist.x) < min(pose.imageSize.width, pose.imageSize.height) * .12) return null
         val arms = listOf(sample.left, sample.right)
-        val regions = arms.map { AutomaticDipRails.contactRegion(it.shoulder, it.grip, pose.imageSize) ?: return null }
+        val regions = arms.mapIndexed { index, arm ->
+            val upperArm = ArmMeasurement(pose, ArmMeasurement.Side.entries[index]).estimate?.upperArmPixels
+            DipRailSearchGeometry.region(arm.shoulder, arm.grip, pose.imageSize, upperArm) ?: return null
+        }
         return Search(generation, pose.timestamp, pose.imageSize, arms.map { it.grip }, regions)
     }
 
@@ -202,9 +205,9 @@ class CurvedDipRailAcquisition {
         fun spend() { if (--remaining < 0) throw TooComplex() }
     }
     companion object {
-        // v2 accumulates only adjacent matching observations. It can retain
-        // anchors through bounded unknown intervals, never crediting them.
-        const val policyVersion = 2
+        // v3 expands only outward search context using measured arm geometry.
+        // The v2 adjacent-observation duration and all qualification gates remain.
+        const val policyVersion = 3
         private const val epsilon = 1e-6
         private val zero = SourceTimeLimit(0, 1)
         private val gap = SourceTimeLimit(4, 5)

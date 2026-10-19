@@ -82,6 +82,16 @@ and adds `-wrist_mcp_v1` to its source model ID. Existing acquisition keeps the
 three-MCP default. A format change can therefore revoke future temporal evidence
 without changing the actual pose model or silently mixing feature streams.
 
+Dip pixel searches share `DipRailSearchGeometry`. When the hand is clearly
+lateral to its measured shoulder, it extends the outward edge by the measured
+upper-arm length, while preserving the original body exclusion, vertical range
+and image bounds. Missing arm length or unresolved outward direction retains the
+original crop. This addresses the verified source-frame case where the old crop
+left less than the minimum observed rail arc beside an occluding hand. The association search
+reports `searchPolicyVersion: 2`; curved acquisition reports policy 3. These are
+pixel context changes; proposal ambiguity, finite support, dwell, camera and
+repetition rules still apply independently.
+
 `CurvedDipRailAcquisition` applies the existing four-observation, 0.9-second
 source dwell to two current curved proposals and independently matched MCP hands.
 It retains finite source boundaries, checks every competing geometric proposal,

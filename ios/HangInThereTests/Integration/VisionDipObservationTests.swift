@@ -6,6 +6,30 @@ import class WorkoutCore.WorkoutGripInferenceBridge
 @testable import HangInThere
 
 struct VisionDipObservationTests {
+    @Test func nativeWorkerRequestsOutwardContextAndKeepsBodyExclusion() async throws {
+        let original = frame()
+        let points = original.people[0].landmarks.map { point in
+            let x = point.joint == .leftShoulder ? 150.0 : point.joint == .rightShoulder ? 550.0 : point.position.x
+            return Landmark(joint: point.joint, position: Point2D(x: x, y: point.position.y), confidence: point.confidence)
+        }
+        let pose = PoseResult(timestamp: original.timestamp, imageSize: original.imageSize,
+            people: [PoseObservation(landmarks: points)], backend: original.backend, requestRevision: original.requestRevision)
+        let pixels = RecordingPixels()
+        let worker = VisionDipObservationWorker(hands: SuppliedHands(value: hands(pose: pose, seconds: 0)), pixels: pixels)
+        let observed = try await worker.observe(image: image(), pose: pose, generation: 0)
+        let regions = pixels.regions
+        #expect(regions.count == 2)
+        #expect(abs(regions[0].minX - 175) < 1e-9)
+        #expect(regions[0].maxX > 400)
+        #expect(regions[1].minX < 300)
+        #expect(abs(regions[1].maxX - 525) < 1e-9)
+        #expect(regions.allSatisfy { abs($0.minY - 582.4) < 1e-9 && abs($0.maxY - 784) < 1e-9 })
+        #expect(observed.pose.people == pose.people)
+        #expect(observed.candidates.allSatisfy { $0.isEmpty })
+        #expect(observed.acquisition.reference == nil)
+        #expect(observed.acquisition.diagnostic.policyVersion == 3)
+    }
+
     @Test func pixelBackendFailureRevokesDwellInsteadOfPausingAnEmptyProposal() async throws {
         let worker = VisionDipObservationWorker(hands: CurrentHands(), pixels: FailingPixels())
         let pixels = try railImage()
@@ -221,6 +245,15 @@ struct VisionDipObservationTests {
         let next = try await worker.observe(image: pixels, pose: timedFrame(1200), generation: generation)
         #expect(next.acquisition.reference == nil)
         #expect(next.acquisition.diagnostic.observations == 1)
+    }
+
+    private final class RecordingPixels: DipRailPixelExtracting, Sendable {
+        private let state = OSAllocatedUnfairLock(initialState: [CGRect]())
+        var regions: [CGRect] { state.withLock { $0 } }
+        func contours(image: CGImage, region: CGRect) throws -> [[Point2D]] {
+            state.withLock { $0.append(region) }
+            return []
+        }
     }
 
     private func handsWithWrists(_ hands: [WorkoutGripHandObservation], pose: PoseResult) -> [WorkoutGripHandObservation] {

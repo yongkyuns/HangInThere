@@ -91,14 +91,17 @@ object ObservedGripAssociation {
 }
 
 class ObservedGripAssociationBridge {
-    @Serializable private data class Search(val observation: ObservedGripAssociation.Sample, val regions: List<BarRegion>)
-    /** Existing dip contact crops on uniquely corresponding observed arms.
+    @Serializable private data class Search(val observation: ObservedGripAssociation.Sample, val regions: List<BarRegion>,
+        val searchPolicyVersion: Int = 2)
+    /** Body-excluding dip search context on uniquely corresponding measured arms.
      * This requests pixels only; it acquires no support and grants no rep. */
     @Throws(IllegalArgumentException::class)
     fun dipSearchJson(input: String): String? {
         val frame = WorkoutRecordCodec.json.decodeFromString<ObservedGripAssociation.Frame>(input)
         val sample = ObservedGripAssociation.associate(frame) ?: return null
-        val regions = sample.arms.map { AutomaticDipRails.contactRegion(it.shoulder, it.grip, sample.imageSize) ?: return null }
+        val regions = sample.arms.map {
+            DipRailSearchGeometry.region(it.shoulder, it.grip, sample.imageSize, it.measurement.upperArmPixels) ?: return null
+        }
         return WorkoutRecordCodec.json.encodeToString(Search(sample, regions))
     }
     @Throws(IllegalArgumentException::class)
