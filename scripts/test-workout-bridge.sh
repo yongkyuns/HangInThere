@@ -11,6 +11,7 @@ swiftc -swift-version 6 -parse-as-library -O -whole-module-optimization -F "$FRA
   ios/HangInThere/App/WorkoutProgression.swift ios/HangInThere/App/WorkoutGripReview.swift \
   Evaluation/WorkoutAnalysisBridgeCheck.swift Evaluation/WorkoutReliabilityBridgeCheck.swift \
   Evaluation/EstimatedBodyGeometryBridgeCheck.swift Evaluation/ObservedCurveBridgeCheck.swift \
+  Evaluation/PersonInferenceRegionBridgeCheck.swift \
   Evaluation/BilateralGripDisplacementBridgeCheck.swift Evaluation/SceneConsensusBridgeCheck.swift \
   Evaluation/ObservedRailFitterBridgeCheck.swift Evaluation/CurvedDipRailAcquisitionBridgeCheck.swift \
   Evaluation/BilateralDipMotionBridgeCheck.swift Evaluation/BilateralDipWorkoutBridgeCheck.swift \

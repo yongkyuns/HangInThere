@@ -6,6 +6,8 @@ import kotlin.math.min
 
 /** Experimental spatial association, not biometric identity or rep evidence.
  * Native adapters propose measured person rectangles and retain raw observations.
+ * Policy 2 intersects every proposal with its source image before association;
+ * decisions return that visible region and the original candidate index.
  * This policy deliberately cannot inspect arms, exercise, confidence or counts.
  * Own on one serial source executor. It is not connected to production pose
  * selection pending full-video validation; overlapping people can share geometry. */
@@ -71,28 +73,31 @@ class ForegroundAssociation(initialSource: Source) {
         val matchExpired = matchedAt?.let { SourceTimeComparison.compareElapsed(time, it, gapLimit)!! > 0 } ?: true
         if (acquired && (gapExceeded || matchExpired)) return lose(Reason.continuityExpired)
         if (gapExceeded) clearAcquisition()
-        if (candidates.size > maximumCandidates || candidates.any { !it.isValidFor(source.imageSize) })
-            return unavailable(Reason.invalidCandidate)
+        if (candidates.size > maximumCandidates) return unavailable(Reason.invalidCandidate)
         if (candidates.isEmpty()) return unavailable(Reason.missingCandidates)
+        // Native detections can extend beyond a frame. Intersect rectangles,
+        // never joints. Keep every competitor and its original index: clipping
+        // must not erase malformed, offscreen or overlapping alternatives.
+        val regions = candidates.map { it.clippedTo(source.imageSize) ?: return unavailable(Reason.invalidCandidate) }
 
         val selected: Int
         if (acquired) {
-            val matches = candidates.indices.filter {
-                largeEnough(candidates[it]) && compatible(anchor!!, candidates[it]) &&
-                    withinEnvelope(acquisitionRegion!!, candidates[it], maximumOriginScaleRatio, maximumOriginDisplacementFraction)
+            val matches = regions.indices.filter {
+                largeEnough(regions[it]) && compatible(anchor!!, regions[it]) &&
+                    withinEnvelope(acquisitionRegion!!, regions[it], maximumOriginScaleRatio, maximumOriginDisplacementFraction)
             }
             if (matches.size != 1) return unavailable(Reason.ambiguousCandidates)
             selected = matches.single()
         } else {
-            val ranked = candidates.indices.sortedByDescending { area(candidates[it]) }
+            val ranked = regions.indices.sortedByDescending { area(regions[it]) }
             selected = ranked.first()
-            val region = candidates[selected]
+            val region = regions[selected]
             if (!largeEnough(region) || (ranked.size > 1 &&
-                    area(region) < area(candidates[ranked[1]]) * minimumDominance))
+                    area(region) < area(regions[ranked[1]]) * minimumDominance))
                 return unavailable(Reason.ambiguousCandidates)
         }
-        val region = candidates[selected]
-        if (candidates.indices.any { it != selected && overlap(region, candidates[it]) >= ambiguousOverlap })
+        val region = regions[selected]
+        if (regions.indices.any { it != selected && overlap(region, regions[it]) >= ambiguousOverlap })
             return unavailable(Reason.ambiguousCandidates)
         if (acquired) {
             anchor = region; matchedAt = time
@@ -144,7 +149,7 @@ class ForegroundAssociation(initialSource: Source) {
     }
 
     companion object {
-        const val policyVersion = 1
+        const val policyVersion = 2
         private val acquisitionLimit = SourceTimeLimit(3, 5)
         private val gapLimit = SourceTimeLimit(7, 20)
         private val zeroLimit = SourceTimeLimit(0, 1)

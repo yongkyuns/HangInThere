@@ -10,6 +10,7 @@ struct WorkoutAnalysisBridgeCheck {
         try WorkoutReliabilityBridgeCheck.run()
         let estimatedGeometry = try EstimatedBodyGeometryBridgeCheck.run()
         let observedCurveChecks = ObservedCurveBridgeCheck.run()
+        let personRegionChecks = PersonInferenceRegionBridgeCheck.run()
         let bilateralGripChecks = try BilateralGripDisplacementBridgeCheck.run()
         let sceneConsensusChecks = SceneConsensusBridgeCheck.run()
         let observedRailChecks = try ObservedRailFitterBridgeCheck.run()
@@ -731,6 +732,7 @@ struct WorkoutAnalysisBridgeCheck {
             "readinessCases": readinessChecks, "readinessFrames": 2000,
             "estimatedBodyGeometryCases": estimatedGeometry.checks, "estimatedBodyGeometryFrames": 2000,
             "observedCurveGeometryCases": observedCurveChecks,
+            "personInferenceRegionCases": personRegionChecks,
             "bilateralGripDisplacementCases": bilateralGripChecks,
             "sceneConsensusCases": sceneConsensusChecks,
             "observedRailFitterCases": observedRailChecks,

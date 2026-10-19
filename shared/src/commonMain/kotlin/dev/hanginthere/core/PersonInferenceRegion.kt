@@ -13,6 +13,23 @@ data class PersonInferenceRegion(val left: Int, val top: Int, val width: Int, va
     fun isValidFor(source: ImageSize) = integerImage(source) && left >= 0 && top >= 0 && width > 0 && height > 0 &&
         left.toLong() + width <= source.width.toLong() && top.toLong() + height <= source.height.toLong()
 
+    /** Visible intersection of an observed native rectangle with its source.
+     * Detectors can report a person extending past an image edge. This converts
+     * that rectangle to real source pixels; it never clamps predicted joints or
+     * changes their coordinate frame. Keep the original observation separately.
+     * Malformed or wholly offscreen rectangles have no usable intersection. */
+    fun clippedTo(source: ImageSize): PersonInferenceRegion? {
+        if (!integerImage(source) || width <= 0 || height <= 0) return null
+        if (isValidFor(source)) return this
+        val visibleLeft = maxOf(0L, left.toLong())
+        val visibleTop = maxOf(0L, top.toLong())
+        val visibleRight = minOf(source.width.toLong(), left.toLong() + width)
+        val visibleBottom = minOf(source.height.toLong(), top.toLong() + height)
+        if (visibleRight <= visibleLeft || visibleBottom <= visibleTop) return null
+        return PersonInferenceRegion(visibleLeft.toInt(), visibleTop.toInt(),
+            (visibleRight - visibleLeft).toInt(), (visibleBottom - visibleTop).toInt())
+    }
+
     /** Body-only predictions; auxiliary grip inference runs after restoration.
      * No scaling/reflection/clamping. Predictions outside the actual inference
      * input are unavailable, even if translation would put them in the source. */

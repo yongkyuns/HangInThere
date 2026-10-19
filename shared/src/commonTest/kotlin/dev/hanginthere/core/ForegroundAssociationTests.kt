@@ -96,13 +96,81 @@ class ForegroundAssociationTests {
     }
 
     @Test fun invalidCompetingRectanglesAreNotSilentlyRemovedAsSpectators() {
-        val invalid = PersonInferenceRegion(-1, 0, 40, 40)
-        val tracker = ForegroundAssociation(source)
-        val result = tracker.observe(source, time(0), listOf(athlete, invalid))
-        assertEquals(ForegroundAssociation.Reason.invalidCandidate, result.reason)
-        assertNull(result.candidateIndex)
+        for (invalid in listOf(PersonInferenceRegion(-40, 0, 40, 40),
+            PersonInferenceRegion(-1, 0, 0, 40), PersonInferenceRegion(0, 0, 40, -1),
+            PersonInferenceRegion(1_000, 0, 40, 40))) {
+            val result = ForegroundAssociation(source).observe(source, time(0), listOf(athlete, invalid))
+            assertEquals(ForegroundAssociation.Reason.invalidCandidate, result.reason)
+            assertNull(result.candidateIndex)
+        }
         assertEquals(ForegroundAssociation.Reason.invalidCandidate,
-            tracker.observe(source, time(100_000), List(65) { athlete }).reason)
+            ForegroundAssociation(source).observe(source, time(100_000), List(65) { athlete }).reason)
+    }
+
+    @Test fun observedEdgeOverscanPreservesDwellAndOriginalCandidateIndex() {
+        val visible = PersonInferenceRegion(300, 0, 300, 600)
+        val proposals = listOf(visible, PersonInferenceRegion(300, -2, 300, 602),
+            PersonInferenceRegion(300, -1, 300, 601), visible)
+        val tracker = ForegroundAssociation(source)
+        for ((i, raw) in proposals.withIndex()) {
+            val candidates = listOf(spectator, raw)
+            val before = candidates.toList()
+            val result = tracker.observe(source, time(i * 200_000L), candidates)
+            assertEquals(before, candidates)
+            if (i < 3) assertNull(result.candidateIndex)
+            else {
+                assertEquals(1, result.candidateIndex)
+                assertEquals(visible, result.region)
+                assertEquals(time(600_000), result.timestamp)
+                assertEquals(2, result.policyVersion)
+            }
+        }
+        val raw = PersonInferenceRegion(300, -3, 300, 603)
+        val current = tracker.observe(source, time(700_000), listOf(raw, spectator))
+        assertEquals(0, current.candidateIndex)
+        assertEquals(visible, current.region)
+    }
+
+    @Test fun distinctRawRectanglesThatClipToTheSameRegionRemainCompetingEvidence() {
+        val first = PersonInferenceRegion(300, -2, 300, 602)
+        val second = PersonInferenceRegion(300, -20, 300, 620)
+        assertNotEquals(first, second)
+        assertEquals(first.clippedTo(source.imageSize), second.clippedTo(source.imageSize))
+        val tracker = ForegroundAssociation(source)
+        for (ticks in listOf(0L, 200_000, 400_000, 600_000)) {
+            val result = tracker.observe(source, time(ticks), listOf(first, second))
+            assertEquals(ForegroundAssociation.Reason.ambiguousCandidates, result.reason)
+            assertNull(result.candidateIndex)
+        }
+        val acquired = ForegroundAssociation(source); acquire(acquired)
+        val clipped = PersonInferenceRegion(300, 100, 300, Int.MAX_VALUE)
+        assertNull(acquired.observe(source, time(700_000), listOf(athlete, clipped)).candidateIndex)
+    }
+
+    @Test fun associationRanksVisibleFootprintsAndReturnsOnlyTheActualImageIntersection() {
+        val raw = PersonInferenceRegion(-100, -100, Int.MAX_VALUE, Int.MAX_VALUE)
+        val visible = PersonInferenceRegion(0, 0, 1_000, 1_000)
+        val tracker = ForegroundAssociation(source)
+        var result: ForegroundAssociation.Decision? = null
+        for (ticks in listOf(0L, 200_000, 400_000, 600_000))
+            result = tracker.observe(source, time(ticks), listOf(raw))
+        assertEquals(0, result?.candidateIndex)
+        assertEquals(visible, result?.region)
+        assertFalse(raw.isValidFor(source.imageSize))
+        // Intersection is only spatial geometry, not detector plausibility or
+        // person identity. A second full-image proposal remains ambiguous.
+        assertNull(tracker.observe(source, time(700_000), listOf(raw, visible)).candidateIndex)
+    }
+
+    @Test fun aMostlyOffscreenProposalCannotUseItsInvisibleAreaToWinDominance() {
+        val raw = PersonInferenceRegion(-Int.MAX_VALUE + 40, 200, Int.MAX_VALUE, 200)
+        assertEquals(PersonInferenceRegion(0, 200, 40, 200), raw.clippedTo(source.imageSize))
+        val tracker = ForegroundAssociation(source)
+        for (ticks in listOf(0L, 200_000, 400_000))
+            assertNull(tracker.observe(source, time(ticks), listOf(raw, athlete)).candidateIndex)
+        val result = tracker.observe(source, time(600_000), listOf(raw, athlete))
+        assertEquals(1, result.candidateIndex)
+        assertEquals(athlete, result.region)
     }
 
     @Test fun stableAcquisitionCannotDriftIncrementallyToADifferentRegion() {

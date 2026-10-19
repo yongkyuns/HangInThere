@@ -38,6 +38,18 @@ agreement alone does not rule out rotation, parallax or foreground motion. The
 Swift live monitor mirrors this rule; common, Apple bridge and setup parity tests
 guard both implementations.
 
+`ForegroundAssociation` remains experimental spatial association. Policy 2
+intersects every observed native person rectangle with its source image before
+applying the existing size, dominance, overlap, dwell and continuity rules.
+`PersonInferenceRegion.clippedTo` uses overflow-safe integer bounds and preserves
+the original candidate order. Malformed or wholly offscreen proposals invalidate
+the observation; competing proposals are neither discarded nor deduplicated.
+Decisions return the visible region and original candidate index. Native owners
+retain raw detections and must use that visible region for any actual crop;
+strict crop validation and prediction restoration remain unchanged. Intersection
+does not validate detector plausibility or athlete identity, and this tracker is
+not connected to production pose selection or repetition counting.
+
 `ObservedCurveGeometry` supplies bounded finite-curve distance and correspondence
 for curved feature observations. It compares local directions over the common
 observed subarc so clipping an endpoint cannot create a different tangent window.

@@ -3,6 +3,59 @@ package dev.hanginthere.core
 import kotlin.test.*
 
 class PersonInferenceRegionTests {
+    @Test fun observedRectanglesIntersectOnlyRealPixelsWithoutChangingTheirRawBounds() {
+        val size = ImageSize(640.0, 360.0)
+        val cases = listOf(
+            PersonInferenceRegion(-4, 20, 104, 200) to PersonInferenceRegion(0, 20, 100, 200),
+            PersonInferenceRegion(20, -3, 200, 103) to PersonInferenceRegion(20, 0, 200, 100),
+            PersonInferenceRegion(600, 20, 44, 200) to PersonInferenceRegion(600, 20, 40, 200),
+            PersonInferenceRegion(20, 300, 200, 63) to PersonInferenceRegion(20, 300, 200, 60),
+            PersonInferenceRegion(-4, -3, 648, 366) to PersonInferenceRegion(0, 0, 640, 360)
+        )
+        for ((raw, expected) in cases) {
+            val before = raw.copy()
+            assertFalse(raw.isValidFor(size))
+            assertEquals(expected, raw.clippedTo(size))
+            assertTrue(assertNotNull(raw.clippedTo(size)).isValidFor(size))
+            assertEquals(before, raw)
+        }
+        val inside = PersonInferenceRegion(10, 20, 100, 200)
+        assertSame(inside, inside.clippedTo(size))
+    }
+
+    @Test fun emptyOffscreenAndMalformedRectanglesDoNotProduceVisibleRegions() {
+        val size = ImageSize(640.0, 360.0)
+        for (raw in listOf(PersonInferenceRegion(0, 0, 0, 20), PersonInferenceRegion(0, 0, 20, -1),
+            PersonInferenceRegion(-20, 0, 20, 20), PersonInferenceRegion(640, 0, 20, 20),
+            PersonInferenceRegion(0, -20, 20, 20), PersonInferenceRegion(0, 360, 20, 20)))
+            assertNull(raw.clippedTo(size))
+        for (invalid in listOf(ImageSize(0.0, 360.0), ImageSize(640.5, 360.0),
+            ImageSize(Double.NaN, 360.0), ImageSize(Double.POSITIVE_INFINITY, 360.0),
+            ImageSize(Int.MAX_VALUE.toDouble() + 1, 360.0)))
+            assertNull(PersonInferenceRegion(0, 0, 10, 10).clippedTo(invalid))
+    }
+
+    @Test fun visibleIntersectionDoesNotOverflowAtIntegerCoordinateLimits() {
+        val size = ImageSize(Int.MAX_VALUE.toDouble(), 360.0)
+        assertEquals(PersonInferenceRegion(Int.MAX_VALUE - 10, 20, 10, 200),
+            PersonInferenceRegion(Int.MAX_VALUE - 10, 20, Int.MAX_VALUE, 200).clippedTo(size))
+        assertNull(PersonInferenceRegion(Int.MIN_VALUE, 20, Int.MAX_VALUE, 200).clippedTo(size))
+        assertNull(PersonInferenceRegion(0, Int.MIN_VALUE, 20, Int.MAX_VALUE).clippedTo(size))
+    }
+
+    @Test fun rectangleIntersectionDoesNotImplicitlyClampCropsOrRestoreRawCropCoordinates() {
+        val size = ImageSize(640.0, 360.0)
+        val raw = PersonInferenceRegion(-1, 0, 201, 300)
+        val visible = assertNotNull(raw.clippedTo(size))
+        val point = Landmark(PoseJoint.leftWrist, Point2D(20.0, 30.0), .8)
+        val rawPrediction = source().copy(imageSize = ImageSize(201.0, 300.0),
+            people = listOf(PoseObservation(listOf(point))))
+        assertFailsWith<IllegalArgumentException> { raw.restore(rawPrediction, size) }
+        assertFailsWith<IllegalArgumentException> { visible.restore(rawPrediction, size) }
+        val actualCrop = rawPrediction.copy(imageSize = ImageSize(200.0, 300.0))
+        assertEquals(point, visible.restore(actualCrop, size).people.single().landmarks.single())
+    }
+
     private fun source(): PoseResult {
         val joints = listOf(PoseJoint.nose,PoseJoint.leftShoulder,PoseJoint.rightShoulder,
             PoseJoint.leftElbow,PoseJoint.rightElbow,PoseJoint.leftWrist,PoseJoint.rightWrist,
