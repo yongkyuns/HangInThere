@@ -90,15 +90,23 @@ private sealed interface LibraryLoadStatus {
             val cursor = if (more) dashboard?.page?.nextCursor else null
             val next = dashboardLoader(store, cursor, key)
             emit("loader.return", request.request)
-            dashboard = next; key = next.insights.selectedComparisonKey; history = if (more) history + next.page.sets else next.page.sets; error = null
-            loadStatus = LibraryLoadStatus.Ready
-            diagnostics.assigned(request.request)
-            emit("ready.assigned", request.request)
+            // Keep presentation mutations on the UI owner, including fast IO
+            // completions. API 29 rendered Loading after a worker assigned Ready;
+            // UI confinement makes the publication ordering explicit.
+            withContext(Dispatchers.Main.immediate) {
+                dashboard = next; key = next.insights.selectedComparisonKey
+                history = if (more) history + next.page.sets else next.page.sets
+                error = null; loadStatus = LibraryLoadStatus.Ready
+                diagnostics.assigned(request.request)
+                emit("ready.assigned", request.request)
+            }
         } catch (failure: Throwable) {
             if (failure is kotlinx.coroutines.CancellationException) { emit("load.cancelled", request.request); throw failure }
-            loadStatus = LibraryLoadStatus.Failed("Couldn't load your workout history. Try again.")
-            diagnostics.assigned(request.request)
-            emit("load.failed", request.request)
+            withContext(Dispatchers.Main.immediate) {
+                loadStatus = LibraryLoadStatus.Failed("Couldn't load your workout history. Try again.")
+                diagnostics.assigned(request.request)
+                emit("load.failed", request.request)
+            }
             // Do not log records, archive contents, or exception messages containing user data.
             android.util.Log.e("WorkoutLibrary", "Dashboard load failed: ${failure.javaClass.simpleName}")
         }

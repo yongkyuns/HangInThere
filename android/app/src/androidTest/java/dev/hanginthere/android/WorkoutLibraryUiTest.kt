@@ -35,6 +35,34 @@ import kotlin.concurrent.thread
 
 class WorkoutLibraryUiTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @Test fun fastDefaultLoadsPublishPresentationStateOnTheMainThread() {
+        val root = File(compose.activity.cacheDir, "library-ui-test-${UUID.randomUUID()}")
+        val store = WorkoutRecordStore(compose.activity.applicationContext, root)
+        store.save(hangRecord(UUID.randomUUID().toString(), System.currentTimeMillis()))
+        val visible = mutableStateOf(false)
+        val readyThreads = CopyOnWriteArrayList<Boolean>()
+        val events = CopyOnWriteArrayList<LibraryLoadEvent>()
+        try {
+            compose.runOnUiThread { compose.activity.setContent { MaterialTheme {
+                if (visible.value) WorkoutLibraryDialog(recordStore = store, loadObserver = {
+                    events.add(it)
+                    if (it.stage == "ready.assigned") readyThreads.add(
+                        android.os.Looper.myLooper() == android.os.Looper.getMainLooper())
+                }) {}
+            } } }
+            repeat(3) { index ->
+                compose.runOnUiThread { visible.value = true }
+                compose.waitUntil(10_000) { events.count { it.stage == "published.ready" } == index + 1 }
+                compose.onNodeWithText("Your practice").assertIsDisplayed()
+                compose.runOnUiThread { visible.value = false }
+                compose.waitUntil(10_000) { events.count { it.stage == "disposed" } == index + 1 }
+            }
+            assertEquals(listOf(true, true, true), readyThreads.toList())
+        } finally {
+            compose.runOnUiThread { compose.activity.setContent {} }
+            root.deleteRecursively()
+        }
+    }
     @Test fun defaultLoaderSurvivesParentRecompositionAndReopensFresh() {
         val root = File(compose.activity.cacheDir, "library-ui-test-${UUID.randomUUID()}")
         val store = WorkoutRecordStore(compose.activity.applicationContext, root)
