@@ -52,6 +52,57 @@ class ObservedRailFitterTests {
             listOf(Point2D(320.0, 550.0), Point2D(320.0, 750.0))).isEmpty())
     }
 
+    @Test fun explicitFiniteEdgeModeRetainsStraightObservedBoundariesAndCurvedPaths() {
+        val contours = listOf(listOf(Point2D(300.0, 550.0), Point2D(300.0, 750.0)),
+            listOf(Point2D(320.0, 550.0), Point2D(320.0, 750.0)))
+        val pairs = ObservedRailFitter.candidates(contours.map { RailContour(it, true) }, region, size, grip,
+            ObservedRailFitter.Mode.finiteEdges)
+        assertTrue(pairs.isNotEmpty())
+        assertObservedSubpaths(pairs, contours)
+        assertEquals(20.0, pairs.single().minimumWidthPixels, 1e-8)
+        val curved = ObservedRailFitter.candidates(listOf(RailContour(arc(80.0), true), RailContour(arc(100.0), true)),
+            region, size, grip, ObservedRailFitter.Mode.finiteEdges)
+        assertEquals(fit(), curved)
+    }
+
+    @Test fun finiteStraightPairCannotExtendAnUnmatchedTailToTheGrip() {
+        val contours = listOf(RailContour(listOf(Point2D(300.0, 550.0), Point2D(300.0, 800.0)), true),
+            RailContour(listOf(Point2D(320.0, 700.0), Point2D(320.0, 850.0)), true))
+        assertTrue(ObservedRailFitter.candidates(contours, region, size, Point2D(305.0, 550.0),
+            ObservedRailFitter.Mode.finiteEdges).isEmpty())
+    }
+
+    @Test fun independentMCPsBelowATubeCanUseItsActualObservedSupport() {
+        val contours = listOf(listOf(Point2D(300.0, 550.0), Point2D(450.0, 550.0)),
+            listOf(Point2D(300.0, 570.0), Point2D(450.0, 570.0)))
+        val hand = Point2D(355.0, 600.0)
+        val values = contours.map { RailContour(it, true) }
+        assertTrue(ObservedRailFitter.candidates(values, region, size, hand, ObservedRailFitter.Mode.finiteEdges).isEmpty())
+        val actual = ObservedRailFitter.candidates(values, region, size, hand, ObservedRailFitter.Mode.finiteEdges,
+            ObservedRailFitter.ContactRegion.aroundGrip)
+        assertTrue(actual.isNotEmpty())
+        assertObservedSubpaths(actual, contours)
+        assertEquals(30.0, actual.single().contactDistancePixels, 1e-8)
+        assertEquals(20.0, actual.single().minimumWidthPixels, 1e-8)
+        // Around-grip proposals still cannot extend distant finite support.
+        assertTrue(ObservedRailFitter.candidates(values, region, size, Point2D(355.0, 750.0),
+            ObservedRailFitter.Mode.finiteEdges, ObservedRailFitter.ContactRegion.aroundGrip).isEmpty())
+    }
+
+    @Test fun finiteStraightPairKeepsGapsContrastBordersAndWidthConstraints() {
+        fun line(x: Double, low: Double = 550.0, high: Double = 750.0) = listOf(Point2D(x, low), Point2D(x, high))
+        for (contours in listOf(listOf(RailContour(line(300.0), true), RailContour(line(300.0), true)),
+            listOf(RailContour(line(300.0), true), RailContour(line(350.0), true)),
+            listOf(RailContour(line(300.0), true), RailContour(line(320.0), false)),
+            listOf(RailContour(line(300.0, 550.0, 570.0), true), RailContour(line(320.0, 550.0, 570.0), true)),
+            listOf(RailContour(line(region.minX + 1), true), RailContour(line(region.minX + 21), true)))) {
+            assertTrue(ObservedRailFitter.candidates(contours, region, size, grip, ObservedRailFitter.Mode.finiteEdges).isEmpty())
+        }
+        val broken = (0..5).flatMap { i -> listOf(Point2D(300.0, 550.0+i*30), Point2D(300.0, 570.0+i*30), Point2D(300.0, 450.0)) }
+        assertTrue(ObservedRailFitter.candidates(listOf(RailContour(broken, true), RailContour(line(320.0), true)),
+            region, size, grip, ObservedRailFitter.Mode.finiteEdges).isEmpty())
+    }
+
     @Test fun anUnmatchedTailNearTheGripCannotEstablishFinitePairedContact() {
         val high = Point2D(300.0, 700.0)
         assertTrue(fit(arc(150.0, -1.0, 1.0, high), arc(170.0, -.1, 1.0, high),

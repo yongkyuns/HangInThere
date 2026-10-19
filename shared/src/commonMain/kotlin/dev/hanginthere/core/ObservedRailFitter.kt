@@ -29,6 +29,15 @@ data class ObservedRailCandidate(val firstContour: Int, val secondContour: Int,
  * ambiguity, distinct rails, source continuity, camera and grip dwell belong to
  * acquisition; receiving a proposal never confirms any of those conditions. */
 object ObservedRailFitter {
+    /** The existing curved-only consumer keeps its original proposal set.
+     * finiteEdges also accepts truly observed straight subpaths; it does not
+     * replace a curved path with its chord or extend either finite boundary. */
+    @Serializable enum class Mode { curvedOnly, finiteEdges }
+    /** Image-region pruning, not evidence of mechanical contact. Independent
+     * MCP centres may project below a gripped tube. aroundGrip retains actual
+     * source paths throughout the supplied ROI and uses the same finite-distance
+     * bound. Existing consumers keep their original below-grip restriction. */
+    @Serializable enum class ContactRegion { belowGrip, aroundGrip }
     const val maximumRuns = 512
     const val maximumCandidates = 512
     private const val maximumComparisons = 4_000_000
@@ -46,7 +55,8 @@ object ObservedRailFitter {
         val arc: Double, val narrow: Double, val wide: Double)
 
     fun candidates(contours: List<RailContour>, region: BarRegion, size: ImageSize,
-                   grip: Point2D): List<ObservedRailCandidate> {
+                   grip: Point2D, mode: Mode = Mode.curvedOnly,
+                   contactRegion: ContactRegion = ContactRegion.belowGrip): List<ObservedRailCandidate> {
         if (!region.isValid(size) || !grip.isFinite || grip.x !in 0.0..size.width || grip.y !in 0.0..size.height)
             throw BarFitException("invalidRegion")
         if (contours.size > BarFitter.maximumSegments) throw BarFitException("tooComplex")
@@ -63,11 +73,12 @@ object ObservedRailFitter {
         for ((index, contour) in contours.withIndex()) {
             val piece = mutableListOf<Point2D>()
             fun finishPiece() {
-                if (piece.size >= 3) addRuns(piece, index, contour.darkOnLight, minimum, size, budget, runs)
+                if (piece.size >= if (mode == Mode.curvedOnly) 3 else 2)
+                    addRuns(piece, index, contour.darkOnLight, minimum, size, budget, runs, mode)
                 piece.clear()
             }
             for (point in contour.points) {
-                if (point.y < grip.y || point.x <= region.minX + borderPixels ||
+                if (contactRegion == ContactRegion.belowGrip && point.y < grip.y || point.x <= region.minX + borderPixels ||
                     point.x >= region.maxX - borderPixels || point.y <= region.minY + borderPixels ||
                     point.y >= region.maxY - borderPixels) finishPiece()
                 else if (piece.lastOrNull() != point) piece += point
@@ -84,7 +95,8 @@ object ObservedRailFitter {
             val distance = min(firstDistance, secondDistance)
             if (distance > short * .12) continue
             val selected = if (firstDistance <= secondDistance) p else q
-            if (selected.original.sumOf { it.y / selected.original.size } < grip.y + short * .025) continue
+            if (contactRegion == ContactRegion.belowGrip &&
+                selected.original.sumOf { it.y / selected.original.size } < grip.y + short * .025) continue
             result += ObservedRailCandidate(p.contour, q.contour, matched.first, matched.second,
                 matched.arc, matched.narrow, matched.wide, distance)
             if (result.size > maximumCandidates) throw BarFitException("tooComplex")
@@ -94,12 +106,12 @@ object ObservedRailFitter {
     }
 
     private fun addRuns(points: List<Point2D>, index: Int, dark: Boolean, minimum: Double, size: ImageSize,
-                        budget: Budget, result: MutableList<Run>) {
+                        budget: Budget, result: MutableList<Run>, mode: Mode) {
         val poly = BarFitter.simplify(points, 1.0, budget::spend)
-        if (poly.size < 3) return
+        if (poly.size < if (mode == Mode.curvedOnly) 3 else 2) return
         var start = 0
         fun retain(end: Int) {
-            if (end - start < 2) return
+            if (end - start < if (mode == Mode.curvedOnly) 2 else 1) return
             val original = poly.subList(start, end + 1).toList()
             val sampled = ObservedCurveGeometry.sampling(ObservedCurve(original), size) ?: return
             if (sampled.arc.last() < minimum) return
@@ -116,7 +128,7 @@ object ObservedRailFitter {
                 budget.spend()
                 if (dot(tangents[i], tangents[j]) <= tangentCosine) curved = true
             }
-            if (!curved) return
+            if (!curved && mode == Mode.curvedOnly) return
             val originalArc = mutableListOf(0.0)
             original.zipWithNext().forEach { (a, b) -> originalArc += originalArc.last() + hypot(b.x - a.x, b.y - a.y) }
             result += Run(index, dark, original, originalArc, sampled.points, sampled.arc, tangents)
@@ -252,11 +264,12 @@ object ObservedRailFitter {
 /** Stateless native transport of ordered contour observations; no acquisition. */
 class ObservedRailFitterBridge {
     @Serializable private data class Input(val contours: List<RailContour>, val region: BarRegion,
-        val imageSize: ImageSize, val grip: Point2D)
+        val imageSize: ImageSize, val grip: Point2D, val mode: ObservedRailFitter.Mode = ObservedRailFitter.Mode.curvedOnly,
+        val contactRegion: ObservedRailFitter.ContactRegion = ObservedRailFitter.ContactRegion.belowGrip)
     @Throws(IllegalArgumentException::class)
     fun fitJson(input: String): String {
         val value = WorkoutRecordCodec.json.decodeFromString<Input>(input)
         return WorkoutRecordCodec.json.encodeToString(ObservedRailFitter.candidates(
-            value.contours, value.region, value.imageSize, value.grip))
+            value.contours, value.region, value.imageSize, value.grip, value.mode, value.contactRegion))
     }
 }

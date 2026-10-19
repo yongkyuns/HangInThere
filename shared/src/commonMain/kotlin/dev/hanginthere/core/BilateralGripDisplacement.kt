@@ -66,27 +66,15 @@ object BilateralGripDisplacement {
                     } }) return null
                 val short = min(size.width, size.height)
                 if (distance(wrists[0], wrists[1]) < short * .12) return null
-                val required = setOf(GripHandJoint.indexMCP, GripHandJoint.middleMCP, GripHandJoint.pinkyMCP)
-                val centres = hands.hands.map { hand ->
-                    if (hand.points.size !in 3..6 || hand.points.map { it.joint }.distinct().size != hand.points.size ||
-                        hand.points.any { !inside(it.position) || it.score?.let { s -> !s.isFinite() || s !in 0.0..1.0 } == true }) return null
-                    val region = hand.sourceRegion
-                    if (region != null && !region.isValidFor(size)) return null
-                    val points = hand.points.filter { it.joint in required }
-                    if (points.size != 3 || points.any { point ->
-                            point.score?.let { it < ArmMeasurement.confidenceThreshold } == true ||
-                                region?.let { point.position.x !in it.left.toDouble()..(it.left.toDouble() + it.width) ||
-                                    point.position.y !in it.top.toDouble()..(it.top.toDouble() + it.height) } == true
-                        }) return null
-                    Point2D(points.sumOf { it.position.x / 3 }, points.sumOf { it.position.y / 3 }).takeIf { it.isFinite } ?: return null
-                }
+                val measured = hands.hands.map { GripMCPGeometry.measure(it, size) ?: return null }
+                val centres = measured.map { it.centre }
                 val associations = listOf(listOf(0, 1), listOf(1, 0)).filter { order ->
                     order.indices.all { distance(centres[order[it]], wrists[it]) <= short * .12 }
                 }
                 val order = associations.singleOrNull() ?: return null
                 val arms = sides.indices.map { i -> Arm.create(shoulders[i], wrists[i], centres[order[i]], ArmMeasurement(pose, sides[i]).estimate) }
                 return Sample(pose.timestamp, size, arms[0], arms[1],
-                    hands.hands.all { h -> h.points.filter { it.joint in required }.all { it.score != null } },
+                    measured.all { it.fullyScored },
                     pose.backend, pose.requestRevision, hands.modelId, hands.backend)
             }
         }
