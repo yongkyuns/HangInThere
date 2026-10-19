@@ -34,6 +34,18 @@ object ObservedCurveGeometry {
 
     fun isValid(curve: ObservedCurve, size: ImageSize): Boolean = path(curve, size) != null
 
+    /** Arc-weighted center; vertex density cannot move a rail's position. */
+    internal fun centroid(curve: ObservedCurve, size: ImageSize): Point2D? {
+        val p = path(curve, size) ?: return null
+        var x = 0.0; var y = 0.0
+        for ((a, b) in p.points.zipWithNext()) {
+            val weight = separation(a, b) / p.length
+            x += (a.x / 2 + b.x / 2) * weight
+            y += (a.y / 2 + b.y / 2) * weight
+        }
+        return Point2D(x, y).takeIf { it.isFinite }
+    }
+
     /** Distance to actually observed finite support, never an infinite tangent. */
     fun distance(curve: ObservedCurve, point: Point2D, size: ImageSize): Double? {
         if (!point.isFinite || point.x !in 0.0..size.width || point.y !in 0.0..size.height) return null

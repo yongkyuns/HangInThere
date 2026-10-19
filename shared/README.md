@@ -53,6 +53,18 @@ pixels or unbounded geometry work. Native adapters still own edge extraction;
 this fitter supplies geometric proposals and does not confirm apparatus identity,
 two distinct rails, camera stability, contact, a set start or a repetition.
 
+`CurvedDipRailAcquisition` applies the existing four-observation, 0.9-second
+source dwell to two current curved proposals and independently matched MCP hands.
+It retains finite source boundaries, checks every competing geometric proposal,
+and restarts on shape, hand, backend, image-size or source-continuity changes.
+One serial worker owns search, reset and observation. It captures a generation before inference; cancelled callbacks cannot
+alter newer evidence. Invalidating evidence retains the source clock high-water;
+only explicit source activation permits a new clock epoch. The emitted reference
+contains the qualifying frame's geometry, time and model context. Native owners
+must retain its original primary pose and pixels together. A reference locates
+stable image features; camera, apparatus/contact/load, starting posture and rep
+qualification remain separate. This component is not yet connected to live counts.
+
 `BilateralGripDisplacement` measures each shoulder against an independently
 estimated, uniquely associated hand MCP centre. It uses `GripObservation`'s
 original source time and exact tracked-body subset, without requiring auxiliary

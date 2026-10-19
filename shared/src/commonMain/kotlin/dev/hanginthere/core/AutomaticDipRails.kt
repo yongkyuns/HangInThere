@@ -145,10 +145,13 @@ class AutomaticDipRails {
         }
         /** Same body-excluding crop for bilateral and single observed contacts. */
         internal fun contactRegion(arm:PullUpArmMeasurement.Arm,size:ImageSize):BarRegion? {
-            val short=min(size.width,size.height);val hand=arm.wrist
+            return contactRegion(arm.shoulder,arm.wrist,size)
+        }
+        internal fun contactRegion(shoulder:Point2D,hand:Point2D,size:ImageSize):BarRegion? {
+            val short=min(size.width,size.height)
             var minX=max(0.0,hand.x-short*.12);var maxX=min(size.width,hand.x+short*.12)
-            if(hand.x-arm.shoulder.x>short*.04) minX=max(minX,(hand.x+arm.shoulder.x)/2)
-            if(arm.shoulder.x-hand.x>short*.04) maxX=min(maxX,(hand.x+arm.shoulder.x)/2)
+            if(hand.x-shoulder.x>short*.04) minX=max(minX,(hand.x+shoulder.x)/2)
+            if(shoulder.x-hand.x>short*.04) maxX=min(maxX,(hand.x+shoulder.x)/2)
             return BarRegion(minX,max(0.0,hand.y-short*.08),maxX,min(size.height,hand.y+short*.20))
                 .takeIf{it.isValid(size)}
         }
