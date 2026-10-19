@@ -15,11 +15,13 @@ four image cycles in each simultaneous view, with Kotlin/Native and JVM agreemen
 The first full production-controller runs of all 1,006 and 1,131 original frames
 instead produced zero cycles: intermittent rail proposals and grip observations
 restarted acquisition. The sampled result is not production accuracy evidence.
-With acquisition v2, the first view's full production-controller replay consumes
-all 1,006 original frames and produces four completed cycles, zero unfinished
-attempts and one tracking interruption during dismount. Every frame snapshot and
-the full saved record agree between Kotlin/Native and JVM. The second full view
-is still being evaluated. This is recorded-source evidence, not a live fix.
+With acquisition v2, full production-controller replay of both simultaneous
+views consumes all 1,006 and 1,131 original frames. Each produces four completed
+cycles, zero unfinished attempts and one tracking interruption during dismount.
+Every frame snapshot and both full saved records agree between Kotlin/Native and
+JVM; common storage validation and after-set feedback also report four completed
+cycles and zero practice attempts. These are two views of one development
+workout, not independent held-out sessions or a live fix.
 The iOS SDK's OpenCV 4.5.3 extraction
 matches all ordered contour pixels from 304 source crops against the macOS 4.11
 adapter. These checks do not establish Android native vision or physical-phone
