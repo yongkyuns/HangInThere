@@ -11,7 +11,7 @@ object WorkoutFeedback {
     fun summary(record: WorkoutSetRecord): WorkoutAfterSetReport {
         require(record.endReason != "running")
         val hold = record.activity?.let { if (record.exercise == ExerciseCounter.Exercise.pullUp) it.longestHangSeconds else it.longestSupportSeconds }
-        val incomplete = record.reps.count { !it.isCompleteForAnalytics }
+        val incomplete = record.reps.count { it.isPracticeForAnalytics }
         val interrupted = record.endReason !in listOf("manual", "disengaged", "sourceEnded")
         val title = if (interrupted) "Tracking stopped" else if (record.hasPractice) "Set ended" else "No measurable practice"
         val message = when {

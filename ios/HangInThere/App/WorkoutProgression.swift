@@ -15,6 +15,8 @@ struct WorkoutGoalRecord: Codable, Equatable, Sendable {
     let metric: String
     let target: Double
     let createdAtEpochMilliseconds: Int64?
+    var countMethod: String? = nil
+    var countPolicyVersion: Int? = nil
 }
 struct WorkoutMilestoneRecord: Codable, Equatable, Identifiable, Sendable {
     let id: String
@@ -41,6 +43,8 @@ struct WorkoutProgressEvidence: Codable, Equatable, Sendable {
     let completedCount: Int
     let incompleteAttempts: Int
     let attemptCount: Int
+    var countMethod: String? = nil
+    var countPolicyVersion: Int? = nil
 }
 struct WorkoutProgressReport: Codable, Equatable, Sendable {
     let exercise: ExerciseCounter.Exercise
@@ -77,21 +81,28 @@ struct WorkoutProgressReport: Codable, Equatable, Sendable {
     }
     func report(evidence: [WorkoutProgressEvidence], exercise: ExerciseCounter.Exercise) throws -> WorkoutProgressReport {
         let history = String(decoding: try JSONEncoder().encode(evidence), as: UTF8.self)
-        let key = "workoutGoal.\(exercise.rawValue)"
-        var goal = defaults.string(forKey: key)
         let bridge = WorkoutProgressBridge()
+        let initial = try decode(bridge.reportEvidenceJson(evidenceJson: history, exercise: exercise.rawValue, goalJson: nil))
+        let key = storageKey(exercise: exercise, method: initial.goal.countMethod, version: initial.goal.countPolicyVersion)
+        var goal = defaults.string(forKey: key)
         if goal == nil {
-            let initial = try decode(bridge.reportEvidenceJson(evidenceJson: history, exercise: exercise.rawValue, goalJson: nil))
-            goal = try bridge.goalJson(exercise: exercise.rawValue, metric: initial.goal.metric, target: initial.goal.target,
-                createdAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
+            goal = try bridge.goalForMethodJson(exercise: exercise.rawValue, metric: initial.goal.metric, target: initial.goal.target,
+                createdAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000), countMethod: initial.goal.countMethod,
+                countPolicyVersion: Int32(initial.goal.countPolicyVersion ?? 0))
             defaults.set(goal, forKey: key)
         }
         return try decode(bridge.reportEvidenceJson(evidenceJson: history, exercise: exercise.rawValue, goalJson: goal))
     }
-    func setGoal(exercise: ExerciseCounter.Exercise, metric: String, target: Double) throws {
-        let value = try WorkoutProgressBridge().goalJson(exercise: exercise.rawValue, metric: metric, target: target,
-            createdAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
-        defaults.set(value, forKey: "workoutGoal.\(exercise.rawValue)")
+    func setGoal(exercise: ExerciseCounter.Exercise, metric: String, target: Double,
+                 countMethod: String? = nil, countPolicyVersion: Int? = nil) throws {
+        let value = try WorkoutProgressBridge().goalForMethodJson(exercise: exercise.rawValue, metric: metric, target: target,
+            createdAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000), countMethod: countMethod,
+            countPolicyVersion: Int32(countPolicyVersion ?? 0))
+        defaults.set(value, forKey: storageKey(exercise: exercise, method: countMethod, version: countPolicyVersion))
+    }
+    private func storageKey(exercise: ExerciseCounter.Exercise, method: String?, version: Int?) -> String {
+        let legacy = "workoutGoal.\(exercise.rawValue)"
+        return method.map { "\(legacy).\($0).\(version ?? 0)" } ?? legacy
     }
     private func decode(_ json: String) throws -> WorkoutProgressReport {
         try JSONDecoder().decode(WorkoutProgressReport.self, from: Data(json.utf8))

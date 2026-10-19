@@ -7,7 +7,8 @@ import kotlinx.serialization.encodeToString
 @Serializable data class WorkoutLibraryEntry(val measured: WorkoutSetRecord)
 @Serializable data class WorkoutDeletion(val setId: String, val deletedAtEpochMilliseconds: Long)
 @Serializable data class WorkoutPlanItem(val id: String, val exercise: ExerciseCounter.Exercise,
-    val metric: WorkoutGoalMetric, val target: Double, val sets: Int, val context: WorkoutContext)
+    val metric: WorkoutGoalMetric, val target: Double, val sets: Int, val context: WorkoutContext,
+    val countMethod: String? = null, val countPolicyVersion: Int? = null)
 @Serializable data class WorkoutPlan(val id: String, val title: String, val scheduledDay: Long,
     val items: List<WorkoutPlanItem>, val workoutId: String? = null)
 @Serializable data class WorkoutLibraryGoal(val comparisonKey: String, val goal: WorkoutGoal)
@@ -63,7 +64,10 @@ object WorkoutLibrary {
         state.entries.forEach { entry ->
             val record = entry.measured
             require(WorkoutCorrections.safeId(record.id) && record == compact(record))
-            require(record.schemaVersion == 1 && record.lifecycleVersion == 1 && record.endReason != "running")
+            require(record.schemaVersion in 1..2 && record.lifecycleVersion == 1 && record.endReason != "running")
+            if (record.schemaVersion == 1) require(record.countMethod == null && record.countPolicyVersion == null && record.reps.all { it.countMethod == null })
+            else require(record.countMethod == BilateralDipWorkout.countMethod && record.countPolicyVersion == BilateralDipMotion.policyVersion &&
+                record.exercise == ExerciseCounter.Exercise.dip && record.reps.all { it.countMethod == record.countMethod && it.countPolicyVersion == record.countPolicyVersion })
             require(record.trackedAtEpochMilliseconds == null || record.trackedAtEpochMilliseconds > 0)
             require(record.trackedEndedAtEpochMilliseconds == null || record.trackedAtEpochMilliseconds != null && record.trackedEndedAtEpochMilliseconds >= record.trackedAtEpochMilliseconds)
             require(record.startedAt == null || record.startedAt.isFinite() && record.startedAt >= 0)
@@ -71,6 +75,8 @@ object WorkoutLibrary {
             require(record.reps.size <= 1000 && record.reps.all { it.setId == record.id && it.startedAt.isFinite() &&
                 it.closedAt.isFinite() && it.closedAt >= it.startedAt })
             record.reps.forEach { rep ->
+                require(rep.countMethod == null || rep.countMethod == BilateralDipWorkout.countMethod &&
+                    rep.countPolicyVersion == BilateralDipMotion.policyVersion && rep.exercise == ExerciseCounter.Exercise.dip)
                 require(rep.metricVersion in 1..WorkoutAnalysis.metricVersion)
                 require(rep.ordinal in 1..1000 && rep.id.length in 1..128 && rep.startedAt >= 0)
                 require(listOfNotNull(rep.extremeAt, rep.acceptedAt, rep.returnedAt).all { it.isFinite() && it in rep.startedAt..rep.closedAt })
@@ -107,8 +113,10 @@ object WorkoutLibrary {
         require(state.goals.size <= 256 && state.goals.map { it.comparisonKey }.distinct().size == state.goals.size)
         state.goals.forEach {
             require(it.comparisonKey.length in 1..1024)
-            val key = WorkoutRecordCodec.json.decodeFromString<List<String>>(it.comparisonKey)
-            require(key.size == 10 && key[0] == it.goal.exercise.name) { "Goal exercise must match its comparison group" }
+            val key = WorkoutComparisonKey.decode(it.comparisonKey)
+            require(key[0] == it.goal.exercise.name) { "Goal exercise must match its comparison group" }
+            require(if (key.size == 11) it.goal.countMethod == key[10] && it.goal.countPolicyVersion?.toString() == key[9]
+                else it.goal.countMethod == null && it.goal.countPolicyVersion == null) { "Goal method must match its comparison group" }
             it.goal.validate(); require(it.goal.createdAtEpochMilliseconds != null && it.goal.createdAtEpochMilliseconds > 0)
         }
         require(state.plans.size <= maximumPlans && state.plans.map { it.id }.distinct().size == state.plans.size)
@@ -116,7 +124,12 @@ object WorkoutLibrary {
             require(WorkoutCorrections.safeId(plan.id) && plan.title.length in 1..80 && plan.title.none(Char::isISOControl))
             require(plan.scheduledDay >= 0 && plan.items.size in 1..20 && plan.items.map { it.id }.distinct().size == plan.items.size)
             require(plan.workoutId == null || WorkoutCorrections.safeId(plan.workoutId))
-            plan.items.forEach { item -> require(WorkoutCorrections.safeId(item.id) && item.sets in 1..100); item.context.validate(); WorkoutGoal(item.exercise, item.metric, item.target).validate() }
+            plan.items.forEach { item ->
+                require(WorkoutCorrections.safeId(item.id) && item.sets in 1..100)
+                require(item.countMethod == null && item.countPolicyVersion == null ||
+                    item.exercise == ExerciseCounter.Exercise.dip && item.countMethod == BilateralDipWorkout.countMethod && item.countPolicyVersion == BilateralDipMotion.policyVersion)
+                item.context.validate(); WorkoutGoal(item.exercise, item.metric, item.target).validate()
+            }
         }
         state.mediaPolicy.validate()
         require(state.media.size <= 100 && state.media.map { it.id }.distinct().size == state.media.size)
@@ -236,7 +249,10 @@ object WorkoutLibrary {
                 state.copy(reviews = reviews)
             }
             "goal" -> {
-                val goal = requireNotNull(command.goal)
+                val input = requireNotNull(command.goal)
+                // The selected comparison group supplies this automatically;
+                // no extra method/version setting is needed in a goal form.
+                val goal = input.copy(goal = WorkoutComparisonKey.bindGoal(input.comparisonKey, input.goal))
                 state.copy(goals = state.goals.filter { it.comparisonKey != goal.comparisonKey } + goal)
             }
             "plan" -> { val plan = requireNotNull(command.plan); state.copy(plans = state.plans.filter { it.id != plan.id } + plan) }

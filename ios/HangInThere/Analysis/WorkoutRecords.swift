@@ -44,6 +44,7 @@ struct WorkoutRepRecord: Codable, Equatable, Identifiable, Sendable {
     let acceptanceReason: String?
     let formVerification: String?
     var grip: WorkoutGripEstimate? = nil
+    var countMethod: String? = nil
 }
 struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let id: String
@@ -63,6 +64,8 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     var activity: WorkoutActivity? = nil
     var grip: WorkoutGripRecord? = nil
     var trackedEndedAtEpochMilliseconds: Int64? = nil
+    var countMethod: String? = nil
+    var countPolicyVersion: Int? = nil
     var hasPractice: Bool { !reps.isEmpty || (activity?.observedSeconds ?? 0) > 0 }
     var progressInput: WorkoutSetRecord {
         var result = self

@@ -1,6 +1,22 @@
 package dev.hanginthere.core
 
+import kotlin.math.cos
+import kotlin.math.sin
+
 internal object BilateralGripFixtures {
+    fun curvedReference(): CurvedDipRailAcquisition.Reference {
+        val pose = frame()
+        val search = CurvedDipRailAcquisition().search(pose)!!
+        val rails = search.hands.mapIndexed { side, hand ->
+            val contours = listOf(60.0, 68.0).map { radius -> RailContour((0..60).map {
+                val t = -.6 + it * 1.2 / 60
+                Point2D(hand.x - 50 + radius * cos(t), 700 + radius * sin(t))
+            }, true) }
+            ObservedRailFitter.candidates(contours, search.regions[side], pose.imageSize, hand).maxBy { it.supportArcPixels }
+        }
+        return CurvedDipRailAcquisition.Reference.create(rails, search.hands, pose,
+            CurvedDipRailAcquisition.Context("authored-body", 1, "authored-hand", "authored-hand-backend"), 0)
+    }
     fun frame(ticks: Long = 0, leftDrop: Double = 0.0, rightDrop: Double = 0.0,
               handShift: Double = 0.0, elbows: Boolean = true, scoredHands: Boolean = true): PoseResult {
         val size = ImageSize(720.0, 1280.0)

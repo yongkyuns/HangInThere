@@ -13,7 +13,7 @@ swiftc -swift-version 6 -parse-as-library -O -whole-module-optimization -F "$FRA
   Evaluation/EstimatedBodyGeometryBridgeCheck.swift Evaluation/ObservedCurveBridgeCheck.swift \
   Evaluation/BilateralGripDisplacementBridgeCheck.swift Evaluation/SceneConsensusBridgeCheck.swift \
   Evaluation/ObservedRailFitterBridgeCheck.swift Evaluation/CurvedDipRailAcquisitionBridgeCheck.swift \
-  Evaluation/BilateralDipMotionBridgeCheck.swift \
+  Evaluation/BilateralDipMotionBridgeCheck.swift Evaluation/BilateralDipWorkoutBridgeCheck.swift \
   -o build/workout-analysis/apple-bridge-check
 build/workout-analysis/apple-bridge-check "$@"
 

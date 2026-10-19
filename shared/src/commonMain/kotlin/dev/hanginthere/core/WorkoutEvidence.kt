@@ -45,7 +45,7 @@ object WorkoutEvidence {
             else -> WorkoutAttemptStatus.interrupted
         }
         val title = when (status) {
-            WorkoutAttemptStatus.completed -> "Completed cycle"
+            WorkoutAttemptStatus.completed -> if (rep.countMethod == BilateralDipWorkout.countMethod) "Observed image cycle" else "Completed cycle"
             WorkoutAttemptStatus.inProgress -> "In progress"
             WorkoutAttemptStatus.partialMovement -> "Partial movement observed"
             WorkoutAttemptStatus.returnNotRecorded -> "Return not recorded"
@@ -53,7 +53,9 @@ object WorkoutEvidence {
             WorkoutAttemptStatus.ended -> "Attempt ended"
         }
         val explanation = when (status) {
-            WorkoutAttemptStatus.completed -> "The movement and return were recorded. This cycle is included in completed-rep statistics."
+            WorkoutAttemptStatus.completed -> if (rep.countMethod == BilateralDipWorkout.countMethod)
+                "Both-arm image travel and return were recorded. Anatomical depth, form and load are unverified."
+                else "The movement and return were recorded. This cycle is included in completed-rep statistics."
             WorkoutAttemptStatus.inProgress -> "This attempt is still being tracked. It is excluded from completed-rep statistics until a completed cycle is recorded."
             WorkoutAttemptStatus.partialMovement -> "A return was observed before the movement reached the counting position. This is recorded as practice, not a completed rep."
             WorkoutAttemptStatus.returnNotRecorded -> "The movement reached the counting position, but its return was not recorded. A completed rep cannot be confirmed."
@@ -64,6 +66,8 @@ object WorkoutEvidence {
         val left = coverage(rep.left.coverage)
         val right = coverage(rep.right.coverage)
         val notes = buildList {
+            if (rep.countMethod == BilateralDipWorkout.countMethod)
+                add("Bilateral image-motion cycle. Anatomical depth, form and load are unverified.")
             if (duration == null) add("Observed-time coverage is unavailable.")
             else if (duration < 1 - 1e-9) add("Some source time was not observed; gaps do not add hold time.")
             if (left == null) add("Left-arm time coverage is unavailable.")

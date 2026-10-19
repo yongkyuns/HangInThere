@@ -25,7 +25,8 @@ import kotlinx.serialization.Serializable
     val trackedAtEpochMilliseconds: Long?, val endReason: String, val context: WorkoutContext,
     val comparisonKey: String?, val metricVersion: Int, val countPolicyVersion: Int, val workoutId: String?,
     val exerciseCorrected: Boolean, val attempts: List<WorkoutReviewedAttempt>, val sourceSetIds: List<String> = listOf(sourceSetId),
-    val trackedEndedAtEpochMilliseconds: Long? = null, val isMerged: Boolean = false)
+    val trackedEndedAtEpochMilliseconds: Long? = null, val isMerged: Boolean = false,
+    val countMethod: String? = null)
 
 object WorkoutCorrections {
     const val maximumEvents = 65536
@@ -106,18 +107,26 @@ object WorkoutCorrections {
             val activity = record.activity.takeIf { part.ownsHold && !correctedExercise }
             val hold = activity?.let { if (exercise == ExerciseCounter.Exercise.pullUp) it.longestHangSeconds else it.longestSupportSeconds }
             val metricVersion = record.activity?.metricVersion ?: 0
-            val countVersion = reps.map { it.countPolicyVersion }.distinct().singleOrNull() ?: ExerciseCounter.policyVersion
-            val key = correction.context.comparisonKey(exercise, metricVersion, countVersion).takeIf { !correctedExercise }
+            val countVersion = reps.map { it.countPolicyVersion }.distinct().singleOrNull() ?: record.countPolicyVersion ?: ExerciseCounter.policyVersion
+            val methods = (reps.map { it.countMethod to it.countPolicyVersion } +
+                listOfNotNull(record.countMethod?.let { it to record.countPolicyVersion })).distinct()
+            val method = methods.singleOrNull()?.first
+            val key = correction.context.comparisonKey(exercise, metricVersion, countVersion, method)
+                .takeIf { !correctedExercise && methods.size <= 1 }
             WorkoutReviewedSet(part.id, record.id, exercise, part.repIds, part.ownsHold,
                 attempts.count { it.measuredCompleted }, attempts.count { it.userReportedCompleted && !it.measuredCompleted },
-                attempts.count { !it.measuredCompleted && !it.userReportedCompleted && it.classification != WorkoutAttemptClassification.excluded },
+                attempts.count { attempt -> !attempt.measuredCompleted && !attempt.userReportedCompleted &&
+                    attempt.classification != WorkoutAttemptClassification.excluded &&
+                    (attempt.classification != WorkoutAttemptClassification.automatic ||
+                        reps.single { it.id == attempt.id }.isPracticeForAnalytics) },
                 attempts.count { it.classification == WorkoutAttemptClassification.excluded }, hold, activity?.seconds(phase),
                 reps.filter { rep -> attempts.single { it.id == rep.id }.let { it.classification == WorkoutAttemptClassification.automatic || it.metricsEligible } }
                     .mapNotNull(WorkoutEvidence::comparableElbowExcursion).maxOrNull().takeIf { !correctedExercise },
                 metricReps.mapNotNull { it.returnSeconds }.takeIf { it.isNotEmpty() }?.average(),
                 record.activity?.let { if (it.elapsedSeconds > 0) (it.observedSeconds / it.elapsedSeconds).coerceIn(0.0, 1.0) else null },
                 record.trackedAtEpochMilliseconds, record.endReason, correction.context, key, metricVersion, countVersion,
-                correction.workoutId, correctedExercise, attempts, trackedEndedAtEpochMilliseconds = record.trackedEndedAtEpochMilliseconds)
+                correction.workoutId, correctedExercise, attempts, trackedEndedAtEpochMilliseconds = record.trackedEndedAtEpochMilliseconds,
+                countMethod = method)
         }
     }
     /** Merge is a presentation grouping, never source-time concatenation. */

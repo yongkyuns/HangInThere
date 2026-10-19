@@ -71,8 +71,15 @@ object WorkoutAnalytics {
     val countPolicyVersion: Int = ExerciseCounter.policyVersion, val metricVersion: Int = 1,
     val acceptanceReason: String? = null, val formVerification: String = "unverified",
     val grip: GripEstimate? = null,
+    /** Null identifies the historical ExerciseCounter family. Versions are
+     * scoped to a method; bilateral image motion v1 is never counter v1/v8. */
+    val countMethod: String? = null,
 ) {
     val isCompleteForAnalytics get() = WorkoutAnalytics.isCompletedRep(acceptedAt != null, returnedAt != null, closeReason)
+    /** A lost observation is not evidence of an athlete's unfinished attempt.
+     * Keep the raw quality record without calling it practice in summaries. */
+    val isPracticeForAnalytics get() = !isCompleteForAnalytics &&
+        (countMethod != BilateralDipWorkout.countMethod || closeReason in listOf("partial", "manual", "endOfInput", "sourceEnded"))
 }
 @Serializable data class WorkoutSetRecord(
     val id: String, val exercise: ExerciseCounter.Exercise, val startedAt: Double?,
@@ -85,6 +92,9 @@ object WorkoutAnalytics {
     val grip: WorkoutGripRecord? = null,
     /** Actual live calendar finish; absent for replay, legacy and interrupted recovery. */
     val trackedEndedAtEpochMilliseconds: Long? = null,
+    /** Schema 2 scopes the method even for a hold-only set with no reps. Older
+     * apps reject this schema instead of silently stripping method identity. */
+    val countMethod: String? = null, val countPolicyVersion: Int? = null,
 ) {
     val acceptedCount get() = reps.count { it.acceptedAt != null }
     val completedReps get() = reps.filter { it.isCompleteForAnalytics }
@@ -105,7 +115,8 @@ internal class AngleAccumulator {
         maximum = max(maximum ?: value, value)
         if (previous != null && dt != null) { integral += (previous + value) * .5 * dt; observed += dt }
     }
-    fun metrics(duration: Double) = AngleMetrics(minimum, maximum, if (observed > 0) integral / observed else null,
+    fun metrics(duration: Double) = AngleMetrics(minimum, maximum,
+        if (observed > 0 && minimum != null && maximum != null) (integral / observed).coerceIn(minimum!!, maximum!!) else null,
         observed, if (duration > 0) (observed / duration).coerceIn(0.0, 1.0) else null)
 }
 
@@ -115,10 +126,14 @@ internal class AngleAccumulator {
  * [revision] changes only on record updates, so native clients needn't serialize
  * the growing records on every frame. Mutation has one serial owner per session.
  */
-class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise) {
+class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise,
+    private val countPolicyVersion: Int = ExerciseCounter.policyVersion,
+    private val countMethod: String? = null,
+    private val maximumAttemptGapSeconds: Double = ExerciseCounter.maximumGapSeconds) {
     private class Attempt(val start: Double, val ordinal: Int) {
         val left = AngleAccumulator(); val right = AngleAccumulator()
         var extreme: Double? = null; var accepted: Double? = null
+        var motionPeak: Double? = null
         var minimumMeanAngle: Double? = null
         var comparableExtreme = true
         var acceptanceReason: String? = null
@@ -152,10 +167,11 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
             }
             previous = sample
         }
-        fun record(setId: String, exercise: ExerciseCounter.Exercise, end: Double, reason: String, returned: Boolean): RepRecord {
+        fun record(setId: String, exercise: ExerciseCounter.Exercise, end: Double, reason: String, returned: Boolean,
+            countPolicyVersion: Int, countMethod: String?): RepRecord {
             val duration = max(0.0, end - start)
             val l = left.metrics(duration); val r = right.metrics(duration)
-            val measuredExtreme = extreme.takeIf { comparableExtreme }
+            val measuredExtreme = if (countMethod == null) extreme.takeIf { comparableExtreme } else motionPeak
             return RepRecord("$setId:rep:$ordinal", setId, ordinal, exercise, start, measuredExtreme, accepted,
                 end.takeIf { returned }, end, reason, if (accepted != null) "accepted" else if (reason == "partial") "partial" else "interrupted",
                 measuredExtreme?.minus(start), if (returned && measuredExtreme != null) end - measuredExtreme else null, l, r,
@@ -163,7 +179,8 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
                 if (comparableExtreme && (l.coverage ?: 0.0) >= .99 && (r.coverage ?: 0.0) >= .99 && left.extremeAt != null && right.extremeAt != null)
                     abs(left.extremeAt!! - right.extremeAt!!) else null,
                 usableSeconds, if (duration > 0) (usableSeconds / duration).coerceIn(0.0, 1.0) else null,
-                samples.toList(), truncated, metricVersion=metricVersion, acceptanceReason=acceptanceReason)
+                samples.toList(), truncated, countPolicyVersion=countPolicyVersion,
+                metricVersion=metricVersion, acceptanceReason=acceptanceReason, countMethod=countMethod)
         }
     }
     private val phases = WorkoutPhaseAnalysis(setId, exercise)
@@ -190,28 +207,45 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
     val records: List<RepRecord> get() = closed
     val activeAccepted get() = attempt?.accepted != null
     val lastSourceSeconds get() = previous?.seconds
-    val activeRecord get() = attempt?.let { withGrip(it.record(setId, exercise, previous?.seconds ?: it.start, "inProgress", false)) }
+    val activeRecord get() = attempt?.let { withGrip(it.record(setId, exercise, previous?.seconds ?: it.start, "inProgress", false, countPolicyVersion, countMethod)) }
 
     fun observe(sample: MotionSample, phase: ExerciseCounter.Phase, event: ExerciseCounter.Event?) {
+        observeMotion(sample, phase, event?.let { MotionEvent(when (it.outcome) {
+            ExerciseCounter.Outcome.movement -> MotionOutcome.accepted
+            ExerciseCounter.Outcome.partial -> MotionOutcome.partial
+            ExerciseCounter.Outcome.interrupted -> MotionOutcome.interrupted
+        }, it.sourceSeconds, it.reason) })
+    }
+
+    /** Detector-neutral lifecycle. An acceptance milestone and a recorded full
+     * cycle are different events. Native adapters cannot turn one into the other. */
+    enum class MotionOutcome { accepted, completed, partial, interrupted }
+    data class MotionEvent(val outcome: MotionOutcome, val sourceSeconds: Double, val reason: String,
+        val observedPeakSeconds: Double? = null)
+    fun observeMotion(sample: MotionSample, phase: ExerciseCounter.Phase, event: MotionEvent?) {
         if (!sample.seconds.isFinite()) { interrupt("invalidTimestamp"); return }
         val old = previous
         if (old != null && sample.seconds <= old.seconds) { interrupt("nonIncreasingTimestamp"); return }
-        if (old != null && sample.seconds - old.seconds > ExerciseCounter.maximumGapSeconds) interrupt("sourceTimeGap")
+        if (old != null && sample.seconds - old.seconds > maximumAttemptGapSeconds) interrupt("sourceTimeGap")
         if (phases.observe(sample, phase)) revision++
         if (attempt == null && phase == ExerciseCounter.Phase.outbound && lastPhase != phase) {
             attempt = Attempt(old?.seconds ?: sample.seconds, ++ordinal)
             old?.let { attempt!!.observe(it, measureExtreme=false) }
         }
         attempt?.observe(sample)
-        if (event?.outcome == ExerciseCounter.Outcome.movement) {
+        if (event != null && (event.outcome == MotionOutcome.accepted || event.outcome == MotionOutcome.completed)) {
             // Defensive: retain an accepted event even if an adapter attached late.
             if (attempt == null) attempt = Attempt(sample.seconds, ++ordinal).also { it.observe(sample) }
             attempt!!.accepted = event.sourceSeconds; attempt!!.acceptanceReason=event.reason; revision++
+            attempt!!.motionPeak = event.observedPeakSeconds?.takeIf { it.isFinite() && it in attempt!!.start..sample.seconds }
         }
         when {
-            event?.outcome == ExerciseCounter.Outcome.partial -> close(sample.seconds, "partial", false)
-            event?.outcome == ExerciseCounter.Outcome.interrupted -> close(sample.seconds, event.reason, false)
-            phase == ExerciseCounter.Phase.ready && lastPhase == ExerciseCounter.Phase.returning -> close(sample.seconds, "returned", true)
+            event?.outcome == MotionOutcome.completed -> close(sample.seconds, "returned", true)
+            event?.outcome == MotionOutcome.partial -> close(sample.seconds, "partial", false)
+            event?.outcome == MotionOutcome.interrupted -> close(sample.seconds, event.reason, false)
+            phase == ExerciseCounter.Phase.ready && lastPhase == ExerciseCounter.Phase.returning ->
+                if (countMethod == null) close(sample.seconds, "returned", true)
+                else close(sample.seconds, "completionNotConfirmed", false)
             phase == ExerciseCounter.Phase.seekingStart && lastPhase != phase -> close(sample.seconds, "trackingLost", false)
         }
         previous = sample; lastPhase = phase
@@ -219,7 +253,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise)
     fun interrupt(reason: String) { phases.interrupt(); previous?.seconds?.let { close(it, reason, false) };grips.interrupt(); lastPhase = ExerciseCounter.Phase.seekingStart; previous = null }
     fun finish(reason: String) { previous?.seconds?.let { close(it, reason, false) } }
     private fun close(time: Double, reason: String, returned: Boolean) {
-        attempt?.let { closed += withGrip(it.record(setId, exercise, time, reason, returned)); revision++ }; attempt = null
+        attempt?.let { closed += withGrip(it.record(setId, exercise, time, reason, returned, countPolicyVersion, countMethod)); revision++ }; attempt = null
     }
     private fun withGrip(rep:RepRecord)=if(exercise==ExerciseCounter.Exercise.pullUp && grips.hasObservation)rep.copy(grip=grips.summarize(rep.startedAt,rep.closedAt)) else rep
     fun recordsJson(): String = json.encodeToString(records)

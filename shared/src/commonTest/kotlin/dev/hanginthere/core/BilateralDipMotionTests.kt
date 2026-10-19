@@ -8,19 +8,7 @@ import kotlinx.serialization.json.*
 class BilateralDipMotionTests {
     private fun frame(index: Int, left: Double = 0.0, right: Double = left) =
         BilateralGripFixtures.frame(1000L + index * 200L, left, right)
-    private val reference by lazy {
-        val pose = BilateralGripFixtures.frame()
-        val search = CurvedDipRailAcquisition().search(pose)!!
-        val rails = search.hands.mapIndexed { side, hand ->
-            val contours = listOf(60.0, 68.0).map { radius -> RailContour((0..60).map {
-                val t = -.6 + it * 1.2 / 60
-                Point2D(hand.x - 50 + radius * cos(t), 700 + radius * sin(t))
-            }, true) }
-            ObservedRailFitter.candidates(contours, search.regions[side], pose.imageSize, hand).maxBy { it.supportArcPixels }
-        }
-        CurvedDipRailAcquisition.Reference.create(rails, search.hands, pose,
-            CurvedDipRailAcquisition.Context("authored-body", 1, "authored-hand", "authored-hand-backend"), 0)
-    }
+    private val reference by lazy { BilateralGripFixtures.curvedReference() }
     private fun observe(engine: BilateralDipMotion, pose: PoseResult, camera: BilateralDipMotion.Camera = BilateralDipMotion.Camera.ready,
                         support: CurvedDipRailAcquisition.Reference? = reference) = engine.observe(pose, support, camera)
     private fun run(drops: List<Double?>, mutate: (Int, PoseResult) -> PoseResult = { _, p -> p }): List<BilateralDipMotion.Snapshot> {

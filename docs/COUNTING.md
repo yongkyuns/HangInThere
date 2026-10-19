@@ -18,6 +18,16 @@ adapter. These checks do not establish Android native vision or physical-phone
 throughput parity. The original public-video accuracy gate remains mandatory
 and currently fails; none of its labels or matching rules have changed.
 
+`BilateralDipWorkout` composes this method with common set boundaries and
+descriptive analytics. Its schema-2 records retain `bilateralDipImageMotion`
+policy 1, including hold-only sets. Completed cycles require an explicit return
+event; tracking interruptions remain quality evidence rather than athlete
+unfinished attempts. Peak timing comes from observed bilateral shoulder travel,
+while both elbow-angle summaries remain descriptive. History, goals and plans
+keep this method separate from legacy counting cohorts. The same 227 retained
+observations produce four completed cycles and no unfinished attempts per view
+through both JVM and Kotlin/Native, including full library-validated records.
+
 Pull-up behavior retains policy v7. Dip behavior uses the support-relative policy
 below; saved summaries record `selectedGripWithAvailableArms` for dips.
 

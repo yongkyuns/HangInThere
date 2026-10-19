@@ -29,6 +29,9 @@ class BilateralDipMotion {
     private var highWater: PresentationTime? = null
     private var lastValid: PresentationTime? = null
     private var reference: CurvedDipRailAcquisition.Reference? = null
+    /** Also fences automatic release: pre-movement pixels cannot describe a
+     * dismount after the camera has moved. Not a mechanical contact verdict. */
+    internal val hasCurrentSupport: Boolean get() = reference != null
     private var reacquireAfter: PresentationTime? = null
     private var candidate: BilateralGripDisplacement.Sample? = null
     private var top: BilateralGripDisplacement.Sample? = null

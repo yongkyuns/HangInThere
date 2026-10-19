@@ -42,7 +42,8 @@ object WorkoutBenchmarkExport {
         val sourceVersions = records.map { record ->
             val activityVersion = requireNotNull(record.activity).metricVersion
             val repVersion = when (activityVersion) { 1, 2 -> 1; WorkoutPhaseAnalysis.metricVersion -> WorkoutAnalysis.metricVersion; else -> throw IllegalArgumentException("Unknown source metric version") }
-            require(record.reps.all { it.countPolicyVersion == ExerciseCounter.policyVersion && it.metricVersion == repVersion })
+            require(record.schemaVersion == 1 && record.countMethod == null && record.countPolicyVersion == null &&
+                record.reps.all { it.countMethod == null && it.countPolicyVersion == ExerciseCounter.policyVersion && it.metricVersion == repVersion })
             WorkoutBenchmarkMetricVersions(ExerciseCounter.policyVersion, activityVersion, repVersion)
         }.toSet()
         require(sourceVersions.size <= 1) { "A benchmark session cannot combine different metric engines" }

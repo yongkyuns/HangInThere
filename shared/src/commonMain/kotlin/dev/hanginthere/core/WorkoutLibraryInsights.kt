@@ -81,8 +81,7 @@ object WorkoutInsights {
         val keys = sets.mapNotNull { it.comparisonKey }.distinct().sorted()
         if (key != null) {
             require(key.length <= 1024)
-            val parts = WorkoutRecordCodec.json.decodeFromString<List<String>>(key)
-            require(parts.size == 10 && parts[0] in ExerciseCounter.Exercise.entries.map { it.name })
+            WorkoutComparisonKey.decode(key)
         }
         val selected = key?.takeIf { it in keys } ?: keys.firstOrNull()
         val comparable = sets.filter { selected != null && it.comparisonKey == selected &&
@@ -103,7 +102,8 @@ object WorkoutInsights {
         val metric = if ((repsMedian ?: 0.0) > 0) WorkoutGoalMetric.completedReps else WorkoutGoalMetric.holdSeconds
         val baseline = if (metric == WorkoutGoalMetric.completedReps) repsMedian else holdMedian
         val suggestion = if (exercise != null && latest.size >= 3 && baseline != null && baseline > 0) WorkoutGoal(exercise, metric,
-            if (metric == WorkoutGoalMetric.completedReps) ceil(baseline + 1).coerceAtMost(1000.0) else ceil(baseline + maxOf(1.0, baseline * .1)).coerceAtMost(3600.0), now) else null
+            if (metric == WorkoutGoalMetric.completedReps) ceil(baseline + 1).coerceAtMost(1000.0) else ceil(baseline + maxOf(1.0, baseline * .1)).coerceAtMost(3600.0), now,
+            countMethod = comparable.first().countMethod, countPolicyVersion = comparable.first().countPolicyVersion.takeIf { comparable.first().countMethod != null }) else null
         val chosen = state.goals.firstOrNull { it.comparisonKey == selected }?.goal
         val goalValues = comparableBySession.values.mapNotNull { members -> chosen?.let { goal -> goalValue(goal, members) } }
         val goalBest = goalValues.maxOrNull()
@@ -144,7 +144,9 @@ object WorkoutInsights {
             .groupBy { localDay(it.trackedAtEpochMilliseconds!!, offset) }
         val plans = state.plans.map { plan ->
             fun matches(set: WorkoutReviewedSet, item: WorkoutPlanItem): Boolean =
-                set.comparisonKey != null && set.comparisonKey == item.context.comparisonKey(item.exercise, set.metricVersion, set.countPolicyVersion)
+                set.comparisonKey != null && set.countMethod == item.countMethod &&
+                    (item.countMethod == null || set.countPolicyVersion == item.countPolicyVersion) &&
+                    set.comparisonKey == item.context.comparisonKey(item.exercise, set.metricVersion, set.countPolicyVersion, item.countMethod)
             val eligibleBySession = eligibleByDay[plan.scheduledDay].orEmpty().filter { set -> plan.items.any { matches(set, it) } }
                 .groupBy { sessionBySetId.getValue(it.id) }
             val candidateSessions = eligibleBySession.keys.sortedBy { sessionOrder.getValue(it) }.map { sessionsById.getValue(it) }

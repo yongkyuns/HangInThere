@@ -15,15 +15,16 @@ class WorkoutRecordCodec {
     fun recoveryJson(input: String): String = json.encodeToString(recover(json.decodeFromString<WorkoutSetRecord>(input)))
     companion object {
         fun mergeDraft(previous: WorkoutSetRecord?, delta: WorkoutSetRecord): WorkoutSetRecord {
-            require(delta.schemaVersion==1 && delta.lifecycleVersion==1)
+            require(delta.schemaVersion in 1..2 && delta.lifecycleVersion==1)
             if(previous==null) return summary(delta)
             require(previous.id==delta.id && previous.exercise==delta.exercise && previous.schemaVersion==delta.schemaVersion && previous.lifecycleVersion==delta.lifecycleVersion && previous.trackingSide==delta.trackingSide && previous.imageSize==delta.imageSize && previous.referenceEdge==delta.referenceEdge)
             require(previous.trackedAtEpochMilliseconds==delta.trackedAtEpochMilliseconds) { "Workout calendar timestamp is immutable" }
+            require(previous.countMethod==delta.countMethod && previous.countPolicyVersion==delta.countPolicyVersion) { "Workout detection method is immutable" }
             val reps=previous.reps.associateBy{it.id}.toMutableMap()
             delta.reps.forEach { next ->
                 require(next.setId==delta.id)
                 val old=reps[next.id]
-                require(old==null || (old.metricVersion==next.metricVersion && old.countPolicyVersion==next.countPolicyVersion))
+                require(old==null || (old.metricVersion==next.metricVersion && old.countPolicyVersion==next.countPolicyVersion && old.countMethod==next.countMethod))
                 val terminal = old != null && old.closeReason != "inProgress"
                 val eligible = old == null || (!terminal || next.closeReason != "inProgress") && next.closedAt >= old.closedAt
                 if (eligible) {
