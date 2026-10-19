@@ -6,17 +6,21 @@ import os
 // analysis bridge. It does not reimplement acquisition, counting or analytics.
 @main private enum PublicWorkoutReplay {
     @MainActor static func main() async throws {
-        guard [5, 7].contains(CommandLine.arguments.count) else { throw failure("Usage: public-replay MANIFEST ROOT OUTPUT REVISION [SHARD_INDEX SHARD_COUNT]") }
-        let manifestURL = URL(fileURLWithPath: CommandLine.arguments[1])
-        let root = URL(fileURLWithPath: CommandLine.arguments[2]).resolvingSymlinksInPath().standardizedFileURL
-        let output = URL(fileURLWithPath: CommandLine.arguments[3])
+        guard let invocation = PublicReplayPipeline.parse(arguments: CommandLine.arguments) else {
+            throw failure("Usage: public-replay MANIFEST ROOT OUTPUT REVISION [SHARD_INDEX SHARD_COUNT] [--candidate-bilateral-dips]")
+        }
+        let arguments = invocation.arguments
+        let pipeline = invocation.pipeline
+        let manifestURL = URL(fileURLWithPath: arguments[1])
+        let root = URL(fileURLWithPath: arguments[2]).resolvingSymlinksInPath().standardizedFileURL
+        let output = URL(fileURLWithPath: arguments[3])
         let manifestData = try Data(contentsOf: manifestURL)
         let manifestHash = SHA256.hash(data: manifestData).map { String(format: "%02x", $0) }.joined()
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let manifest = try decoder.decode(PublicReplayManifest.self, from: manifestData)
-        let shardIndex = CommandLine.arguments.count == 7 ? Int(CommandLine.arguments[5]) : 0
-        let shardCount = CommandLine.arguments.count == 7 ? Int(CommandLine.arguments[6]) : 1
+        let shardIndex = arguments.count == 7 ? Int(arguments[5]) : 0
+        let shardCount = arguments.count == 7 ? Int(arguments[6]) : 1
         guard manifest.schemaVersion == 1, manifest.scope == "public_repetition_diagnostic",
               !manifest.heldOutQualification, !manifest.cases.isEmpty,
               Set(manifest.cases.map(\.id)).count == manifest.cases.count,
@@ -33,10 +37,7 @@ import os
             let clock = PublicReplayClock()
             let quality = PublicPoseQuality(exercise: item.selectedExercise)
             let sceneTrace = PublicSceneTrace()
-            // Configuration 1 is the frozen counter-v8 qualification route.
-            // The separately versioned bilateral candidate must not be exported
-            // under this report's single legacy counter-policy identity.
-            let model = ReplayController(dipMethod: .selectedGripV8, estimator: quality, trace: clock.observe,
+            let model = ReplayController(dipMethod: pipeline.dipMethod, estimator: quality, trace: clock.observe,
                 sceneWorker: VisionStaticSceneRegistrationWorker(includeDiagnosticHomography: true),
                 sceneTrace: sceneTrace.observe)
             model.configureCounting(exercise: item.selectedExercise, side: item.trackingSide)
@@ -73,6 +74,16 @@ import os
             report["scene_registration_evidence"] = sceneTrace.report
             report["selected_exercise"] = model.counter.exercise.rawValue
             report["tracking_side"] = model.counter.side.rawValue
+            if pipeline == .bilateralDipsV1 {
+                report.merge(PublicReplayCountingIdentity(model: model).fields) { _, value in value }
+                report["reference_side"] = item.trackingSide.rawValue
+                report["tracking_side"] = "both"
+                if model.usesBilateralDip {
+                    report["legacy_automatic_bar_state"] = report.removeValue(forKey: "automatic_bar_state")
+                    report["scene_registration_evidence"] = ["collection": "notCollectedByLegacyTrace",
+                        "scope": "The source-owned dip processor enforces current scene evidence; this legacy diagnostic callback does not observe it."]
+                }
+            }
             model.close()
             report["pose_quality"] = quality.summary
             report["elapsed_seconds"] = ReplayTrace.milliseconds(since: started) / 1000
@@ -80,14 +91,19 @@ import os
             FileHandle.standardOutput.write(Data("\(id): \(report["status"]!)\n".utf8))
         }
         guard try sha256(manifestURL) == manifestHash else { throw failure("Manifest changed while evaluating") }
-        let value: [String: Any] = ["schema_version": 1, "manifest_sha256": manifestHash,
-            "source_revision": CommandLine.arguments[4], "platform": "apple_host", "backend": "Apple Vision 2D",
-            "counter_policy_version": ExerciseCounter.policyVersion, "request_revision": 1,
+        var value: [String: Any] = ["schema_version": 1, "manifest_sha256": manifestHash,
+            "source_revision": arguments[4], "platform": "apple_host", "backend": "Apple Vision 2D",
+            "request_revision": 1,
             "progress_evidence_version": 1,
             "shard_index": shardIndex, "shard_count": shardCount,
             "exercise_selection": manifest.cases.allSatisfy { $0.selectedExercise == .pullUp }
                 ? "pullUp selected in production native replay" : "per-case exercise selected in production native replay",
-            "replay_configuration_version": 1, "cases": reports]
+            "replay_configuration_version": pipeline.rawValue, "cases": reports]
+        if pipeline == .legacyV8 {
+            value["counter_policy_version"] = ExerciseCounter.policyVersion
+        } else {
+            value["counting_method_configuration"] = "bilateralDips_v1"
+        }
         try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys])
             .write(to: output, options: .withoutOverwriting)
     }

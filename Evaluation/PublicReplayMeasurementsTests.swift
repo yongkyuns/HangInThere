@@ -71,6 +71,39 @@ struct PublicReplayMeasurementsTests {
 }
 
 struct PublicReplayConfigurationTests {
+    @Test func bilateralQualificationRequiresAnExplicitUnambiguousFlag() throws {
+        let arguments = ["public-replay", "manifest", "root", "output", "revision"]
+        #expect(PublicReplayPipeline.parse(arguments: arguments)?.pipeline == .legacyV8)
+        let candidate = try #require(PublicReplayPipeline.parse(arguments: arguments + [PublicReplayPipeline.candidateFlag]))
+        #expect(candidate.pipeline == .bilateralDipsV1)
+        #expect(candidate.arguments == arguments)
+        #expect(PublicReplayPipeline.parse(arguments: arguments + ["0", "2", PublicReplayPipeline.candidateFlag])?.arguments == arguments + ["0", "2"])
+        for invalid in [arguments + [PublicReplayPipeline.candidateFlag, PublicReplayPipeline.candidateFlag],
+                        ["tool", PublicReplayPipeline.candidateFlag, "root", "output", "revision"],
+                        arguments + ["0"]] {
+            #expect(PublicReplayPipeline.parse(arguments: invalid) == nil)
+        }
+    }
+
+    @MainActor @Test func dipIdentityComesFromTheActualConfiguredProcessor() {
+        let legacy = ReplayController(dipMethod: PublicReplayPipeline.legacyV8.dipMethod)
+        let candidate = ReplayController(dipMethod: PublicReplayPipeline.bilateralDipsV1.dipMethod)
+        legacy.configureCounting(exercise: .dip, side: .right)
+        candidate.configureCounting(exercise: .dip, side: .right)
+        let old = PublicReplayCountingIdentity(model: legacy)
+        let new = PublicReplayCountingIdentity(model: candidate)
+        #expect(!legacy.usesBilateralDip && candidate.usesBilateralDip)
+        #expect(old.method == "selectedGripWithAvailableArms" && old.policyVersion == 8)
+        #expect(new.method == "bilateralDipImageMotion" && new.policyVersion == 1)
+    }
+
+    @MainActor @Test func candidateConfigurationKeepsTheActualPullupMethod() {
+        let model = ReplayController(dipMethod: PublicReplayPipeline.bilateralDipsV1.dipMethod)
+        let identity = PublicReplayCountingIdentity(model: model)
+        #expect(!model.usesBilateralDip)
+        #expect(identity.method == "bothUsableArms" && identity.policyVersion == 8)
+    }
+
     private func decode(_ fields: [String: Any] = [:]) throws -> PublicReplayManifest {
         var item: [String: Any] = ["id": "dip", "media": ["path": "videos/dip.mp4", "sha256": String(repeating: "a", count: 64)],
             "source_pts_seconds": [0.0, 0.1]]
@@ -114,6 +147,7 @@ struct PublicPoseQualityTests {
         #expect(dip.summary["starting_pose_candidate_frames"] as? Int == 3)
         #expect(dip.summary["longest_starting_pose_candidate_seconds"] as? Double == 0.4)
         #expect(dip.summary["pullup_search_frames"] == nil)
+        #expect((dip.summary["scope"] as? String)?.contains("legacy v8 geometry") == true)
         #expect(pullup.summary["pullup_search_frames"] as? Int == 0)
         #expect(pullup.summary["starting_pose_candidate_frames"] as? Int == 0)
     }

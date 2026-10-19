@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import io
 import tempfile
 import unittest
@@ -31,12 +32,40 @@ def fixture():
     return reference, manifest, native
 
 
+def candidate_fixture():
+    reference, manifest, native = fixture()
+    native.pop("counter_policy_version")
+    native.update(replay_configuration_version=2, counting_method_configuration="bilateralDips_v1")
+    native["cases"][0].update(reference_side="right", tracking_side="both",
+                              count_method="bilateralDipImageMotion", count_policy_version=1)
+    return reference, manifest, native
+
+
 class TemporalNativeReplayTests(unittest.TestCase):
     def setUp(self):
         self.reference, self.manifest, self.native = fixture()
 
     def score(self):
         return replay.score(self.reference, self.manifest, self.native, "b" * 64, "a" * 64)
+
+    def test_compilation_snapshot_hashes_the_bytes_copied_even_if_original_changes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "Pose.swift"
+            source.write_bytes(b"original compiled bytes")
+            read_bytes = Path.read_bytes
+            def racing_read(path):
+                captured = read_bytes(path)
+                if path == source:
+                    path.write_bytes(b"changed after capture")
+                return captured
+            target = root / "Sources/replay"
+            with patch.object(replay, "compiled_source_paths", return_value=["Pose.swift"]), \
+                    patch.object(Path, "read_bytes", racing_read):
+                hashes = replay.snapshot_compilation_sources(root, target)
+            self.assertEqual((target / "Pose.swift").read_bytes(), b"original compiled bytes")
+            self.assertEqual(hashes["Pose.swift"], hashlib.sha256(b"original compiled bytes").hexdigest())
+            self.assertNotEqual(hashes["Pose.swift"], replay.ev.digest(source), "The post-build original-source check must reject this race")
 
     def test_selected_dip_uses_unchanged_reference_events(self):
         report = self.score()
@@ -206,6 +235,13 @@ class TemporalNativeReplayTests(unittest.TestCase):
             self.assertEqual(labels.read_bytes(), before)
 
     def test_strict_cli_keeps_accuracy_failure_and_verifies_compiled_report_binding(self):
+        self.assert_strict_cli_failure(self.native, "score")
+
+    def test_candidate_strict_cli_keeps_accuracy_failure_and_report_binding(self):
+        self.assert_strict_cli_failure(candidate_fixture()[2], "score-candidate")
+
+    def assert_strict_cli_failure(self, native_fixture, mode):
+        self.native = native_fixture
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             labels, manifest, native = root / "reference.json", root / "manifest.json", root / "native.json"
@@ -215,17 +251,14 @@ class TemporalNativeReplayTests(unittest.TestCase):
             self.native["manifest_sha256"] = replay.ev.digest(manifest)
             self.native["cases"][0].update(status="setupUnavailable", acceptance_seconds=[], completed_seconds=[])
             replay.ev.write_json(native, self.native)
+            repository = Path(__file__).resolve().parents[2]
             provenance = dict(source_revision=self.native["source_revision"], source_dirty=True,
                 native_report_sha256=replay.ev.digest(native), executable_sha256="f" * 64,
-                source_sha256={name: replay.ev.digest(Path(__file__).resolve().parents[2] / name)
-                    for name in replay.REPLAY_SOURCE_FILES})
-            repository = Path(__file__).resolve().parents[2]
-            provenance["source_sha256"].update({str(p.relative_to(repository)): replay.ev.digest(p)
-                for folder in ["Analysis", "Capture", "Pose"]
-                for p in (repository / "ios/HangInThere" / folder).glob("*.swift")})
+                source_sha256={name: replay.ev.digest(repository / name)
+                    for name in replay.compiled_source_paths(repository)})
             provenance["source_sha256"][replay.REPLAY_FRAMEWORK] = "f" * 64
             replay.ev.write_json(Path(str(native) + ".provenance.json"), provenance)
-            args = ["temporal_native_replay", "score", "--reference", str(labels), "--manifest", str(manifest),
+            args = ["temporal_native_replay", mode, "--reference", str(labels), "--manifest", str(manifest),
                 "--native", str(native), "--output", str(root / "result.json"), "--require-exact-events"]
             with patch.object(replay.sys, "argv", args), patch.object(replay.sys, "stdout", io.StringIO()):
                 self.assertEqual(replay.main(), 3)
@@ -239,6 +272,110 @@ class TemporalNativeReplayTests(unittest.TestCase):
             with patch.object(replay.sys, "argv", args), patch.object(replay.sys, "stderr", io.StringIO()):
                 self.assertEqual(replay.main(), 2)
             self.assertFalse((root / "tampered.json").exists())
+
+
+class CandidateReplayTests(unittest.TestCase):
+    def setUp(self):
+        self.reference, self.manifest, self.native = candidate_fixture()
+
+    def score(self):
+        return replay.score_candidate(self.reference, self.manifest, self.native, "b" * 64, "a" * 64)
+
+    def test_candidate_uses_identical_frozen_labels_and_event_metrics(self):
+        before = copy.deepcopy(self.reference)
+        result = self.score()
+        legacy = replay.score(*fixture(), "b" * 64, "a" * 64)
+        self.assertTrue(result["all_events_matched"])
+        self.assertEqual(result["clips"][0]["event_metrics"], legacy["clips"][0]["event_metrics"])
+        self.assertEqual(result["clips"][0]["count_method"], "bilateralDipImageMotion")
+        self.assertEqual(result["clips"][0]["side"], "both")
+        self.assertEqual(result["clips"][0]["reference_side"], "right")
+        self.assertEqual(self.reference, before)
+        self.assertEqual(self.reference["clips"][0]["counter_policy_version"], 8)
+
+    def test_candidate_cannot_pass_the_legacy_gate_or_be_downgraded_to_v8(self):
+        with self.assertRaises(ValueError): replay.score(self.reference, self.manifest, self.native, "b" * 64, "a" * 64)
+        self.native.update(counter_policy_version=8, replay_configuration_version=1)
+        with self.assertRaises(ValueError): replay.score(self.reference, self.manifest, self.native, "b" * 64, "a" * 64)
+
+    def test_legacy_bar_state_cannot_be_presented_as_candidate_acquisition(self):
+        row = self.native["cases"][0]
+        row.update(automatic_bar_state="legacy-only", legacy_automatic_bar_state="searching")
+        result = self.score()["clips"][0]
+        self.assertNotIn("automatic_bar_state", result)
+        self.assertEqual(result["legacy_automatic_bar_state"], "searching")
+
+    def test_mixed_wrong_or_missing_method_metadata_is_rejected(self):
+        for field, value in [("count_method", "selectedGripWithAvailableArms"), ("count_method", None),
+                             ("count_policy_version", 8), ("count_policy_version", True), ("count_policy_version", None),
+                             ("tracking_side", "right"), ("reference_side", "left")]:
+            with self.subTest(field=field, value=value):
+                self.native = candidate_fixture()[2]
+                self.native["cases"][0][field] = value
+                with self.assertRaises(ValueError): self.score()
+        self.native = candidate_fixture()[2]
+        self.native["counter_policy_version"] = 8
+        with self.assertRaises(ValueError): self.score()
+
+    def test_candidate_pullups_retain_their_own_actual_method(self):
+        for source in [self.reference["clips"][0], self.manifest["cases"][0], self.native["cases"][0]]:
+            source["exercise" if "exercise" in source else "selected_exercise"] = "pullUp"
+        self.reference["clips"][0]["event_definition"] = "observed_start_to_top"
+        row = self.native["cases"][0]
+        row["pose_quality"]["exercise"] = "pullUp"
+        row.update(count_method="bothUsableArms", count_policy_version=8)
+        self.assertTrue(self.score()["all_events_matched"])
+        row["count_policy_version"] = 1
+        with self.assertRaises(ValueError): self.score()
+
+    def test_missing_setup_and_duplicate_events_remain_fatal_accuracy_failures(self):
+        row = self.native["cases"][0]
+        row.update(status="setupUnavailable", acceptance_seconds=[], completed_seconds=[])
+        result = self.score()
+        self.assertFalse(result["all_events_matched"])
+        self.assertEqual(result["clips"][0]["event_metrics"]["false_negatives"], 1)
+        self.reference["clips"][0]["events"] = []
+        self.assertFalse(self.score()["all_events_matched"], "Unavailable setup cannot qualify a negative clip")
+        self.reference, self.manifest, self.native = candidate_fixture()
+        self.native["cases"][0]["acceptance_seconds"] = [.4, .4]
+        result = self.score()
+        self.assertFalse(result["all_events_matched"])
+        self.assertEqual(result["clips"][0]["event_metrics"]["false_positives"], 1)
+
+    def test_interrupted_candidate_cannot_claim_future_measurements_or_full_success(self):
+        row = self.native["cases"][0]
+        row.update(status="interrupted", frames=5, source_clock_verified=False)
+        row["progress_evidence"]["observed_source_end_seconds"] = .4
+        with self.assertRaises(ValueError): self.score()
+        row["completed_seconds"] = []
+        result = self.score()
+        self.assertFalse(result["all_events_matched"])
+        self.assertFalse(result["all_inputs_processed"])
+
+    def test_provenance_requires_shared_native_and_build_inputs_but_ignores_generated_cache(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            extra = ["shared/src/commonMain/kotlin/Actual.kt", "native/apple/Sources/ObservedRailPixels/ObservedRailPixels.swift"]
+            for name in [*replay.REPLAY_SOURCE_FILES, *extra]:
+                path = root / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_text("authored input: " + name)
+            generated = root / "native/apple/__pycache__/generated.pyc"
+            generated.parent.mkdir(parents=True); generated.write_bytes(b"generated cache")
+            native = root / "native.json"; replay.ev.write_json(native, self.native)
+            hashes = {name: replay.ev.digest(root / name) for name in replay.compiled_source_paths(root)}
+            self.assertNotIn(str(generated.relative_to(root)), hashes)
+            hashes[replay.REPLAY_FRAMEWORK] = "f" * 64
+            sidecar = Path(str(native) + ".provenance.json")
+            provenance = dict(source_revision=self.native["source_revision"], source_dirty=True,
+                native_report_sha256=replay.ev.digest(native), executable_sha256="f" * 64, source_sha256=hashes)
+            replay.ev.write_json(sidecar, provenance)
+            replay.compiled_provenance(native, self.native, root)
+            generated.write_bytes(b"changed generated cache")
+            replay.compiled_provenance(native, self.native, root)
+            for missing in [*extra, "shared/build.gradle.kts", "native/apple/Package.swift"]:
+                provenance["source_sha256"] = {k: v for k, v in hashes.items() if k != missing}
+                replay.ev.write_json(sidecar, provenance)
+                with self.assertRaisesRegex(ValueError, "Incomplete compiled native inputs"):
+                    replay.compiled_provenance(native, self.native, root)
 
 
 if __name__ == "__main__":

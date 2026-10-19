@@ -1,6 +1,44 @@
 import Foundation
 import os
 import CoreGraphics
+import class WorkoutCore.BilateralDipMotion
+import class WorkoutCore.BilateralDipWorkout
+
+// Qualification configuration is separate from the app's automatic method
+// selection. The legacy report remains a single-policy v8 contract; the
+// candidate declares the actual method/version independently for every case.
+enum PublicReplayPipeline: Int {
+    case legacyV8 = 1
+    case bilateralDipsV1 = 2
+
+    var dipMethod: ReplayDipMethod { self == .legacyV8 ? .selectedGripV8 : .bilateralImageMotion }
+    static let candidateFlag = "--candidate-bilateral-dips"
+
+    static func parse(arguments: [String]) -> (pipeline: Self, arguments: [String])? {
+        var values = arguments
+        let pipeline: Self = values.last == candidateFlag ? .bilateralDipsV1 : .legacyV8
+        if pipeline == .bilateralDipsV1 { values.removeLast() }
+        guard [5, 7].contains(values.count), !values.contains(candidateFlag) else { return nil }
+        return (pipeline, values)
+    }
+}
+
+struct PublicReplayCountingIdentity: Equatable {
+    let method: String
+    let policyVersion: Int
+
+    @MainActor init(model: ReplayController) {
+        if model.usesBilateralDip {
+            method = BilateralDipWorkout.companion.countMethod
+            policyVersion = model.dipSnapshot?.motion.policyVersion ?? Int(BilateralDipMotion.companion.policyVersion)
+        } else {
+            method = model.counter.armTracking
+            policyVersion = ExerciseCounter.policyVersion
+        }
+    }
+
+    var fields: [String: Any] { ["count_method": method, "count_policy_version": policyVersion] }
+}
 
 /// Legacy repetition manifests select pull-ups. New diagnostic manifests can
 /// explicitly select dips; this is replay configuration, never Auto identity.
@@ -72,7 +110,7 @@ final class PublicPoseQualityRecorder: Sendable {
             last = sample.timestamp
         }
         var result: [String: Any] = ["schema_version": 1,
-            "scope": "latest raw native observation per source PTS; not selected-athlete or labelled pose accuracy",
+            "scope": "latest raw native observation per source PTS; arm/search/starting-pose diagnostics use the legacy v8 geometry, not candidate hand/rail acquisition or labelled pose accuracy",
             "exercise": exercise.rawValue,
             "unique_source_frames": samples.count,
             "single_person_frames": samples.filter { $0.people == 1 }.count,

@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # Real production Apple replay + common analytics. Host evidence, not device timing.
 set -euo pipefail
-[[ $# == 3 || $# == 5 ]] || { echo 'Usage: evaluate-public-workouts-apple.sh MANIFEST ROOT OUTPUT [SHARD_INDEX SHARD_COUNT]' >&2; exit 2; }
+REPLAY_CANDIDATE=0
+if [[ "${!#}" == --candidate-bilateral-dips ]]; then
+  REPLAY_CANDIDATE=1
+  replay_argument_count=$(( $# - 1 ))
+  set -- "${@:1:replay_argument_count}"
+fi
+[[ $# == 3 || $# == 5 ]] || { echo 'Usage: evaluate-public-workouts-apple.sh MANIFEST ROOT OUTPUT [SHARD_INDEX SHARD_COUNT] [--candidate-bilateral-dips]' >&2; exit 2; }
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FRAMEWORK="$ROOT/build/WorkoutCore/macosx/Debug"
 export WORKOUT_FRAMEWORK="$FRAMEWORK"
@@ -12,31 +18,15 @@ python3 - "$ROOT" "$FRAMEWORK" "$WORK/source-snapshot.json" <<'PY'
 import json, pathlib, subprocess, sys
 root = pathlib.Path(sys.argv[1]); sys.path.insert(0, str(root/'scripts'))
 import evaluation
-paths = [p for folder in ['Analysis', 'Capture', 'Pose'] for p in sorted((root/'ios/HangInThere'/folder).glob('*.swift'))]
-paths += [root/p for p in ['ios/HangInThere/App/WorkoutAnalysisAdapter.swift',
-    'ios/HangInThere/App/WorkoutProgression.swift', 'ios/HangInThere/App/WorkoutGripReview.swift',
-    'ios/HangInThere/App/ReplayController.swift', 'ios/HangInThere/UI/QualificationReportDocument.swift',
-    'Evaluation/PublicWorkoutReplay.swift', 'Evaluation/PublicReplayMeasurements.swift',
-    'scripts/evaluate-public-workouts-apple.sh']]
-paths += [p for p in (root/'shared/src').rglob('*') if p.is_file()]
-paths += [root/p for p in ['build.gradle.kts', 'settings.gradle.kts', 'gradle.properties',
-    'shared/build.gradle.kts', 'gradlew', 'gradle/wrapper/gradle-wrapper.jar',
-    'gradle/wrapper/gradle-wrapper.properties', 'scripts/build-workout-core.sh']]
-paths += [p for p in (root/'native/apple').rglob('*')
-          if p.is_file() and not {'.build', '.swiftpm', '__pycache__'}.intersection(p.parts)
-          and p.name != '.DS_Store']
+import temporal_native_replay
 # Build the unmodified application sources in one executable target. SwiftPM
 # resolves the same native pixel package as the app and the host test harness;
 # direct swiftc compilation cannot resolve its C++/OpenCV module dependency.
 sources = pathlib.Path(sys.argv[3]).parent/'Sources/public-replay'
-sources.mkdir(parents=True)
-swift_sources = [p for p in paths if p.suffix == '.swift' and root/'native/apple' not in p.parents]
-assert len({p.name for p in swift_sources}) == len(swift_sources), 'Duplicate source names'
-for p in swift_sources:
-    (sources/p.name).write_bytes(p.read_bytes())
+hashes = temporal_native_replay.snapshot_compilation_sources(root, sources)
 snapshot = {'source_revision': subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip(),
     'source_dirty': bool(subprocess.check_output(['git','-C',str(root),'status','--porcelain','--untracked-files=no'],text=True).strip()),
-    'source_sha256': {str(p.relative_to(root)):evaluation.digest(p) for p in paths},
+    'source_sha256': hashes,
     'toolchain': subprocess.check_output(['xcrun','swift','--version'],text=True).strip()}
 pathlib.Path(sys.argv[3]).write_text(json.dumps(snapshot))
 PY
@@ -67,7 +57,9 @@ let package = Package(name: "PublicWorkoutReplay", platforms: [.macOS(.v15)],
 SWIFT
 swift build --package-path "$WORK" --configuration release --product public-replay
 REPLAY_BINARY="$(swift build --package-path "$WORK" --configuration release --show-bin-path)/public-replay"
-"$REPLAY_BINARY" "$1" "$2" "$3" "$(git -C "$ROOT" rev-parse HEAD)" "${4:-0}" "${5:-1}"
+replay_command=("$REPLAY_BINARY" "$1" "$2" "$3" "$(git -C "$ROOT" rev-parse HEAD)" "${4:-0}" "${5:-1}")
+if [[ "$REPLAY_CANDIDATE" == 1 ]]; then replay_command+=(--candidate-bilateral-dips); fi
+"${replay_command[@]}"
 python3 - "$ROOT" "$WORK/source-snapshot.json" "$REPLAY_BINARY" "$3" <<'PY'
 import json, pathlib, sys
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts'))
