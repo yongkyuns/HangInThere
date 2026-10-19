@@ -7,16 +7,39 @@ stable starting support, travel and sustain their return before an image cycle
 is emitted. A missing elbow cannot establish the start or return. Gaps, camera
 movement, stale observations and unresolved returns interrupt that evidence.
 Its output does not verify anatomical depth, form or load and must never be
-serialized as an ExerciseCounter v8 result. The current live/replay controllers
-still use v8; adding this engine and its native adapter does not enable it there.
+serialized as an ExerciseCounter v8 result. Live still uses v8. The candidate
+recorded-dip route is under qualification; it is not a qualified live fix.
 
-Local source replay of a labelled four-dip recording from two simultaneous views
-produces four image cycles in each view. The actual Kotlin/Native and JVM engines
-agree on every one of 227 observations. The iOS SDK's OpenCV 4.5.3 extraction
+Replay of 227 sampled observations from a labelled four-dip recording produces
+four image cycles in each simultaneous view, with Kotlin/Native and JVM agreement.
+The first full production-controller runs of all 1,006 and 1,131 original frames
+instead produced zero cycles: intermittent rail proposals and grip observations
+restarted acquisition. The sampled result is not production accuracy evidence.
+With acquisition v2, the first view's full production-controller replay consumes
+all 1,006 original frames and produces four completed cycles, zero unfinished
+attempts and one tracking interruption during dismount. Every frame snapshot and
+the full saved record agree between Kotlin/Native and JVM. The second full view
+is still being evaluated. This is recorded-source evidence, not a live fix.
+The iOS SDK's OpenCV 4.5.3 extraction
 matches all ordered contour pixels from 304 source crops against the macOS 4.11
 adapter. These checks do not establish Android native vision or physical-phone
 throughput parity. The original public-video accuracy gate remains mandatory
 and currently fails; none of its labels or matching rules have changed.
+Its configuration-1 runner explicitly selects the legacy v8 dip route. Bilateral
+candidate reports use their own method identity and cannot qualify that legacy
+contract. The public runner builds the native pixel dependency with SwiftPM and
+verifies app, native and shared source hashes across framework compilation and
+replay, including the actual linked framework and executable.
+
+Curved-rail acquisition v2 is a separately identified observed-credit policy.
+It requires at least four matching current observations and 0.9 seconds summed
+from adjacent matching source intervals. Known unavailable/rejected frames add
+no interval. A candidate can survive at most 0.8 seconds since its last matching
+observation; a brief grip-position outlier cannot donate or replace its anchor.
+This is different from a continuous 0.9-second dwell. Context/shape changes,
+ambiguity, malformed geometry and native extraction failures revoke evidence.
+All timing uses bounded exact rational arithmetic. Actual starting-top, motion,
+camera and completed-cycle gates remain separate.
 
 `BilateralDipWorkout` composes this method with common set boundaries and
 descriptive analytics. Its schema-2 records retain `bilateralDipImageMotion`

@@ -30,6 +30,7 @@ class BilateralDipWorkout(private val setId: String, private val trackedAtEpochM
     private var previousPhase = BilateralDipMotion.Phase.seekingTop
     private var anchor: BilateralGripDisplacement.Anchor? = null
     private var peak: Pair<Double, Double>? = null
+    val closedRecordCount: Int get() = analysis.records.size
 
     fun observe(pose: PoseResult, support: CurvedDipRailAcquisition.Reference?, camera: BilateralDipMotion.Camera,
         automaticFinish: Boolean): Snapshot {
@@ -95,14 +96,21 @@ class BilateralDipWorkout(private val setId: String, private val trackedAtEpochM
         analysis.finish(reason); endReason = reason
     }
     fun record(includeActive: Boolean = false): WorkoutSetRecord {
+        return record(analysis.records + listOfNotNull(if (includeActive) analysis.activeRecord else null), analysis.activity)
+    }
+    private fun record(reps: List<RepRecord>, activity: WorkoutActivity): WorkoutSetRecord {
         val pose = last
         return WorkoutSetRecord(setId, ExerciseCounter.Exercise.dip, first, pose?.timestamp?.seconds,
-            endReason ?: "running", analysis.records + listOfNotNull(if (includeActive) analysis.activeRecord else null),
+            endReason ?: "running", reps,
             pose?.backend, pose?.requestRevision, schemaVersion = 2, imageSize = pose?.imageSize,
-            trackedAtEpochMilliseconds = trackedAtEpochMilliseconds, activity = analysis.activity,
+            trackedAtEpochMilliseconds = trackedAtEpochMilliseconds, activity = activity,
             countMethod = countMethod, countPolicyVersion = BilateralDipMotion.policyVersion)
     }
     fun recordsJson(): String = WorkoutRecordCodec.json.encodeToString(analysis.records)
+    fun lastClosedRecordJson(): String? = analysis.records.lastOrNull()?.let { WorkoutRecordCodec.json.encodeToString(it) }
+    fun draftDeltaJson(): String? = if (analysis.activity.hasPractice || analysis.activeRecord != null || analysis.records.isNotEmpty())
+        WorkoutRecordCodec.json.encodeToString(record(listOfNotNull(analysis.activeRecord ?: analysis.records.lastOrNull()), analysis.activityDelta)) else null
+    fun reviewDeltaJson(): String = WorkoutRecordCodec.json.encodeToString(record(listOfNotNull(analysis.activeRecord), analysis.activity))
 
     private fun released(pose: PoseResult, support: CurvedDipRailAcquisition.Reference?, camera: BilateralDipMotion.Camera): Boolean {
         if (!motion.hasCurrentSupport || support == null || camera != BilateralDipMotion.Camera.ready || pose.imageSize != support.imageSize ||
@@ -147,4 +155,8 @@ class BilateralDipWorkoutBridge(setId: String, trackedAtEpochMilliseconds: Long 
     fun finish(reason: String) = workout.finish(reason)
     fun recordsJson(): String = workout.recordsJson()
     fun setJson(includeActive: Boolean): String = WorkoutRecordCodec.json.encodeToString(workout.record(includeActive))
+    val closedRecordCount: Int get() = workout.closedRecordCount
+    fun lastClosedRecordJson(): String? = workout.lastClosedRecordJson()
+    fun draftDeltaJson(): String? = workout.draftDeltaJson()
+    fun reviewDeltaJson(): String = workout.reviewDeltaJson()
 }

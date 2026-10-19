@@ -10,6 +10,21 @@ class BilateralDipWorkoutTests {
     private fun feed(workout: BilateralDipWorkout, values: List<Double> = cycle) = values.mapIndexed { i, drop ->
         workout.observe(pose(i, drop), support, BilateralDipMotion.Camera.ready, false)
     }
+    @Test fun nativeFrameDeltasStayBoundedAndPreserveMethodIdentity() {
+        val workout = BilateralDipWorkout("bounded")
+        for (i in 0 until 40 * cycle.size) workout.observe(pose(i, cycle[i % cycle.size]), support, BilateralDipMotion.Camera.ready, false)
+        assertEquals(40, workout.closedRecordCount)
+        val draft = WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(workout.draftDeltaJson()!!)
+        assertEquals(1, draft.reps.size)
+        assertTrue(draft.activity!!.phases.size <= 3)
+        assertEquals(BilateralDipWorkout.countMethod, draft.countMethod)
+        assertEquals(1, draft.countPolicyVersion)
+        assertEquals(workout.record().reps.last(), WorkoutRecordCodec.json.decodeFromString<RepRecord>(workout.lastClosedRecordJson()!!))
+        val review = WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(workout.reviewDeltaJson())
+        assertTrue(review.reps.isEmpty())
+        assertEquals(workout.record().activity, review.activity)
+        assertEquals(40, workout.record().completedCount)
+    }
     @Test fun completedCyclesCarryDistinctPolicyAndObservedImagePeakTiming() {
         val workout = BilateralDipWorkout("set", 1234)
         val snapshots = feed(workout)

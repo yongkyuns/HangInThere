@@ -4,6 +4,33 @@ import kotlin.random.Random
 import kotlin.test.*
 
 class SourceTimeComparisonTests {
+    @Test fun observedIntervalsSumExactlyAcrossSourceTimescalesAndLargeOrigins() {
+        val duration = ObservedSourceDuration()
+        val origin = 500_000_000_000L
+        val times = listOf(PresentationTime(origin * 20, 20), PresentationTime(origin * 1000 + 300, 1000),
+            PresentationTime(origin * 1000 + 600, 1000), PresentationTime(origin * 1_000_000 + 899999, 1_000_000))
+        for ((a, b) in times.zipWithNext()) assertTrue(duration.add(b, a))
+        assertFalse(duration.reaches(SourceTimeLimit(9, 10)))
+        assertTrue(duration.add(PresentationTime(origin * 1_000_000 + 900000, 1_000_000), times.last()))
+        assertTrue(duration.reaches(SourceTimeLimit(9, 10)))
+        assertEquals(.9, duration.seconds)
+        duration.reset()
+        for (i in 0 until 27) assertTrue(duration.add(PresentationTime((i + 1) * 20L, 600), PresentationTime(i * 20L, 600)))
+        assertTrue(duration.reaches(SourceTimeLimit(9, 10)))
+    }
+    @Test fun invalidIntervalsAndRationalComplexityCannotDonateObservedTime() {
+        val duration = ObservedSourceDuration()
+        assertFalse(duration.add(PresentationTime(0, 0), PresentationTime(0, 1)))
+        assertFalse(duration.add(PresentationTime(0, 1), PresentationTime(1, 1)))
+        assertFalse(duration.add(PresentationTime(2, 1), PresentationTime(0, 1)))
+        assertEquals(0.0, duration.seconds)
+        assertTrue(duration.add(PresentationTime(1, 2_147_483_647), PresentationTime(0, 1)))
+        assertTrue(duration.add(PresentationTime(1, 2_147_483_629), PresentationTime(0, 1)))
+        val before = duration.seconds
+        assertFalse(duration.add(PresentationTime(1, 2_147_483_587), PresentationTime(0, 1)))
+        assertEquals(before, duration.seconds)
+        assertFalse(duration.reaches(SourceTimeLimit(9, 10)))
+    }
     private val gap = SourceTimeLimit(7, 20)
     private val zero = SourceTimeLimit(0, 1)
 

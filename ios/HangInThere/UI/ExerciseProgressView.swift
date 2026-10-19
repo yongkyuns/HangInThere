@@ -12,6 +12,26 @@ struct ExerciseProgressView: View {
     }
 }
 
+struct BilateralDipProgressView: View {
+    let snapshot: DipWorkoutSnapshot
+    private var motion: DipWorkoutSnapshot.Motion { snapshot.motion }
+    private var starting: Bool { motion.phase == "seekingTop" }
+    private var paused: Bool { !motion.hasCurrentObservation }
+    private var cue: String {
+        if paused { return "Keep both hands and arms visible" }
+        if starting { return "Hold your top support" }
+        return motion.phase == "returning" ? "Return to your top support" :
+            (motion.phase == "ready" ? "Ready · lower" : "Keep lowering")
+    }
+    var body: some View {
+        RepProgressView(title: starting ? "Find your top support" : "Dip \(motion.imageCycles + (motion.event?.outcome == "imageCycle" ? 0 : 1))",
+            cue: cue, fraction: motion.progress, resetFraction: nil,
+            isStarting: starting, isCounted: motion.event?.outcome == "imageCycle",
+            isPaused: paused, isFinished: snapshot.endReason != nil,
+            trackedArmCount: 2, showsMidpoint: true, identifier: "dipProgress")
+    }
+}
+
 struct PullUpProgressView: View {
     let progress: PullUpProgress
 

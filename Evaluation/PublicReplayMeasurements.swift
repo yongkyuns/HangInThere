@@ -137,8 +137,9 @@ struct PublicReplayMeasurements {
         // already closed, shared-eligible returns from the current analysis.
         let completed = model.analysisRecord?.completedReps ?? model.repAnalysis.filter(\.isCompleteForAnalytics)
         self.init(expected: expected, observed: observed, displayedFrames: model.displayedFrames,
-            finished: finished, hasReference: model.currentBar != nil, mediaVerified: mediaVerified,
-            acceptanceSeconds: model.counter.events.filter { $0.outcome == .movement }.map(\.sourceSeconds),
+            finished: finished, hasReference: model.hasObservedReference, mediaVerified: mediaVerified,
+            acceptanceSeconds: model.usesBilateralDip ? completed.compactMap(\.acceptedAt) :
+                model.counter.events.filter { $0.outcome == .movement }.map(\.sourceSeconds),
             completedSeconds: completed.compactMap(\.returnedAt))
     }
 

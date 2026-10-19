@@ -1,9 +1,91 @@
 import CoreGraphics
 import Foundation
 import Testing
+import os
+import class WorkoutCore.WorkoutGripInferenceBridge
 @testable import HangInThere
 
 struct VisionDipObservationTests {
+    @Test func pixelBackendFailureRevokesDwellInsteadOfPausingAnEmptyProposal() async throws {
+        let worker = VisionDipObservationWorker(hands: CurrentHands(), pixels: FailingPixels())
+        let pixels = try railImage()
+        for index in 0..<3 {
+            _ = try await worker.observe(image: pixels, pose: timedFrame(index * 300), generation: 0)
+        }
+        let failed = try await worker.observe(image: pixels, pose: timedFrame(900), generation: 0)
+        #expect(failed.extractionFailures == ["railExtractionFailed:0"])
+        #expect(failed.acquisition.reference == nil)
+        #expect(failed.acquisition.diagnostic.observations == 0)
+        let generation = await worker.generation
+        #expect(generation == 1)
+        for index in 4..<7 {
+            let next = try await worker.observe(image: pixels, pose: timedFrame(index * 300), generation: generation)
+            #expect(next.acquisition.reference == nil)
+        }
+        let acquired = try await worker.observe(image: pixels, pose: timedFrame(2100), generation: generation)
+        #expect(acquired.acquisition.reference != nil)
+    }
+
+    @Test func validFreshFullFrameHandsSkipEveryCrop() throws {
+        let pose = frame()
+        let original = hands(pose: pose, seconds: pose.timestamp.seconds).hands
+        let detector = PixelDetector(outputs: [original])
+        let observed = try VisionDipHandEstimator(detector: detector).observe(image: image(), pose: pose)
+        #expect(detector.calls == [[720, 1280, 2]])
+        #expect(observed.hands == original)
+        #expect(observed.seconds == pose.timestamp.seconds)
+        #expect(observed.body.isEmpty)
+    }
+
+    @Test func aMissingHandUsesFreshBoundedCropsAndMapsPixelsBackOnce() throws {
+        let pose = frame()
+        let original = hands(pose: pose, seconds: pose.timestamp.seconds).hands
+        let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(
+            WorkoutGripInferenceBridge().handRequestsJson(poseJson: String(decoding: JSONEncoder().encode(pose), as: UTF8.self)).utf8))
+        let region = try #require(requests.first { $0.side == "right" }?.regions.first)
+        let cropped = WorkoutGripHandObservation(points: original[1].points.map { point in
+            WorkoutGripHandPoint(joint: point.joint,
+                position: Point2D(x: point.position.x - Double(region.left), y: point.position.y - Double(region.top)),
+                world: nil, score: point.score)
+        }, sdkHandedness: nil, sdkHandednessScore: nil)
+        let detector = PixelDetector(outputs: [[original[0]], [], [], [cropped]])
+        let observed = try VisionDipHandEstimator(detector: detector).observe(image: image(), pose: pose)
+        #expect(detector.calls.count == 4)
+        #expect(detector.calls.last == [region.width, region.height, 1])
+        #expect(observed.hands[0] == original[0])
+        #expect(observed.hands[1].points == original[1].points)
+        #expect(observed.hands[1].sourceRegion == region)
+        #expect(observed.trackedBody == hands(pose: pose, seconds: pose.timestamp.seconds).trackedBody)
+        #expect(observed.seconds == pose.timestamp.seconds)
+    }
+
+    @Test func repeatedCropsOfOneHandCannotSubstituteForTheMissingOtherHand() throws {
+        let pose = frame()
+        let left = hands(pose: pose, seconds: pose.timestamp.seconds).hands[0]
+        let detector = PixelDetector(outputs: [[left], [left], [left], [left], [left]])
+        let observed = try VisionDipHandEstimator(detector: detector).observe(image: image(), pose: pose)
+        #expect(observed.hands == [left])
+        #expect(detector.calls.count == 5)
+        #expect(detector.calls.dropFirst().allSatisfy { $0[2] == 1 })
+    }
+
+    @Test func cameraMovementRevokesThePublishedReferenceEvenAtSourceEnd() async throws {
+        let worker = VisionDipWorkout(observer: VisionDipObservationWorker(hands: CurrentHands()),
+            cameraWorker: ControlledSceneWorker(responses: [.stable, .shifted, .shifted]))
+        let pixels = try railImage()
+        var last: DipWorkoutFrameResult?
+        for index in 0..<6 {
+            last = try await worker.process(ProcessedFrame(image: pixels, pose: timedFrame(index * 300), processingMilliseconds: 0))
+            if index == 3 { #expect(last?.support != nil) }
+        }
+        #expect(last?.camera == "moved")
+        #expect(last?.support == nil)
+        #expect(last?.snapshot.motion.availability == "cameraMoved")
+        let record = try await worker.finish(reason: "endOfInput")
+        #expect(record.completedCount == 0)
+        #expect(record.reps.isEmpty)
+    }
+
     @Test func blankSourceDoesNotInventHandsOrSupports() async throws {
         let image = try image()
         let pose = frame()
@@ -108,6 +190,28 @@ struct VisionDipObservationTests {
                 position: Point2D(x: .nan, y: 640), world: nil, score: 0.9)], sdkHandedness: nil, sdkHandednessScore: nil)
             return WorkoutGripObservation(seconds: value.seconds, imageSize: value.imageSize, trackedBody: value.trackedBody,
                 body: [], hands: [bad], modelId: value.modelId, backend: value.backend)
+        }
+    }
+    private final class PixelDetector: DipHandPixelDetecting {
+        private let outputs: [[WorkoutGripHandObservation]]
+        private let state = OSAllocatedUnfairLock(initialState: [[Int]]())
+        init(outputs: [[WorkoutGripHandObservation]]) { self.outputs = outputs }
+        var calls: [[Int]] { state.withLock { $0 } }
+        func detect(image: CGImage, maximumHands: Int) -> [WorkoutGripHandObservation] {
+            state.withLock { calls in
+                let index = calls.count
+                calls.append([image.width, image.height, maximumHands])
+                return index < outputs.count ? outputs[index] : []
+            }
+        }
+    }
+    private final class FailingPixels: DipRailPixelExtracting {
+        private let calls = OSAllocatedUnfairLock(initialState: 0)
+        struct Failure: Error {}
+        func contours(image: CGImage, region: CGRect) throws -> [[Point2D]] {
+            let call = calls.withLock { $0 += 1; return $0 }
+            if call == 7 { throw Failure() }
+            return try NativeDipRailPixels().contours(image: image, region: region)
         }
     }
     private func timedFrame(_ ticks: Int) -> PoseResult {

@@ -28,12 +28,14 @@ struct DipRailReference: Codable, Equatable, Sendable {
     let sourceTime: PresentationTime
     let generation: Int64
     let context: Context
+    var acquisitionPolicyVersion: Int? = nil
 }
 struct DipRailAcquisitionResult: Decodable, Sendable {
-    struct Diagnostic: Decodable, Sendable {
+    struct Diagnostic: Codable, Sendable {
         let status: String
         let observations: Int
         let stableSeconds: Double
+        var policyVersion: Int? = nil
     }
     let diagnostic: Diagnostic
     let reference: DipRailReference?
@@ -45,40 +47,115 @@ struct DipFrameObservation: Sendable {
     let generation: Int64
     let acquisition: DipRailAcquisitionResult
     let extractionFailures: [String]
+    var candidates: [[DipRailCandidate]] = []
 }
 
 protocol DipHandEstimating: Sendable {
     func observe(image: CGImage, pose: PoseResult) throws -> WorkoutGripObservation
 }
 
-struct VisionDipHandEstimator: DipHandEstimating {
-    func observe(image: CGImage, pose: PoseResult) throws -> WorkoutGripObservation {
+protocol DipRailPixelExtracting: Sendable {
+    func contours(image: CGImage, region: CGRect) throws -> [[Point2D]]
+}
+struct NativeDipRailPixels: DipRailPixelExtracting {
+    func contours(image: CGImage, region: CGRect) throws -> [[Point2D]] {
+        try ObservedRailPixels.contours(image: image, region: region).map { contour in
+            contour.points.map { Point2D(x: $0.x, y: $0.y) }
+        }
+    }
+}
+
+protocol DipHandPixelDetecting: Sendable {
+    // Points are local pixels in the actual supplied image. The estimator owns
+    // crop translation and source association; the detector supplies no body.
+    func detect(image: CGImage, maximumHands: Int) throws -> [WorkoutGripHandObservation]
+}
+
+struct VisionDipHandPixelDetector: DipHandPixelDetecting {
+    func detect(image: CGImage, maximumHands: Int) throws -> [WorkoutGripHandObservation] {
         let request = VNDetectHumanHandPoseRequest()
         request.revision = VNDetectHumanHandPoseRequestRevision1
-        request.maximumHandCount = 2
+        request.maximumHandCount = maximumHands
         try VNImageRequestHandler(cgImage: image, orientation: .up, options: [:]).perform([request])
-        // The native request returns all joints, but this geometry contract only
-        // consumes three independent MCP observations. Missing points stay absent.
         let names: [(VNHumanHandPoseObservation.JointName, String)] = [
             (.indexMCP, "indexMCP"), (.middleMCP, "middleMCP"), (.littleMCP, "pinkyMCP")
         ]
-        let hands = try (request.results ?? []).map { hand in
-            let points = try names.compactMap { joint, name -> WorkoutGripHandPoint? in
+        return try (request.results ?? []).map { hand in
+            let points = try names.map { joint, name in
                 let point = try hand.recognizedPoint(joint)
                 return WorkoutGripHandPoint(joint: name,
                     position: Point2D(x: point.location.x * Double(image.width),
-                                      y: (1 - point.location.y) * Double(image.height)),
-                    world: nil, score: Double(point.confidence))
+                        y: (1 - point.location.y) * Double(image.height)), world: nil, score: Double(point.confidence))
             }
             return WorkoutGripHandObservation(points: points, sdkHandedness: nil, sdkHandednessScore: nil)
         }
+    }
+}
+
+struct VisionDipHandEstimator: DipHandEstimating {
+    private let usesCrops: Bool
+    private let detector: any DipHandPixelDetecting
+    init(usesCrops: Bool = true, detector: any DipHandPixelDetecting = VisionDipHandPixelDetector()) {
+        self.usesCrops = usesCrops; self.detector = detector
+    }
+
+    func observe(image: CGImage, pose: PoseResult) throws -> WorkoutGripObservation {
         let joints: Set<PoseJoint> = [.leftShoulder, .rightShoulder, .leftWrist, .rightWrist]
         let tracked = (pose.people.count == 1 ? pose.people[0].landmarks : [])
             .filter { joints.contains($0.joint) }
             .map { WorkoutGripTrackedPoint(joint: $0.joint.rawValue, position: $0.position, score: $0.confidence) }
-        return WorkoutGripObservation(seconds: pose.timestamp.seconds, imageSize: pose.imageSize,
-            trackedBody: tracked, body: [], hands: hands,
-            modelId: "VNDetectHumanHandPoseRequest-revision1", backend: "Apple Vision hand pose")
+        func observation(_ hands: [WorkoutGripHandObservation]) -> WorkoutGripObservation {
+            WorkoutGripObservation(seconds: pose.timestamp.seconds, imageSize: pose.imageSize,
+                trackedBody: tracked, body: [], hands: hands,
+                modelId: usesCrops ? "VNDetectHumanHandPoseRequest-revision1-crops_v3" : "VNDetectHumanHandPoseRequest-revision1",
+                backend: "Apple Vision hand pose")
+        }
+        let full = try detect(image: image, maximumHands: 2)
+        guard usesCrops else { return observation(full) }
+        let encoder = JSONEncoder()
+        let validation = CurvedDipRailAcquisitionBridge()
+        func accepts(_ hands: [WorkoutGripHandObservation]) throws -> Bool {
+            var current = pose; current.gripObservation = observation(hands)
+            return try validation.searchJson(input: String(decoding: encoder.encode(current), as: UTF8.self)) != nil
+        }
+        if try accepts(full) { return observation(full) }
+        // Reuse the common, bounded wrist crop policy on this exact original
+        // primary pose. A crop is framing only: all three MCPs and their scores
+        // still come from a fresh native request. No second body model is used.
+        var current = pose; current.gripObservation = nil
+        let requestsJSON = try WorkoutGripInferenceBridge().handRequestsJson(
+            poseJson: String(decoding: encoder.encode(current), as: UTF8.self))
+        let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(requestsJSON.utf8))
+        var candidates = full
+        for request in requests.prefix(2) {
+            for region in request.regions.prefix(2) {
+                guard let crop = image.cropping(to: CGRect(x: region.left, y: region.top,
+                    width: region.width, height: region.height)) else { continue }
+                candidates += try detect(image: crop, maximumHands: 1,
+                    offset: Point2D(x: Double(region.left), y: Double(region.top)), region: region)
+                // Fixed inference order, independent of motion, rails or count.
+                // Common geometry owns freshness, scores and unique two-wrist
+                // association, including rejecting two crops of the same hand.
+                for i in candidates.indices {
+                    for j in candidates.indices where j > i {
+                        let pair = [candidates[i], candidates[j]]
+                        if try accepts(pair) { return observation(pair) }
+                    }
+                }
+            }
+        }
+        return observation(full)
+    }
+
+    private func detect(image: CGImage, maximumHands: Int, offset: Point2D = Point2D(x: 0, y: 0),
+                        region: WorkoutGripRegion? = nil) throws -> [WorkoutGripHandObservation] {
+        try detector.detect(image: image, maximumHands: maximumHands).map { hand in
+            WorkoutGripHandObservation(points: hand.points.map { point in
+                WorkoutGripHandPoint(joint: point.joint,
+                    position: Point2D(x: offset.x + point.position.x, y: offset.y + point.position.y),
+                    world: point.world, score: point.score)
+            }, sdkHandedness: hand.sdkHandedness, sdkHandednessScore: hand.sdkHandednessScore, sourceRegion: region)
+        }
     }
 }
 
@@ -90,12 +167,15 @@ actor VisionDipObservationWorker {
     private nonisolated let executor = NativeFrameExecutor(label: "dev.hanginthere.dip-observations")
     nonisolated var unownedExecutor: UnownedSerialExecutor { executor.asUnownedSerialExecutor() }
     private let hands: any DipHandEstimating
+    private let pixels: any DipRailPixelExtracting
     private let acquisition = CurvedDipRailAcquisitionBridge()
     private let fitter = ObservedRailFitterBridge()
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    init(hands: any DipHandEstimating = VisionDipHandEstimator()) { self.hands = hands }
+    init(hands: any DipHandEstimating = VisionDipHandEstimator(), pixels: any DipRailPixelExtracting = NativeDipRailPixels()) {
+        self.hands = hands; self.pixels = pixels
+    }
     var generation: Int64 { acquisition.generation }
     @discardableResult func resetSource() -> Int64 { acquisition.resetSource(); return generation }
     func invalidateEvidence() { acquisition.invalidateEvidence() }
@@ -143,9 +223,7 @@ actor VisionDipObservationWorker {
                 do {
                     let rect = CGRect(x: region.minX, y: region.minY,
                         width: region.maxX - region.minX, height: region.maxY - region.minY)
-                    let contours = try ObservedRailPixels.contours(image: image, region: rect).map {
-                        Contour(points: $0.points.map { Point2D(x: $0.x, y: $0.y) })
-                    }
+                    let contours = try pixels.contours(image: image, region: rect).map { Contour(points: $0) }
                     // Fitting uses the same integral ROI as native extraction.
                     let crop = rect.integral
                     let integralRegion = BarRegion(Point2D(x: crop.minX, y: crop.minY), Point2D(x: crop.maxX, y: crop.maxY))
@@ -156,11 +234,14 @@ actor VisionDipObservationWorker {
             }
         }
         try Task.checkCancellation()
+        // Thrown SDK/geometry/complexity faults revoke dwell. Only a successful
+        // current extraction with no proposal may enter acquisition's pause.
+        if !failures.isEmpty { acquisition.invalidateEvidence() }
         let result = try acquisition.observeJson(input: encode(AcquisitionInput(pose: pose,
             candidates: candidates, generation: expected)))
         let observation = DipFrameObservation(pose: pose, generation: expected,
             acquisition: try decoder.decode(DipRailAcquisitionResult.self, from: Data(result.utf8)),
-            extractionFailures: failures)
+            extractionFailures: failures, candidates: candidates)
         completed = true
         return observation
     }

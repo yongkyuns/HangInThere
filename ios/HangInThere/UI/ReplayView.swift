@@ -30,7 +30,7 @@ struct ReplayView: View {
                         } else {
                             preview
                             playbackControls
-                            if model.currentBar == nil {
+                            if !model.hasCountingReference {
                                 setupCard
                                 movementCard
                             } else {
@@ -85,7 +85,7 @@ struct ReplayView: View {
     }
 
     private var completedAnalysis: Bool {
-        model.phase == .finished && model.currentBar != nil
+        model.phase == .finished && model.hasObservedReference
     }
 
     private var emptyState: some View {
@@ -200,7 +200,7 @@ struct ReplayView: View {
                         Spacer()
 
                         VStack(alignment: .trailing, spacing: 0) {
-                            Text("\(model.counter.observedMovements)")
+                            Text("\(model.observedMovements)")
                                 .font(.system(size: 42, weight: .bold, design: .rounded))
                                 .monospacedDigit()
                                 .contentTransition(.numericText())
@@ -220,13 +220,15 @@ struct ReplayView: View {
                             .foregroundStyle(.primary)
                             .padding(10)
                             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    } else if model.currentBar != nil, model.phase != .finished {
+                    } else if model.phase != .finished, model.usesBilateralDip, let snapshot = model.dipSnapshot {
+                        BilateralDipProgressView(snapshot: snapshot)
+                    } else if model.hasCountingReference, model.phase != .finished {
                         ExerciseProgressView(counter: model.counter)
                     }
 
                     HStack {
-                        if model.currentBar != nil {
-                            Label("Bar reference set", systemImage: "checkmark.circle.fill")
+                        if model.hasCountingReference {
+                            Label(model.usesBilateralDip ? "Both rail grips found" : "Bar reference set", systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(.white)
                         } else {
                             Label(model.barRole == .pullUpGrip ? "Looking for bar" : "Looking for dip support", systemImage: "viewfinder")
@@ -336,17 +338,17 @@ struct ReplayView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(model.counter.observedMovements)")
+                Text("\(model.observedMovements)")
                     .font(.system(size: 64, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .accessibilityIdentifier("completedMovementCount")
-                Text(model.counter.observedMovements == 1 ? "observed movement" : "observed movements")
+                Text(model.observedMovements == 1 ? "observed movement" : "observed movements")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
 
-            Text("This is a bar-relative movement count. Chin clearance, strict dip depth, and form quality are not verified.")
+            Text("Observed movement cycles. Chin clearance, strict dip depth, and form quality are not verified.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -366,7 +368,9 @@ struct ReplayView: View {
                 }
             }
 
-            Text("Tracking coverage is the share of analyzed frames with a usable selected-arm measurement and the confirmed bar reference.")
+            Text(model.usesBilateralDip
+                ? "Tracking coverage measures frames with both arms and hands visible, acquired rail grips and current camera evidence."
+                : "Tracking coverage is the share of analyzed frames with usable arm measurements and the confirmed bar reference.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -488,12 +492,12 @@ struct ReplayView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(completedAnalysis ? "Session complete" : "Movement count")
                         .font(.headline)
-                    Text(model.currentBar == nil ? barSetupHelp : model.counter.phase.title)
+                    Text(!model.hasCountingReference ? barSetupHelp : model.movementPhaseTitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Text("\(model.counter.observedMovements)")
+                Text("\(model.observedMovements)")
                     .font(.system(size: 48, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText())
@@ -504,8 +508,8 @@ struct ReplayView: View {
 
             HStack(spacing: 10) {
                 Label(
-                    model.currentBar == nil || model.cameraTrackingIssue != nil ? "Counting paused" : "Bar-relative counting",
-                    systemImage: model.currentBar == nil || model.cameraTrackingIssue != nil ? "pause.circle" : "checkmark.circle"
+                    !model.hasCountingReference || model.cameraTrackingIssue != nil || trackingIssue != nil ? "Counting paused" : (model.usesBilateralDip ? "Both-arm image motion" : "Bar-relative counting"),
+                    systemImage: !model.hasCountingReference || model.cameraTrackingIssue != nil || trackingIssue != nil ? "pause.circle" : "checkmark.circle"
                 )
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
@@ -523,7 +527,7 @@ struct ReplayView: View {
                 Label(message, systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
-            } else if let issue = model.counter.trackingIssue, model.currentBar != nil {
+            } else if let issue = trackingIssue, model.hasCountingReference {
                 Label(trackingIssueMessage(issue), systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
@@ -543,14 +547,14 @@ struct ReplayView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Workout setup")
                         .font(.headline)
-                    Text("Choose the exercise and the athlete’s clearest visible arm.")
+                    Text("Choose the exercise. Keep both hands and arms visible.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Image(systemName: model.currentBar == nil ? "1.circle.fill" : "checkmark.circle.fill")
+                Image(systemName: !model.hasCountingReference ? "1.circle.fill" : "checkmark.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(model.currentBar == nil ? .orange : .green)
+                    .foregroundStyle(!model.hasCountingReference ? .orange : .green)
                     .accessibilityHidden(true)
             }
 
@@ -567,51 +571,45 @@ struct ReplayView: View {
             }
             .pickerStyle(.segmented)
 
-            if model.counter.exercise == .dip {
-                Picker(
-                    "Tracking side",
-                    selection: Binding(
-                        get: { model.counter.side },
-                        set: { model.configureCounting(exercise: model.counter.exercise, side: $0) }
-                    )
-                ) {
-                    ForEach(ArmMeasurement.Side.allCases, id: \.rawValue) { side in
-                        Text(side.rawValue.capitalized).tag(side)
-                    }
-                }
-                .pickerStyle(.segmented)
-            }
 
             Divider()
 
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Label(
-                        model.currentBar == nil ? "Bar reference needed" : model.barRole.title,
-                        systemImage: model.currentBar == nil ? "line.diagonal" : "checkmark.circle.fill"
-                    )
+            if model.usesBilateralDip {
+                Label("Both rail grips are found automatically", systemImage: "viewfinder")
                     .font(.subheadline.weight(.semibold))
+                Text(barSetupHelp)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Label(
+                            !model.hasCountingReference ? "Bar reference needed" : model.barRole.title,
+                            systemImage: !model.hasCountingReference ? "line.diagonal" : "checkmark.circle.fill"
+                        )
+                        .font(.subheadline.weight(.semibold))
 
-                    Text(barSetupHelp)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        Text(barSetupHelp)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Button(!model.hasCountingReference ? "Set bar manually" : "Adjust") {
+                        barSetup = model.beginBarSetup()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(model.frame == nil || model.phase == .loading || model.phase == .failed)
+                    .accessibilityIdentifier("setupBar")
                 }
 
-                Spacer()
-
-                Button(model.currentBar == nil ? "Set bar manually" : "Adjust") {
-                    barSetup = model.beginBarSetup()
+                if model.hasCountingReference {
+                    Button("Clear bar reference", role: .destructive) {
+                        model.clearBar()
+                    }
+                    .font(.caption)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(model.frame == nil || model.phase == .loading || model.phase == .failed)
-                .accessibilityIdentifier("setupBar")
-            }
-
-            if model.currentBar != nil {
-                Button("Clear bar reference", role: .destructive) {
-                    model.clearBar()
-                }
-                .font(.caption)
             }
         }
         .padding(16)
@@ -627,9 +625,9 @@ struct ReplayView: View {
                         .font(.caption)
                 }
 
-                LabeledContent("Partial attempts", value: "\(model.counter.partialAttempts)")
+                LabeledContent("Partial attempts", value: "\(model.partialAttempts)")
                     .font(.caption)
-                LabeledContent("Tracking interruptions", value: "\(model.counter.interruptedAttempts)")
+                LabeledContent("Tracking interruptions", value: "\(model.interruptedAttempts)")
                     .font(.caption)
 
                 if let coverage = model.trackingCoverage {
@@ -750,6 +748,7 @@ struct ReplayView: View {
 
     private func trackingIssueMessage(_ issue: String) -> String {
         switch issue {
+        case "bilateralObservationUnavailable": "Keep both hands, elbows and shoulders visible."
         case "barReferenceUnavailable": "Bar reference unavailable. Set the bar again."
         case "lowConfidence": "Selected arm is not clear enough in this frame."
         case "missingJoint": "A required arm joint is hidden."
@@ -766,7 +765,7 @@ struct ReplayView: View {
 
     private var primaryPlaybackTitle: String {
         if model.phase == .playing { return "Pause" }
-        return model.currentBar == nil ? "Preview" : "Analyze"
+        return !model.hasCountingReference ? "Preview" : "Analyze"
     }
 
     private var primaryPlaybackIcon: String {
@@ -774,6 +773,7 @@ struct ReplayView: View {
     }
 
     private var barSetupHelp: String {
+        if model.usesBilateralDip { return "Press Play to find both rail grips automatically. Keep both hands, elbows and shoulders visible." }
         if let bar = model.currentBar {
             let prefix = bar.method == .automaticContours ? "Found automatically." : "Confirmed manually."
             return prefix + String(format: " Fixed from source %.2f s. Replay restarts so every counted frame uses this reference.", bar.sourceTime.seconds)
@@ -784,33 +784,38 @@ struct ReplayView: View {
 
     private var cameraTrackingMessage: String? {
         switch model.cameraTrackingIssue {
-        case "sceneShifted", "sceneScaled": "Camera view changed · tracking stopped"
+        case "sceneShifted", "sceneScaled", "cameraMoved": "Camera view changed · tracking stopped"
         case .some: "Camera stability unavailable · tracking paused"
         case .none: nil
         }
     }
 
+    private var trackingIssue: String? {
+        guard model.usesBilateralDip else { return model.counter.trackingIssue }
+        return model.dipSnapshot?.motion.hasCurrentObservation == false ? "bilateralObservationUnavailable" : nil
+    }
+
     private var trackingStatusTitle: String {
-        if model.currentBar == nil { return "Setup needed" }
+        if !model.hasCountingReference { return "Setup needed" }
         if model.cameraTrackingIssue != nil { return "Camera check" }
         if model.phase == .finished { return "Complete" }
-        if model.counter.trackingIssue != nil { return "Tracking paused" }
+        if trackingIssue != nil { return "Tracking paused" }
         return "Ready"
     }
 
     private var trackingStatusIcon: String {
-        if model.currentBar == nil { return "wrench.and.screwdriver.fill" }
+        if !model.hasCountingReference { return "wrench.and.screwdriver.fill" }
         if model.cameraTrackingIssue != nil { return "exclamationmark.triangle.fill" }
         if model.phase == .finished { return "checkmark.circle.fill" }
-        if model.counter.trackingIssue != nil { return "exclamationmark.triangle.fill" }
+        if trackingIssue != nil { return "exclamationmark.triangle.fill" }
         return "checkmark.circle.fill"
     }
 
     private var trackingStatusColor: Color {
-        if model.currentBar == nil { return .orange }
+        if !model.hasCountingReference { return .orange }
         if model.cameraTrackingIssue != nil { return .orange }
         if model.phase == .finished { return .green }
-        if model.counter.trackingIssue != nil { return .orange }
+        if trackingIssue != nil { return .orange }
         return .green
     }
 

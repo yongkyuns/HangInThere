@@ -125,3 +125,30 @@ struct WorkoutActivity: Codable, Equatable, Sendable {
     let timelineTruncated: Bool
     let metricVersion: Int
 }
+
+// Immutable snapshot of common bilateral image-motion analysis; no SDK handles.
+struct DipWorkoutSnapshot: Codable, Equatable, Sendable {
+    struct Motion: Codable, Equatable, Sendable {
+        struct Event: Codable, Equatable, Sendable {
+            let outcome: String
+            let sourceTime: PresentationTime
+            let reason: String
+        }
+        let phase: String
+        let imageCycles: Int
+        let partialAttempts: Int
+        let interruptedAttempts: Int
+        let availability: String
+        let progress: Double
+        let event: Event?
+        let policyVersion: Int
+        var hasCurrentObservation: Bool {
+            ["available", "ready", "acquiringMeasuredTop", "waitingForMeasuredTop", "waitingForBilateralTravel"].contains(availability)
+        }
+    }
+    let motion: Motion
+    let analysisRevision: Int
+    let analyzedFrames: Int
+    let usableFrames: Int
+    let endReason: String?
+}

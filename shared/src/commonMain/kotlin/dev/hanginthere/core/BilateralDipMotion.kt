@@ -81,6 +81,7 @@ class BilateralDipMotion {
         // This sanity check cannot reconstruct acquisition dwell/provenance;
         // callers must retain the actual reference returned by acquisition.
         val finiteSupport = support?.takeIf { value -> value.imageSize.isValid && value.sourceTime.seconds.isFinite() &&
+            value.acquisitionPolicyVersion in 1..CurvedDipRailAcquisition.policyVersion &&
             value.hands.size == 2 && value.hands.all { it.isFinite } &&
             listOf(value.left, value.right).all { rail -> listOf(rail.firstBoundary, rail.secondBoundary).all {
                 it.points.size in 2..ObservedCurveGeometry.maximumPoints

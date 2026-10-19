@@ -12,6 +12,26 @@ import WorkoutCore
         """
         NSApplication.shared.setActivationPolicy(.prohibited)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
+        if CommandLine.arguments.contains("--dip-progress-only") {
+            for (name, phase, availability, fraction, cue) in [
+                ("ready", "ready", "ready", 0.0, "readylower"),
+                ("lowering", "outbound", "available", 0.3, "keeplowering"),
+                ("returning", "returning", "available", 0.8, "returntoyourtopsupport"),
+                ("missing-hands", "returning", "observationUnavailable", 0.0, "keepbothhandsandarmsvisible")
+            ] {
+                let motion = DipWorkoutSnapshot.Motion(phase: phase, imageCycles: 2, partialAttempts: 0,
+                    interruptedAttempts: 0, availability: availability, progress: fraction, event: nil, policyVersion: 1)
+                let snapshot = DipWorkoutSnapshot(motion: motion, analysisRevision: 1, analyzedFrames: 10, usableFrames: 10, endReason: nil)
+                for width in [320.0, 430.0] {
+                    let filename = "bilateral-dip-\(name)-\(Int(width)).png"
+                    let content = BilateralDipProgressView(snapshot: snapshot)
+                        .frame(width: width, height: 180).background(Color(white: 0.18))
+                    let text = try render(content, width: width, height: 180, filename: filename)
+                    verify(text.contains { $0.contains(cue) }, "Bilateral dip progress cue is missing", filename: filename)
+                }
+            }
+            return
+        }
         var fixture = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
         fixture["trackedAtEpochMilliseconds"] = 1_791_784_800_000 as Int64
         let completed = (fixture["reps"] as! [[String: Any]])[0]

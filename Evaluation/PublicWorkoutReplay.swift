@@ -33,7 +33,10 @@ import os
             let clock = PublicReplayClock()
             let quality = PublicPoseQuality(exercise: item.selectedExercise)
             let sceneTrace = PublicSceneTrace()
-            let model = ReplayController(estimator: quality, trace: clock.observe,
+            // Configuration 1 is the frozen counter-v8 qualification route.
+            // The separately versioned bilateral candidate must not be exported
+            // under this report's single legacy counter-policy identity.
+            let model = ReplayController(dipMethod: .selectedGripV8, estimator: quality, trace: clock.observe,
                 sceneWorker: VisionStaticSceneRegistrationWorker(includeDiagnosticHomography: true),
                 sceneTrace: sceneTrace.observe)
             model.configureCounting(exercise: item.selectedExercise, side: item.trackingSide)

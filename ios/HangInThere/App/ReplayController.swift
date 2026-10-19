@@ -11,6 +11,10 @@ enum ReplayPhase: String {
     case failed = "Unable to replay"
 }
 
+// Retained for explicit legacy pipeline qualification. The app presents no
+// method setting; new dip replays use the source-owned bilateral processor.
+enum ReplayDipMethod { case selectedGripV8, bilateralImageMotion }
+
 struct BarSetupFrame: Identifiable, Sendable {
     let id = UUID()
     let frame: ProcessedFrame
@@ -35,7 +39,29 @@ final class ReplayController {
     private(set) var counter = ExerciseCounter()
     private let workoutAnalysis = WorkoutAnalysisAdapter()
     private(set) var analysisRecord: WorkoutSetRecord?
-    var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
+    var repAnalysis: [WorkoutRepRecord] { usesBilateralDip ? dipReps : workoutAnalysis.reps }
+    var usesBilateralDip: Bool { counter.exercise == .dip && dipMethod == .bilateralImageMotion }
+    var observedMovements: Int { usesBilateralDip ? dipSnapshot?.motion.imageCycles ?? 0 : counter.observedMovements }
+    var hasCountingReference: Bool { usesBilateralDip ? dipSupport != nil : currentBar != nil }
+    // Historical source-clock qualification is distinct from current setup:
+    // moving the camera later cannot erase previously observed valid cycles.
+    var hasObservedReference: Bool { usesBilateralDip ? dipReferenceSeen : currentBar != nil }
+    var partialAttempts: Int { usesBilateralDip ? dipSnapshot?.motion.partialAttempts ?? 0 : counter.partialAttempts }
+    var interruptedAttempts: Int { usesBilateralDip ? dipSnapshot?.motion.interruptedAttempts ?? 0 : counter.interruptedAttempts }
+    var movementPhaseTitle: String {
+        guard usesBilateralDip else { return counter.phase.title }
+        switch dipSnapshot?.motion.phase {
+        case "ready": return "Ready to lower"
+        case "outbound": return "Lowering"
+        case "returning": return "Returning to support"
+        default: return "Find your top support"
+        }
+    }
+    private(set) var dipSnapshot: DipWorkoutSnapshot?
+    private(set) var dipSupport: DipRailReference?
+    private(set) var dipReps: [WorkoutRepRecord] = []
+    private(set) var dipMovementTimes: [Double] = []
+    private var dipReferenceSeen = false
     private(set) var bar: ConfirmedBar?
     private(set) var automaticBarState: AutomaticPullUpBar.State = .lookingForGrip
     private(set) var phase: ReplayPhase = .idle
@@ -50,6 +76,7 @@ final class ReplayController {
     private(set) var cameraTrackingIssue: String?
     @ObservationIgnored private var firstSourceTime = 0.0
     @ObservationIgnored private let estimator: any PoseEstimator
+    @ObservationIgnored private let dipMethod: ReplayDipMethod
     @ObservationIgnored private let trace: ReplayTrace.Handler?
     @ObservationIgnored private let gripObserverFactory: (@Sendable (ExerciseCounter.Exercise) -> any GripObservationScheduling)?
     @ObservationIgnored private var reader: VideoReplayReader
@@ -70,17 +97,24 @@ final class ReplayController {
     @ObservationIgnored private var lastSceneSeconds: Double?
     @ObservationIgnored private var sceneGeneration: UInt64 = 0
     @ObservationIgnored private var sceneMovementReason: String?
+    @ObservationIgnored private let dipProcessorFactory: @Sendable () -> any DipWorkoutProcessing
+    @ObservationIgnored private var dipProcessor: any DipWorkoutProcessing
 
-    init(estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector(),
+    init(dipMethod: ReplayDipMethod = .bilateralImageMotion,
+         estimator: any PoseEstimator = VisionPoseEstimator(), barDetector: any BarEdgeDetector = VisionBarDetector(),
          trace: ReplayTrace.Handler? = nil, gripObserverFactory: (@Sendable (ExerciseCounter.Exercise) -> any GripObservationScheduling)? = nil,
          sceneWorker: any StaticSceneRegistering = VisionStaticSceneRegistrationWorker(),
-         sceneTrace: ReplaySceneTrace.Handler? = nil) {
+         sceneTrace: ReplaySceneTrace.Handler? = nil,
+         dipProcessorFactory: @escaping @Sendable () -> any DipWorkoutProcessing = { VisionDipWorkout() }) {
         self.estimator = estimator
+        self.dipMethod = dipMethod
         self.trace = trace
         self.gripObserverFactory = gripObserverFactory
         self.barDetector = barDetector
         self.sceneWorker = sceneWorker
         self.sceneTrace = sceneTrace
+        self.dipProcessorFactory = dipProcessorFactory
+        self.dipProcessor = dipProcessorFactory()
         self.reader = VideoReplayReader(estimator: estimator, trace: trace, gripObserver: gripObserverFactory?(.pullUp))
     }
 
@@ -92,13 +126,14 @@ final class ReplayController {
         return bar
     }
     func beginBarSetup() -> BarSetupFrame? {
+        guard !usesBilateralDip else { return nil }
         guard phase == .paused || phase == .playing || phase == .finished, let frame else { return nil }
         pause()
         return BarSetupFrame(frame: frame, role: barRole, generation: session)
     }
     @discardableResult
     func confirmBar(_ bar: ConfirmedBar, for setup: BarSetupFrame) -> Bool {
-        guard phase == .paused || phase == .finished,
+        guard !usesBilateralDip, phase == .paused || phase == .finished,
               setup.generation == session, setup.role == barRole, bar.role == barRole,
               bar.isValid, bar.imageSize == frame?.pose.imageSize,
               bar.sourceTime == frame?.pose.timestamp,
@@ -143,7 +178,8 @@ final class ReplayController {
         return Double(analyzableFrames) / Double(countingFrames)
     }
     var movementTimes: [Double] {
-        counter.events.compactMap { event in
+        if usesBilateralDip { return dipMovementTimes.map { max(0, $0 - firstSourceTime) } }
+        return counter.events.compactMap { event in
             guard event.outcome == .movement else { return nil }
             return max(0, event.sourceSeconds - firstSourceTime)
         }
@@ -167,6 +203,8 @@ final class ReplayController {
         resetSceneQualification(preserveReference: false)
         durationSeconds = 0
         resetAnalysisMetrics()
+        let currentDip = dipProcessor
+        let isDip = usesBilateralDip
         errorMessage = nil
         failureReport = nil
         sourceName = url.lastPathComponent
@@ -179,10 +217,12 @@ final class ReplayController {
                 let info = try await nextReader.open(url)
                 let first = try await nextReader.nextFrame(discard: discard)
                 guard session == token, !Task.isCancelled else { await nextReader.close(); return }
-                try showFirst(first, info: info)
+                let dipResult = if isDip, let first { try await currentDip.process(first) } else { nil as DipWorkoutFrameResult? }
+                guard session == token, !Task.isCancelled else { await nextReader.close(); return }
+                try showFirst(first, info: info, dipResult: dipResult)
             } catch {
                 await nextReader.close()
-                if session == token, !Task.isCancelled { fail(error) }
+                if session == token, !Task.isCancelled { await fail(error, token: token) }
             }
         }
     }
@@ -233,6 +273,8 @@ final class ReplayController {
         resetAnalysisMetrics()
         if !preserveBar { bar = nil }
         resetSceneQualification(preserveReference: preserveBar && bar != nil)
+        let currentDip = dipProcessor
+        let isDip = usesBilateralDip
         operation = Task {
             await waitForPreviousOperation(previous)
             guard session == token, !Task.isCancelled else { return }
@@ -241,14 +283,15 @@ final class ReplayController {
                 let info = try await currentReader.rewind()
                 let first = try await currentReader.nextFrame(discard: discard)
                 guard session == token, !Task.isCancelled else { return }
-                if let first {
+                if !isDip, let first {
                     guard await qualifyScene(first, token: token) else { return }
                 }
+                let dipResult = if isDip, let first { try await currentDip.process(first) } else { nil as DipWorkoutFrameResult? }
                 guard session == token, !Task.isCancelled else { return }
-                try showFirst(first, info: info)
+                try showFirst(first, info: info, dipResult: dipResult)
                 if resumePlayback { play() }
             } catch {
-                if session == token, !Task.isCancelled { fail(error) }
+                if session == token, !Task.isCancelled { await fail(error, token: token) }
             }
         }
     }
@@ -273,11 +316,11 @@ final class ReplayController {
         return frameDiscardSignal
     }
 
-    private func showFirst(_ first: ProcessedFrame?, info: VideoInfo) throws {
+    private func showFirst(_ first: ProcessedFrame?, info: VideoInfo, dipResult: DipWorkoutFrameResult? = nil) throws {
         guard let first else { throw ReplayError.noFrames }
         frame = first
         firstSourceTime = first.pose.timestamp.seconds
-        consumeForCounting(first.pose)
+        if let dipResult { publishDip(dipResult) } else { consumeForCounting(first.pose) }
         displayedFrames = 1
         durationSeconds = info.durationSeconds
         phase = .paused
@@ -300,6 +343,8 @@ final class ReplayController {
         let currentReader = reader
         let discard = frameDiscardSignal
         let token = session
+        let currentDip = dipProcessor
+        let isDip = usesBilateralDip
         playback &+= 1
         let playToken = playback
         phase = .playing
@@ -319,8 +364,15 @@ final class ReplayController {
                     pending = next
                     guard isCurrent(token, playToken) else { return }
                     guard let next else {
-                        counter.finish()
-                        analysisRecord = workoutAnalysis.finish(reason: sceneMovementReason ?? "endOfInput")
+                        if isDip {
+                            let record = try await currentDip.finish(reason: "endOfInput")
+                            guard isCurrent(token, playToken) else { return }
+                            analysisRecord = record
+                            dipReps = record.reps
+                        } else {
+                            counter.finish()
+                            analysisRecord = workoutAnalysis.finish(reason: sceneMovementReason ?? "endOfInput")
+                        }
                         phase = .finished
                         operation = nil
                         return
@@ -331,6 +383,16 @@ final class ReplayController {
                                                    wallDelta: wall)
                     if delay > 0 { try await clock.sleep(for: .seconds(delay)) }
                     guard isCurrent(token, playToken) else { return }
+                    if isDip {
+                        let result = try await currentDip.process(next)
+                        guard isCurrent(token, playToken) else { return }
+                        publishDip(result)
+                        pending = nil
+                        displayedFrames += 1
+                        lastPTS = next.pose.timestamp.seconds
+                        lastShownAt = clock.now
+                        continue
+                    }
                     if let bar, bar.imageSize != next.pose.imageSize {
                         self.bar = nil
                         resetSceneQualification(preserveReference: false)
@@ -351,8 +413,27 @@ final class ReplayController {
             } catch is CancellationError {
                 // A source change, pause, or lifecycle event intentionally stopped replay.
             } catch {
-                if isCurrent(token, playToken) { fail(error) }
+                if isCurrent(token, playToken) { await fail(error, token: token) }
             }
+        }
+    }
+
+    private func publishDip(_ result: DipWorkoutFrameResult) {
+        let started = ContinuousClock.now
+        trace?(.init(stage: .counting, boundary: .began, sourceSeconds: result.frame.pose.timestamp.seconds, milliseconds: nil))
+        defer { trace?(.init(stage: .counting, boundary: .ended, sourceSeconds: result.frame.pose.timestamp.seconds,
+            milliseconds: ReplayTrace.milliseconds(since: started))) }
+        frame = result.frame
+        dipSnapshot = result.snapshot
+        dipSupport = result.support
+        if result.support != nil { dipReferenceSeen = true }
+        countingFrames = result.snapshot.analyzedFrames
+        analyzableFrames = result.snapshot.usableFrames
+        cameraTrackingIssue = result.camera == "moved" ? "cameraMoved" :
+            (result.support != nil && result.camera != "ready" ? "cameraSceneUnavailable" : nil)
+        if let rep = result.closedRep, dipReps.last?.id != rep.id { dipReps.append(rep) }
+        if let event = result.snapshot.motion.event, event.outcome == "imageCycle" {
+            dipMovementTimes.append(event.sourceTime.seconds)
         }
     }
 
@@ -481,6 +562,8 @@ final class ReplayController {
         analysisRecord = nil
         countingFrames = 0
         analyzableFrames = 0
+        dipProcessor = dipProcessorFactory()
+        dipSnapshot = nil; dipSupport = nil; dipReps = []; dipMovementTimes = []; dipReferenceSeen = false
     }
 
     func reportImportFailure(_ error: Error) {
@@ -493,10 +576,17 @@ final class ReplayController {
         session == token && playback == playToken && phase == .playing && !Task.isCancelled
     }
 
-    private func fail(_ error: Error) {
-        counter.interrupt()
-        workoutAnalysis.interrupt(reason: "analysisFailure")
-        analysisRecord = workoutAnalysis.finish(reason: "analysisFailure")
+    private func fail(_ error: Error, token: UInt64) async {
+        if usesBilateralDip {
+            let record = try? await dipProcessor.finish(reason: "analysisFailure")
+            guard session == token, !Task.isCancelled else { return }
+            analysisRecord = record
+            dipReps = record?.reps ?? []
+        } else {
+            counter.interrupt()
+            workoutAnalysis.interrupt(reason: "analysisFailure")
+            analysisRecord = workoutAnalysis.finish(reason: "analysisFailure")
+        }
         phase = .failed
         errorMessage = error.localizedDescription
         failureReport = makeFailureReport(error, operation: "replay")

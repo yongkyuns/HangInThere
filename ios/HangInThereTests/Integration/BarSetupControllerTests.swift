@@ -53,7 +53,7 @@ struct BarSetupControllerTests {
         model.configureCounting(exercise:.dip,side:.left)
         try await wait { model.phase == .paused || model.phase == .failed }
         #expect(model.barRole == .leftDipRail)
-        #expect(model.beginBarSetup()?.role == .leftDipRail)
+        #expect(model.beginBarSetup() == nil, "Bilateral dips acquire finite rails from the current source; a selected straight edge cannot confirm them.")
     }
 
     private func wait(until predicate: () -> Bool) async throws {

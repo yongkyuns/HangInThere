@@ -39,7 +39,7 @@ internal object SourceTimeComparison {
 
     /** Compare nonnegative fractions by continued division. Cross-multiplying
      * the duration by the limit denominator could overflow even for tiny gaps. */
-    private fun compareFractions(firstNumerator: Long, firstDenominator: Long,
+    internal fun compareFractions(firstNumerator: Long, firstDenominator: Long,
                                  secondNumerator: Long, secondDenominator: Long): Int {
         var a = firstNumerator; var b = firstDenominator
         var c = secondNumerator; var d = secondDenominator
@@ -56,5 +56,49 @@ internal object SourceTimeComparison {
             a = b; b = first; c = d; d = second
             direction = -direction
         }
+    }
+
+    /** Exact, reduced positive interval of at most one second. */
+    internal fun elapsedFraction(end: PresentationTime, start: PresentationTime): Pair<Long, Long>? {
+        if (compareElapsed(end, start, SourceTimeLimit(0, 1)) != 1 ||
+            compareElapsed(end, start, SourceTimeLimit(1, 1)) == 1) return null
+        val a = parts(end); val b = parts(start)
+        val denominator = a.scale * b.scale
+        val numerator = a.remainder * b.scale - b.remainder * a.scale +
+            if (a.whole != b.whole) denominator else 0
+        val divisor = gcd(numerator, denominator)
+        return numerator / divisor to denominator / divisor
+    }
+    internal fun gcd(first: Long, second: Long): Long {
+        var a = first; var b = second
+        while (b != 0L) { val remainder = a % b; a = b; b = remainder }
+        return a
+    }
+}
+
+/** Bounded exact source-time evidence, never wall time. Owners explicitly
+ * choose eligible intervals. Missing observations cannot add an interval.
+ * One second saturates the accumulator; rational overflow fails closed. */
+internal class ObservedSourceDuration {
+    private var numerator = 0L
+    private var denominator = 1L
+    val seconds: Double get() = numerator.toDouble() / denominator
+    fun reset() { numerator = 0; denominator = 1 }
+    fun reaches(limit: SourceTimeLimit): Boolean = SourceTimeComparison.compareFractions(
+        numerator, denominator, limit.numerator.toLong(), limit.denominator.toLong()) >= 0
+    fun add(end: PresentationTime, start: PresentationTime): Boolean {
+        val (n, d) = SourceTimeComparison.elapsedFraction(end, start) ?: return false
+        if (numerator == denominator) return true
+        val divisor = SourceTimeComparison.gcd(denominator, d)
+        val firstScale = d / divisor; val secondScale = denominator / divisor
+        if (denominator > Long.MAX_VALUE / firstScale || numerator > Long.MAX_VALUE / firstScale ||
+            n > Long.MAX_VALUE / secondScale) return false
+        val first = numerator * firstScale; val second = n * secondScale
+        if (first > Long.MAX_VALUE - second) return false
+        val total = first + second; val scale = denominator * firstScale
+        if (total >= scale) { numerator = 1; denominator = 1; return true }
+        val reduction = SourceTimeComparison.gcd(total, scale)
+        numerator = total / reduction; denominator = scale / reduction
+        return true
     }
 }

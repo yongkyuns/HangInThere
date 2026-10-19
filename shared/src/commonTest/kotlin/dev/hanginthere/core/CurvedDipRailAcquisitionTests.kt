@@ -101,7 +101,7 @@ class CurvedDipRailAcquisitionTests {
         assertNotNull(observe(engine, 900))
     }
 
-    @Test fun missingHandOrEitherRailResetsBothSidesTogether() {
+    @Test fun aShortMissingHandOrRailPausesButDoesNotCreditItsIntervals() {
         for (fault in listOf("hand", "left", "right")) {
             val engine = CurvedDipRailAcquisition()
             observe(engine, 0); observe(engine, 300)
@@ -109,8 +109,49 @@ class CurvedDipRailAcquisitionTests {
             val changed = if (fault == "hand") frame.copy(gripObservation = frame.gripObservation!!.copy(hands = frame.gripObservation.hands.take(1))) else frame
             val rails = when (fault) { "left" -> listOf(emptyList(), candidates[1]); "right" -> listOf(candidates[0], emptyList()); else -> candidates }
             assertNull(engine.observe(changed, rails, engine.generation))
-            for (t in listOf(900L, 1200L, 1500L)) assertNull(observe(engine, t))
-            assertNotNull(observe(engine, 1800))
+            assertEquals(.3, engine.diagnostic.stableSeconds)
+            for (t in listOf(900L, 1200L)) assertNull(observe(engine, t))
+            assertNotNull(observe(engine, 1500))
+            assertEquals(2, engine.reference!!.acquisitionPolicyVersion)
+        }
+    }
+    @Test fun alternatingKnownMissingFramesNeverAccrueQualificationTime() {
+        val engine = CurvedDipRailAcquisition()
+        for (i in 0L..30L) assertNull(observe(engine, i * 100,
+            if (i % 2L == 0L) candidates else listOf(emptyList(), candidates[1])))
+        assertEquals(0.0, engine.diagnostic.stableSeconds)
+        assertEquals(16, engine.diagnostic.observations)
+    }
+    @Test fun observedCreditPolicyCanCombineMatchingSegmentsButNeverTheirKnownGaps() {
+        val engine = CurvedDipRailAcquisition()
+        for (time in listOf(0L, 300L)) assertNull(observe(engine, time))
+        assertNull(observe(engine, 400, listOf(emptyList(), candidates[1])))
+        for (time in listOf(900L, 1200L)) assertNull(observe(engine, time))
+        assertNull(observe(engine, 1300, listOf(emptyList(), candidates[1])))
+        assertNull(observe(engine, 1800))
+        assertEquals(.6, engine.diagnostic.stableSeconds)
+        assertNotNull(observe(engine, 2100))
+        assertEquals(.9, engine.diagnostic.stableSeconds)
+        assertEquals(2, engine.diagnostic.policyVersion)
+    }
+    @Test fun aTransientGripSpikeCannotReplaceTheAnchorOrCreditTheRejectedWindow() {
+        val engine = CurvedDipRailAcquisition()
+        observe(engine, 0); observe(engine, 300)
+        val spike = BilateralGripFixtures.frame(ticks = 400, handShift = 20.0)
+        val left = shifted(candidates[0].single(), 0.0, Point2D(220.0, 640.0))
+        assertNull(engine.observe(spike, listOf(listOf(left), candidates[1]), engine.generation))
+        assertEquals(CurvedDipRailAcquisition.Status.gripMoved, engine.diagnostic.status)
+        assertEquals(.3, engine.diagnostic.stableSeconds)
+        assertNull(observe(engine, 500)); assertNull(observe(engine, 800))
+        val reference = assertNotNull(observe(engine, 1100))
+        assertEquals(Point2D(200.0, 640.0), reference.hands.first())
+    }
+    @Test fun missingRailCannotHideAMalformedOrAmbiguousOtherSide() {
+        for (bad in listOf(candidates[1].single().copy(firstContour = -1), candidates[1].single().copy(minimumWidthPixels = Double.NaN))) {
+            val engine = CurvedDipRailAcquisition(); observe(engine, 0); observe(engine, 300)
+            assertNull(observe(engine, 600, listOf(emptyList(), listOf(bad))))
+            assertEquals(CurvedDipRailAcquisition.Status.invalidCandidates, engine.diagnostic.status)
+            assertEquals(0.0, engine.diagnostic.stableSeconds)
         }
     }
 
@@ -195,11 +236,11 @@ class CurvedDipRailAcquisitionTests {
             assertNull(engine.observe(frame, listOf(listOf(left), candidates[1]), engine.generation))
         }
         assertEquals(CurvedDipRailAcquisition.Status.gripMoved, engine.diagnostic.status)
-        for (ticks in listOf(900L, 1200L, 1500L)) {
+        for (ticks in listOf(900L, 1200L, 1500L, 1800L, 2100L, 2400L)) {
             val frame = BilateralGripFixtures.frame(ticks = ticks, handShift = 15.0)
             val left = shifted(candidates[0].single(), 0.0, Point2D(215.0, 640.0))
             val result = engine.observe(frame, listOf(listOf(left), candidates[1]), engine.generation)
-            assertEquals(ticks == 1500L, result != null)
+            assertEquals(ticks == 2400L, result != null)
         }
     }
 

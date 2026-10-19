@@ -1,3 +1,5 @@
+// Legacy straight-edge/counter-v8 acquisition regression coverage.
+// Source-owned bilateral replay is covered by VisionDipWorkoutTests.
 import AVFoundation
 import CoreGraphics
 import Dispatch
@@ -91,7 +93,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         let url = try await VideoTestSupport.makeVideo(timestamps: times, cyclingQuadrants: true)
         defer { try? FileManager.default.removeItem(at: url) }
         let worker = ControlledSceneWorker()
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: TestBarDetector(), sceneWorker: worker)
+        let model = ReplayController(dipMethod: .selectedGripV8, estimator: RaisedHandsEstimator(), barDetector: TestBarDetector(), sceneWorker: worker)
         defer { model.close() }
         model.open(url)
         try await wait(model, for: "initial opening") { model.phase == .paused }
@@ -115,7 +117,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
             let url = try await video()
             defer { try? FileManager.default.removeItem(at: url) }
             let detector = TestBarDetector()
-            let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: trace)
+            let model = ReplayController(dipMethod: .selectedGripV8, estimator: RaisedHandsEstimator(), barDetector: detector, trace: trace)
             defer { if model.phase != .idle { model.close() } }
             model.open(url)
             try await wait(model, for: "initial opening") { model.phase == .paused }
@@ -139,7 +141,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
             let detector = TestBarDetector(delay: .milliseconds(300))
             let (events, continuation) = AsyncStream.makeStream(of: ReplayTrace.self)
             defer { continuation.finish() }
-            let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector, trace: {
+            let model = ReplayController(dipMethod: .selectedGripV8, estimator: RaisedHandsEstimator(), barDetector: detector, trace: {
                 continuation.yield($0)
                 trace($0)
             })
@@ -239,7 +241,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         let url = try await video()
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = TestBarDetector(delay: .milliseconds(300))
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
+        let model = ReplayController(dipMethod: .selectedGripV8, estimator: RaisedHandsEstimator(), barDetector: detector)
         defer { model.close() }
         model.open(url)
         try await wait(model, for: "initial opening") { model.phase == .paused }
@@ -256,7 +258,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         let url = try await video()
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = TestBarDetector()
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
+        let model = ReplayController(dipMethod: .selectedGripV8, estimator: RaisedHandsEstimator(), barDetector: detector)
         defer { model.close() }
         model.configureCounting(exercise: .dip, side: side)
         model.open(url)
@@ -280,7 +282,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
             width: 320, height: 192)
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = OverheadContactDetector()
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: detector)
+        let model = ReplayController(dipMethod: .selectedGripV8, estimator: RaisedHandsEstimator(), barDetector: detector)
         defer { model.close() }
         model.configureCounting(exercise: .dip, side: side)
         model.open(url)
@@ -303,7 +305,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         let url=try await VideoTestSupport.makeVideo(timestamps:[0,35,70,105,140,175].map {CMTime(value:$0,timescale:100)},width:320,height:192)
         defer {try? FileManager.default.removeItem(at:url)}
         let detector=TestDipRailDetector()
-        let model=ReplayController(estimator:DipSupportEstimator(),barDetector:detector)
+        let model=ReplayController(dipMethod: .selectedGripV8, estimator:DipSupportEstimator(),barDetector:detector)
         defer {model.close()}
         model.configureCounting(exercise:.dip,side:.right)
         model.open(url)
@@ -326,7 +328,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         defer { try? FileManager.default.removeItem(at: url) }
         let other: ArmMeasurement.Side = side == .left ? .right : .left
         let detector = TestDipRailDetector()
-        let model = ReplayController(estimator: DipSupportEstimator(missingSide: other), barDetector: detector)
+        let model = ReplayController(dipMethod: .selectedGripV8, estimator: DipSupportEstimator(missingSide: other), barDetector: detector)
         defer { model.close() }
         model.configureCounting(exercise: .dip, side: side)
         model.open(url)
@@ -351,7 +353,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         }, width: 320, height: 192)
         defer { try? FileManager.default.removeItem(at: url) }
         let detector = TestDipRailDetector()
-        let model = ReplayController(estimator: DipSupportEstimator(missingSide: .right, invalidTimestampAt: 1.4),
+        let model = ReplayController(dipMethod: .selectedGripV8, estimator: DipSupportEstimator(missingSide: .right, invalidTimestampAt: 1.4),
             barDetector: detector)
         defer { model.close() }
         model.configureCounting(exercise: .dip, side: .left)
@@ -369,7 +371,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         defer {try? FileManager.default.removeItem(at:url)}
         for side in ArmMeasurement.Side.allCases {
             let detector=TestDipRailDetector(sharedBar:true)
-            let model=ReplayController(estimator:DipSupportEstimator(),barDetector:detector)
+            let model=ReplayController(dipMethod: .selectedGripV8, estimator:DipSupportEstimator(),barDetector:detector)
             defer {model.close()}
             model.configureCounting(exercise:.dip,side:side)
             model.open(url)
@@ -389,7 +391,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
         let url=try await VideoTestSupport.makeVideo(timestamps:[0,35,70,105,140,175].map {CMTime(value:$0,timescale:100)},width:320,height:192)
         defer {try? FileManager.default.removeItem(at:url)}
         let detector=TestDipRailDetector(delay:.milliseconds(150))
-        let model=ReplayController(estimator:DipSupportEstimator(),barDetector:detector)
+        let model=ReplayController(dipMethod: .selectedGripV8, estimator:DipSupportEstimator(),barDetector:detector)
         defer {model.close()}
         model.configureCounting(exercise:.dip,side:.left)
         model.open(url)
@@ -405,7 +407,7 @@ private actor OverheadContactDetector: BarEdgeDetector {
     }
 
     @Test func failedSourcePreservesOpeningErrorInsteadOfTimingOut() async throws {
-        let model = ReplayController(estimator: RaisedHandsEstimator(), barDetector: TestBarDetector())
+        let model = ReplayController(dipMethod: .selectedGripV8, estimator: RaisedHandsEstimator(), barDetector: TestBarDetector())
         defer { model.close() }
         model.open(FileManager.default.temporaryDirectory.appendingPathComponent("missing-\(UUID().uuidString).mov"))
         do {
