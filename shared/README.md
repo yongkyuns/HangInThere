@@ -26,15 +26,17 @@ simulator framework. The shipping Apple adapter is also exercised by `scripts/te
 Framework compilation alone is not performance qualification. See [architecture and qualification](../docs/ANDROID.md)
 for the native-adapter contracts and remaining platform differences.
 
-`StaticSceneStability` uses a unique largest agreeing subset of the four native
-corner translations. Two unrelated registration failures cannot pull a global
-median away from two agreeing corners. Equal competing hypotheses are unavailable;
-the rule never prefers stationary corners over a larger moving consensus. The
-two-patch minimum, consensus radius, motion/scale thresholds, source freshness and
-movement dwell remain independent requirements. Translation agreement alone does
-not rule out camera rotation, parallax or foreground motion. The live Swift monitor
-mirrors this policy, with common tests, Apple bridge checks and setup parity cases
-guarding both implementations.
+`StaticSceneStability` uses the largest agreeing subsets of four native corner
+translations. Multiple maximal inlier sets describe one usable hypothesis only
+when every pair shares two original patches, their median centers agree within
+the existing radius, and all centers agree on the motion threshold classification.
+It retains the largest center magnitude; it never averages competing estimates
+into a stationary result. Distinct or moving/stationary hypotheses remain
+unavailable. The two-patch minimum, consensus radius, motion/scale thresholds,
+source freshness and movement dwell remain independent requirements. Translation
+agreement alone does not rule out rotation, parallax or foreground motion. The
+Swift live monitor mirrors this rule; common, Apple bridge and setup parity tests
+guard both implementations.
 
 `ObservedCurveGeometry` supplies bounded finite-curve distance and correspondence
 for curved feature observations. It compares local directions over the common

@@ -211,16 +211,15 @@ struct StaticSceneStability: Sendable {
         _ translations: [PatchTranslation],
         imageShortSide: Double
     ) -> (fraction: Double?, count: Int) {
-        // Match the shared policy for live capture and the Swift setup oracle. Native
-        // registration has four corners, so all subsets are bounded. A global
-        // median can lose two agreeing corners between two unrelated outliers.
+        // Match shared bounded subset consensus. Multiple inlier sets can
+        // describe one hypothesis only with two shared original patches,
+        // pairwise center agreement and an identical movement classification.
         guard translations.count <= Self.maximumRegistrationPatches else { return (nil, 0) }
         let finite = translations.filter(\.isFinite)
         guard finite.count >= Self.minimumConsensusPatches else { return (nil, finite.count) }
         let tolerance = Self.consensusToleranceFraction * imageShortSide
         var bestSize = 0
-        var best: (x: Double, y: Double)?
-        var ambiguous = false
+        var best: [(x: Double, y: Double, mask: Int)] = []
         for mask in 1..<(1 << finite.count) {
             let count = mask.nonzeroBitCount
             guard count >= Self.minimumConsensusPatches, count >= bestSize else { continue }
@@ -229,14 +228,23 @@ struct StaticSceneStability: Sendable {
             }
             let x = median(subset.map(\.dxPixels)), y = median(subset.map(\.dyPixels))
             guard subset.allSatisfy({ hypot($0.dxPixels - x, $0.dyPixels - y) <= tolerance }) else { continue }
-            if count > bestSize {
-                bestSize = count; best = (x, y); ambiguous = false
-            } else { ambiguous = true }
+            if count > bestSize { bestSize = count; best.removeAll(keepingCapacity: true) }
+            best.append((x, y, mask))
         }
-        guard !ambiguous, let best else { return (nil, 0) }
-        let fraction = hypot(best.x, best.y) / imageShortSide
-        guard fraction.isFinite else { return (nil, bestSize) }
-        return (fraction, bestSize)
+        guard !best.isEmpty else { return (nil, 0) }
+        for i in best.indices {
+            for j in (i + 1)..<best.count {
+                let a = best[i], b = best[j]
+                guard (a.mask & b.mask).nonzeroBitCount >= Self.minimumConsensusPatches,
+                      hypot(a.x - b.x, a.y - b.y) <= tolerance else { return (nil, 0) }
+            }
+        }
+        let fractions = best.map { hypot($0.x, $0.y) / imageShortSide }
+        guard fractions.allSatisfy({ $0.isFinite }),
+              let first = fractions.first,
+              fractions.allSatisfy({ ($0 >= Self.movementThresholdFraction) == (first >= Self.movementThresholdFraction) })
+        else { return (nil, 0) }
+        return (fractions.max(), bestSize)
     }
 
     private func sanitizedScale(_ value: Double?) -> Double? {

@@ -76,6 +76,10 @@ def prepare(output):
             ('independent-corner-outliers', [(-54,57),(-60,0),(1,0),(0,0)], True),
             ('competing-corner-pairs', [(-56,0),(-53,0),(1,0),(0,0)], False),
             ('unique-moving-corner-pair', [(24,0),(25,1),(-60,50),(0,0)], False),
+            ('equivalent-stationary-majorities', [(-9,0),(-3,0),(0,0),(0,0)], True),
+            ('equivalent-moving-majorities', [(15,0),(21,0),(24,0),(24,0)], False),
+            ('nearby-mixed-motion-majorities', [(0,0),(6,0),(9,0),(9,0)], False),
+            ('nearby-pairs-share-one', [(-9,0),(0,0),(1.5,0)], False),
         ]:
             patches=[dict(dxPixels=x,dyPixels=y) for x,y in points]
             add(ex+'-scene-'+name,ex,frames(translations=patches),True,started)

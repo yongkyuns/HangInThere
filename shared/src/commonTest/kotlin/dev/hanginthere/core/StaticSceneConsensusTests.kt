@@ -88,6 +88,62 @@ class StaticSceneConsensusTests {
         assertEquals(2, scene.latestConsensusPatches)
     }
 
+    @Test fun overlappingInlierSetsWithOneStationaryHypothesisDoNotPauseTracking() {
+        // A near-boundary corner leaves two maximal three-patch sets. Their
+        // medians differ 2px, both inside the original 4.32px agreement radius.
+        for (order in permutations(patches(-6.0 to 0.0, -2.0 to 0.0, 0.0 to 0.0, 0.0 to 0.0))) {
+            val scene = monitor(order)
+            assertEquals(StaticSceneStability.State.stable, scene.state)
+            assertEquals(3, scene.latestConsensusPatches)
+            assertEquals(2.0 / 720, scene.latestShiftFraction!!, 1e-12)
+        }
+    }
+
+    @Test fun coherentMovingHypothesesKeepTheWorstDisplacementAndExistingDwell() {
+        for (order in permutations(patches(14.0 to 0.0, 18.0 to 0.0, 20.0 to 0.0, 20.0 to 0.0))) {
+            val scene = monitor(order)
+            assertEquals(20.0 / 720, scene.latestShiftFraction!!, 1e-12)
+            scene.observe(order, 0.0, 1.249999)
+            assertNotEquals(StaticSceneStability.State.moved, scene.state)
+            scene.observe(order, 0.0, 1.25)
+            assertEquals(StaticSceneStability.State.moved, scene.state)
+        }
+    }
+
+    @Test fun nearbyHypothesesOnOppositeSidesOfTheMotionLimitAreUnavailable() {
+        for (order in permutations(patches(0.0 to 0.0, 4.0 to 0.0, 6.0 to 0.0, 6.0 to 0.0))) {
+            val scene = monitor(order)
+            assertEquals(StaticSceneStability.State.calibrating, scene.state)
+            assertNull(scene.latestShiftFraction)
+        }
+    }
+
+    @Test fun nearbyPairHypothesesCannotBorrowASecondSharedPatch() {
+        // All three pair centers lie within 3.5px and below the movement limit,
+        // but the pairs share only one original observation with each other.
+        for (order in permutations(patches(-6.0 to 0.0, 0.0 to 0.0, 1.0 to 0.0))) {
+            val scene = monitor(order)
+            assertEquals(StaticSceneStability.State.calibrating, scene.state)
+            assertNull(scene.latestShiftFraction)
+        }
+    }
+
+    @Test fun coherentHypothesesCannotRelaxTheExactMovementBoundary() {
+        val limit = StaticSceneStability.movementThresholdFraction * 720
+        for (shift in listOf(limit - 1e-6, limit)) {
+            val scene = monitor(patches(shift - 6 to 0.0, shift - 2 to 0.0, shift to 0.0, shift to 0.0))
+            assertEquals(shift < limit, scene.isReady(1.0))
+        }
+    }
+
+    @Test fun everyMaximumHypothesisMustAgreeNotJustWithAMiddleHypothesis() {
+        for (order in permutations(patches(-6.0 to 0.0, 0.0 to 0.0, 0.0 to 0.0, 6.0 to 0.0))) {
+            val scene = monitor(order)
+            assertEquals(StaticSceneStability.State.calibrating, scene.state)
+            assertNull(scene.latestShiftFraction)
+        }
+    }
+
     @Test fun originalConsensusRadiusRemainsInclusiveAndLargeMediansStayFinite() {
         val radius = StaticSceneStability.consensusToleranceFraction * 720
         assertEquals(2, monitor(patches(-radius to 0.0, radius to 0.0)).latestConsensusPatches)

@@ -3,7 +3,7 @@ package dev.hanginthere.core
 import kotlinx.serialization.Serializable
 import kotlin.math.*
 
-/** Unique corner translation consensus plus independent full-image scale evidence. */
+/** Coherent corner translation consensus plus independent full-image scale evidence. */
 class StaticSceneStability {
     @Serializable data class PatchTranslation(val dxPixels:Double,val dyPixels:Double){val isFinite get()=dxPixels.isFinite() && dyPixels.isFinite()}
     @Serializable enum class State { uncalibrated,calibrating,stable,moved;val allowsLiveSet get()=this==stable }
@@ -55,29 +55,39 @@ class StaticSceneStability {
         translationOverThresholdSince=null;scaleOverThresholdSince=null
     }
     private fun translationConsensus(translations:List<PatchTranslation>,short:Double):Pair<Double?,Int> {
-        // There are at most four native corner patches. A global median can
-        // lie between two agreeing patches and two unrelated outliers, losing
-        // real consensus. Examine every bounded subset instead. Equal-size
-        // competing hypotheses are unavailable; never prefer a near-zero shift.
+        // All native corner subsets are bounded. Distinct largest hypotheses
+        // remain unavailable. Different inlier sets may describe the same
+        // hypothesis only if they share two actual patches, their median
+        // centers agree pairwise, and every center has the same motion status.
         if(translations.size>maximumRegistrationPatches) return null to 0
         val finite=translations.filter{it.isFinite}
         if(finite.size<minimumConsensusPatches) return null to finite.size
         val tolerance=consensusToleranceFraction*short
-        var bestSize=0;var best:Pair<Double,Double>?=null;var ambiguous=false
+        var bestSize=0
+        val best=mutableListOf<TranslationHypothesis>()
         for(mask in 1 until (1 shl finite.size)) {
             val count=mask.countOneBits()
             if(count<minimumConsensusPatches || count<bestSize) continue
             val subset=finite.filterIndexed { index,_ -> mask and (1 shl index)!=0 }
             val x=median(subset.map{it.dxPixels});val y=median(subset.map{it.dyPixels})
             if(subset.any{hypot(it.dxPixels-x,it.dyPixels-y)>tolerance}) continue
-            if(count>bestSize){bestSize=count;best=x to y;ambiguous=false}
-            else ambiguous=true
+            if(count>bestSize){bestSize=count;best.clear()}
+            best+=TranslationHypothesis(x,y,mask)
         }
-        if(ambiguous) return null to 0
-        val shift=best ?: return null to 0
-        val fraction=hypot(shift.first,shift.second)/short
-        return fraction.takeIf{it.isFinite()} to bestSize
+        if(best.isEmpty()) return null to 0
+        for(i in best.indices) for(j in i+1 until best.size) {
+            val a=best[i];val b=best[j]
+            if((a.mask and b.mask).countOneBits()<minimumConsensusPatches ||
+                hypot(a.x-b.x,a.y-b.y)>tolerance) return null to 0
+        }
+        val fractions=best.map{hypot(it.x,it.y)/short}
+        if(fractions.any{!it.isFinite()} || fractions.any{
+                (it>=movementThresholdFraction)!=(fractions.first()>=movementThresholdFraction)}) return null to 0
+        // Preserve the most conservative witnessed displacement. Never average
+        // competing centers into a synthetic stationary estimate.
+        return fractions.maxOrNull() to bestSize
     }
+    private data class TranslationHypothesis(val x:Double,val y:Double,val mask:Int)
     private fun median(values:List<Double>):Double {val sorted=values.sorted();val middle=sorted.size/2;return if(sorted.size%2==0)sorted[middle-1]/2+sorted[middle]/2 else sorted[middle]}
     companion object {const val movementThresholdFraction=.008;const val consensusToleranceFraction=.006;const val scaleThresholdFraction=.012;const val movementDwellSeconds=.25;const val minimumConsensusPatches=2
         const val maximumRegistrationPatches=4
