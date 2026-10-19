@@ -37,9 +37,11 @@ struct VisionDipObservationTests {
         #expect(observed.body.isEmpty)
     }
 
-    @Test func aMissingHandUsesFreshBoundedCropsAndMapsPixelsBackOnce() throws {
+    @Test(arguments: [false, true])
+    func aMissingHandUsesFreshBoundedCropsAndMapsPixelsBackOnce(includesWrist: Bool) throws {
         let pose = frame()
-        let original = hands(pose: pose, seconds: pose.timestamp.seconds).hands
+        let base = hands(pose: pose, seconds: pose.timestamp.seconds).hands
+        let original = includesWrist ? handsWithWrists(base, pose: pose) : base
         let requests = try JSONDecoder().decode([WorkoutGripCropRequest].self, from: Data(
             WorkoutGripInferenceBridge().handRequestsJson(poseJson: String(decoding: JSONEncoder().encode(pose), as: UTF8.self)).utf8))
         let region = try #require(requests.first { $0.side == "right" }?.regions.first)
@@ -48,7 +50,8 @@ struct VisionDipObservationTests {
                 position: Point2D(x: point.position.x - Double(region.left), y: point.position.y - Double(region.top)),
                 world: nil, score: point.score)
         }, sdkHandedness: nil, sdkHandednessScore: nil)
-        let detector = PixelDetector(outputs: [[original[0]], [], [], [cropped]])
+        let detector = PixelDetector(outputs: [[original[0]], [], [], [cropped]],
+            format: includesWrist ? .wristAndGripMCPs : .gripMCPs)
         let observed = try VisionDipHandEstimator(detector: detector).observe(image: image(), pose: pose)
         #expect(detector.calls.count == 4)
         #expect(detector.calls.last == [region.width, region.height, 1])
@@ -57,6 +60,46 @@ struct VisionDipObservationTests {
         #expect(observed.hands[1].sourceRegion == region)
         #expect(observed.trackedBody == hands(pose: pose, seconds: pose.timestamp.seconds).trackedBody)
         #expect(observed.seconds == pose.timestamp.seconds)
+    }
+
+    @Test func explicitObservedWristFormatPreservesPointsAndHasItsOwnSourceContext() throws {
+        let pose = frame()
+        let original = hands(pose: pose, seconds: pose.timestamp.seconds).hands
+        let complete = handsWithWrists(original, pose: pose)
+        let legacy = try VisionDipHandEstimator(usesCrops: false, detector: PixelDetector(outputs: [original]))
+            .observe(image: image(), pose: pose)
+        let current = try VisionDipHandEstimator(usesCrops: false,
+            detector: PixelDetector(outputs: [complete], format: .wristAndGripMCPs))
+            .observe(image: image(), pose: pose)
+        #expect(legacy.modelId == "VNDetectHumanHandPoseRequest-revision1")
+        #expect(current.modelId == "VNDetectHumanHandPoseRequest-revision1-wrist_mcp_v1")
+        #expect(current.hands == complete)
+        #expect(current.trackedBody == legacy.trackedBody)
+        #expect(current.seconds == legacy.seconds)
+        #expect(current.hands.allSatisfy { $0.points.count == 4 })
+        #expect(current.hands.map { $0.points.filter { $0.joint != "wrist" } } == original.map(\.points))
+    }
+
+    @Test func observedWristDetectorDoesNotInventPointsOnBlankPixels() throws {
+        let result = try VisionDipHandPixelDetector(format: .wristAndGripMCPs)
+            .detect(image: image(), maximumHands: 2)
+        #expect(result.isEmpty)
+    }
+
+    @Test func fullObservedWristsSkipCropsDespiteALargeKnuckleOffset() throws {
+        let pose = frame()
+        let original = hands(pose: pose, seconds: pose.timestamp.seconds).hands.map { value in
+            WorkoutGripHandObservation(points: value.points.map { p in
+                WorkoutGripHandPoint(joint: p.joint, position: Point2D(x: p.position.x, y: p.position.y + 60),
+                    world: p.world, score: p.score)
+            }, sdkHandedness: nil, sdkHandednessScore: nil)
+        }
+        let complete = handsWithWrists(original, pose: pose)
+        let detector = PixelDetector(outputs: [complete], format: .wristAndGripMCPs)
+        let result = try VisionDipHandEstimator(detector: detector).observe(image: image(), pose: pose)
+        #expect(detector.calls == [[720, 1280, 2]])
+        #expect(result.hands == complete)
+        #expect(result.modelId == "VNDetectHumanHandPoseRequest-revision1-crops_v3-wrist_mcp_v1")
     }
 
     @Test func repeatedCropsOfOneHandCannotSubstituteForTheMissingOtherHand() throws {
@@ -180,6 +223,15 @@ struct VisionDipObservationTests {
         #expect(next.acquisition.diagnostic.observations == 1)
     }
 
+    private func handsWithWrists(_ hands: [WorkoutGripHandObservation], pose: PoseResult) -> [WorkoutGripHandObservation] {
+        zip(hands, [PoseJoint.leftWrist, .rightWrist]).map { hand, joint in
+            let wrist = pose.people[0].landmark(joint)!
+            return WorkoutGripHandObservation(points: hand.points + [WorkoutGripHandPoint(joint: "wrist",
+                position: wrist.position, world: nil, score: wrist.confidence)], sdkHandedness: hand.sdkHandedness,
+                sdkHandednessScore: hand.sdkHandednessScore, sourceRegion: hand.sourceRegion)
+        }
+    }
+
     private struct CurrentHands: DipHandEstimating {
         var invalidAt: Double? = nil
         func observe(image: CGImage, pose: PoseResult) -> WorkoutGripObservation {
@@ -193,9 +245,12 @@ struct VisionDipObservationTests {
         }
     }
     private final class PixelDetector: DipHandPixelDetecting {
+        let observationFormat: DipHandObservationFormat
         private let outputs: [[WorkoutGripHandObservation]]
         private let state = OSAllocatedUnfairLock(initialState: [[Int]]())
-        init(outputs: [[WorkoutGripHandObservation]]) { self.outputs = outputs }
+        init(outputs: [[WorkoutGripHandObservation]], format: DipHandObservationFormat = .gripMCPs) {
+            self.outputs = outputs; observationFormat = format
+        }
         var calls: [[Int]] { state.withLock { $0 } }
         func detect(image: CGImage, maximumHands: Int) -> [WorkoutGripHandObservation] {
             state.withLock { calls in

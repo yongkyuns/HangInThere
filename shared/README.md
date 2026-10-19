@@ -70,6 +70,17 @@ requires the hand request's original rational timestamp tuple, preventing nearby
 frames with equal floating seconds from sharing a binding. Native owners still
 retain exact image and source-epoch ownership. This primitive grants no temporal
 athlete identity, apparatus/contact, exercise, camera or repetition evidence.
+Its default `gripCentre` correspondence preserves policy 1 and the original
+three-MCP transport. Explicit `observedWrist` correspondence (policy 2) matches
+the hand SDK's directly observed, scored wrist to the original body wrist using
+the same radius. It requires that extra observation: a knuckle centre cannot
+fill a missing wrist. The returned body wrist, optional observed hand wrist and
+MCP grasp centre remain separate. This avoids rejecting a close view merely
+because a real wrist-to-knuckle offset exceeds an image-relative matching radius.
+The Apple `wristAndGripMCPs` opt-in keeps crop coordinates in the original image
+and adds `-wrist_mcp_v1` to its source model ID. Existing acquisition keeps the
+three-MCP default. A format change can therefore revoke future temporal evidence
+without changing the actual pose model or silently mixing feature streams.
 
 `CurvedDipRailAcquisition` applies the existing four-observation, 0.9-second
 source dwell to two current curved proposals and independently matched MCP hands.

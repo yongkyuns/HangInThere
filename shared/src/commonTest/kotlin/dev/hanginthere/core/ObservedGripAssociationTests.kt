@@ -8,9 +8,21 @@ class ObservedGripAssociationTests {
         val pose = BilateralGripFixtures.frame()
         return pose.copy(gripObservation = pose.gripObservation!!.copy(trackedBody = emptyList(), hands = pose.gripObservation.hands.take(1)))
     }
-    private fun associate(pose: PoseResult, handTime: PresentationTime = pose.timestamp) =
-        ObservedGripAssociation.associate(ObservedGripAssociation.Frame(pose, handTime))
+    private fun associate(pose: PoseResult, handTime: PresentationTime = pose.timestamp,
+        correspondence: ObservedGripAssociation.Correspondence = ObservedGripAssociation.Correspondence.gripCentre) =
+        ObservedGripAssociation.associate(ObservedGripAssociation.Frame(pose, handTime, correspondence))
     private fun associated(pose: PoseResult) = assertNotNull(associate(pose))
+    private fun wristAssociated(pose: PoseResult) =
+        associate(pose, correspondence = ObservedGripAssociation.Correspondence.observedWrist)
+    private fun withHandWrists(pose: PoseResult, mcpDrop: Double = 0.0): PoseResult {
+        val hand = pose.gripObservation!!
+        return pose.copy(gripObservation = hand.copy(hands = hand.hands.mapIndexed { i, value ->
+            val side = ArmMeasurement.Side.entries[i]
+            val wrist = pose.people[0].landmark(side.joints[2])!!.position
+            value.copy(points = value.points.map { p -> p.copy(position = Point2D(p.position.x, p.position.y + mcpDrop)) } +
+                GripHandPoint(GripHandJoint.wrist, wrist, score = .9))
+        }))
+    }
     private fun input(pose: PoseResult) = WorkoutRecordCodec.json.encodeToString(ObservedGripAssociation.Frame(pose, pose.timestamp))
 
     @Test fun oneIndependentHandMeasuresOnlyItsOriginalArm() {
@@ -121,5 +133,79 @@ class ObservedGripAssociationTests {
             ObservedGripAssociationBridge().dipSearchJson(input(pose))))
         assertTrue(search.toString().contains("originalPersonIndex"))
         assertNull(ObservedGripAssociationBridge().dipSearchJson(input(pose.copy(gripObservation = null))))
+    }
+
+    @Test fun observedWristMatchesTheSameJointWhileTheKnuckleCentreRemainsSeparate() {
+        val pose = withHandWrists(singleHand(), mcpDrop = 60.0)
+        assertNull(associate(pose), "The original image-radius policy still rejects this wrist-to-knuckle offset")
+        val sample = assertNotNull(wristAssociated(pose)); val arm = sample.arms.single()
+        assertEquals(2, sample.policyVersion)
+        assertEquals(Point2D(200.0, 600.0), arm.wrist)
+        assertEquals(arm.wrist, arm.observedHandWrist)
+        assertEquals(Point2D(200.0, 700.0), arm.grip)
+        assertEquals(ArmMeasurement(pose, ArmMeasurement.Side.left).estimate, arm.measurement)
+        assertEquals(1, associated(singleHand()).policyVersion)
+        assertNull(associated(singleHand()).arms.single().observedHandWrist)
+    }
+
+    @Test fun wristModeNeverFallsBackToValidKnucklesForMissingOrWeakWristEvidence() {
+        val base = singleHand(); val good = withHandWrists(base); val hand = good.gripObservation!!
+        assertNull(wristAssociated(base))
+        for (score in listOf(null, .299)) {
+            val unavailable = good.copy(gripObservation = hand.copy(hands = hand.hands.map { value ->
+                value.copy(points = value.points.map { if (it.joint == GripHandJoint.wrist) it.copy(score = score) else it })
+            }))
+            assertNotNull(associate(unavailable), "Legacy three-MCP behavior is preserved")
+            assertNull(wristAssociated(unavailable))
+        }
+        val wrongWrist = good.copy(gripObservation = hand.copy(hands = hand.hands.map { value ->
+            value.copy(points = value.points.map { if (it.joint == GripHandJoint.wrist) it.copy(position = Point2D(200.0, 1000.0)) else it })
+        }))
+        assertNotNull(associate(wrongWrist))
+        assertNull(wristAssociated(wrongWrist), "Knuckles cannot overrule a contradictory observed wrist")
+    }
+
+    @Test fun observedWristCannotReplaceMissingPrimaryWristOrSelectBetweenPeople() {
+        val pose = withHandWrists(singleHand(), mcpDrop = 60.0)
+        val missing = pose.copy(people = listOf(PoseObservation(pose.people[0].landmarks.filter { it.joint != PoseJoint.leftWrist })))
+        assertNull(wristAssociated(missing))
+        val other = PoseObservation(pose.people[0].landmarks.map { p ->
+            if (p.joint == PoseJoint.leftWrist) p.copy(position = Point2D(200.0, 620.0), confidence = 1.0) else p
+        })
+        for (people in listOf(listOf(pose.people[0], other), listOf(other, pose.people[0])))
+            assertNull(wristAssociated(pose.copy(people = people)), "No score, hand order or knuckle distance ranks original people")
+    }
+
+    @Test fun bothObservedWristsPreserveAllSidesAndHandOrderWithoutSharingOneBodyWrist() {
+        val pose = withHandWrists(BilateralGripFixtures.frame())
+        val sample = assertNotNull(wristAssociated(pose))
+        val reversed = assertNotNull(wristAssociated(pose.copy(gripObservation = pose.gripObservation!!.copy(hands = pose.gripObservation.hands.reversed()))))
+        assertEquals(listOf(ArmMeasurement.Side.left, ArmMeasurement.Side.right), sample.arms.map { it.side })
+        assertEquals(sample.arms.map { it.copy(handIndex = 0) }, reversed.arms.map { it.copy(handIndex = 0) })
+        val wrong = pose.copy(gripObservation = pose.gripObservation!!.copy(hands = pose.gripObservation.hands.map { value ->
+            value.copy(points = value.points.map { if (it.joint == GripHandJoint.wrist) it.copy(position = sample.arms[0].wrist) else it })
+        }))
+        assertNull(wristAssociated(wrong), "Distinct MCPs cannot donate two matches to one original arm")
+    }
+
+    @Test fun observedWristMustBelongToTheActualCropAndExactHandRequestTime() {
+        val pose = withHandWrists(singleHand()); val hand = pose.gripObservation!!
+        val outside = pose.copy(gripObservation = hand.copy(hands = hand.hands.map {
+            it.copy(sourceRegion = PersonInferenceRegion(180, 630, 40, 30))
+        }))
+        assertNotNull(associate(outside), "The original transport requires only its three MCPs in the crop")
+        assertNull(wristAssociated(outside))
+        assertNull(associate(pose, PresentationTime(1, 1000), ObservedGripAssociation.Correspondence.observedWrist))
+    }
+
+    @Test fun explicitWristBridgePreservesVersionAndLegacyMissingVersionDefaultsToOne() {
+        val pose = withHandWrists(singleHand())
+        val frame = ObservedGripAssociation.Frame(pose, pose.timestamp, ObservedGripAssociation.Correspondence.observedWrist)
+        val encoded = assertNotNull(ObservedGripAssociationBridge().associateJson(WorkoutRecordCodec.json.encodeToString(frame)))
+        assertEquals(wristAssociated(pose), WorkoutRecordCodec.json.decodeFromString<ObservedGripAssociation.Sample>(encoded))
+        val legacy = assertNotNull(ObservedGripAssociationBridge().associateJson(input(singleHand())))
+        val minimal = legacy.replace(",\"policyVersion\":1", "")
+        assertNotEquals(legacy, minimal)
+        assertEquals(1, WorkoutRecordCodec.json.decodeFromString<ObservedGripAssociation.Sample>(minimal).policyVersion)
     }
 }

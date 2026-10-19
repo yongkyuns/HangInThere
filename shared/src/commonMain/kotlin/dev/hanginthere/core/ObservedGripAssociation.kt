@@ -12,21 +12,28 @@ import kotlin.math.min
  * contact/load, exercise classification, or permission to count a repetition.
  * Native owners must retain originating pixels/pose/source epoch together. */
 object ObservedGripAssociation {
-    const val policyVersion = 1
+    const val policyVersion = 2
+    /** Matching points have explicit anatomical roles. The original mode is
+     * retained for existing three-MCP transports; it does not become a wrist
+     * observation. New owners can request like-for-like observed wrists. */
+    @Serializable enum class Correspondence { gripCentre, observedWrist }
     private const val maximumPeople = 32
     /** Captured at the hand request's source boundary, never inferred from its
      * Double seconds or reassigned when a result is delivered. Exact rational
      * time does not prove image/epoch identity; the native owner retains those. */
-    @Serializable data class Frame(val pose: PoseResult, val handSourceTime: PresentationTime)
+    @Serializable data class Frame(val pose: PoseResult, val handSourceTime: PresentationTime,
+        val correspondence: Correspondence = Correspondence.gripCentre)
     @Serializable data class Arm(val side: ArmMeasurement.Side, val handIndex: Int,
-        val shoulder: Point2D, val wrist: Point2D, val grip: Point2D, val measurement: ArmMeasurement.Estimate)
+        val shoulder: Point2D, val wrist: Point2D, val grip: Point2D, val measurement: ArmMeasurement.Estimate,
+        val observedHandWrist: Point2D? = null)
     @Serializable @ConsistentCopyVisibility
     data class Sample private constructor(val timestamp: PresentationTime, val imageSize: ImageSize,
         val originalPersonIndex: Int, val arms: List<Arm>, val bodyBackend: String, val bodyRevision: Int,
-        val handModel: String, val handBackend: String, val policyVersion: Int = ObservedGripAssociation.policyVersion) {
+        val handModel: String, val handBackend: String, val policyVersion: Int = 1) {
         companion object {
-            internal fun create(pose: PoseResult, index: Int, arms: List<Arm>, hand: GripObservation) =
-                Sample(pose.timestamp, pose.imageSize, index, arms.toList(), pose.backend, pose.requestRevision, hand.modelId, hand.backend)
+            internal fun create(pose: PoseResult, index: Int, arms: List<Arm>, hand: GripObservation, correspondence: Correspondence) =
+                Sample(pose.timestamp, pose.imageSize, index, arms.toList(), pose.backend, pose.requestRevision, hand.modelId, hand.backend,
+                    if (correspondence == Correspondence.gripCentre) 1 else ObservedGripAssociation.policyVersion)
         }
     }
 
@@ -41,16 +48,28 @@ object ObservedGripAssociation {
             hand.trackedBody.size > 6 || hand.trackedBody.map { it.joint }.distinct().size != hand.trackedBody.size) return null
         if (pose.people.any { p -> p.landmarks.size > 64 || p.landmarks.map { it.joint }.distinct().size != p.landmarks.size }) return null
         val centres = hand.hands.map { GripMCPGeometry.measure(it, size, requiresScores = true)?.centre ?: return null }
+        val handWrists = if (frame.correspondence == Correspondence.observedWrist) hand.hands.map { value ->
+            // The MCP centre is a grasp feature, not the anatomical wrist.
+            // A missing/unscored SDK wrist cannot be filled from that centre or
+            // from the primary body point that this observation must verify.
+            val point = value.points.singleOrNull { it.joint == GripHandJoint.wrist } ?: return null
+            if (point.score?.let { it >= ArmMeasurement.confidenceThreshold } != true ||
+                value.sourceRegion?.let { point.position.x !in it.left.toDouble()..(it.left.toDouble() + it.width) ||
+                    point.position.y !in it.top.toDouble()..(it.top.toDouble() + it.height) } == true) return null
+            point.position
+        } else emptyList()
         val tolerance = .12 * min(size.width, size.height)
         if (centres.size == 2 && distance(centres[0], centres[1]) < tolerance) return null
         val matches = centres.mapIndexed { handIndex, grip ->
+            val observedWrist = handWrists.getOrNull(handIndex)
+            val matchingPoint = observedWrist ?: grip
             val possible = pose.people.flatMapIndexed { personIndex, person ->
                 ArmMeasurement.Side.entries.mapNotNull { side ->
                     val measured = ArmMeasurement.observedPerson(person, size, side).estimate ?: return@mapNotNull null
                     val shoulder = person.landmark(side.joints[0])!!.position
                     val wrist = person.landmark(side.joints[2])!!.position
-                    if (distance(grip, wrist) > tolerance) return@mapNotNull null
-                    personIndex to Arm(side, handIndex, shoulder, wrist, grip, measured)
+                    if (distance(matchingPoint, wrist) > tolerance) return@mapNotNull null
+                    personIndex to Arm(side, handIndex, shoulder, wrist, grip, measured, observedWrist)
                 }
             }
             possible.singleOrNull() ?: return null
@@ -66,7 +85,7 @@ object ObservedGripAssociation {
                 point == null || point.position != tracked.position || point.confidence != tracked.score ||
                     !tracked.score.isFinite() || tracked.score !in 0.0..1.0
             }) return null
-        return Sample.create(pose, index, arms, hand)
+        return Sample.create(pose, index, arms, hand, frame.correspondence)
     }
     private fun distance(a: Point2D, b: Point2D) = hypot(a.x - b.x, a.y - b.y)
 }

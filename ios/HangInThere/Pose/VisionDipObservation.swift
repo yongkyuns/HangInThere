@@ -65,21 +65,39 @@ struct NativeDipRailPixels: DipRailPixelExtracting {
     }
 }
 
+enum DipHandObservationFormat: Sendable {
+    case gripMCPs, wristAndGripMCPs
+    var modelSuffix: String {
+        switch self {
+        case .gripMCPs: ""
+        case .wristAndGripMCPs: "-wrist_mcp_v1"
+        }
+    }
+}
+
 protocol DipHandPixelDetecting: Sendable {
+    var observationFormat: DipHandObservationFormat { get }
     // Points are local pixels in the actual supplied image. The estimator owns
     // crop translation and source association; the detector supplies no body.
     func detect(image: CGImage, maximumHands: Int) throws -> [WorkoutGripHandObservation]
 }
 
 struct VisionDipHandPixelDetector: DipHandPixelDetecting {
+    // Existing acquisition keeps its original three-point input. Independent
+    // correspondence owners can request the SDK's actual wrist too; this does
+    // not move the MCPs or supply a missing primary body wrist.
+    let observationFormat: DipHandObservationFormat
+    init(format: DipHandObservationFormat = .gripMCPs) { observationFormat = format }
+
     func detect(image: CGImage, maximumHands: Int) throws -> [WorkoutGripHandObservation] {
         let request = VNDetectHumanHandPoseRequest()
         request.revision = VNDetectHumanHandPoseRequestRevision1
         request.maximumHandCount = maximumHands
         try VNImageRequestHandler(cgImage: image, orientation: .up, options: [:]).perform([request])
-        let names: [(VNHumanHandPoseObservation.JointName, String)] = [
+        var names: [(VNHumanHandPoseObservation.JointName, String)] = [
             (.indexMCP, "indexMCP"), (.middleMCP, "middleMCP"), (.littleMCP, "pinkyMCP")
         ]
+        if case .wristAndGripMCPs = observationFormat { names.insert((.wrist, "wrist"), at: 0) }
         return try (request.results ?? []).map { hand in
             let points = try names.map { joint, name in
                 let point = try hand.recognizedPoint(joint)
@@ -107,7 +125,7 @@ struct VisionDipHandEstimator: DipHandEstimating {
         func observation(_ hands: [WorkoutGripHandObservation]) -> WorkoutGripObservation {
             WorkoutGripObservation(seconds: pose.timestamp.seconds, imageSize: pose.imageSize,
                 trackedBody: tracked, body: [], hands: hands,
-                modelId: usesCrops ? "VNDetectHumanHandPoseRequest-revision1-crops_v3" : "VNDetectHumanHandPoseRequest-revision1",
+                modelId: (usesCrops ? "VNDetectHumanHandPoseRequest-revision1-crops_v3" : "VNDetectHumanHandPoseRequest-revision1") + detector.observationFormat.modelSuffix,
                 backend: "Apple Vision hand pose")
         }
         let full = try detect(image: image, maximumHands: 2)
@@ -116,6 +134,20 @@ struct VisionDipHandEstimator: DipHandEstimating {
         let validation = CurvedDipRailAcquisitionBridge()
         func accepts(_ hands: [WorkoutGripHandObservation]) throws -> Bool {
             var current = pose; current.gripObservation = observation(hands)
+            if case .wristAndGripMCPs = detector.observationFormat {
+                // Crop recovery still seeks both hands. Its correspondence
+                // must use the requested measured joint roles, rather than
+                // rejecting good full-frame wrists for a large knuckle offset.
+                guard hands.count == 2 else { return false }
+                struct Frame: Encodable {
+                    let pose: PoseResult
+                    let handSourceTime: PresentationTime
+                    let correspondence = "observedWrist"
+                }
+                let input = Frame(pose: current, handSourceTime: pose.timestamp)
+                return try ObservedGripAssociationBridge().associateJson(
+                    input: String(decoding: encoder.encode(input), as: UTF8.self)) != nil
+            }
             return try validation.searchJson(input: String(decoding: encoder.encode(current), as: UTF8.self)) != nil
         }
         if try accepts(full) { return observation(full) }
