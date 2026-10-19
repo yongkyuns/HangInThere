@@ -6,3 +6,12 @@ plugins {
     id("com.android.application") version "8.11.1" apply false
     id("com.android.library") version "8.11.1" apply false
 }
+
+// Share the small source-observation fixture with both host and device tests.
+// Keep evaluation media and unrelated fixtures out of the test APK.
+tasks.register<Sync>("prepareEvaluationTestResources") {
+    from(layout.projectDirectory.dir("Evaluation/fixtures")) {
+        include("legacy-dip-search-context.json")
+    }
+    into(layout.buildDirectory.dir("generated/evaluation-test-resources"))
+}

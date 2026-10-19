@@ -4,13 +4,14 @@ import dev.hanginthere.core.*
 import kotlinx.serialization.json.*
 import org.junit.Assert.*
 import org.junit.Test
-import java.io.File
 
 /** Real source observations, not new SDK inference or physical qualification. */
 class LegacyDipSearchContextTests {
     private val json = WorkoutRecordCodec.json
-    private val cases get() = json.parseToJsonElement(File("../Evaluation/fixtures/legacy-dip-search-context.json")
-        .readText()).jsonObject.getValue("cases").jsonArray.map { it.jsonObject }
+    private val cases get() = checkNotNull(javaClass.getResourceAsStream("/legacy-dip-search-context.json")) {
+        "Missing packaged evaluation fixture: legacy-dip-search-context.json"
+    }.bufferedReader().use { json.parseToJsonElement(it.readText()) }
+        .jsonObject.getValue("cases").jsonArray.map { it.jsonObject }
     private inline fun <reified T> JsonObject.value(key: String): T = json.decodeFromJsonElement(getValue(key))
     private fun close(a: BarRegion, b: BarRegion) {
         for ((x, y) in listOf(a.minX to b.minX, a.minY to b.minY, a.maxX to b.maxX, a.maxY to b.maxY))

@@ -27,6 +27,7 @@ android {
     }
     sourceSets["main"].assets.srcDir("../../models/grip")
     sourceSets["androidTest"].java.srcDirs("../../Evaluation/android", "../../Evaluation/androidTests")
+    sourceSets["androidTest"].resources.srcDir(rootProject.tasks.named("prepareEvaluationTestResources"))
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging {
@@ -38,6 +39,11 @@ android {
     }
     testOptions { animationsDisabled = true; unitTests.isReturnDefaultValues = true }
     externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" } }
+}
+// AGP's Java-resource source set drops the producer dependency. Attach it to
+// each instrumentation variant's resource processor explicitly.
+tasks.matching { it.name.startsWith("process") && it.name.endsWith("AndroidTestJavaRes") }.configureEach {
+    dependsOn(rootProject.tasks.named("prepareEvaluationTestResources"))
 }
 kotlin { jvmToolchain(17) }
 val poseRuntimeVerification by configurations.creating {
