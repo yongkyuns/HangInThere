@@ -30,6 +30,7 @@ struct StaticSceneStability: Sendable {
     static let scaleThresholdFraction = 0.012
     static let movementDwellSeconds = 0.25
     static let minimumConsensusPatches = 2
+    static let maximumRegistrationPatches = 4
     static let maximumObservationGapSeconds = 0.8
     static let maximumFutureSkewSeconds = 0.05
 
@@ -107,7 +108,7 @@ struct StaticSceneStability: Sendable {
         lastTimestamp = timestamp
 
         let translation = translationConsensus(
-            translations.filter(\.isFinite),
+            translations,
             imageShortSide: imageShortSide
         )
         latestConsensusPatches = translation.count
@@ -210,25 +211,32 @@ struct StaticSceneStability: Sendable {
         _ translations: [PatchTranslation],
         imageShortSide: Double
     ) -> (fraction: Double?, count: Int) {
-        guard translations.count >= Self.minimumConsensusPatches else {
-            return (nil, translations.count)
-        }
-
-        let medianX = median(translations.map(\.dxPixels))
-        let medianY = median(translations.map(\.dyPixels))
+        // Match the shared policy for live capture and the Swift setup oracle. Native
+        // registration has four corners, so all subsets are bounded. A global
+        // median can lose two agreeing corners between two unrelated outliers.
+        guard translations.count <= Self.maximumRegistrationPatches else { return (nil, 0) }
+        let finite = translations.filter(\.isFinite)
+        guard finite.count >= Self.minimumConsensusPatches else { return (nil, finite.count) }
         let tolerance = Self.consensusToleranceFraction * imageShortSide
-        let inliers = translations.filter {
-            hypot($0.dxPixels - medianX, $0.dyPixels - medianY) <= tolerance
+        var bestSize = 0
+        var best: (x: Double, y: Double)?
+        var ambiguous = false
+        for mask in 1..<(1 << finite.count) {
+            let count = mask.nonzeroBitCount
+            guard count >= Self.minimumConsensusPatches, count >= bestSize else { continue }
+            let subset = finite.enumerated().compactMap { index, patch in
+                mask & (1 << index) != 0 ? patch : nil
+            }
+            let x = median(subset.map(\.dxPixels)), y = median(subset.map(\.dyPixels))
+            guard subset.allSatisfy({ hypot($0.dxPixels - x, $0.dyPixels - y) <= tolerance }) else { continue }
+            if count > bestSize {
+                bestSize = count; best = (x, y); ambiguous = false
+            } else { ambiguous = true }
         }
-        guard inliers.count >= Self.minimumConsensusPatches else {
-            return (nil, inliers.count)
-        }
-
-        let consensusX = median(inliers.map(\.dxPixels))
-        let consensusY = median(inliers.map(\.dyPixels))
-        let fraction = hypot(consensusX, consensusY) / imageShortSide
-        guard fraction.isFinite else { return (nil, inliers.count) }
-        return (fraction, inliers.count)
+        guard !ambiguous, let best else { return (nil, 0) }
+        let fraction = hypot(best.x, best.y) / imageShortSide
+        guard fraction.isFinite else { return (nil, bestSize) }
+        return (fraction, bestSize)
     }
 
     private func sanitizedScale(_ value: Double?) -> Double? {
@@ -240,7 +248,7 @@ struct StaticSceneStability: Sendable {
         let sorted = values.sorted()
         let middle = sorted.count / 2
         if sorted.count.isMultiple(of: 2) {
-            return (sorted[middle - 1] + sorted[middle]) / 2
+            return sorted[middle - 1] / 2 + sorted[middle] / 2
         }
         return sorted[middle]
     }

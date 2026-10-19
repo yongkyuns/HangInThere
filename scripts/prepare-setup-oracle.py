@@ -70,6 +70,15 @@ def prepare(output):
         add(ex+'-phone-rotated',ex,moved,True,False)
         outlier=[dict(dxPixels=0,dyPixels=0),dict(dxPixels=.1,dyPixels=.1),dict(dxPixels=-.1,dyPixels=-.1),dict(dxPixels=900,dyPixels=900)]
         add(ex+'-scene-outlier',ex,frames(translations=outlier),True,True)
+        # Independent corner failures must not place the global median between
+        # two agreeing background patches. Competing pairs remain unavailable.
+        for name, points, started in [
+            ('independent-corner-outliers', [(-54,57),(-60,0),(1,0),(0,0)], True),
+            ('competing-corner-pairs', [(-56,0),(-53,0),(1,0),(0,0)], False),
+            ('unique-moving-corner-pair', [(24,0),(25,1),(-60,50),(0,0)], False),
+        ]:
+            patches=[dict(dxPixels=x,dyPixels=y) for x,y in points]
+            add(ex+'-scene-'+name,ex,frames(translations=patches),True,started)
     add('dip-crossed-legs-optional','dip',[step(i/10,'dip',crossed_legs=True) for i in range(56)],True,True)
     add('dip-right-reference','dip',[step(i/10,'dip') for i in range(56)],True,True,side='right')
     # Exactly one measured arm has its own one-region contour request. The

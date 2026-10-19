@@ -26,6 +26,16 @@ simulator framework. The shipping Apple adapter is also exercised by `scripts/te
 Framework compilation alone is not performance qualification. See [architecture and qualification](../docs/ANDROID.md)
 for the native-adapter contracts and remaining platform differences.
 
+`StaticSceneStability` uses a unique largest agreeing subset of the four native
+corner translations. Two unrelated registration failures cannot pull a global
+median away from two agreeing corners. Equal competing hypotheses are unavailable;
+the rule never prefers stationary corners over a larger moving consensus. The
+two-patch minimum, consensus radius, motion/scale thresholds, source freshness and
+movement dwell remain independent requirements. Translation agreement alone does
+not rule out camera rotation, parallax or foreground motion. The live Swift monitor
+mirrors this policy, with common tests, Apple bridge checks and setup parity cases
+guarding both implementations.
+
 `ObservedCurveGeometry` supplies bounded finite-curve distance and correspondence
 for curved feature observations. It compares local directions over the common
 observed subarc so clipping an endpoint cannot create a different tangent window.

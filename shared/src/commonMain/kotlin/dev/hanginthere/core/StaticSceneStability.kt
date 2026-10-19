@@ -3,7 +3,7 @@ package dev.hanginthere.core
 import kotlinx.serialization.Serializable
 import kotlin.math.*
 
-/** Median corner translation consensus plus independent full-image scale evidence. */
+/** Unique corner translation consensus plus independent full-image scale evidence. */
 class StaticSceneStability {
     @Serializable data class PatchTranslation(val dxPixels:Double,val dyPixels:Double){val isFinite get()=dxPixels.isFinite() && dyPixels.isFinite()}
     @Serializable enum class State { uncalibrated,calibrating,stable,moved;val allowsLiveSet get()=this==stable }
@@ -35,7 +35,7 @@ class StaticSceneStability {
         }
         if(lastTimestamp?.let { timestamp-it>maximumObservationGapSeconds }==true) invalidateObservation()
         lastTimestamp=timestamp
-        val translation=translationConsensus(translations.filter{it.isFinite},short)
+        val translation=translationConsensus(translations,short)
         latestConsensusPatches=translation.second
         latestShiftFraction=translation.first
         translation.first?.let{maximumShiftFraction=max(maximumShiftFraction,it)}
@@ -55,15 +55,32 @@ class StaticSceneStability {
         translationOverThresholdSince=null;scaleOverThresholdSince=null
     }
     private fun translationConsensus(translations:List<PatchTranslation>,short:Double):Pair<Double?,Int> {
-        if(translations.size<minimumConsensusPatches) return null to translations.size
-        val mx=median(translations.map{it.dxPixels});val my=median(translations.map{it.dyPixels});val tolerance=consensusToleranceFraction*short
-        val inliers=translations.filter{hypot(it.dxPixels-mx,it.dyPixels-my)<=tolerance}
-        if(inliers.size<minimumConsensusPatches) return null to inliers.size
-        val fraction=hypot(median(inliers.map{it.dxPixels}),median(inliers.map{it.dyPixels}))/short
-        return fraction.takeIf{it.isFinite()} to inliers.size
+        // There are at most four native corner patches. A global median can
+        // lie between two agreeing patches and two unrelated outliers, losing
+        // real consensus. Examine every bounded subset instead. Equal-size
+        // competing hypotheses are unavailable; never prefer a near-zero shift.
+        if(translations.size>maximumRegistrationPatches) return null to 0
+        val finite=translations.filter{it.isFinite}
+        if(finite.size<minimumConsensusPatches) return null to finite.size
+        val tolerance=consensusToleranceFraction*short
+        var bestSize=0;var best:Pair<Double,Double>?=null;var ambiguous=false
+        for(mask in 1 until (1 shl finite.size)) {
+            val count=mask.countOneBits()
+            if(count<minimumConsensusPatches || count<bestSize) continue
+            val subset=finite.filterIndexed { index,_ -> mask and (1 shl index)!=0 }
+            val x=median(subset.map{it.dxPixels});val y=median(subset.map{it.dyPixels})
+            if(subset.any{hypot(it.dxPixels-x,it.dyPixels-y)>tolerance}) continue
+            if(count>bestSize){bestSize=count;best=x to y;ambiguous=false}
+            else ambiguous=true
+        }
+        if(ambiguous) return null to 0
+        val shift=best ?: return null to 0
+        val fraction=hypot(shift.first,shift.second)/short
+        return fraction.takeIf{it.isFinite()} to bestSize
     }
-    private fun median(values:List<Double>):Double {val sorted=values.sorted();val middle=sorted.size/2;return if(sorted.size%2==0)(sorted[middle-1]+sorted[middle])/2 else sorted[middle]}
+    private fun median(values:List<Double>):Double {val sorted=values.sorted();val middle=sorted.size/2;return if(sorted.size%2==0)sorted[middle-1]/2+sorted[middle]/2 else sorted[middle]}
     companion object {const val movementThresholdFraction=.008;const val consensusToleranceFraction=.006;const val scaleThresholdFraction=.012;const val movementDwellSeconds=.25;const val minimumConsensusPatches=2
+        const val maximumRegistrationPatches=4
         // The established 0.8-second scene age permits the native 0.33-second
         // registration cadence. Body-frame continuity has its own tighter bound.
         const val maximumObservationGapSeconds=.8

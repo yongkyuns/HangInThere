@@ -11,7 +11,7 @@ swiftc -swift-version 6 -parse-as-library -O -whole-module-optimization -F "$FRA
   ios/HangInThere/App/WorkoutProgression.swift ios/HangInThere/App/WorkoutGripReview.swift \
   Evaluation/WorkoutAnalysisBridgeCheck.swift Evaluation/WorkoutReliabilityBridgeCheck.swift \
   Evaluation/EstimatedBodyGeometryBridgeCheck.swift Evaluation/ObservedCurveBridgeCheck.swift \
-  Evaluation/BilateralGripDisplacementBridgeCheck.swift \
+  Evaluation/BilateralGripDisplacementBridgeCheck.swift Evaluation/SceneConsensusBridgeCheck.swift \
   -o build/workout-analysis/apple-bridge-check
 build/workout-analysis/apple-bridge-check "$@"
 
