@@ -13,6 +13,16 @@ import WorkoutCore
         NSApplication.shared.setActivationPolicy(.prohibited)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
         if CommandLine.arguments.contains("--dip-progress-only") {
+            let unavailableCue = "handtrackingunavailable"
+            // Hosted Vision OCR read the correctly rendered word as
+            // "unavallable". Accept this visual i/l ambiguity while preserving
+            // the full cue, especially the meaningful "un" prefix.
+            verify(containsDipCue(["handtrackingunavallableshowbothgripsclearly"], unavailableCue),
+                   "Hosted OCR i/l regression", filename: "dip-cue-matcher")
+            for wrong in ["handtrackingavailable", "handtracking", "lookingfordiprails", ""] {
+                verify(!containsDipCue([wrong], unavailableCue),
+                       "Incorrect or incomplete dip guidance passed", filename: "dip-cue-matcher")
+            }
             for (name, phase, availability, fraction, cue, guidance) in [
                 ("ready", "ready", "ready", 0.0, "readylower", nil as String?),
                 ("lowering", "outbound", "available", 0.3, "keeplowering", nil),
@@ -33,7 +43,7 @@ import WorkoutCore
                     let content = BilateralDipProgressView(snapshot: snapshot)
                         .frame(width: width, height: 180).background(Color(white: 0.18))
                     let text = try render(content, width: width, height: 180, filename: filename)
-                    verify(text.contains { $0.contains(cue) }, "Bilateral dip progress cue is missing", filename: filename)
+                    verify(containsDipCue(text, cue), "Bilateral dip progress cue is missing", filename: filename)
                     if name == "edge-advice" {
                         verify(text.contains { $0 == "30" }, "Framing advice hid valid motion progress", filename: filename)
                     }
@@ -296,6 +306,12 @@ import WorkoutCore
     @MainActor private static func journeySummary(_ record: WorkoutSetRecord) throws -> JourneySetSummary {
         let input = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
         return try JSONDecoder().decode(JourneySetSummary.self, from: Data(WorkoutJourneyBridge().setJson(recordJson: input).utf8))
+    }
+
+    private static func containsDipCue(_ normalizedText: [String], _ cue: String) -> Bool {
+        // This assertion-only fold leaves the raw OCR diagnostics intact.
+        func fold(_ text: String) -> String { text.replacingOccurrences(of: "l", with: "i") }
+        return normalizedText.contains { fold($0).contains(fold(cue)) }
     }
 
     /// Optimized preconditions trap without a useful CI message. Print the
