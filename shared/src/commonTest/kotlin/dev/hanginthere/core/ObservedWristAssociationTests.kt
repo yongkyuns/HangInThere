@@ -48,7 +48,8 @@ class ObservedWristAssociationTests {
         val changed = pose.copy(people = listOf(person), gripObservation = pose.gripObservation!!.copy(trackedBody = emptyList()))
         val result = assertNotNull(associate(changed))
         assertEquals(ArmMeasurement.Side.left, result.matches.single().bodyWrists.single().side)
-        assertEquals(listOf(ObservedWristAssociation.UnresolvedHand(1, emptyList())), result.unresolvedHands)
+        assertEquals(listOf(ObservedWristAssociation.UnresolvedHand(1, emptyList(), Point2D(500.0, 600.0))), result.unresolvedHands)
+        assertEquals(result.matches, result.uniqueArmMatches())
         assertEquals(Point2D(500.0, 1000.0), changed.people[0].landmark(PoseJoint.rightWrist)!!.position)
     }
 
@@ -80,6 +81,80 @@ class ObservedWristAssociationTests {
         assertEquals(2, result.matches.size)
         assertEquals(listOf(ObservedWristAssociation.Competition(0, ArmMeasurement.Side.left, listOf(0, 1))), result.competingBodyWrists)
         assertTrue(result.unresolvedHands.isEmpty())
+        assertTrue(result.uniqueArmMatches().isEmpty())
+    }
+
+    @Test fun aMeasuredDistantHandCannotEraseTheIndependentArmInEitherHandOrder() {
+        val pose = frame()
+        val hands = pose.gripObservation!!
+        val distant = hands.hands[1].copy(points = listOf(GripHandPoint(GripHandJoint.wrist, Point2D(600.0, 1000.0), score = .9)))
+        for (ordered in listOf(listOf(hands.hands[0], distant), listOf(distant, hands.hands[0]))) {
+            val result = assertNotNull(associate(pose.copy(gripObservation = hands.copy(hands = ordered))))
+            val selected = result.uniqueArmMatches().single()
+            assertEquals(ArmMeasurement.Side.left, selected.bodyWrists.single().side)
+            assertEquals(hands.hands[0].points.single().position, selected.observedWrist)
+            assertEquals(Point2D(600.0, 1000.0), result.unresolvedHands.single().observedWrist)
+            assertTrue(result.unresolvedHands.single().candidatePersonIndices.isEmpty())
+        }
+    }
+
+    @Test fun anUnavailableHandWristCannotBeClassifiedAsUnrelated() {
+        val pose = frame(fingers = true)
+        val hands = pose.gripObservation!!
+        val wrist = hands.hands[1].points.single { it.joint == GripHandJoint.wrist }
+        val faults = listOf(emptyList(), hands.hands[1].points.filter { it.joint != GripHandJoint.wrist },
+            listOf(wrist.copy(score = null)), listOf(wrist.copy(score = .299)),
+            listOf(wrist.copy(position = Point2D(-1.0, 600.0))))
+        for (points in faults) {
+            val current = pose.copy(gripObservation = hands.copy(hands = listOf(hands.hands[0], hands.hands[1].copy(points = points))))
+            val result = assertNotNull(associate(current))
+            assertEquals(1, result.matches.size, "The independently matched arm remains in the raw graph")
+            assertNull(result.unresolvedHands.single().observedWrist)
+            assertTrue(result.uniqueArmMatches().isEmpty(), "An unavailable wrist cannot be ruled out as a competitor")
+        }
+    }
+
+    @Test fun aHandCompetingAcrossPeopleBlocksOnlyThoseCandidatePeople() {
+        val pose = frame()
+        val hands = pose.gripObservation!!
+        val left = pose.people[0].landmark(PoseJoint.leftWrist)!!
+        val right = pose.people[0].landmark(PoseJoint.rightWrist)!!
+        val competitor = PoseObservation(listOf(right))
+        val result = assertNotNull(associate(pose.copy(people = pose.people + competitor,
+            gripObservation = hands.copy(trackedBody = emptyList()))))
+        assertEquals(listOf(0, 1), result.unresolvedHands.single().candidatePersonIndices)
+        assertEquals(right.position, result.unresolvedHands.single().observedWrist)
+        assertEquals(left.position, result.matches.single().bodyWrists.single().position)
+        assertTrue(result.uniqueArmMatches().isEmpty())
+
+        // The unresolved hand competes between people 1/2; person 0's unique
+        // left wrist remains available, without assigning that hand to anyone.
+        val separate = pose.copy(people = listOf(PoseObservation(listOf(left)), competitor, competitor),
+            gripObservation = hands.copy(trackedBody = emptyList()))
+        val otherPeople = assertNotNull(associate(separate))
+        assertEquals(listOf(1, 2), otherPeople.unresolvedHands.single().candidatePersonIndices)
+        assertEquals(otherPeople.matches, otherPeople.uniqueArmMatches())
+    }
+
+    @Test fun overlappingSidesRemainAmbiguousToUniqueArmSelection() {
+        val pose = frame()
+        val hands = pose.gripObservation!!
+        val person = pose.people[0].copy(landmarks = pose.people[0].landmarks.map {
+            if (it.joint == PoseJoint.rightWrist) it.copy(position = Point2D(200.0, 600.0)) else it
+        })
+        val result = assertNotNull(associate(pose.copy(people = listOf(person),
+            gripObservation = hands.copy(hands = hands.hands.take(1), trackedBody = emptyList()))))
+        assertEquals(2, result.matches.single().bodyWrists.size)
+        assertTrue(result.uniqueArmMatches().isEmpty())
+    }
+
+    @Test fun anOldUnresolvedTransportDoesNotAcquireMeasuredWristEvidence() {
+        val legacy = """{"handIndex":1,"candidatePersonIndices":[]}"""
+        val unresolved = WorkoutRecordCodec.json.decodeFromString<ObservedWristAssociation.UnresolvedHand>(legacy)
+        assertNull(unresolved.observedWrist)
+        val result = assertNotNull(associate(frame()))
+        assertTrue(result.copy(unresolvedHands = listOf(unresolved)).uniqueArmMatches().isEmpty())
+        assertTrue(result.copy(policyVersion = 1).uniqueArmMatches().isEmpty())
     }
 
     @Test fun sourceBindingIsCheckedEvenWhenAllHandsAreUnresolved() {
@@ -164,6 +239,10 @@ class ObservedWristAssociationTests {
         val bridge = ObservedWristAssociationBridge()
         val result = assertNotNull(bridge.associateJson(WorkoutRecordCodec.json.encodeToString(frame)))
         assertEquals(associate(pose, scored = false), WorkoutRecordCodec.json.decodeFromString<ObservedWristAssociation.Result>(result))
+        val selected = assertNotNull(bridge.uniqueArmMatchesJson(WorkoutRecordCodec.json.encodeToString(frame)))
+        assertEquals(assertNotNull(associate(pose, scored = false)).uniqueArmMatches(),
+            WorkoutRecordCodec.json.decodeFromString<List<ObservedWristAssociation.Match>>(selected))
         assertNull(bridge.associateJson(WorkoutRecordCodec.json.encodeToString(frame.copy(pose = pose.copy(gripObservation = null)))))
+        assertNull(bridge.uniqueArmMatchesJson(WorkoutRecordCodec.json.encodeToString(frame.copy(pose = pose.copy(gripObservation = null)))))
     }
 }

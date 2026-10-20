@@ -12,7 +12,7 @@ import kotlin.math.min
  * primary pose and source epoch; a cached hand result cannot be retimestamped.
  */
 object ObservedWristAssociation {
-    const val policyVersion = 1
+    const val policyVersion = 2
 
     @Serializable data class Frame(val pose: PoseResult, val handSourceTime: PresentationTime,
         /** False only for providers that return positions without joint scores.
@@ -24,13 +24,35 @@ object ObservedWristAssociation {
      * a body side; these are candidate edges, not independent limb assignments. */
     @Serializable data class Match(val originalPersonIndex: Int, val handIndex: Int,
         val observedWrist: Point2D, val jointConfidence: Double?, val bodyWrists: List<BodyWrist>)
-    @Serializable data class UnresolvedHand(val handIndex: Int, val candidatePersonIndices: List<Int>)
+    /** A measured wrist with no nearby body candidate is different from an
+     * unavailable wrist, which could compete with any otherwise matched arm.
+     * Older transports omit this point and remain explicitly unavailable. */
+    @Serializable data class UnresolvedHand(val handIndex: Int, val candidatePersonIndices: List<Int>,
+        val observedWrist: Point2D? = null)
     @Serializable data class Competition(val originalPersonIndex: Int, val side: ArmMeasurement.Side,
         val handIndices: List<Int>)
     @Serializable data class Result(val timestamp: PresentationTime, val imageSize: ImageSize,
         val bodyBackend: String, val bodyRevision: Int, val handModel: String, val handBackend: String,
         val matches: List<Match>, val unresolvedHands: List<UnresolvedHand>, val competingBodyWrists: List<Competition>,
-        val policyVersion: Int = ObservedWristAssociation.policyVersion)
+        val policyVersion: Int = ObservedWristAssociation.policyVersion) {
+        /** Unique body-side candidate edges, preserving every competitor.
+         * An unresolved hand with an unavailable wrist blocks selection. A
+         * measured hand belonging to another/unknown person need not erase an
+         * independent edge, provided this person is not one of its candidates.
+         * This selects current image correspondence, never temporal identity,
+         * support/contact, camera readiness, exercise or permission to count. */
+        fun uniqueArmMatches(): List<Match> {
+            if (policyVersion != ObservedWristAssociation.policyVersion ||
+                unresolvedHands.any { it.observedWrist == null }) return emptyList()
+            return matches.filter { match ->
+                val wrist = match.bodyWrists.singleOrNull() ?: return@filter false
+                unresolvedHands.none { match.originalPersonIndex in it.candidatePersonIndices } &&
+                    competingBodyWrists.none { it.originalPersonIndex == match.originalPersonIndex && it.side == wrist.side } &&
+                    matches.count { other -> other.originalPersonIndex == match.originalPersonIndex &&
+                        other.bodyWrists.any { it.side == wrist.side } } == 1
+            }
+        }
+    }
 
     fun associate(frame: Frame): Result? {
         val pose = frame.pose
@@ -56,7 +78,7 @@ object ObservedWristAssociation {
             }
             val candidate = candidates.singleOrNull()
             if (candidate == null) {
-                unresolved += UnresolvedHand(handIndex, candidates.map { it.first }); continue
+                unresolved += UnresolvedHand(handIndex, candidates.map { it.first }, point.position); continue
             }
             val original = pose.people[candidate.first]
             // Origin binding does not remove a geometrically competing person.
@@ -78,6 +100,15 @@ object ObservedWristAssociation {
 
 class ObservedWristAssociationBridge {
     @Throws(IllegalArgumentException::class)
-    fun associateJson(input: String): String? = ObservedWristAssociation.associate(
-        WorkoutRecordCodec.json.decodeFromString<ObservedWristAssociation.Frame>(input))?.let { WorkoutRecordCodec.json.encodeToString(it) }
+    fun associateJson(input: String): String? = observation(input)?.let { WorkoutRecordCodec.json.encodeToString(it) }
+
+    /** Same source validation and selection as typed Android callers. The
+     * source owner retains the exact input pose/pixels/epoch with this result. */
+    @Throws(IllegalArgumentException::class)
+    fun uniqueArmMatchesJson(input: String): String? = observation(input)?.let {
+        WorkoutRecordCodec.json.encodeToString(it.uniqueArmMatches())
+    }
+
+    private fun observation(input: String) = ObservedWristAssociation.associate(
+        WorkoutRecordCodec.json.decodeFromString<ObservedWristAssociation.Frame>(input))
 }

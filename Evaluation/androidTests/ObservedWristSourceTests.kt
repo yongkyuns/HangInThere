@@ -26,6 +26,10 @@ class ObservedWristSourceTests {
             assertEquals(expected, original.matches.map { it.bodyWrists.single().side.name })
             assertTrue(original.matches.all { it.originalPersonIndex == 0 })
             assertTrue(original.unresolvedHands.isEmpty())
+            assertEquals(original.matches, original.uniqueArmMatches())
+            val frame = ObservedWristAssociation.Frame(pose, pose.timestamp)
+            val selectedJson = ObservedWristAssociationBridge().uniqueArmMatchesJson(json.encodeToString(frame))!!
+            assertEquals(original.uniqueArmMatches(), json.decodeFromString<List<ObservedWristAssociation.Match>>(selectedJson))
             val partial = pose.copy(people = pose.people.map { person ->
                 person.copy(landmarks = person.landmarks.filter { it.joint !in listOf(PoseJoint.leftElbow, PoseJoint.rightElbow) })
             }, gripObservation = handObservation.copy(hands = handObservation.hands.map { hand ->
@@ -33,6 +37,7 @@ class ObservedWristSourceTests {
             }))
             val actual = ObservedWristAssociation.associate(ObservedWristAssociation.Frame(partial, partial.timestamp))!!
             assertEquals(original, actual)
+            assertEquals(original.uniqueArmMatches(), actual.uniqueArmMatches())
             assertEquals(before, json.encodeToString(pose))
         }
     }
