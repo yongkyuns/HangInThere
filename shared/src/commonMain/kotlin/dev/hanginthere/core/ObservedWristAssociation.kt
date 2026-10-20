@@ -34,25 +34,10 @@ object ObservedWristAssociation {
 
     fun associate(frame: Frame): Result? {
         val pose = frame.pose
-        val hand = pose.gripObservation ?: return null
+        val validated = ObservedHandValidation.validate(pose, frame.handSourceTime) ?: return null
+        val hand = validated.hand
         val size = pose.imageSize
         fun inside(p: Point2D) = p.isFinite && p.x in 0.0..size.width && p.y in 0.0..size.height
-        if (frame.handSourceTime != pose.timestamp || !size.isValid || !pose.timestamp.seconds.isFinite() ||
-            pose.backend.isBlank() || pose.people.size !in 1..32 || hand.schemaVersion != 1 ||
-            hand.failure != null || hand.coordinateConvention != "cameraRightDownAway_v1" ||
-            hand.seconds != pose.timestamp.seconds || hand.imageSize != size || hand.modelId.isBlank() ||
-            hand.backend.isBlank() || hand.hands.size > 2 || hand.trackedBody.size > 6 ||
-            hand.trackedBody.map { it.joint }.distinct().size != hand.trackedBody.size ||
-            hand.trackedBody.any { !it.position.isFinite || !it.score.isFinite() || it.score !in 0.0..1.0 } ||
-            pose.people.any { it.landmarks.size > 64 || it.landmarks.map { p -> p.joint }.distinct().size != it.landmarks.size })
-            return null
-        fun boundTo(person: PoseObservation) = hand.trackedBody.all { tracked ->
-            val point = person.landmarks.singleOrNull { it.joint.name == tracked.joint.name }
-            point != null && point.position == tracked.position && point.confidence == tracked.score
-        }
-        // Raw context may contain a cropped-out hip. It is checked for exact
-        // origin binding, never used as positive wrist or shoulder evidence.
-        if (!pose.people.any(::boundTo)) return null
         fun wrist(person: PoseObservation, side: ArmMeasurement.Side): BodyWrist? {
             val point = person.landmarks.singleOrNull { it.joint == side.joints[2] } ?: return null
             return point.takeIf { inside(it.position) && it.confidence.isFinite() &&
@@ -61,7 +46,7 @@ object ObservedWristAssociation {
         val matches = mutableListOf<Match>()
         val unresolved = mutableListOf<UnresolvedHand>()
         for ((handIndex, value) in hand.hands.withIndex()) {
-            val point = observedWrist(value, size, frame.requiresJointConfidence)
+            val point = ObservedHandValidation.wrist(value, size, frame.requiresJointConfidence)
             if (point == null) { unresolved += UnresolvedHand(handIndex, emptyList()); continue }
             val candidates = pose.people.mapIndexedNotNull { index, person ->
                 val wrists = ArmMeasurement.Side.entries.mapNotNull { wrist(person, it) }.filter {
@@ -76,7 +61,7 @@ object ObservedWristAssociation {
             val original = pose.people[candidate.first]
             // Origin binding does not remove a geometrically competing person.
             // Every supplied tracked value must belong to the original sample.
-            if (!boundTo(original)) return null
+            if (!validated.boundTo(original)) return null
             matches += Match(candidate.first, handIndex, point.position, point.score, candidate.second)
         }
         val competitions = matches.flatMap { match -> match.bodyWrists.map {
@@ -88,18 +73,7 @@ object ObservedWristAssociation {
             matches, unresolved, competitions)
     }
 
-    private fun observedWrist(hand: GripHandObservation, size: ImageSize, requiresScore: Boolean): GripHandPoint? {
-        if (hand.points.size !in 1..6 || hand.points.map { it.joint }.distinct().size != hand.points.size) return null
-        val point = hand.points.singleOrNull { it.joint == GripHandJoint.wrist } ?: return null
-        val score = point.score
-        if (requiresScore && score == null || score != null && (!score.isFinite() || score !in ArmMeasurement.confidenceThreshold..1.0) ||
-            !point.position.isFinite || point.position.x !in 0.0..size.width || point.position.y !in 0.0..size.height) return null
-        hand.sourceRegion?.let { region ->
-            if (!region.isValidFor(size) || point.position.x !in region.left.toDouble()..(region.left.toDouble() + region.width) ||
-                point.position.y !in region.top.toDouble()..(region.top.toDouble() + region.height)) return null
-        }
-        return point
-    }
+
 }
 
 class ObservedWristAssociationBridge {

@@ -56,6 +56,24 @@ through both JVM and Kotlin/Native, including full library-validated records.
 Pull-up behavior retains policy v7. Dip behavior uses the support-relative policy
 below; saved summaries record `selectedGripWithAvailableArms` for dips.
 
+`ObservedHandContinuity` v1 supplies shared diagnostic hand-point freshness for
+temporal analysis. Explicit source epochs, lifecycle generations, frame ordinals
+and exact request timestamps bind each observation. Its complete candidate graph
+retains ambiguity; unusable competitors supply no current point. Tracks expire
+after the existing 0.75-second outage and preserve immutable seed and last-observed
+samples separately from nullable current samples. Native owners capture provenance
+with the original request and retain its pixels; the bridge cannot verify images.
+Body/limb correspondence, apparatus and counting consume their own evidence.
+Live and recorded counters do not consume this diagnostic tracker yet.
+
+The compressed `observed-hand-continuity-source.json.gz` regression retains all
+128 original native body/hand observations from four fixed public-video windows.
+Its per-frame expectations come from the reviewed independent point-tracking
+reference. JVM and Android instrumentation load the same small fixture; Apple
+ABI checks cover source-fixture transport, expiry and lifecycle generations.
+These cached-observation checks establish neither fresh SDK accuracy nor workout
+counts, and the original public-video accuracy gate remains required.
+
 Pull-ups use both independently measurable shoulder/elbow/wrist chains from one
 athlete. If one chain is obscured or below the existing confidence/geometry gates,
 the other can continue using its own previously observed extended-hang baseline.
