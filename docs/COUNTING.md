@@ -66,6 +66,15 @@ with the original request and retain its pixels; the bridge cannot verify images
 Body/limb correspondence, apparatus and counting consume their own evidence.
 Live and recorded counters do not consume this diagnostic tracker yet.
 
+Recorded dip snapshots carry optional shared observation guidance. It reuses
+the existing framing policy for absent/competing body observations and missing
+arm chains, then distinguishes unavailable independent hands, unacquired rails
+and unavailable camera stability. A rail that has not been acquired cannot
+calibrate the camera. The iOS replay overlay presents this guidance, including when
+missing elbows prevent a measured top. Cached older snapshots retain their
+generic cue. This feedback neither changes counting nor qualifies detection;
+the original public-video accuracy gate remains failed.
+
 The compressed `observed-hand-continuity-source.json.gz` regression retains all
 128 original native body/hand observations from four fixed public-video windows.
 Its per-frame expectations come from the reviewed independent point-tracking

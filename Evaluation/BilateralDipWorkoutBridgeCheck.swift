@@ -35,6 +35,24 @@ enum BilateralDipWorkoutBridgeCheck {
         precondition(interrupted.completedCount == 0)
         let interruptedReport = try interrupted.afterSetReport()
         precondition(interruptedReport.practiceAttempts == 0)
+        func feedback(_ pose: [String: Any], support: [String: Any]? = nil) throws -> DipWorkoutSnapshot {
+            let engine = BilateralDipWorkoutBridge(setId: "native-feedback-check", trackedAtEpochMilliseconds: 0)
+            let input: [String: Any] = ["pose": pose, "support": support as Any? ?? NSNull(), "camera": "unavailable"]
+            let json = try engine.observeJson(input: String(decoding: JSONSerialization.data(withJSONObject: input), as: UTF8.self))
+            return try JSONDecoder().decode(DipWorkoutSnapshot.self, from: Data(json.utf8))
+        }
+        var noHands = BilateralGripDisplacementBridgeCheck.frame(ticks: 1000)
+        noHands.removeValue(forKey: "gripObservation")
+        let handFeedback = try feedback(noHands)
+        precondition(handFeedback.observationGuidance == "Hand tracking unavailable · show both grips clearly")
+        let railFeedback = try feedback(BilateralGripDisplacementBridgeCheck.frame(ticks: 1000))
+        precondition(railFeedback.observationGuidance == "Looking for dip rails · keep grips and rails visible")
+        let cameraFeedback = try feedback(BilateralGripDisplacementBridgeCheck.frame(ticks: 1000), support: support)
+        precondition(cameraFeedback.observationGuidance == "Camera stability unavailable · keep the phone steady")
+        var legacy = try JSONSerialization.jsonObject(with: JSONEncoder().encode(railFeedback)) as! [String: Any]
+        legacy.removeValue(forKey: "observationGuidance")
+        let oldSnapshot = try JSONDecoder().decode(DipWorkoutSnapshot.self, from: JSONSerialization.data(withJSONObject: legacy))
+        precondition(oldSnapshot.observationGuidance == nil && oldSnapshot.motion == railFeedback.motion)
         let goalJSON = try WorkoutProgressBridge().goalForMethodJson(exercise: "dip", metric: "completedReps",
             target: 2, createdAtEpochMilliseconds: 1000, countMethod: complete.countMethod, countPolicyVersion: 1)
         let goal = try JSONDecoder().decode(WorkoutGoalRecord.self, from: Data(goalJSON.utf8))
@@ -44,6 +62,6 @@ enum BilateralDipWorkoutBridgeCheck {
             _ = try bridge.observeJson(input: "{}")
             fatalError("Malformed workout transport was accepted")
         } catch { }
-        return 5
+        return 9
     }
 }

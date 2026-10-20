@@ -18,6 +18,7 @@ struct BilateralDipProgressView: View {
     private var starting: Bool { motion.phase == "seekingTop" }
     private var paused: Bool { !motion.hasCurrentObservation }
     private var cue: String {
+        if let guidance = snapshot.observationGuidance { return guidance }
         if paused { return "Keep both hands and arms visible" }
         if starting { return "Hold your top support" }
         return motion.phase == "returning" ? "Return to your top support" :

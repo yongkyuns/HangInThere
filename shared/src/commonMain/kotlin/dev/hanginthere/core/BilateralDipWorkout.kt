@@ -15,7 +15,8 @@ import kotlin.math.min
  */
 class BilateralDipWorkout(private val setId: String, private val trackedAtEpochMilliseconds: Long? = null) {
     @Serializable data class Snapshot(val motion: BilateralDipMotion.Snapshot, val analysisRevision: Int,
-        val analyzedFrames: Int, val usableFrames: Int, val endReason: String?)
+        val analyzedFrames: Int, val usableFrames: Int, val endReason: String?,
+        val observationGuidance: String? = null)
     private val motion = BilateralDipMotion()
     private val analysis = WorkoutAnalysis(setId, ExerciseCounter.Exercise.dip, BilateralDipMotion.policyVersion, countMethod,
         ExerciseCounter.maximumDipObservationOutageSeconds)
@@ -87,7 +88,27 @@ class BilateralDipWorkout(private val setId: String, private val trackedAtEpochM
             anchor = sample?.let(BilateralGripDisplacement.Anchor::create); peak = null
         } else if (state.phase == BilateralDipMotion.Phase.seekingTop) { anchor = null; peak = null }
         previousPhase = state.phase
-        return Snapshot(state, analysis.revision, analyzed, usable, endReason)
+        return Snapshot(state, analysis.revision, analyzed, usable, endReason,
+            observationGuidance(pose, support, camera, sample, state))
+    }
+
+    /** Presentation evidence only. In particular, an unacquired rail cannot
+     * provide a camera calibration, and a visible body wrist is not a fresh
+     * independent hand observation. Never feed this advice back into motion. */
+    private fun observationGuidance(pose: PoseResult, support: CurvedDipRailAcquisition.Reference?,
+        camera: BilateralDipMotion.Camera, sample: BilateralGripDisplacement.Sample?,
+        state: BilateralDipMotion.Snapshot): String? {
+        when (state.availability) {
+            "sourceRegression" -> return "Video timing interrupted · restart playback"
+            "cameraMoved", "supportReacquisitionRequired" -> return "Camera view changed · find both rail grips again"
+        }
+        WorkoutFramingGuidance.message(pose)?.let { return it }
+        if (sample == null) return "Hand tracking unavailable · show both grips clearly"
+        if (support == null) return "Looking for dip rails · keep grips and rails visible"
+        if (!motion.currentSupportMatches(sample)) return "Support tracking unavailable · show both grips and rails"
+        if (camera != BilateralDipMotion.Camera.ready) return "Camera stability unavailable · keep the phone steady"
+        return if (state.availability in measurableStates) null
+            else "Support tracking unavailable · show both grips and rails"
     }
 
     fun finish(reason: String) {

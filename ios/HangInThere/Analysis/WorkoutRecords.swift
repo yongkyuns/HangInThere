@@ -151,4 +151,6 @@ struct DipWorkoutSnapshot: Codable, Equatable, Sendable {
     let analyzedFrames: Int
     let usableFrames: Int
     let endReason: String?
+    // Optional for cached snapshots from before shared observation guidance.
+    var observationGuidance: String? = nil
 }

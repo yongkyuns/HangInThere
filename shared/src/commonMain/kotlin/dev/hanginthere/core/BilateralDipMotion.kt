@@ -108,16 +108,7 @@ class BilateralDipMotion {
         if (previous != null && compare(time, previous, outage) == 1)
             event = close("observationOutage", time) ?: event
         val sample = BilateralGripDisplacement.Sample.create(pose)
-        val usable = camera == Camera.ready && sample != null && currentSupport != null &&
-            currentSupport.imageSize == sample.imageSize && compare(time, currentSupport.sourceTime, zero)?.let { it >= 0 } == true &&
-            currentSupport.context == CurvedDipRailAcquisition.Context(sample.bodyBackend, sample.bodyRevision, sample.handModel, sample.handBackend) &&
-            listOf(sample.left, sample.right).zip(listOf(currentSupport.left, currentSupport.right)).all { (arm, rail) ->
-                val short = min(sample.imageSize.width, sample.imageSize.height)
-                val distances = listOf(rail.firstBoundary, rail.secondBoundary).map {
-                    ObservedCurveGeometry.distance(it, arm.grip, sample.imageSize) ?: return@all false
-                }
-                distances.min() <= .12 * short
-            }
+        val usable = camera == Camera.ready && sample != null && currentSupportMatches(sample)
         if (!usable) {
             breakDwell()
             return snapshot(if (camera != Camera.ready) "cameraUnavailable" else "observationUnavailable", event = event)
@@ -198,6 +189,21 @@ class BilateralDipMotion {
             else -> 0.0
         }
         return snapshot("available", progress, event)
+    }
+    /** Same current-frame support predicate for motion and presentation. This
+     * validates retained image evidence, without supplying camera readiness. */
+    internal fun currentSupportMatches(sample: BilateralGripDisplacement.Sample): Boolean {
+        val support = reference ?: return false
+        return support.imageSize == sample.imageSize &&
+            compare(sample.timestamp, support.sourceTime, zero)?.let { it >= 0 } == true &&
+            support.context == CurvedDipRailAcquisition.Context(sample.bodyBackend, sample.bodyRevision, sample.handModel, sample.handBackend) &&
+            listOf(sample.left, sample.right).zip(listOf(support.left, support.right)).all { (arm, rail) ->
+                val short = min(sample.imageSize.width, sample.imageSize.height)
+                val distances = listOf(rail.firstBoundary, rail.secondBoundary).map {
+                    ObservedCurveGeometry.distance(it, arm.grip, sample.imageSize) ?: return@all false
+                }
+                distances.min() <= .12 * short
+            }
     }
     private fun arm(sample: BilateralGripDisplacement.Sample) {
         val next = BilateralGripDisplacement.Anchor.create(sample) ?: return

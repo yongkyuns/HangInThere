@@ -13,21 +13,30 @@ import WorkoutCore
         NSApplication.shared.setActivationPolicy(.prohibited)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
         if CommandLine.arguments.contains("--dip-progress-only") {
-            for (name, phase, availability, fraction, cue) in [
-                ("ready", "ready", "ready", 0.0, "readylower"),
-                ("lowering", "outbound", "available", 0.3, "keeplowering"),
-                ("returning", "returning", "available", 0.8, "returntoyourtopsupport"),
-                ("missing-hands", "returning", "observationUnavailable", 0.0, "keepbothhandsandarmsvisible")
+            for (name, phase, availability, fraction, cue, guidance) in [
+                ("ready", "ready", "ready", 0.0, "readylower", nil as String?),
+                ("lowering", "outbound", "available", 0.3, "keeplowering", nil),
+                ("returning", "returning", "available", 0.8, "returntoyourtopsupport", nil),
+                ("missing-hands-legacy", "returning", "observationUnavailable", 0.0, "keepbothhandsandarmsvisible", nil),
+                ("missing-hands", "seekingTop", "cameraUnavailable", 0.0, "handtrackingunavailable", "Hand tracking unavailable · show both grips clearly"),
+                ("missing-rails", "seekingTop", "cameraUnavailable", 0.0, "lookingfordiprails", "Looking for dip rails · keep grips and rails visible"),
+                ("camera-check", "seekingTop", "cameraUnavailable", 0.0, "camerastabilityunavailable", "Camera stability unavailable · keep the phone steady"),
+                ("missing-elbows", "seekingTop", "waitingForMeasuredTop", 0.0, "keepshoulderselbowsandhandsinframe", "Keep shoulders, elbows and hands in frame"),
+                ("edge-advice", "outbound", "available", 0.3, "movephoneback", "Move phone back · leave room around arms and hands")
             ] {
                 let motion = DipWorkoutSnapshot.Motion(phase: phase, imageCycles: 2, partialAttempts: 0,
                     interruptedAttempts: 0, availability: availability, progress: fraction, event: nil, policyVersion: 1)
-                let snapshot = DipWorkoutSnapshot(motion: motion, analysisRevision: 1, analyzedFrames: 10, usableFrames: 10, endReason: nil)
+                let snapshot = DipWorkoutSnapshot(motion: motion, analysisRevision: 1, analyzedFrames: 10, usableFrames: 10,
+                    endReason: nil, observationGuidance: guidance)
                 for width in [320.0, 430.0] {
                     let filename = "bilateral-dip-\(name)-\(Int(width)).png"
                     let content = BilateralDipProgressView(snapshot: snapshot)
                         .frame(width: width, height: 180).background(Color(white: 0.18))
                     let text = try render(content, width: width, height: 180, filename: filename)
                     verify(text.contains { $0.contains(cue) }, "Bilateral dip progress cue is missing", filename: filename)
+                    if name == "edge-advice" {
+                        verify(text.contains { $0 == "30" }, "Framing advice hid valid motion progress", filename: filename)
+                    }
                 }
             }
             return

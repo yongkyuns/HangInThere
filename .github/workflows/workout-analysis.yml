@@ -50,7 +50,9 @@ jobs:
       - name: Shipping Kotlin to Swift bridge and host performance budget
         run: ./scripts/test-workout-bridge.sh
       - name: Render shipping Swift Charts view in narrow/wide and light/dark layouts
-        run: ./scripts/render-workout-review.sh
+        run: |
+          ./scripts/render-workout-review.sh
+          build/workout-analysis/render-review --dip-progress-only
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
