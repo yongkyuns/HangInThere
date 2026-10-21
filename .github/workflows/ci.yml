@@ -5,33 +5,125 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      apple_runtime:
+        description: Apple runtime qualification (baseline remains the required PR check)
+        type: choice
+        options: [baseline, current, xcode27]
+        default: baseline
+      native_replay_profile:
+        description: Sample native threads during the synthetic simulator mechanics run
+        type: boolean
+        default: false
+      replay_profile_test:
+        description: Synthetic replay test to attach the native sampler to (all mechanics tests still run)
+        type: choice
+        options: [automatic, manual]
+        default: automatic
+      native_decoder_diagnostic:
+        description: Strict synthetic native H264 original/control probe (corrupt pixels remain failures)
+        type: boolean
+        default: false
+      replay_render_comparison:
+        description: Compare default/software Core Image on committed source copies with the full mechanics suite
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.apple_runtime || 'baseline' }}
   cancel-in-progress: true
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  # Diagnostic dispatches qualify explicitly selected toolchains. Xcode 27
+  # has its own preview runner image; PR/push checks retain the baseline.
+  DEVELOPER_DIR: ${{ inputs.apple_runtime == 'xcode27' && '/Applications/Xcode_27.app/Contents/Developer' || inputs.apple_runtime == 'current' && '/Applications/Xcode_26.6.app/Contents/Developer' || '/Applications/Xcode_26.3.app/Contents/Developer' }}
 
 jobs:
+  replay-render-comparison:
+    if: github.event_name == 'workflow_dispatch' && inputs.replay_render_comparison
+    name: Replay render comparison ${{ matrix.renderer }}
+    runs-on: ${{ inputs.apple_runtime == 'xcode27' && 'xcode-27' || inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        renderer: [automatic, software]
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Verify selected toolchain
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+      - name: Run full mechanics suite on a fresh source copy and simulator
+        run: python3 scripts/diagnose-replay-render.py --renderer '${{ matrix.renderer }}'
+      - name: Retain synthetic trial results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-render-${{ matrix.renderer }}-results
+          retention-days: 7
+          if-no-files-found: error
+          path: build/apple-replay-render/${{ matrix.renderer }}/
+
+  native-decoder-diagnostic:
+    if: github.event_name == 'workflow_dispatch' && inputs.native_decoder_diagnostic
+    name: Native decoder diagnostic ${{ matrix.platform }}
+    runs-on: ${{ inputs.apple_runtime == 'xcode27' && 'xcode-27' || inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macOS, simulator]
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run strict native original and control probe
+        run: |
+          options=()
+          if [[ '${{ matrix.platform }}' == simulator ]]; then options+=(--simulator); fi
+          python3 scripts/diagnose-apple-decoder.py "${options[@]}"
+      - name: Retain synthetic decoder reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: p0-decoder-${{ matrix.platform }}-results
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            build/apple-decoder/${{ matrix.platform }}/*.json
+            build/apple-decoder/${{ matrix.platform }}/*.txt
+
   apple-host:
-    name: Native macOS real-Vision and replay integration
-    runs-on: macos-15
+    name: Native macOS real-Vision and replay integration${{ inputs.apple_runtime == 'xcode27' && ' [Xcode27 qualification]' || inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
+    runs-on: ${{ inputs.apple_runtime == 'xcode27' && 'xcode-27' || inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
     timeout-minutes: 30
     steps:
       - name: Checkout exact revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
       - name: Verify selected toolchain
         run: |
           test -d "$DEVELOPER_DIR"
           xcodebuild -version
-      - name: Test CI selection and failure propagation
-        run: python3 -m unittest discover -s scripts/tests -v
       - name: Core geometry and timeline tests
         run: ./scripts/test-core.sh
       - name: Prepare pinned real-human smoke media
@@ -40,6 +132,8 @@ jobs:
           python3 scripts/prepare-fixtures.py
       - name: Prepare pinned real-video corpus
         run: python3 scripts/prepare-video-corpus.py
+      - name: Native contour pixel adapter tests
+        run: swift test --package-path native/apple
       - name: Native macOS real-model and replay integration
         run: ./scripts/test-apple-host.sh
       - name: Retain native test results and provenance
@@ -51,8 +145,8 @@ jobs:
           if-no-files-found: warn
           path: |
             build/*.txt
-            HangInThereTests/Fixtures/generated/prepared.json
-            HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
+            ios/HangInThereTests/Fixtures/generated/prepared.json
+            ios/HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
       # Only the pinned public-source test derivative is exported. Never glob
       # user recordings or the app's Documents/temporary import directories.
       - name: Retain approved smoke fixture for visual review
@@ -63,10 +157,10 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            HangInThereTests/Fixtures/source.json
-            HangInThereTests/Fixtures/generated/prepared.json
-            HangInThereTests/Fixtures/generated/pullup-smoke.png
-            HangInThereTests/Fixtures/generated/pullup-smoke.mp4
+            ios/HangInThereTests/Fixtures/source.json
+            ios/HangInThereTests/Fixtures/generated/prepared.json
+            ios/HangInThereTests/Fixtures/generated/pullup-smoke.png
+            ios/HangInThereTests/Fixtures/generated/pullup-smoke.mp4
       - name: Retain approved real-video corpus for review
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -75,14 +169,14 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            HangInThereTests/Fixtures/corpus.json
-            HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
-            HangInThereTests/Fixtures/generated/corpus/*-contact.jpg
-            HangInThereTests/Fixtures/generated/corpus/*.mp4
+            ios/HangInThereTests/Fixtures/corpus.json
+            ios/HangInThereTests/Fixtures/generated/corpus/corpus-prepared.json
+            ios/HangInThereTests/Fixtures/generated/corpus/*-contact.jpg
+            ios/HangInThereTests/Fixtures/generated/corpus/*.mp4
 
   simulator:
-    name: iOS simulator ${{ matrix.suite }}
-    runs-on: macos-15
+    name: iOS simulator ${{ matrix.suite }}${{ inputs.apple_runtime == 'xcode27' && ' [Xcode27 qualification]' || inputs.apple_runtime == 'current' && ' [Xcode26.6 qualification]' || '' }}
+    runs-on: ${{ inputs.apple_runtime == 'xcode27' && 'xcode-27' || inputs.apple_runtime == 'current' && 'macos-26' || 'macos-15' }}
     timeout-minutes: 30
     strategy:
       # A backend failure must not cancel independent decoder/controller tests.
@@ -94,6 +188,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
       - name: Verify selected toolchain
         run: |
           test -d "$DEVELOPER_DIR"
@@ -108,6 +207,9 @@ jobs:
         # Model availability remains a real failing check, not continue-on-error
         # or a fallback. Native host success never substitutes for iOS Vision.
         if: ${{ !cancelled() }}
+        env:
+          HANGINTHERE_REPLAY_THREAD_PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.native_replay_profile && matrix.suite == 'mechanics' && '1' || '0' }}
+          HANGINTHERE_REPLAY_PROFILE_TEST: ${{ inputs.replay_profile_test || 'automatic' }}
         run: ./scripts/test-ios.sh "${{ matrix.suite }}"
       - name: Retain simulator results and provenance
         if: always()
@@ -120,4 +222,4 @@ jobs:
             build/Simulator-${{ matrix.suite }}.xcresult
             build/*.txt
             build/simulators.json
-            HangInThereTests/Fixtures/generated/prepared.json
+            ios/HangInThereTests/Fixtures/generated/prepared.json

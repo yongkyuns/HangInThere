@@ -1,0 +1,46 @@
+{
+  "generatedModuleAvailability": [
+    "core",
+    "imgproc"
+  ],
+  "headerVersion": "4.5.3",
+  "headers": {
+    "opencv2/core.hpp": "0ecbc782cbf5ff0d5af78d4e527e2f82a80bca4d9c420d21fa0437d79e14d695",
+    "opencv2/core/base.hpp": "31560c66dfdc85c81438a226d3d8265e8501dc207b4a259d12bf5863e82b9bf1",
+    "opencv2/core/bufferpool.hpp": "fcb61a830d257ca50c45822d9918e5fb8719e4f5294ab5791ed8f9ebfa79e723",
+    "opencv2/core/check.hpp": "9a307575ec1ac0a958f78a731d8d0f235133089aaecd7ea058a3ca90e96045dc",
+    "opencv2/core/cv_cpu_dispatch.h": "5670f4a506aefa98a9cc272660b2e971009ca805729e308da8b87cd91e57dfc9",
+    "opencv2/core/cvdef.h": "2bef49cf07683a2bc21dc31b941728285cead541444bf478fac622d61af15ba3",
+    "opencv2/core/cvstd.hpp": "3021d6a142e970f139567e9fa3621d44919fd3f300b677dd58399e84fc266fee",
+    "opencv2/core/cvstd.inl.hpp": "33223f6f38d88607f3da7f02683ff91aa07279240d34084e1a0fe7b19ab5ca28",
+    "opencv2/core/cvstd_wrapper.hpp": "4940e28b826f203524f1709889375d086bc5b02e2f836ff5a921a99121ed20c9",
+    "opencv2/core/fast_math.hpp": "eaa8bbae8eeb3d08f49914311cb956fd63a4300966544954208aa38d3c0b51a0",
+    "opencv2/core/hal/interface.h": "bd11814cfd2c331eaa93b42d80a0911a4916f6afa99907f332fe8f641098eb43",
+    "opencv2/core/mat.hpp": "2bfaffd2a21bf1e6d3f5bdae6ddcd298fe7c22452becdfd114aa0309ffe2b031",
+    "opencv2/core/mat.inl.hpp": "281b271d3b8b5ceee66e2b9d6a6853098ad188003c0913b6cabe9afe858d6f74",
+    "opencv2/core/matx.hpp": "cc43259a36262db1e1302f26a54581dd2f7e5bf00bc5fa2f8879b9ad96c6e43d",
+    "opencv2/core/neon_utils.hpp": "ac4f537960e50684671ca6a4b95c1eb6db5ba05e8d9f42f66b930ac8702ae7f9",
+    "opencv2/core/operations.hpp": "0cb7d14122b5ec69b25490560e9a3d40f27ca40a27b40b61058542069fcf9eea",
+    "opencv2/core/optim.hpp": "a3c8eb7f4927f8e74aa9d54f190f7bda1cd32f1ff608d9a338ba29683b98c009",
+    "opencv2/core/ovx.hpp": "e4b13bc11c14d59f640ac59963bd02670ca352d533160d539b6e790052051530",
+    "opencv2/core/persistence.hpp": "165e8b30490d54e5d4b10b7cb3a19aab69260169d5fd589da4619f206ac52580",
+    "opencv2/core/saturate.hpp": "c9ce32df5e013e5f1cd9e9519b7aa0dcdc2c71a9ee3531b6fd8960df76b5fb1e",
+    "opencv2/core/traits.hpp": "d42b16b07b48710d90aefd4a8dc1caa3e889bad5695b820a1ae09f68fb32426e",
+    "opencv2/core/types.hpp": "3dbe9e88e7b6dee86fc6449c9f1b6397af7889584a0aed889db696709b3b6b16",
+    "opencv2/core/utility.hpp": "73d42ae36290047f8f78db557f8f82dd72afa7c30a6df983177301f1f77c2707",
+    "opencv2/core/version.hpp": "c45dc7b20249a59634c412d7dfafe62c68b50eba4deae2c1317d4b42330067c3",
+    "opencv2/core/vsx_utils.hpp": "1b3dc4679f2825f31c886205e94766772528315300b23eee71dfdf18ab9eb6b4",
+    "opencv2/imgproc.hpp": "005c51430414b7d1632714df22c6baf9c37dea6d7355c091103f9ab60bc638e0",
+    "opencv2/imgproc/segmentation.hpp": "496cb8bfd0b9e77206c147546651864c2731a4aeae5240876a506e67079c8b69",
+    "opencv2/opencv_modules.hpp": "6f5c587c189036634973f017c8128fb1230d974c44036504a3f1dbe008db7b74"
+  },
+  "mediaPipeTasksCommonArchiveSHA256": "1cb1eed8e9eb7868a93fa3c3ce3a341e352620158f29f9799800376f651bd004",
+  "mediaPipeTasksCommonVersion": "0.10.21",
+  "source": "https://github.com/opencv/opencv/archive/refs/tags/4.5.3.zip",
+  "sourceSHA256": "a61e7a4618d353140c857f25843f39b2abe5f451b018aab1604ef0bc34cd23d5",
+  "targets": [
+    "arm64-apple-ios17.0",
+    "x86_64-apple-ios17.0-simulator",
+    "arm64-apple-ios17.0-simulator"
+  ]
+}

@@ -1,0 +1,1027 @@
+{
+  "provenance": "Original pinned public native MediaPipe primary bodies plus independent native Vision wrists. Original joint values retained; reviewed source images in build/dip-body-hand-stream-goal/source-review.jpg. No rep/form/apparatus qualification.",
+  "sourceObservationsSHA256": "93aee44a572d711d2a313cc328cd04cf6410e399e8ec6c144b3ca2dcf21fb871",
+  "cases": [
+    {
+      "clip": "dip_rear",
+      "frame": 134,
+      "sourceImageSHA256": "decd1e339b492ac63447c4533c7e2122fc6f7ac903c0a1051a8ab9e98db794c7",
+      "pose": {
+        "backend": "MediaPipe iOS 0.10.21 Lite CPU IMAGE visibility/presence minimum",
+        "gripObservation": {
+          "backend": "Apple Vision hand pose",
+          "body": [],
+          "coordinateConvention": "cameraRightDownAway_v1",
+          "hands": [
+            {
+              "points": [
+                {
+                  "joint": "wrist",
+                  "position": {
+                    "x": 756.7387390136719,
+                    "y": 470.29699444770813
+                  },
+                  "score": 0.74755859375
+                },
+                {
+                  "joint": "indexMCP",
+                  "position": {
+                    "x": 787.0105361938477,
+                    "y": 497.9359030723572
+                  },
+                  "score": 0.892578125
+                },
+                {
+                  "joint": "middleMCP",
+                  "position": {
+                    "x": 786.3219451904297,
+                    "y": 493.78780245780945
+                  },
+                  "score": 0.94189453125
+                },
+                {
+                  "joint": "pinkyMCP",
+                  "position": {
+                    "x": 777.9853248596191,
+                    "y": 492.50555634498596
+                  },
+                  "score": 0.8642578125
+                }
+              ]
+            },
+            {
+              "points": [
+                {
+                  "joint": "wrist",
+                  "position": {
+                    "x": 371.11905097961426,
+                    "y": 481.09634041786194
+                  },
+                  "score": 0.64306640625
+                },
+                {
+                  "joint": "indexMCP",
+                  "position": {
+                    "x": 379.107027053833,
+                    "y": 491.08545541763306
+                  },
+                  "score": 0.7353515625
+                },
+                {
+                  "joint": "middleMCP",
+                  "position": {
+                    "x": 381.95013999938965,
+                    "y": 494.94783639907837
+                  },
+                  "score": 0.74365234375
+                },
+                {
+                  "joint": "pinkyMCP",
+                  "position": {
+                    "x": 377.1360397338867,
+                    "y": 501.68704748153687
+                  },
+                  "score": 0.74951171875
+                }
+              ]
+            }
+          ],
+          "imageSize": {
+            "height": 540,
+            "width": 960
+          },
+          "modelId": "VNDetectHumanHandPoseRequest-revision1-wrist_mcp_v1",
+          "schemaVersion": 1,
+          "seconds": 2.2355666666666667,
+          "trackedBody": [
+            {
+              "joint": "leftShoulder",
+              "position": {
+                "x": 434.06267166137695,
+                "y": 125.21227598190308
+              },
+              "score": 0.9910791516304016
+            },
+            {
+              "joint": "rightShoulder",
+              "position": {
+                "x": 664.8475456237793,
+                "y": 115.50894498825073
+              },
+              "score": 0.9942994117736816
+            },
+            {
+              "joint": "leftWrist",
+              "position": {
+                "x": 361.5444087982178,
+                "y": 442.12095737457275
+              },
+              "score": 0.7284313440322876
+            },
+            {
+              "joint": "rightWrist",
+              "position": {
+                "x": 738.9815139770508,
+                "y": 455.76581597328186
+              },
+              "score": 0.9055593013763428
+            }
+          ]
+        },
+        "imageSize": {
+          "height": 540,
+          "width": 960
+        },
+        "people": [
+          {
+            "landmarks": [
+              {
+                "confidence": 0.9814432263374329,
+                "joint": "nose",
+                "position": {
+                  "x": 576.2936782836914,
+                  "y": 16.192742586135864
+                }
+              },
+              {
+                "confidence": 0.9781886339187622,
+                "joint": "leftEye",
+                "position": {
+                  "x": 566.0367393493652,
+                  "y": 3.8724875450134277
+                }
+              },
+              {
+                "confidence": 0.9826470017433167,
+                "joint": "rightEye",
+                "position": {
+                  "x": 584.5583724975586,
+                  "y": 9.390896558761597
+                }
+              },
+              {
+                "confidence": 0.9844116568565369,
+                "joint": "leftEar",
+                "position": {
+                  "x": 542.8129005432129,
+                  "y": 15.613160133361816
+                }
+              },
+              {
+                "confidence": 0.987447202205658,
+                "joint": "rightEar",
+                "position": {
+                  "x": 588.2544136047363,
+                  "y": 18.833388090133667
+                }
+              },
+              {
+                "confidence": 0.9910791516304016,
+                "joint": "leftShoulder",
+                "position": {
+                  "x": 434.06267166137695,
+                  "y": 125.21227598190308
+                }
+              },
+              {
+                "confidence": 0.9942994117736816,
+                "joint": "rightShoulder",
+                "position": {
+                  "x": 664.8475456237793,
+                  "y": 115.50894498825073
+                }
+              },
+              {
+                "confidence": 0.8694026470184326,
+                "joint": "leftElbow",
+                "position": {
+                  "x": 391.2059211730957,
+                  "y": 277.72550225257874
+                }
+              },
+              {
+                "confidence": 0.9372789263725281,
+                "joint": "rightElbow",
+                "position": {
+                  "x": 695.5780792236328,
+                  "y": 300.1078391075134
+                }
+              },
+              {
+                "confidence": 0.7284313440322876,
+                "joint": "leftWrist",
+                "position": {
+                  "x": 361.5444087982178,
+                  "y": 442.12095737457275
+                }
+              },
+              {
+                "confidence": 0.9055593013763428,
+                "joint": "rightWrist",
+                "position": {
+                  "x": 738.9815139770508,
+                  "y": 455.76581597328186
+                }
+              },
+              {
+                "confidence": 0.9907621741294861,
+                "joint": "leftHip",
+                "position": {
+                  "x": 474.59163665771484,
+                  "y": 358.608877658844
+                }
+              },
+              {
+                "confidence": 0.9932199120521545,
+                "joint": "rightHip",
+                "position": {
+                  "x": 594.2497444152832,
+                  "y": 367.78315901756287
+                }
+              },
+              {
+                "confidence": 0.08755774796009064,
+                "joint": "leftKnee",
+                "position": {
+                  "x": 459.93404388427734,
+                  "y": 489.39502000808716
+                }
+              },
+              {
+                "confidence": 0.08835037797689438,
+                "joint": "rightKnee",
+                "position": {
+                  "x": 588.1937599182129,
+                  "y": 449.48638916015625
+                }
+              },
+              {
+                "confidence": 0.07966195046901703,
+                "joint": "leftAnkle",
+                "position": {
+                  "x": 510.0332450866699,
+                  "y": 575.3310012817383
+                }
+              },
+              {
+                "confidence": 0.04779401794075966,
+                "joint": "rightAnkle",
+                "position": {
+                  "x": 565.2097320556641,
+                  "y": 516.9843292236328
+                }
+              }
+            ]
+          }
+        ],
+        "requestRevision": 1,
+        "timestamp": {
+          "timescale": 90000,
+          "value": 201201
+        }
+      },
+      "expectedSides": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "clip": "dip_side",
+      "frame": 26,
+      "sourceImageSHA256": "2787a0f84001ffc1fc938ca7e8293e0fab8acb7c000fd43f7f9998b9d87dc322",
+      "pose": {
+        "backend": "MediaPipe iOS 0.10.21 Lite CPU IMAGE visibility/presence minimum",
+        "gripObservation": {
+          "backend": "Apple Vision hand pose",
+          "body": [],
+          "coordinateConvention": "cameraRightDownAway_v1",
+          "hands": [
+            {
+              "points": [
+                {
+                  "joint": "wrist",
+                  "position": {
+                    "x": 732.1222686767578,
+                    "y": 385.4113554954529
+                  },
+                  "score": 0.91357421875
+                },
+                {
+                  "joint": "indexMCP",
+                  "position": {
+                    "x": 686.0494995117188,
+                    "y": 404.29537296295166
+                  },
+                  "score": 0.97119140625
+                },
+                {
+                  "joint": "middleMCP",
+                  "position": {
+                    "x": 701.3836669921875,
+                    "y": 411.35889530181885
+                  },
+                  "score": 0.9677734375
+                },
+                {
+                  "joint": "pinkyMCP",
+                  "position": {
+                    "x": 731.880054473877,
+                    "y": 421.21405005455017
+                  },
+                  "score": 0.94775390625
+                }
+              ]
+            }
+          ],
+          "imageSize": {
+            "height": 540,
+            "width": 960
+          },
+          "modelId": "VNDetectHumanHandPoseRequest-revision1-wrist_mcp_v1",
+          "schemaVersion": 1,
+          "seconds": 0.4337666666666667,
+          "trackedBody": [
+            {
+              "joint": "leftShoulder",
+              "position": {
+                "x": 610.2066993713379,
+                "y": 45.722463726997375
+              },
+              "score": 0.9992688298225403
+            },
+            {
+              "joint": "rightShoulder",
+              "position": {
+                "x": 521.869068145752,
+                "y": 64.83497321605682
+              },
+              "score": 0.9979637861251831
+            },
+            {
+              "joint": "leftWrist",
+              "position": {
+                "x": 714.8871231079102,
+                "y": 345.0941491127014
+              },
+              "score": 0.9777808785438538
+            },
+            {
+              "joint": "rightWrist",
+              "position": {
+                "x": 602.7470397949219,
+                "y": 321.58631443977356
+              },
+              "score": 0.187587171792984
+            }
+          ]
+        },
+        "imageSize": {
+          "height": 540,
+          "width": 960
+        },
+        "people": [
+          {
+            "landmarks": [
+              {
+                "confidence": 0.9956568479537964,
+                "joint": "nose",
+                "position": {
+                  "x": 464.17399406433105,
+                  "y": 10.752933025360107
+                }
+              },
+              {
+                "confidence": 0.9948000907897949,
+                "joint": "leftEye",
+                "position": {
+                  "x": 491.3075637817383,
+                  "y": -9.742324948310852
+                }
+              },
+              {
+                "confidence": 0.992676854133606,
+                "joint": "rightEye",
+                "position": {
+                  "x": 474.664363861084,
+                  "y": -7.743059992790222
+                }
+              },
+              {
+                "confidence": 0.996587872505188,
+                "joint": "leftEar",
+                "position": {
+                  "x": 520.1309394836426,
+                  "y": -30.248767733573914
+                }
+              },
+              {
+                "confidence": 0.993863582611084,
+                "joint": "rightEar",
+                "position": {
+                  "x": 491.4089584350586,
+                  "y": -13.003751635551453
+                }
+              },
+              {
+                "confidence": 0.9992688298225403,
+                "joint": "leftShoulder",
+                "position": {
+                  "x": 610.2066993713379,
+                  "y": 45.722463726997375
+                }
+              },
+              {
+                "confidence": 0.9979637861251831,
+                "joint": "rightShoulder",
+                "position": {
+                  "x": 521.869068145752,
+                  "y": 64.83497321605682
+                }
+              },
+              {
+                "confidence": 0.9844404458999634,
+                "joint": "leftElbow",
+                "position": {
+                  "x": 688.5372161865234,
+                  "y": 191.25696301460266
+                }
+              },
+              {
+                "confidence": 0.06263242661952972,
+                "joint": "rightElbow",
+                "position": {
+                  "x": 595.6041526794434,
+                  "y": 191.88044786453247
+                }
+              },
+              {
+                "confidence": 0.9777808785438538,
+                "joint": "leftWrist",
+                "position": {
+                  "x": 714.8871231079102,
+                  "y": 345.0941491127014
+                }
+              },
+              {
+                "confidence": 0.187587171792984,
+                "joint": "rightWrist",
+                "position": {
+                  "x": 602.7470397949219,
+                  "y": 321.58631443977356
+                }
+              },
+              {
+                "confidence": 0.9980680346488953,
+                "joint": "leftHip",
+                "position": {
+                  "x": 647.0059776306152,
+                  "y": 268.3237427473068
+                }
+              },
+              {
+                "confidence": 0.9968729615211487,
+                "joint": "rightHip",
+                "position": {
+                  "x": 600.1999282836914,
+                  "y": 264.4679921865463
+                }
+              },
+              {
+                "confidence": 0.45362159609794617,
+                "joint": "leftKnee",
+                "position": {
+                  "x": 679.3000030517578,
+                  "y": 316.73001408576965
+                }
+              },
+              {
+                "confidence": 0.07787180691957474,
+                "joint": "rightKnee",
+                "position": {
+                  "x": 624.2458534240723,
+                  "y": 292.0063018798828
+                }
+              },
+              {
+                "confidence": 0.11624449491500854,
+                "joint": "leftAnkle",
+                "position": {
+                  "x": 703.447265625,
+                  "y": 355.6987988948822
+                }
+              },
+              {
+                "confidence": 0.05265679955482483,
+                "joint": "rightAnkle",
+                "position": {
+                  "x": 661.2256622314453,
+                  "y": 344.8897647857666
+                }
+              }
+            ]
+          }
+        ],
+        "requestRevision": 1,
+        "timestamp": {
+          "timescale": 90000,
+          "value": 39039
+        }
+      },
+      "expectedSides": [
+        "left"
+      ]
+    },
+    {
+      "clip": "dip_controlled_pexels",
+      "frame": 0,
+      "sourceImageSHA256": "b21c647edbf96cd0a09dd08c545290d1368a6c7453ae6cf1ba6500e883da7e4b",
+      "pose": {
+        "backend": "MediaPipe iOS 0.10.21 Lite CPU IMAGE visibility/presence minimum",
+        "gripObservation": {
+          "backend": "Apple Vision hand pose",
+          "body": [],
+          "coordinateConvention": "cameraRightDownAway_v1",
+          "hands": [
+            {
+              "points": [
+                {
+                  "joint": "wrist",
+                  "position": {
+                    "x": 443.742299079895,
+                    "y": 583.8241577148438
+                  },
+                  "score": 0.86376953125
+                },
+                {
+                  "joint": "indexMCP",
+                  "position": {
+                    "x": 418.89461517333984,
+                    "y": 596.6091918945312
+                  },
+                  "score": 0.93701171875
+                },
+                {
+                  "joint": "middleMCP",
+                  "position": {
+                    "x": 432.41174697875977,
+                    "y": 600.9690856933594
+                  },
+                  "score": 0.962890625
+                },
+                {
+                  "joint": "pinkyMCP",
+                  "position": {
+                    "x": 448.98470878601074,
+                    "y": 607.5127410888672
+                  },
+                  "score": 0.9150390625
+                }
+              ]
+            }
+          ],
+          "imageSize": {
+            "height": 1280,
+            "width": 720
+          },
+          "modelId": "VNDetectHumanHandPoseRequest-revision1-wrist_mcp_v1",
+          "schemaVersion": 1,
+          "seconds": 0,
+          "trackedBody": [
+            {
+              "joint": "leftShoulder",
+              "position": {
+                "x": 382.47279167175293,
+                "y": 421.52992248535156
+              },
+              "score": 0.9999253749847412
+            },
+            {
+              "joint": "rightShoulder",
+              "position": {
+                "x": 276.51933431625366,
+                "y": 473.9500427246094
+              },
+              "score": 0.9993388056755066
+            },
+            {
+              "joint": "leftWrist",
+              "position": {
+                "x": 441.2404203414917,
+                "y": 577.778205871582
+              },
+              "score": 0.9728556275367737
+            },
+            {
+              "joint": "rightWrist",
+              "position": {
+                "x": 275.10199069976807,
+                "y": 646.8572235107422
+              },
+              "score": 0.6588602662086487
+            }
+          ]
+        },
+        "imageSize": {
+          "height": 1280,
+          "width": 720
+        },
+        "people": [
+          {
+            "landmarks": [
+              {
+                "confidence": 0.9993852376937866,
+                "joint": "nose",
+                "position": {
+                  "x": 257.7504801750183,
+                  "y": 421.9689178466797
+                }
+              },
+              {
+                "confidence": 0.999305009841919,
+                "joint": "leftEye",
+                "position": {
+                  "x": 260.53377628326416,
+                  "y": 400.2045440673828
+                }
+              },
+              {
+                "confidence": 0.9990193843841553,
+                "joint": "rightEye",
+                "position": {
+                  "x": 247.33202934265137,
+                  "y": 411.58721923828125
+                }
+              },
+              {
+                "confidence": 0.9994059801101685,
+                "joint": "leftEar",
+                "position": {
+                  "x": 287.1665668487549,
+                  "y": 383.29795837402344
+                }
+              },
+              {
+                "confidence": 0.9989192485809326,
+                "joint": "rightEar",
+                "position": {
+                  "x": 255.530104637146,
+                  "y": 408.37608337402344
+                }
+              },
+              {
+                "confidence": 0.9999253749847412,
+                "joint": "leftShoulder",
+                "position": {
+                  "x": 382.47279167175293,
+                  "y": 421.52992248535156
+                }
+              },
+              {
+                "confidence": 0.9993388056755066,
+                "joint": "rightShoulder",
+                "position": {
+                  "x": 276.51933431625366,
+                  "y": 473.9500427246094
+                }
+              },
+              {
+                "confidence": 0.9919426441192627,
+                "joint": "leftElbow",
+                "position": {
+                  "x": 476.8362522125244,
+                  "y": 495.2337646484375
+                }
+              },
+              {
+                "confidence": 0.5926547050476074,
+                "joint": "rightElbow",
+                "position": {
+                  "x": 282.69792079925537,
+                  "y": 578.2406616210938
+                }
+              },
+              {
+                "confidence": 0.9728556275367737,
+                "joint": "leftWrist",
+                "position": {
+                  "x": 441.2404203414917,
+                  "y": 577.778205871582
+                }
+              },
+              {
+                "confidence": 0.6588602662086487,
+                "joint": "rightWrist",
+                "position": {
+                  "x": 275.10199069976807,
+                  "y": 646.8572235107422
+                }
+              },
+              {
+                "confidence": 0.9993658661842346,
+                "joint": "leftHip",
+                "position": {
+                  "x": 404.248251914978,
+                  "y": 665.9075164794922
+                }
+              },
+              {
+                "confidence": 0.9977601766586304,
+                "joint": "rightHip",
+                "position": {
+                  "x": 338.0216574668884,
+                  "y": 678.6814880371094
+                }
+              },
+              {
+                "confidence": 0.7717511653900146,
+                "joint": "leftKnee",
+                "position": {
+                  "x": 431.6322326660156,
+                  "y": 856.5911865234375
+                }
+              },
+              {
+                "confidence": 0.4550027847290039,
+                "joint": "rightKnee",
+                "position": {
+                  "x": 312.70033836364746,
+                  "y": 853.7324523925781
+                }
+              },
+              {
+                "confidence": 0.8281965255737305,
+                "joint": "leftAnkle",
+                "position": {
+                  "x": 458.4351396560669,
+                  "y": 1038.4709167480469
+                }
+              },
+              {
+                "confidence": 0.42582228779792786,
+                "joint": "rightAnkle",
+                "position": {
+                  "x": 370.749306678772,
+                  "y": 1000.3770446777344
+                }
+              }
+            ]
+          }
+        ],
+        "requestRevision": 1,
+        "timestamp": {
+          "timescale": 1000,
+          "value": 0
+        }
+      },
+      "expectedSides": [
+        "left"
+      ]
+    },
+    {
+      "clip": "dip_controlled_pexels",
+      "frame": 254,
+      "sourceImageSHA256": "0fd82bc28f580ab097edd14ce62c31730718c4295caa9b423c8f075a3101c1f3",
+      "pose": {
+        "backend": "MediaPipe iOS 0.10.21 Lite CPU IMAGE visibility/presence minimum",
+        "gripObservation": {
+          "backend": "Apple Vision hand pose",
+          "body": [],
+          "coordinateConvention": "cameraRightDownAway_v1",
+          "hands": [
+            {
+              "points": [
+                {
+                  "joint": "wrist",
+                  "position": {
+                    "x": 585.7767677307129,
+                    "y": 905.4785919189453
+                  },
+                  "score": 0.9365234375
+                },
+                {
+                  "joint": "indexMCP",
+                  "position": {
+                    "x": 539.6546602249146,
+                    "y": 921.5583038330078
+                  },
+                  "score": 0.966796875
+                },
+                {
+                  "joint": "middleMCP",
+                  "position": {
+                    "x": 565.4722309112549,
+                    "y": 928.863525390625
+                  },
+                  "score": 0.9462890625
+                },
+                {
+                  "joint": "pinkyMCP",
+                  "position": {
+                    "x": 598.4985494613647,
+                    "y": 945.7227325439453
+                  },
+                  "score": 0.8779296875
+                }
+              ]
+            }
+          ],
+          "imageSize": {
+            "height": 1280,
+            "width": 720
+          },
+          "modelId": "VNDetectHumanHandPoseRequest-revision1-wrist_mcp_v1",
+          "schemaVersion": 1,
+          "seconds": 10.16,
+          "trackedBody": [
+            {
+              "joint": "leftShoulder",
+              "position": {
+                "x": 351.09699726104736,
+                "y": 725.4470825195312
+              },
+              "score": 0.9996998310089111
+            },
+            {
+              "joint": "rightShoulder",
+              "position": {
+                "x": 234.8964500427246,
+                "y": 801.1683654785156
+              },
+              "score": 0.9980600476264954
+            },
+            {
+              "joint": "leftWrist",
+              "position": {
+                "x": 539.448709487915,
+                "y": 883.0004119873047
+              },
+              "score": 0.9652109742164612
+            },
+            {
+              "joint": "rightWrist",
+              "position": {
+                "x": 274.454870223999,
+                "y": 1157.6583862304688
+              },
+              "score": 0.5306410193443298
+            }
+          ]
+        },
+        "imageSize": {
+          "height": 1280,
+          "width": 720
+        },
+        "people": [
+          {
+            "landmarks": [
+              {
+                "confidence": 0.9929255247116089,
+                "joint": "nose",
+                "position": {
+                  "x": 176.73214673995972,
+                  "y": 727.6657104492188
+                }
+              },
+              {
+                "confidence": 0.9912147521972656,
+                "joint": "leftEye",
+                "position": {
+                  "x": 176.5685749053955,
+                  "y": 698.8008117675781
+                }
+              },
+              {
+                "confidence": 0.9887123107910156,
+                "joint": "rightEye",
+                "position": {
+                  "x": 170.0411295890808,
+                  "y": 708.9749145507812
+                }
+              },
+              {
+                "confidence": 0.9932430386543274,
+                "joint": "leftEar",
+                "position": {
+                  "x": 210.3860378265381,
+                  "y": 679.0455627441406
+                }
+              },
+              {
+                "confidence": 0.9893394112586975,
+                "joint": "rightEar",
+                "position": {
+                  "x": 182.33590364456177,
+                  "y": 704.2579650878906
+                }
+              },
+              {
+                "confidence": 0.9996998310089111,
+                "joint": "leftShoulder",
+                "position": {
+                  "x": 351.09699726104736,
+                  "y": 725.4470825195312
+                }
+              },
+              {
+                "confidence": 0.9980600476264954,
+                "joint": "rightShoulder",
+                "position": {
+                  "x": 234.8964500427246,
+                  "y": 801.1683654785156
+                }
+              },
+              {
+                "confidence": 0.9969196319580078,
+                "joint": "leftElbow",
+                "position": {
+                  "x": 538.4919548034668,
+                  "y": 762.3554992675781
+                }
+              },
+              {
+                "confidence": 0.7647688388824463,
+                "joint": "rightElbow",
+                "position": {
+                  "x": 285.80838203430176,
+                  "y": 975.0925445556641
+                }
+              },
+              {
+                "confidence": 0.9652109742164612,
+                "joint": "leftWrist",
+                "position": {
+                  "x": 539.448709487915,
+                  "y": 883.0004119873047
+                }
+              },
+              {
+                "confidence": 0.5306410193443298,
+                "joint": "rightWrist",
+                "position": {
+                  "x": 274.454870223999,
+                  "y": 1157.6583862304688
+                }
+              },
+              {
+                "confidence": 0.9966062307357788,
+                "joint": "leftHip",
+                "position": {
+                  "x": 462.1954679489136,
+                  "y": 1007.5344848632812
+                }
+              },
+              {
+                "confidence": 0.9949877262115479,
+                "joint": "rightHip",
+                "position": {
+                  "x": 374.17579650878906,
+                  "y": 1046.7395782470703
+                }
+              },
+              {
+                "confidence": 0.7527790665626526,
+                "joint": "leftKnee",
+                "position": {
+                  "x": 471.71825408935547,
+                  "y": 1217.3771667480469
+                }
+              },
+              {
+                "confidence": 0.5398513674736023,
+                "joint": "rightKnee",
+                "position": {
+                  "x": 384.82725620269775,
+                  "y": 1238.888931274414
+                }
+              },
+              {
+                "confidence": 0.1254730522632599,
+                "joint": "leftAnkle",
+                "position": {
+                  "x": 537.8800678253174,
+                  "y": 1206.1239624023438
+                }
+              },
+              {
+                "confidence": 0.1266207993030548,
+                "joint": "rightAnkle",
+                "position": {
+                  "x": 484.84004974365234,
+                  "y": 1255.3372955322266
+                }
+              }
+            ]
+          }
+        ],
+        "requestRevision": 1,
+        "timestamp": {
+          "timescale": 90000,
+          "value": 914400
+        }
+      },
+      "expectedSides": [
+        "left"
+      ]
+    }
+  ]
+}

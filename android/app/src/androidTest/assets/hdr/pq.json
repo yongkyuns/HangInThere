@@ -1,0 +1,30 @@
+{
+  "sha256": "6650643c949136d326e1e7e81200d2c749b1683b07e4931dcebc4579d1984258",
+  "pts": [
+    0,
+    110000,
+    230000,
+    400000,
+    710000,
+    960000
+  ],
+  "luma": [
+    16,
+    147,
+    255
+  ],
+  "width": 128,
+  "height": 96,
+  "rotation": 270,
+  "scope": "Authored decoder-contract panels, not movement labels or phone footage",
+  "encoderVersion": "FFmpeg 8.1_1 Homebrew/libx265",
+  "referenceDecoderVersion": "FFmpeg 9.0.2-tessus",
+  "sourceRecipe": "scripts/author-hdr-fixtures.py",
+  "containerRotationCorrection": {
+    "previousSha256": "4972c8a083737dc43e22e9e87c1d7c3f2257cfbdb057d31c6b7c5d194b3cc30e",
+    "reason": "Legacy rotate metadata remux omitted the declared display matrix",
+    "encodedPacketHashesAndPtsUnchanged": true,
+    "verifiedCounterclockwiseRotationDegrees": 90,
+    "displayMatrix": "\n00000000:            0      -65536           0\n00000001:        65536           0           0\n00000002:            0           0  1073741824\n"
+  }
+}

@@ -1,0 +1,622 @@
+{
+  "accuracy_gate_waived": false,
+  "actual_checkout_sha": "7beed84c7b39e985a8d5018026f417dcb51d63be",
+  "all_448_source_frames_validated_per_api": true,
+  "artifact_archives": [
+    {
+      "archive_sha256": "a9a578782c47a749add968c92a3e25e617ce1e87762e5bb204ffa81f6d3fc2e6",
+      "id": 11747751453,
+      "name": "android-api-29"
+    },
+    {
+      "archive_sha256": "2ed75fdb88301c524d5b8de2412ec9a6caa746715127d7856cb152662263bf38",
+      "id": 11747397253,
+      "name": "android-swift-api-29"
+    },
+    {
+      "archive_sha256": "52c67f6fbe19532fd3f839606bc6784e60890742a790006702bedf1faeb8216e",
+      "id": 11747292373,
+      "name": "android-swift-api-35"
+    },
+    {
+      "archive_sha256": "b29c3ed0211098c5bac94c3f615fe58ad860c4f5d1ea512aaceddad35c937c2c",
+      "id": 11747196744,
+      "name": "android-api-35"
+    }
+  ],
+  "crop_skipped_source_frames_per_api": {
+    "29": 2,
+    "35": 2
+  },
+  "cross_api_counts_arm_coverage_events_skips_match": true,
+  "current_checker_source_sha": "751c53ccf96cb4a7842bc967499e6040d8bca973",
+  "decision": "No demonstrated count or arm-coverage improvement; bounded-person-crop recipe v1 remains diagnostic only",
+  "historical_and_current_checker_passed_on_both_apis": true,
+  "implementation_source_sha256": {
+    ".github/workflows/android.yml": "42c3e16105e42e78978200d503030425e5ec4f29da060dd2d555af19a9cf9ab1",
+    "android/app/src/androidTest/java/dev/hanginthere/android/PoseModeEvaluationTest.kt": "8db7e47a8213cd94e2bcfc5a3e214523ccfad2913d5e4231434198de71c248b5",
+    "android/app/src/main/java/dev/hanginthere/android/vision/PoseEstimator.kt": "ab2e09cabf239a0b4dd3a806b717fe7b32fb45c1f6335a8b6fc0849d8d1f9b23",
+    "scripts/check-android-evaluation.py": "09b4c1c37f40271f10fd6009ef19c200e1a1a3c68bfda1f67d45cd1c2ab3eda3",
+    "scripts/compare-android-observations.py": "5f58bdd17cb4dbc07e61e8ff0763c23993e5077fd497093ae65b13a3fd5a2349",
+    "scripts/run-android-evaluation.sh": "3e16cb23cfd1d925b78b29e5d8d6d6ef49f141577704a8244306d6dcd258a437",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/ExerciseCounter.kt": "1eeb9f1bc8cd38264ffcc2132a46aeca27818334664c16dd4002615c95357d18",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/PersonInferenceRegion.kt": "8539c55b8c8ce70742544592d64075e75d430e596df1c065f6482f8e2937ef74"
+  },
+  "inputs_sha256": {
+    "dip_controlled_pexels": "ddc12dbd07563af798082e3649a5aeae82f477c85aee4ad936db8eee20cd9ddc",
+    "pullup_margin": "05657f526dc96a4fa46f2a93190cd131b7b8c76e409022776220f9d7aab047a2",
+    "pullup_smoke": "333f2f265a66ef0567baf78cfd5e3c719052d8d35f3dc5dd1362a46ffd1bf69a"
+  },
+  "job_conclusions": [
+    {
+      "conclusion": "success",
+      "id": 114805520810,
+      "name": "Software HDR decoder contracts"
+    },
+    {
+      "conclusion": "success",
+      "id": 114805521140,
+      "name": "Native Android API 35"
+    },
+    {
+      "conclusion": "success",
+      "id": 114805521150,
+      "name": "Swift and Kotlin policy parity"
+    },
+    {
+      "conclusion": "success",
+      "id": 114805521249,
+      "name": "Native Android API 29"
+    },
+    {
+      "conclusion": "success",
+      "id": 114812190058,
+      "name": "Swift replay of Android model observations (35)"
+    },
+    {
+      "conclusion": "success",
+      "id": 114812190071,
+      "name": "Identical public evaluation inputs"
+    },
+    {
+      "conclusion": "success",
+      "id": 114812190107,
+      "name": "Swift replay of Android model observations (29)"
+    },
+    {
+      "conclusion": "failure",
+      "id": 114812190143,
+      "name": "Original capture accuracy diagnostics (35)"
+    },
+    {
+      "conclusion": "failure",
+      "id": 114812190249,
+      "name": "Original capture accuracy diagnostics (29)"
+    }
+  ],
+  "latency_scope": "Per-mode SDK inference/copy/close; crop includes coordinate restoration. Excludes crop allocation/pixel verification/hash, decode, counter, trace, initialization. Crop always runs last; PSS retains all three models. Not production/device timing.",
+  "native_api_summaries": {
+    "29": {
+      "canonical_pixels": "upright unmirrored origin top-left max1280",
+      "cases": [
+        {
+          "expectedMovements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "modes": {
+            "crop": {
+              "events": [
+                {
+                  "outcome": "movement",
+                  "reason": "barReferencedTop;chinClearanceNotMeasured",
+                  "sourceSeconds": 1.9
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 86.630297,
+                "maximum": 97.017116,
+                "p50": 86.759063,
+                "p95": 90.742254,
+                "samples": 108
+              },
+              "observedMovements": 1,
+              "singlePersonFrames": 108,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 81,
+                "right": 98
+              }
+            },
+            "image": {
+              "events": [
+                {
+                  "outcome": "movement",
+                  "reason": "barReferencedTop;chinClearanceNotMeasured",
+                  "sourceSeconds": 1.933333
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 93.376042,
+                "maximum": 113.390137,
+                "p50": 87.519894,
+                "p95": 90.386676,
+                "samples": 108
+              },
+              "observedMovements": 1,
+              "singlePersonFrames": 108,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 96,
+                "right": 108
+              }
+            },
+            "video": {
+              "events": [
+                {
+                  "outcome": "movement",
+                  "reason": "barReferencedTop;chinClearanceNotMeasured",
+                  "sourceSeconds": 1.933333
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 92.520808,
+                "maximum": 120.312372,
+                "p50": 87.879197,
+                "p95": 91.302714,
+                "samples": 108
+              },
+              "observedMovements": 1,
+              "singlePersonFrames": 108,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 96,
+                "right": 108
+              }
+            }
+          },
+          "peakCombinedPssKb": 567902,
+          "sha256": "05657f526dc96a4fa46f2a93190cd131b7b8c76e409022776220f9d7aab047a2"
+        },
+        {
+          "expectedMovements": 1,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "modes": {
+            "crop": {
+              "events": [],
+              "inferenceLatencyMillis": {
+                "first": 87.144986,
+                "maximum": 91.025367,
+                "p50": 84.452457,
+                "p95": 89.512934,
+                "samples": 38
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 37,
+              "skippedFrames": 2,
+              "usableArmFrames": {
+                "left": 24,
+                "right": 6
+              }
+            },
+            "image": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "lowConfidence",
+                  "sourceSeconds": 2.1
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 88.286452,
+                "maximum": 91.609223,
+                "p50": 85.627093,
+                "p95": 91.10848,
+                "samples": 40
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 40,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 32,
+                "right": 25
+              }
+            },
+            "video": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "lowConfidence",
+                  "sourceSeconds": 2.1
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 89.892903,
+                "maximum": 91.47635,
+                "p50": 85.096915,
+                "p95": 87.380735,
+                "samples": 40
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 40,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 32,
+                "right": 25
+              }
+            }
+          },
+          "peakCombinedPssKb": 570447,
+          "sha256": "333f2f265a66ef0567baf78cfd5e3c719052d8d35f3dc5dd1362a46ffd1bf69a"
+        },
+        {
+          "expectedMovements": 9,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "modes": {
+            "crop": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipGripMoved",
+                  "sourceSeconds": 6.68
+                },
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipSupportUnclear",
+                  "sourceSeconds": 7.84
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 88.599684,
+                "maximum": 154.604978,
+                "p50": 88.184739,
+                "p95": 92.673253,
+                "samples": 300
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 260,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 260,
+                "right": 16
+              }
+            },
+            "image": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipGripMoved",
+                  "sourceSeconds": 6.92
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 89.148555,
+                "maximum": 101.856844,
+                "p50": 89.330068,
+                "p95": 92.610106,
+                "samples": 300
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 299,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 299,
+                "right": 33
+              }
+            },
+            "video": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipGripMoved",
+                  "sourceSeconds": 6.92
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 87.962574,
+                "maximum": 135.719309,
+                "p50": 89.234289,
+                "p95": 92.297992,
+                "samples": 300
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 300,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 300,
+                "right": 34
+              }
+            }
+          },
+          "peakCombinedPssKb": 585966,
+          "sha256": "ddc12dbd07563af798082e3649a5aeae82f477c85aee4ad936db8eee20cd9ddc"
+        }
+      ],
+      "confidence_policy": "minimum of raw visibility and presence; threshold0.3; not cross-backend calibrated",
+      "native_log_sha256": "b1119f771bb050d5da83c9186b4fe6ddc6c6813478d329ad0ce6f59d92675ef3",
+      "native_model_sha256": "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
+      "native_report_sha256": "1ba7a9cdb42f2a7d56681d8133f16e18cc388b57b5fec865552bbbe30c0dfd65",
+      "native_runtime_sha256": "d6e69475707d07a24478e9ff00c437c48c9a834ffb04d4e6e0ba907defa87777",
+      "sdk": 29
+    },
+    "35": {
+      "canonical_pixels": "upright unmirrored origin top-left max1280",
+      "cases": [
+        {
+          "expectedMovements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "modes": {
+            "crop": {
+              "events": [
+                {
+                  "outcome": "movement",
+                  "reason": "barReferencedTop;chinClearanceNotMeasured",
+                  "sourceSeconds": 1.9
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 93.342438,
+                "maximum": 96.349661,
+                "p50": 90.783125,
+                "p95": 93.352206,
+                "samples": 108
+              },
+              "observedMovements": 1,
+              "singlePersonFrames": 108,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 81,
+                "right": 98
+              }
+            },
+            "image": {
+              "events": [
+                {
+                  "outcome": "movement",
+                  "reason": "barReferencedTop;chinClearanceNotMeasured",
+                  "sourceSeconds": 1.933333
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 91.878354,
+                "maximum": 115.333386,
+                "p50": 90.818843,
+                "p95": 92.383492,
+                "samples": 108
+              },
+              "observedMovements": 1,
+              "singlePersonFrames": 108,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 96,
+                "right": 108
+              }
+            },
+            "video": {
+              "events": [
+                {
+                  "outcome": "movement",
+                  "reason": "barReferencedTop;chinClearanceNotMeasured",
+                  "sourceSeconds": 1.933333
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 94.150252,
+                "maximum": 94.772565,
+                "p50": 90.773104,
+                "p95": 91.858509,
+                "samples": 108
+              },
+              "observedMovements": 1,
+              "singlePersonFrames": 108,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 96,
+                "right": 108
+              }
+            }
+          },
+          "peakCombinedPssKb": 547820,
+          "sha256": "05657f526dc96a4fa46f2a93190cd131b7b8c76e409022776220f9d7aab047a2"
+        },
+        {
+          "expectedMovements": 1,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "modes": {
+            "crop": {
+              "events": [],
+              "inferenceLatencyMillis": {
+                "first": 91.656593,
+                "maximum": 91.694994,
+                "p50": 89.687043,
+                "p95": 90.908747,
+                "samples": 38
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 37,
+              "skippedFrames": 2,
+              "usableArmFrames": {
+                "left": 24,
+                "right": 6
+              }
+            },
+            "image": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "lowConfidence",
+                  "sourceSeconds": 2.1
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 89.987376,
+                "maximum": 92.373356,
+                "p50": 89.351903,
+                "p95": 90.465595,
+                "samples": 40
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 40,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 32,
+                "right": 25
+              }
+            },
+            "video": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "lowConfidence",
+                  "sourceSeconds": 2.1
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 91.366412,
+                "maximum": 91.459575,
+                "p50": 89.531948,
+                "p95": 90.93502,
+                "samples": 40
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 40,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 32,
+                "right": 25
+              }
+            }
+          },
+          "peakCombinedPssKb": 541334,
+          "sha256": "333f2f265a66ef0567baf78cfd5e3c719052d8d35f3dc5dd1362a46ffd1bf69a"
+        },
+        {
+          "expectedMovements": 9,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "modes": {
+            "crop": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipGripMoved",
+                  "sourceSeconds": 6.68
+                },
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipSupportUnclear",
+                  "sourceSeconds": 7.84
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 92.701702,
+                "maximum": 163.042501,
+                "p50": 91.156802,
+                "p95": 93.117114,
+                "samples": 300
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 260,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 260,
+                "right": 16
+              }
+            },
+            "image": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipGripMoved",
+                  "sourceSeconds": 6.92
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 93.738748,
+                "maximum": 108.88326,
+                "p50": 92.559029,
+                "p95": 94.395593,
+                "samples": 300
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 299,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 299,
+                "right": 33
+              }
+            },
+            "video": {
+              "events": [
+                {
+                  "outcome": "interrupted",
+                  "reason": "dipGripMoved",
+                  "sourceSeconds": 6.92
+                }
+              ],
+              "inferenceLatencyMillis": {
+                "first": 94.250277,
+                "maximum": 108.350525,
+                "p50": 92.916809,
+                "p95": 94.357864,
+                "samples": 300
+              },
+              "observedMovements": 0,
+              "singlePersonFrames": 300,
+              "skippedFrames": 0,
+              "usableArmFrames": {
+                "left": 300,
+                "right": 34
+              }
+            }
+          },
+          "peakCombinedPssKb": 553116,
+          "sha256": "ddc12dbd07563af798082e3649a5aeae82f477c85aee4ad936db8eee20cd9ddc"
+        }
+      ],
+      "confidence_policy": "minimum of raw visibility and presence; threshold0.3; not cross-backend calibrated",
+      "native_log_sha256": "2e8bea4c88bb947c20ce695b5dd0e5521899f3d58910fd719b6a346e8c3421f8",
+      "native_model_sha256": "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
+      "native_report_sha256": "eaff0c750371ab580a188039b0c3a2a2117406b89f2be29a8a36053cb7e8c935",
+      "native_runtime_sha256": "d6e69475707d07a24478e9ff00c437c48c9a834ffb04d4e6e0ba907defa87777",
+      "sdk": 35
+    }
+  },
+  "native_crop_restoration_checks": "Hosted native per-pixel and region checks passed; original-source coordinates/score restoration independently revalidated from traces",
+  "new_inference_run_performed": false,
+  "raw_poses_pixels_apks_media_retained_in_git": false,
+  "retained_report_sha256": {
+    "public-workout-person-crop-api29.native.json": "7e7c427827e631b8c4f5f796775f10c129723cc4d501bf630439688d53667a1a",
+    "public-workout-person-crop-api29.parity.json": "bd0a417054294e336086c60131a33ebe56c57c25bcfd9254a364bee529d2d788",
+    "public-workout-person-crop-api35.native.json": "b9aa264ce08f22a7013924a5ac0a239385a128e2e0ad6589d37bb7b670501695",
+    "public-workout-person-crop-api35.parity.json": "7f4e19a7a1e48dc1edb99d164773069ab39ce0e971bd11eb7a3124d92d741ec1"
+  },
+  "run_id": 38247556801,
+  "scope": "Historical Android CPU fixed-reference diagnostic; three exposed public development clips, not Auto, independent benchmark or physical performance qualification",
+  "shipping_app_changed": false,
+  "swift_crop_replay_cases_per_api": 9,
+  "three_mode_observation_entries_per_source_frame": true,
+  "trace_sha256": {
+    "29": {
+      "dip_controlled_pexels-pose-crops.jsonl": "d02e8e50d68d6e32dd3e3e5b02bcfccd8115d2e43782da825279cc560555dfd1",
+      "pullup_margin-pose-crops.jsonl": "00bfd2bc812f2ea46dc3ba541a5ac91339f841a7fbf50bf493e91dfe47b34153",
+      "pullup_smoke-pose-crops.jsonl": "dbb2b12565eceb612e90a34d6e97b46e62a1610df6722e7a6cc5a9c17d3b2577"
+    },
+    "35": {
+      "dip_controlled_pexels-pose-crops.jsonl": "500e9a6f8b4d990d408db6c43dda827f764959e9247b216e881b22194ede8fda",
+      "pullup_margin-pose-crops.jsonl": "005a57c88371e9c7d7e80d810557d3e209d6e3262675d0014518f8d92f83266b",
+      "pullup_smoke-pose-crops.jsonl": "4c06db135a88c473bbadc6c76e8633112620402aebe65de29d5b2593dfc4e26c"
+    }
+  },
+  "validation_log_sha256": {
+    "api29-current-check.log": "6932d282471a756a331a32ac93b4761ad6aeb17f712b5608d1426e9e379d617f",
+    "api29-historical-check.log": "6932d282471a756a331a32ac93b4761ad6aeb17f712b5608d1426e9e379d617f",
+    "api35-current-check.log": "00bebb4cfea1fe00640dcd503e06025088a94fc81ebd9f1a1903f82f29d2f070",
+    "api35-historical-check.log": "00bebb4cfea1fe00640dcd503e06025088a94fc81ebd9f1a1903f82f29d2f070"
+  },
+  "workflow_conclusion": "failure",
+  "workflow_head_sha": "7beed84c7b39e985a8d5018026f417dcb51d63be"
+}

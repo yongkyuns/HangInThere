@@ -1,0 +1,205 @@
+{
+  "apple_executable_sha256": "e33d33678e82e3c8d5664265bc632a0d144b834f17a20b125d340c3560ccc020",
+  "apple_ffi": {
+    "activeReps": 222,
+    "cases": 2,
+    "frames": 2000,
+    "framingCases": 12,
+    "framingFeedbackCases": 19,
+    "framingFrames": 2000,
+    "framingHostBridgeP95Milliseconds": 1.925307,
+    "gripCorrectionCases": 2,
+    "gripFrames": 2000,
+    "gripHostBridgeP95Milliseconds": 28.369001,
+    "gripInferenceCases": 2,
+    "gripTransportCases": 1,
+    "hostBridgeP95Milliseconds": 46.512637,
+    "overheadFramingFrames": 2000,
+    "overheadFramingHostBridgeP95Milliseconds": 5.837049,
+    "passed": false,
+    "persistenceSets": 55,
+    "practiceCases": 2,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "sceneQualificationCases": 3,
+    "timestampRegressionCases": 4
+  },
+  "apple_framework_sha256": "1fc14c086f75fbb45d5cc3a4531cb81a6357dc2600bbb36403dd83fcfd23b3c4",
+  "changed_source_sha256": {
+    "Evaluation/WorkoutAnalysisBridgeCheck.swift": "55bb6ceca7e3bb03c0f01a83e30ed2e5e5494d0280d733d5f54c28925be1abd2",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticPullUpBar.kt": "ac9321cebe2657d6025bf2827292d8547418a0ada5499733a385685455e31aca",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutFramingGuidance.kt": "0bb512cfb91acfc2bfe57cf01c408c551ee1984bff40ae53689ef78e77ce3621",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutRuntime.kt": "2ffd77b58ce3111439089e0f0ed7ceb9483acb7a0dd7c10bf515a4a3e8cc6102",
+    "shared/src/commonTest/kotlin/dev/hanginthere/core/WorkoutFramingGuidanceTests.kt": "d1f3c46da23fbf2af5159f8cd009b59788d8ea31f4e113f30c5f59febe70faf1"
+  },
+  "common_tests": {
+    "jvmTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 310
+    },
+    "macosX64Test": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 308
+    }
+  },
+  "count_policy_version": 8,
+  "counter_parity": {
+    "cases": 30,
+    "checksum": 8892.549907689074,
+    "frames": 259,
+    "iterations": 100,
+    "p50NanosecondsPerFrame": 6740.540540540541,
+    "p95NanosecondsPerFrame": 16646.65250965251,
+    "scope": "same-host core only; includes counter initialization; excludes inference and camera",
+    "swift": {
+      "cases": 30,
+      "checksum": 8892.549907689074,
+      "framesPerIteration": 259,
+      "iterations": 100,
+      "p50NanosecondsPerFrame": 38752.62548262548,
+      "p95NanosecondsPerFrame": 62280.984555984556,
+      "scope": "same-host core only; includes counter initialization, excludes pose inference and camera"
+    }
+  },
+  "existing_1ms_core_and_5ms_host_budgets_unchanged": true,
+  "functional_guards_reached_end": true,
+  "guidance_policy_version": 2,
+  "host_budget_results": {
+    "framingHostBridgeP95Milliseconds": true,
+    "gripHostBridgeP95Milliseconds": false,
+    "hostBridgeP95Milliseconds": false,
+    "overheadFramingHostBridgeP95Milliseconds": false
+  },
+  "independent_code_review": "no actionable findings",
+  "latest_guidance_not_evaluated_by_fbd64d0_public_run": true,
+  "local_full_bridge_check_passed": false,
+  "local_full_bridge_performance_comparison": {
+    "baseline_source_revision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b",
+    "current_changed_sources": {
+      "Evaluation/WorkoutAnalysisBridgeCheck.swift": "55bb6ceca7e3bb03c0f01a83e30ed2e5e5494d0280d733d5f54c28925be1abd2",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticPullUpBar.kt": "ac9321cebe2657d6025bf2827292d8547418a0ada5499733a385685455e31aca",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutFramingGuidance.kt": "0bb512cfb91acfc2bfe57cf01c408c551ee1984bff40ae53689ef78e77ce3621",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutRuntime.kt": "2ffd77b58ce3111439089e0f0ed7ceb9483acb7a0dd7c10bf515a4a3e8cc6102",
+      "shared/src/commonTest/kotlin/dev/hanginthere/core/WorkoutFramingGuidanceTests.kt": "d1f3c46da23fbf2af5159f8cd009b59788d8ea31f4e113f30c5f59febe70faf1"
+    },
+    "current_source_revision": "de16bf9c9b945eb67152474dd9feb2f070f839b1",
+    "initial_failed_attempt_source_scope": "Earlier uncommitted reporting-harness variant, before deferred budget enforcement; app/analysis source unchanged. Executable hashes retained; these are not binaries from the final source revision.",
+    "initial_failed_current_attempts": [
+      {
+        "budgetMilliseconds": 5,
+        "executableSha256": "7b91460ac01ea5f2f9fcc7bc6f65b6d54fe5e0ff85273a4a9bd7f0c6e39d78a7",
+        "exitCode": 132,
+        "hostBridgeP95Milliseconds": 31.161998,
+        "logSha256": "eb4cd8effe41c4402fab4703df16524ec40c6eac71790b5aaac874ef0472c70b",
+        "observed_host_activity": "multiple CPU-active applications and approximately16GiB swap in use; causality not established",
+        "scope": "initial full build/run; existing analysis benchmark failed before new overhead benchmark"
+      },
+      {
+        "budgetMilliseconds": 5,
+        "executableSha256": "7b91460ac01ea5f2f9fcc7bc6f65b6d54fe5e0ff85273a4a9bd7f0c6e39d78a7",
+        "exitCode": -4,
+        "hostBridgeP95Milliseconds": 7.069439,
+        "logSha256": "8edb829a21505f5d656aaa35bdec2854f6e487b7bec31539e73d6173da60c283",
+        "scope": "one unchanged-executable run after compilation; existing analysis benchmark failed before new overhead benchmark"
+      }
+    ],
+    "paired_attempts": [
+      {
+        "after": {
+          "load_average": [
+            216.5302734375,
+            146.85595703125,
+            127.4990234375
+          ],
+          "swap_usage": "total = 17408.00M  used = 16576.50M  free = 831.50M  (encrypted)"
+        },
+        "before": {
+          "load_average": [
+            168.98291015625,
+            131.697265625,
+            121.65234375
+          ],
+          "swap_usage": "total = 18432.00M  used = 17288.50M  free = 1143.50M  (encrypted)"
+        },
+        "budget_failure_p95_milliseconds": 39.625243,
+        "child_cpu_seconds": 6.124093,
+        "executable_sha256": "eb0b9705acd35f916a6bad5f45428cf55e63547d581b45ba0afff4365eda1b20",
+        "exit_code": -4,
+        "framework_sha256": "b59cd739f000a5d7243947c5bed1a364c1db87aa502ebf355212d5fa8396f8c8",
+        "label": "baseline",
+        "log_sha256": "b274b60a1fdbfcf68b309f39957cf244cd5271270745a13029497c05856869b8",
+        "wall_seconds": 32.21715998649597
+      },
+      {
+        "after": {
+          "load_average": [
+            332.20068359375,
+            232.08740234375,
+            166.3837890625
+          ],
+          "swap_usage": "total = 18432.00M  used = 17137.75M  free = 1294.25M  (encrypted)"
+        },
+        "before": {
+          "load_average": [
+            223.21435546875,
+            149.39794921875,
+            128.509765625
+          ],
+          "swap_usage": "total = 17408.00M  used = 16224.50M  free = 1183.50M  (encrypted)"
+        },
+        "bridge_report": {
+          "activeReps": 222,
+          "cases": 2,
+          "frames": 2000,
+          "framingCases": 12,
+          "framingFeedbackCases": 19,
+          "framingFrames": 2000,
+          "framingHostBridgeP95Milliseconds": 1.925307,
+          "gripCorrectionCases": 2,
+          "gripFrames": 2000,
+          "gripHostBridgeP95Milliseconds": 28.369001,
+          "gripInferenceCases": 2,
+          "gripTransportCases": 1,
+          "hostBridgeP95Milliseconds": 46.512637,
+          "overheadFramingFrames": 2000,
+          "overheadFramingHostBridgeP95Milliseconds": 5.837049,
+          "passed": false,
+          "persistenceSets": 55,
+          "practiceCases": 2,
+          "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+          "sceneQualificationCases": 3,
+          "timestampRegressionCases": 4
+        },
+        "child_cpu_seconds": 34.710043999999996,
+        "executable_sha256": "e33d33678e82e3c8d5664265bc632a0d144b834f17a20b125d340c3560ccc020",
+        "exit_code": -4,
+        "framework_sha256": "1fc14c086f75fbb45d5cc3a4531cb81a6357dc2600bbb36403dd83fcfd23b3c4",
+        "label": "current",
+        "log_sha256": "bafa4aee0a82296bf140996c969fa5ae797017c64bf44e136352abfec61a6982",
+        "native_export_normalization_passed": true,
+        "wall_seconds": 162.76005911827087
+      }
+    ],
+    "scope": "one sequential immutable-baseline/current same-host full-check pair; no retries, budget changes or excluded frames"
+  },
+  "native_export_schema_and_source_normalization": true,
+  "scope": "authored common guidance regressions, production counter/setup parity and actual shipping Apple host FFI; camera/model/physical-device performance excluded",
+  "setup_parity": {
+    "cases": 85,
+    "frames": 4846,
+    "geometryCases": 17,
+    "matched": true,
+    "scope": "every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference"
+  },
+  "source_revision": "de16bf9c9b945eb67152474dd9feb2f070f839b1",
+  "toolchain": {
+    "architecture": "x86_64",
+    "java": "17.0.20.1+1",
+    "macos": "15.5",
+    "swift": "6.1.2",
+    "xcode": "16.4"
+  }
+}

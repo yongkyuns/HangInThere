@@ -1,0 +1,23 @@
+{
+  "activeReps" : 222,
+  "cases" : 2,
+  "frames" : 2000,
+  "framingCases" : 12,
+  "framingFeedbackCases" : 19,
+  "framingFrames" : 2000,
+  "framingHostBridgeP95Milliseconds" : 0.0465,
+  "gripCorrectionCases" : 2,
+  "gripFrames" : 2000,
+  "gripHostBridgeP95Milliseconds" : 0.85441699999999998,
+  "gripInferenceCases" : 2,
+  "gripTransportCases" : 1,
+  "hostBridgeP95Milliseconds" : 0.60179099999999996,
+  "overheadFramingFrames" : 2000,
+  "overheadFramingHostBridgeP95Milliseconds" : 0.074708999999999998,
+  "passed" : true,
+  "persistenceSets" : 55,
+  "practiceCases" : 2,
+  "qualification" : "synthetic Apple host FFI; camera\/model\/device performance not qualified",
+  "sceneQualificationCases" : 3,
+  "timestampRegressionCases" : 4
+}

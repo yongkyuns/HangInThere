@@ -1,0 +1,233 @@
+{
+  "accuracy_gate_waived": false,
+  "actual_checkout_sha": "dcd5217456158972cfcc691d9bd4dbee0e6d8526",
+  "ci": {
+    "android": {
+      "api29": "success",
+      "api35": "success",
+      "hdr": "success",
+      "identical_inputs": "success",
+      "original_accuracy_29_35": "failure: fixed-edge and Auto pullup0/1,dip0/9",
+      "parity": "success",
+      "run": 39100376300,
+      "swift_replay_29_35": "success"
+    },
+    "apple": {
+      "native_host": "success",
+      "run": 39100376303,
+      "simulator_mechanics": "failure: pinned H264 pixel assertions (8 issues)",
+      "simulator_vision": "failure: cnn_human_pose.espresso.weights missing"
+    },
+    "shared": {
+      "result": "success",
+      "run": 39100376361
+    },
+    "temporal": {
+      "integrity": "success",
+      "real_video_event_integrity": "success",
+      "run": 39100376338,
+      "strict_accuracy": "failure: matched1/26,missed25,extra0"
+    }
+  },
+  "compiled_inputs_unchanged_at_checkout": true,
+  "compiled_production_revision": "fd0140d1694fcb17b55497c441b4d0eb984d5c2d",
+  "decision": "Goal remains active. Retain actual finite-rail extraction as a candidate; require unambiguous apparatus/line identity, honest missing-body geometry, validated camera/pose domains and original event/negative/native/performance qualification before any shipping change.",
+  "development_experiments": {
+    "rail_normal": {
+      "authored_measurement_checks": 9,
+      "available_frames": 181,
+      "completed_event_output": false,
+      "frames": 300,
+      "physical_line_identity_qualified": false,
+      "scope": "Experimental scalar only, not a counter or qualified motion/reference track.\nSame-line 2D similarity invariance does not establish physical line identity,\nload, along-rail grip slip, perspective invariance or anatomical form. Torso\nlean/errors change the denominator. No unavailable values are carried forward.\nThe 15-degree domain is an explicitly limited measurement screen, not a newly\naccepted apparatus or production view rule. No event labels enter inference.\n",
+      "unavailable_reasons": {
+        "outsideMeasurementDomain": 11,
+        "selectedProposalUnavailable": 2,
+        "torsoUnavailable": 106
+      }
+    },
+    "registration": {
+      "contradiction_checked": {
+        "frames": 300,
+        "longest_selected_frames": 2,
+        "selected_frames": 13,
+        "sha256": "41102aee5250ea58740b963ce0156be7f1f55f2bf4a99427badebfba72bab97c"
+      },
+      "native_person_segmented": {
+        "frames": 300,
+        "longest_selected_frames": 14,
+        "selected_frames": 152,
+        "sha256": "aa2d1f814d053ea33ca3ec046152e2f0ff9dc9c711db041a3e2cd01c4f0a0a79"
+      },
+      "permissive_rejected": {
+        "frames": 300,
+        "longest_selected_frames": 54,
+        "selected_frames": 286,
+        "sha256": "9c81509647a80725f6c45e5cf9a1d75dccd9f86791c513f5df2f11ac8230c05d"
+      },
+      "pose_bbox_masked": {
+        "frames": 300,
+        "longest_selected_frames": 23,
+        "selected_frames": 125,
+        "sha256": "438d861cb659a0852fc05ac102b031091e8b5e46881911260310fb2bfda52514"
+      }
+    },
+    "registration_decision": "Reject permissive286/300: synthetic distributed motion planes were falsely accepted. Contradiction checking reduces coverage to13/300; native foreground masking gives152/300 with longest14frames, still fragmented. No cumulative drift/cycle qualification.",
+    "repnet": {
+      "batch_policy_difference": "Official batch20 scores more padded slots before stride selection; batch1 is an inference-policy variant, not an equivalent memory-only change.",
+      "batch_size": 1,
+      "checkpoint_sha256": "6caf32eb28e089987ebc3d9ddf5e1e41c45d1c051eed6fd9635f97845956183d",
+      "decision": "Reject promotion: all4 development totals overcount original labels; periodic camera-only stationary-person control produces5.05false repetition mass. No threshold retuning.",
+      "mapping_corrections": [
+        {
+          "basis": "First FFN dense kernel is layer0; restore matching layer0 bias, never duplicate layer1.",
+          "canonical": "resnet_period_estimator_6/transformer_layer_7/sequential_7/dense_78/bias/bias",
+          "corrected": "transformer_layers2/0/ffn/layer_with_weights-0/bias/.ATTRIBUTES/VARIABLE_VALUE",
+          "upstream": "transformer_layers2/0/ffn/layer_with_weights-1/bias/.ATTRIBUTES/VARIABLE_VALUE"
+        }
+      ],
+      "notebook_sha256": "eeabfb0e5cf08a615451cb296f3d51c0311933fedc4d794e117d146a59b5ed3d",
+      "official_notebook": "https://colab.research.google.com/github/google-research/google-research/blob/master/repnet/repnet_colab.ipynb",
+      "results": {
+        "camera_only_periodic": {
+          "chosen_stride": 3,
+          "continuous_count_estimate": 5.047619819641113,
+          "expected_observed_anatomical_cycles": 0,
+          "host_seconds": 16.348406100878492,
+          "sha256": "0f39d5eee05bc405ef963c03fbafabc15c2969a36592b69bd3b2c381894535ea",
+          "uncalibrated_periodicity_score": 0.8659641742706299
+        },
+        "dip_controlled_pexels": {
+          "chosen_stride": 3,
+          "continuous_count_estimate": 9.818182945251465,
+          "elapsed_host_seconds": 15.782551278127357,
+          "frames": 300,
+          "keras": "3.15.1",
+          "sha256": "9e10fb394acb5eb50ef7712a67b12154fc42d7534287e8b392ba7dfc6515d7f1",
+          "tensorflow": "2.16.2",
+          "uncalibrated_periodicity_score": 0.7624010443687439
+        },
+        "dip_rear": {
+          "chosen_stride": 1,
+          "continuous_count_estimate": 12.190476417541504,
+          "elapsed_host_seconds": 38.78291029110551,
+          "frames": 789,
+          "keras": "3.15.1",
+          "sha256": "2824caba44c6401f46874fee6698b0c19d8e4672fda99aba3e61a2a07b6ce188",
+          "tensorflow": "2.16.2",
+          "uncalibrated_periodicity_score": 0.49200454354286194
+        },
+        "dip_side": {
+          "chosen_stride": 2,
+          "continuous_count_estimate": 8.119047164916992,
+          "elapsed_host_seconds": 29.619933129986748,
+          "frames": 597,
+          "keras": "3.15.1",
+          "sha256": "970a4bbeae4049f62c3062c7eeebd18c3b7c4acbce4c946d0b85f7119cc4d453",
+          "tensorflow": "2.16.2",
+          "uncalibrated_periodicity_score": 0.6690542101860046
+        },
+        "pullup_censored": {
+          "chosen_stride": 4,
+          "continuous_count_estimate": 2.045454740524292,
+          "elapsed_host_seconds": 10.556529687019065,
+          "frames": 180,
+          "keras": "3.15.1",
+          "sha256": "29c835981f5e27f738e956f489030cbd32e02f67dee14f7ce4c74ae71f09167c",
+          "tensorflow": "2.16.2",
+          "uncalibrated_periodicity_score": 0.8846381306648254
+        },
+        "static": {
+          "chosen_stride": 1,
+          "continuous_count_estimate": 0.0,
+          "expected_observed_anatomical_cycles": 0,
+          "host_seconds": 17.001319125993177,
+          "sha256": "df57435028d49f3104c9ba548245d9d6686bf1180bb8b43199ef105175c6f20a",
+          "uncalibrated_periodicity_score": 0.3824338912963867
+        }
+      },
+      "scope": "Development-only offline RepNet batch1 policy variant; source-only exact native PNG/PTS inputs. No event/phase, form, apparatus, causal-live or native/mobile qualification.",
+      "source_revision": "60d48fc1b71b6126462136cad441dd76da7460d0",
+      "verified_variables": 226
+    },
+    "visible_rail": {
+      "mask_confidence_calibrated": false,
+      "predeclared_visually_reviewed_frames": [
+        0,
+        50,
+        100,
+        110,
+        150,
+        200,
+        250,
+        299
+      ],
+      "production_promotion": false,
+      "results": {
+        ".1": {
+          "longest_near_horizontal_frames": 55,
+          "longest_selected_frames": 55,
+          "near_horizontal_selected_frames": 244,
+          "selected_left_frames": 254
+        },
+        ".5": {
+          "longest_near_horizontal_frames": 162,
+          "longest_selected_frames": 162,
+          "near_horizontal_selected_frames": 287,
+          "selected_left_frames": 298
+        },
+        "native": {
+          "longest_near_horizontal_frames": 1,
+          "longest_selected_frames": 17,
+          "near_horizontal_selected_frames": 1,
+          "selected_left_frames": 132
+        },
+        "unmasked": {
+          "longest_near_horizontal_frames": 78,
+          "longest_selected_frames": 300,
+          "near_horizontal_selected_frames": 180,
+          "selected_left_frames": 300
+        }
+      },
+      "scope": "Raw observed-proposal availability on300 exactnativepublic frames; no temporal identity, apparatus acquisition, physical support, counting, native OpenCV SDK/device or untouched holdout qualification. Near-horizontal is a diagnostic, not a new shipping acceptance rule. Mask confidence is not calibrated.",
+      "semantic_proposal_accuracy_qualified": false,
+      "temporal_identity_qualified": false
+    }
+  },
+  "goal_complete": false,
+  "local_evidence_manifest": {
+    "availability": "Local ignored public-only development artifacts; hashes alone are not independently reproduced qualification",
+    "files": 47,
+    "path": "build/dip-pose-provider-goal/followup-experiments-provenance.json",
+    "sha256": "43376b7165b7105d77e22c5ffb2e1af97165831abcc76d1996350dfde45a99e7"
+  },
+  "local_suite_results": {
+    "android_instrumentation_sources_compile": true,
+    "android_units": 31,
+    "apple_host_with_overhead_test_diff": 355,
+    "counter_oracle_cases": 98,
+    "counter_oracle_frames": 951,
+    "jvm": 440,
+    "kotlin_native": 427,
+    "real_gradle_cache_contract_runs": 8,
+    "setup_geometries": 17,
+    "setup_oracle_cases": 127,
+    "setup_oracle_frames": 7022,
+    "shipping_attempt_bridge_cases": 4,
+    "shipping_reliability_bridge_cases": 14,
+    "swift_core": 273
+  },
+  "production_promotion": false,
+  "schema_version": 1,
+  "scope": "Public development-only follow-up experiments; no shipping model, apparatus, motion/count, live/Auto, native SDK, holdout or device qualification",
+  "strict_production": {
+    "all_inputs_processed": true,
+    "expected": 26,
+    "extras": 0,
+    "frames": 1866,
+    "matched": 1,
+    "missed": 25,
+    "score_exit": 3,
+    "source_dirty": false
+  }
+}

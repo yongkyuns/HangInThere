@@ -50,6 +50,12 @@ unapproved use, mismatched hashes and missing model assets never become success.
 No live-camera or real-time dropping is simulated here; timings are native Mac
 diagnostics only.
 
+For public **repetition counts and cycle boundaries**, use the separate
+[public workout dataset adapter and production replay harness](PUBLIC_WORKOUT_DATASETS.md).
+Its frozen first batch contains 29 Countix and four RepCount-A original videos.
+It scores acceptance and completed cycles separately; it does not change this
+pose-only runner's `rep_metrics.status` or supply 2D joint references.
+
 Countix's official archive can omit the action-class column. Such rows are
 reported as `unclassified_rows`, never guessed or counted as known negatives.
 `selected_counts` covers only explicitly class-labelled rows. An external,
@@ -178,6 +184,45 @@ reviewed references. Image sequences still export frame indices without invented
 timestamps. The first six-sequence native Penn diagnostic is recorded in
 [results/penn-six-diagnostic.md](results/penn-six-diagnostic.md); broader,
 independent model qualification and HAA4D execution remain open.
+
+## Separately versioned bilateral dip replay
+
+The public selected-exercise runner defaults to the original counter-v8
+configuration. Its fatal event-accuracy check remains unchanged. To evaluate the
+recorded-video bilateral dip path explicitly, append `--candidate-bilateral-dips`:
+
+```sh
+./scripts/evaluate-public-workouts-apple.sh INPUT/manifest.json INPUT candidate.json --candidate-bilateral-dips
+python3 scripts/temporal_native_replay.py score-candidate \
+  --reference reference.json --manifest INPUT/manifest.json \
+  --native candidate.json --output candidate-score.json --require-exact-events
+```
+
+Configuration 2 records each case's actual method and version. Dips use
+`bilateralDipImageMotion` v1; pull-ups retain `bothUsableArms` v8. Both arms are
+tracked; `reference_side` preserves the original annotation provenance. Candidate
+reports cannot pass the legacy `score` contract or claim a root counter-v8 policy.
+Both scorers use the same original source checks, labels, exclusions, tolerance
+and event matcher. Missing setup and missed/extra events remain accuracy failures.
+The manual **Bilateral dip candidate event accuracy** workflow runs this complete
+candidate path and retains the fatal score separately from the existing v8 gate.
+
+Raw pose arm/search/starting-position diagnostics still use the legacy geometry.
+`legacy_automatic_bar_state` is not candidate rail-acquisition evidence. The
+source-owned dip processor enforces current scene evidence, but its measurements
+are not collected by the legacy scene callback. Report completion establishes
+source consumption, not successful acquisition or correct counts.
+
+The current recorded-video implementation detected all four completed image
+cycles in each of two local simultaneous dip recordings, with every original
+frame processed (1,006 and 1,131 frames). Full shared snapshots and saved records
+matched between Kotlin/Native and JVM. This is development evidence, not
+anatomical depth/form, live-camera, native Android or physical-device performance
+qualification. The same fully linked production path missed all 25 original
+public dip events across 1,686 frames: rear footage lacks a reliable body-to-hand
+association, while the side views usually supply only one independent hand.
+The original legacy-v8 public result remains 1/26 matched, with 25 misses and no
+extras. These failures remain open.
 
 ## MediaPipe Heavy comparison (host-only)
 

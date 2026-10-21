@@ -8,7 +8,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
-swiftc -O -o "$WORK/count-replay" "$ROOT"/HangInThere/Analysis/*.swift "$ROOT/Evaluation/CountReplay.swift"
+swiftc -O -o "$WORK/count-replay" "$ROOT"/ios/HangInThere/Analysis/*.swift "$ROOT/Evaluation/CountReplay.swift"
 python3 - "$ROOT" "$WORK/count-replay" "$@" <<'PY'
 import hashlib, json, pathlib, subprocess, sys
 root = pathlib.Path(sys.argv[1]); executable = pathlib.Path(sys.argv[2])
@@ -24,7 +24,7 @@ report = json.loads(run.stdout)
 report['input_sha256'] = before
 report['source_dirty'] = bool(subprocess.check_output(['git', '-C', str(root), 'status', '--porcelain'], text=True).strip())
 report['source_revision'] = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
-report['source_sha256'] = {str(p.relative_to(root)): digest(p) for p in [*sorted((root/'HangInThere/Analysis').glob('*.swift')), root/'Evaluation/CountReplay.swift']}
+report['source_sha256'] = {str(p.relative_to(root)): digest(p) for p in [*sorted((root/'ios/HangInThere/Analysis').glob('*.swift')), root/'Evaluation/CountReplay.swift']}
 report['executable_sha256'] = digest(executable)
 report['toolchain'] = subprocess.check_output(['swift', '--version'], text=True).strip()
 output.parent.mkdir(parents=True, exist_ok=True)

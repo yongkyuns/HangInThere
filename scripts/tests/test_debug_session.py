@@ -128,7 +128,7 @@ class DebugSessionTests(unittest.TestCase):
                 debug_session.verify(package)
 
     def test_hangdebug_type_is_registered_as_package(self):
-        plist = plistlib.loads((ROOT / "HangInThere" / "Info.plist").read_bytes())
+        plist = plistlib.loads((ROOT / "ios" / "HangInThere" / "Info.plist").read_bytes())
         declarations = plist.get("UTExportedTypeDeclarations")
         self.assertIsInstance(declarations, list)
         declaration = next(

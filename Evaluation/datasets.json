@@ -17,14 +17,14 @@
     {
       "name": "RepCount-A",
       "source": "https://svip-lab.github.io/dataset/RepCount_dataset.html",
-      "use": "video counts and period boundaries; pull-ups",
-      "remaining": "rights/media acquisition and annotation converter pending; Part B original videos not available"
+      "use": "native frame/count adapter and frozen four-video production replay diagnostic; author open-set and mirror LLSP splits retained separately",
+      "remaining": "broader original-media acquisition, participant/source grouping, data-use and exposure review, strict cycle/phase adjudication; Part B videos unavailable"
     },
     {
       "name": "Countix",
       "source": "https://sites.google.com/view/repnet",
-      "use": "official metadata archive inventory implemented",
-      "remaining": "metadata does not establish video accessibility or usage permission; counts not strict form labels"
+      "use": "official metadata inventory plus all 29 labelled validation pull-up videos pinned for production replay diagnostics",
+      "remaining": "training/test media expansion, unclassified test label join, participant/exposure review and strict form/phase adjudication; segment counts are not strict form labels"
     },
     {
       "name": "HAA500",

@@ -1,0 +1,1475 @@
+{
+  "cases": [
+    {
+      "acceptedMovementsBySide": {
+        "left": 0,
+        "right": 0
+      },
+      "analyzedFrames": 294,
+      "caseId": "countix_6cDE1YpzSaE",
+      "edgeResetAdjacentTranslationHigh": 0,
+      "edgeResetDwellTranslationHigh": 0,
+      "edgeResetSamples": 0,
+      "mediaSha256": "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+      "referenceConfirmed": false,
+      "samples": [
+        {
+          "adjacentRegistrationFailed": false,
+          "dwellRegistrationFailed": false,
+          "seconds": 0,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0,
+            "scaleFraction": 0.0038444597565489014,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 0.3003,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 0.3003,
+            "scaleFraction": 0.0032004539938630394,
+            "shiftFraction": 0.009746992255290417
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 0.6006,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 0.6006,
+            "scaleFraction": 0.011093695290212757,
+            "shiftFraction": 0.0167244369149893
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 0.9009,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 0.9009,
+            "scaleFraction": 0.007234018411752308,
+            "shiftFraction": 0.01416394309331329
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 1.2012,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 1.2012,
+            "scaleFraction": 0.00039279115722312685,
+            "shiftFraction": 0.007479395565464588
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 1.5015,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 1.5015,
+            "scaleFraction": 0.009527430538174286
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 1.8018,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 1.8018,
+            "scaleFraction": 0.0041901625100299045,
+            "shiftFraction": 0.03758349757704114
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.1021,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 0,
+            "referenceSeconds": 2.1021,
+            "scaleFraction": 0.004907231515083321
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.4024,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 0,
+            "referenceSeconds": 2.4024,
+            "scaleFraction": 0.003057992184633207
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.7027,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 0,
+            "referenceSeconds": 2.7027,
+            "scaleFraction": 0.014563383401177799
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.003,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 0,
+            "referenceSeconds": 3.003,
+            "scaleFraction": 0.014669899043135981
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.3033,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 0,
+            "referenceSeconds": 3.3033,
+            "scaleFraction": 0.027453334026487752
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.6036,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 3.6036,
+            "scaleFraction": 0.004569395168738,
+            "shiftFraction": 0.02527815933777958
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.9039,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 3.9039,
+            "scaleFraction": 0.004828138877540411
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 4.2042,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 4.2042,
+            "scaleFraction": 0.005147960136060892,
+            "shiftFraction": 0.03609107350051745
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 4.5045,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 4.5045,
+            "scaleFraction": 0.010790000364548913
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 4.8048,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 4.8048,
+            "scaleFraction": 0.012952833188892288,
+            "shiftFraction": 0.04224140646040431
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.1051,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 5.1051,
+            "scaleFraction": 0.01229031639306788
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.4054,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 5.4054,
+            "scaleFraction": 0.009051456892111398
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.7057,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 5.7057,
+            "scaleFraction": 0.02995124135580296
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.006,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 6.006,
+            "scaleFraction": 0.025865223296954287,
+            "shiftFraction": 0.00572653559113564
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.3063,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 0,
+            "referenceSeconds": 6.3063,
+            "scaleFraction": 0.01179563037367437
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.6066,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 6.6066,
+            "scaleFraction": 0.021364292031549326,
+            "shiftFraction": 0.017786456215091246
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.9069,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.9069,
+            "scaleFraction": 0.020005723025408262,
+            "shiftFraction": 0.02373334373699314
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 7.2072,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.2072,
+            "scaleFraction": 0.00295087131416083,
+            "shiftFraction": 0.01251927526202774
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 7.5075,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.5075,
+            "scaleFraction": 0.00015935460053917438,
+            "shiftFraction": 0.002196026152894708
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 7.8078,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 7.8078,
+            "scaleFraction": 0.0042578458953712595
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 8.1081,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 0,
+            "referenceSeconds": 8.1081,
+            "scaleFraction": 0.04467356378259413
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 8.4084,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 8.4084,
+            "scaleFraction": 0.006561613542299338,
+            "shiftFraction": 0.012364231815808929
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 8.7087,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 8.7087,
+            "scaleFraction": 0.005608575097337698
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.009,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 9.009,
+            "scaleFraction": 0.011477872106394837
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.3093,
+          "state": "findingEdge"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 1,
+            "referenceSeconds": 9.3093,
+            "scaleFraction": 0.005935538994004008
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.6096,
+          "state": "lookingForGrip"
+        }
+      ]
+    },
+    {
+      "acceptedMovementsBySide": {
+        "left": 0,
+        "right": 0
+      },
+      "analyzedFrames": 300,
+      "caseId": "countix_88hPGnxh_Go",
+      "edgeResetAdjacentTranslationHigh": 0,
+      "edgeResetDwellTranslationHigh": 0,
+      "edgeResetSamples": 0,
+      "mediaSha256": "f5dcfabac111631cae436fe47388d9112f9f6c631e59e6be5c7df267c6040fb2",
+      "referenceConfirmed": false,
+      "samples": [
+        {
+          "adjacentRegistrationFailed": false,
+          "dwellRegistrationFailed": false,
+          "seconds": 0,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0,
+            "scaleFraction": 0.004208266554826645,
+            "shiftFraction": 0.001388888888888889
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 0.3003,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.3003,
+            "scaleFraction": 0.004284298612009296,
+            "shiftFraction": 0.003105649968749708
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 0.6006,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.6006,
+            "scaleFraction": 0.0016577664821686433,
+            "shiftFraction": 0.0019641855032959655
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 0.9009,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.9009,
+            "scaleFraction": 0.0019492039336985734,
+            "shiftFraction": 0.001388888888888889
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 1.2012,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.2012,
+            "scaleFraction": 0.004715001076226022,
+            "shiftFraction": 0.002777777777777778
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 1.5015,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.5015,
+            "scaleFraction": 0.00460850267306534,
+            "shiftFraction": 0.004166666666666667
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 1.8018,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.8018,
+            "scaleFraction": 0.005300355813854685,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.1021,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 2.1021,
+            "scaleFraction": 0.004622942890226023,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.4024,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 2.4024,
+            "scaleFraction": 0.0010887869513888093,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.7027,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 2.7027,
+            "scaleFraction": 0.0022765806184648074,
+            "shiftFraction": 0.004392052305789416
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.003,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.003,
+            "scaleFraction": 0.004397026950813565,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.3033,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.3033,
+            "scaleFraction": 0.0011835778462937485,
+            "shiftFraction": 0.001388888888888889
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.6036,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 3.6036,
+            "scaleFraction": 9.459856713522896e-05,
+            "shiftFraction": 0.008333333333333333
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 3.9039,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 3.9039,
+            "scaleFraction": 0.0034613360393062065,
+            "shiftFraction": 0.008333333333333333
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 4.2042,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 4.2042,
+            "scaleFraction": 0.00014629386982811798,
+            "shiftFraction": 0.002777777777777778
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 4.5045,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 4.5045,
+            "scaleFraction": 0.0033012113902486373,
+            "shiftFraction": 0.004392052305789416
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 4.8048,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 4.8048,
+            "scaleFraction": 0.00310308509438717,
+            "shiftFraction": 0.004166666666666667
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.1051,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 5.1051,
+            "scaleFraction": 0.003148713463037911,
+            "shiftFraction": 0.001388888888888889
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.4054,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 5.4054,
+            "scaleFraction": 0.00035821277905090376,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.7057,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 5.7057,
+            "scaleFraction": 0.006086606033800734,
+            "shiftFraction": 0.003105649968749708
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.006,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.006,
+            "scaleFraction": 0.002559449413824355,
+            "shiftFraction": 0.001388888888888889
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.3063,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 6.3063,
+            "scaleFraction": 0.0010799943037540505,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.6066,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 6.6066,
+            "scaleFraction": 0.0010366793675447017,
+            "shiftFraction": 0.005555555555555556
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.9069,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.9069,
+            "scaleFraction": 0.00019968859842622866,
+            "shiftFraction": 0.002777777777777778
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 7.2072,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.2072,
+            "scaleFraction": 0.0015779334407375334,
+            "shiftFraction": 0.005555555555555556
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 7.5075,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 7.5075,
+            "scaleFraction": 0.00471355387649619,
+            "shiftFraction": 0.008333333333333333
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 7.8078,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 7.8078,
+            "scaleFraction": 0.004030333771973371,
+            "shiftFraction": 0.008333333333333333
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 8.1081,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8.1081,
+            "scaleFraction": 0.005219447888712203,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 8.4084,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8.4084,
+            "scaleFraction": 0.0010868140598140341,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 8.7087,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8.7087,
+            "scaleFraction": 0.004531983038069232,
+            "shiftFraction": 0.001388888888888889
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.009,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 9.009,
+            "scaleFraction": 0.005900256192994391,
+            "shiftFraction": 0
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.3093,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 9.3093,
+            "scaleFraction": 0.00042877630168791647,
+            "shiftFraction": 0.003105649968749708
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.6096,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 9.6096,
+            "scaleFraction": 0.0029269198008308184,
+            "shiftFraction": 0.002777777777777778
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.9099,
+          "state": "ambiguous"
+        }
+      ]
+    },
+    {
+      "acceptedMovementsBySide": {
+        "left": 0,
+        "right": 0
+      },
+      "analyzedFrames": 250,
+      "caseId": "countix_Ace4EsUWyYc",
+      "edgeResetAdjacentTranslationHigh": 10,
+      "edgeResetDwellTranslationHigh": 10,
+      "edgeResetSamples": 13,
+      "mediaSha256": "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+      "referenceConfirmed": false,
+      "samples": [
+        {
+          "adjacentRegistrationFailed": false,
+          "dwellRegistrationFailed": false,
+          "seconds": 0,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0,
+            "scaleFraction": 0.002668093256343651,
+            "shiftFraction": 0.003739697782732294
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 0.32,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.32,
+            "scaleFraction": 0.0037140955488644822,
+            "shiftFraction": 0.009746992255290417
+          },
+          "dwellRegistrationFailed": false,
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 0.64,
+            "stableSeconds": 0,
+            "status": "candidateStarted"
+          },
+          "seconds": 0.64,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.64,
+            "scaleFraction": 0.0063142008062953,
+            "shiftFraction": 0.03472916597236107
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.64,
+            "scaleFraction": 0.0063142008062953,
+            "shiftFraction": 0.03472916597236107
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 0.96,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 0.96,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.96,
+            "scaleFraction": 0.002888203379292076,
+            "shiftFraction": 0.00836221845749465
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 0.96,
+            "scaleFraction": 0.002888203379292076,
+            "shiftFraction": 0.00836221845749465
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 1.28,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 1.28,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.28,
+            "scaleFraction": 0.002906446772735327,
+            "shiftFraction": 0.010869774890623978
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.28,
+            "scaleFraction": 0.002906446772735327,
+            "shiftFraction": 0.010869774890623978
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 1.6,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 1.6,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.6,
+            "scaleFraction": 0.010531936197150094,
+            "shiftFraction": 0.015605697954336271
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.6,
+            "scaleFraction": 0.010531936197150094,
+            "shiftFraction": 0.015605697954336271
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 1.92,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 1.92,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 1.92,
+            "scaleFraction": 0.0015961853620356514,
+            "shiftFraction": 0.005598790102985103
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.24,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 2.24,
+            "scaleFraction": 0.0025885852159039935,
+            "shiftFraction": 0.006211299937499416
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.56,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 2.56,
+            "scaleFraction": 0.011246563781969643,
+            "shiftFraction": 0.014845526615577743
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 2.88,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 2.88,
+            "scaleFraction": 0.0017045563548796494,
+            "shiftFraction": 0.005892556509887895
+          },
+          "dwellRegistrationFailed": false,
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 3.2,
+            "stableSeconds": 0,
+            "status": "candidateStarted"
+          },
+          "seconds": 3.2,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.2,
+            "scaleFraction": 2.4299103214442397e-05,
+            "shiftFraction": 0.002503855052405548
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.2,
+            "scaleFraction": 2.4299103214442397e-05,
+            "shiftFraction": 0.002503855052405548
+          },
+          "referenceStability": {
+            "observations": 2,
+            "sourceSeconds": 3.52,
+            "stableSeconds": 0.32,
+            "status": "accumulating"
+          },
+          "seconds": 3.52,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.52,
+            "scaleFraction": 0.0046975872420736975,
+            "shiftFraction": 0.012973292841853754
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.2,
+            "scaleFraction": 0.005688566588070487,
+            "shiftFraction": 0.014845526615577743
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 3.84,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 3.84,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.84,
+            "scaleFraction": 0.0019660909035628116,
+            "shiftFraction": 0.00572653559113564
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.84,
+            "scaleFraction": 0.0019660909035628116,
+            "shiftFraction": 0.00572653559113564
+          },
+          "referenceStability": {
+            "observations": 2,
+            "sourceSeconds": 4.16,
+            "stableSeconds": 0.32,
+            "status": "accumulating"
+          },
+          "seconds": 4.16,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 4.16,
+            "scaleFraction": 0.00041309875780248806,
+            "shiftFraction": 0.002196026152894708
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.84,
+            "scaleFraction": 0.0020466536354480924,
+            "shiftFraction": 0.005288731323516603
+          },
+          "referenceStability": {
+            "observations": 3,
+            "sourceSeconds": 4.48,
+            "stableSeconds": 0.64,
+            "status": "accumulating"
+          },
+          "seconds": 4.48,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 4.48,
+            "scaleFraction": 0.008749954776416047,
+            "shiftFraction": 0.013102751572300838
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 3.84,
+            "scaleFraction": 0.006449877098844592,
+            "shiftFraction": 0.009445465631066281
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 4.8,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 4.8,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 4.8,
+            "scaleFraction": 0.004379827514977452,
+            "shiftFraction": 0.007149743153463195
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 4.8,
+            "scaleFraction": 0.004379827514977452,
+            "shiftFraction": 0.007149743153463195
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 5.12,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 5.12,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 5.12,
+            "scaleFraction": 0.008003935838990506,
+            "shiftFraction": 0.011219093348196882
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.44,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 5.44,
+            "scaleFraction": 0.008255591493251613,
+            "shiftFraction": 0.012422599874998832
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 5.76,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 3,
+            "referenceSeconds": 5.76,
+            "scaleFraction": 0.001162407581902558,
+            "shiftFraction": 0.008098544298396251
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 6.08,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.08,
+            "scaleFraction": 0.005693552273095315,
+            "shiftFraction": 0.009820927516479828
+          },
+          "dwellRegistrationFailed": false,
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 6.4,
+            "stableSeconds": 0,
+            "status": "candidateStarted"
+          },
+          "seconds": 6.4,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.4,
+            "scaleFraction": 0.012350527448058202,
+            "shiftFraction": 0.02576941016011038
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.4,
+            "scaleFraction": 0.012350527448058202,
+            "shiftFraction": 0.02576941016011038
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 6.72,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 6.72,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.72,
+            "scaleFraction": 0.003552806102258943,
+            "shiftFraction": 0.009054447785003679
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 6.72,
+            "scaleFraction": 0.003552806102258943,
+            "shiftFraction": 0.009054447785003679
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 7.04,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 7.04,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.04,
+            "scaleFraction": 0.003058101600802443,
+            "shiftFraction": 0.006944444444444444
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.04,
+            "scaleFraction": 0.003058101600802443,
+            "shiftFraction": 0.006944444444444444
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 7.36,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 7.36,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.36,
+            "scaleFraction": 0.008151252509269957,
+            "shiftFraction": 0.027542405576461027
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.36,
+            "scaleFraction": 0.008151252509269957,
+            "shiftFraction": 0.027542405576461027
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 7.68,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 7.68,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.68,
+            "scaleFraction": 7.009011178804592e-05,
+            "shiftFraction": 0.006402461428675616
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 7.68,
+            "scaleFraction": 7.009011178804592e-05,
+            "shiftFraction": 0.006402461428675616
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 8,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 8,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8,
+            "scaleFraction": 0.004726953817905111,
+            "shiftFraction": 0.00836221845749465
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8,
+            "scaleFraction": 0.004726953817905111,
+            "shiftFraction": 0.00836221845749465
+          },
+          "referenceStability": {
+            "observations": 2,
+            "sourceSeconds": 8.32,
+            "stableSeconds": 0.32,
+            "status": "accumulating"
+          },
+          "seconds": 8.32,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 2,
+            "referenceSeconds": 8.32,
+            "scaleFraction": 0.014501887514578815,
+            "shiftFraction": 0.04671397238567261
+          },
+          "dwellRegistrationFailed": false,
+          "dwellSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8,
+            "scaleFraction": 0.0017713360620013052,
+            "shiftFraction": 0.04097810692203314
+          },
+          "referenceStability": {
+            "observations": 1,
+            "sourceSeconds": 8.64,
+            "stableSeconds": 0,
+            "status": "edgeChanged"
+          },
+          "seconds": 8.64,
+          "state": "holding"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8.64,
+            "scaleFraction": 0.004824470500905065,
+            "shiftFraction": 0.018698488913661472
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 8.96,
+          "state": "ambiguous"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 8.96,
+            "scaleFraction": 0.0022759066534597805,
+            "shiftFraction": 0.00286326779556782
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.28,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 9.28,
+            "scaleFraction": 0.004048862469855585,
+            "shiftFraction": 0.007382045703287952
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.6,
+          "state": "lookingForGrip"
+        },
+        {
+          "adjacentRegistrationFailed": false,
+          "adjacentSceneMotion": {
+            "consensusPatches": 4,
+            "referenceSeconds": 9.6,
+            "scaleFraction": 0.00813758053862268,
+            "shiftFraction": 0.014583333333333334
+          },
+          "dwellRegistrationFailed": false,
+          "seconds": 9.92,
+          "state": "lookingForGrip"
+        }
+      ]
+    }
+  ],
+  "nativeIntegrationValidation": {
+    "finiteAndMissingSignalContracts": true,
+    "priorBarStatesEventsCountsUnchanged": true,
+    "sourceClockAndReferenceAnchors": true,
+    "verificationHarnessSha256": "e4504bd63268d9a64fdde187d515ac34a713478c09f888dd1d57cce6cd659a21"
+  },
+  "provenance": {
+    "compiledSources": {
+      "Evaluation/AutomaticBarAudit.swift": "021b3eb9ef75a942f289629b408dced8c7fd49fec8573aeddd8ca05ff2f3ec96",
+      "ios/HangInThere/Analysis/ArmMeasurement.swift": "3aa7733af9f17592e2dfb904097b704d16bf7b20ec2e2b4b8cc2eca376c1dc15",
+      "ios/HangInThere/Analysis/AutomaticDipBar.swift": "052c3d270ac46f156a1b519ec90aea802b3f783d969e66ca2bdcd55b3c4f95cb",
+      "ios/HangInThere/Analysis/AutomaticDipRails.swift": "67275e7e7193c6e86a7bb355dcc3bab17de9d687c553f03d6c7a50efa29589c2",
+      "ios/HangInThere/Analysis/AutomaticExerciseDetection.swift": "1bdf7e3587eabf6acae2f9af9ef9d9fda9d9aaf37df55b094a5bc7d5507056d4",
+      "ios/HangInThere/Analysis/AutomaticPullUpBar.swift": "0af39d5a240a01f49269087f75cecefd82ef732536706eec29818ce9f6809ae6",
+      "ios/HangInThere/Analysis/BarGeometry.swift": "17e34ac1372cfb44829d11c36a3de060952f7b3a80a0d0fa57be1e94c829a069",
+      "ios/HangInThere/Analysis/DipProgress.swift": "62a595e04db4d072a10d5ef5f550dd1074a3caaf8336e6dc9febc9f87e46468d",
+      "ios/HangInThere/Analysis/DipSupportMeasurement.swift": "1af6ef8f1b9e19c7d72e8acfc2f3e94a82ed3d82b989091adead6c4369da3e10",
+      "ios/HangInThere/Analysis/ExerciseCounter.swift": "f12bf0531a66979ccf1d57c9d70926c833b8a1676c2529dc9344bc6cb32412a7",
+      "ios/HangInThere/Analysis/Geometry.swift": "a2cdcb62f6102cacc923c9906b17c6aec8d673bae1b92b46d4a90ddf139e1374",
+      "ios/HangInThere/Analysis/HandsFreeSetStart.swift": "df3632e247da2a3942ba5e8e9950d6c07fd17acfdd1f17d12946ccdf7c0bccfa",
+      "ios/HangInThere/Analysis/LiveDeviceQualification.swift": "42b64ccaf9973083389ed40a389b263b3fe604b55e7ccd9ffbd1d99e50f604be",
+      "ios/HangInThere/Analysis/LiveFramingAssessment.swift": "5b07cb1d3458f23813d75452087bf9bc23ce952085359eb82596d91322619e2c",
+      "ios/HangInThere/Analysis/LiveSetSession.swift": "6af32430adc615c9226b0c3f13ac0ae1fb514ccae266d0c92b4e9fee486ee1d4",
+      "ios/HangInThere/Analysis/PhoneOrientationStability.swift": "1ef63589c74158f15ac45d30b33ed17e332db38d9c6861eb05135835d6b02fb7",
+      "ios/HangInThere/Analysis/PoseObservation.swift": "845b863d334f225dbc73d248ef310a66e3dff7fd7f3026923b4e9c988c394504",
+      "ios/HangInThere/Analysis/PullUpArmMeasurement.swift": "0939b33758e92b4acf54e1b3aa4bbc4f286cd423a5466e4f58b367ef3a704d5d",
+      "ios/HangInThere/Analysis/PullUpProgress.swift": "e9fd60723ef85fbf8963090e84210b50fc7c6135f29ffeb800230293ee988241",
+      "ios/HangInThere/Analysis/ReplayTimeline.swift": "dd8276cd489f9eaff9360731ae01cdc31dfa8b2cffc8467bac7281ec552cbcf1",
+      "ios/HangInThere/Analysis/StaticSceneStability.swift": "ea626cbf92c9745fc91740368874b86893e23842ccedde1b5666a013a2c7d10a",
+      "ios/HangInThere/Analysis/WorkoutGripRecords.swift": "9ace15bc9c3a486013ce7da31c7217729c5d52d25dedac83d2b782c5980636fd",
+      "ios/HangInThere/Analysis/WorkoutRecords.swift": "d90bbafe2956b1f8e9d65c6cfe1002bb189181e622c99ef389c03c5f0e820267",
+      "ios/HangInThere/Capture/VideoReplayReader.swift": "a627dc9e18946d9d891ff90906c830a1217fcdc10af27ba75bec8e6264f789d3",
+      "ios/HangInThere/Pose/VisionBarDetector.swift": "7b4b191b1631222001eae2f8386ed76ab4ba5768e8bc08b26a41698c74e38125",
+      "ios/HangInThere/Pose/VisionPoseEstimator.swift": "11c3a118980b0dae3877db30751e04ea4572eed4d7845900ccc1573da0998dd6",
+      "ios/HangInThere/Pose/VisionStaticSceneRegistration.swift": "fbd8a52fe6118bbe4c6620a080f8ebcda801f6dd2213ef1fd4e954f011ff75d4"
+    },
+    "executableSha256": "e25910b9faac21b5f2fbe7dd7529d69f04972658cc6e468d27e1ab7977ad5b45",
+    "manifestSha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+    "scope": "actual local selected-pullUp audit with diagnostic adjacent/prior-dwell scene registration; not physical camera annotation",
+    "sourceRevision": "113a43452bc483079ff490c7937112e3121c073a"
+  },
+  "referenceScopes": {
+    "adjacentSceneMotion": "previous contour-sampled source frame",
+    "dwellSceneMotion": "prior stability-dwell anchor, measured before current observation replaces it"
+  },
+  "scope": "actual local Apple selected-pullUp + adjacent/prior-dwell image-registration diagnostics; not physical camera, bar or pose annotation",
+  "thresholds": {
+    "interpretation": "unchanged production StaticSceneStability thresholds, applied to estimated image motion only",
+    "scaleFraction": 0.012,
+    "translationFraction": 0.008
+  }
+}

@@ -1,7 +1,87 @@
 # Current counting policy (v8)
 
+`BilateralDipMotion` v1 is a separate image-motion engine under integration.
+It uses two fresh, independently observed hand MCP centres, finite curved rail
+boundaries and current scene registration. Both measured arms must establish a
+stable starting support, travel and sustain their return before an image cycle
+is emitted. A missing elbow cannot establish the start or return. Gaps, camera
+movement, stale observations and unresolved returns interrupt that evidence.
+Its output does not verify anatomical depth, form or load and must never be
+serialized as an ExerciseCounter v8 result. Live still uses v8. The candidate
+recorded-dip route is under qualification; it is not a qualified live fix.
+
+Replay of 227 sampled observations from a labelled four-dip recording produces
+four image cycles in each simultaneous view, with Kotlin/Native and JVM agreement.
+The first full production-controller runs of all 1,006 and 1,131 original frames
+instead produced zero cycles: intermittent rail proposals and grip observations
+restarted acquisition. The sampled result is not production accuracy evidence.
+With acquisition v2, full production-controller replay of both simultaneous
+views consumes all 1,006 and 1,131 original frames. Each produces four completed
+cycles, zero unfinished attempts and one tracking interruption during dismount.
+Every frame snapshot and both full saved records agree between Kotlin/Native and
+JVM; common storage validation and after-set feedback also report four completed
+cycles and zero practice attempts. These are two views of one development
+workout, not independent held-out sessions or a live fix.
+The iOS SDK's OpenCV 4.5.3 extraction
+matches all ordered contour pixels from 304 source crops against the macOS 4.11
+adapter. These checks do not establish Android native vision or physical-phone
+throughput parity. The original public-video accuracy gate remains mandatory
+and currently fails; none of its labels or matching rules have changed.
+Its configuration-1 runner explicitly selects the legacy v8 dip route. Bilateral
+candidate reports use their own method identity and cannot qualify that legacy
+contract. The public runner builds the native pixel dependency with SwiftPM and
+verifies app, native and shared source hashes across framework compilation and
+replay, including the actual linked framework and executable.
+
+Curved-rail acquisition v2 is a separately identified observed-credit policy.
+It requires at least four matching current observations and 0.9 seconds summed
+from adjacent matching source intervals. Known unavailable/rejected frames add
+no interval. A candidate can survive at most 0.8 seconds since its last matching
+observation; a brief grip-position outlier cannot donate or replace its anchor.
+This is different from a continuous 0.9-second dwell. Context/shape changes,
+ambiguity, malformed geometry and native extraction failures revoke evidence.
+All timing uses bounded exact rational arithmetic. Actual starting-top, motion,
+camera and completed-cycle gates remain separate.
+
+`BilateralDipWorkout` composes this method with common set boundaries and
+descriptive analytics. Its schema-2 records retain `bilateralDipImageMotion`
+policy 1, including hold-only sets. Completed cycles require an explicit return
+event; tracking interruptions remain quality evidence rather than athlete
+unfinished attempts. Peak timing comes from observed bilateral shoulder travel,
+while both elbow-angle summaries remain descriptive. History, goals and plans
+keep this method separate from legacy counting cohorts. The same 227 retained
+observations produce four completed cycles and no unfinished attempts per view
+through both JVM and Kotlin/Native, including full library-validated records.
+
 Pull-up behavior retains policy v7. Dip behavior uses the support-relative policy
 below; saved summaries record `selectedGripWithAvailableArms` for dips.
+
+`ObservedHandContinuity` v1 supplies shared diagnostic hand-point freshness for
+temporal analysis. Explicit source epochs, lifecycle generations, frame ordinals
+and exact request timestamps bind each observation. Its complete candidate graph
+retains ambiguity; unusable competitors supply no current point. Tracks expire
+after the existing 0.75-second outage and preserve immutable seed and last-observed
+samples separately from nullable current samples. Native owners capture provenance
+with the original request and retain its pixels; the bridge cannot verify images.
+Body/limb correspondence, apparatus and counting consume their own evidence.
+Live and recorded counters do not consume this diagnostic tracker yet.
+
+Recorded dip snapshots carry optional shared observation guidance. It reuses
+the existing framing policy for absent/competing body observations and missing
+arm chains, then distinguishes unavailable independent hands, unacquired rails
+and unavailable camera stability. A rail that has not been acquired cannot
+calibrate the camera. The iOS replay overlay presents this guidance, including when
+missing elbows prevent a measured top. Cached older snapshots retain their
+generic cue. This feedback neither changes counting nor qualifies detection;
+the original public-video accuracy gate remains failed.
+
+The compressed `observed-hand-continuity-source.json.gz` regression retains all
+128 original native body/hand observations from four fixed public-video windows.
+Its per-frame expectations come from the reviewed independent point-tracking
+reference. JVM and Android instrumentation load the same small fixture; Apple
+ABI checks cover source-fixture transport, expiry and lifecycle generations.
+These cached-observation checks establish neither fresh SDK accuracy nor workout
+counts, and the original public-video accuracy gate remains required.
 
 Pull-ups use both independently measurable shoulder/elbow/wrist chains from one
 athlete. If one chain is obscured or below the existing confidence/geometry gates,
@@ -29,7 +109,14 @@ counts: chin clearance and exercise form are not verified.
 
 ## Dip support and movement
 
-A manually confirmed finite rail segment remains mandatory. One athlete's selected
+Automatic dip identity uses 0.6 seconds of measurable support posture, including
+flexed elbows. This identifies which apparatus to look for; it cannot start a set.
+Requiring top extension throughout identity acquisition would impose a second,
+longer hold than the separate starting check. Genuine observed apparatus, camera
+stability and fresh top support remain required before counting begins.
+
+A confirmed finite support segment remains mandatory; automatic contour setup
+or manual confirmation can supply it. One athlete's selected
 shoulder and wrist must be unique, in bounds, and meet the existing 0.3 joint-score
 gate; the wrist must be within 12% of the image short side of that segment. This
 is image proximity evidence, not verified physical hand contact.
@@ -42,10 +129,17 @@ Shoulder height is its signed projection along this direction. Rail orientation
 does not determine the movement axis, including when rails project vertically.
 
 - A 0.12s support hold acquires the counter's top baseline.
+  An opposite arm first becoming measurable restarts this hold. If it first
+  appears after acquisition, the counter requires fresh support rather than
+  borrowing the selected arm's baseline or ignoring the new evidence. An active
+  attempt is interrupted; it cannot enter completed-rep analytics. A previously
+  witnessed arm can still be briefly hidden without losing its baseline.
 - Meaningful lowering requires travel of at least
   `max(18% of acquired projected arm length, 2% of image short side)`.
 - Departure requires half that travel and at least 15 degrees of elbow bending.
   The 120-degree support sanity gate remains; it is not strict lockout grading.
+  A projected dip can satisfy the relative bend/travel gates while its elbow
+  remains above 120 degrees throughout the movement.
 - The bottom requires the full travel and either an elbow angle at most 100
   degrees or at least 30 degrees of bending from the top, for 0.12s. A usable
   opposite arm with its own top evidence must also meet the bend gate.
@@ -55,7 +149,9 @@ does not determine the movement axis, including when rails project vertically.
   `max(120 degrees, top angle minus 20 degrees)` for 0.12s. A usable opposite arm
   with a top baseline must also recover. No count is awarded at the bottom.
 - Near-extension frames (at least 155 degrees) can update local top posture
-  between cycles. The wrist, movement axis and arm scale remain frozen.
+  upwards, preserving the highest witnessed posture through a gradual descent.
+  A completed return establishes the next cycle's local top. The wrist, movement
+  axis and arm scale remain frozen.
 - Wrist movement beyond 12% of acquired arm length interrupts the attempt.
   Missing shoulder/wrist observations pause; outages over 0.75s reset support.
   A missing elbow may sustain an already observed return endpoint using reliable
@@ -66,21 +162,25 @@ guards remain. These engineering gates count movement, not strict dip depth/form
 Projected arm scale can be unreliable under foreshortening; unsupported views
 must be evaluated separately rather than treated as qualified.
 
-## Hands-free dip starting
+## Automatic workout starting and completion
 
-After rail confirmation and stable phone/scene setup, fresh eligible frames earn
-a visible and spoken **3, 2, 1, go** countdown. During the hold, the selected hand
-must remain within 12% of acquired arm length of its initial grip and the shoulder
-within 8% of that length of its initial position. Moving, losing support, missing
-frames, or opening workout details cancels the countdown. Details dismissal requires
-three fresh seconds. The countdown frame and the next queued frame are discarded
-before live counting, matching pull-up start behavior.
+Both shipping apps use common automatic readiness after genuine support/bar
+acquisition and stable phone/scene setup. At least 0.12 seconds of consecutive
+eligible source frames starts tracking; a qualified prior frame seeds the
+counter's existing starting baseline. The default flow requires no gesture or
+spoken countdown. Interrupted readiness restarts on fresh evidence. The legacy
+three-second countdown remains covered by policy/native regression tests.
 
 No knee or ankle observations are required. Crossed legs are optional; this policy
 does not implement a crossed-leg classifier. Disabling hands-free start exposes
-the manual Start set control. Dip rail acquisition is automatic when both grips
-and paired handle edges are visible and stable. Manual setup remains available
-for unclear rails; acquisition does not change the movement-counting thresholds.
+the manual Start set control. Dip support acquisition is automatic when both grips
+and either separate paired handles or a shared paired straight bar are visible
+and stable. Manual setup remains available for unclear support; acquisition does
+not change the movement-counting thresholds. A one-second observed bilateral
+release completes a set; a three-second tracking outage interrupts it. Static
+holds alone never end a set. The shared analysis retains accepted reps even
+without an observed return. See
+[motion records, metrics and lifecycle contracts](workout/AUTOMATIC_ANALYSIS.md).
 
 The policy-v2 evidence below is retained as historical evaluation context.
 
