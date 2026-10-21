@@ -1,5 +1,9 @@
 # Workout library implementation
 
+For current detection failures, qualification results and the next task, read the
+[2026-10-21 handoff](DETECTION_HANDOFF.md). This document describes implemented
+interfaces; it does not establish source-video accuracy or release readiness.
+
 The existing immutable measurement archive and shared camera analysis stay authoritative.
 The library adds a separately versioned review/application layer, invoked outside the
 frame path. Both native apps persist the same validated state atomically and use the

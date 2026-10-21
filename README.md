@@ -27,6 +27,10 @@ Camera capture, pose inference and UI remain native. See
 Private recordings and downloaded datasets stay in ignored `Data/` directories;
 generated build results stay in ignored `build/` directories.
 
+**Current status (2026-10-21):** automatic dip source accuracy remains failed;
+PR #29 stays draft. See the [detection handoff and resume plan](docs/workout/DETECTION_HANDOFF.md)
+for verified results, local-only experiments and the next implementation task.
+
 **P0: video import/replay and real Apple Vision integration.** The source and
 GitHub qualification workflow are published in [PR #2](https://github.com/yongkyuns/HangInThere/pull/2).
 Use that PR's exact-head checks and [the evidence record](docs/P0_STATUS.md) for
