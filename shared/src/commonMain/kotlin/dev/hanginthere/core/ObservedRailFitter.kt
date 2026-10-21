@@ -29,9 +29,9 @@ data class ObservedRailCandidate(val firstContour: Int, val secondContour: Int,
  * ambiguity, distinct rails, source continuity, camera and grip dwell belong to
  * acquisition; receiving a proposal never confirms any of those conditions. */
 object ObservedRailFitter {
-    /** The existing curved-only consumer keeps its original proposal set.
-     * finiteEdges also accepts truly observed straight subpaths; it does not
-     * replace a curved path with its chord or extend either finite boundary. */
+    /** curvedOnly requires observed curvature; finiteEdges also accepts truly
+     * observed straight subpaths. Both retain distinct contiguous matches;
+     * neither replaces a curved path with its chord or extends a boundary. */
     @Serializable enum class Mode { curvedOnly, finiteEdges }
     /** Image-region pruning, not evidence of mechanical contact. Independent
      * MCP centres may project below a gripped tube. aroundGrip retains actual
@@ -89,17 +89,18 @@ object ObservedRailFitter {
         for (i in runs.indices) for (j in i + 1 until runs.size) {
             val p = runs[i]; val q = runs[j]
             if (p.dark != q.dark) continue
-            val matched = pair(p, q, minimum, size, budget) ?: continue
-            val firstDistance = ObservedCurveGeometry.distance(matched.first, grip, size) ?: continue
-            val secondDistance = ObservedCurveGeometry.distance(matched.second, grip, size) ?: continue
-            val distance = min(firstDistance, secondDistance)
-            if (distance > short * .12) continue
-            val selected = if (firstDistance <= secondDistance) p else q
-            if (contactRegion == ContactRegion.belowGrip &&
-                selected.original.sumOf { it.y / selected.original.size } < grip.y + short * .025) continue
-            result += ObservedRailCandidate(p.contour, q.contour, matched.first, matched.second,
-                matched.arc, matched.narrow, matched.wide, distance)
-            if (result.size > maximumCandidates) throw BarFitException("tooComplex")
+            for (matched in pair(p, q, minimum, size, budget)) {
+                val firstDistance = ObservedCurveGeometry.distance(matched.first, grip, size) ?: continue
+                val secondDistance = ObservedCurveGeometry.distance(matched.second, grip, size) ?: continue
+                val distance = min(firstDistance, secondDistance)
+                if (distance > short * .12) continue
+                val selected = if (firstDistance <= secondDistance) p else q
+                if (contactRegion == ContactRegion.belowGrip &&
+                    selected.original.sumOf { it.y / selected.original.size } < grip.y + short * .025) continue
+                result += ObservedRailCandidate(p.contour, q.contour, matched.first, matched.second,
+                    matched.arc, matched.narrow, matched.wide, distance)
+                if (result.size > maximumCandidates) throw BarFitException("tooComplex")
+            }
         }
         // Preserve contour/run enumeration, including every alternative.
         // Sub-ULP hypot differences must not reorder equivalent proposals on
@@ -145,16 +146,16 @@ object ObservedRailFitter {
         retain(poly.lastIndex)
     }
 
-    private fun pair(p: Run, q: Run, minimum: Double, size: ImageSize, budget: Budget): Pairing? {
+    private fun pair(p: Run, q: Run, minimum: Double, size: ImageSize, budget: Budget): List<Pairing> {
         var sign = 0; var start = 0
         val matches = mutableListOf<Intersection>()
         val widths = mutableListOf<Double>()
-        var best: Pairing? = null
+        val result = mutableListOf<Pairing>()
         fun finish(end: Int) {
             if (matches.size >= 2) {
                 val arc = p.arc[end - 1] - p.arc[start]
                 val narrow = widths.min(); val wide = widths.max()
-                if (arc >= minimum && arc >= wide && narrow >= .4 * wide && (best == null || arc > best!!.arc)) {
+                if (arc >= minimum && arc >= wide && narrow >= .4 * wide) {
                     val qStart = min(matches.first().sourceArc, matches.last().sourceArc)
                     val qEnd = max(matches.first().sourceArc, matches.last().sourceArc)
                     val first = clipped(p, p.arc[start], p.arc[end - 1])
@@ -163,7 +164,7 @@ object ObservedRailFitter {
                     // subarc, not a different matching part of a folded path.
                     val reciprocal = reciprocal(q, qStart, qEnd, p, p.arc[start], p.arc[end - 1], minimum, budget)
                     if (reciprocal && ObservedCurveGeometry.isValid(first, size) && ObservedCurveGeometry.isValid(second, size))
-                        best = Pairing(first, second, arc, narrow, wide)
+                        result += Pairing(first, second, arc, narrow, wide)
                 }
             }
             matches.clear(); widths.clear()
@@ -185,7 +186,10 @@ object ObservedRailFitter {
             }
         }
         finish(p.points.size)
-        return best
+        // A longer distant match cannot hide nearby support. Separate matches
+        // also remain alternatives for acquisition's ambiguity checks; never
+        // join them across the intervening unmatched contour section.
+        return result
     }
 
     private fun intersect(point: Point2D, tangent: Point2D, target: Run,

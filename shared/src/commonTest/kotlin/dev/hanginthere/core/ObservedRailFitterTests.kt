@@ -193,12 +193,68 @@ class ObservedRailFitterTests {
         assertTrue(fit(second = arc(radius)).isNotEmpty())
     }
 
-    private fun assertObservedSubpaths(pairs: List<ObservedRailCandidate>, contours: List<List<Point2D>>) {
+    // Both parallel sections belong to the same two uninterrupted source runs.
+    // The middle bends gently enough to preserve those runs, but its tangents
+    // do not match. Keeping only their longest match loses the nearer section.
+    private fun separatedSections() = listOf(
+        listOf(Point2D(100.0, 200.0), Point2D(300.0, 200.0)),
+        listOf(Point2D(100.0, 220.0), Point2D(150.0, 220.0), Point2D(178.0, 234.0),
+            Point2D(202.0, 234.0), Point2D(230.0, 220.0), Point2D(300.0, 220.0)))
+
+    private fun fitSeparatedSections(contact: Point2D, reverse: Boolean = false) = ObservedRailFitter.candidates(
+        separatedSections().map { RailContour(if (reverse) it.reversed() else it, true) }, BarRegion(50.0, 150.0, 450.0, 300.0),
+        ImageSize(960.0, 540.0), contact, ObservedRailFitter.Mode.finiteEdges,
+        ObservedRailFitter.ContactRegion.aroundGrip)
+
+    @Test fun aLongerDistantSectionCannotHideShorterObservedSupportNearTheHand() {
+        val pairs = fitSeparatedSections(Point2D(110.0, 190.0))
+        assertEquals(1, pairs.size)
+        assertTrue(pairs.single().firstBoundary.points.all { it.x <= 150.0 })
+        assertEquals(10.0, pairs.single().contactDistancePixels, 1e-8)
+        assertObservedSubpaths(pairs, separatedSections(), ImageSize(960.0, 540.0))
+    }
+
+    @Test fun separateMatchingSectionsRemainAvailableForAmbiguityChecks() {
+        val pairs = fitSeparatedSections(Point2D(190.0, 200.0))
+        assertEquals(2, pairs.size)
+        assertTrue(pairs[0].firstBoundary.points.all { it.x <= 150.0 })
+        assertTrue(pairs[1].firstBoundary.points.all { it.x >= 230.0 })
+        assertObservedSubpaths(pairs, separatedSections(), ImageSize(960.0, 540.0))
+    }
+
+    @Test fun retainingSeparateMatchesDoesNotExtendThemToADistantHand() {
+        assertTrue(fitSeparatedSections(Point2D(400.0, 200.0)).isEmpty())
+    }
+
+    @Test fun reversingTheRunsPreservesBothSectionsInSourceOrder() {
+        val pairs = fitSeparatedSections(Point2D(190.0, 200.0), reverse = true)
+        assertEquals(2, pairs.size)
+        assertTrue(pairs[0].firstBoundary.points.all { it.x >= 230.0 })
+        assertTrue(pairs[1].firstBoundary.points.all { it.x <= 150.0 })
+        assertObservedSubpaths(pairs, separatedSections(), ImageSize(960.0, 540.0))
+    }
+
+    @Test fun retainingSeparateMatchesFailsTheWholeObservationOnCandidateOverflow() {
+        val sections = separatedSections()
+        // 17 x 17 pairs have two valid sections each, exceeding512 candidates.
+        // The small source input stays within the point/run/operation bounds.
+        val contours = List(17) { RailContour(sections[0], true) } +
+            List(17) { RailContour(sections[1], true) }
+        val error = assertFailsWith<BarFitException> {
+            ObservedRailFitter.candidates(contours, BarRegion(50.0, 150.0, 450.0, 300.0),
+                ImageSize(960.0, 540.0), Point2D(190.0, 200.0), ObservedRailFitter.Mode.finiteEdges,
+                ObservedRailFitter.ContactRegion.aroundGrip)
+        }
+        assertEquals("tooComplex", error.message)
+    }
+
+    private fun assertObservedSubpaths(pairs: List<ObservedRailCandidate>, contours: List<List<Point2D>>,
+                                      imageSize: ImageSize = size) {
         val simplified = contours.map { ObservedCurve(BarFitter.simplify(it, 1.0) {}) }
         for (pair in pairs) for ((boundary, source) in listOf(pair.firstBoundary to pair.firstContour, pair.secondBoundary to pair.secondContour)) {
             for ((a, b) in boundary.points.zipWithNext()) {
                 val midpoint = Point2D((a.x + b.x) / 2, (a.y + b.y) / 2)
-                assertEquals(0.0, ObservedCurveGeometry.distance(simplified[source], midpoint, size)!!, 1e-7)
+                assertEquals(0.0, ObservedCurveGeometry.distance(simplified[source], midpoint, imageSize)!!, 1e-7)
             }
         }
     }
