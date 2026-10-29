@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 1,
+  "qualification": "Previously exposed crop diagnostic only, excluded from fresh test and fitting",
+  "scriptSHA256": "55a7711658255251107fb4fdb4e8870c6ca26a4558b562f9bd1cd450218e0a82",
+  "patches": [
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "4d6780232b9d45baf7677c5e0555d2c0c0f5fbfc1364433a18630215800eec6c",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 43008
+      },
+      "side": "left",
+      "originalBox": [
+        177,
+        79,
+        203,
+        105
+      ],
+      "originalPatchSHA256": "9886883cc4d33a7621cb91063bf03394181fe9f3f9d8312a78534b1eb4c4d476",
+      "revisedBox": [
+        167,
+        64,
+        212,
+        109
+      ],
+      "revisedPatchSHA256": "aaba626c87821271bb84788a510c8418a25ce2f62725d1be5c55fc9344e6b3e8",
+      "finding": "Expanded original-pixel crop includes bar/contact; some fingers remain hidden behind bar",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "4d6780232b9d45baf7677c5e0555d2c0c0f5fbfc1364433a18630215800eec6c",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 43008
+      },
+      "side": "right",
+      "originalBox": [
+        275,
+        55,
+        317,
+        97
+      ],
+      "originalPatchSHA256": "732a3080e805fe97b8735a7835dff2fd6f9648e430caf9f49c483345cf12ad65",
+      "revisedBox": [
+        261,
+        31,
+        333,
+        103
+      ],
+      "revisedPatchSHA256": "e9717fea838af2a82add352c0eb0c17d96749bafe4094c42e7856018a7abe305",
+      "finding": "Expanded original-pixel crop includes gripping hand and bar contact",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "03f923214ff5ee704acd2a7514be4ad89ec0f087f39df9be8471963a4f3b03b3",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 46592
+      },
+      "side": "left",
+      "originalBox": [
+        176,
+        80,
+        203,
+        107
+      ],
+      "originalPatchSHA256": "5c5728b80208b0058b8889f4133b907090f4985dc64e688a8b0ee9c30289ccf9",
+      "revisedBox": [
+        165,
+        65,
+        211,
+        111
+      ],
+      "revisedPatchSHA256": "d698a22eaa7d8d1e7d4a2f072ddbd90148dc51d288ec8cc85b0689de9929346f",
+      "finding": "Expanded original-pixel crop includes bar/contact; some fingers remain hidden behind bar",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "03f923214ff5ee704acd2a7514be4ad89ec0f087f39df9be8471963a4f3b03b3",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 46592
+      },
+      "side": "right",
+      "originalBox": [
+        276,
+        55,
+        318,
+        97
+      ],
+      "originalPatchSHA256": "65ddce40e57c0a4e20348a6f32d259f7691b0a51bc2ecfdc07fccad1218922a4",
+      "revisedBox": [
+        262,
+        31,
+        334,
+        103
+      ],
+      "revisedPatchSHA256": "51e2375b28f2b75e1eeaeba4c89aba41b19a01ebeb5cf41ad877290a2ae391e0",
+      "finding": "Expanded original-pixel crop includes gripping hand and bar contact",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "ddf4c6d1eb9df74b013a63dc37484b9adfc7dd863917c9e8aa8dbc60fbde5863",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 50176
+      },
+      "side": "left",
+      "originalBox": [
+        177,
+        80,
+        202,
+        105
+      ],
+      "originalPatchSHA256": "3f03eecfcca3f835b41471912039a82da7184006e6bd1f19c25b3c70e848fd0a",
+      "revisedBox": [
+        167,
+        66,
+        210,
+        109
+      ],
+      "revisedPatchSHA256": "d98ff11775fc90a9efdd29ef7566b1eb04f4cc0fea533085ead008a81692984c",
+      "finding": "Expanded original-pixel crop includes bar/contact; some fingers remain hidden behind bar",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "ddf4c6d1eb9df74b013a63dc37484b9adfc7dd863917c9e8aa8dbc60fbde5863",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 50176
+      },
+      "side": "right",
+      "originalBox": [
+        275,
+        55,
+        318,
+        98
+      ],
+      "originalPatchSHA256": "6d0eb7f84baf7bb3f65440c911573ef29bbebbb0965cdef48ce8d36decbe38c1",
+      "revisedBox": [
+        260,
+        31,
+        334,
+        105
+      ],
+      "revisedPatchSHA256": "f4cdf1bbce2d9a835fdd2dbed1098d4337e6db15566f5490381fd8b6e240f813",
+      "finding": "Expanded original-pixel crop includes gripping hand and bar contact",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "dab90052e06e1918bf9946a8deb5fe0c4faf9ae34dd44270304c59e8570a4bf9",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 89600
+      },
+      "side": "left",
+      "originalBox": [
+        176,
+        79,
+        203,
+        106
+      ],
+      "originalPatchSHA256": "641a22e2e9842a60ff4fdbe1cd8199a3e093cf56e514b3afd755d63ff6804c2a",
+      "revisedBox": [
+        165,
+        64,
+        211,
+        110
+      ],
+      "revisedPatchSHA256": "e9d310bb12e7b08450c735a494993890f71f308f3d4f93f0863cbccd9b85ae89",
+      "finding": "Expanded original-pixel crop includes bar/contact; some fingers remain hidden behind bar",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "dab90052e06e1918bf9946a8deb5fe0c4faf9ae34dd44270304c59e8570a4bf9",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 89600
+      },
+      "side": "right",
+      "originalBox": [
+        275,
+        55,
+        320,
+        100
+      ],
+      "originalPatchSHA256": "5896e48280b7bcb8ba6ef4f35e0b7715597dafdfdda47e2a043eb24f43a68ee0",
+      "revisedBox": [
+        260,
+        30,
+        337,
+        107
+      ],
+      "revisedPatchSHA256": "57bd5b058435d2911cd68ffc0474070af05708f351d03018ce7788c601b5e45d",
+      "finding": "Expanded original-pixel crop includes gripping hand and bar contact",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "fc184886dca6e2642519393c5c6f06681b6003b4e8cd9934a143b95f52c9ebfc",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 96768
+      },
+      "side": "left",
+      "originalBox": [
+        176,
+        79,
+        203,
+        106
+      ],
+      "originalPatchSHA256": "6f2bb5b6b1b34d367899f9193fadb60934d403cf66c94c19204616cb062deedb",
+      "revisedBox": [
+        165,
+        64,
+        211,
+        110
+      ],
+      "revisedPatchSHA256": "0bfa9b8d6e6c4c74d2319a438dd370eae7d2017a31b35118adb2fb0869848268",
+      "finding": "Expanded original-pixel crop includes bar/contact; some fingers remain hidden behind bar",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "fc184886dca6e2642519393c5c6f06681b6003b4e8cd9934a143b95f52c9ebfc",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 96768
+      },
+      "side": "right",
+      "originalBox": [
+        275,
+        56,
+        319,
+        100
+      ],
+      "originalPatchSHA256": "14e37fdc806a97acd4670318cfd5b5e25f374de2e21972db4146b05ae5add669",
+      "revisedBox": [
+        260,
+        31,
+        335,
+        106
+      ],
+      "revisedPatchSHA256": "67596e5e6688b42ea34024680a5ecbbb5c0c737debf236cd029ed6f7b441aeee",
+      "finding": "Expanded original-pixel crop includes gripping hand and bar contact",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "622541eebabadf21790c0e8244200bc10704014db17008c0ec1312d1c5572498",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 100352
+      },
+      "side": "left",
+      "originalBox": [
+        176,
+        79,
+        203,
+        106
+      ],
+      "originalPatchSHA256": "4b79700fd38a13c22a0517e051c188576e81ed2fda462cc98511daf33f38eda6",
+      "revisedBox": [
+        165,
+        64,
+        211,
+        110
+      ],
+      "revisedPatchSHA256": "b5efb50289c1c18e3b615eeacd1cf70e73b5e6333aa3f6262e0e43425136a709",
+      "finding": "Expanded original-pixel crop includes bar/contact; some fingers remain hidden behind bar",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "622541eebabadf21790c0e8244200bc10704014db17008c0ec1312d1c5572498",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 100352
+      },
+      "side": "right",
+      "originalBox": [
+        274,
+        55,
+        319,
+        100
+      ],
+      "originalPatchSHA256": "fd4945a1a4b7a0f17a02080e581a1ea3b838a8db2e2de5b8e6734d130c705919",
+      "revisedBox": [
+        259,
+        30,
+        336,
+        107
+      ],
+      "revisedPatchSHA256": "20ad7cd80b77813394db27fd5f79b8c7a8e8007ce98b87e85b419a198d79db39",
+      "finding": "Expanded original-pixel crop includes gripping hand and bar contact",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "e41fc40d8c4425e54c21516d9bd2133532f4e9f1f8d2d177a7d3e8ee47548708",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 107520
+      },
+      "side": "left",
+      "originalBox": [
+        176,
+        79,
+        202,
+        105
+      ],
+      "originalPatchSHA256": "59e85fb8f8a03811a1ab392f23c7671f72cf2f140c400c5fc05dc289d6c8de03",
+      "revisedBox": [
+        167,
+        64,
+        212,
+        109
+      ],
+      "revisedPatchSHA256": "39bdd5e271a0b1f80ef7137a79400af504e2977f7d560c70ed0d5826bf5e6fea",
+      "finding": "Expanded original-pixel crop includes bar/contact; some fingers remain hidden behind bar",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "e41fc40d8c4425e54c21516d9bd2133532f4e9f1f8d2d177a7d3e8ee47548708",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 107520
+      },
+      "side": "right",
+      "originalBox": [
+        275,
+        55,
+        319,
+        99
+      ],
+      "originalPatchSHA256": "0814b82ed6a77a02972d1735ce4a8e359461738305b9d9e842239567fd72ccc1",
+      "revisedBox": [
+        259,
+        30,
+        334,
+        105
+      ],
+      "revisedPatchSHA256": "6e9968585b45e50e43d05027aaa503e3a76215b0927ce5d40fb4ed37f01d8765",
+      "finding": "Expanded original-pixel crop includes gripping hand and bar contact",
+      "method": "All fourteen new crops and seven source frames manually inspected; no reference grip relabel and no model tuning"
+    }
+  ]
+}

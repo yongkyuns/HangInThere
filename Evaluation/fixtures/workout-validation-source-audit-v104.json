@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-28T16:33:07.492573+00:00",
+  "purpose": "Find independent full-session RGB video evidence for controlled front/rear pull-up/chin-up and parallel-bar dip counting and set lifecycle.",
+  "supported_profile": {
+    "camera_view": [
+      "front",
+      "rear"
+    ],
+    "camera_height": "chest/shoulder",
+    "camera_tilt": "near level",
+    "athlete": "one clear, sufficiently close athlete",
+    "visibility": "both shoulders, elbows and wrists visible without occlusion"
+  },
+  "qualification_requirement": {
+    "full_sets_per_exercise_view_cell": 30,
+    "athletes_overall": 10,
+    "completed_cycle_precision": 0.99,
+    "completed_cycle_recall": 0.99,
+    "exact_set_fraction": 0.98,
+    "setup_dismount_completions": 0,
+    "false_splits_merges": 0,
+    "target_phone_soak_minutes": 15
+  },
+  "candidates": [
+    {
+      "dataset": "HSiPu2 GitHub feature archive",
+      "primary_url": "https://github.com/mindayao/HSiPu2",
+      "immutable_ref": "03cf182931f9e37e3306aeef8e1f594260b2d903",
+      "published_blob_sha1": "85a0a0d16ad2aa8e591f158111a4d5f1c059c9f7",
+      "archive_bytes": 19514421,
+      "inspection": "Complete ZIP central directory inspected through bounded public byte ranges, not extracted or inferred.",
+      "inventory_evidence": "build/workout-validation-sources-v104/hsipu-archive-inventory.json",
+      "inventory_sha256": "d50d5a4b6f6bee755e0d46721aab446556a9d33aeb036919910e9bbd4eede5b7",
+      "archive_file_extensions": {
+        ".csv": 8044,
+        ".txt": 2
+      },
+      "decision": "GitHub feature archive is ineligible for full-session RGB validation: all 8,046 files are CSV/TXT. README also points to OneDrive; that separate payload is not inspected here.",
+      "new_full_session_videos_admitted": 0
+    },
+    {
+      "dataset": "HAC / SRHAC",
+      "primary_url": "https://doi.org/10.26599/TST.2024.9010207",
+      "published_claims": "Paper describes 84 videos across 54 volunteers and 21 pull-up videos, with independent count annotators.",
+      "decision": "Potential pull-up lead only. No usable download URL was identified in the checked primary page/search. Original video access, supported front/rear views, participant IDs, setup/rest coverage and per-cycle labels remain unverified. Parallel-bar dips are not one of its three reported classes.",
+      "new_full_session_videos_admitted": 0
+    },
+    {
+      "dataset": "FLAG3D",
+      "primary_url": "https://andytang15.github.io/FLAG3D/",
+      "published_access": "Project asks an advisor/organization representative to sign its license and email it to obtain data.",
+      "decision": "No request or agreement sent. Target exercise coverage and original uncut RGB availability remain unverified. Rendered sequences would not qualify real-camera accuracy.",
+      "new_full_session_videos_admitted": 0
+    },
+    {
+      "dataset": "MM-Fit",
+      "primary_url": "https://mmfit.github.io/",
+      "inspection": "Official project exercise list reviewed before any RGB/depth archive download.",
+      "decision": "Ineligible for these exercise cells: its ten listed exercises contain neither pull-ups/chin-ups nor parallel-bar dips.",
+      "new_full_session_videos_admitted": 0
+    },
+    {
+      "dataset": "Existing Countix / RepCount pilot",
+      "local_evidence": "Evaluation/PUBLIC_WORKOUT_DATASETS.md",
+      "decision": "Already consumed development segments; not fresh full setup/rest sessions or a participant holdout. Do not count repeated source URLs or deliveries as independent athletes/sets.",
+      "new_full_session_videos_admitted": 0
+    }
+  ],
+  "new_full_session_videos_admitted": 0,
+  "independently_qualified_sets": 0,
+  "phone_accessed": false,
+  "external_messages_sent": false,
+  "production_ready": false,
+  "next": "Continue primary-source discovery or source-only eligibility review of genuinely fresh uncut public front/rear sessions. Freeze view, visibility, original-source and participant grouping, cycle/set labels and setup/release/rest intervals before inference. Keep SDK predictions out of annotation and preserve in-profile failures. Physical iPhone readiness/soak remains deferred by owner."
+}

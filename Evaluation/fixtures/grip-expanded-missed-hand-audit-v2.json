@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 2,
+  "qualification": "All seven added development crops visually reviewed; hand localization only, no binary grip accuracy claim; final policy frozen before new test review",
+  "oldAvailable": 38,
+  "initialAvailable": 45,
+  "finalAvailable": 44,
+  "lostOriginal": 0,
+  "reviews": [
+    {
+      "caseId": "k700train_6FiVvY3WclY_000060_000070",
+      "recordingId": "f25e5ab48962c240df706f6e23d1dcb697215b308b33de0a338cd4ae47d6e938",
+      "imageSHA256": "6be75228651227cb0e2f8a39101e40d964bb629e3e93f836f1ad74bf3651e140",
+      "timestamp": {
+        "timescale": 10240,
+        "value": 40960
+      },
+      "side": "left",
+      "box": [
+        389,
+        151,
+        426,
+        188
+      ],
+      "patchSHA256": "aaf3ebace1912050a9d2c87ab1a17e459331ae599df5165eb9eb1507f01ab3f0",
+      "review": "correctAthleteGrippingHand",
+      "retainedByFinalPolicy": true
+    },
+    {
+      "caseId": "k700train_0qH22DvX0Ig_000039_000049",
+      "recordingId": "0dbf0c77fc376230ed4fd89d866bfe6f5332fa64cc0230e7f554e20f016de047",
+      "imageSHA256": "b68c108c234d2b6b3fa0124a8b6797ab1f151bb3f98d43042b6e6f24e4047959",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        329,
+        183,
+        392,
+        246
+      ],
+      "patchSHA256": "e28cc3bd63cd6f7d828ab9b461f97d18684ccd7400e4731467f59deb3898ed46",
+      "review": "wrongSubjectSpotterHand",
+      "retainedByFinalPolicy": false
+    },
+    {
+      "caseId": "k700train_0XSV_RCdCfU_000056_000066",
+      "recordingId": "416e2181cce879b651d8566a89ebfe8647f31102405a94e0f53b725458ed87f1",
+      "imageSHA256": "b751c2e577715d8b215d2f8d29041e047c8886592b59143830975e9f63a435c7",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "left",
+      "box": [
+        390,
+        44,
+        465,
+        119
+      ],
+      "patchSHA256": "faa7d44dc6ba4e92583f226261b4b74d8de1c2d9b4267bac608e99ffca5a6972",
+      "review": "correctAthleteGrippingHand",
+      "retainedByFinalPolicy": true
+    },
+    {
+      "caseId": "k700train_0XSV_RCdCfU_000056_000066",
+      "recordingId": "416e2181cce879b651d8566a89ebfe8647f31102405a94e0f53b725458ed87f1",
+      "imageSHA256": "b751c2e577715d8b215d2f8d29041e047c8886592b59143830975e9f63a435c7",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "right",
+      "box": [
+        763,
+        64,
+        815,
+        116
+      ],
+      "patchSHA256": "7d5b7cf91e635c451c4cce107928005ff5cb27c8c7b85b986134abcf18702ae7",
+      "review": "correctAthleteGrippingHand",
+      "retainedByFinalPolicy": true
+    },
+    {
+      "caseId": "k700train_lzQbyA75kfg_000002_000012",
+      "recordingId": "6a68994229ea56f2549875307fad81214dbc8904a2ea6eb6244041d02f217d41",
+      "imageSHA256": "8acf47f0ebcfd7a7bba2a7dcea75ad02588e7c8c5a0424b222b71d143ed5de35",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "left",
+      "box": [
+        679,
+        39,
+        722,
+        82
+      ],
+      "patchSHA256": "6105016c426eaf54b6ddbe03b29233dcaf0ebb098dc00136c03b56c743873d7e",
+      "review": "correctAthleteGrippingHand",
+      "retainedByFinalPolicy": true
+    },
+    {
+      "caseId": "k700train_lzQbyA75kfg_000002_000012",
+      "recordingId": "6a68994229ea56f2549875307fad81214dbc8904a2ea6eb6244041d02f217d41",
+      "imageSHA256": "8acf47f0ebcfd7a7bba2a7dcea75ad02588e7c8c5a0424b222b71d143ed5de35",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "right",
+      "box": [
+        487,
+        15,
+        530,
+        58
+      ],
+      "patchSHA256": "c6a07ccaa3146fe01f20ebd7369defeedfbf0d791fbad9529a49ceeb007b880a",
+      "review": "correctAthleteGrippingHand",
+      "retainedByFinalPolicy": true
+    },
+    {
+      "caseId": "k700train_lzQbyA75kfg_000002_000012",
+      "recordingId": "6a68994229ea56f2549875307fad81214dbc8904a2ea6eb6244041d02f217d41",
+      "imageSHA256": "d69d79f09514242fa06598fb170de49354d53459002050313d0b3ccc0feed993",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "side": "left",
+      "box": [
+        659,
+        35,
+        696,
+        72
+      ],
+      "patchSHA256": "5273943e8778f5b0448fda7068bba07384387b1cc11c973bee48ec8332f47127",
+      "review": "correctAthleteGrippingHand",
+      "retainedByFinalPolicy": true
+    }
+  ],
+  "inputSHA256": {
+    "build/grip-reviewed/fresh/hand-sdk/patches.jsonl": "3fe74c9517edc776bb7c0546425859f8dcf629e63516485c6e83edd366c47f11",
+    "build/grip-expanded/missed-hand-sdk-v2/patches.jsonl": "ecdead1c8578b8d77726b68ec1ff42477ee6b97563dd264468fd8f1246915075",
+    "build/grip-expanded/missed-sdk-final/patches.jsonl": "f4e2e47fe67531e2d5dfc7da59e738cb8e40e91df4edeeb0806d1e75fa864b45"
+  }
+}

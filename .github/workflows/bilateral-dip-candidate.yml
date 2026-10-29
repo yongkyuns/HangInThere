@@ -1,0 +1,46 @@
+name: Bilateral dip candidate event accuracy
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: bilateral-dip-candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate:
+    name: Original public events through the bilateral candidate
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+      - name: Check method identity and fail-closed scoring
+        run: python3 -m unittest scripts.tests.test_temporal_native_replay Evaluation.tests.test_temporal scripts.tests.test_public_workout_datasets
+      - name: Prepare unchanged public source videos and references
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          python3 scripts/prepare-temporal-pilot.py --cache Data/external/temporal --output Data/local/bilateral-candidate --fetch
+          python3 scripts/temporal_native_replay.py prepare --reference Data/local/bilateral-candidate/reference.json --manifest Data/local/bilateral-candidate/manifest.json --root Data/local/bilateral-candidate --output build/bilateral-candidate/input
+          cp Data/local/bilateral-candidate/reference.json build/bilateral-candidate/reference.json
+      - name: Run the explicitly versioned production candidate
+        run: ./scripts/evaluate-public-workouts-apple.sh build/bilateral-candidate/input/manifest.json build/bilateral-candidate/input build/bilateral-candidate/native-report.json --candidate-bilateral-dips
+      - name: Keep missing setup and missed or extra original events fatal
+        run: python3 scripts/temporal_native_replay.py score-candidate --reference build/bilateral-candidate/reference.json --manifest build/bilateral-candidate/input/manifest.json --native build/bilateral-candidate/native-report.json --output build/bilateral-candidate/strict-report.json --require-exact-events
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: bilateral-dip-candidate
+          retention-days: 7
+          if-no-files-found: error
+          # Scalar results and already-public references only; no video glob.
+          path: |
+            build/bilateral-candidate/*.json
+            build/bilateral-candidate/input/manifest.json

@@ -14,106 +14,10 @@ import subprocess
 import sys
 
 import evaluation as ev
-
-DEFINITION = {"pullUp": "observed_start_to_top", "dip": "observed_top_bottom_top"}
-EXERCISE = {"pullUp": "pull_up", "dip": "parallel_bar_dip"}
-
-
-def intervals(values, span, reason=False):
-    ev.require(isinstance(values, list), "Intervals must be a list")
-    result = []
-    for value in values:
-        pair = value.get("seconds") if reason else value
-        ev.require(isinstance(pair, list) and len(pair) == 2 and all(ev.number(x) for x in pair), "Invalid interval")
-        a, b = pair
-        ev.require(span[0] <= a < b <= span[1], "Interval outside observation span")
-        ev.require(not result or result[-1][1] < a, "Intervals overlap or are not strictly ordered")
-        if reason:
-            ev.require(isinstance(value.get("reason"), str) and value["reason"].strip(), "Ungradable interval needs reason")
-        result.append((a, b))
-    return result
-
-
-def reference_check(ref, clip):
-    ev.require(ref.get("schema_version") == 1 and ref.get("id") == clip["id"], "Reference identity mismatch")
-    development_exposed = ref.get("development_after_prior_counter_exposure") is True
-    ev.require((ref.get("reviewed_without_counter_output") is True or development_exposed) and ref.get("provenance"),
-               "Temporal label provenance required")
-    ev.require(ref.get("form_verification") == "unverified", "Movement labels do not establish valid form")
-    exercise = ref.get("exercise")
-    ev.require(exercise in DEFINITION and EXERCISE[exercise] == clip["exercise"], "Exercise mismatch")
-    ev.require(ref.get("event_definition") == DEFINITION[exercise] and ref.get("side") in ("left", "right"), "Event or arm policy missing")
-    ev.require(clip["media"]["kind"] == "video" and ref.get("media_sha256") == clip["media"]["files"][0]["sha256"], "Wrong temporal media")
-    pts = ref.get("frame_pts_seconds")
-    ev.require(isinstance(pts, list) and len(pts) > 1 and all(ev.number(t) and t >= 0 for t in pts)
-               and all(a < b for a, b in zip(pts, pts[1:])), "Full actual source PTS are required")
-    ev.require(len(pts) == clip["media"].get("expected_frames"), "Reference frame count mismatch")
-    span = ref.get("span_seconds")
-    ev.require(isinstance(span, list) and len(span) == 2 and all(ev.number(t) for t in span)
-               and abs(span[0] - pts[0]) < 1e-5 and pts[-1] < span[1] <= pts[-1] + 1, "Invalid full observation span")
-    windows = intervals(ref.get("events"), span)
-    excluded = intervals(ref.get("ungradable_intervals"), span, reason=True)
-    edge = ref.get("bar_reference_edge")
-    if edge is not None:
-        ev.require(isinstance(edge, list) and len(edge) == 4 and all(ev.number(x) for x in edge),
-                   "Invalid fixed apparatus reference")
-        ev.require(math.hypot(edge[2]-edge[0], edge[3]-edge[1]) >= 2, "Degenerate apparatus reference")
-        image_size = ref.get("bar_reference_image_size")
-        ev.require(isinstance(image_size, list) and len(image_size) == 2 and
-                   all(ev.number(x) and x > 0 for x in image_size),
-                   "Apparatus reference needs its reviewed image size")
-        ev.require(isinstance(ref.get("bar_reference_provenance"), str) and ref["bar_reference_provenance"].strip(),
-                   "Apparatus reference needs provenance")
-    tolerance = ref.get("tolerance_seconds")
-    ev.require(ev.number(tolerance) and 0 <= tolerance <= .5, "Invalid predeclared timing tolerance")
-    for a, b in windows:
-        ev.require(all(b + tolerance < x or a - tolerance >= y for x, y in excluded), "Event window overlaps ungradable time")
-    return windows, excluded
-
-
-def score_events(ref, events):
-    """Chronological one-to-one maximum-cardinality matching of ordered windows.
-
-    Each event can match once. Extra detections, including exact duplicates,
-    remain false positives. Negative/no-event intervals remain in evaluation.
-    """
-    span = ref["span_seconds"]
-    windows = intervals(ref["events"], span)
-    excluded = intervals(ref["ungradable_intervals"], span, reason=True)
-    tolerance = ref["tolerance_seconds"]
-    ev.require(ev.number(tolerance) and 0 <= tolerance <= .5, "Invalid tolerance")
-    ev.require(all(ev.number(t) and span[0] <= t < span[1] for t in events)
-               and events == sorted(events), "Invalid predicted event times")
-    scored = [(i, t) for i, t in enumerate(events) if not any(a <= t < b for a, b in excluded)]
-    ignored = [i for i, t in enumerate(events) if any(a <= t < b for a, b in excluded)]
-    matches, false_positive, missed = [], [], []
-    j = 0
-    for r, (a, b) in enumerate(windows):
-        while j < len(scored) and scored[j][1] < a - tolerance:
-            false_positive.append(scored[j][0]); j += 1
-        if j < len(scored) and scored[j][1] <= b + tolerance:
-            p, t = scored[j]; j += 1
-            # Distance to the reviewed uncertainty interval (zero inside it).
-            error = t - a if t < a else t - b if t > b else 0.0
-            matches.append({"reference_index": r, "prediction_index": p, "source_seconds": t,
-                            "signed_distance_to_window_seconds": error})
-        else:
-            missed.append(r)
-    false_positive.extend(i for i, _ in scored[j:])
-    tp, fp, fn = len(matches), len(false_positive), len(missed)
-    duration = span[1] - span[0]
-    coverage = 1 - sum(b - a for a, b in excluded) / duration
-    errors = [abs(m["signed_distance_to_window_seconds"]) for m in matches]
-    return {"reference_events": len(windows), "predicted_events_total": len(events),
-            "predicted_events_scored": len(scored), "true_positives": tp, "false_positives": fp,
-            "false_negatives": fn, "precision": tp / (tp + fp) if tp + fp else None,
-            "recall": tp / (tp + fn) if tp + fn else None,
-            "f1": 2 * tp / (2 * tp + fp + fn) if 2 * tp + fp + fn else None,
-            "absolute_count_error": abs(len(scored) - len(windows)), "exact_count": len(scored) == len(windows),
-            "scored_time_fraction": coverage, "scored_seconds": duration * coverage,
-            "matches": matches, "missed_reference_indices": missed,
-            "false_positive_indices": false_positive, "ignored_prediction_indices": ignored,
-            "matched_timing_error_seconds": ev.statistics(errors, len(windows))}
+import temporal_events
+import temporal_references
+from temporal_events import score_events
+from temporal_references import reference_check
 
 
 def reference_edge_in_pose_space(ref, observations):
@@ -208,7 +112,7 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
         ev.require(counter["input_sha256"] == observation_hash and counter["source_revision"] == pose["source_commit"], "Counter/pose provenance differs")
         for path, sha in counter["source_sha256"].items():
             ev.require(ev.digest(ev.ROOT / path) == sha, "Counter source changed")
-            if path.startswith("HangInThere/"):
+            if path.startswith("ios/HangInThere/"):
                 ev.require(pose["source_files_sha256"].get(path) == sha, "Pose/counter app source differs")
         validate_run(ref, clip, row, counter, observations, ev.read_json(completion_path))
         scores = score_events(ref, [e["sourceSeconds"] for e in counter["events"] if e["outcome"] == "movement"])
@@ -224,6 +128,8 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
     report = {"schema_version": 1, "scope": "source-reviewed temporal diagnostic with disclosed development exposure; not held-out or strict-form qualification",
               "reference_sha256": before[reference_path], "manifest_sha256": before[manifest_path],
               "pose_report_sha256": before[pose_output / "report.json"], "scorer_sha256": ev.digest(Path(__file__)),
+              "event_matcher_sha256": ev.digest(Path(temporal_events.__file__)),
+              "reference_validator_sha256": ev.digest(Path(temporal_references.__file__)),
               "source_commit": pose["source_commit"], "clips": records}
     # Report errors even if the aggregate count happens to match. No averaging of
     # distinct exercises, no counting a missing measurement as a correct event.

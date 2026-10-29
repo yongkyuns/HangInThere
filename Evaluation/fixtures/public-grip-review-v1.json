@@ -1,0 +1,772 @@
+{
+  "schemaVersion": 1,
+  "scope": "Provisional visual grip annotations for local development; original action/count labels unchanged; no athlete independence or commercial training/redistribution rights asserted",
+  "baseSpecSHA256": "b58bdfdd74c42e711486b61bfc2b6b581cf52b8e285a0a5d076d8777bb624726",
+  "selection": "All 33 pinned originals restored and reviewed. Labelability decided before classifier inference. Splits frozen before new feature extraction/scoring. Unclear cases retained, never guessed from exercise names.",
+  "subjectIdentity": "Unknown; null is intentional. Only source-recording separation is claimed.",
+  "labelConvention": {
+    "overhand": "Pronated grip, palms oriented away from the athlete",
+    "underhand": "Supinated grip, palms oriented toward the athlete"
+  },
+  "cases": [
+    {
+      "id": "countix___rd8woSLiM",
+      "recordingId": "20acdb4425aa9acd8dfb8da46be09d5e57ba95583a376bb59a4b4a485b64ff6a",
+      "sourceGroup": "youtube:--rd8woSLiM",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.3466666000000005,
+        3.366666500000001,
+        5.386666400000002
+      ],
+      "reviewImageSHA256": [
+        "a68225723af596fe1d019b8cbbc4eac5529d4a3c2faa6d6b5c13338774167721",
+        "d85e57f28097bdfd88841d8e55829551dc9e2a5890ffbc09bfb45e4ba5558e05",
+        "207f9bb4fd0738c49f25d3512363bf22708ac4e2308c97493faa4a95a29c23c6"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 6.733333000000002,
+      "evidence": "Dark ring/handle view; palm direction not clear"
+    },
+    {
+      "id": "countix_0_VBxJ4eNlg",
+      "recordingId": "d04a83d34f0c3f9c1d0b89525a66d4e3ebe6378add92ef71b0667ec124c76c45",
+      "sourceGroup": "youtube:0_VBxJ4eNlg",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.5,
+        3.75,
+        6.0
+      ],
+      "reviewImageSHA256": [
+        "2658df4222c3015cbd841168952d0db391cdb8ed10e3c98d519e4f792df28747",
+        "f6069aaf74ddaec4e0050a1775d62b13247bba8e8bc439794bf18df8d548b750",
+        "4c51225ba3a21a567ef1ef1d20b51c169080338d11b71816d7f93bed86a78ffd"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "validation",
+      "start": 0.0,
+      "end": 7.5,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_0ep0izfSjIY",
+      "recordingId": "954eaa87667c63f1abc352f40afb0d91eeba6503945e4dd7c705934aa794e831",
+      "sourceGroup": "youtube:0ep0izfSjIY",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.16,
+        2.9,
+        4.64
+      ],
+      "reviewImageSHA256": [
+        "82bd92b3192f56fca974170f840ec92549f807849f0a91eb7abb13e5b1bbd845",
+        "6abf9ce2fc4442a72cefdd0cda2be98029d96e3bd24e5c9b13519b7fd6851760",
+        "4cc5b1340e5c860ad7e1845cae0af1b0c104cff5c2ade7d1801be140ae9379ce"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "train",
+      "start": 0.0,
+      "end": 5.8,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_15ypy7AMAsc",
+      "recordingId": "3dac8ebe971015f10a7f94d7eb4a20168bee5f84dbc6ceb29894a8d393c43f1e",
+      "sourceGroup": "youtube:15ypy7AMAsc",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        0.9149316,
+        2.2873289999999997,
+        3.6597264
+      ],
+      "reviewImageSHA256": [
+        "e76bd0dc432d86d3b1947c4ae644143ae870da09f297776cfc6130517c9a41c7",
+        "8a31ed12f83e81e4da001fff49f86b8430b39fd0ec226f8c4d3a3c7640719743",
+        "fa8dfcde1c588a1c1d116a610178493f6427edce9fb6830371fd0a10173a183b"
+      ],
+      "status": "binaryLabel",
+      "label": "underhand",
+      "split": "validation",
+      "start": 0.0,
+      "end": 4.5746579999999994,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_6EPqA_hS1jc",
+      "recordingId": "eee7810c4aee5c732c8c1897471244ea29c64d6d2fce38d93eb7d8c1b7b3a0b3",
+      "sourceGroup": "youtube:6EPqA_hS1jc",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        0.9,
+        2.25,
+        3.6
+      ],
+      "reviewImageSHA256": [
+        "68ca7fd562bb20ce0b08f660f9f5c0df200517f9773c693deee5c0286af0e9d1",
+        "0fca00b387b754a24bb229342c532030db13e3e50d764797dda356babd8d2cf0",
+        "ffb7fdd63220e7c39b9d0665225215f3da237ef76b831a4e07e87ddd77e2527e"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "train",
+      "start": 0.0,
+      "end": 4.5,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_6cDE1YpzSaE",
+      "recordingId": "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+      "sourceGroup": "youtube:6cDE1YpzSaE",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.6816816000000003,
+        4.204204000000001,
+        6.726726400000001
+      ],
+      "reviewImageSHA256": [
+        "0a30727fa37561e8c919b81ce2419c9fa427c9b2b42f35766eebc4dc26ec03b4",
+        "2cde7fa7f38f7cf7670e3ac4fe5369696d0a03529ac400ffad4553b17cf13df7",
+        "bde769e4502bef560cbbb4794f69447c72f2402593243b079049f40e5d97dbe8"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "train",
+      "start": 0.0,
+      "end": 8.408408000000001,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_88hPGnxh_Go",
+      "recordingId": "f5dcfabac111631cae436fe47388d9112f9f6c631e59e6be5c7df267c6040fb2",
+      "sourceGroup": "youtube:88hPGnxh_Go",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.9953286,
+        4.9883215,
+        7.9813144
+      ],
+      "reviewImageSHA256": [
+        "f4a8e628392043dab18f03f6ad0b117d91d16f8dca59f1cdc1e79a651710652e",
+        "b07437bf7723d7e84d93d7ecd1dcc4db57654689779748581a90f6aacf71e97c",
+        "2a96437ee02f83a1625eb7d9d83ff860acf4260cac695781625b116b694709a5"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "validation",
+      "start": 0.0,
+      "end": 9.976643,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_AV9sB40vvZQ",
+      "recordingId": "9c80e49820a956ef16e5e1cd60c8ae076eb3c3d5e7730c5624211928eb3d91c9",
+      "sourceGroup": "youtube:AV9sB40vvZQ",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        0.8511769999999999,
+        2.1279424999999996,
+        3.4047079999999994
+      ],
+      "reviewImageSHA256": [
+        "6eebcb132fb51f9f12324ca6f4e905567af001ae4606095c6b23b70eb71ddcee",
+        "d7cada2a33467bd3e4a24add069869383c6db584fa0708cb3a4934df2eca3f8b",
+        "6d38c7769b7e6dbea0e51ca1d3feebd823d00748acea00cedc5580a23587446f"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 4.255884999999999,
+      "evidence": "Distant athlete with observers; hand detail insufficient"
+    },
+    {
+      "id": "countix_Ace4EsUWyYc",
+      "recordingId": "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+      "sourceGroup": "youtube:Ace4EsUWyYc",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "reviewImageSHA256": [
+        "705fcc3ad026f6062245088c50c85ffedbb5ff2dc244df3772074abf2bdc529a",
+        "7c59d6ede146d29a27d10640b0687a2321903f7114206ba6754f7a7a125ccaf1",
+        "79974db0ad18e1ea4047dc0340de4776a249ec5c986885d544d1fc829372944f"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "train",
+      "start": 0.0,
+      "end": 10.0,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_AiVMAXr8E9o",
+      "recordingId": "a306272427dc1fbba0dfebb8877fce00363b7f55523d70e8f837386dc707cd9a",
+      "sourceGroup": "youtube:AiVMAXr8E9o",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.9953286,
+        4.9883215,
+        7.9813144
+      ],
+      "reviewImageSHA256": [
+        "f95199d250f554e6a14c907c4d027c8e2ea013dc756dbb0e936b71a7ca17801d",
+        "e61b022079d6f75f7c9b072964b7d1fc823cf10b77f70e0d20a35a69ce9c8e5d",
+        "dd15be70fac5b58f1c3347aba817a34792923938b6441d3ec7067e7cde1f4af1"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "test",
+      "start": 0.0,
+      "end": 9.976643,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_GK9zE0RGQ4c",
+      "recordingId": "cc227516531d6f2093986979b0ec6d973e32efaa375e8f1b3bfd255e4c81dec1",
+      "sourceGroup": "youtube:GK9zE0RGQ4c",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "reviewImageSHA256": [
+        "35617a40fc760faf2d614010926a56babfab8e8881e9e21fd23775e9b632f11b",
+        "26330306c58e1d3f2a0f20f3fbeec9e1c4850b8d9ec0c70e597e08e3fed732e8",
+        "503a420868009108652807bbca4f77bb9de0f74b4fc98eb56bf3d04f486da381"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 10.0,
+      "evidence": "Rotated view with grip partly outside the image"
+    },
+    {
+      "id": "countix_HmwfLUgHZIc",
+      "recordingId": "3b8c21b7550cebca0da2133c86df0e65c01b10ec0554c9046595a1a23632267f",
+      "sourceGroup": "youtube:HmwfLUgHZIc",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "reviewImageSHA256": [
+        "07e611184f49564be923919e390b98707941a5c14ffc1218b3e415d7dfa83a78",
+        "dd3e12f48ad2917d7699226ef5615f1a77a0bb30a8cb3bfac8870b38aa5e1d56",
+        "69930001abc9cf5908e8b9f4006e315475bd8843a08d27661fdc56490291f2a6"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 10.0,
+      "evidence": "Hands outside or at the top image boundary"
+    },
+    {
+      "id": "countix_Itbz9_ghSfc",
+      "recordingId": "52f8710cfd2624698e7767bda36076a7acbb8747a9f7e6fb1043209437478e8c",
+      "sourceGroup": "youtube:Itbz9-ghSfc",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.2479146,
+        3.1197865,
+        4.9916584
+      ],
+      "reviewImageSHA256": [
+        "e844d64df74821639a9d1d8b66de870da2a27251cbc55a42aa402b874b8d549f",
+        "6a584acb237071b6505eee72fdda0b5d63ba9d0e789fca3ebe080ed939dac598",
+        "4f836f66a82f4dc17f29ab796c48fb19b0ab863162e499be6b0568ee593ca9d0"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 6.239573,
+      "evidence": "Rings; rotating/neutral grip outside this binary annotation"
+    },
+    {
+      "id": "countix_VHj2sMZQ0fU",
+      "recordingId": "b6df09db14898740c8096dcd7602a8a5810e5628839d6f54be19acbbdf690803",
+      "sourceGroup": "youtube:VHj2sMZQ0fU",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        4.0440444,
+        5.705705999999999,
+        7.3673676
+      ],
+      "reviewImageSHA256": [
+        "575c3a4cb9423655c849a46ea1810d9b09ba1eb81f354f551a732aae33292fca",
+        "198d313c37a364ec3c71d28a2c549c6218f79dee0ba695f7b24114de087ad853",
+        "18fc82af6a74137c6d5ea1ca778834c3e7dbf442849e3e60ae547ee5525599fb"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 2.93627,
+      "end": 8.475142,
+      "evidence": "Small distant hands; palm detail insufficient"
+    },
+    {
+      "id": "countix_XNFGt0WPASQ",
+      "recordingId": "ed04cc69f008ec5829162810a5ffde6c8e44a3488ab0d66e52cee0f68a629fa8",
+      "sourceGroup": "youtube:XNFGt0WPASQ",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.7751084000000006,
+        4.4377710000000015,
+        7.100433600000002
+      ],
+      "reviewImageSHA256": [
+        "d8efe23fba5492f9caef90b5c1a50173e476ee1883398ec4280a0cefd2398c81",
+        "d9d93dcc58c9f62fdd784c6fd384972c1cb4f6d4c02c9513b574b8bb7a3fe1f4",
+        "bbd95dd2a28df037567b44230f8680bebad3da967034a00aa81c93ce2997a1fe"
+      ],
+      "status": "binaryLabel",
+      "label": "underhand",
+      "split": "test",
+      "start": 0.0,
+      "end": 8.875542000000003,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_XuZ8ydaiN3A",
+      "recordingId": "90e50f020cf3567c0c40d413ac67d2b659d26404806ef16730fcb8a147598a52",
+      "sourceGroup": "youtube:XuZ8ydaiN3A",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "reviewImageSHA256": [
+        "b0d5d93157c42c2cbe6c41caa6e0a439f35e721fe07ae9cecac17e664094f235",
+        "4b3114508fe94a228b863ab387f0921555d5936030660e3247d2dd0a5eb03a06",
+        "2b3b0ff62b0255b02800717021fda41ec321f41027455f67f47cbd273cc5eb11"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "test",
+      "start": 0.0,
+      "end": 10.0,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_Yt7_BnVkoUM",
+      "recordingId": "932ee3c41ae9314e89e19b72b3a06c77b36f33a6fa3c32f534b7070d1d630d44",
+      "sourceGroup": "youtube:Yt7-BnVkoUM",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        2.0266669999999998,
+        4.516667,
+        7.006667
+      ],
+      "reviewImageSHA256": [
+        "1790dd8b2bc0eb9a5e24e4c22eca48006994734f94badb0acb5f3b75f9f8b530",
+        "8ed30b28c1fa8ac6e82d6bb5cf6d3fde88fe5c856c40b35d4f2ef73538e84380",
+        "c8471eae7157049207b015f76a9349cab516ef9cc413c25ceb00ea68fe8cbf81"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.36666699999999963,
+      "end": 8.666667,
+      "evidence": "Distant kipping footage; hands too small"
+    },
+    {
+      "id": "countix_aiJcIGNepAM",
+      "recordingId": "4f70bf902381a06ee31ec0f9f09133092b5db8dde13f7dfba57abadf62b25f11",
+      "sourceGroup": "youtube:aiJcIGNepAM",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "reviewImageSHA256": [
+        "33d2cbb5c1fabee66a14a6e4006bb0ba24ff3c8af20923786eed26ce65fdbd70",
+        "8dfb322c7e66f75fb29305a201d7f6cc87b589bd22fd3fdabe834426cdbac224",
+        "d59bf938ecd1a88383166bc88dc8c26baae25fd913f724d6978970afb704d12f"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 10.0,
+      "evidence": "Low-resolution hand view; palm direction unresolved"
+    },
+    {
+      "id": "countix_aleOhE3pmCk",
+      "recordingId": "044632bc9f887bd6f30cb408a46f01d1c5351545fada0ca7a95fa0c8f7e92276",
+      "sourceGroup": "youtube:aleOhE3pmCk",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        4.3066664,
+        5.4666665000000005,
+        6.6266666
+      ],
+      "reviewImageSHA256": [
+        "7c4376fa4f03761e31a6aaaf87bafac1a2b5279e793c34d4d9657ff1592a8070",
+        "4206c26e0cc0044d9a0fe2e13dbf284b5da07f7aea6bfc00e3c21f9062710831",
+        "e3855731d6c49ec0f634093c4285dc98bd4bd1de5e73b4fd3ff633242777b4d7"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 3.533333,
+      "end": 7.4,
+      "evidence": "Overhead handles and roof obscure hand orientation"
+    },
+    {
+      "id": "countix_bfQGBGK81JE",
+      "recordingId": "a23f659b832c2819ff871830a4987904340cc1df6dba58800065fa27c317e43f",
+      "sourceGroup": "youtube:bfQGBGK81JE",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "reviewImageSHA256": [
+        "c18b8d4bcf8059badc1fc4ae22602b3b0bcc0654f7eafb7863249795698ba322",
+        "d7a27ce6c55b6f586966b60003a7cdc3db5a694c027fb68b5bcb827801a392f8",
+        "ddbe2acda5286eeb1df72681b0c9a8b06f01fd694f54e67a59603ed07bfd75cc"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 10.0,
+      "evidence": "Suspension straps; neutral/rotating grip outside binary scope"
+    },
+    {
+      "id": "countix_eMRW1vKyy9o",
+      "recordingId": "d29d7ab0339ddc451e9410094eb26181f47d627c62da6c97538662d57d53d96b",
+      "sourceGroup": "youtube:eMRW1vKyy9o",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.9936604,
+        4.984151,
+        7.9746416
+      ],
+      "reviewImageSHA256": [
+        "ebce97d727909ce5d2fbc61ca305a34ae30c40882476fff9d80c1107a9f304e1",
+        "9faa26640cf43e62db62631a9fabb99ebf7768f5a55176f168fba4558d8e6558",
+        "c29a71991716f2aeffaa054e7810d95d5d6fa29f5bb67ffa8561801fbf9dc8ef"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "train",
+      "start": 0.0,
+      "end": 9.968302,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "countix_fdmzDARpAng",
+      "recordingId": "663d17d6813ab14f95169ead76a89e9bbcfe02e78344fc6d40f19d412fb4d4f2",
+      "sourceGroup": "youtube:fdmzDARpAng",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.9953286,
+        4.9883215,
+        7.9813144
+      ],
+      "reviewImageSHA256": [
+        "e9c4a2949307c3be1895343f8019b03053a397a484e6c40e6adfe1a949b44e39",
+        "bd3066ce978cd0465c76ad147463661c2865bc6a948d8a250ac43db6863306fc",
+        "af5900badb4b3a7accaea5f59b0ede5c77969ba0620a5cda06ec35e218c6f06c"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 9.976643,
+      "evidence": "Covered hands and limited palm detail"
+    },
+    {
+      "id": "countix_fw3FnkqViKo",
+      "recordingId": "9df9bfa38a229b6784e2e37ddae4205047c69877f0893fa55c6fd612991a794f",
+      "sourceGroup": "youtube:fw3FnkqViKo",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.1066666000000003,
+        2.7666665000000004,
+        4.426666400000001
+      ],
+      "reviewImageSHA256": [
+        "132e8418a1624aa9cc26169ad0e38e5777b0356ed0d310552090c981a876a7d7",
+        "b90383221c9e2e1611aa08f151757a7607eaead9b3cebae32ec4b570a6d6c960",
+        "095a5dbe09925573c289e881210912a2232ab56c82cc1716fa7f173a4c8f978f"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 5.533333000000001,
+      "evidence": "Low-resolution apparatus/hand orientation ambiguous"
+    },
+    {
+      "id": "countix_j9nYcbI4OOw",
+      "recordingId": "9639f79f3a521673aaf12176aaa223763da2e29452c260a2d55fcbf650e1abe5",
+      "sourceGroup": "youtube:j9nYcbI4OOw",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.2918783999999999,
+        3.2296959999999997,
+        5.1675135999999995
+      ],
+      "reviewImageSHA256": [
+        "0601abae50128ba7939d022b822092384646d60b969e0a6eb9aa975bb83e39b9",
+        "0575fca5f8fb0736b9d89db3282bcde75632fd41e7d20c0988cc75c2913ce464",
+        "5bac5f8dbaba734d7c45051c2a8ab584cec764abd3f16f5a7a1fa8c7b6ecf27f"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 6.459391999999999,
+      "evidence": "Side view with overlapping hands"
+    },
+    {
+      "id": "countix_wKNOQ5_6xgw",
+      "recordingId": "c6e17a85d4e24fbf0fc0d4e3363e0dda8d1546301a542e8a5b1cec54318f448a",
+      "sourceGroup": "youtube:wKNOQ5_6xgw",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.9920000000000002,
+        4.98,
+        7.968000000000001
+      ],
+      "reviewImageSHA256": [
+        "6d25e38953d746dcc16bfa6fb9af7389422e46e06e211b857ea9940a553833aa",
+        "23ab7a4bf82a5a689c043824391397fd34467104c29597193a4393d33f3c5a90",
+        "d793271a8d9393ea5c6eb7cf71293f4ffb333a233b1bd49a43e03e49603a9186"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 9.96,
+      "evidence": "Side view with overlapping hands and insufficient palm detail"
+    },
+    {
+      "id": "countix_xNN9Sha2SAM",
+      "recordingId": "86b860e93de21cb15fa4936cd1566966824e76edfef234b2da2633281c797d25",
+      "sourceGroup": "youtube:xNN9Sha2SAM",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.8275862,
+        4.5689655,
+        7.3103448
+      ],
+      "reviewImageSHA256": [
+        "a5687efea8450b27298f669981e0e2082e1880e13cb372930c5aa2c07872b201",
+        "6f5249be3677198252f2879ae8230905a95d4b334ec356e08cd3003938142304",
+        "5700cb4ad6b4a117f90c0e86eda3d704d2f71dcb7b79c4fc9b080b41c4bcf494"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 9.137931,
+      "evidence": "Hands partly outside frame in sampled views"
+    },
+    {
+      "id": "countix_zHonAu4yl8I",
+      "recordingId": "f6cf005ba96fbcb9ed0804c34abbc031e42722b3ac7dce7fa3639c65a5e890db",
+      "sourceGroup": "youtube:zHonAu4yl8I",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.5548882,
+        3.8872204999999997,
+        6.2195528
+      ],
+      "reviewImageSHA256": [
+        "f8d74d61485f804f4f7df54edd007426dba5794085cd73e81579c0b9c8cb974e",
+        "b115d291644248af8b072d7a07a4fc95c5e9232ce5e1808b730001fcb86c9a05",
+        "4148008ca737111a7cf705ab0b89ce02852291f5dbb96a973f077fe87254c64a"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 7.7744409999999995,
+      "evidence": "Opposing/commando grips, outside bilateral single-label scope"
+    },
+    {
+      "id": "countix_zJ_7ZJuHslY",
+      "recordingId": "fae199974e1b3015f6b6370b1a267a27bc7fd185371fe0230d5fe92abc20b612",
+      "sourceGroup": "youtube:zJ_7ZJuHslY",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.9520674,
+        4.8801685,
+        7.8082696
+      ],
+      "reviewImageSHA256": [
+        "e887b0d829f5912266ae9abf653cbd047f604f415798765b21fad6fb7ab81c06",
+        "dbcacacde6214a7af78536ef0718eb62903033133b0efe7f21ff9982019a2fe4",
+        "c452ec80a23bfbaab9d0c058afff64041edbc1b728c202bdc2458521926af63f"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 9.760337,
+      "evidence": "Hands cropped in part and low-resolution in remaining views"
+    },
+    {
+      "id": "countix_zWV8fZ9spHs",
+      "recordingId": "6b879abaaf4b1d49e761bbc16525288279ef52d01c114f964bbbca822de3c78d",
+      "sourceGroup": "youtube:zWV8fZ9spHs",
+      "publishedSplit": "val",
+      "subjectId": null,
+      "reviewTimes": [
+        1.1011930000000008,
+        2.7529825000000017,
+        4.404772000000003
+      ],
+      "reviewImageSHA256": [
+        "8fdea2202f4bb4e7a178415d4642dceffd6ad4a418d4b04ecfcfbaf77f372015",
+        "4655d283e42a716c2356647091df0bc2a9b31f9d21d11f5cc6589492adb21da9",
+        "38c95a47c4d0e2da9eec08a44b5bcf801cd81b709b0d0dcf71362316105c8809"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 5.505965000000003,
+      "evidence": "Hands outside frame"
+    },
+    {
+      "id": "repcount_stu10_34",
+      "recordingId": "170562f77776e50a929113776c6be96d8f00c2961bb595d6a3214ee7e30affc1",
+      "sourceGroup": "repcount-source:stu10_34.mp4",
+      "publishedSplit": "train",
+      "subjectId": null,
+      "reviewTimes": [
+        4.4044,
+        11.011,
+        17.6176
+      ],
+      "reviewImageSHA256": [
+        "e16e64954a3834ed88e66b84b424e397ed56c7d231bf1d3551c997c691191a16",
+        "4491e37174dcc07c5fcbd154235c34c02a139c716f57844176b25147094c1a93",
+        "2f0d605c7a50b4ba17d706fecd65389639943c1931d1b4d4a02c8494af13db90"
+      ],
+      "status": "binaryLabel",
+      "label": "overhand",
+      "split": "test",
+      "start": 0.0,
+      "end": 22.022,
+      "evidence": "Agent visual development review of three source-frame views before classifier inference; provisional labels, not independent human adjudication"
+    },
+    {
+      "id": "repcount_stu10_39",
+      "recordingId": "4fad39aadc66cc4375fe926b5e4c20f44c7b2059b0076af4f47cd95a466eeac4",
+      "sourceGroup": "repcount-source:stu10_39.mp4",
+      "publishedSplit": "train",
+      "subjectId": null,
+      "reviewTimes": [
+        7.800000000000001,
+        19.5,
+        31.200000000000003
+      ],
+      "reviewImageSHA256": [
+        "aa0d7b0c2b294861cc146affe78dffa97ce62a1d8416478fd2d878bade34b093",
+        "8343bc02c4f0b5ec81784104b6545bce42779be1ea201a14d5c3cec922c5a5f1",
+        "f724a9a58fef1ce69e1997322c4943a1596b3a472454d90ca2129aac066e63c4"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 39.0,
+      "evidence": "Distant outdoor hands; orientation detail insufficient"
+    },
+    {
+      "id": "repcount_stu1_34",
+      "recordingId": "d45301f7f7644f3261544c16f85167adb03ea04b045b1f0098ce799c388b4fbf",
+      "sourceGroup": "repcount-source:stu1_34.mp4",
+      "publishedSplit": "train",
+      "subjectId": null,
+      "reviewTimes": [
+        10.0,
+        25.0,
+        40.0
+      ],
+      "reviewImageSHA256": [
+        "35bed0d7243ce95e6a11229b1c50d29fa1fa8919d5d8ad4d09d503870b0d0403",
+        "99cdec7fab36d7215aab2e9c7267cc9136ff05948c633ed0b27391b96fa5cb6b",
+        "6f9d82cc6eabf3bda20ff2825a388f4a51df6b35f6e8e6b5e9d4658d3166b4c9"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 50.0,
+      "evidence": "Edited introduction and small hand detail; source windows not adjudicated"
+    },
+    {
+      "id": "repcount_stu1_37",
+      "recordingId": "c2fba8f59e13934c0048978469b87f6287c6fc44f09fb812c78d12ff32098037",
+      "sourceGroup": "repcount-source:stu1_37.mp4",
+      "publishedSplit": "train",
+      "subjectId": null,
+      "reviewTimes": [
+        12.005326666666669,
+        30.013316666666668,
+        48.021306666666675
+      ],
+      "reviewImageSHA256": [
+        "915ea4ef6f12895a060542e0339d026b11414ca0230c62f719354c0e8177bb8d",
+        "0a90f9d124f1a4aeb06efb00f56f3c03e8a7797e0b8c820c89d2e06abc4edd71",
+        "8f2515a66b841bd5a8baf18e142c13d15067a79aec5a3d3776e72923bfc89710"
+      ],
+      "status": "unresolvedOrUnsupported",
+      "label": null,
+      "split": null,
+      "start": 0.0,
+      "end": 60.026633333333336,
+      "evidence": "Low-resolution side view; grip direction unresolved"
+    }
+  ]
+}

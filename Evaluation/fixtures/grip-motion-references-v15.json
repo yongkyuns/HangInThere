@@ -1,0 +1,1289 @@
+{
+  "review": "Direct agent source-sequence review before v15 inference; not independent human ground truth. Sparse sampled lifecycle labels, no interpolated release times. Existing v5/v7 grip labels retained; v6 grips unknown.",
+  "frames": {
+    "c7696084e5515d85e0dbbc1d2dd3d327ed0af06bc37136f729d821064496f973": {
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "seconds": 1.8685333333333334,
+      "phase": "exercise"
+    },
+    "91c8c0fa22f25c0bb1413b6881c601e7eda8ecc9c42e29022ea6fe971ccc82f4": {
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "seconds": 4.004,
+      "phase": "exercise"
+    },
+    "fb8078b44016ede99b6f55d2113fa96c112cabf8ccac20ed49f3fbd3ea5d1548": {
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "seconds": 1.8685333333333334,
+      "phase": "exercise"
+    },
+    "a303bd8c94f4d20fa5e44232459ce6540b82852b84ef727adbc34ab30ba1f9a7": {
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "seconds": 4.004,
+      "phase": "exercise"
+    },
+    "b0b0991115d862f11263e11f93dbfeef1b215530a010df89e4ad872f257a6254": {
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "seconds": 5.872533333333333,
+      "phase": "exercise"
+    },
+    "74f02084c3500e7f6da41c347a4f71d971d93f3edc879044b9a1ce5396161209": {
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "seconds": 8.008,
+      "phase": "exercise"
+    },
+    "b079a7a3e59c95e47d695a8055c9d3cff89788a2ac3a505e68d17e8563c542d7": {
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "seconds": 1.8666666666666667,
+      "phase": "exercise"
+    },
+    "018eae3318eb10a450f1acfbb388d694819859ba7e994edd5c1e738e6f53f5ed": {
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "seconds": 4.0,
+      "phase": "exercise"
+    },
+    "daeec1c47580fa5c4d5244b94457d82eec1bb58627cb85d021714c273d342751": {
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "seconds": 5.866666666666666,
+      "phase": "exercise"
+    },
+    "f0c989f6574a703912c0a089709aa72e784e2c358505050824ede875ead74ce7": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 0.28,
+      "phase": "exercise"
+    },
+    "c2be0cbed19d1cb0309ba1525c7ba93c0928ef41c63fa8148a8194e86ff34991": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 0.56,
+      "phase": "exercise"
+    },
+    "8cf4d4c23d1867409ac79002147f1039b8a1d91b3b3fa9e7dfdf258d91d9047e": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 0.84,
+      "phase": "exercise"
+    },
+    "d1c168890dc6a05f02b5cab780080be1a10d5cebe0818828d0543c3ce58335f0": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 2.24,
+      "phase": "exercise"
+    },
+    "43647ab9ce16f62719eb1f3a18b252642b0f4c8c003fd780353dba3e74f164df": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 2.52,
+      "phase": "exercise"
+    },
+    "d6381b8dfd91bc21d0cd8659f41fb0ef979dc311ab26ff1f05d3bf11439e5ddf": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 2.8,
+      "phase": "exercise"
+    },
+    "b22f1c8a93ea96dac2c8724012f7af4239629c6bcb61dde767133108c3a70291": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 4.2,
+      "phase": "release"
+    },
+    "b4adc363a1e138165f40b2f93d5d046179a2804f9d1eb979bbc7a9d182b37da2": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 4.48,
+      "phase": "release"
+    },
+    "2708f9330d642e9bf67edabcd222ad6f0311c87ce208e7697e3dd63b26f5eb6d": {
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "seconds": 4.76,
+      "phase": "release"
+    },
+    "9fb8e74000cb099ab4ef71d4f5944c4ffca343868bdfa49daa184cb598238b1c": {
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "seconds": 1.8685333333333334,
+      "phase": "exercise"
+    },
+    "b65686b35caeca43c0259d77656fc39d3c60dfcaf3f340e1abb88085d5b42ca3": {
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "seconds": 4.004,
+      "phase": "exercise"
+    },
+    "0a80ee53e7c1535f55c4f37b0a901d1b49f9701c724ad744f90761a6689ce089": {
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "seconds": 5.872533333333333,
+      "phase": "exercise"
+    },
+    "47772041a2be0584769b7e677a0ecfff1583142bbdba55719948fc2e30820779": {
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "seconds": 8.008,
+      "phase": "release"
+    },
+    "005b9819d78eebab0c2bced0da55cba5ae0e3e94f158663759e8ba6b9d7161a5": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 0.5333333333333333,
+      "phase": "setup"
+    },
+    "23380112d820f26b332c5f136aa0feef1c6fcf1f5109709abe637e1a1615e849": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 1.6,
+      "phase": "setup"
+    },
+    "8d79c8eaaf82832dde1f7fb0ca8ab0a2c66b14284d37147907705f543cadb110": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 2.4,
+      "phase": "setup"
+    },
+    "33cb4ea970573d3ed2c207af4fe5fb05d4e0b5ca48d55484bdfdc55d3c51d377": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 3.466666666666667,
+      "phase": "setup"
+    },
+    "f2d2d9bdcd89c7b9d851f63afbd22a4d402d166de7abc117c036ce8fa1207a82": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 4.533333333333333,
+      "phase": "uncertain"
+    },
+    "6a8fcbf5b5af12a722a0b4e974cd2f50fb3fffc5c43d1c8fa686a864a57e4139": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 5.6,
+      "phase": "exercise"
+    },
+    "1850b378820f39ead9523ad0c15a151e80bd4130e7d9a1aad8386d9693f6cb54": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 6.4,
+      "phase": "exercise"
+    },
+    "eac5e84daee2f7c57d69ee5f8369c023d7277663d90c6784021c532851aedcf1": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 7.466666666666667,
+      "phase": "exercise"
+    },
+    "7578e60721ade3742b9e1780523c59451155fa6e8419b2a4a2337f78b458edaf": {
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "seconds": 8.533333333333333,
+      "phase": "exercise"
+    },
+    "0ce02f9472adcb2d1058527b0ce02395f1ab2f78262af0db7e26bf095d2414f0": {
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "seconds": 0.5338666666666667,
+      "phase": "exercise"
+    },
+    "fd7a6ae72811cf3f7cc4de0f69e237d03a05b263a08f0ba50ca0b62451083d04": {
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "seconds": 1.6016,
+      "phase": "exercise"
+    },
+    "a4475a96ba98523347b5673385de250ac406846b3faa9f0a9e88033ae2099ed8": {
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "seconds": 2.4024,
+      "phase": "exercise"
+    },
+    "182933019cf01e5284f62a2961982a5706c02f90be9b8c1832fe3096a93ff7e1": {
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "seconds": 3.4701333333333335,
+      "phase": "exercise"
+    },
+    "2d768c79e6ff63d69f4fe2720092b260be15d462090ad9f98ad82fb445f2f24c": {
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "seconds": 4.537866666666667,
+      "phase": "exercise"
+    },
+    "b05b91e57afc02a539eb9bbef2d3a3d2451bde2c12c0e6c7897325bebe56eb1f": {
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "seconds": 5.6056,
+      "phase": "exercise"
+    },
+    "f9b3a72961cd150dfb09f8995ecc9d93415adadb1a0f322f8607636668cf0729": {
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "seconds": 1.8685333333333334,
+      "phase": "exercise"
+    },
+    "519f6afb04f94439a1d5afd8897847d11db663f709e9b8620f98d553f24d40ab": {
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "seconds": 4.004,
+      "phase": "exercise"
+    },
+    "73c5031ca88849d5769ebf94f291b5eda34e1281f2fec040342c3ea0cfdfe12c": {
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "seconds": 5.872533333333333,
+      "phase": "exercise"
+    },
+    "b8674b77bda795d20035fcbe79d84526936b4969f758588c05109c09416af31c": {
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "seconds": 8.008,
+      "phase": "exercise"
+    },
+    "50d7dde5441dc95e0c5343a0ee86b68920bbb078d5bdbf34cdd22333e9bc770e": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 0.56,
+      "phase": "exercise"
+    },
+    "f746098e892bd0506d1017cf5274549c08dafc629cd467fd62c803787eed535b": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 1.4,
+      "phase": "exercise"
+    },
+    "c276874cc90c65376e614e41001fcc61179fbdde5955f028d2387989979bb9c1": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 2.52,
+      "phase": "release"
+    },
+    "09161952645effc63032cc991d23ecbd28152ad3001dd0e1f8c727886da69da9": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 3.36,
+      "phase": "release"
+    },
+    "670f507fb7ed597afb835ca866df69da0ff62040e30ed0dc374fa0416e2b6281": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 4.48,
+      "phase": "setup"
+    },
+    "7cd7ec4c5b88f04740357c24cd06f7a6a539a1a764d31d43e1bb208eef167f88": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 5.6,
+      "phase": "exercise"
+    },
+    "cbdd8f5fc1a511d04c27103cdf67a0e29ac339b824e2aafd45b35ccb50c26082": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 6.44,
+      "phase": "exercise"
+    },
+    "9b7d142b7b2939dfd735d99746be8f52fd6828319cda72caa1bb81f4db11e1af": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 7.56,
+      "phase": "exercise"
+    },
+    "dfa625746c29a085d1cd598e62210c56bfd3ad0285cba1d8695468a8c8708dab": {
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "seconds": 8.4,
+      "phase": "exercise"
+    },
+    "865db45f1d16a33642ba8c73f31cbfec2cf9b65e3c540cdeff617773954a449c": {
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "seconds": 0.5333333333333333,
+      "phase": "exercise"
+    },
+    "82f9cf1b501528533ed2d4c5595039ac42238fea183ad7f3efdb636692b93c90": {
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "seconds": 1.6,
+      "phase": "exercise"
+    },
+    "dc3b5dbff168d6a1f9bf254cf0bef00f97a4e1aa7c6c3dee2d21b923234c813f": {
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "seconds": 2.4,
+      "phase": "exercise"
+    },
+    "2835ad800a4b6ccdbb5bae2ed32386599b1d55fbd3ba2228b688fbd6f2e8047a": {
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "seconds": 3.466666666666667,
+      "phase": "exercise"
+    },
+    "265ddf34fb4a37b2dc49e93d8266a5024d11be61ba4460cbec869d5c7dbd23fc": {
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "seconds": 4.533333333333333,
+      "phase": "exercise"
+    },
+    "3029399a9e278666392cc14710aa37b75a50da4eb2119c0817ec7721f4ba0504": {
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "seconds": 5.6,
+      "phase": "exercise"
+    },
+    "3bd34c4c54f98d6a10fc6f20996404337ea6f46d264d3be75f6350f320fe67aa": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 0.5333333333333333,
+      "phase": "setup"
+    },
+    "d38383ee7e753925e793eaab5a4ff57045bd71a22eae2ac4e57eb18daf60fca8": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 1.6,
+      "phase": "setup"
+    },
+    "e9d9bce7843668cc0d15ebc64da86698dc921d2ebf67c521e9a3d5933aa4d188": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 2.4,
+      "phase": "setup"
+    },
+    "c92f3216c7ca5a957afb3cb50093712be9d073a1ec8de7cab70bcecfc2da3a58": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 3.466666666666667,
+      "phase": "setup"
+    },
+    "a250373b976b6277bf83c75c063f501f7cc403785ed34494f67b797ed7226cb2": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 4.533333333333333,
+      "phase": "setup"
+    },
+    "cc5d5d885786cebf46e7619aea64d1c548fe82c36c7603fff544a169a01248a2": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 5.6,
+      "phase": "setup"
+    },
+    "5b4d603a0b742fc8bec93524a9896b47fa244e5388a8169c50cb4b8ffbcea4dc": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 6.4,
+      "phase": "exercise"
+    },
+    "4fc71f99ef66a71a76dba7722ac0a3f82c51c4acd82e0a929a59d256d1a9631a": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 7.466666666666667,
+      "phase": "exercise"
+    },
+    "5dc8805718edb402d02f8498ee82a8f60134e701cff970ce4f776afef71b759c": {
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "seconds": 8.533333333333333,
+      "phase": "exercise"
+    },
+    "d33f4ef39f89625cf908727a8d1302d837e060ad0b87d4d09c9fbd4dee41b429": {
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "seconds": 1.8685333333333334,
+      "phase": "exercise"
+    },
+    "5cfeee6a000e1874e38fc2d210e41b17d0c1b9e8eda63fab1721aa41bdcadd95": {
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "seconds": 4.004,
+      "phase": "exercise"
+    },
+    "e3df36f4b952fc08771b14b1e262a7b371fd2293359839eb84e8ffaea35de63d": {
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "seconds": 5.872533333333333,
+      "phase": "exercise"
+    },
+    "3d68682496073619c57cd0b06ef1e74da4cb3ac72cc60892915a1e72339a86c3": {
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "seconds": 8.008,
+      "phase": "exercise"
+    },
+    "b7ba6a6a20cacf39a4c2a1e4e9d7509f7883f97c706d80940d0792532f1f37a2": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 0.56,
+      "phase": "setup"
+    },
+    "ec47bc17ec7b616d7eea66de07c33f6f4e544a773011d2b61cb9a5bc8531891b": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 1.4,
+      "phase": "setup"
+    },
+    "b39b046bbcb8eafed9db6d4b4a479926ee46e1c7a364eae6d00ae21a19ae688c": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 2.52,
+      "phase": "setup"
+    },
+    "216dc0e5004841009b27c5593e634db1f7b41e4b69faaf387360593a2f646dfb": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 3.36,
+      "phase": "setup"
+    },
+    "24899df5bc98514fa8d2e04b585b83f05395571949e448c76419adcb87d09a39": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 4.48,
+      "phase": "setup"
+    },
+    "ec9783ed0bba290ab35ef704b144f554639b496762568828405441406de63887": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 5.6,
+      "phase": "exercise"
+    },
+    "9c60783229b734ab060c67ff3c5de50370bcca0a32c4b8488d3a135e5313be1e": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 6.44,
+      "phase": "exercise"
+    },
+    "1a4ba3222363499a42bfbdd50e7c811a37938f95a705cb4910ea933f1ceec974": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 7.56,
+      "phase": "exercise"
+    },
+    "182be6366fccbb6ec9354000c31f9cfcdefa9c682759e15a25a4e4efe97d2f7c": {
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "seconds": 8.4,
+      "phase": "release"
+    },
+    "968fd8e760c725433a5e163784c71816c55648f042633b82bedfb7895230d702": {
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "seconds": 1.8685333333333334,
+      "phase": "exercise"
+    },
+    "d2dbd57adc8325cb4a2f6c0b9f11f4bc09b14b430be642d14601142fd570213c": {
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "seconds": 4.004,
+      "phase": "exercise"
+    },
+    "aba61f8a82ac0ede30bf76294e8b3ee91478a1f476d7d83dbfcc3367d6142fea": {
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "seconds": 5.872533333333333,
+      "phase": "exercise"
+    },
+    "29abb350fa4e88f74cf97571812fabf02c6fd57f60f361b22d6c7b7eaa0ca0ba": {
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "seconds": 8.008,
+      "phase": "release"
+    },
+    "ea13fe56751d640955c890aaa1d6a30797a93e19a33d5e242f2b8901f02f026f": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 0.5005,
+      "phase": "setup"
+    },
+    "9669ee12c00b8bb80b0a678b77efae47e46c001f85fe502cce2ddb7586a6f4e7": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 1.5015,
+      "phase": "setup"
+    },
+    "edb6c28ef9fba06bdb48a8095dbbf57d63cc5c80e9592916ca34e5b2ee182c6b": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 2.5025,
+      "phase": "exercise"
+    },
+    "d5bc1d5369e00ce90ed82ab2dbeb69cf1e142f0d60fbb673072a0e28dce100ed": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 3.5035,
+      "phase": "exercise"
+    },
+    "3c12780568a90c34c02f5f0b5720c31b5462e8fe3c69227ec630a2a2fb6f861d": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 4.5045,
+      "phase": "exercise"
+    },
+    "21967ef4578588b922396f111f87875f123f5e47f845d6da9a3f91ea45ff13ef": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 5.5055,
+      "phase": "exercise"
+    },
+    "d1b833d47f0fdb67292a829e4a1f8abde22bf2ceac643f908408682e0e49d275": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 6.5065,
+      "phase": "exercise"
+    },
+    "2af7ebd98917ce60d3d69bb31f51ed1bc849f75ddaf779c5a30b82d56841f9ff": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 7.5075,
+      "phase": "exercise"
+    },
+    "a0edf54fd9107a953318c2e74781fbfec2a09ba135045bcc9e76bcd8726ad677": {
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "seconds": 8.5085,
+      "phase": "exercise"
+    },
+    "74e54b19ce1e43c3ce7100f17f55c939c7d89ccf34be61c93b56114f3b74b5e3": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 0.26666666666666666,
+      "phase": "setup"
+    },
+    "0430f73bbf7e9597fc98bb3b10b4a6a37624074e622d786c4609468ba8f6fabb": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 0.5333333333333333,
+      "phase": "setup"
+    },
+    "3755e7e6a7b2b17d522e9fc16bcf9a56d4ee8c248fe0985c40a4a57ebab176a3": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 0.8,
+      "phase": "setup"
+    },
+    "15cde1e38c50463b0821917ca1749a4d22fb5228ad27351ac39aafa8151efa4f": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 2.1333333333333333,
+      "phase": "otherExercise"
+    },
+    "bc08aa4f2a1d90d94545dd011787685e354a23a622dabde0e9f42df55c20ab12": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 2.4,
+      "phase": "otherExercise"
+    },
+    "612c3391f2a4e117c4cb3e3ea4f3db34c9fc1fefb37a3f7b04cee07ce7052304": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 2.6666666666666665,
+      "phase": "otherExercise"
+    },
+    "8dda1606396a58d707c0d3d749fc590f0c49319407de50e07507fd3a27208c84": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 4.266666666666667,
+      "phase": "otherExercise"
+    },
+    "b12fa659631d0479e3ec1eae03f8cde821324a25873589c68280fc5fb0f89794": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 4.533333333333333,
+      "phase": "otherExercise"
+    },
+    "6607a7513ee6479fc7e0a0b912458da41b3cafa48e926beb6cc4b35e71c29206": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 4.8,
+      "phase": "otherExercise"
+    },
+    "95bfd57b17b6b97a1155ec36a2479e9622a8b9dd1a330dbe8c3d33ce13952334": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 6.133333333333334,
+      "phase": "release"
+    },
+    "686d366ed494e106717e1e9fab0176ac4aa96b9c31c849575c810b958c516b1a": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 6.4,
+      "phase": "release"
+    },
+    "870a5156c2842e75f89a75d94260654af5d839570aea14808cc21ba3e346e2bc": {
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "seconds": 6.666666666666667,
+      "phase": "release"
+    },
+    "71fa418be1689cf2d59490c4fb25cd343624d695c54d07696fa2c7c5d4b3c35a": {
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "seconds": 0.56,
+      "phase": "exercise"
+    },
+    "6b5bac51461a07cceac18c5c8d60903fd8cac556c963c77d1add6b769f310db7": {
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "seconds": 1.4,
+      "phase": "exercise"
+    },
+    "088f5c5d1b4f705390ba31a5482f7e30fed1c185b7c32f0551d5ab55acc424b1": {
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "seconds": 2.52,
+      "phase": "exercise"
+    },
+    "1664b46b54ec79e857ad8db549bb6c69c70e67d4996093ffe540ea46de1edd0c": {
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "seconds": 3.36,
+      "phase": "exercise"
+    },
+    "07d1c2c0231fca4599228022c4682d161d07e86346befd59cedc6151a0729b25": {
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "seconds": 4.48,
+      "phase": "uncertain"
+    },
+    "4ba78f6d88fbcab9d4f8fb5b20f993cc7ad555698e73499fb75d746e1360975c": {
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "seconds": 5.6,
+      "phase": "release"
+    },
+    "daa203a3b47e5dabd983c51763fe503482da6944a9dd5837b833e472df8d9e2c": {
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "seconds": 6.44,
+      "phase": "release"
+    },
+    "7ae0728f30dd2f0a544c18305cda9132917bf855d3cf2fd625fe46f613e6573e": {
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "seconds": 1.8711574445335473,
+      "phase": "exercise"
+    },
+    "3de4ae0ec95178f4271391a570d3b54ecb5aae177b97f86d06328fc581c77c32": {
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "seconds": 4.0096230954290295,
+      "phase": "exercise"
+    },
+    "6eeb007793473c316bb1ce64b7c05c372163881fc59d4f24efe38f2886413555": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 0.5333333333333333,
+      "phase": "uncertain"
+    },
+    "33f9b37f7b4bfceb235118bdf3bc1c9d866f982334925460e9214c3994721414": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 1.6,
+      "phase": "uncertain"
+    },
+    "d6b9bddc312ea273d87b273074e98b0e2cc78404e58a41aa1cf79c46837cf658": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 2.4,
+      "phase": "uncertain"
+    },
+    "ab89c2c8842b960eb12cccff7fc2c8f885700b3e460ab1b763c4e0ee2bd6b595": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 3.466666666666667,
+      "phase": "uncertain"
+    },
+    "f53ea0d5cc4fc1818a14f9e1154a0d4b9c940f6be61f225fb0a7bd0e211923f8": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 4.533333333333333,
+      "phase": "uncertain"
+    },
+    "d982ab722a89817c49121d9d43a5a40ea8bf97edc3bd8780619140c34ede47c1": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 5.6,
+      "phase": "uncertain"
+    },
+    "8287dfe9511de47b38074e2494fbb1070cd69fd9637569c1278f3f68a9658b80": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 6.4,
+      "phase": "uncertain"
+    },
+    "b8edc755ae19425b04c52016116541d282924bf5498e42ad48f82b187dc5d270": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 7.466666666666667,
+      "phase": "uncertain"
+    },
+    "d1a01d6238fabafe96f9768a5f1817c2e932781085b1a7813ba5e508f444f72b": {
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "seconds": 8.533333333333333,
+      "phase": "uncertain"
+    },
+    "694b5aa0d00c181b7654d77f2384e7a6a6b12f4181a71fd6765a6cc532725699": {
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "seconds": 1.8666666666666667,
+      "phase": "exercise"
+    },
+    "6ffdeb53f83df94dbde20e3e2a550a29f19f641741bcbb5a29206049d79ad291": {
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "seconds": 4.0,
+      "phase": "exercise"
+    },
+    "c2aeaf3ed352d3fb38db3a8302a8fc19206f581626253ce2b1fb665c2880d574": {
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "seconds": 5.866666666666666,
+      "phase": "exercise"
+    },
+    "b420bafb400d0978602d75dc51dd7d45b5599de4f2e5c9002fffb2a64a31d51c": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 0.5338666666666667,
+      "phase": "exercise"
+    },
+    "9dba60182a6d9f4b507cc9615205924b43afde380a5fcdfca8c5019a7c325d05": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 1.6016,
+      "phase": "exercise"
+    },
+    "6303fce8e65510b3c9f98415d57592c74fe738ce16e3f0d2be225231913cd70b": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 2.4024,
+      "phase": "exercise"
+    },
+    "a80d6914eaff857e19936c407b298e486a3fad3cd37551c7b3a911c723ba0b41": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 3.4701333333333335,
+      "phase": "exercise"
+    },
+    "96205edcf4e13483326c6e87f5af9fa5562db9bd7d2037980358eec0c79f421b": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 4.537866666666667,
+      "phase": "exercise"
+    },
+    "3c308724ce4e10a8aa87add8b3ae943624c7646e2d08fb479c2df95723ec803f": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 5.6056,
+      "phase": "uncertain"
+    },
+    "baa6fb77e813620a31e6bcc2262a2f0fa58971ad98f6f8908f629dbc6b1a5790": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 6.4064,
+      "phase": "exercise"
+    },
+    "9986ab9a5d513df3646f6b499b2dd22b3e2c233dc75556ec386507692f64652f": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 7.4741333333333335,
+      "phase": "exercise"
+    },
+    "6b5d4ff736c5777384e171b3f7c4b87addab65a1ec12c5805016d7a4ad9057ed": {
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "seconds": 8.541866666666667,
+      "phase": "exercise"
+    },
+    "01531ba6dc048d70e498f108e3ed10d4ac7e742983ba0e6b966825fcc07d2789": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 0.5338666666666667,
+      "phase": "otherExercise"
+    },
+    "76eb21bed058daef88cb93efb07e404093bc5aacbab9ad213f33f12bdd955f62": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 1.6016,
+      "phase": "otherExercise"
+    },
+    "c5f1f0f31b0ac2c72ed82a04b359eab52e4980cccb66d9534ef21dc8351e840c": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 2.4024,
+      "phase": "otherExercise"
+    },
+    "694a49d2d8ef84d2581bfc4033cb339be7781e8852ecbe71ee80e816befe68bd": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 3.4701333333333335,
+      "phase": "otherExercise"
+    },
+    "01b1df0d2aee8768cbfad215e6e19da6a2ba3fda3ce4d662d63de8eb3692c6e2": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 4.537866666666667,
+      "phase": "otherExercise"
+    },
+    "c07c22eac5b47fc4d7a92d59cca67077a7e578f8000c9cfaa0e4914b6f3b798c": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 5.6056,
+      "phase": "exercise"
+    },
+    "8b7a71d4f9c427533ad6f82a5b43468e8e8dc3eda1c568399d88de2d924a77f3": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 6.4064,
+      "phase": "exercise"
+    },
+    "720acc5ecfa7662f963bc3587139151ef354793efd3bb866fb2ac9bdfb7fd6c0": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 7.4741333333333335,
+      "phase": "exercise"
+    },
+    "6e2414badd260fea93bb77f3c56fa328964beadbb1a85c30e6ccfcb5df2d9cc8": {
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "seconds": 8.541866666666667,
+      "phase": "exercise"
+    },
+    "bab25b77dbf43b04b2c9ea2251e47956b8bde18792619739ce1107b6cbb95efe": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 0.5338666666666667,
+      "phase": "setup"
+    },
+    "e995d4fd5d21ce17034fdd906d1bd8be1755dc80cb43a78fd093d7bb7e631431": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 1.6016,
+      "phase": "setup"
+    },
+    "0561f0ce14c86b9131f3f2df98e78ce28b48acf8dafae4d6ad940150c008ab8c": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 2.4024,
+      "phase": "setup"
+    },
+    "b00bba03b17f162cfe0ed5cb3d1f98a5663afffc39b89020d16ee322ad4cf921": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 3.4701333333333335,
+      "phase": "setup"
+    },
+    "b66d8e572ba7ace6c93cb1eee0cf04287c3f7635f7666f722c18670d70de079e": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 4.537866666666667,
+      "phase": "setup"
+    },
+    "612bb4cb3f955d6a8b7029679c6a8f2cc5fa60496378ca9ef935edaef590a090": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 5.6056,
+      "phase": "exercise"
+    },
+    "15e905d65485af32893e90ff131b07a24efac095015fcdf09a9933f7d4388c73": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 6.4064,
+      "phase": "exercise"
+    },
+    "c15d0d96f79a6cb33581f5b09e1ed2b40b37682c6114b42d21dba21c54b16310": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 7.4741333333333335,
+      "phase": "exercise"
+    },
+    "0a87e8937c0660d6ac3775552e71b40198ac8dbb7a1aa39ae230871afdb57bbc": {
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "seconds": 8.541866666666667,
+      "phase": "exercise"
+    },
+    "be995e50509a8f165075a66bf4b8d42679afdff08a299830baa40febbcdd6a60": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 0.5493333333333333,
+      "phase": "setup"
+    },
+    "e6d1d411e9553ef4180537f9ea2998c743b95589ec1cdaf82822c476791c69fc": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 1.3733333333333333,
+      "phase": "setup"
+    },
+    "f764f550aef86b32f373980834e61cf2138ab15c29ed9088c90251378df657e9": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 2.472,
+      "phase": "setup"
+    },
+    "21155d130e2abd7437e7538d9033ce2ee7eb83c1b5acd510da6a794411c47078": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 3.570666666666667,
+      "phase": "exercise"
+    },
+    "b297d45c5beb7e2cacd39a93643862c0adf0f5603cef113ff275b77e2876ec62": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 4.394666666666667,
+      "phase": "exercise"
+    },
+    "c96bc1e30e9eb237bb1a0154d61685c86c3fbafda68f690ddb889f6013040865": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 5.493333333333333,
+      "phase": "exercise"
+    },
+    "15ef5a518d4596682822aa1b3c7d4c1be5734b6d06cd2f35761ee66d1ba360ca": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 6.592,
+      "phase": "exercise"
+    },
+    "1ff98a30d745ad19616bbeb92f6de83a2df89c8ebdede5d0e2ccd11557a12896": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 7.416,
+      "phase": "exercise"
+    },
+    "fe563edd0736279de90bb670a1523ff541b80d0a67b213c504febdaf19ecb529": {
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "seconds": 8.514666666666667,
+      "phase": "exercise"
+    },
+    "a6b33ef7e34e8a49b78bd16791ede5a86cac93b24031c07c4c9043ca2d369672": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 0.26666666666666666,
+      "phase": "exercise"
+    },
+    "4a641368df0a36a39ab996ff9c1d5a95ddcb37fe79672ca9c6f0309f7555116d": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 0.5333333333333333,
+      "phase": "exercise"
+    },
+    "69218bb4786fbb1f0cabcd10cce0b40abeb6a2eeaddb168fa646cd72eb606b08": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 0.8,
+      "phase": "exercise"
+    },
+    "085d9c07b6fcd24fa076c662f679778dace5d879b8f80d4f185ef94a83690686": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 2.1333333333333333,
+      "phase": "exercise"
+    },
+    "22f354e7ad4a80600ec120b3b4dc8d240bdc878035d428ac379c23c013974815": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 2.4,
+      "phase": "exercise"
+    },
+    "487d5baca3a4c123fc73d5a4647067d60761398dfcdf1800b19393bb250959db": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 2.6666666666666665,
+      "phase": "exercise"
+    },
+    "b7b4bdeab49d9cd0853bec5829c6c4367919b58b1022c9c17c8919091c5a355b": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 4.266666666666667,
+      "phase": "exercise"
+    },
+    "d186e0af9628ced09fcf6caf71ff00e967f5d26175c0c3b14028aa28d63180a8": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 4.533333333333333,
+      "phase": "exercise"
+    },
+    "1dac445ea8aeeb6fb1c739df3e7e3b863a322cae1f605ff86903f6b1b883e7fc": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 4.8,
+      "phase": "exercise"
+    },
+    "f1c1f4ea838b045db21157a26ccb7fd062cf89c549a020bf1711bfd6a67e1f80": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 6.133333333333334,
+      "phase": "exercise"
+    },
+    "68bbb911a294cc8ce0ae5eb6d0fbfebebf63caa599a4f823859cc0f2f805f8b6": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 6.4,
+      "phase": "exercise"
+    },
+    "09fb42b5567b515756a136dfccc3c2c561f43b3701b8b3a4066591133697d7d3": {
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "seconds": 6.666666666666667,
+      "phase": "exercise"
+    },
+    "37d13159fd9313655329e69014356374f92fba18ae97964313d3b2afc33bf3a4": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 0.5333333333333333,
+      "phase": "exercise"
+    },
+    "effaa268a68df44b98d3e82e0bbec3d7305753ffcc2c479191e5b0a8d67d9c07": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 1.6,
+      "phase": "exercise"
+    },
+    "e175b5480b001d734d59a95245540de730635d00768ea64f301f80424bcc1dbc": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 2.4,
+      "phase": "exercise"
+    },
+    "56484a8934b494d121fc9c43fb9ff45497daecbfb1c1c48a668a3c7a590386fa": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 3.466666666666667,
+      "phase": "exercise"
+    },
+    "cba625e2d347c14508ab77967141c5653132d252dbf0a078fac8f18f10ebf9e5": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 4.533333333333333,
+      "phase": "exercise"
+    },
+    "9110284d30381910b6f078a6724a2f5266c0d58d020ee697d56cb1aa4bcfc3a7": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 5.6,
+      "phase": "exercise"
+    },
+    "29ba24f68b0e6aae6eb4bd83c331fe27f6d9dcc46ab05cdd1cb8fb60c459365f": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 6.4,
+      "phase": "exercise"
+    },
+    "f39c2e64334362dd4e678d370305df6b9c91e75645a7e9ff962aec76d6b2f8d8": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 7.466666666666667,
+      "phase": "exercise"
+    },
+    "bbd807dd225628d7eb779bce57310dd3d411e1408ec5640fa45ac405c855e06e": {
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "seconds": 8.533333333333333,
+      "phase": "exercise"
+    },
+    "2a6e5c8bf5530d49c5f02a03e995b3c178e8f0ab5bda6059f892d889b4740d07": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 0.5338666666666667,
+      "phase": "uncertain"
+    },
+    "96a63b2fc3cfbf81b66bc8f53a808f129ff086f7ed14e78749acb3aff37878ad": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 1.6016,
+      "phase": "uncertain"
+    },
+    "0fdf398dc75313d08ce54b09605aa83b28700a8ab71ed18f1b5270193229489d": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 2.4024,
+      "phase": "uncertain"
+    },
+    "9677666d67379e06b3850fedcba40dbe3c88a746776686dcd565299311dfd65e": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 3.4701333333333335,
+      "phase": "uncertain"
+    },
+    "999b01a4a1247b7192c2701b11fa2ecd133f62749040b8eac0c8fc422a339775": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 4.537866666666667,
+      "phase": "uncertain"
+    },
+    "7c55510435602558a1e08145f1375fcb739c8b2b3c4b2450dc0f546462b8e970": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 5.6056,
+      "phase": "uncertain"
+    },
+    "9228c9fe365e4c23bbd03a8c2035fe3209a39c35b35321a0d6c27c2734bc063b": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 6.4064,
+      "phase": "uncertain"
+    },
+    "5d2d15009a858dfad519746de67094eaf49af7bb0ad122f45936ddeed482fdec": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 7.4741333333333335,
+      "phase": "uncertain"
+    },
+    "f3aa21589c0e8c17b500c0f0a6ec8c8af782a7555d24d2e3bbb445693340e79f": {
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "seconds": 8.541866666666667,
+      "phase": "uncertain"
+    },
+    "a5ec6fc3f42fca566d9dfe60bec23a98396c9c22982ffb2d4efc92499046523b": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 0.26666666666666666,
+      "phase": "uncertain"
+    },
+    "77ff055dc51670674dfa23e1c02f624ed0a582416cea509c45244bf1bd786564": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 0.5333333333333333,
+      "phase": "uncertain"
+    },
+    "712b9da0985f5e2ef7335b2c0e8b28301790b2ee97053ba46d68f043d80e7a11": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 0.8,
+      "phase": "uncertain"
+    },
+    "22967995889d680b378afa49fea22033c7044ae1efb979444ff004cd901299c8": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 2.1333333333333333,
+      "phase": "uncertain"
+    },
+    "3c15c48fd103fca7fd6a7cf768db56e55d40d838dede75647616728d5e9af76e": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 2.4,
+      "phase": "uncertain"
+    },
+    "faded4cceec0879c5f584ffda3ad9e8b049797cfdaf1dc3d6f7811a872b827ba": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 2.6666666666666665,
+      "phase": "uncertain"
+    },
+    "a371330d27c05ed3a944bf375ed3481c0799924e2673a410f570f0067854a349": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 4.266666666666667,
+      "phase": "uncertain"
+    },
+    "fce9b340ef14e5c169c4e0f7ebafb233541cb19ac2efa21e5e760becaff50879": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 4.533333333333333,
+      "phase": "uncertain"
+    },
+    "4706d491f7da25d4fa706091fb1db999faa1f8485252afeae28b3c3ef3f34734": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 4.8,
+      "phase": "uncertain"
+    },
+    "f575d9b6d29a07b7b0cb3eb934a9a3f7b635f9fd835b72b555c35e85f65d2c90": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 6.133333333333334,
+      "phase": "uncertain"
+    },
+    "8afdda46810290e0b07716dfc2111c328600c6822f334fe04d136a37773c4da2": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 6.4,
+      "phase": "uncertain"
+    },
+    "351d0a8ef71b186965b3ea3cb6e7ef864a3917cee7cb7902c8311988c6ef84c8": {
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "seconds": 6.666666666666667,
+      "phase": "uncertain"
+    },
+    "a11a512dc0dfbf78f22796559051ef9c0d4269c8ad8c2cab211988d026567b61": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 0.26693333333333336,
+      "phase": "exercise"
+    },
+    "e76616419c0bfcfcb2210f069c46a348349906c916c6febcf94e7c4a74f04ea9": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 0.5338666666666667,
+      "phase": "exercise"
+    },
+    "d919700b2fb6d5c451e5c4912b86465a4ef5bd8485868b12b153545b0224776b": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 0.8008,
+      "phase": "exercise"
+    },
+    "9e90ff0e7ff24736215bbfdb80e0c440e324bb96f08bb4289e185388957ed98b": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 2.135466666666667,
+      "phase": "exercise"
+    },
+    "ebbb67a9177a25245b4fba89b807ffb509e47b43998f589118ae4102a9cb3399": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 2.4024,
+      "phase": "exercise"
+    },
+    "3a8f051d9a035edb3b3bcf579a205b2b9d88eafac9e252addf02918bda3862cb": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 2.6693333333333333,
+      "phase": "exercise"
+    },
+    "9d312411d72b09a66ce6deb99695ef12e71ae2fcafe44b86795268612d51f82b": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 4.270933333333334,
+      "phase": "exercise"
+    },
+    "6edb43c516f903030c57d147449e4e0284c7d5f0685f3080bf8b3bd020a5c9c9": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 4.537866666666667,
+      "phase": "exercise"
+    },
+    "7bcf9c4941e6c5df0d0221340711cac37303b77891f725f2045d0b7dab0c98cd": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 4.8048,
+      "phase": "exercise"
+    },
+    "9b10d0ac32de713d5f99edb3ab2a9a44e65273c03abbcfa494cd5668a526f1ef": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 6.139466666666666,
+      "phase": "release"
+    },
+    "f0f0843591f5f62d804f3133212ee3b7962045e3266f9b946c304c4ef1b1de0f": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 6.4064,
+      "phase": "release"
+    },
+    "1797c7aae91309907e03896f656df7d34b065834a2a5c5df0a3c3c8c0c15bd10": {
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "seconds": 6.673333333333333,
+      "phase": "release"
+    }
+  }
+}

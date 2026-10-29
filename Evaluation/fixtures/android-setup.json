@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "scope": "Authored static setup integration only: repeat Commons pull-up source frame90 (3.0s) and Pexels dip source frame0 for six seconds. No natural-video, dynamic-dip accuracy, physical-camera or held-out benchmark claim.",
+  "review_provenance": "Source-only review before Android inference of these authored timelines: Commons frame90 shows the extended hang with wrist/bar image margins; dip frame0 shows bilateral extended support and actual green rails. The natural dip video pans and is excluded as a fixed-camera dynamic positive. Repetition is explicit transformation, not observed six-second hold. Previous pull-up source exposure on iOS disclosed.",
+  "duration_seconds": 6,
+  "fps": 12,
+  "source_frame": 0,
+  "dip_source": {
+    "url": "https://videos.pexels.com/video-files/4065479/4065479-uhd_3840_2160_30fps.mp4",
+    "download_url": "https://www.pexels.com/download/video/4065479/",
+    "page": "https://www.pexels.com/video/a-man-doing-dips-at-the-exercise-park-4065479/",
+    "title": "A man doing dips at the exercise park",
+    "bytes": 27403001,
+    "source_sha256": "f40f1a37b04ab0cc5e86ed71c3af9b6413fd8094c12531c967cd3d3eeaca7985",
+    "credit": "Pavel Danilyuk / Pexels",
+    "license": "Pexels License",
+    "license_url": "https://www.pexels.com/license/"
+  },
+  "pullup_source_frame": 90
+}

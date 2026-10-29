@@ -1,0 +1,1384 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-23",
+  "status": "offlineResearchNotQualifiedForDeployment",
+  "qualification": "Two agent visual passes, not independent human gold labels. Reviewed-view results are privileged diagnostics. Public video groups are held out, athlete identities are not proven disjoint.",
+  "report": {
+    "qualification": "Video-group held-out research evaluation with two agent visual passes; oracle view is privileged diagnostic input, not app accuracy",
+    "modelSHA256": {
+      "binary": "f791298fb8976b1c525b1b5b38b488c7b2ad1e4c71d457c19551a7b39dabc82f",
+      "threeway": "ba52da15910afe64f56e5d0f6d84149a6513538f365e8187c7c1f69f363c11f2"
+    },
+    "inputSHA256": "d4b0494ad32ae0f604ef262c4008e4ff779bc13d6f73b1485eb27328f2ede933",
+    "reviewSHA256": "915c36f384f8844886269df555e204d28503c4256a1e30e7c7b596ddc7b6bba9",
+    "reserveSHA256": "d013a808572d78b1cc743c8acb3a9bf6bbdc2f50ba917d4940f3ed82cfe28530",
+    "freezeSHA256": "9af9e994b367549de26975a954e91a3eca84b35568adda67d73fbb4a1351c6cd",
+    "scriptSHA256": "388f01127ea9fd5c37ddf11cd679e459a2e55187dec80a15d2c02c0d036b5204",
+    "population": {
+      "reservedVideos": 100,
+      "sampledVideos": 24,
+      "sampledFrames": 85,
+      "automaticHandCrops": 134,
+      "binaryOrNeutralReferenceVideos": 23
+    },
+    "threshold": 0.8,
+    "contactThreshold": 0.8,
+    "torchScriptEagerMaximumDifference": 0.0,
+    "summary": {
+      "binary:oracleView": {
+        "expectedHands": 140,
+        "availablePatches": 124,
+        "rawCorrect": 64,
+        "unknown": 140,
+        "contactRejected": 89,
+        "lowGripScore": 124,
+        "rawWrong": 60,
+        "invalidTargetCrop": 17,
+        "missingHandInput": 16
+      },
+      "binary:oracleView:overhand": {
+        "expectedHands": 66,
+        "availablePatches": 64,
+        "rawCorrect": 38,
+        "unknown": 66,
+        "contactRejected": 45,
+        "lowGripScore": 64,
+        "missingHandInput": 2,
+        "rawWrong": 26,
+        "invalidTargetCrop": 11
+      },
+      "hand:binary:oracleView": {
+        "expectedHands": 107,
+        "availablePatches": 107,
+        "rawCorrect": 64,
+        "unknown": 107,
+        "contactRejected": 72,
+        "lowGripScore": 107,
+        "rawWrong": 43
+      },
+      "hand:binary:oracleView:overhand": {
+        "expectedHands": 53,
+        "availablePatches": 53,
+        "rawCorrect": 38,
+        "unknown": 53,
+        "contactRejected": 34,
+        "lowGripScore": 53,
+        "rawWrong": 15
+      },
+      "binary:automaticView": {
+        "expectedHands": 140,
+        "availablePatches": 124,
+        "rawCorrect": 51,
+        "unknown": 140,
+        "contactRejected": 81,
+        "lowGripScore": 114,
+        "rawWrong": 63,
+        "invalidTargetCrop": 17,
+        "missingHandInput": 16,
+        "missingOrientation": 10
+      },
+      "binary:automaticView:overhand": {
+        "expectedHands": 66,
+        "availablePatches": 64,
+        "rawCorrect": 25,
+        "unknown": 66,
+        "contactRejected": 45,
+        "lowGripScore": 64,
+        "rawWrong": 39,
+        "missingHandInput": 2,
+        "invalidTargetCrop": 11
+      },
+      "hand:binary:automaticView": {
+        "expectedHands": 107,
+        "availablePatches": 107,
+        "rawCorrect": 51,
+        "unknown": 107,
+        "contactRejected": 65,
+        "lowGripScore": 98,
+        "rawWrong": 47,
+        "missingOrientation": 9
+      },
+      "hand:binary:automaticView:overhand": {
+        "expectedHands": 53,
+        "availablePatches": 53,
+        "rawCorrect": 25,
+        "unknown": 53,
+        "contactRejected": 34,
+        "lowGripScore": 53,
+        "rawWrong": 28
+      },
+      "threeway:oracleView": {
+        "expectedHands": 140,
+        "availablePatches": 124,
+        "rawCorrect": 76,
+        "unknown": 134,
+        "contactRejected": 89,
+        "lowGripScore": 113,
+        "rawWrong": 48,
+        "invalidTargetCrop": 17,
+        "missingHandInput": 16,
+        "acceptedWrong": 2,
+        "acceptedCorrect": 4
+      },
+      "threeway:oracleView:overhand": {
+        "expectedHands": 66,
+        "availablePatches": 64,
+        "rawCorrect": 41,
+        "unknown": 64,
+        "contactRejected": 45,
+        "lowGripScore": 62,
+        "missingHandInput": 2,
+        "rawWrong": 23,
+        "acceptedWrong": 2,
+        "invalidTargetCrop": 11
+      },
+      "hand:threeway:oracleView": {
+        "expectedHands": 107,
+        "availablePatches": 107,
+        "rawCorrect": 76,
+        "unknown": 101,
+        "contactRejected": 72,
+        "lowGripScore": 96,
+        "rawWrong": 31,
+        "acceptedWrong": 2,
+        "acceptedCorrect": 4
+      },
+      "hand:threeway:oracleView:overhand": {
+        "expectedHands": 53,
+        "availablePatches": 53,
+        "rawCorrect": 41,
+        "unknown": 51,
+        "contactRejected": 34,
+        "lowGripScore": 51,
+        "rawWrong": 12,
+        "acceptedWrong": 2
+      },
+      "threeway:automaticView": {
+        "expectedHands": 140,
+        "availablePatches": 124,
+        "rawCorrect": 57,
+        "unknown": 140,
+        "contactRejected": 81,
+        "lowGripScore": 113,
+        "rawWrong": 57,
+        "invalidTargetCrop": 17,
+        "missingHandInput": 16,
+        "missingOrientation": 10
+      },
+      "threeway:automaticView:overhand": {
+        "expectedHands": 66,
+        "availablePatches": 64,
+        "rawCorrect": 37,
+        "unknown": 66,
+        "contactRejected": 45,
+        "lowGripScore": 64,
+        "rawWrong": 27,
+        "missingHandInput": 2,
+        "invalidTargetCrop": 11
+      },
+      "hand:threeway:automaticView": {
+        "expectedHands": 107,
+        "availablePatches": 107,
+        "rawCorrect": 57,
+        "unknown": 107,
+        "contactRejected": 65,
+        "lowGripScore": 97,
+        "rawWrong": 41,
+        "missingOrientation": 9
+      },
+      "hand:threeway:automaticView:overhand": {
+        "expectedHands": 53,
+        "availablePatches": 53,
+        "rawCorrect": 37,
+        "unknown": 53,
+        "contactRejected": 34,
+        "lowGripScore": 53,
+        "rawWrong": 16
+      },
+      "binary:oracleView:underhand": {
+        "expectedHands": 50,
+        "availablePatches": 41,
+        "rawCorrect": 26,
+        "unknown": 50,
+        "contactRejected": 29,
+        "lowGripScore": 41,
+        "rawWrong": 15,
+        "invalidTargetCrop": 4,
+        "missingHandInput": 9
+      },
+      "hand:binary:oracleView:underhand": {
+        "expectedHands": 37,
+        "availablePatches": 37,
+        "rawCorrect": 26,
+        "unknown": 37,
+        "contactRejected": 25,
+        "lowGripScore": 37,
+        "rawWrong": 11
+      },
+      "binary:automaticView:underhand": {
+        "expectedHands": 50,
+        "availablePatches": 41,
+        "rawCorrect": 26,
+        "unknown": 50,
+        "contactRejected": 29,
+        "lowGripScore": 41,
+        "rawWrong": 15,
+        "invalidTargetCrop": 4,
+        "missingHandInput": 9
+      },
+      "hand:binary:automaticView:underhand": {
+        "expectedHands": 37,
+        "availablePatches": 37,
+        "rawCorrect": 26,
+        "unknown": 37,
+        "contactRejected": 25,
+        "lowGripScore": 37,
+        "rawWrong": 11
+      },
+      "threeway:oracleView:underhand": {
+        "expectedHands": 50,
+        "availablePatches": 41,
+        "rawWrong": 23,
+        "unknown": 50,
+        "contactRejected": 29,
+        "lowGripScore": 40,
+        "invalidTargetCrop": 4,
+        "rawCorrect": 18,
+        "missingHandInput": 9
+      },
+      "hand:threeway:oracleView:underhand": {
+        "expectedHands": 37,
+        "availablePatches": 37,
+        "rawWrong": 19,
+        "unknown": 37,
+        "contactRejected": 25,
+        "lowGripScore": 36,
+        "rawCorrect": 18
+      },
+      "threeway:automaticView:underhand": {
+        "expectedHands": 50,
+        "availablePatches": 41,
+        "rawWrong": 23,
+        "unknown": 50,
+        "contactRejected": 29,
+        "lowGripScore": 40,
+        "invalidTargetCrop": 4,
+        "rawCorrect": 18,
+        "missingHandInput": 9
+      },
+      "hand:threeway:automaticView:underhand": {
+        "expectedHands": 37,
+        "availablePatches": 37,
+        "rawWrong": 19,
+        "unknown": 37,
+        "contactRejected": 25,
+        "lowGripScore": 36,
+        "rawCorrect": 18
+      },
+      "binary:oracleView:neutral": {
+        "expectedHands": 24,
+        "availablePatches": 19,
+        "rawWrong": 19,
+        "unknown": 24,
+        "lowGripScore": 19,
+        "contactRejected": 15,
+        "missingHandInput": 5,
+        "invalidTargetCrop": 2
+      },
+      "hand:binary:oracleView:neutral": {
+        "expectedHands": 17,
+        "availablePatches": 17,
+        "rawWrong": 17,
+        "unknown": 17,
+        "lowGripScore": 17,
+        "contactRejected": 13
+      },
+      "binary:automaticView:neutral": {
+        "expectedHands": 24,
+        "availablePatches": 19,
+        "missingOrientation": 10,
+        "unknown": 24,
+        "rawWrong": 9,
+        "lowGripScore": 9,
+        "contactRejected": 7,
+        "missingHandInput": 5,
+        "invalidTargetCrop": 2
+      },
+      "hand:binary:automaticView:neutral": {
+        "expectedHands": 17,
+        "availablePatches": 17,
+        "missingOrientation": 9,
+        "unknown": 17,
+        "rawWrong": 8,
+        "lowGripScore": 8,
+        "contactRejected": 6
+      },
+      "threeway:oracleView:neutral": {
+        "expectedHands": 24,
+        "availablePatches": 19,
+        "rawCorrect": 17,
+        "acceptedCorrect": 4,
+        "unknown": 20,
+        "contactRejected": 15,
+        "lowGripScore": 11,
+        "missingHandInput": 5,
+        "invalidTargetCrop": 2,
+        "rawWrong": 2
+      },
+      "hand:threeway:oracleView:neutral": {
+        "expectedHands": 17,
+        "availablePatches": 17,
+        "rawCorrect": 17,
+        "acceptedCorrect": 4,
+        "unknown": 13,
+        "contactRejected": 13,
+        "lowGripScore": 9
+      },
+      "threeway:automaticView:neutral": {
+        "expectedHands": 24,
+        "availablePatches": 19,
+        "missingOrientation": 10,
+        "unknown": 24,
+        "rawCorrect": 2,
+        "lowGripScore": 9,
+        "contactRejected": 7,
+        "rawWrong": 7,
+        "missingHandInput": 5,
+        "invalidTargetCrop": 2
+      },
+      "hand:threeway:automaticView:neutral": {
+        "expectedHands": 17,
+        "availablePatches": 17,
+        "missingOrientation": 9,
+        "unknown": 17,
+        "rawCorrect": 2,
+        "lowGripScore": 8,
+        "contactRejected": 6,
+        "rawWrong": 6
+      }
+    },
+    "surfaceConfusion": {
+      "unclear": {
+        "unclear": 23,
+        "palm": 6,
+        "side": 7
+      },
+      "dorsum": {
+        "palm": 27,
+        "dorsum": 6,
+        "unclear": 15,
+        "side": 4
+      },
+      "side": {
+        "unclear": 4,
+        "dorsum": 2,
+        "side": 10,
+        "palm": 2
+      },
+      "palm": {
+        "palm": 19,
+        "side": 8,
+        "unclear": 1
+      }
+    },
+    "quality": {
+      "binary:oracleView": {
+        "nonReferenceCrops": 27,
+        "acceptedNonReferenceCrops": 0
+      },
+      "binary:automaticView": {
+        "nonReferenceCrops": 27,
+        "acceptedNonReferenceCrops": 0
+      },
+      "threeway:oracleView": {
+        "nonReferenceCrops": 27,
+        "acceptedNonReferenceCrops": 0
+      },
+      "threeway:automaticView": {
+        "nonReferenceCrops": 27,
+        "acceptedNonReferenceCrops": 0
+      },
+      "contactThreshold": {
+        "trueNegative": 27,
+        "falseNegative": 68,
+        "truePositive": 35
+      }
+    },
+    "orientation": {
+      "rear": {
+        "wrong": 14,
+        "correct": 10
+      },
+      "front": {
+        "correct": 25,
+        "wrong": 1
+      },
+      "oblique": {
+        "wrong": 6,
+        "correct": 3
+      }
+    },
+    "origins": {
+      "SDK": {
+        "overhand:valid": 23,
+        "overhand:correct": 23,
+        "underhand:valid": 19,
+        "underhand:correct": 8,
+        "neutral:valid": 2,
+        "neutral:correct": 2
+      },
+      "automaticWristFallback": {
+        "overhand:valid": 30,
+        "overhand:correct": 18,
+        "underhand:valid": 18,
+        "underhand:correct": 10,
+        "neutral:valid": 15,
+        "neutral:correct": 15
+      }
+    },
+    "clipSummary": {
+      "binary:oracleView": {
+        "videos": 23,
+        "rawCorrect": 12,
+        "unknown": 23,
+        "rawWrong": 11
+      },
+      "binary:oracleView:overhand": {
+        "videos": 11,
+        "rawCorrect": 8,
+        "unknown": 11,
+        "rawWrong": 3
+      },
+      "binary:automaticView": {
+        "videos": 23,
+        "rawWrong": 15,
+        "unknown": 23,
+        "rawCorrect": 8
+      },
+      "binary:automaticView:overhand": {
+        "videos": 11,
+        "rawWrong": 6,
+        "unknown": 11,
+        "rawCorrect": 5
+      },
+      "threeway:oracleView": {
+        "videos": 23,
+        "rawCorrect": 16,
+        "unknown": 20,
+        "rawWrong": 7,
+        "acceptedWrong": 1,
+        "acceptedCorrect": 2
+      },
+      "threeway:oracleView:overhand": {
+        "videos": 11,
+        "rawCorrect": 8,
+        "unknown": 10,
+        "rawWrong": 3,
+        "acceptedWrong": 1
+      },
+      "threeway:automaticView": {
+        "videos": 23,
+        "rawCorrect": 11,
+        "unknown": 23,
+        "rawWrong": 12
+      },
+      "threeway:automaticView:overhand": {
+        "videos": 11,
+        "rawCorrect": 8,
+        "unknown": 11,
+        "rawWrong": 3
+      },
+      "binary:oracleView:underhand": {
+        "videos": 7,
+        "rawCorrect": 4,
+        "unknown": 7,
+        "rawWrong": 3
+      },
+      "binary:automaticView:underhand": {
+        "videos": 7,
+        "rawWrong": 4,
+        "unknown": 7,
+        "rawCorrect": 3
+      },
+      "threeway:oracleView:underhand": {
+        "videos": 7,
+        "rawWrong": 4,
+        "unknown": 7,
+        "rawCorrect": 3
+      },
+      "threeway:automaticView:underhand": {
+        "videos": 7,
+        "rawWrong": 5,
+        "unknown": 7,
+        "rawCorrect": 2
+      },
+      "binary:oracleView:neutral": {
+        "videos": 5,
+        "rawWrong": 5,
+        "unknown": 5
+      },
+      "binary:automaticView:neutral": {
+        "videos": 5,
+        "rawWrong": 5,
+        "unknown": 5
+      },
+      "threeway:oracleView:neutral": {
+        "videos": 5,
+        "rawCorrect": 5,
+        "acceptedCorrect": 2,
+        "unknown": 3
+      },
+      "threeway:automaticView:neutral": {
+        "videos": 5,
+        "rawCorrect": 1,
+        "unknown": 5,
+        "rawWrong": 4
+      }
+    },
+    "clipPolicy": "Mean hand scores once per source frame then mean unique source frames for raw choice. Accepted label requires agreeing predictions at >=.8 grip and >=.8 contact on two distinct source times; any conflicting accepted label remains unknown. No reference window/contact label gates clip inference."
+  },
+  "audit": {
+    "pixelChecks": {
+      "fitting": {
+        "frames": 297,
+        "torsoCrops": 202,
+        "handCrops": 363
+      },
+      "test": {
+        "frames": 85,
+        "handCrops": 134,
+        "torsoCrops": 64
+      }
+    },
+    "gripViewDistribution": {
+      "fitting": {
+        "train:overhand:rear": 41,
+        "train:underhand:rear": 20,
+        "train:overhand:front": 57,
+        "train:underhand:front": 60,
+        "validation:overhand:front": 12,
+        "train:overhand:oblique": 2,
+        "validation:underhand:front": 20,
+        "validation:overhand:rear": 6,
+        "validation:underhand:rear": 6,
+        "train:neutral:front": 7,
+        "validation:neutral:rear": 8,
+        "validation:neutral:front": 5,
+        "train:neutral:rear": 14,
+        "train:neutral:oblique": 13,
+        "train:underhand:oblique": 8,
+        "validation:neutral:oblique": 4,
+        "validation:underhand:oblique": 6
+      },
+      "test": {
+        "test:overhand:rear": 30,
+        "test:underhand:front": 26,
+        "test:overhand:oblique": 3,
+        "test:overhand:front": 20,
+        "test:neutral:oblique": 17,
+        "test:underhand:rear": 8,
+        "test:underhand:oblique": 3
+      }
+    },
+    "counterfactualNeutral": {
+      "front": {
+        "underhand": 10,
+        "overhand": 7
+      },
+      "rear": {
+        "overhand": 15,
+        "underhand": 2
+      },
+      "oblique": {
+        "neutral": 17
+      }
+    },
+    "disjointRecordingHashes": true,
+    "identicalSharedStateTensors": 250,
+    "counterfactualQualification": "Same 17 neutral RGB crops with artificially forced view inputs; sensitivity diagnostic, not accuracy on those viewpoints."
+  },
+  "preTestFreeze": {
+    "qualification": "Paired models, source roles, crops and detector frozen before any new test source image opened; joint initial trial preserved as validation-only failure",
+    "sha256": {
+      "scripts/train-staged-grip.py": "85e70ecbae594bbc9f6c2e0375d14cadd984c85d78008208e3c4ef44d0b6af3e",
+      "scripts/train-threeway-grip.py": "1ab27b94ee54feb325400505bb0144eb523f623a9d44f4524682b6af1ee41d3d",
+      "scripts/prepare-threeway-crops.py": "aa291a3a2a6cd0e5fceada8f2ed9dc5d4af9b979e217791f332fd91cc78610e0",
+      "scripts/recrop-threeway-grip.py": "35fe1c4ab6bf248c88652d651817ab6a97ba1bb96b3c2fc2e4c6ef57d9d0788d",
+      "scripts/extract-grip-patches-v2.py": "1dc2c510ef2cdfffae6dca2f3e3114440db752ee7b1f52958a33c54d2269a086",
+      "scripts/prepare-grip-context.py": "31b709902cb0fe686fcb9f8322b43409fd3677afd7ae56cf700f09a15b992e94",
+      "scripts/prepare-reviewed-grip.py": "55a7711658255251107fb4fdb4e8870c6ca26a4558b562f9bd1cd450218e0a82",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/GripPatchSubject.kt": "ff41228f44162278c48c4ac2f8d0f8a1c43ae266bbd4f8341aa55a2cf0c03185",
+      "Evaluation/fixtures/grip-threeway-protocol-v1.json": "bfe0de753490f8069a388ae32df56558477241a3c3c0bd1461cb29a81570080f",
+      "Evaluation/fixtures/grip-threeway-test-reserve-v1.json": "d013a808572d78b1cc743c8acb3a9bf6bbdc2f50ba917d4940f3ed82cfe28530",
+      "Evaluation/fixtures/grip-threeway-fitting-v1.json": "6327ca12d833b3da84c2f68e73d6a6d0014227752c454de70cc2aa9d42d09fa2",
+      "build/grip-threeway/fitting.jsonl": "c6232997c83298d58a2f8a1bec9a00abaca6696dc5e111fa419535edaa4fefab",
+      "build/grip-threeway/staged-models/binary/GripHandClassifier.pt": "f791298fb8976b1c525b1b5b38b488c7b2ad1e4c71d457c19551a7b39dabc82f",
+      "build/grip-threeway/staged-models/threeway/GripHandClassifier.pt": "ba52da15910afe64f56e5d0f6d84149a6513538f365e8187c7c1f69f363c11f2",
+      "build/grip-expanded/model/GripContextClassifier.pt": "4c0f4f766d1d4db1c8d8fb8446e748a3f9e4ea4dcdc0a7ca556855ece86af6b9"
+    }
+  },
+  "pairedTraining": {
+    "sharedEncoderSurfaceContactIdentical": true,
+    "models": {
+      "binary": {
+        "variant": "binary",
+        "grips": [
+          "overhand",
+          "underhand"
+        ],
+        "surfaces": [
+          "palm",
+          "dorsum",
+          "side",
+          "unclear"
+        ],
+        "views": [
+          "front",
+          "rear",
+          "oblique"
+        ],
+        "modelSHA256": "f791298fb8976b1c525b1b5b38b488c7b2ad1e4c71d457c19551a7b39dabc82f",
+        "inputSHA256": "c6232997c83298d58a2f8a1bec9a00abaca6696dc5e111fa419535edaa4fefab",
+        "reviewSHA256": "6327ca12d833b3da84c2f68e73d6a6d0014227752c454de70cc2aa9d42d09fa2",
+        "testReserveSHA256": "d013a808572d78b1cc743c8acb3a9bf6bbdc2f50ba917d4940f3ed82cfe28530",
+        "scriptSHA256": "85e70ecbae594bbc9f6c2e0375d14cadd984c85d78008208e3c4ef44d0b6af3e",
+        "architecture": "Shared directly supervised surface CNN, independently fitted contact head, conditional RGB-embedding+surface head; grip cannot change surface CNN",
+        "surface": {
+          "bestEpoch": 3,
+          "validationNLL": 1.0882816314697266,
+          "validationAccuracy": {
+            "0": {
+              "correct": 11,
+              "wrong": 2
+            },
+            "1": {
+              "correct": 5,
+              "wrong": 22
+            },
+            "3": {
+              "correct": 23,
+              "wrong": 10
+            },
+            "2": {
+              "correct": 2,
+              "wrong": 4
+            }
+          },
+          "calibration": {
+            "temperature": 1.0,
+            "validationNLL": {
+              "1.0": 1.0882816314697266,
+              "1.25": 1.1012344360351562,
+              "1.5": 1.12063467502594,
+              "2.0": 1.1589691638946533,
+              "3.0": 1.2149533033370972,
+              "4.0": 1.2501474618911743
+            }
+          },
+          "changedFeatureParameterTensors": 138
+        },
+        "contact": {
+          "bestEpoch": 1,
+          "epochsRun": 13,
+          "validationNLL": 0.6488574743270874,
+          "validationAccuracy": {
+            "1": {
+              "correct": 54,
+              "wrong": 15
+            },
+            "0": {
+              "correct": 4,
+              "wrong": 3
+            }
+          },
+          "calibration": {
+            "temperature": 1.5,
+            "validationNLL": {
+              "1.0": 0.6488574743270874,
+              "1.25": 0.6329970955848694,
+              "1.5": 0.6277123689651489,
+              "2.0": 0.6282917857170105,
+              "3.0": 0.6383429169654846,
+              "4.0": 0.6474418640136719
+            }
+          }
+        },
+        "grip": {
+          "bestEpoch": 1,
+          "epochsRun": 13,
+          "validationNLL": 0.7904925346374512,
+          "validationAccuracy": {
+            "0": {
+              "correct": 6,
+              "wrong": 12
+            },
+            "1": {
+              "correct": 13,
+              "wrong": 19
+            }
+          },
+          "calibration": {
+            "temperature": 4.0,
+            "validationNLL": {
+              "1.0": 0.7904925346374512,
+              "1.25": 0.7539376020431519,
+              "1.5": 0.7335956692695618,
+              "2.0": 0.7133193612098694,
+              "3.0": 0.6994237303733826,
+              "4.0": 0.6950737237930298
+            }
+          }
+        },
+        "trainingPatches": 284,
+        "validationPatches": 79,
+        "trainingGripCounts": {
+          "underhand": 47,
+          "overhand": 86
+        },
+        "trainingSurfaceCounts": {
+          "unclear": 115,
+          "palm": 62,
+          "dorsum": 75,
+          "side": 32
+        },
+        "threshold": 0.8,
+        "contactThreshold": 0.8,
+        "parameters": 1112808,
+        "sources": {
+          "train": [
+            "03797dc5d91337610c4a4ec8ecb7571d56ec0151f1470a3462509a3816296a09",
+            "077035646cc9080213fd63068610e8a665af36eb5c3b360aa289519b779e76f8",
+            "08745e624c29289d1159f534944cf4a279c0614372db781c9bc490c16c42729e",
+            "0c842d5ebfaf3f93720001aae0429347b5ac583ad7cb3de1ae92752867fcd424",
+            "1239828dd12d94048982a8559d24f7826891833d2f68535c0754f89819b99e46",
+            "14a3381b9a23303868a56d7a434295ddc909928560f3e400b0d1c0ca626aa0c9",
+            "162648f46dce67d132d5d3120717f2788fdcecbd63265980ec83420daa9258e9",
+            "17ecf6e3eccd3efc2f0ca6a8ce4aa8661e3406aa0f515f40ff1c47a559fb2118",
+            "197d91fa8a256ce61cc42eb63f9b2ec0f9b03d926679f44f99016dd58cb342df",
+            "19c37a92e3d962a86daf8ea68568a421412f84a6bf744e2f679f5697c72ab783",
+            "1ce5c9ea0088c772bb5edd06c951e0e109d7d2504b8f1bb0ae4e3acdb2f9de94",
+            "1e424fceef7e599ab8de8b437fec966fe087aa378fbe6d09543f60fcb5f34df6",
+            "21a7af651d66f431912c1f6c45f1e63bfb8ae00848aa213307c0873523db9af7",
+            "22f98edd0b3c0f38b0b2701c5e88bfd7911114a16958a1dac91c4ad4736f1881",
+            "25c2bf2433d5983452bb24af75931385bb5393ae2f80e85e7141a96252f8f97d",
+            "2a6ed66b7f37614241ae19b5c6cfe0a4f57a51b2dce15ac6b2c10c65fc963a9f",
+            "31c2e88c1462eb5a8eafacd9a14d698c1a816885f36f6ae9b63b45400cd04264",
+            "33ee61f6bc30f80f7ad089753d1d179e4ac8e583edb3256e109fbeed8db2dd6e",
+            "3cc7a52de108e4219b820463e4811c1d6b0c61cbdc71b0f89939ccd2b7a74af7",
+            "3eda74d2da970ac4bb48051b0bb066c088fbe0503c6788e0724d26b7573043dd",
+            "48692fa2a6fe1e2e1aa7aa02a0b3f4df06e5a7f4a29b56fdd8dd8c3d804a8e20",
+            "4a9bbb1bfd7a110d439fb05e615514305533dff8d9b53750d78aa0304c853381",
+            "53b3f95c093abb0d2edc3d32402107aefda791b68b9bbf945d1dd9271551c90f",
+            "55141527cbccefcb598a1413fbbad56827fb92352517f2fed3402899c9d42cdf",
+            "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+            "58b907b7675c0e40c74fe83f63aa186ca4e235ca8c53c5a1b37163988c63ce1a",
+            "59d140a674a5817d2b33efb5b1d60819e3fcee4a524d12317f23fee45ed201bb",
+            "5e584fdb4f0dc4b2c82c78950a529b3b71120047fdc2eb33b48ffe60682be503",
+            "63f45d356ec3df02078cd5a5ee0a1bfc436b49e6322fb74b52fd0335edc1d510",
+            "64e52db611ba9bbe91c0733c286b4e3f8882c7f3028460926d6e3575ce14ac71",
+            "69d04e6007abd1ec821e838f7b5c8af9d3d517e9378464fae70e4312933d3472",
+            "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+            "6ae9001946c4904c5e871c6a7ad77a9df28a6eba16de027f497c2b91fee201c9",
+            "6c7ac1e665cb739e2c932dd467bcacea24d633e30ba516cc13875efb61c992d2",
+            "6f7b22dd40c57584313d5b1bb682ce9939f3c14c64dfa597fa288e70f7229b9c",
+            "6fbedc5d15d84eb2d8270771d9f09fa96794ba9ba8fb329b836a768220c65baf",
+            "70d86c46b35d4458f342f45d1c4ea341c0afbaf55f79a97981a3e142e8f7290f",
+            "735ee8a733b9a5ec20079bf6ffbcc030c7006364ea08a18772a9f2382a611fa2",
+            "751ee0e4f36e09b0331ba0ccbe0fc5ae0d150645aca1be03227c5397076c1698",
+            "782414c583bb9a3a963a027503a8aaf5e01fa79477ae8e13a26bfd11617a6619",
+            "7f205e3947b609de4afa1156197314b13bf10c0d61af7da3900c9fabf6255849",
+            "848f9af4629b7edc4108a8ef9167bc73b022b6055b8442ab84a17f713ac33f1c",
+            "8bd6b54ce6e7a788befee5c2ead7f0bb7dd2ce1bb56495f283c561376ec7ecfb",
+            "8ef4bfbbc537a3b9814d39a7ff2f2710beaa833bb9c2e2fe77edb04ea3e5dfbf",
+            "8f12b17c9fb391fff5c63d9064a709ddd70b4f5a067d9bfd8d569939f09c1470",
+            "90d32610742c65b3bc0ed4bb318c059ccc195b7339b5e97d6a702a193265eac4",
+            "91312ed5ba498a171a60edcae2e680199b791b9977ea2f29eff07ec800306cfc",
+            "961f02ad92e1aaa9ddfca9aca510654b44f18a4f243849398cb26bb8a29efe82",
+            "9b42a923b0badc6017f81680d02dd133a1a74fe151c03c37a82d2c5fed35b7cf",
+            "9e9d810e00aa87174ee5a2ed53d56ae3fa1355df4c5a020d95952f7e7b985f84",
+            "9f569fc8966ec334070bc05cc88a02b0fb0d8b457b6c9878b7b9f6fce500080f",
+            "a01fa62cf3e70fb01acffa14e24ac79634bd2553087e3954e585d10f5c636f09",
+            "a13116992fb32d95d21293551d2aae55c4f8dbf72b8e2101641f08f538ae055d",
+            "a3b4e533e643ba4de341339aabd19273e8ba680e030c799142d5c100a092dc65",
+            "a475da5938238f288d1d1ad5c1e34392c2b00c8c33f3585a866fcf800e4a8a12",
+            "a54dac54fcfaef0bf2323ffd2513c61c193bdbbacb94cd77dc9a7f77be45273b",
+            "a5f6ba1c1d137a0a8fe65974816ba03d39cad7bb7f7a5e299b2ca453cd96640a",
+            "aaf3b67241eaf0baf026af11b9a0f16f8fec0cd83951eb89971026b4fed05b52",
+            "af64ff36083980b846480b0c823031b7dcadd1f31465a3012e7198f255b99c93",
+            "afa88cc191cebdeec26ad010c234650024f2545ee25a5e9bdebb0a7a8ec8773e",
+            "bd939905d248cb63e8169c2900809fe533a680af4a1f1453542280c06ff0dc42",
+            "c083ef9fabef5fd19dcf4c11880dcb6a23bdee763ddcf861b3705d33ae730456",
+            "c0e9a7c7bc27a4547bd999878100c7b475270c9aa04fbe5e5b8ef88f0ce37ba1",
+            "c4a2ba30713daf09c7763b765acbf9083adb187b55f0b078cd4e40d28cff7c6e",
+            "c900f0853a36448da2bbef6850f0fd6d56f8d4898102adad657b147be71338c1",
+            "cae192f3181ce2e8e7a26ac04eee5d0c403aaa5df22c4ae8b36329efb0487995",
+            "cb03d83591f20b299f0319d069cf3e03ac209e8b00476984532c2aabd4df5cdd",
+            "d29d7ab0339ddc451e9410094eb26181f47d627c62da6c97538662d57d53d96b",
+            "d4319e5879bd60e47162108c4af17782fd0ccc0868cb93ab5b4d336c9eb5027f",
+            "d78424882e5e843b3b1f87de3e3c26d9516957eb155e4e668f6d8853f672012a",
+            "d7aa8fb9058ee8eb04809ab032d775433637af45a80974da88a728bb27fddd23",
+            "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+            "de5fafa7cf0195dbbb917e032ddc3015053a3f2e4e60b55bef2566bfee8d145c",
+            "e251f9ac514495ff036f567a68177ce3926114ed711cbce15f3a8ac9fc9482d1",
+            "e2dacb2c0247ac8ff4fd7af1df477145a0cfcb2fa0697435929c436807b5ad70",
+            "e5eba570a989834ddfbf3bab847e6a703ebb4aa4690670f3053cee0345b60cd3",
+            "e6ffcb1721c3285f96a1fff66f7872f14321f9b1cec45cc6161fd32a862d7e04",
+            "e7d65698595c0d845d464949df3865aece279db060f6222bcd0f0e13ddb2cb02",
+            "e859413080b1e2fe7d1bdedeb6b5338509eaa0ebf601edd34f26621234b57926",
+            "e88c290992f06245f8f170b249fd9a1f8ef5e6178872aaf2574b49c8714f32e8",
+            "ebfad2bb61dce2bdb3c59a60b337905e7344b44a6e4abfde61b8dc05e57d2ba3",
+            "ed4de12e9944b8a7d5831344f2bb38f488a3d640ff516a90d37e89ce22cfa677",
+            "f055e2581715db2ffcba134185dcbbbe2a026b63c946e5234c9cea367d5af02d",
+            "f132252b789778709234de6ca79b9697a0deb72da32d7dadb8a36cb73bd4c799",
+            "f32bfb3a4beaa796efd33f93e378a2c4d517f08312b0a021d4e86a6ee5428cb7",
+            "f8dfdfd8a2889c1d982fa2153da07576bee36ecc25fb779f78db0c547edfd804",
+            "fb05b3783a209fd71ade2990a9cf50ce0222079d6d1990387c93705181b5875c",
+            "fb2bd8d46267fc288b56064d21101271db9a29f3768d2e4c6c9123f8c760093e",
+            "fbd2b330cce6975c591ce39b13602acc5ffb0b28b28020f10e9c9eb2bb21ecb8",
+            "fd6e57b7aece30186370f1bdd882f5e25ced76a44bc1d5e3d3b8fd18c2debd82"
+          ],
+          "validation": [
+            "02a3063b3c0c46745d4431bbd8785990f18681174c6a6ef6224cb85ec340bce3",
+            "105213b5e50d01663c89507e1c1db99b8b0641ca583ce83e5e0e10086ebb72f3",
+            "54fbb8d961f21352c7038dc9b817c6ae9c0c8f9168a88dac654b7950e0453c39",
+            "56fcdfdddd7dbe872b306f040577219b3c803eb8e90fe4711dd7f022115dc995",
+            "60dbb98eda968bd98a56e6ea0594e659e38a88a9c9670474262f020bb7551695",
+            "6951a610d40988e45aa5746c20789151ba894f21d7c3de8ed00a69c40b95394e",
+            "6982364fcd7920ff55df37de32da9c30182055e902365b4be56e5a7e0794a4bc",
+            "6e8ee262fa906d627ddc1e1395ef1073692aa2b37df9c33464a765e4eb3f0ee0",
+            "77f12e74515296f1243597c1d97fb95fe610c49c9f632ebe815bde6abb59364a",
+            "8700c73de2aea0238aff9867863c1860bde7e2e2f10ddf8a64cfb0fe644fda71",
+            "888f051f73c6fa28e9b7ef936d3df9d90e1f973edeb16ce21d8ca5a66edc5127",
+            "8934cc67c6c93cf4fed5632c13e314f79aab9616faee56a36b9062b79d6f3f89",
+            "8d19e258708df2c3fec19a3572fecf48479db752f9a6f596e97854a7a279293a",
+            "ac590c3b46fc26a02b8a85442d7877c54ca1c02e64b869df97d0e95c7ada3339",
+            "baddfc7a59a08481358a36396b5459cb4818c5b7c6e70df5e74a5b717d5d487a",
+            "bb647197a9ef333a8972650aff022fb57184715aa74966d6b2397a169f75b18b",
+            "c7887a1dbfd6514e83963591521d497efe7d29a29f4c47f6c6266ca4fc5778a5",
+            "e67bda8c378b9c30af2c54146ec6deeeb1e76f566db3a3feef0af6cc111eb4fd",
+            "edc7555cdb95cbfcd45ca901a4314da27ef019ea7f3853921f2aa3d4472615db",
+            "f5e47570557c934079d8d7ba0b330d3601adec5ec98f346f8a565d83fa27e0e6",
+            "fbdd7cb8403dc7151a10297605cd9468f211152a452c5fbd58e66dfdfefaa9c9"
+          ]
+        },
+        "sourceGroups": {
+          "train": [
+            "recording:da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+            "youtube:-yQUE1H_Hn0",
+            "youtube:0WzFqH4CPzI",
+            "youtube:0afhqysgAUE",
+            "youtube:1HibOxpJqQY",
+            "youtube:24Axf8dFQ0w",
+            "youtube:3-XiWZ5ONLA",
+            "youtube:3GtoTP6A9QY",
+            "youtube:6cDE1YpzSaE",
+            "youtube:6kpsQxO-Vo0",
+            "youtube:7XMkg_cfbB8",
+            "youtube:8Wa_io1X4RA",
+            "youtube:9JQRe4GZXG8",
+            "youtube:9VHz73p7Gfo",
+            "youtube:9_5z5PSAZYA",
+            "youtube:Ace4EsUWyYc",
+            "youtube:AjmI_Z4evMI",
+            "youtube:BrtUG9jAsJI",
+            "youtube:C60Wr-MAiV8",
+            "youtube:FYxB-Nxml-o",
+            "youtube:GBNGV08S_m0",
+            "youtube:GcuZO6jZhw0",
+            "youtube:HQJUZqpjHBM",
+            "youtube:J4U-VxZIxZM",
+            "youtube:LslQbHZ1rRw",
+            "youtube:NFcwjLi-rJI",
+            "youtube:O4MXIrHhqZo",
+            "youtube:OZJD5fKVE1Y",
+            "youtube:OhUyM53Y_74",
+            "youtube:P8Hg-rCJwDY",
+            "youtube:SIAHCQ15a3k",
+            "youtube:SluqGShKncc",
+            "youtube:T5fWYIZiW4A",
+            "youtube:TIZ4oTuiUog",
+            "youtube:TindOf7zyXM",
+            "youtube:TrNX8Mh9l1M",
+            "youtube:UGFRvAB22fg",
+            "youtube:VCPfhtGcqyM",
+            "youtube:VLQZyNKdnJI",
+            "youtube:VXvnQ6vnSTQ",
+            "youtube:VbUg3JjE1mM",
+            "youtube:Vq7BKfn8PIQ",
+            "youtube:WFLX7EequXM",
+            "youtube:WaGRDOkXveE",
+            "youtube:XadhprrLPAw",
+            "youtube:YVVns1LhKnM",
+            "youtube:ZyBUAy8auRY",
+            "youtube:_65iwGkdm70",
+            "youtube:_KtitR_vvo0",
+            "youtube:a162kOBlI4k",
+            "youtube:a8uEZjGD0A8",
+            "youtube:b6hO0rMRYjs",
+            "youtube:bAEua0zu_74",
+            "youtube:bqwuhXMz228",
+            "youtube:cXFmE9k0Nik",
+            "youtube:cvcuLaZeG2A",
+            "youtube:d8RA0_YBltQ",
+            "youtube:dtvtA7H_Y1M",
+            "youtube:eMRW1vKyy9o",
+            "youtube:fqv0D25vbp0",
+            "youtube:gh77V08SQ34",
+            "youtube:hKX6CteXJUQ",
+            "youtube:hTBnrRl2UAs",
+            "youtube:iKKkKrJNDTs",
+            "youtube:ihFKM9w92MY",
+            "youtube:loyzYXc1olk",
+            "youtube:m0LSPTMkrc8",
+            "youtube:mNRUKvspyok",
+            "youtube:mkSvldU_VUw",
+            "youtube:pGkJwIImUTc",
+            "youtube:q59-ruT-vPA",
+            "youtube:qi8yifwu2rg",
+            "youtube:rXKhJeF0HlU",
+            "youtube:reAv60s7fqY",
+            "youtube:s59PqZ9TTq0",
+            "youtube:smgEjkcIvq8",
+            "youtube:smgLQZ4_zD8",
+            "youtube:tMEuzebW8gQ",
+            "youtube:tgH6YDosvEo",
+            "youtube:uI3_dvWJCzc",
+            "youtube:ud9cWaLSzbs",
+            "youtube:vH8bQkOEjuo",
+            "youtube:wWRoIIKdu0g",
+            "youtube:xJHurF-EZp8",
+            "youtube:yLe2apbmnjY",
+            "youtube:yQ2GWCiLOsg",
+            "youtube:ySSh9x1X458",
+            "youtube:y_nbkwFR5AU",
+            "youtube:yhCVQxpnM30",
+            "youtube:zVms_bNSnDs"
+          ],
+          "validation": [
+            "youtube:-GDrlYxrEQo",
+            "youtube:0s2L_EWqGgk",
+            "youtube:1urwXgykJAA",
+            "youtube:G8G8g3etUTo",
+            "youtube:LUlt4tPj5SQ",
+            "youtube:NvqLMRadijE",
+            "youtube:NwTo6r8853k",
+            "youtube:NwUF_P6p4d8",
+            "youtube:S3jzFktsnwE",
+            "youtube:T5eqqBOQcGQ",
+            "youtube:TKbunGZ4BNw",
+            "youtube:VivTP-k7QMM",
+            "youtube:WSV8tsY6eJM",
+            "youtube:ZvkHAS7aJO8",
+            "youtube:akgqUO4MnOA",
+            "youtube:cvc8HN__fxU",
+            "youtube:iKIKRztPIpQ",
+            "youtube:jC4O7gWJjPk",
+            "youtube:kGDIhlrBW0M",
+            "youtube:mlvpAlA8_ts",
+            "youtube:sm_CjfH0U0A"
+          ]
+        }
+      },
+      "threeway": {
+        "variant": "threeway",
+        "grips": [
+          "overhand",
+          "underhand",
+          "neutral"
+        ],
+        "surfaces": [
+          "palm",
+          "dorsum",
+          "side",
+          "unclear"
+        ],
+        "views": [
+          "front",
+          "rear",
+          "oblique"
+        ],
+        "modelSHA256": "ba52da15910afe64f56e5d0f6d84149a6513538f365e8187c7c1f69f363c11f2",
+        "inputSHA256": "c6232997c83298d58a2f8a1bec9a00abaca6696dc5e111fa419535edaa4fefab",
+        "reviewSHA256": "6327ca12d833b3da84c2f68e73d6a6d0014227752c454de70cc2aa9d42d09fa2",
+        "testReserveSHA256": "d013a808572d78b1cc743c8acb3a9bf6bbdc2f50ba917d4940f3ed82cfe28530",
+        "scriptSHA256": "85e70ecbae594bbc9f6c2e0375d14cadd984c85d78008208e3c4ef44d0b6af3e",
+        "architecture": "Shared directly supervised surface CNN, independently fitted contact head, conditional RGB-embedding+surface head; grip cannot change surface CNN",
+        "surface": {
+          "bestEpoch": 3,
+          "validationNLL": 1.0882816314697266,
+          "validationAccuracy": {
+            "0": {
+              "correct": 11,
+              "wrong": 2
+            },
+            "1": {
+              "correct": 5,
+              "wrong": 22
+            },
+            "3": {
+              "correct": 23,
+              "wrong": 10
+            },
+            "2": {
+              "correct": 2,
+              "wrong": 4
+            }
+          },
+          "calibration": {
+            "temperature": 1.0,
+            "validationNLL": {
+              "1.0": 1.0882816314697266,
+              "1.25": 1.1012344360351562,
+              "1.5": 1.12063467502594,
+              "2.0": 1.1589691638946533,
+              "3.0": 1.2149533033370972,
+              "4.0": 1.2501474618911743
+            }
+          },
+          "changedFeatureParameterTensors": 138
+        },
+        "contact": {
+          "bestEpoch": 1,
+          "epochsRun": 13,
+          "validationNLL": 0.6488574743270874,
+          "validationAccuracy": {
+            "1": {
+              "correct": 54,
+              "wrong": 15
+            },
+            "0": {
+              "correct": 4,
+              "wrong": 3
+            }
+          },
+          "calibration": {
+            "temperature": 1.5,
+            "validationNLL": {
+              "1.0": 0.6488574743270874,
+              "1.25": 0.6329970955848694,
+              "1.5": 0.6277123689651489,
+              "2.0": 0.6282917857170105,
+              "3.0": 0.6383429169654846,
+              "4.0": 0.6474418640136719
+            }
+          }
+        },
+        "grip": {
+          "bestEpoch": 1,
+          "epochsRun": 13,
+          "validationNLL": 1.096038818359375,
+          "validationAccuracy": {
+            "0": {
+              "correct": 12,
+              "wrong": 6
+            },
+            "1": {
+              "correct": 15,
+              "wrong": 17
+            },
+            "2": {
+              "correct": 4,
+              "wrong": 13
+            }
+          },
+          "calibration": {
+            "temperature": 2.0,
+            "validationNLL": {
+              "1.0": 1.096038818359375,
+              "1.25": 1.0457782745361328,
+              "1.5": 1.0204386711120605,
+              "2.0": 1.001869797706604,
+              "3.0": 1.003777265548706,
+              "4.0": 1.0148106813430786
+            }
+          }
+        },
+        "trainingPatches": 284,
+        "validationPatches": 79,
+        "trainingGripCounts": {
+          "underhand": 47,
+          "overhand": 86,
+          "neutral": 24
+        },
+        "trainingSurfaceCounts": {
+          "unclear": 115,
+          "palm": 62,
+          "dorsum": 75,
+          "side": 32
+        },
+        "threshold": 0.8,
+        "contactThreshold": 0.8,
+        "parameters": 1112873,
+        "sources": {
+          "train": [
+            "03797dc5d91337610c4a4ec8ecb7571d56ec0151f1470a3462509a3816296a09",
+            "077035646cc9080213fd63068610e8a665af36eb5c3b360aa289519b779e76f8",
+            "08745e624c29289d1159f534944cf4a279c0614372db781c9bc490c16c42729e",
+            "0c842d5ebfaf3f93720001aae0429347b5ac583ad7cb3de1ae92752867fcd424",
+            "1239828dd12d94048982a8559d24f7826891833d2f68535c0754f89819b99e46",
+            "14a3381b9a23303868a56d7a434295ddc909928560f3e400b0d1c0ca626aa0c9",
+            "162648f46dce67d132d5d3120717f2788fdcecbd63265980ec83420daa9258e9",
+            "17ecf6e3eccd3efc2f0ca6a8ce4aa8661e3406aa0f515f40ff1c47a559fb2118",
+            "197d91fa8a256ce61cc42eb63f9b2ec0f9b03d926679f44f99016dd58cb342df",
+            "19c37a92e3d962a86daf8ea68568a421412f84a6bf744e2f679f5697c72ab783",
+            "1ce5c9ea0088c772bb5edd06c951e0e109d7d2504b8f1bb0ae4e3acdb2f9de94",
+            "1e424fceef7e599ab8de8b437fec966fe087aa378fbe6d09543f60fcb5f34df6",
+            "21a7af651d66f431912c1f6c45f1e63bfb8ae00848aa213307c0873523db9af7",
+            "22f98edd0b3c0f38b0b2701c5e88bfd7911114a16958a1dac91c4ad4736f1881",
+            "25c2bf2433d5983452bb24af75931385bb5393ae2f80e85e7141a96252f8f97d",
+            "2a6ed66b7f37614241ae19b5c6cfe0a4f57a51b2dce15ac6b2c10c65fc963a9f",
+            "31c2e88c1462eb5a8eafacd9a14d698c1a816885f36f6ae9b63b45400cd04264",
+            "33ee61f6bc30f80f7ad089753d1d179e4ac8e583edb3256e109fbeed8db2dd6e",
+            "3cc7a52de108e4219b820463e4811c1d6b0c61cbdc71b0f89939ccd2b7a74af7",
+            "3eda74d2da970ac4bb48051b0bb066c088fbe0503c6788e0724d26b7573043dd",
+            "48692fa2a6fe1e2e1aa7aa02a0b3f4df06e5a7f4a29b56fdd8dd8c3d804a8e20",
+            "4a9bbb1bfd7a110d439fb05e615514305533dff8d9b53750d78aa0304c853381",
+            "53b3f95c093abb0d2edc3d32402107aefda791b68b9bbf945d1dd9271551c90f",
+            "55141527cbccefcb598a1413fbbad56827fb92352517f2fed3402899c9d42cdf",
+            "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+            "58b907b7675c0e40c74fe83f63aa186ca4e235ca8c53c5a1b37163988c63ce1a",
+            "59d140a674a5817d2b33efb5b1d60819e3fcee4a524d12317f23fee45ed201bb",
+            "5e584fdb4f0dc4b2c82c78950a529b3b71120047fdc2eb33b48ffe60682be503",
+            "63f45d356ec3df02078cd5a5ee0a1bfc436b49e6322fb74b52fd0335edc1d510",
+            "64e52db611ba9bbe91c0733c286b4e3f8882c7f3028460926d6e3575ce14ac71",
+            "69d04e6007abd1ec821e838f7b5c8af9d3d517e9378464fae70e4312933d3472",
+            "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+            "6ae9001946c4904c5e871c6a7ad77a9df28a6eba16de027f497c2b91fee201c9",
+            "6c7ac1e665cb739e2c932dd467bcacea24d633e30ba516cc13875efb61c992d2",
+            "6f7b22dd40c57584313d5b1bb682ce9939f3c14c64dfa597fa288e70f7229b9c",
+            "6fbedc5d15d84eb2d8270771d9f09fa96794ba9ba8fb329b836a768220c65baf",
+            "70d86c46b35d4458f342f45d1c4ea341c0afbaf55f79a97981a3e142e8f7290f",
+            "735ee8a733b9a5ec20079bf6ffbcc030c7006364ea08a18772a9f2382a611fa2",
+            "751ee0e4f36e09b0331ba0ccbe0fc5ae0d150645aca1be03227c5397076c1698",
+            "782414c583bb9a3a963a027503a8aaf5e01fa79477ae8e13a26bfd11617a6619",
+            "7f205e3947b609de4afa1156197314b13bf10c0d61af7da3900c9fabf6255849",
+            "848f9af4629b7edc4108a8ef9167bc73b022b6055b8442ab84a17f713ac33f1c",
+            "8bd6b54ce6e7a788befee5c2ead7f0bb7dd2ce1bb56495f283c561376ec7ecfb",
+            "8ef4bfbbc537a3b9814d39a7ff2f2710beaa833bb9c2e2fe77edb04ea3e5dfbf",
+            "8f12b17c9fb391fff5c63d9064a709ddd70b4f5a067d9bfd8d569939f09c1470",
+            "90d32610742c65b3bc0ed4bb318c059ccc195b7339b5e97d6a702a193265eac4",
+            "91312ed5ba498a171a60edcae2e680199b791b9977ea2f29eff07ec800306cfc",
+            "961f02ad92e1aaa9ddfca9aca510654b44f18a4f243849398cb26bb8a29efe82",
+            "9b42a923b0badc6017f81680d02dd133a1a74fe151c03c37a82d2c5fed35b7cf",
+            "9e9d810e00aa87174ee5a2ed53d56ae3fa1355df4c5a020d95952f7e7b985f84",
+            "9f569fc8966ec334070bc05cc88a02b0fb0d8b457b6c9878b7b9f6fce500080f",
+            "a01fa62cf3e70fb01acffa14e24ac79634bd2553087e3954e585d10f5c636f09",
+            "a13116992fb32d95d21293551d2aae55c4f8dbf72b8e2101641f08f538ae055d",
+            "a3b4e533e643ba4de341339aabd19273e8ba680e030c799142d5c100a092dc65",
+            "a475da5938238f288d1d1ad5c1e34392c2b00c8c33f3585a866fcf800e4a8a12",
+            "a54dac54fcfaef0bf2323ffd2513c61c193bdbbacb94cd77dc9a7f77be45273b",
+            "a5f6ba1c1d137a0a8fe65974816ba03d39cad7bb7f7a5e299b2ca453cd96640a",
+            "aaf3b67241eaf0baf026af11b9a0f16f8fec0cd83951eb89971026b4fed05b52",
+            "af64ff36083980b846480b0c823031b7dcadd1f31465a3012e7198f255b99c93",
+            "afa88cc191cebdeec26ad010c234650024f2545ee25a5e9bdebb0a7a8ec8773e",
+            "bd939905d248cb63e8169c2900809fe533a680af4a1f1453542280c06ff0dc42",
+            "c083ef9fabef5fd19dcf4c11880dcb6a23bdee763ddcf861b3705d33ae730456",
+            "c0e9a7c7bc27a4547bd999878100c7b475270c9aa04fbe5e5b8ef88f0ce37ba1",
+            "c4a2ba30713daf09c7763b765acbf9083adb187b55f0b078cd4e40d28cff7c6e",
+            "c900f0853a36448da2bbef6850f0fd6d56f8d4898102adad657b147be71338c1",
+            "cae192f3181ce2e8e7a26ac04eee5d0c403aaa5df22c4ae8b36329efb0487995",
+            "cb03d83591f20b299f0319d069cf3e03ac209e8b00476984532c2aabd4df5cdd",
+            "d29d7ab0339ddc451e9410094eb26181f47d627c62da6c97538662d57d53d96b",
+            "d4319e5879bd60e47162108c4af17782fd0ccc0868cb93ab5b4d336c9eb5027f",
+            "d78424882e5e843b3b1f87de3e3c26d9516957eb155e4e668f6d8853f672012a",
+            "d7aa8fb9058ee8eb04809ab032d775433637af45a80974da88a728bb27fddd23",
+            "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+            "de5fafa7cf0195dbbb917e032ddc3015053a3f2e4e60b55bef2566bfee8d145c",
+            "e251f9ac514495ff036f567a68177ce3926114ed711cbce15f3a8ac9fc9482d1",
+            "e2dacb2c0247ac8ff4fd7af1df477145a0cfcb2fa0697435929c436807b5ad70",
+            "e5eba570a989834ddfbf3bab847e6a703ebb4aa4690670f3053cee0345b60cd3",
+            "e6ffcb1721c3285f96a1fff66f7872f14321f9b1cec45cc6161fd32a862d7e04",
+            "e7d65698595c0d845d464949df3865aece279db060f6222bcd0f0e13ddb2cb02",
+            "e859413080b1e2fe7d1bdedeb6b5338509eaa0ebf601edd34f26621234b57926",
+            "e88c290992f06245f8f170b249fd9a1f8ef5e6178872aaf2574b49c8714f32e8",
+            "ebfad2bb61dce2bdb3c59a60b337905e7344b44a6e4abfde61b8dc05e57d2ba3",
+            "ed4de12e9944b8a7d5831344f2bb38f488a3d640ff516a90d37e89ce22cfa677",
+            "f055e2581715db2ffcba134185dcbbbe2a026b63c946e5234c9cea367d5af02d",
+            "f132252b789778709234de6ca79b9697a0deb72da32d7dadb8a36cb73bd4c799",
+            "f32bfb3a4beaa796efd33f93e378a2c4d517f08312b0a021d4e86a6ee5428cb7",
+            "f8dfdfd8a2889c1d982fa2153da07576bee36ecc25fb779f78db0c547edfd804",
+            "fb05b3783a209fd71ade2990a9cf50ce0222079d6d1990387c93705181b5875c",
+            "fb2bd8d46267fc288b56064d21101271db9a29f3768d2e4c6c9123f8c760093e",
+            "fbd2b330cce6975c591ce39b13602acc5ffb0b28b28020f10e9c9eb2bb21ecb8",
+            "fd6e57b7aece30186370f1bdd882f5e25ced76a44bc1d5e3d3b8fd18c2debd82"
+          ],
+          "validation": [
+            "02a3063b3c0c46745d4431bbd8785990f18681174c6a6ef6224cb85ec340bce3",
+            "105213b5e50d01663c89507e1c1db99b8b0641ca583ce83e5e0e10086ebb72f3",
+            "54fbb8d961f21352c7038dc9b817c6ae9c0c8f9168a88dac654b7950e0453c39",
+            "56fcdfdddd7dbe872b306f040577219b3c803eb8e90fe4711dd7f022115dc995",
+            "60dbb98eda968bd98a56e6ea0594e659e38a88a9c9670474262f020bb7551695",
+            "6951a610d40988e45aa5746c20789151ba894f21d7c3de8ed00a69c40b95394e",
+            "6982364fcd7920ff55df37de32da9c30182055e902365b4be56e5a7e0794a4bc",
+            "6e8ee262fa906d627ddc1e1395ef1073692aa2b37df9c33464a765e4eb3f0ee0",
+            "77f12e74515296f1243597c1d97fb95fe610c49c9f632ebe815bde6abb59364a",
+            "8700c73de2aea0238aff9867863c1860bde7e2e2f10ddf8a64cfb0fe644fda71",
+            "888f051f73c6fa28e9b7ef936d3df9d90e1f973edeb16ce21d8ca5a66edc5127",
+            "8934cc67c6c93cf4fed5632c13e314f79aab9616faee56a36b9062b79d6f3f89",
+            "8d19e258708df2c3fec19a3572fecf48479db752f9a6f596e97854a7a279293a",
+            "ac590c3b46fc26a02b8a85442d7877c54ca1c02e64b869df97d0e95c7ada3339",
+            "baddfc7a59a08481358a36396b5459cb4818c5b7c6e70df5e74a5b717d5d487a",
+            "bb647197a9ef333a8972650aff022fb57184715aa74966d6b2397a169f75b18b",
+            "c7887a1dbfd6514e83963591521d497efe7d29a29f4c47f6c6266ca4fc5778a5",
+            "e67bda8c378b9c30af2c54146ec6deeeb1e76f566db3a3feef0af6cc111eb4fd",
+            "edc7555cdb95cbfcd45ca901a4314da27ef019ea7f3853921f2aa3d4472615db",
+            "f5e47570557c934079d8d7ba0b330d3601adec5ec98f346f8a565d83fa27e0e6",
+            "fbdd7cb8403dc7151a10297605cd9468f211152a452c5fbd58e66dfdfefaa9c9"
+          ]
+        },
+        "sourceGroups": {
+          "train": [
+            "recording:da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+            "youtube:-yQUE1H_Hn0",
+            "youtube:0WzFqH4CPzI",
+            "youtube:0afhqysgAUE",
+            "youtube:1HibOxpJqQY",
+            "youtube:24Axf8dFQ0w",
+            "youtube:3-XiWZ5ONLA",
+            "youtube:3GtoTP6A9QY",
+            "youtube:6cDE1YpzSaE",
+            "youtube:6kpsQxO-Vo0",
+            "youtube:7XMkg_cfbB8",
+            "youtube:8Wa_io1X4RA",
+            "youtube:9JQRe4GZXG8",
+            "youtube:9VHz73p7Gfo",
+            "youtube:9_5z5PSAZYA",
+            "youtube:Ace4EsUWyYc",
+            "youtube:AjmI_Z4evMI",
+            "youtube:BrtUG9jAsJI",
+            "youtube:C60Wr-MAiV8",
+            "youtube:FYxB-Nxml-o",
+            "youtube:GBNGV08S_m0",
+            "youtube:GcuZO6jZhw0",
+            "youtube:HQJUZqpjHBM",
+            "youtube:J4U-VxZIxZM",
+            "youtube:LslQbHZ1rRw",
+            "youtube:NFcwjLi-rJI",
+            "youtube:O4MXIrHhqZo",
+            "youtube:OZJD5fKVE1Y",
+            "youtube:OhUyM53Y_74",
+            "youtube:P8Hg-rCJwDY",
+            "youtube:SIAHCQ15a3k",
+            "youtube:SluqGShKncc",
+            "youtube:T5fWYIZiW4A",
+            "youtube:TIZ4oTuiUog",
+            "youtube:TindOf7zyXM",
+            "youtube:TrNX8Mh9l1M",
+            "youtube:UGFRvAB22fg",
+            "youtube:VCPfhtGcqyM",
+            "youtube:VLQZyNKdnJI",
+            "youtube:VXvnQ6vnSTQ",
+            "youtube:VbUg3JjE1mM",
+            "youtube:Vq7BKfn8PIQ",
+            "youtube:WFLX7EequXM",
+            "youtube:WaGRDOkXveE",
+            "youtube:XadhprrLPAw",
+            "youtube:YVVns1LhKnM",
+            "youtube:ZyBUAy8auRY",
+            "youtube:_65iwGkdm70",
+            "youtube:_KtitR_vvo0",
+            "youtube:a162kOBlI4k",
+            "youtube:a8uEZjGD0A8",
+            "youtube:b6hO0rMRYjs",
+            "youtube:bAEua0zu_74",
+            "youtube:bqwuhXMz228",
+            "youtube:cXFmE9k0Nik",
+            "youtube:cvcuLaZeG2A",
+            "youtube:d8RA0_YBltQ",
+            "youtube:dtvtA7H_Y1M",
+            "youtube:eMRW1vKyy9o",
+            "youtube:fqv0D25vbp0",
+            "youtube:gh77V08SQ34",
+            "youtube:hKX6CteXJUQ",
+            "youtube:hTBnrRl2UAs",
+            "youtube:iKKkKrJNDTs",
+            "youtube:ihFKM9w92MY",
+            "youtube:loyzYXc1olk",
+            "youtube:m0LSPTMkrc8",
+            "youtube:mNRUKvspyok",
+            "youtube:mkSvldU_VUw",
+            "youtube:pGkJwIImUTc",
+            "youtube:q59-ruT-vPA",
+            "youtube:qi8yifwu2rg",
+            "youtube:rXKhJeF0HlU",
+            "youtube:reAv60s7fqY",
+            "youtube:s59PqZ9TTq0",
+            "youtube:smgEjkcIvq8",
+            "youtube:smgLQZ4_zD8",
+            "youtube:tMEuzebW8gQ",
+            "youtube:tgH6YDosvEo",
+            "youtube:uI3_dvWJCzc",
+            "youtube:ud9cWaLSzbs",
+            "youtube:vH8bQkOEjuo",
+            "youtube:wWRoIIKdu0g",
+            "youtube:xJHurF-EZp8",
+            "youtube:yLe2apbmnjY",
+            "youtube:yQ2GWCiLOsg",
+            "youtube:ySSh9x1X458",
+            "youtube:y_nbkwFR5AU",
+            "youtube:yhCVQxpnM30",
+            "youtube:zVms_bNSnDs"
+          ],
+          "validation": [
+            "youtube:-GDrlYxrEQo",
+            "youtube:0s2L_EWqGgk",
+            "youtube:1urwXgykJAA",
+            "youtube:G8G8g3etUTo",
+            "youtube:LUlt4tPj5SQ",
+            "youtube:NvqLMRadijE",
+            "youtube:NwTo6r8853k",
+            "youtube:NwUF_P6p4d8",
+            "youtube:S3jzFktsnwE",
+            "youtube:T5eqqBOQcGQ",
+            "youtube:TKbunGZ4BNw",
+            "youtube:VivTP-k7QMM",
+            "youtube:WSV8tsY6eJM",
+            "youtube:ZvkHAS7aJO8",
+            "youtube:akgqUO4MnOA",
+            "youtube:cvc8HN__fxU",
+            "youtube:iKIKRztPIpQ",
+            "youtube:jC4O7gWJjPk",
+            "youtube:kGDIhlrBW0M",
+            "youtube:mlvpAlA8_ts",
+            "youtube:sm_CjfH0U0A"
+          ]
+        }
+      }
+    }
+  },
+  "testReferenceCorrections": {
+    "k700train_BYHQ4KptOM4_000015_000025": {
+      "grip": "exclude",
+      "reason": "Hand pixels too small/absent to verify provisional supination; source remains in crop/appearance audit, no confident grip truth"
+    },
+    "k700train_-ijxbUIaFlU_000023_000033": {
+      "grip": "overhand",
+      "reason": "Actual enlarged rear hand shows dorsal hand and pronated transverse-bar grasp, contradicting provisional source label"
+    },
+    "k700train_Xcr5cGfRlrs_000013_000023": {
+      "grip": "underhand",
+      "reason": "Full frame shows both hands on one transverse bar; visible dorsal hands from front indicate supination, not separate parallel handles"
+    },
+    "k700train_S7SxGBsFkeA_000115_000125": {
+      "grip": "overhand",
+      "reason": "Full frame shows gloved hands on a continuous transverse doorway bar; earlier parallel-handle interpretation was wrong"
+    },
+    "k700train_7QmGi3r4RPE_000004_000014": {
+      "grip": "overhand",
+      "reason": "Enlarged machine frame shows wide outward angled transverse handles and rear dorsal hands, not fore-aft parallel handles"
+    }
+  },
+  "references": {
+    "fitting": "Evaluation/fixtures/grip-threeway-fitting-v1.json",
+    "test": "Evaluation/fixtures/grip-threeway-test-patches-v1.json",
+    "report": "docs/workout/GRIP_THREEWAY_APPEARANCE_EXPERIMENT.md"
+  },
+  "tests": {
+    "python": 401,
+    "gripPython": 59,
+    "fullSuiteLog": "build/grip-threeway/final-python-tests.log"
+  },
+  "firstScoresPreserved": true,
+  "postScoreRetraining": false,
+  "postScoreThresholdChanges": false
+}

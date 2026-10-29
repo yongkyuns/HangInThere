@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "scope": "Independent RGB hand-surface qualification before orientation/grip fusion",
+  "freshReserve": "Evaluation/fixtures/grip-surface-test-reserve-v2.json",
+  "oldTestPolicy": "Earlier test sets remain regression-only; none enter fitting or checkpoint selection",
+  "trainingCandidates": "81 remaining unused clips in cached Kinetics archive, SHA member offsets 840..920; source roles assigned before SDK crops",
+  "surfaceClasses": [
+    "palm",
+    "dorsum",
+    "side"
+  ],
+  "unclearPolicy": "Directly reviewed unclear crops supervise a separate clear-visibility head, not a fourth anatomical surface",
+  "labels": "Two explicit pixel review passes with disagreements adjudicated; surface never derived from grip or athlete view; not independent human gold labels",
+  "localization": "Existing frozen SDK and automatic observed-wrist fallback; no manually localized validation/test inputs",
+  "samplingSeconds": [
+    2,
+    4,
+    6,
+    8
+  ],
+  "candidates": [
+    "MobileNetV3-small heads then full encoder fine-tuning",
+    "MobileNetV3-small heads then last encoder blocks fine-tuning"
+  ],
+  "selection": "Known-surface equal-class/equal-video validation NLL plus 0.25 visibility NLL; validation-only calibration; fresh test unread until final model frozen",
+  "trainingBudget": {
+    "warmupEpochs": 3,
+    "fineTuneEpochs": 30,
+    "patience": 8,
+    "seed": 3104
+  },
+  "qualificationGate": {
+    "validationKnownSurfaceRecallPerClass": 0.65,
+    "validationKnownSurfaceMacroRecall": 0.7,
+    "minimumValidationCropsPerClass": 6,
+    "minimumValidationVideosPerClass": 3
+  },
+  "fusion": "Only after surface validation gate passes: freeze image encoder; fit RGB-only neutral probability and RGB binary-grip heads; bounded palm/dorsum x front/rear correction changes overhand-vs-underhand odds only. Neutral probability must be exactly invariant to supplied view.",
+  "confidence": {
+    "surface": 0.8,
+    "visible": 0.8,
+    "grip": 0.8,
+    "closedContact": 0.8
+  },
+  "testSelection": "At most four supported videos per grip/view cell in recording SHA order, before hand pixels or classifier scores; no replacements after crop review; missing and invalid inputs retained",
+  "storage": "Reuse cached publisher archive and existing fitting pixels. Bound native extraction to selected videos, check free space before export, clean compiler caches between jobs, retain evidence/models/labels.",
+  "trainingAddendum": {
+    "publisher": "https://gymkee.com/exercises/lats/neutral-grip-pull-up/",
+    "videos": 2,
+    "sourceGroup": "gymkee:ckdpq4q1g002bfo488d871c7t:male",
+    "role": "train",
+    "reason": "Source/crop review showed few genuine clear front-neutral inputs; add two visually verified publisher camera angles, same athlete kept together, before any fitting or fresh-test exposure"
+  }
+}

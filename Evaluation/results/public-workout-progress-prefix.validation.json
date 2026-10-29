@@ -1,0 +1,125 @@
+{
+  "artifact_sha256": {
+    "legacy-validation-local.json": "6e7c1b2597a644c11d2084a58b3791217701dcb7f8ac36da9b8974f7dd4e63e1",
+    "native-final.log": "24b96fc87cc3642ca849f9f90fa70c5bd841826495a136897d02e7b50e70d6eb",
+    "native-invocation-local.json": "139e10df49386b424ffabb9652bdc8b2ee7b2b5afc001834ea856ba314a9b4e9",
+    "python-final.log": "7959b503ab78f4cfbafffeaddfeb3395af127309ab65642a2c5b22c72bf76f61",
+    "python-invocation-local.json": "1094f46cd994853e2faf513fc7adb03ac93b223827e5c0a0b22fc8d9035f7310",
+    "smoke-invocation-local.json": "52e21109009540cef05ef7dbe6e73c27564a82de2314b3e3a1a7ebfd10875f03",
+    "smoke-native.json": "848b340ef8d6018cee576a6930fbfc71c56c4b5ec71c450500cd5219a67b1393",
+    "smoke-native.json.provenance.json": "c5aee3debd2ba04eab24f716da7cb46de9d1a24396cf26fd93845148c47b171a",
+    "smoke-native.log": "9e7ce7156f665661f04fe8a66bc9c9784ee3117e48af416a1917dc9eccfdcc02",
+    "smoke-score.json": "67c634d65ad09bdce86a4bc4988bd534d9e5a70f1243c896cafe0d715b01414f"
+  },
+  "changed_files_sha256": {
+    "Evaluation/PUBLIC_WORKOUT_DATASETS.md": "c0493e0f6396cd568e5ddf4711efe6008c887ea7f371450402a43bbdc8016bc3",
+    "Evaluation/PublicReplayMeasurements.swift": "88c6fa9effebfa390dfd8a5bc5eaf2783729a7681a32bcd0487f6d53dcb9661a",
+    "Evaluation/PublicReplayMeasurementsTests.swift": "3bb49badf187f7bc29a39d0f0302fc9c8e6843592198dbb7dfad89c707e0c495",
+    "Evaluation/PublicWorkoutReplay.swift": "21e2b60ec2708fa4750324abbdf75a424ec06667e724c93c77dd8ccc5455a971",
+    "ios/HangInThereTests/Integration/ReplayControllerTests.swift": "717028a957eab0c2dc668108cde91422490ab9efea04d9decc2c86222a317c66",
+    "scripts/evaluate-public-workouts-apple.sh": "4ac0ef654073b6ae7a0f36ce7fad3807cb36cef2d1a0805f1d6eb4dd29ce0144",
+    "scripts/public_workout_datasets.py": "3e9ac38ef7472aaf2d3e4b1855946aef55302877f12a7aa7906d016b8c6a84e9",
+    "scripts/test-apple-host.sh": "eede88c56e6a470ad413e518b31412467951c1c8e4a148760e2cd9e38b82931b",
+    "scripts/tests/test_public_workout_datasets.py": "647e1f07f8330ef7adade373efb1d315b6d5940f02e012432fa4b4308876fda3"
+  },
+  "compiled_cli_smoke": {
+    "accepted": 0,
+    "all_exact_completed_counts": false,
+    "all_inputs_processed": true,
+    "completed": 0,
+    "executable_sha256": "ef8515c70780558703a684f8d6f3455071d734b39c305dc8d800e51f36007861",
+    "exit_code": 0,
+    "fixture": "ios/HangInThereTests/Fixtures/decoder/quadrants-h264-vfr-portrait.mp4",
+    "fixture_sha256": "d400ca21c5e6f49d3e09e11b11faab6cdf379b20ab627c8df2f1bd140980ba56",
+    "frames": 4,
+    "helper_in_compiled_source_provenance": true,
+    "progress_evidence": {
+      "observed_source_end_seconds": 0.41,
+      "schema_version": 1,
+      "source_prefix_verified": true
+    },
+    "single_person_frames": 0,
+    "source_clock_verified": true,
+    "source_pts_seconds": [
+      0,
+      0.1,
+      0.23,
+      0.41
+    ],
+    "status": "setupUnavailable",
+    "toolchain": "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)\nTarget: x86_64-apple-macosx15.0"
+  },
+  "held_out_accuracy_qualified": false,
+  "independent_code_review": "Passed with no actionable findings",
+  "legacy_scoring": {
+    "manifest_sha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+    "platforms": {
+      "android-api29": {
+        "all_exact_completed_counts": false,
+        "cases": 33,
+        "legacy_score_unchanged": true,
+        "native_report": "Evaluation/results/public-workout-identity-clock-native-android-api29.native.json",
+        "native_report_sha256": "69e419fa769eb54301b12fe3d54a595e5bdac3a3efe09ac9b37dfbb0a57f7e62",
+        "retained_score": "Evaluation/results/public-workout-identity-clock-native-android-api29.score.json",
+        "retained_score_sha256": "6ea1b2842777196fd48ba12c21e9c52dbf89ad8dad869736b46ae4bb8c947ffc"
+      },
+      "android-api35": {
+        "all_exact_completed_counts": false,
+        "cases": 33,
+        "legacy_score_unchanged": true,
+        "native_report": "Evaluation/results/public-workout-identity-clock-native-android-api35.native.json",
+        "native_report_sha256": "59fe8e560e2e956b1c6251c3aa2d154a9c5c799c4738035b99d4cf33b9a66249",
+        "retained_score": "Evaluation/results/public-workout-identity-clock-native-android-api35.score.json",
+        "retained_score_sha256": "6ea1b2842777196fd48ba12c21e9c52dbf89ad8dad869736b46ae4bb8c947ffc"
+      },
+      "apple": {
+        "all_exact_completed_counts": false,
+        "cases": 33,
+        "legacy_score_unchanged": true,
+        "native_report": "Evaluation/results/public-workout-identity-clock-native-apple.native.json",
+        "native_report_sha256": "7e83bf1e461943f7af16db3401caaf19543d75aa35b58e1c331c729c080160f5",
+        "retained_score": "Evaluation/results/public-workout-identity-clock-native-apple.score.json",
+        "retained_score_sha256": "85822d7898f240208b035451f422cf46798d3d224bcfccb3eeb481ec6ab3bbfa"
+      }
+    },
+    "scorer_sha256": "3e9ac38ef7472aaf2d3e4b1855946aef55302877f12a7aa7906d016b8c6a84e9"
+  },
+  "local_evidence_directory": "build/public-replay-progress-final",
+  "native_mac": {
+    "ci_entrypoint": "scripts/test-apple-host.sh",
+    "elapsed_seconds": 638.9242522038985,
+    "exit_code": 0,
+    "failed": 0,
+    "finished_at_utc": "2026-10-15T23:45:04.260147+00:00",
+    "regression_cases": [
+      "late inference failure before return",
+      "late inference failure after closed return",
+      "active review closed-return snapshot without finishing",
+      "invalid clocks/media/event bounds"
+    ],
+    "source_file_count": 170,
+    "source_files_match_committed_revision": true,
+    "source_files_unchanged_during_run": true,
+    "source_snapshot_sha256": "b2daf23d2e4832ce9253359ad349ddea3de5f9fa59b7d92fc17f64ee6563d9de",
+    "swift_testing_passed": 306,
+    "xctest_passed": 11
+  },
+  "original_33_video_native_corpus_rerun_this_pass": false,
+  "production_app_shared_and_model_trees_unchanged_from": "69ceaa4af9a93be9b29acd6017b1b8dba59db142",
+  "python_contracts": {
+    "elapsed_seconds": 25.922285560984164,
+    "exit_code": 0,
+    "failed": 0,
+    "modules": [
+      "scripts.tests.test_public_workout_datasets",
+      "scripts.tests.test_public_workout_android_runner"
+    ],
+    "passed": 50
+  },
+  "raw_images_pose_traces_media_private_data_or_credentials_published": false,
+  "release_qualified": false,
+  "schema_version": 1,
+  "scope": "Interrupted Apple evaluator evidence and scoring contracts; no new model, counting policy, field accuracy or physical-device qualification",
+  "simulator_failures_repaired": false,
+  "source_revision": "722b2148533085a6cea24b6e0fdabc13aa6156f8"
+}

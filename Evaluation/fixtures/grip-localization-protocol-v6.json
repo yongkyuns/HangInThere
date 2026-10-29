@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 6,
+  "scope": "Offline hand extraction/ownership before grip classification; no learned weights or classifier confidence changes",
+  "fresh": "All five remaining uninventoried K700val454 recordings, membership before pixels. Keep all failures/missing requests. No replacements.",
+  "sampling": "Native body observations over whole source; 12 requested hand samples at .25/.5/.75 within seconds0/2/4/6; 57 actual frames,3EOF misses. Baseline/new identical source pixels and clocks.",
+  "regression": "24 predeclared frames from8exposed recordings;69sampled prefix frames retained for temporal ownership. No manual boxes enter inference.",
+  "proposal": "Existing checksum-pinned MediaPipe hand model; num_hands4; same.5detection/presence. Full frame plus observed-wrist or generic top tiles and at most1prior-hand region; max4calls/frame, no wrist-only output patch.",
+  "geometry": "21current detected hand points;16pxnative extentminimum; reject within2pxofsearch/sourceborder; square containsallpoints+shortwrist andmargin;128RGB. Overlapping/collidinghands unknown.",
+  "ownership": "Unique currently overhead body, independent geometric wrist association with other-person margin; otherwise sole sufficiently large actual face proposal with <=1body and2consistent face observations plus compatible hand extension. Nativefaceconfidence>=.5 is proposalonly, notgripreliability; no ownership from single face score, missingface orSDKchirality. Source cuts, gaps,ownerchanges clearhistory.",
+  "clearerSelection": "Sharpest actual detected crop per source/track/hand slot/second; retain actual timestamp and availabilitytime. No confidence accumulation; no score-based hand relabeling.",
+  "annotation": "Full-source agent reference of primary athlete and complete visible overhead hand count/IDs before fresh hand inference; then blinded mixed baseline/new source+crop review for completeness, ownership, nonhands and ambiguity. Manual references are evaluationonly. Human verification pending.",
+  "measurement": "Correct complete target hand coverage over source-visible references; wrongperson/ambiguous/partial/nonhand/nonoverhead/unverifiable accepts; no unknown filtering. Candidate/GTmatchedframe andpatch hashes. These are agentreviewmetrics, not independently verified accuracy.",
+  "adoption": "Coverage must improve without increasing bad accepts on held-out footage; five videos is diagnostic not broad qualification. Only compare grip models after extraction improves. No automatic deployment.",
+  "storage": "Prune unreferenced native frames; preserve original recordings,alltestedselectedRGB/crops, clocks/poses, reviews, models,firstoutputs."
+}

@@ -22,6 +22,117 @@ EVALUATION_SPEC.loader.exec_module(evaluation)
 
 
 class DebugSessionTests(unittest.TestCase):
+    def test_overhead_and_current_dip_boundary_pairs_survive_debug_transport(self):
+        for exercise,method,version,boundary in (("pullUp","overheadPullUpRelativeMotion",1,5),
+                ("dip","bilateralTorsoDipRelativeMotion",2,4),("dip","bilateralTorsoDipRelativeMotion",1,3)):
+            with self.subTest(method=method,boundary=boundary),tempfile.TemporaryDirectory() as directory:
+                package=self.make_package(Path(directory))
+                for name in ("session.json","qualification.json"):
+                    p=package/name;d=json.loads(p.read_text())
+                    d.update(exercise=exercise,countMethod=method,counterPolicyVersion=version,boundaryPolicyVersion=boundary)
+                    if name=="session.json":d["barReference"]=None
+                    p.write_text(json.dumps(d))
+                self.refresh_hashes(package)
+                result=debug_session.verify(package)
+                self.assertEqual(result["session"]["boundary_policy_version"],boundary)
+                for name in ("session.json","qualification.json"):
+                    p=package/name;d=json.loads(p.read_text());d["counterPolicyVersion"]=99;p.write_text(json.dumps(d))
+                self.refresh_hashes(package)
+                with self.assertRaises(debug_session.DebugSessionError):debug_session.verify(package)
+
+    def test_completed_cycles_are_distinct_from_accepted_movements_and_must_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            for name in ("session.json", "qualification.json"):
+                p=package/name;d=json.loads(p.read_text())
+                (d["set"] if name=="session.json" else d)["completedReps"]=2
+                p.write_text(json.dumps(d))
+            self.refresh_hashes(package)
+            report=debug_session.verify(package)
+            self.assertEqual(report["qualification"]["observed_movements"],3)
+            self.assertEqual(report["qualification"]["completed_reps"],2)
+            manifest=debug_session.evaluation_manifest(package,report,"owner-authorized local test")
+            self.assertEqual(manifest["clips"][0]["debug_session"]["set"]["completedReps"],2)
+            p=package/"qualification.json";d=json.loads(p.read_text());d["completedReps"]=3;p.write_text(json.dumps(d));self.refresh_hashes(package)
+            with self.assertRaises(debug_session.DebugSessionError):debug_session.verify(package)
+
+    def test_invalid_completed_cycle_counts_are_rejected(self):
+        for invalid in (-1,4,True):
+            with self.subTest(invalid=invalid), tempfile.TemporaryDirectory() as directory:
+                package=self.make_package(Path(directory))
+                for name in ("session.json","qualification.json"):
+                    p=package/name;d=json.loads(p.read_text());(d["set"] if name=="session.json" else d)["completedReps"]=invalid;p.write_text(json.dumps(d))
+                self.refresh_hashes(package)
+                with self.assertRaises(debug_session.DebugSessionError):debug_session.verify(package)
+        # Python equality alone must not accept True as an integer count of 1.
+        with tempfile.TemporaryDirectory() as directory:
+            package=self.make_package(Path(directory))
+            for name in ("session.json","qualification.json"):
+                p=package/name;d=json.loads(p.read_text());(d["set"] if name=="session.json" else d)["completedReps"]=1 if name=="session.json" else True;p.write_text(json.dumps(d))
+            self.refresh_hashes(package)
+            with self.assertRaises(debug_session.DebugSessionError):debug_session.verify(package)
+
+    def test_relative_dip_boundary3_survives_debug_export_and_rejects_wrong_method(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package=self.make_package(Path(directory))
+            for name in ("session.json","qualification.json"):
+                p=package/name;d=json.loads(p.read_text())
+                d.update(counterPolicyVersion=1,countMethod="bilateralDipRelativeMotion",boundaryPolicyVersion=3)
+                if name=="session.json":d["barReference"]=None
+                p.write_text(json.dumps(d))
+            self.refresh_hashes(package);result=debug_session.verify(package)
+            manifest=debug_session.evaluation_manifest(package,result,"owner-authorized local test")
+            self.assertEqual(manifest["clips"][0]["debug_session"]["boundary_policy_version"],3)
+            for name in ("session.json","qualification.json"):
+                p=package/name;d=json.loads(p.read_text());d["countMethod"]="bilateralBodyDipMotion";p.write_text(json.dumps(d))
+            self.refresh_hashes(package)
+            with self.assertRaises(debug_session.DebugSessionError):debug_session.verify(package)
+
+    def test_boundary_policy_survives_export_and_must_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            for name in ("session.json","qualification.json"):
+                p=package/name;d=json.loads(p.read_text());d["boundaryPolicyVersion"]=2;p.write_text(json.dumps(d))
+            self.refresh_hashes(package)
+            result=debug_session.verify(package)
+            self.assertEqual(result["session"]["boundary_policy_version"],2)
+            manifest=debug_session.evaluation_manifest(package,result,"owner-authorized local test")
+            self.assertEqual(manifest["clips"][0]["debug_session"]["boundary_policy_version"],2)
+            p=package/"qualification.json";d=json.loads(p.read_text());d["boundaryPolicyVersion"]=1;p.write_text(json.dumps(d));self.refresh_hashes(package)
+            with self.assertRaises(debug_session.DebugSessionError):debug_session.verify(package)
+    def test_body_counting_method_survives_export_and_must_match_qualification(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package = self.make_package(Path(directory))
+            for name in ("session.json", "qualification.json"):
+                path = package/name
+                data = json.loads(path.read_text())
+                data.update(counterPolicyVersion=1, countMethod="bilateralBodyDipMotion")
+                if name == "session.json": data["barReference"] = None
+                path.write_text(json.dumps(data)+"\n")
+            self.refresh_hashes(package)
+            result = debug_session.verify(package)
+            self.assertEqual(result["session"]["counter_method"], "bilateralBodyDipMotion")
+            manifest = debug_session.evaluation_manifest(package,result,"owner-authorized local test")
+            self.assertEqual(manifest["clips"][0]["debug_session"]["counter_method"], "bilateralBodyDipMotion")
+            path = package/"qualification.json"
+            data = json.loads(path.read_text());data["countMethod"] = "bilateralDipImageMotion"
+            path.write_text(json.dumps(data)+"\n");self.refresh_hashes(package)
+            with self.assertRaises(debug_session.DebugSessionError): debug_session.verify(package)
+
+    def test_pullup_motion_provenance_survives_debug_export(self):
+        with tempfile.TemporaryDirectory() as directory:
+            package=self.make_package(Path(directory))
+            for name in ("session.json","qualification.json"):
+                p=package/name;data=json.loads(p.read_text())
+                data.update(exercise="pullUp",counterPolicyVersion=1,countMethod="bilateralPullUpRelativeMotion",boundaryPolicyVersion=2)
+                if name=="session.json":data["barReference"]["role"]="pullUpGrip"
+                p.write_text(json.dumps(data)+"\n")
+            self.refresh_hashes(package)
+            result=debug_session.verify(package)
+            manifest=debug_session.evaluation_manifest(package,result,"owner-authorized local test")
+            self.assertEqual(manifest["clips"][0]["debug_session"]["counter_method"],"bilateralPullUpRelativeMotion")
+            self.assertEqual(result["session"]["boundary_policy_version"],2)
+
     def make_package(self, root: Path) -> Path:
         package = root / "capture.hangdebug"
         package.mkdir()
@@ -128,7 +239,7 @@ class DebugSessionTests(unittest.TestCase):
                 debug_session.verify(package)
 
     def test_hangdebug_type_is_registered_as_package(self):
-        plist = plistlib.loads((ROOT / "HangInThere" / "Info.plist").read_bytes())
+        plist = plistlib.loads((ROOT / "ios" / "HangInThere" / "Info.plist").read_bytes())
         declarations = plist.get("UTExportedTypeDeclarations")
         self.assertIsInstance(declarations, list)
         declaration = next(

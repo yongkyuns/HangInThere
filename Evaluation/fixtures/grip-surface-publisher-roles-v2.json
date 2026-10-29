@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 2,
+  "frameSampling": {
+    "seconds": [
+      2,
+      4,
+      6,
+      8
+    ]
+  },
+  "sources": [
+    {
+      "id": "gymkee-neutral-angle1",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-surface-neutral-v2/gymkee-neutral-angle1.mp4",
+      "sourceGroup": "gymkee:ckdpq4q1g002bfo488d871c7t:male",
+      "sourceURL": "https://cdn.gymkee.io/gymkee/exercises/ckdpq4q1g002bfo488d871c7t/pu1v2gh2g71oxal7n7ygbwid/h264-gui7n5s1osjxrfde5bslgBW-PULLUP-CAM1-HOMME-HORIZONTAL_1080p.mp4",
+      "publisherPage": "https://gymkee.com/exercises/lats/neutral-grip-pull-up/",
+      "bytes": 2180131,
+      "sha256": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "selected": true,
+      "grip": "neutral",
+      "view": "oblique",
+      "split": "train",
+      "start": 0,
+      "end": 20,
+      "reason": "Direct source review: separate fore-aft parallel handle loops; same publisher athlete grouped in train"
+    },
+    {
+      "id": "gymkee-neutral-angle2",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-surface-neutral-v2/gymkee-neutral-angle2.mp4",
+      "sourceGroup": "gymkee:ckdpq4q1g002bfo488d871c7t:male",
+      "sourceURL": "https://cdn.gymkee.io/gymkee/exercises/ckdpq4q1g002bfo488d871c7t/q31p65tv3tzmpv9ast3qvfa0/h264-79c1fyyfi2q8bauhc8pBW-PULLUP-CAM2-HOMME-HORIZONTAL_1080p.mp4",
+      "publisherPage": "https://gymkee.com/exercises/lats/neutral-grip-pull-up/",
+      "bytes": 2510625,
+      "sha256": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "selected": true,
+      "grip": "neutral",
+      "view": "front",
+      "split": "train",
+      "start": 0,
+      "end": 20,
+      "reason": "Direct source review: separate fore-aft parallel handle loops; same publisher athlete grouped in train"
+    }
+  ]
+}

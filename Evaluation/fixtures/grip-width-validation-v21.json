@@ -1,0 +1,282 @@
+{
+  "report": {
+    "schemaVersion": 21,
+    "qualification": "Agent-reviewed source references; exact shared width/counter, source-confirmed view and wrist-seeded support. Offline, not phone acquisition or human gold.",
+    "sources": 9,
+    "nativeFrames": 7579,
+    "scheduledImages": 1137,
+    "shots": [
+      {
+        "caseId": "physitrack-underhand",
+        "shotId": "rear",
+        "sourceGroup": "publisher:physitrack:same-studio-model",
+        "fullCaptureSupported": false,
+        "referenceWidth": "shoulderWidth",
+        "referenceGrip": "underhand",
+        "nativeFrames": 122,
+        "knownWidthFrames": 1,
+        "widthCoverage": 0.00819672131147541,
+        "predictedBands": {
+          "unknown": 121,
+          "wide": 1
+        },
+        "wrongWidthFrames": 1,
+        "medianRatio": 1.6356955882179232,
+        "gripLabeledFrames": 0,
+        "wrongGripFrames": 0,
+        "widthReasons": {
+          "bodyTrackingUnavailable": 90,
+          "waitingForStableHangBaseline": 17,
+          "confirmingWidth": 13,
+          "widthViewUnavailable": 1
+        }
+      },
+      {
+        "caseId": "physitrack-overhand",
+        "shotId": "rear",
+        "sourceGroup": "publisher:physitrack:same-studio-model",
+        "fullCaptureSupported": true,
+        "referenceWidth": "shoulderWidth",
+        "referenceGrip": "overhand",
+        "nativeFrames": 128,
+        "knownWidthFrames": 2,
+        "widthCoverage": 0.015625,
+        "predictedBands": {
+          "unknown": 126,
+          "wide": 2
+        },
+        "wrongWidthFrames": 2,
+        "medianRatio": 1.8401621152138867,
+        "gripLabeledFrames": 0,
+        "wrongGripFrames": 0,
+        "widthReasons": {
+          "bodyTrackingUnavailable": 88,
+          "waitingForStableHangBaseline": 25,
+          "confirmingWidth": 13
+        }
+      },
+      {
+        "caseId": "timms-alternating",
+        "shotId": "rear-wide",
+        "sourceGroup": "youtube:lgpBf4Y5oW8",
+        "fullCaptureSupported": false,
+        "referenceWidth": "wide",
+        "referenceGrip": "overhand",
+        "nativeFrames": 91,
+        "knownWidthFrames": 0,
+        "widthCoverage": 0.0,
+        "predictedBands": {
+          "unknown": 91
+        },
+        "wrongWidthFrames": 0,
+        "medianRatio": null,
+        "gripLabeledFrames": 0,
+        "wrongGripFrames": 0,
+        "widthReasons": {
+          "bodyTrackingUnavailable": 91
+        }
+      },
+      {
+        "caseId": "strong-close",
+        "shotId": "rear",
+        "sourceGroup": "youtube:d4kpdlbv-d4",
+        "fullCaptureSupported": false,
+        "referenceWidth": "narrow",
+        "referenceGrip": "underhand",
+        "nativeFrames": 240,
+        "knownWidthFrames": 0,
+        "widthCoverage": 0.0,
+        "predictedBands": {
+          "unknown": 240
+        },
+        "wrongWidthFrames": 0,
+        "medianRatio": null,
+        "gripLabeledFrames": 0,
+        "wrongGripFrames": 0,
+        "widthReasons": {
+          "bodyTrackingUnavailable": 237,
+          "widthViewUnavailable": 3
+        }
+      }
+    ],
+    "counterAttempts": 9,
+    "completedCounterReps": 4,
+    "widthRepMetadata": {
+      "unknown": 9
+    },
+    "trained": false,
+    "thresholdsChanged": false,
+    "phoneInstalled": false
+  },
+  "verification": {
+    "schemaVersion": 21,
+    "frozenFilesVerified": 26,
+    "newSources": 9,
+    "newSourceGroups": 8,
+    "allFittingRolesDisjoint": true,
+    "nativeFramesVerified": 7579,
+    "scheduledImagesVerified": 1137,
+    "automaticCropPixelsVerified": 80,
+    "sequenceFramesVerified": 5112,
+    "noWidthCarryoverOnAssembledSequence": true,
+    "realContinuousAlternationQualified": false,
+    "independentNarrowMediumAccuracyQualified": false,
+    "tests": [
+      {
+        "name": "dev.hanginthere.evaluation.GripWidthValidationV21Tests",
+        "tests": 1
+      },
+      {
+        "name": "dev.hanginthere.core.WorkoutGripWidthTests",
+        "tests": 10
+      }
+    ],
+    "modelFitPerformed": false,
+    "modelThresholdsChanged": false,
+    "productionCodeChanged": false,
+    "sha256": {
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v21/source-references.json": "2b5602c17ef681d9457de0cf22f7dc152ba5aa777b7fa96a879406596e3cee65",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v21/test/report.json": "fe642febba7534b41e0e2cbaacb90317c6873c45e11a3097a4123e6da738ad94",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v21/test/native-output.jsonl": "72a234df35f7b183f7c17eee83189d504bad30666711d34f11af0fa8750a0c5e",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v21/test/observations.jsonl": "844bb08958515f91592f99b49d771f78e13d84caaacf537cc4373233ec1ca688",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v21/test/alternating-output.jsonl": "5fc1b7b771dde0381b800ff287c43320ebeb43c27ba6be5783b72199eaf6bfa9",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v21/test/rep-records.json": "fed715b469eb46f8e4f5f3481e59bb65d6f9e422e0a05a0d8d5bda2999389910",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v21/accounting-repair.json": "7f0157e963a6843ab50daf8f0335a62f2999387b0ca69b317b9e68de2bdb0322",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/audit-grip-width-v21.py": "6509e58a4165f33d3756b1aae579aa5523661a02b7bafb284e0c1d2d6b19b79f"
+    }
+  },
+  "alternating": {
+    "qualification": "Assembled original-frame videos, not continuous-session accuracy. Owner repeats exposed controls; new-source references unchanged. Scope includes hand types changing overhand/underhand and widths wide/narrow/medium.",
+    "frames": 5112,
+    "sets": [
+      {
+        "position": 0,
+        "caseId": "owner-wide-control",
+        "frames": 690,
+        "originalRecordingId": "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+        "kind": "Previously exposed wide development control",
+        "firstWidth": "unknown",
+        "bands": {
+          "unknown": 287,
+          "wide": 403
+        },
+        "matchesIsolatedOrFirstControlExactly": true
+      },
+      {
+        "position": 1,
+        "caseId": "strong-close",
+        "frames": 615,
+        "originalRecordingId": "dbbd5eb2c79c8acccfd86820f76ca1bfce8c44919551bf6ace8e24a1f06e0d3c",
+        "kind": "New separate source",
+        "firstWidth": "unknown",
+        "bands": {
+          "unknown": 615
+        },
+        "matchesIsolatedOrFirstControlExactly": true
+      },
+      {
+        "position": 2,
+        "caseId": "physitrack-underhand",
+        "frames": 1165,
+        "originalRecordingId": "9474c54e8c5d08af2090f4cbd99d9f5aa36754026e3f2ecde020749433982b50",
+        "kind": "New separate source",
+        "firstWidth": "unknown",
+        "bands": {
+          "unknown": 1164,
+          "wide": 1
+        },
+        "matchesIsolatedOrFirstControlExactly": true
+      },
+      {
+        "position": 3,
+        "caseId": "owner-wide-control",
+        "frames": 690,
+        "originalRecordingId": "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+        "kind": "Previously exposed wide development control",
+        "firstWidth": "unknown",
+        "bands": {
+          "unknown": 287,
+          "wide": 403
+        },
+        "matchesIsolatedOrFirstControlExactly": true
+      },
+      {
+        "position": 4,
+        "caseId": "physitrack-overhand",
+        "frames": 1337,
+        "originalRecordingId": "3b954cbb15631dd2ded2f559a2b9dcf9a90be8f8b6e92fb37c13bc376be0b43e",
+        "kind": "New separate source",
+        "firstWidth": "unknown",
+        "bands": {
+          "unknown": 1335,
+          "wide": 2
+        },
+        "matchesIsolatedOrFirstControlExactly": true
+      },
+      {
+        "position": 5,
+        "caseId": "strong-close",
+        "frames": 615,
+        "originalRecordingId": "dbbd5eb2c79c8acccfd86820f76ca1bfce8c44919551bf6ace8e24a1f06e0d3c",
+        "kind": "New separate source",
+        "firstWidth": "unknown",
+        "bands": {
+          "unknown": 615
+        },
+        "matchesIsolatedOrFirstControlExactly": true
+      }
+    ],
+    "noWidthStateCarryover": true,
+    "perRepWidthBands": {
+      "wide": 4,
+      "unknown": 9
+    },
+    "totalAttempts": 13,
+    "modelOrThresholdChanges": false
+  },
+  "sourceGeometry": [
+    {
+      "caseId": "physitrack-underhand",
+      "seconds": 27,
+      "manualRatio": 1.179245283018868,
+      "visionCurrentFrameRatio": 1.6165609268297985,
+      "visionPixelSpans": {
+        "shoulders": 74.39039820675966,
+        "wrists": 120.25661107235716
+      },
+      "referenceQualification": "Provisional agent points; not independent human gold. Current frame ratio is diagnostic, not frozen-baseline prediction."
+    },
+    {
+      "caseId": "physitrack-overhand",
+      "seconds": 34,
+      "manualRatio": 1.1081081081081081,
+      "visionCurrentFrameRatio": 1.548840623303636,
+      "visionPixelSpans": {
+        "shoulders": 80.17607421153521,
+        "wrists": 124.17996075583277
+      },
+      "referenceQualification": "Provisional agent points; not independent human gold. Current frame ratio is diagnostic, not frozen-baseline prediction."
+    },
+    {
+      "caseId": "strong-close",
+      "seconds": 3,
+      "manualRatio": 0.6337448559670782,
+      "visionCurrentFrameRatio": 0.6244111576949626,
+      "visionPixelSpans": {
+        "shoulders": 220.55372909125057,
+        "wrists": 137.71620931580892
+      },
+      "referenceQualification": "Provisional agent points; not independent human gold. Current frame ratio is diagnostic, not frozen-baseline prediction."
+    }
+  ],
+  "sequenceNegativeControls": {
+    "qualification": "Previously frozen owner setup/release labels, twice-replayed exposed development control. Not new source negatives.",
+    "counts": {
+      "setupFrames": 288,
+      "newMovements": 0,
+      "exerciseAdmissions": 0,
+      "knownWidthFrames": 0,
+      "releaseFrames": 148
+    }
+  }
+}

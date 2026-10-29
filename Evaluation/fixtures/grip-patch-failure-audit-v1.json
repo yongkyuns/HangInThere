@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "scope": "Audit of all 12 previously reported held-out chin-up patches; original benchmark artifacts retained",
+  "qualification": "agent visual review, not independent gold adjudication",
+  "patches": [
+    {
+      "index": 1,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "imageSHA256": "20293959f2f822eb475564c1ce358a0fe73f2d530404454254eac564cc676fa8",
+      "side": "left",
+      "box": [
+        302,
+        112,
+        331,
+        141
+      ],
+      "patchSHA256": "dbe19d23a9a1366a8cae124bbf5f1c7b6edcc90bb5065f7efe6a62e4089e6731",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 2,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 128128
+      },
+      "imageSHA256": "d459ee306613620f74175ea6b3a7964afae85befd5f039ac58b374f919f17195",
+      "side": "left",
+      "box": [
+        297,
+        112,
+        329,
+        144
+      ],
+      "patchSHA256": "a1414bf211219ab0c7d72eb809199bb7e0c1ace5405b755f7055cfbfd20ca051",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 3,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 136136
+      },
+      "imageSHA256": "5eb3e3d43cbc83f2f41f3262747bbf535140e43c60249d2c7d9a22eba8b90759",
+      "side": "left",
+      "box": [
+        297,
+        111,
+        331,
+        145
+      ],
+      "patchSHA256": "fc0776f5d1e0dafc7c236757be661fd151b15eee41d582a024b485684518e79c",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 4,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 136136
+      },
+      "imageSHA256": "5eb3e3d43cbc83f2f41f3262747bbf535140e43c60249d2c7d9a22eba8b90759",
+      "side": "right",
+      "box": [
+        215,
+        96,
+        262,
+        143
+      ],
+      "patchSHA256": "fcf375f114ef137d1dd1f725f774e7a7676f1777cd7e8b492d7cfe1d8f9c108f",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 5,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 144144
+      },
+      "imageSHA256": "6a217f1fce94c72f43427e2f2b4e28ed5d1a9b4dde48fcd8321c45de52c1fa62",
+      "side": "left",
+      "box": [
+        298,
+        111,
+        331,
+        144
+      ],
+      "patchSHA256": "14d96394b2d734972dd42facd32892dc5ca30c7ce8472b686ce316e1be5abc74",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 6,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 152152
+      },
+      "imageSHA256": "f7fb1d6398981fcff952ce86db48c58f405f1a68de61d78f055075ed1e49e5e1",
+      "side": "left",
+      "box": [
+        301,
+        112,
+        328,
+        139
+      ],
+      "patchSHA256": "45418f0aa1171321a79526442f5c37009a4d9967dbf570c08a6c07e97df91664",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 7,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 160160
+      },
+      "imageSHA256": "2b28943f31ae4091c3b93e2ada942a974672aa6e8936eaec59c2a0e5dafbe57a",
+      "side": "left",
+      "box": [
+        303,
+        113,
+        329,
+        139
+      ],
+      "patchSHA256": "f83c848c0d37b745443ebd59706bab059fba2404c88db54763b244cafa00e7ce",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 8,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 160160
+      },
+      "imageSHA256": "2b28943f31ae4091c3b93e2ada942a974672aa6e8936eaec59c2a0e5dafbe57a",
+      "side": "right",
+      "box": [
+        218,
+        98,
+        261,
+        141
+      ],
+      "patchSHA256": "fc56d17294471ff144433e0ad0f2a0df0532d6b2643b89304b1462f542ae0288",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 9,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 168168
+      },
+      "imageSHA256": "4e6917d915e1fa28f941779b7013fa15d8120d9e904df6ae69543b28f34c29fd",
+      "side": "left",
+      "box": [
+        295,
+        106,
+        337,
+        148
+      ],
+      "patchSHA256": "fea9ff2fe47740f3f5d56fbcdbe2e7ead1e3a64d6826e6e2961403e7bb7580d5",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 10,
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "recordingId": "8187ec190aca64f6c17de5a0394d0ae420bdf8610e1a3552b003248f773834f3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "imageSHA256": "1915ec7b0fe327de3e204580f5ca6c9cc41309708acdb71c8e384ea4802b1592",
+      "side": "left",
+      "box": [
+        296,
+        111,
+        336,
+        151
+      ],
+      "patchSHA256": "da2593ef67e50def471f11ab660706a72001a434473e7c52c84701e09f47c100",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "intendedGrippingHand; tightLowResolutionCrop",
+      "labelStatus": "underhandSupportedByFullFrameHandAndAthleteContext",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 11,
+      "caseId": "k700train_uSzYBHbjLFI_000017_000027",
+      "recordingId": "3969ae6392a2831205b084e7f50cfc6db8bc9905b8ce88f6cf909f5843a405a2",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 128128
+      },
+      "imageSHA256": "ac39219e3760c3bd79d2189c55cee2773c7319f04345e87c279fdd4c23534806",
+      "side": "left",
+      "box": [
+        351,
+        67,
+        386,
+        102
+      ],
+      "patchSHA256": "4c405ddc0fb9d94ed25a6add4cb9ad06c8a08f505289cf0e3d4e426363c66214",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "foregroundBarOccludesGrip; partialHandAndWrist",
+      "labelStatus": "unverifiedBinaryGrip; excludeFromCleanBenchmark",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    },
+    {
+      "index": 12,
+      "caseId": "k700train_uSzYBHbjLFI_000017_000027",
+      "recordingId": "3969ae6392a2831205b084e7f50cfc6db8bc9905b8ce88f6cf909f5843a405a2",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 160160
+      },
+      "imageSHA256": "c128c67b6daafad485e06830d55f3005846cabcad58eca7fed896fff513bf981",
+      "side": "left",
+      "box": [
+        357,
+        69,
+        388,
+        100
+      ],
+      "patchSHA256": "43f973ae00a560b508832e6e0e7a39635e503e41fa72e741ada7259eac47319f",
+      "sourceCropPixelExact": true,
+      "athleteOwnership": "supportedByFullFrameVisualReview",
+      "gripCoverage": "foregroundBarOccludesGrip; partialHandAndWrist",
+      "labelStatus": "unverifiedBinaryGrip; excludeFromCleanBenchmark",
+      "viewpoint": "front",
+      "reviewEvidence": "Agent visual review of original frame, enlarged bar/hand context and exact model patch; no new training or altered predictions"
+    }
+  ],
+  "sources": [
+    {
+      "caseId": "k700train_VUoItcXFPZ4_000214_000224",
+      "referenceGrip": "underhand",
+      "referenceView": "front",
+      "status": "supportedByVisualEvidence",
+      "patches": 10
+    },
+    {
+      "caseId": "k700train_uSzYBHbjLFI_000017_000027",
+      "previousReferenceGrip": "underhand",
+      "referenceGrip": null,
+      "referenceView": "front",
+      "status": "unverifiedBinaryReference",
+      "reason": "Foreground crossbar hides fingers/contact and prevents confident exclusion of other grips; do not force a new overhand or neutral label",
+      "patches": 2
+    }
+  ]
+}

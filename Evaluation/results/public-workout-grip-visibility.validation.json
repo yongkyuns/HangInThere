@@ -1,0 +1,103 @@
+{
+  "all_five_host_bridge_paths_passed": true,
+  "apple_bridge_script_exit_code": 0,
+  "apple_executable_sha256": "c1919c2312271b939eae8eb60db38b1c2b4f3d2f6b33bc071220fd1832911b75",
+  "apple_ffi": {
+    "activeReps": 222,
+    "cases": 2,
+    "frames": 2000,
+    "framingCases": 12,
+    "framingFeedbackCases": 19,
+    "framingFrames": 2000,
+    "framingHostBridgeP95Milliseconds": 0.167947,
+    "gripCorrectionCases": 2,
+    "gripFrames": 2000,
+    "gripHostBridgeP95Milliseconds": 1.80999,
+    "gripInferenceCases": 2,
+    "gripTransportCases": 1,
+    "gripVisibilityCases": 7,
+    "gripVisibilityFeedbackCases": 3,
+    "gripVisibilityFramingFrames": 2000,
+    "gripVisibilityFramingHostBridgeP95Milliseconds": 0.322846,
+    "hostBridgeP95Milliseconds": 1.124776,
+    "overheadFramingFrames": 2000,
+    "overheadFramingHostBridgeP95Milliseconds": 0.234389,
+    "passed": true,
+    "persistenceSets": 55,
+    "practiceCases": 2,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "sceneQualificationCases": 3,
+    "timestampRegressionCases": 4
+  },
+  "apple_framework_sha256": "3abd8b408f870682583028d9a1a0633c5452b0323df3020a4dbd0126051b7ecd",
+  "bridge_log_sha256": "8075400c63e821fff4cd57af2f3e9dd2f4b5f532c7236ab1596f2148bc2f389e",
+  "changed_source_sha256": {
+    "Evaluation/WorkoutAnalysisBridgeCheck.swift": "a9311675171080a562683314d47d2b7a413065d2220ccdd31864c0a37fbe462a",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticPullUpBar.kt": "f6e273296956d0e5bc7d057a1e3ac6e1d76b680e9b0cc153e87c8c3d56917d8b",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/WorkoutFramingGuidance.kt": "f6b04f86f928aac852d0a6d3cbd066a34b3cb784f9556da84c3b7a2d906cd22a",
+    "shared/src/commonTest/kotlin/dev/hanginthere/core/WorkoutFramingGuidanceTests.kt": "3d6c58a61d3c20d6a79f17efdf18dd307d3960aee90e40e40282f1c821086663"
+  },
+  "common_tests": {
+    "jvmTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 318
+    },
+    "macosX64Test": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 316
+    }
+  },
+  "count_policy_version": 8,
+  "counter_parity": {
+    "cases": 30,
+    "checksum": 8892.549907689074,
+    "frames": 259,
+    "iterations": 100,
+    "p50NanosecondsPerFrame": 2382.7953667953666,
+    "p95NanosecondsPerFrame": 3994.3938223938226,
+    "scope": "same-host core only; includes counter initialization; excludes inference and camera",
+    "swift": {
+      "cases": 30,
+      "checksum": 8892.549907689074,
+      "framesPerIteration": 259,
+      "iterations": 100,
+      "p50NanosecondsPerFrame": 38752.62548262548,
+      "p95NanosecondsPerFrame": 62280.984555984556,
+      "scope": "same-host core only; includes counter initialization, excludes pose inference and camera"
+    }
+  },
+  "existing_1ms_core_and_5ms_host_budgets_unchanged": true,
+  "guidance_policy_version": 3,
+  "independent_code_review": "no actionable findings",
+  "latest_completed_native_corpus_source": "1bb43782050142cbefe6ad15d215d13ae44b9dbf",
+  "native_android_source_validation": "pending fresh hosted CI; local SDK installation unsuitable",
+  "native_export_source_normalization": "passed by shipping script after FFI guards",
+  "new_hint_corpus_accuracy_gain_established": false,
+  "physical_device_performance_qualified": false,
+  "prior_failed_local_timings_preserved": true,
+  "scope": "shared setup presentation only; confidence, geometry, acquisition, countdown, counting and credited-time rules unchanged",
+  "setup_parity": {
+    "cases": 85,
+    "frames": 4846,
+    "geometryCases": 17,
+    "matched": true,
+    "scope": "every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference"
+  },
+  "source_revision": "662767a3e0cb2e13b802cef7b1d880510406ed29",
+  "test_invocations": [
+    {
+      "exit_code": 143,
+      "log_sha256": "ec303ac9ceb3e6e701f56ad0cff76c59f21f7f278867c8a753124e090eee3fb5",
+      "scope": "cancelled before tests after detecting oracle directory paths instead of files"
+    },
+    {
+      "exit_code": 0,
+      "log_sha256": "66943426afd6ff596c017cd5dcbb589b52877af446dadb600da6834e092335f1",
+      "scope": "corrected file paths; full Native/JVM suites and production Swift oracles"
+    }
+  ]
+}

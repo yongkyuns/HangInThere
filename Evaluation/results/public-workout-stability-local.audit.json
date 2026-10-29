@@ -1,0 +1,101 @@
+{
+  "cases": [
+    {
+      "acceptedMovementsBySide": {
+        "left": 0,
+        "right": 0
+      },
+      "acquisitionStates": {
+        "ambiguous": 1,
+        "findingEdge": 31,
+        "lookingForGrip": 1
+      },
+      "analyzedFrames": 294,
+      "caseId": "countix_6cDE1YpzSaE",
+      "contourErrors": 0,
+      "contourSamples": 33,
+      "mediaSha256": "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+      "nonemptyContourSamples": 1,
+      "referenceConfirmed": false,
+      "referenceStabilitySamples": {}
+    },
+    {
+      "acceptedMovementsBySide": {
+        "left": 0,
+        "right": 0
+      },
+      "acquisitionStates": {
+        "ambiguous": 25,
+        "lookingForGrip": 9
+      },
+      "analyzedFrames": 300,
+      "caseId": "countix_88hPGnxh_Go",
+      "contourErrors": 0,
+      "contourSamples": 34,
+      "mediaSha256": "f5dcfabac111631cae436fe47388d9112f9f6c631e59e6be5c7df267c6040fb2",
+      "nonemptyContourSamples": 25,
+      "referenceConfirmed": false,
+      "referenceStabilitySamples": {}
+    },
+    {
+      "acceptedMovementsBySide": {
+        "left": 0,
+        "right": 0
+      },
+      "acquisitionStates": {
+        "ambiguous": 1,
+        "holding": 20,
+        "lookingForGrip": 11
+      },
+      "analyzedFrames": 250,
+      "caseId": "countix_Ace4EsUWyYc",
+      "contourErrors": 0,
+      "contourSamples": 32,
+      "mediaSha256": "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+      "nonemptyContourSamples": 21,
+      "referenceConfirmed": false,
+      "referenceStabilitySamples": {
+        "accumulating": 4,
+        "candidateStarted": 3,
+        "edgeChanged": 13
+      }
+    }
+  ],
+  "provenance": {
+    "compiledSources": {
+      "Evaluation/AutomaticBarAudit.swift": "bd722da2565fafb8d900d1230bfbdd47899f914d50748092cfc38702d4690178",
+      "ios/HangInThere/Analysis/ArmMeasurement.swift": "3aa7733af9f17592e2dfb904097b704d16bf7b20ec2e2b4b8cc2eca376c1dc15",
+      "ios/HangInThere/Analysis/AutomaticDipBar.swift": "052c3d270ac46f156a1b519ec90aea802b3f783d969e66ca2bdcd55b3c4f95cb",
+      "ios/HangInThere/Analysis/AutomaticDipRails.swift": "67275e7e7193c6e86a7bb355dcc3bab17de9d687c553f03d6c7a50efa29589c2",
+      "ios/HangInThere/Analysis/AutomaticExerciseDetection.swift": "1bdf7e3587eabf6acae2f9af9ef9d9fda9d9aaf37df55b094a5bc7d5507056d4",
+      "ios/HangInThere/Analysis/AutomaticPullUpBar.swift": "0af39d5a240a01f49269087f75cecefd82ef732536706eec29818ce9f6809ae6",
+      "ios/HangInThere/Analysis/BarGeometry.swift": "17e34ac1372cfb44829d11c36a3de060952f7b3a80a0d0fa57be1e94c829a069",
+      "ios/HangInThere/Analysis/DipProgress.swift": "62a595e04db4d072a10d5ef5f550dd1074a3caaf8336e6dc9febc9f87e46468d",
+      "ios/HangInThere/Analysis/DipSupportMeasurement.swift": "1af6ef8f1b9e19c7d72e8acfc2f3e94a82ed3d82b989091adead6c4369da3e10",
+      "ios/HangInThere/Analysis/ExerciseCounter.swift": "f12bf0531a66979ccf1d57c9d70926c833b8a1676c2529dc9344bc6cb32412a7",
+      "ios/HangInThere/Analysis/Geometry.swift": "a2cdcb62f6102cacc923c9906b17c6aec8d673bae1b92b46d4a90ddf139e1374",
+      "ios/HangInThere/Analysis/HandsFreeSetStart.swift": "df3632e247da2a3942ba5e8e9950d6c07fd17acfdd1f17d12946ccdf7c0bccfa",
+      "ios/HangInThere/Analysis/LiveDeviceQualification.swift": "42b64ccaf9973083389ed40a389b263b3fe604b55e7ccd9ffbd1d99e50f604be",
+      "ios/HangInThere/Analysis/LiveFramingAssessment.swift": "5b07cb1d3458f23813d75452087bf9bc23ce952085359eb82596d91322619e2c",
+      "ios/HangInThere/Analysis/LiveSetSession.swift": "6af32430adc615c9226b0c3f13ac0ae1fb514ccae266d0c92b4e9fee486ee1d4",
+      "ios/HangInThere/Analysis/PhoneOrientationStability.swift": "1ef63589c74158f15ac45d30b33ed17e332db38d9c6861eb05135835d6b02fb7",
+      "ios/HangInThere/Analysis/PoseObservation.swift": "845b863d334f225dbc73d248ef310a66e3dff7fd7f3026923b4e9c988c394504",
+      "ios/HangInThere/Analysis/PullUpArmMeasurement.swift": "0939b33758e92b4acf54e1b3aa4bbc4f286cd423a5466e4f58b367ef3a704d5d",
+      "ios/HangInThere/Analysis/PullUpProgress.swift": "e9fd60723ef85fbf8963090e84210b50fc7c6135f29ffeb800230293ee988241",
+      "ios/HangInThere/Analysis/ReplayTimeline.swift": "dd8276cd489f9eaff9360731ae01cdc31dfa8b2cffc8467bac7281ec552cbcf1",
+      "ios/HangInThere/Analysis/StaticSceneStability.swift": "ea626cbf92c9745fc91740368874b86893e23842ccedde1b5666a013a2c7d10a",
+      "ios/HangInThere/Analysis/WorkoutGripRecords.swift": "9ace15bc9c3a486013ce7da31c7217729c5d52d25dedac83d2b782c5980636fd",
+      "ios/HangInThere/Analysis/WorkoutRecords.swift": "d90bbafe2956b1f8e9d65c6cfe1002bb189181e622c99ef389c03c5f0e820267",
+      "ios/HangInThere/Capture/VideoReplayReader.swift": "a627dc9e18946d9d891ff90906c830a1217fcdc10af27ba75bec8e6264f789d3",
+      "ios/HangInThere/Pose/VisionBarDetector.swift": "7b4b191b1631222001eae2f8386ed76ab4ba5768e8bc08b26a41698c74e38125",
+      "ios/HangInThere/Pose/VisionPoseEstimator.swift": "11c3a118980b0dae3877db30751e04ea4572eed4d7845900ccc1573da0998dd6"
+    },
+    "compiler": "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)\nTarget: x86_64-apple-macosx15.0",
+    "executableSha256": "5d952075462118f7566513fe1bb3c4596b1f8ca6fd82a0e534bf286ab4afd6bc",
+    "manifestSha256": "2de38bc646463d0715aa7b103505d9daee928a5bd482417baec677b4f1c9ed36",
+    "scope": "local actual Apple selected-pullUp audit; not Auto/live/labelled bar accuracy",
+    "sourceRevision": "fbd64d09d3a4f0c74daca91739d6b307b3541f7b",
+    "xcode": "Xcode 16.4\nBuild version 16F6"
+  },
+  "scope": "actual local Apple selected-pullUp diagnostic; three previously selected exposed public clips, not Auto/live/labelled bar accuracy"
+}

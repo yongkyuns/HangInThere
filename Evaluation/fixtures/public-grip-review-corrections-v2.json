@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 2,
+  "scope": "Corrections to provisional agent labels after source-context and visual re-review. Preserve public-grip-review-v1.json and its old metrics as history; do not treat them as reliable underhand test evidence.",
+  "reviewDate": "2026-10-22",
+  "corrections": [
+    {
+      "id": "countix_XNFGt0WPASQ",
+      "previousLabel": "underhand",
+      "status": "excludeFromBinaryBenchmark",
+      "label": null,
+      "reason": "Neutral/hammer-handle demonstration, not a supported bilateral underhand gold label. Closer source-frame review shows the multi-grip handles; original publisher title confirms HAMMER PULL UPS.",
+      "publisherURL": "https://www.youtube.com/watch?v=XNFGt0WPASQ",
+      "publisherTitle": "HAMMER PULL UPS"
+    },
+    {
+      "id": "countix_15ypy7AMAsc",
+      "previousLabel": "underhand",
+      "status": "excludeFromBinaryBenchmark",
+      "label": null,
+      "reason": "Assisted one-arm variation with overlapping hands. A bilateral underhand recording label is not justified; do not force a binary patch label.",
+      "publisherURL": "https://www.youtube.com/watch?v=15ypy7AMAsc",
+      "publisherTitle": "One arm assisted pull ups"
+    }
+  ],
+  "consequence": "The former validation and test sets supply no valid underhand source after correction. The earlier statement that all 58 spotter-source patches were misclassified chin-up hands is withdrawn; those pixels were outside the two-class annotation scope. A newly frozen both-grip source-separated evaluation is required."
+}

@@ -1,0 +1,1410 @@
+{
+  "schemaVersion": 2,
+  "qualification": "Frozen research model; corrected test reference disclosed; classifier regresses and is not app-qualified",
+  "modelSHA256": "4c0f4f766d1d4db1c8d8fb8446e748a3f9e4ea4dcdc0a7ca556855ece86af6b9",
+  "previousModelSHA256": "6285b77e15070b590ebc656a953d9414e6aa30f107988887f1dafd507c0e4dcd",
+  "training": {
+    "patches": 381,
+    "classes": {
+      "overhand": 223,
+      "underhand": 158
+    },
+    "validationPatches": 80,
+    "newChinupTrainingVideos": 12,
+    "selectedHandFeatureTensorsChanged": 0,
+    "selectedBodyFeatureTensorsChanged": 138
+  },
+  "testReport": {
+    "qualification": "First evaluation on reserved videos after model and detector freeze; manually reviewed agent references, not independent gold labels; oracle orientation is diagnostic only",
+    "modelSHA256": "4c0f4f766d1d4db1c8d8fb8446e748a3f9e4ea4dcdc0a7ca556855ece86af6b9",
+    "previousSHA256": "6285b77e15070b590ebc656a953d9414e6aa30f107988887f1dafd507c0e4dcd",
+    "reserveSHA256": "7a22e4145b08ad81f9e90fe490b75f66493fdc67f1696b87a6adfeb9f1745995",
+    "reviewSHA256": "251c230d09f0e2fcc6334d632dd862ddf232d163a26b3d27de65c204b62320b4",
+    "newManifestSHA256": "0af69015c17c9b10acabc12d5a44e49e221326cb9f40d53a79afab03c6149a6c",
+    "legacyManifestSHA256": "924f97c634f0de63b035f9e9918c4b0316ef9c897b3931a982e84faab84505fc",
+    "scriptSHA256": "8b2d011d19263d5489dd545a3d1c3eae93b430d381b264dc7783b1b64f942c98",
+    "threshold": 0.8,
+    "torchScriptEagerMaximumDifference": 2.8014183044433594e-06,
+    "population": {
+      "reservedVideos": 80,
+      "sourceReviewedVideos": 34,
+      "binaryReferenceVideos": 34,
+      "videosWithValidHandCrops": 20,
+      "zeroValidHandCropVideos": 14,
+      "sampledFrames": 116
+    },
+    "summary": {
+      "pipeline:new": {
+        "expectedHands": 198,
+        "availablePatches": 74,
+        "rawCorrect": 53,
+        "unknown": 193,
+        "lowScore": 69,
+        "rawWrong": 21,
+        "missingInput": 124,
+        "invalidTargetCrop": 6,
+        "acceptedCorrect": 4,
+        "acceptedWrong": 1
+      },
+      "pipeline:new:overhand": {
+        "expectedHands": 162,
+        "availablePatches": 67,
+        "rawCorrect": 51,
+        "unknown": 157,
+        "lowScore": 62,
+        "rawWrong": 16,
+        "missingInput": 95,
+        "invalidTargetCrop": 6,
+        "acceptedCorrect": 4,
+        "acceptedWrong": 1
+      },
+      "pipeline:previous": {
+        "expectedHands": 198,
+        "availablePatches": 61,
+        "rawCorrect": 50,
+        "unknown": 179,
+        "lowScore": 42,
+        "missingInput": 137,
+        "acceptedCorrect": 18,
+        "rawWrong": 11,
+        "invalidTargetCrop": 5,
+        "acceptedWrong": 1
+      },
+      "pipeline:previous:overhand": {
+        "expectedHands": 162,
+        "availablePatches": 56,
+        "rawCorrect": 50,
+        "unknown": 143,
+        "lowScore": 37,
+        "missingInput": 106,
+        "acceptedCorrect": 18,
+        "invalidTargetCrop": 5,
+        "rawWrong": 6,
+        "acceptedWrong": 1
+      },
+      "sameDetector:previous": {
+        "expectedHands": 198,
+        "availablePatches": 74,
+        "rawCorrect": 60,
+        "unknown": 172,
+        "lowScore": 48,
+        "missingInput": 124,
+        "acceptedCorrect": 25,
+        "rawWrong": 14,
+        "invalidTargetCrop": 6,
+        "acceptedWrong": 1
+      },
+      "sameDetector:previous:overhand": {
+        "expectedHands": 162,
+        "availablePatches": 67,
+        "rawCorrect": 60,
+        "unknown": 136,
+        "lowScore": 41,
+        "missingInput": 95,
+        "acceptedCorrect": 25,
+        "invalidTargetCrop": 6,
+        "rawWrong": 7,
+        "acceptedWrong": 1
+      },
+      "hand:new:overhand": {
+        "expectedHands": 61,
+        "availablePatches": 61,
+        "rawCorrect": 51,
+        "unknown": 57,
+        "lowScore": 57,
+        "rawWrong": 10,
+        "acceptedCorrect": 4
+      },
+      "hand:new": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 53,
+        "unknown": 64,
+        "lowScore": 64,
+        "rawWrong": 15,
+        "acceptedCorrect": 4
+      },
+      "hand:previous:overhand": {
+        "expectedHands": 61,
+        "availablePatches": 61,
+        "rawCorrect": 60,
+        "unknown": 36,
+        "lowScore": 36,
+        "acceptedCorrect": 25,
+        "rawWrong": 1
+      },
+      "hand:previous": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 60,
+        "unknown": 43,
+        "lowScore": 43,
+        "acceptedCorrect": 25,
+        "rawWrong": 8
+      },
+      "oracleView:new:overhand": {
+        "expectedHands": 61,
+        "availablePatches": 61,
+        "rawCorrect": 53,
+        "unknown": 44,
+        "lowScore": 44,
+        "acceptedCorrect": 17,
+        "rawWrong": 8
+      },
+      "oracleView:new": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 57,
+        "unknown": 51,
+        "lowScore": 51,
+        "acceptedCorrect": 17,
+        "rawWrong": 11
+      },
+      "oracleView:previous:overhand": {
+        "expectedHands": 61,
+        "availablePatches": 61,
+        "rawCorrect": 57,
+        "unknown": 22,
+        "lowScore": 22,
+        "acceptedCorrect": 39,
+        "rawWrong": 4
+      },
+      "oracleView:previous": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 59,
+        "unknown": 29,
+        "lowScore": 29,
+        "acceptedCorrect": 39,
+        "rawWrong": 9
+      },
+      "common:new:overhand": {
+        "expectedHands": 51,
+        "availablePatches": 51,
+        "rawCorrect": 42,
+        "unknown": 48,
+        "lowScore": 48,
+        "rawWrong": 9,
+        "acceptedCorrect": 3
+      },
+      "common:previous:overhand": {
+        "expectedHands": 51,
+        "availablePatches": 51,
+        "rawCorrect": 50,
+        "unknown": 33,
+        "lowScore": 33,
+        "acceptedCorrect": 18,
+        "rawWrong": 1
+      },
+      "pipeline:new:underhand": {
+        "expectedHands": 36,
+        "missingInput": 29,
+        "unknown": 36,
+        "availablePatches": 7,
+        "rawWrong": 5,
+        "lowScore": 7,
+        "rawCorrect": 2
+      },
+      "pipeline:previous:underhand": {
+        "expectedHands": 36,
+        "missingInput": 31,
+        "unknown": 36,
+        "availablePatches": 5,
+        "rawWrong": 5,
+        "lowScore": 5
+      },
+      "sameDetector:previous:underhand": {
+        "expectedHands": 36,
+        "missingInput": 29,
+        "unknown": 36,
+        "availablePatches": 7,
+        "rawWrong": 7,
+        "lowScore": 7
+      },
+      "hand:new:underhand": {
+        "expectedHands": 7,
+        "availablePatches": 7,
+        "rawWrong": 5,
+        "unknown": 7,
+        "lowScore": 7,
+        "rawCorrect": 2
+      },
+      "hand:previous:underhand": {
+        "expectedHands": 7,
+        "availablePatches": 7,
+        "rawWrong": 7,
+        "unknown": 7,
+        "lowScore": 7
+      },
+      "oracleView:new:underhand": {
+        "expectedHands": 7,
+        "availablePatches": 7,
+        "rawWrong": 3,
+        "unknown": 7,
+        "lowScore": 7,
+        "rawCorrect": 4
+      },
+      "oracleView:previous:underhand": {
+        "expectedHands": 7,
+        "availablePatches": 7,
+        "rawWrong": 5,
+        "unknown": 7,
+        "lowScore": 7,
+        "rawCorrect": 2
+      },
+      "common:new:underhand": {
+        "expectedHands": 5,
+        "availablePatches": 5,
+        "rawWrong": 4,
+        "unknown": 5,
+        "lowScore": 5,
+        "rawCorrect": 1
+      },
+      "common:previous:underhand": {
+        "expectedHands": 5,
+        "availablePatches": 5,
+        "rawWrong": 5,
+        "unknown": 5,
+        "lowScore": 5
+      }
+    },
+    "orientation": {
+      "new:front": {
+        "wrong": 6,
+        "correct": 7
+      },
+      "previous:front": {
+        "wrong": 7,
+        "correct": 6
+      },
+      "new:oblique": {
+        "wrong": 2,
+        "correct": 1
+      },
+      "previous:oblique": {
+        "wrong": 1,
+        "correct": 2
+      },
+      "new:rear": {
+        "correct": 22,
+        "wrong": 8
+      },
+      "previous:rear": {
+        "correct": 26,
+        "wrong": 4
+      }
+    },
+    "quality": {
+      "new": {
+        "nonReferenceCrop": 11,
+        "acceptedNonReferenceCrop": 1
+      },
+      "previous": {
+        "nonReferenceCrop": 11,
+        "acceptedNonReferenceCrop": 2
+      }
+    },
+    "cases": {
+      "pipeline:new:k700train_JmPMVRPNrYI_000001_000011": {
+        "expectedHands": 8,
+        "availablePatches": 6,
+        "rawCorrect": 4,
+        "unknown": 8,
+        "lowScore": 6,
+        "rawWrong": 2,
+        "missingInput": 2
+      },
+      "pipeline:previous:k700train_JmPMVRPNrYI_000001_000011": {
+        "expectedHands": 8,
+        "availablePatches": 6,
+        "rawCorrect": 6,
+        "unknown": 8,
+        "lowScore": 6,
+        "missingInput": 2
+      },
+      "sameDetector:previous:k700train_JmPMVRPNrYI_000001_000011": {
+        "expectedHands": 8,
+        "availablePatches": 6,
+        "rawCorrect": 6,
+        "unknown": 8,
+        "lowScore": 6,
+        "missingInput": 2
+      },
+      "pipeline:new:k700train_wgFvcB7WkEU_000016_000026": {
+        "expectedHands": 4,
+        "missingInput": 4,
+        "unknown": 4
+      },
+      "pipeline:previous:k700train_wgFvcB7WkEU_000016_000026": {
+        "expectedHands": 4,
+        "missingInput": 4,
+        "unknown": 4
+      },
+      "sameDetector:previous:k700train_wgFvcB7WkEU_000016_000026": {
+        "expectedHands": 4,
+        "missingInput": 4,
+        "unknown": 4
+      },
+      "pipeline:new:k700train_199O9PlZzsQ_000003_000013": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:previous:k700train_199O9PlZzsQ_000003_000013": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "sameDetector:previous:k700train_199O9PlZzsQ_000003_000013": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:new:k700train_MAWzre6_2jQ_000049_000059": {
+        "expectedHands": 8,
+        "availablePatches": 4,
+        "rawCorrect": 3,
+        "unknown": 8,
+        "lowScore": 4,
+        "missingInput": 4,
+        "rawWrong": 1
+      },
+      "pipeline:previous:k700train_MAWzre6_2jQ_000049_000059": {
+        "expectedHands": 8,
+        "availablePatches": 3,
+        "rawCorrect": 3,
+        "unknown": 8,
+        "lowScore": 3,
+        "missingInput": 5
+      },
+      "sameDetector:previous:k700train_MAWzre6_2jQ_000049_000059": {
+        "expectedHands": 8,
+        "availablePatches": 4,
+        "rawCorrect": 4,
+        "unknown": 8,
+        "lowScore": 4,
+        "missingInput": 4
+      },
+      "pipeline:new:k700train__NvlngmQTQk_000049_000059": {
+        "expectedHands": 4,
+        "missingInput": 4,
+        "unknown": 4
+      },
+      "pipeline:previous:k700train__NvlngmQTQk_000049_000059": {
+        "expectedHands": 4,
+        "missingInput": 4,
+        "unknown": 4
+      },
+      "sameDetector:previous:k700train__NvlngmQTQk_000049_000059": {
+        "expectedHands": 4,
+        "missingInput": 4,
+        "unknown": 4
+      },
+      "pipeline:new:k700train_YKTyKmEd2Ok_000005_000015": {
+        "expectedHands": 6,
+        "availablePatches": 4,
+        "rawCorrect": 4,
+        "unknown": 6,
+        "lowScore": 4,
+        "missingInput": 2
+      },
+      "pipeline:previous:k700train_YKTyKmEd2Ok_000005_000015": {
+        "expectedHands": 6,
+        "availablePatches": 4,
+        "rawCorrect": 4,
+        "acceptedCorrect": 2,
+        "missingInput": 2,
+        "unknown": 4,
+        "lowScore": 2
+      },
+      "sameDetector:previous:k700train_YKTyKmEd2Ok_000005_000015": {
+        "expectedHands": 6,
+        "availablePatches": 4,
+        "rawCorrect": 4,
+        "acceptedCorrect": 2,
+        "missingInput": 2,
+        "unknown": 4,
+        "lowScore": 2
+      },
+      "pipeline:new:k700train_BmU9aTreUSw_000019_000029": {
+        "expectedHands": 8,
+        "missingInput": 3,
+        "unknown": 8,
+        "availablePatches": 5,
+        "rawCorrect": 5,
+        "lowScore": 5
+      },
+      "pipeline:previous:k700train_BmU9aTreUSw_000019_000029": {
+        "expectedHands": 8,
+        "missingInput": 3,
+        "unknown": 8,
+        "availablePatches": 5,
+        "rawCorrect": 5,
+        "lowScore": 5
+      },
+      "sameDetector:previous:k700train_BmU9aTreUSw_000019_000029": {
+        "expectedHands": 8,
+        "missingInput": 3,
+        "unknown": 8,
+        "availablePatches": 5,
+        "rawCorrect": 5,
+        "lowScore": 5
+      },
+      "pipeline:new:k700train_63M4BBkuG_E_000001_000011": {
+        "expectedHands": 4,
+        "missingInput": 2,
+        "unknown": 4,
+        "availablePatches": 2,
+        "rawWrong": 2,
+        "lowScore": 2
+      },
+      "pipeline:previous:k700train_63M4BBkuG_E_000001_000011": {
+        "expectedHands": 4,
+        "missingInput": 2,
+        "unknown": 4,
+        "availablePatches": 2,
+        "rawWrong": 2,
+        "lowScore": 2
+      },
+      "sameDetector:previous:k700train_63M4BBkuG_E_000001_000011": {
+        "expectedHands": 4,
+        "missingInput": 2,
+        "unknown": 4,
+        "availablePatches": 2,
+        "rawWrong": 2,
+        "lowScore": 2
+      },
+      "pipeline:new:k700train_ayzMLAVi7yk_000009_000019": {
+        "expectedHands": 4,
+        "missingInput": 2,
+        "unknown": 4,
+        "availablePatches": 2,
+        "rawWrong": 2,
+        "lowScore": 2
+      },
+      "pipeline:previous:k700train_ayzMLAVi7yk_000009_000019": {
+        "expectedHands": 4,
+        "missingInput": 2,
+        "unknown": 4,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "lowScore": 2
+      },
+      "sameDetector:previous:k700train_ayzMLAVi7yk_000009_000019": {
+        "expectedHands": 4,
+        "missingInput": 2,
+        "unknown": 4,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "lowScore": 2
+      },
+      "pipeline:new:k700train_87_7TkSyX4w_000006_000016": {
+        "expectedHands": 8,
+        "missingInput": 7,
+        "unknown": 8,
+        "availablePatches": 1,
+        "rawCorrect": 1,
+        "lowScore": 1
+      },
+      "pipeline:previous:k700train_87_7TkSyX4w_000006_000016": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "sameDetector:previous:k700train_87_7TkSyX4w_000006_000016": {
+        "expectedHands": 8,
+        "missingInput": 7,
+        "unknown": 7,
+        "availablePatches": 1,
+        "rawCorrect": 1,
+        "acceptedCorrect": 1
+      },
+      "pipeline:new:k700train_YZHUgis4Dmk_000007_000017": {
+        "expectedHands": 8,
+        "missingInput": 7,
+        "unknown": 8,
+        "availablePatches": 1,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "lowScore": 1
+      },
+      "pipeline:previous:k700train_YZHUgis4Dmk_000007_000017": {
+        "expectedHands": 8,
+        "missingInput": 7,
+        "unknown": 8,
+        "availablePatches": 1,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "lowScore": 1
+      },
+      "sameDetector:previous:k700train_YZHUgis4Dmk_000007_000017": {
+        "expectedHands": 8,
+        "missingInput": 7,
+        "unknown": 8,
+        "availablePatches": 1,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "lowScore": 1
+      },
+      "pipeline:new:k700train_RwknTOLag88_000000_000010": {
+        "expectedHands": 8,
+        "availablePatches": 8,
+        "rawCorrect": 8,
+        "acceptedCorrect": 2,
+        "unknown": 6,
+        "lowScore": 6
+      },
+      "pipeline:previous:k700train_RwknTOLag88_000000_000010": {
+        "expectedHands": 8,
+        "availablePatches": 8,
+        "rawCorrect": 8,
+        "acceptedCorrect": 6,
+        "unknown": 2,
+        "lowScore": 2
+      },
+      "sameDetector:previous:k700train_RwknTOLag88_000000_000010": {
+        "expectedHands": 8,
+        "availablePatches": 8,
+        "rawCorrect": 8,
+        "acceptedCorrect": 6,
+        "unknown": 2,
+        "lowScore": 2
+      },
+      "pipeline:new:k700train_xqIj9hlNT2k_000000_000010": {
+        "expectedHands": 4,
+        "availablePatches": 3,
+        "rawCorrect": 2,
+        "unknown": 4,
+        "lowScore": 3,
+        "rawWrong": 1,
+        "missingInput": 1
+      },
+      "pipeline:previous:k700train_xqIj9hlNT2k_000000_000010": {
+        "expectedHands": 4,
+        "availablePatches": 3,
+        "rawCorrect": 3,
+        "unknown": 4,
+        "lowScore": 3,
+        "missingInput": 1
+      },
+      "sameDetector:previous:k700train_xqIj9hlNT2k_000000_000010": {
+        "expectedHands": 4,
+        "availablePatches": 3,
+        "rawCorrect": 3,
+        "unknown": 4,
+        "lowScore": 3,
+        "missingInput": 1
+      },
+      "pipeline:new:k700train_yaFs9C35Xb8_000018_000028": {
+        "expectedHands": 6,
+        "missingInput": 3,
+        "unknown": 6,
+        "availablePatches": 3,
+        "invalidTargetCrop": 3,
+        "rawWrong": 3,
+        "lowScore": 3
+      },
+      "pipeline:previous:k700train_yaFs9C35Xb8_000018_000028": {
+        "expectedHands": 6,
+        "missingInput": 3,
+        "unknown": 6,
+        "availablePatches": 3,
+        "invalidTargetCrop": 3,
+        "rawWrong": 3,
+        "lowScore": 3
+      },
+      "sameDetector:previous:k700train_yaFs9C35Xb8_000018_000028": {
+        "expectedHands": 6,
+        "missingInput": 3,
+        "unknown": 6,
+        "availablePatches": 3,
+        "invalidTargetCrop": 3,
+        "rawWrong": 3,
+        "lowScore": 3
+      },
+      "pipeline:new:k700train_WMDA1CsyDQs_000013_000023": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "pipeline:previous:k700train_WMDA1CsyDQs_000013_000023": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "sameDetector:previous:k700train_WMDA1CsyDQs_000013_000023": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "pipeline:new:k700train_4jqm3Z2qjiI_000028_000038": {
+        "expectedHands": 6,
+        "availablePatches": 4,
+        "rawCorrect": 4,
+        "unknown": 4,
+        "lowScore": 2,
+        "acceptedCorrect": 2,
+        "missingInput": 2
+      },
+      "pipeline:previous:k700train_4jqm3Z2qjiI_000028_000038": {
+        "expectedHands": 6,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "acceptedCorrect": 2,
+        "missingInput": 4,
+        "unknown": 4
+      },
+      "sameDetector:previous:k700train_4jqm3Z2qjiI_000028_000038": {
+        "expectedHands": 6,
+        "availablePatches": 4,
+        "rawCorrect": 4,
+        "acceptedCorrect": 4,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:new:k700train_OhQcWwqQDR4_000042_000052": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "pipeline:previous:k700train_OhQcWwqQDR4_000042_000052": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "sameDetector:previous:k700train_OhQcWwqQDR4_000042_000052": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "pipeline:new:k700train_wu_ri4LnCSA_000002_000012": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:previous:k700train_wu_ri4LnCSA_000002_000012": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "sameDetector:previous:k700train_wu_ri4LnCSA_000002_000012": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:new:k700train_0WQRBqw77PI_000001_000011": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:previous:k700train_0WQRBqw77PI_000001_000011": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "sameDetector:previous:k700train_0WQRBqw77PI_000001_000011": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:new:k700train_MxRReWdBzrE_000004_000014": {
+        "expectedHands": 8,
+        "availablePatches": 5,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "acceptedWrong": 1,
+        "missingInput": 3,
+        "unknown": 7,
+        "rawCorrect": 4,
+        "lowScore": 4
+      },
+      "pipeline:previous:k700train_MxRReWdBzrE_000004_000014": {
+        "expectedHands": 8,
+        "availablePatches": 5,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "acceptedWrong": 1,
+        "missingInput": 3,
+        "unknown": 4,
+        "rawCorrect": 4,
+        "acceptedCorrect": 3,
+        "lowScore": 1
+      },
+      "sameDetector:previous:k700train_MxRReWdBzrE_000004_000014": {
+        "expectedHands": 8,
+        "availablePatches": 5,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "acceptedWrong": 1,
+        "missingInput": 3,
+        "unknown": 4,
+        "rawCorrect": 4,
+        "acceptedCorrect": 3,
+        "lowScore": 1
+      },
+      "pipeline:new:k700train_9tV_rYBN3g0_000036_000046": {
+        "expectedHands": 2,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "unknown": 2,
+        "lowScore": 2
+      },
+      "pipeline:previous:k700train_9tV_rYBN3g0_000036_000046": {
+        "expectedHands": 2,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "unknown": 2,
+        "lowScore": 2
+      },
+      "sameDetector:previous:k700train_9tV_rYBN3g0_000036_000046": {
+        "expectedHands": 2,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "unknown": 2,
+        "lowScore": 2
+      },
+      "pipeline:new:k700train_U83l0DCt3OA_000208_000218": {
+        "expectedHands": 8,
+        "availablePatches": 3,
+        "rawWrong": 2,
+        "unknown": 8,
+        "lowScore": 3,
+        "rawCorrect": 1,
+        "missingInput": 5
+      },
+      "pipeline:previous:k700train_U83l0DCt3OA_000208_000218": {
+        "expectedHands": 8,
+        "availablePatches": 3,
+        "rawWrong": 3,
+        "unknown": 8,
+        "lowScore": 3,
+        "missingInput": 5
+      },
+      "sameDetector:previous:k700train_U83l0DCt3OA_000208_000218": {
+        "expectedHands": 8,
+        "availablePatches": 3,
+        "rawWrong": 3,
+        "unknown": 8,
+        "lowScore": 3,
+        "missingInput": 5
+      },
+      "pipeline:new:k700train_ubxm0Ivg3Rs_000045_000055": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:previous:k700train_ubxm0Ivg3Rs_000045_000055": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "sameDetector:previous:k700train_ubxm0Ivg3Rs_000045_000055": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:new:k700train_rFRinf9b-Vw_000001_000011": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "pipeline:previous:k700train_rFRinf9b-Vw_000001_000011": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "sameDetector:previous:k700train_rFRinf9b-Vw_000001_000011": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "pipeline:new:k700train_WcW3DUvNywQ_000001_000011": {
+        "expectedHands": 8,
+        "availablePatches": 4,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "unknown": 8,
+        "lowScore": 4,
+        "rawCorrect": 3,
+        "missingInput": 4
+      },
+      "pipeline:previous:k700train_WcW3DUvNywQ_000001_000011": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 8,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "lowScore": 2
+      },
+      "sameDetector:previous:k700train_WcW3DUvNywQ_000001_000011": {
+        "expectedHands": 8,
+        "availablePatches": 4,
+        "invalidTargetCrop": 1,
+        "rawWrong": 1,
+        "unknown": 8,
+        "lowScore": 4,
+        "rawCorrect": 3,
+        "missingInput": 4
+      },
+      "pipeline:new:k700train_HrsaSFTGt4o_000003_000013": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 8,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "lowScore": 2
+      },
+      "pipeline:previous:k700train_HrsaSFTGt4o_000003_000013": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "sameDetector:previous:k700train_HrsaSFTGt4o_000003_000013": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 6,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "acceptedCorrect": 2
+      },
+      "pipeline:new:k700train_S6udD0IlSRM_000012_000022": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "pipeline:previous:k700train_S6udD0IlSRM_000012_000022": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "sameDetector:previous:k700train_S6udD0IlSRM_000012_000022": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "pipeline:new:k700train_2m977kSaW1U_000027_000037": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 8,
+        "availablePatches": 2,
+        "rawWrong": 1,
+        "lowScore": 2,
+        "rawCorrect": 1
+      },
+      "pipeline:previous:k700train_2m977kSaW1U_000027_000037": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "sameDetector:previous:k700train_2m977kSaW1U_000027_000037": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 8,
+        "availablePatches": 2,
+        "rawWrong": 2,
+        "lowScore": 2
+      },
+      "pipeline:new:k700train_wtVAoIi2ugc_000004_000014": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "pipeline:previous:k700train_wtVAoIi2ugc_000004_000014": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "sameDetector:previous:k700train_wtVAoIi2ugc_000004_000014": {
+        "expectedHands": 6,
+        "missingInput": 6,
+        "unknown": 6
+      },
+      "pipeline:new:k700train_2ssA3WpaB14_000024_000034": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:previous:k700train_2ssA3WpaB14_000024_000034": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "sameDetector:previous:k700train_2ssA3WpaB14_000024_000034": {
+        "expectedHands": 2,
+        "missingInput": 2,
+        "unknown": 2
+      },
+      "pipeline:new:k700train_aZO0Uxzm6_A_000257_000267": {
+        "expectedHands": 2,
+        "availablePatches": 1,
+        "rawWrong": 1,
+        "unknown": 2,
+        "lowScore": 1,
+        "missingInput": 1
+      },
+      "pipeline:previous:k700train_aZO0Uxzm6_A_000257_000267": {
+        "expectedHands": 2,
+        "availablePatches": 1,
+        "rawWrong": 1,
+        "unknown": 2,
+        "lowScore": 1,
+        "missingInput": 1
+      },
+      "sameDetector:previous:k700train_aZO0Uxzm6_A_000257_000267": {
+        "expectedHands": 2,
+        "availablePatches": 1,
+        "rawWrong": 1,
+        "unknown": 2,
+        "lowScore": 1,
+        "missingInput": 1
+      },
+      "pipeline:new:k700train_ATQrlQnb_ME_000009_000019": {
+        "expectedHands": 8,
+        "availablePatches": 7,
+        "rawCorrect": 7,
+        "unknown": 8,
+        "lowScore": 7,
+        "missingInput": 1
+      },
+      "pipeline:previous:k700train_ATQrlQnb_ME_000009_000019": {
+        "expectedHands": 8,
+        "availablePatches": 7,
+        "rawCorrect": 7,
+        "unknown": 3,
+        "lowScore": 2,
+        "acceptedCorrect": 5,
+        "missingInput": 1
+      },
+      "sameDetector:previous:k700train_ATQrlQnb_ME_000009_000019": {
+        "expectedHands": 8,
+        "availablePatches": 7,
+        "rawCorrect": 7,
+        "unknown": 3,
+        "lowScore": 2,
+        "acceptedCorrect": 5,
+        "missingInput": 1
+      },
+      "pipeline:new:k700train_cAyFmeNxyGg_000012_000022": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 8,
+        "availablePatches": 2,
+        "rawWrong": 2,
+        "lowScore": 2
+      },
+      "pipeline:previous:k700train_cAyFmeNxyGg_000012_000022": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 8,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "lowScore": 2
+      },
+      "sameDetector:previous:k700train_cAyFmeNxyGg_000012_000022": {
+        "expectedHands": 8,
+        "missingInput": 6,
+        "unknown": 8,
+        "availablePatches": 2,
+        "rawCorrect": 2,
+        "lowScore": 2
+      },
+      "pipeline:new:k700train_3iN28g4XlMc_000003_000013": {
+        "expectedHands": 8,
+        "missingInput": 5,
+        "unknown": 8,
+        "availablePatches": 3,
+        "rawCorrect": 2,
+        "lowScore": 3,
+        "rawWrong": 1
+      },
+      "pipeline:previous:k700train_3iN28g4XlMc_000003_000013": {
+        "expectedHands": 8,
+        "missingInput": 8,
+        "unknown": 8
+      },
+      "sameDetector:previous:k700train_3iN28g4XlMc_000003_000013": {
+        "expectedHands": 8,
+        "missingInput": 5,
+        "unknown": 6,
+        "availablePatches": 3,
+        "rawCorrect": 3,
+        "acceptedCorrect": 2,
+        "lowScore": 1
+      }
+    }
+  },
+  "postFreezeAudit": {
+    "qualification": "Post-freeze audit only; agent labels; no weight, threshold or reference changes",
+    "frozenBindingsUnchanged": true,
+    "reconstruction": {
+      "sourceFrameChecks": 730,
+      "exactHandCrops": 707,
+      "exactTorsoCrops": 553,
+      "trainingOnlyManualProposals": 59
+    },
+    "newlyContributingChinupTrainingVideos": 12,
+    "fittingClassViewInventory": {
+      "train:overhand:rear": 116,
+      "train:overhand:front": 101,
+      "train:underhand:front": 110,
+      "validation:overhand:front": 17,
+      "validation:overhand:rear": 23,
+      "train:underhand:oblique": 12,
+      "validation:underhand:rear": 30,
+      "train:underhand:rear": 36,
+      "train:overhand:oblique": 6,
+      "validation:underhand:oblique": 2,
+      "validation:underhand:front": 8
+    },
+    "testViewBreakdown": {
+      "new:overhand:front": {
+        "correct": 6,
+        "wrong": 4
+      },
+      "previous:overhand:front": {
+        "correct": 10
+      },
+      "oracleNew:overhand:front": {
+        "correct": 8,
+        "wrong": 2
+      },
+      "oraclePrevious:overhand:front": {
+        "correct": 8,
+        "wrong": 2
+      },
+      "new:overhand:oblique": {
+        "correct": 3,
+        "wrong": 3
+      },
+      "previous:overhand:oblique": {
+        "correct": 6
+      },
+      "oracleNew:overhand:oblique": {
+        "wrong": 6
+      },
+      "oraclePrevious:overhand:oblique": {
+        "wrong": 2,
+        "correct": 4
+      },
+      "new:overhand:rear": {
+        "correct": 42,
+        "wrong": 3
+      },
+      "previous:overhand:rear": {
+        "correct": 44,
+        "wrong": 1
+      },
+      "oracleNew:overhand:rear": {
+        "correct": 45
+      },
+      "oraclePrevious:overhand:rear": {
+        "correct": 45
+      },
+      "new:underhand:rear": {
+        "wrong": 2
+      },
+      "previous:underhand:rear": {
+        "wrong": 2
+      },
+      "oracleNew:underhand:rear": {
+        "wrong": 2
+      },
+      "oraclePrevious:underhand:rear": {
+        "wrong": 2
+      },
+      "new:underhand:front": {
+        "wrong": 3,
+        "correct": 2
+      },
+      "previous:underhand:front": {
+        "wrong": 5
+      },
+      "oracleNew:underhand:front": {
+        "wrong": 1,
+        "correct": 4
+      },
+      "oraclePrevious:underhand:front": {
+        "correct": 2,
+        "wrong": 3
+      }
+    },
+    "headTurnDevelopment": {
+      "observations": 29,
+      "uniqueFrames": 15,
+      "counts": {
+        "newFrontCorrect": 29,
+        "newGripCorrect": 29,
+        "newFaceToggleFlips": 0,
+        "previousFrontCorrect": 29,
+        "previousGripCorrect": 28,
+        "previousFaceToggleFlips": 0
+      }
+    },
+    "inputHashes": {
+      "build/grip-expanded/fitting.jsonl": "3290a57159f15d0c3e158842ee46bced123be0dc175919e98fe0ed58e4f4b587",
+      "build/grip-expanded/test-amended.jsonl": "0af69015c17c9b10acabc12d5a44e49e221326cb9f40d53a79afab03c6149a6c",
+      "build/grip-expanded/test-amended-comparison/predictions.jsonl": "60a5214a2ee544da3992adf805430f7b930f8a5746b864aca4a8b9bcdc5d5191",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/audit-expanded-grip.py": "ae118e0bda93275996aae0c29521f4fa29f523a68f11011219b687876cb3f9ef"
+    }
+  },
+  "referenceCorrection": {
+    "source": "k700train_MAWzre6_2jQ_000049_000059",
+    "timing": "After first predictions; full source/patch inspection corrected underhand/rear to overhand/oblique",
+    "originalReportSHA256": "950ea95921f43d8ca471a612cdd686e6c8eca05e505c681627fadabb838766fd",
+    "originalSummary": {
+      "pipeline:new": {
+        "expectedHands": 198,
+        "availablePatches": 74,
+        "rawCorrect": 51,
+        "unknown": 193,
+        "lowScore": 69,
+        "rawWrong": 23,
+        "missingInput": 124,
+        "invalidTargetCrop": 6,
+        "acceptedCorrect": 4,
+        "acceptedWrong": 1
+      },
+      "pipeline:new:overhand": {
+        "expectedHands": 154,
+        "availablePatches": 63,
+        "rawCorrect": 48,
+        "unknown": 149,
+        "lowScore": 58,
+        "rawWrong": 15,
+        "missingInput": 91,
+        "invalidTargetCrop": 6,
+        "acceptedCorrect": 4,
+        "acceptedWrong": 1
+      },
+      "pipeline:previous": {
+        "expectedHands": 198,
+        "availablePatches": 61,
+        "rawCorrect": 47,
+        "unknown": 179,
+        "lowScore": 42,
+        "missingInput": 137,
+        "rawWrong": 14,
+        "acceptedCorrect": 18,
+        "invalidTargetCrop": 5,
+        "acceptedWrong": 1
+      },
+      "pipeline:previous:overhand": {
+        "expectedHands": 154,
+        "availablePatches": 53,
+        "rawCorrect": 47,
+        "unknown": 135,
+        "lowScore": 34,
+        "missingInput": 101,
+        "acceptedCorrect": 18,
+        "invalidTargetCrop": 5,
+        "rawWrong": 6,
+        "acceptedWrong": 1
+      },
+      "sameDetector:previous": {
+        "expectedHands": 198,
+        "availablePatches": 74,
+        "rawCorrect": 56,
+        "unknown": 172,
+        "lowScore": 48,
+        "missingInput": 124,
+        "rawWrong": 18,
+        "acceptedCorrect": 25,
+        "invalidTargetCrop": 6,
+        "acceptedWrong": 1
+      },
+      "sameDetector:previous:overhand": {
+        "expectedHands": 154,
+        "availablePatches": 63,
+        "rawCorrect": 56,
+        "unknown": 128,
+        "lowScore": 37,
+        "missingInput": 91,
+        "acceptedCorrect": 25,
+        "invalidTargetCrop": 6,
+        "rawWrong": 7,
+        "acceptedWrong": 1
+      },
+      "hand:new:overhand": {
+        "expectedHands": 57,
+        "availablePatches": 57,
+        "rawCorrect": 48,
+        "unknown": 53,
+        "lowScore": 53,
+        "rawWrong": 9,
+        "acceptedCorrect": 4
+      },
+      "hand:new": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 51,
+        "unknown": 64,
+        "lowScore": 64,
+        "rawWrong": 17,
+        "acceptedCorrect": 4
+      },
+      "hand:previous:overhand": {
+        "expectedHands": 57,
+        "availablePatches": 57,
+        "rawCorrect": 56,
+        "unknown": 32,
+        "lowScore": 32,
+        "acceptedCorrect": 25,
+        "rawWrong": 1
+      },
+      "hand:previous": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 56,
+        "unknown": 43,
+        "lowScore": 43,
+        "rawWrong": 12,
+        "acceptedCorrect": 25
+      },
+      "oracleView:new:overhand": {
+        "expectedHands": 57,
+        "availablePatches": 57,
+        "rawCorrect": 53,
+        "unknown": 40,
+        "lowScore": 40,
+        "acceptedCorrect": 17,
+        "rawWrong": 4
+      },
+      "oracleView:new": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 57,
+        "unknown": 49,
+        "lowScore": 49,
+        "acceptedCorrect": 17,
+        "rawWrong": 11,
+        "acceptedWrong": 2
+      },
+      "oracleView:previous:overhand": {
+        "expectedHands": 57,
+        "availablePatches": 57,
+        "rawCorrect": 55,
+        "unknown": 18,
+        "lowScore": 18,
+        "acceptedCorrect": 39,
+        "rawWrong": 2
+      },
+      "oracleView:previous": {
+        "expectedHands": 68,
+        "availablePatches": 68,
+        "rawCorrect": 57,
+        "unknown": 25,
+        "lowScore": 25,
+        "acceptedCorrect": 39,
+        "rawWrong": 11,
+        "acceptedWrong": 4
+      },
+      "common:new:overhand": {
+        "expectedHands": 48,
+        "availablePatches": 48,
+        "rawCorrect": 40,
+        "unknown": 45,
+        "lowScore": 45,
+        "rawWrong": 8,
+        "acceptedCorrect": 3
+      },
+      "common:previous:overhand": {
+        "expectedHands": 48,
+        "availablePatches": 48,
+        "rawCorrect": 47,
+        "unknown": 30,
+        "lowScore": 30,
+        "acceptedCorrect": 18,
+        "rawWrong": 1
+      },
+      "pipeline:new:underhand": {
+        "expectedHands": 44,
+        "availablePatches": 11,
+        "rawWrong": 8,
+        "unknown": 44,
+        "lowScore": 11,
+        "missingInput": 33,
+        "rawCorrect": 3
+      },
+      "pipeline:previous:underhand": {
+        "expectedHands": 44,
+        "availablePatches": 8,
+        "rawWrong": 8,
+        "unknown": 44,
+        "lowScore": 8,
+        "missingInput": 36
+      },
+      "sameDetector:previous:underhand": {
+        "expectedHands": 44,
+        "availablePatches": 11,
+        "rawWrong": 11,
+        "unknown": 44,
+        "lowScore": 11,
+        "missingInput": 33
+      },
+      "hand:new:underhand": {
+        "expectedHands": 11,
+        "availablePatches": 11,
+        "rawWrong": 8,
+        "unknown": 11,
+        "lowScore": 11,
+        "rawCorrect": 3
+      },
+      "hand:previous:underhand": {
+        "expectedHands": 11,
+        "availablePatches": 11,
+        "rawWrong": 11,
+        "unknown": 11,
+        "lowScore": 11
+      },
+      "oracleView:new:underhand": {
+        "expectedHands": 11,
+        "availablePatches": 11,
+        "rawWrong": 7,
+        "unknown": 9,
+        "lowScore": 9,
+        "acceptedWrong": 2,
+        "rawCorrect": 4
+      },
+      "oracleView:previous:underhand": {
+        "expectedHands": 11,
+        "availablePatches": 11,
+        "rawWrong": 9,
+        "acceptedWrong": 4,
+        "unknown": 7,
+        "lowScore": 7,
+        "rawCorrect": 2
+      },
+      "common:new:underhand": {
+        "expectedHands": 8,
+        "availablePatches": 8,
+        "rawWrong": 6,
+        "unknown": 8,
+        "lowScore": 8,
+        "rawCorrect": 2
+      },
+      "common:previous:underhand": {
+        "expectedHands": 8,
+        "availablePatches": 8,
+        "rawWrong": 8,
+        "unknown": 8,
+        "lowScore": 8
+      }
+    },
+    "amendedReviewSHA256": "251c230d09f0e2fcc6334d632dd862ddf232d163a26b3d27de65c204b62320b4"
+  },
+  "detector": {
+    "totalOriginal": 65,
+    "totalNew": 79,
+    "sharedPixelIdentical": 65,
+    "lost": 0,
+    "additionalValid": 12,
+    "additionalInvalidOpenHands": 2
+  },
+  "checks": {
+    "pythonTests": 47,
+    "jvmPlannerTests": 14,
+    "pythonCompilation": true,
+    "diffWhitespace": true,
+    "frozenBindingsUnchanged": true
+  }
+}

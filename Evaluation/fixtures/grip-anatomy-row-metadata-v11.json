@@ -1,0 +1,74 @@
+{
+  "qualification": "Restore exact source-row provenance without overwriting completed experiments.",
+  "originalInputSHA256": "6dfb51bb104a4b01a855946c0ae595a1114acbd4e2b6b5dc561811f09b20832c",
+  "restoredInputSHA256": "32e9cef5f16a96f45a85f387d4a1d704b59a7de1abe455d45b71c00530cf2c55",
+  "originalExperimentalInputRetained": true,
+  "affectedCropAnnotations": [
+    {
+      "id": "H363",
+      "before": {
+        "split": "validation",
+        "recordingId": "d807297563097dcc14f0f9c0203f7c3524ba71f506e2a4943b019de647e738ac",
+        "sourceGroup": "youtube:qdZgJXInPDI",
+        "label": "neutral",
+        "viewpoint": "rear"
+      },
+      "restored": {
+        "recordingId": "d807297563097dcc14f0f9c0203f7c3524ba71f506e2a4943b019de647e738ac",
+        "sourceGroup": "youtube:qdZgJXInPDI",
+        "subjectId": null,
+        "split": "validation",
+        "label": "neutral",
+        "viewpoint": "rear",
+        "start": 0,
+        "end": 20,
+        "evidence": "Rear white-vest athlete, paired fore-aft machine handles"
+      }
+    },
+    {
+      "id": "H399",
+      "before": {
+        "split": "validation",
+        "recordingId": "d807297563097dcc14f0f9c0203f7c3524ba71f506e2a4943b019de647e738ac",
+        "sourceGroup": "youtube:qdZgJXInPDI",
+        "label": "neutral",
+        "viewpoint": "rear"
+      },
+      "restored": {
+        "recordingId": "d807297563097dcc14f0f9c0203f7c3524ba71f506e2a4943b019de647e738ac",
+        "sourceGroup": "youtube:qdZgJXInPDI",
+        "subjectId": null,
+        "split": "validation",
+        "label": "neutral",
+        "viewpoint": "rear",
+        "start": 0,
+        "end": 20,
+        "evidence": "Rear white-vest athlete, paired fore-aft machine handles"
+      }
+    },
+    {
+      "id": "H198",
+      "before": {
+        "split": "validation",
+        "recordingId": "e67bda8c378b9c30af2c54146ec6deeeb1e76f566db3a3feef0af6cc111eb4fd",
+        "sourceGroup": "youtube:ZvkHAS7aJO8",
+        "label": "neutral",
+        "viewpoint": "front"
+      },
+      "restored": {
+        "end": 6,
+        "evidence": "Close separate hanging handles with inward palms",
+        "label": "neutral",
+        "recordingId": "e67bda8c378b9c30af2c54146ec6deeeb1e76f566db3a3feef0af6cc111eb4fd",
+        "sourceGroup": "youtube:ZvkHAS7aJO8",
+        "split": "validation",
+        "start": 0,
+        "subjectId": null,
+        "viewpoint": "front"
+      }
+    }
+  ],
+  "allOriginalRowMetadataRestored": true,
+  "allTrainingImagesTargetsWeightsViewsRolesAndOrderBitIdentical": true,
+  "noRefittingOrMetricChange": true
+}

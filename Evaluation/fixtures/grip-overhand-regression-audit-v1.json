@@ -1,0 +1,1415 @@
+{
+  "schemaVersion": 1,
+  "qualification": "Agent visual review, not independent gold adjudication. Arithmetic attribution uses existing provisional references; no weights, split assignments or benchmark labels are changed.",
+  "reviewCoverage": "All 64 saved hand/head inputs inspected; whole-frame and wider bar/hand examples reviewed for all six sources, with additional original-resolution angled-handle frames.",
+  "modelSHA256": "0a32afafa8bcd4f834b7f4723d919c62cb4c704bdb09f076a090e0b4f5a7645f",
+  "predictionsSHA256": "2f9b56a1f01f19f3bf5c954f3220a7dee4a7aef2ab608abdf77ce9581133577c",
+  "sources": [
+    {
+      "caseId": "k700train_AfNDzAalcSg_000038_000048",
+      "recordingId": "e0f774658f3cb0de9e495cd6f47e506f79cc3162d4c8b9522aa4e9764c68f3e3",
+      "failedPatches": 1,
+      "gripReference": "overhand supported by whole-frame straight-bar grip context",
+      "viewReference": "front torso supported",
+      "patchReview": "Intended gripping hand included; partial palm/finger surfaces. Palm target remains derived from source grip/view.",
+      "status": "derivedAppearanceReference",
+      "mechanism": "Correct front direction; hand output makes fusion underhand"
+    },
+    {
+      "caseId": "k700train_Rxt-xkISpNY_000015_000025",
+      "recordingId": "517cb9c91031f0ad9a3a30aef1a915da71c370347e0ca90f8481651ad6485d8e",
+      "failedPatches": 3,
+      "gripReference": "overhand supported by closed grip and posterior body context",
+      "viewReference": "rear torso; camera/head angle is oblique and one observation has a visible profile face",
+      "patchReview": "Intended closed gripping hands and dorsal features included",
+      "status": "coarseViewReference",
+      "mechanism": "Front-minus-rear bias is wrong, but top orientation is oblique and all three outputs abstain"
+    },
+    {
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "failedPatches": 22,
+      "gripReference": "Existing overhand reference remains provisional on angled handles; no forced replacement with underhand or neutral",
+      "viewReference": "rear torso clearly supported",
+      "patchReview": "Correct gripping hands; angled handle/end cap and mixed side/dorsal surfaces. No independent palm/dorsum adjudication supports all 22 derived targets.",
+      "status": "unverifiedDerivedAppearanceTargets",
+      "mechanism": "Correct rear orientation; failure localizes to hand output plus fixed palm/dorsum mapping, not proven to be 22 independent visual-classifier errors"
+    },
+    {
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "failedPatches": 29,
+      "gripReference": "overhand supported by straight-bar gripping hands",
+      "viewReference": "front torso supported by chest/logo; head turned sideways",
+      "patchReview": "Intended gripping hands included, small/blurry. In frame-0012, the other open hand is already excluded; the audited left hand remains gripping.",
+      "status": "torsoViewSupportedHeadTurn",
+      "mechanism": "Hand palm output fits front-overhand reference; head-only orientation predicts rear after losing chest/back evidence"
+    },
+    {
+      "caseId": "k700train_PFISl6mVwtk_000045_000055",
+      "recordingId": "0cd78889103a6720846cbe0e3c3ac2c3e9e2c053ee358cecbcef95ae98300eb6",
+      "failedPatches": 2,
+      "gripReference": "overhand supported by whole frame and both closed grips",
+      "viewReference": "rear torso clearly supported",
+      "patchReview": "Back of gripping hands/knuckles visible; palm output is a visually supported appearance mistake",
+      "status": "appearanceErrorVisuallySupported",
+      "mechanism": "Correct rear orientation, erroneous palm output"
+    },
+    {
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "failedPatches": 7,
+      "gripReference": "source context supports wide overhand pull-up",
+      "viewReference": "oblique torso/camera reference retained",
+      "patchReview": "Saved 25\u201327 px squares are wrist-dominant; gripping fingers/bar contact lie partly beyond top edge. Insufficient standalone grip evidence.",
+      "status": "insufficientGripCrop",
+      "mechanism": "Crop quality and oblique mapping are confounded; no binary palm/dorsum target can be assigned from the coarse view label; all seven outputs abstain"
+    }
+  ],
+  "patches": [
+    {
+      "index": 1,
+      "caseId": "k700train_AfNDzAalcSg_000038_000048",
+      "recordingId": "e0f774658f3cb0de9e495cd6f47e506f79cc3162d4c8b9522aa4e9764c68f3e3",
+      "imageSHA256": "aa6b73e576d2b689903bf65e5c91044f0a3761692f1b8004477f999e8aceb6c8",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 192192
+      },
+      "side": "right",
+      "patchSHA256": "c8f114060c9a1a315f0fcf0f58cfe8b6c748830e165ea2a218747afe8fd15624",
+      "box": [
+        174,
+        0,
+        222,
+        48
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "derivedAppearanceReference",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 2,
+      "caseId": "k700train_Rxt-xkISpNY_000015_000025",
+      "recordingId": "517cb9c91031f0ad9a3a30aef1a915da71c370347e0ca90f8481651ad6485d8e",
+      "imageSHA256": "88a6b0428729797ebf7a24ca0e8f307664bb6f2bc66788b98641ade2c0360129",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 88088
+      },
+      "side": "left",
+      "patchSHA256": "f69fe4508fde261e1afe4e859d62eea1e4c2e201acafc47aa59917f28c5f126f",
+      "box": [
+        70,
+        130,
+        108,
+        168
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "coarseViewReference",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 3,
+      "caseId": "k700train_Rxt-xkISpNY_000015_000025",
+      "recordingId": "517cb9c91031f0ad9a3a30aef1a915da71c370347e0ca90f8481651ad6485d8e",
+      "imageSHA256": "88a6b0428729797ebf7a24ca0e8f307664bb6f2bc66788b98641ade2c0360129",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 88088
+      },
+      "side": "right",
+      "patchSHA256": "4380db93baf7b917ca3b151505851b1df5126a8df1d1f97d743d0f9d8ae61d8d",
+      "box": [
+        195,
+        106,
+        239,
+        150
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "coarseViewReference",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 4,
+      "caseId": "k700train_Rxt-xkISpNY_000015_000025",
+      "recordingId": "517cb9c91031f0ad9a3a30aef1a915da71c370347e0ca90f8481651ad6485d8e",
+      "imageSHA256": "463db350df2c0c97c36d8c5318495654ddfb1de885d37dfdd87f248fad486034",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 224224
+      },
+      "side": "right",
+      "patchSHA256": "6bc9f9fc3ac724d26f30be64f3f1feb0869c285034b85b97568ac471b34c69da",
+      "box": [
+        184,
+        111,
+        233,
+        160
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "coarseViewReference",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 5,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "f771960116c7bea9e082c35353daba19ae4adf777e31f9e34f68ee61710fa641",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 36036
+      },
+      "side": "left",
+      "patchSHA256": "9276e3fdc6ddb649e646be68c4ec473f03ee06bdd04036558d47efad925eb574",
+      "box": [
+        508,
+        274,
+        580,
+        346
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 6,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "ffc40115c92036c7d554602190a650fac38a8d0a5c235d9f3bcc77644625417a",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 42042
+      },
+      "side": "left",
+      "patchSHA256": "1e4c75b1ca83c76f4c9d0b93c37f742917b7139e47ee2def65636b01edd91ba5",
+      "box": [
+        509,
+        271,
+        582,
+        344
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 7,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "97509dd3ab3722017ad91c6238ee4d9e949864f6d7bb03a65139c5506a648b19",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48048
+      },
+      "side": "left",
+      "patchSHA256": "7d54ab94e5c0aca92d7765d1f1c03baaa359b4aaeb26ec945a774030e373df45",
+      "box": [
+        511,
+        266,
+        586,
+        341
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 8,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "a8744edcd3ce916b6ea45a1871636928edb6216bfe271df6c3a38df7fc433e60",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 78078
+      },
+      "side": "left",
+      "patchSHA256": "70a298309d5addda7c5ca2bd489b48c92a8bcf1fe814d2787e9a06436d77d832",
+      "box": [
+        506,
+        276,
+        576,
+        346
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 9,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "a38e2b01e139288f3fb2247d6cd1f35d4ec685b9ef0c456ddeb24c46e45373de",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 84084
+      },
+      "side": "left",
+      "patchSHA256": "adc97b6cb42af1ef817e0c4e3ef83d208ddc00bda3538760ee47fbae6a11807c",
+      "box": [
+        521,
+        270,
+        592,
+        341
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 10,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "48d3334a617ec7a19ec2e7b6651e4b111d4a51c59da302c85a04b2a5f7cc1d1e",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 90090
+      },
+      "side": "left",
+      "patchSHA256": "0af1b33c47d8374a0635b93fdddc3dceb09f8e759ceaf5679ebae068d6089e07",
+      "box": [
+        515,
+        290,
+        577,
+        352
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 11,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "1d1b19d5591685e3f8ad9365c2d3e0e9c318ab6ea7d2c0f5c7a5cc1e89dc11cc",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96096
+      },
+      "side": "left",
+      "patchSHA256": "0926525b1bffe8c476ebabed99b9e5ced8b6af98423a831a980622d2cb72b03e",
+      "box": [
+        518,
+        283,
+        585,
+        350
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 12,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "1d1b19d5591685e3f8ad9365c2d3e0e9c318ab6ea7d2c0f5c7a5cc1e89dc11cc",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96096
+      },
+      "side": "right",
+      "patchSHA256": "6500bc4baffb2243d6279b9406c27cb56a3bddc35939dd54e53e6ff96b935788",
+      "box": [
+        814,
+        249,
+        897,
+        332
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 13,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "0ca094afdc1f73e606ffc8df09e7bad9c9db6f407739b7ea1f78bdf9f987ed78",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 102102
+      },
+      "side": "left",
+      "patchSHA256": "15692d0a1593db227981866f6f5c1a81eefe28ab1b21def0df1d781eeb67417d",
+      "box": [
+        515,
+        287,
+        576,
+        348
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 14,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "b3649f739858c53ce940b47c8fa23dfa579cf79f4abb2e4ba79f62435d8af267",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 108108
+      },
+      "side": "left",
+      "patchSHA256": "c8c666859912fb5d12406ad38e0ad6046e726bad718e44600fe9cb626fe783c4",
+      "box": [
+        515,
+        281,
+        574,
+        340
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 15,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "03756590e5cee207eb4a328cef486429ccfcadae13720e5e72d39094b4625ba3",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 114114
+      },
+      "side": "left",
+      "patchSHA256": "c65e5cf1f51fd57d921e9c16dc76f969cee05f136ea801f53995a0262dd50e0d",
+      "box": [
+        513,
+        282,
+        572,
+        341
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 16,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "bea8648a0efddbcb36a20beabf370b191fd5a5689afba51f9d1eb5d5a208a471",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 120120
+      },
+      "side": "left",
+      "patchSHA256": "d71320138b78b224ec577edf0a6c973e482c9734d83955ecc67c270c847612c0",
+      "box": [
+        519,
+        282,
+        570,
+        333
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 17,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "bea8648a0efddbcb36a20beabf370b191fd5a5689afba51f9d1eb5d5a208a471",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 120120
+      },
+      "side": "right",
+      "patchSHA256": "abd5d40f7e94dee5bcd2c947da6698778e890f5b7042c74d429e604dd620b74d",
+      "box": [
+        821,
+        247,
+        898,
+        324
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 18,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "f8c7f75e80d4fed2f980a5c567614575918bb57fbbf1765f24553bf8b288b259",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 132132
+      },
+      "side": "left",
+      "patchSHA256": "a167b5b2a90f14dc461d84136bf2b914c10e71c50e7665aff3614bd67a7def17",
+      "box": [
+        519,
+        274,
+        579,
+        334
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 19,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "b3e54608dd43ef1a4d87c05387f494d12ee6accef89b8a21d6fe26bf9329301f",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 138138
+      },
+      "side": "left",
+      "patchSHA256": "648b90fad99667359d5b413b9958c3a8b25a6215360ceaaeb65f7b3075a833a2",
+      "box": [
+        519,
+        268,
+        584,
+        333
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 20,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "eb5074c32a3d5cd45a1fe7b7829b247ec2f4013fc014895498afd923ce22e44f",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144144
+      },
+      "side": "left",
+      "patchSHA256": "a83071addbb86a9d7a72379e44645a9f5bdeea94309e421e529504f1bf7344e2",
+      "box": [
+        522,
+        276,
+        576,
+        330
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 21,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "4ecf05bd84ef27b8aebc2d690afe997ed26813907e5474bda5684e5350504c5a",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 150150
+      },
+      "side": "left",
+      "patchSHA256": "8b5e3accfbfdb9ef48e5135d595a8ab530f10f2d04d83596d3412e6dc665271e",
+      "box": [
+        518,
+        284,
+        578,
+        344
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 22,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "4ecf05bd84ef27b8aebc2d690afe997ed26813907e5474bda5684e5350504c5a",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 150150
+      },
+      "side": "right",
+      "patchSHA256": "121d98174bab32af8082d4c785e071de4ba52e4e80e4d866e8bd12a5903ee7a4",
+      "box": [
+        818,
+        248,
+        900,
+        330
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 23,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "77881e5abe5cb8beeddcaa007b9c3bf96459db8a474ade7b2f9fa8f00d1b1766",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 156156
+      },
+      "side": "left",
+      "patchSHA256": "e935f039482ac11223d6498271ab224c02254bba5b25fa6e9efc27451e315b68",
+      "box": [
+        517,
+        288,
+        575,
+        346
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 24,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "34d00b7b22a6eead77e5da2593ca33aa6adde879dfce05f7287f5fb679d0a389",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 162162
+      },
+      "side": "left",
+      "patchSHA256": "68dd55ff18a9f3061a8402a022632f1d02aa3f61f776103f371d5167c1a3e80e",
+      "box": [
+        510,
+        296,
+        575,
+        361
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 25,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "f411ced68ae5e893724ab517061ea652863e99c0fa521d908cb536d2d71a0241",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 168168
+      },
+      "side": "right",
+      "patchSHA256": "e44f375634a9b011ccaa7e80e18ebbf34165e5fd82dafca0dc8fc7db3cef1481",
+      "box": [
+        817,
+        261,
+        895,
+        339
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 26,
+      "caseId": "k700train__R7UzIvJP58_000005_000015",
+      "recordingId": "5f7afe76f39c5ec652815cea7777b6d232857ad35540fafddff2acac10dbe469",
+      "imageSHA256": "8300f88d37d1acea126af9de54d18ce3647516286ff83f8407668e07c3638cbc",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 186186
+      },
+      "side": "left",
+      "patchSHA256": "bc1ec153fe8c29a786395a87888efe46ca971caa365353bef7b8025b2c730440",
+      "box": [
+        507,
+        286,
+        566,
+        345
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "unverifiedDerivedAppearanceTargets",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 27,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "ed5e942834c91c31cb71feea2d5e144e00aadaf186691ff91d9288477562df0c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 48048
+      },
+      "side": "left",
+      "patchSHA256": "83d5f4fab88f92173dacea3a8d316f844095bcc550b1e03d7707917692d9c8f9",
+      "box": [
+        722,
+        163,
+        748,
+        189
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 28,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "ed5e942834c91c31cb71feea2d5e144e00aadaf186691ff91d9288477562df0c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 48048
+      },
+      "side": "right",
+      "patchSHA256": "620e7e92054960fe669a7c46de88d03a0edcb1c22cb5f192e68f3255a75a315c",
+      "box": [
+        576,
+        178,
+        604,
+        206
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 29,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "e83e1d112a96004c9031dcd73d9730cb710a258889c218a0a025ff95b9d6b215",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 64064
+      },
+      "side": "left",
+      "patchSHA256": "54071650d649783d196ca3557008faa8d289c212830edfb2015822c3b8c4e06b",
+      "box": [
+        715,
+        160,
+        749,
+        194
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 30,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "e83e1d112a96004c9031dcd73d9730cb710a258889c218a0a025ff95b9d6b215",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 64064
+      },
+      "side": "right",
+      "patchSHA256": "8efd01a48faa2bd25373e18e8d68b8a66d0a2aaf4674b4c92a280e53abefb8b5",
+      "box": [
+        578,
+        179,
+        603,
+        204
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 31,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "dc08a0a23144772f88a651a0cf22c6be7575a568ca92a50e53c5cba9ad68ad74",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 72072
+      },
+      "side": "left",
+      "patchSHA256": "a4b55412651b108f1d8ce9c549942bf1b68f26f64fe4aeb2be1889ead8cb1e8b",
+      "box": [
+        720,
+        164,
+        748,
+        192
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 32,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "dc08a0a23144772f88a651a0cf22c6be7575a568ca92a50e53c5cba9ad68ad74",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 72072
+      },
+      "side": "right",
+      "patchSHA256": "10510cceb71502cd77690b8976b3a7595ea824ed90219e7274f64b37df0cd941",
+      "box": [
+        575,
+        175,
+        606,
+        206
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 33,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "b71c0d7e38e3522ee02a95fb7554c46a7cb5de41ab55d6bbf21652a9428f0177",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 80080
+      },
+      "side": "left",
+      "patchSHA256": "da153d6013f2b43e84e92399772a7ca423b203636180a795336a035b96a83df1",
+      "box": [
+        720,
+        164,
+        748,
+        192
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 34,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "b71c0d7e38e3522ee02a95fb7554c46a7cb5de41ab55d6bbf21652a9428f0177",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 80080
+      },
+      "side": "right",
+      "patchSHA256": "087a397e58549107d858109057e6815b71dcbcc556306098d4e79ceb339950ae",
+      "box": [
+        576,
+        178,
+        604,
+        206
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 35,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "d51808d9adb05bee1bba6a5f7900f85c60d1ce214c803883cf400e14a7abe455",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 88088
+      },
+      "side": "left",
+      "patchSHA256": "0da558692e5678c23d7b6c01412c0ee4224a31c97889d5d8921b5b71d589291c",
+      "box": [
+        720,
+        164,
+        748,
+        192
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 36,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "d51808d9adb05bee1bba6a5f7900f85c60d1ce214c803883cf400e14a7abe455",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 88088
+      },
+      "side": "right",
+      "patchSHA256": "847fca5b93a7394bb8fdb9ed79181d843cf7a2b9fc4d8c8cbc7ea015490b4b09",
+      "box": [
+        577,
+        179,
+        604,
+        206
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 37,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "bb6239a728bcf6872dffc6f1b9d8894107bfde8fbae982cd311095827dc95c50",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 96096
+      },
+      "side": "left",
+      "patchSHA256": "82aaec879c23034234a20ad414c0f047120d05d2144709837f0019a99a9f4a72",
+      "box": [
+        720,
+        161,
+        748,
+        189
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 38,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "886e5237cb20b3dd62fe990dc8f546e9cbf74d3f24ac622d24d2135f4ad6a8be",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 104104
+      },
+      "side": "left",
+      "patchSHA256": "de0498eda959f70d87ce2e55f5b9f5e47bdb35da7c8908cc960859ea80b811d0",
+      "box": [
+        721,
+        163,
+        748,
+        190
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 39,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "886e5237cb20b3dd62fe990dc8f546e9cbf74d3f24ac622d24d2135f4ad6a8be",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 104104
+      },
+      "side": "right",
+      "patchSHA256": "c72ffd3690339026fb5b22adb7bc71fce7513bc6cb1854fcfb55e5eb09f26fc6",
+      "box": [
+        577,
+        178,
+        603,
+        204
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 40,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "cc824a9ad23958ab7a9d37971f99a4cb7a4af3a382ddd43dddb7cc648820590b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 112112
+      },
+      "side": "left",
+      "patchSHA256": "459ad088ed073156f67a7f384dccc38783b7446fd64348cb704d9c62c9683b98",
+      "box": [
+        721,
+        163,
+        748,
+        190
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 41,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "cc824a9ad23958ab7a9d37971f99a4cb7a4af3a382ddd43dddb7cc648820590b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 112112
+      },
+      "side": "right",
+      "patchSHA256": "3799c84b3e77aa54c79f460d9c1d8253cafc8c41634f272c1efcaae023f77f8f",
+      "box": [
+        578,
+        178,
+        604,
+        204
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 42,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "d3d1cad035e9b40513cc42972ca4a33a8bea995b2ad5fb92e4045be3ba57e03d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "patchSHA256": "a71739a607dfa07e729fc0f4b5aab9b0b77d9c1fe34b5524884dcde1ef0a8720",
+      "box": [
+        720,
+        162,
+        749,
+        191
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 43,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "d3d1cad035e9b40513cc42972ca4a33a8bea995b2ad5fb92e4045be3ba57e03d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "patchSHA256": "234e7bd3c9ddc923bd6fef39a0ba08a4a75a36077d28eb73e155b46efa3f8705",
+      "box": [
+        578,
+        179,
+        603,
+        204
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 44,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "d18f7effbc8aa6336ef753185ff6f22d7e46a9593e8b80763e661e2b7295ada8",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 128128
+      },
+      "side": "left",
+      "patchSHA256": "d5d9156b31c6d4c970784d3ab52d5e84d378b360225060b6ed6615b0a612a2a9",
+      "box": [
+        721,
+        164,
+        749,
+        192
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 45,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "d18f7effbc8aa6336ef753185ff6f22d7e46a9593e8b80763e661e2b7295ada8",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 128128
+      },
+      "side": "right",
+      "patchSHA256": "38a3f0d2d10b878769aae6f0390288a034edbdaebdcf379906a0e53b44644c0b",
+      "box": [
+        577,
+        178,
+        603,
+        204
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 46,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "44f6e8e03eddd9bd8c9751a93fa620de016a58251e49d72d1a49511ea898b62f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 144144
+      },
+      "side": "left",
+      "patchSHA256": "3a5d2a0534e7aceeb4d5df6e2d6ac0bff82e22e1c2a9e9511655140d55a76652",
+      "box": [
+        720,
+        163,
+        748,
+        191
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 47,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "44f6e8e03eddd9bd8c9751a93fa620de016a58251e49d72d1a49511ea898b62f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 144144
+      },
+      "side": "right",
+      "patchSHA256": "a27339ff46f1190e621931e6911beadc8b787e9d124f9f4798d9d472947a9dab",
+      "box": [
+        576,
+        177,
+        604,
+        205
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 48,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "2a5543e5e5c7d0d69ce8006c45e0dd66b1f186f823d4d50f15f5d1915c3eb2ee",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 152152
+      },
+      "side": "left",
+      "patchSHA256": "085fcca938112b46e9cd29d8c1ca19799ecb0477743f189e4b2716a3bb976057",
+      "box": [
+        713,
+        158,
+        750,
+        195
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 49,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "2a5543e5e5c7d0d69ce8006c45e0dd66b1f186f823d4d50f15f5d1915c3eb2ee",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 152152
+      },
+      "side": "right",
+      "patchSHA256": "162a458f5be2c3854a0448ea46e1997f49b6a0530aa773c030f1fa5bc8ac0ca8",
+      "box": [
+        576,
+        176,
+        606,
+        206
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 50,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "b83964f3523ec7595de5e8796ad7038947ea909bc3af43c861cc96103576a3fe",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 160160
+      },
+      "side": "left",
+      "patchSHA256": "0b12f389ad7c3a5a39180fb983a8e46bd1e79fb8a50a0caf8194deca572b05fd",
+      "box": [
+        718,
+        163,
+        749,
+        194
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 51,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "b83964f3523ec7595de5e8796ad7038947ea909bc3af43c861cc96103576a3fe",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 160160
+      },
+      "side": "right",
+      "patchSHA256": "e33e9cd3deb70292b5da36946398504a4080e262ee6f6498beb4f05cb2eeb0d0",
+      "box": [
+        577,
+        178,
+        604,
+        205
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 52,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "294b1ea19578ee934fb0729c2bf455030593f3713c11749750fee2fc35a87cd6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 168168
+      },
+      "side": "left",
+      "patchSHA256": "c23be8d36ed631712bf0dacf5d4f2166c88509db3d067bd49ad6377fe6029e8c",
+      "box": [
+        711,
+        159,
+        751,
+        199
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 53,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "294b1ea19578ee934fb0729c2bf455030593f3713c11749750fee2fc35a87cd6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 168168
+      },
+      "side": "right",
+      "patchSHA256": "b1190c77242783a1e9786a4c9fb2df8f29067319454edca0af6e9ad94d67752c",
+      "box": [
+        577,
+        178,
+        604,
+        205
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 54,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "8ebf37ec17375dd9bb343ebf2cd1ff26a19131cc807f966489763e2776b1fd17",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 184184
+      },
+      "side": "left",
+      "patchSHA256": "b831e1529054e7fc0e26fc7964bc0fab405a8e0ea48cdd83c6b9216f99dae4f1",
+      "box": [
+        718,
+        163,
+        750,
+        195
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 55,
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "8ebf37ec17375dd9bb343ebf2cd1ff26a19131cc807f966489763e2776b1fd17",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 184184
+      },
+      "side": "right",
+      "patchSHA256": "8f7aceb503434d12a20c526847870a17f3fe8a5fdb29b04ba234fd07ba49730e",
+      "box": [
+        576,
+        179,
+        603,
+        206
+      ],
+      "componentAttribution": "orientation",
+      "reviewStatus": "torsoViewSupportedHeadTurn",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 56,
+      "caseId": "k700train_PFISl6mVwtk_000045_000055",
+      "recordingId": "0cd78889103a6720846cbe0e3c3ac2c3e9e2c053ee358cecbcef95ae98300eb6",
+      "imageSHA256": "2cf3636e4ecd41f134197029f0dcfa74754606965ce838b01a2f5b1e731b625f",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "left",
+      "patchSHA256": "5cba873317bfe0cb6dbacc2c4dd592191d977d49a173553e516e0e3af6149981",
+      "box": [
+        287,
+        18,
+        408,
+        139
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "appearanceErrorVisuallySupported",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 57,
+      "caseId": "k700train_PFISl6mVwtk_000045_000055",
+      "recordingId": "0cd78889103a6720846cbe0e3c3ac2c3e9e2c053ee358cecbcef95ae98300eb6",
+      "imageSHA256": "2cf3636e4ecd41f134197029f0dcfa74754606965ce838b01a2f5b1e731b625f",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "right",
+      "patchSHA256": "87f16fc96c3b983892c53cb52b4ba6ddd539a9f15e87e61874747526a78a33bc",
+      "box": [
+        605,
+        41,
+        705,
+        141
+      ],
+      "componentAttribution": "appearance",
+      "reviewStatus": "appearanceErrorVisuallySupported",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 58,
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "4d6780232b9d45baf7677c5e0555d2c0c0f5fbfc1364433a18630215800eec6c",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 43008
+      },
+      "side": "left",
+      "patchSHA256": "9886883cc4d33a7621cb91063bf03394181fe9f3f9d8312a78534b1eb4c4d476",
+      "box": [
+        177,
+        79,
+        203,
+        105
+      ],
+      "componentAttribution": "oblique",
+      "reviewStatus": "insufficientGripCrop",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 59,
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "03f923214ff5ee704acd2a7514be4ad89ec0f087f39df9be8471963a4f3b03b3",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 46592
+      },
+      "side": "left",
+      "patchSHA256": "5c5728b80208b0058b8889f4133b907090f4985dc64e688a8b0ee9c30289ccf9",
+      "box": [
+        176,
+        80,
+        203,
+        107
+      ],
+      "componentAttribution": "oblique",
+      "reviewStatus": "insufficientGripCrop",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 60,
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "ddf4c6d1eb9df74b013a63dc37484b9adfc7dd863917c9e8aa8dbc60fbde5863",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 50176
+      },
+      "side": "left",
+      "patchSHA256": "3f03eecfcca3f835b41471912039a82da7184006e6bd1f19c25b3c70e848fd0a",
+      "box": [
+        177,
+        80,
+        202,
+        105
+      ],
+      "componentAttribution": "oblique",
+      "reviewStatus": "insufficientGripCrop",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 61,
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "dab90052e06e1918bf9946a8deb5fe0c4faf9ae34dd44270304c59e8570a4bf9",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 89600
+      },
+      "side": "left",
+      "patchSHA256": "641a22e2e9842a60ff4fdbe1cd8199a3e093cf56e514b3afd755d63ff6804c2a",
+      "box": [
+        176,
+        79,
+        203,
+        106
+      ],
+      "componentAttribution": "oblique",
+      "reviewStatus": "insufficientGripCrop",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 62,
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "fc184886dca6e2642519393c5c6f06681b6003b4e8cd9934a143b95f52c9ebfc",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 96768
+      },
+      "side": "left",
+      "patchSHA256": "6f2bb5b6b1b34d367899f9193fadb60934d403cf66c94c19204616cb062deedb",
+      "box": [
+        176,
+        79,
+        203,
+        106
+      ],
+      "componentAttribution": "oblique",
+      "reviewStatus": "insufficientGripCrop",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 63,
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "622541eebabadf21790c0e8244200bc10704014db17008c0ec1312d1c5572498",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 100352
+      },
+      "side": "left",
+      "patchSHA256": "4b79700fd38a13c22a0517e051c188576e81ed2fda462cc98511daf33f38eda6",
+      "box": [
+        176,
+        79,
+        203,
+        106
+      ],
+      "componentAttribution": "oblique",
+      "reviewStatus": "insufficientGripCrop",
+      "benchmarkReferenceUnchanged": true
+    },
+    {
+      "index": 64,
+      "caseId": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "imageSHA256": "e41fc40d8c4425e54c21516d9bd2133532f4e9f1f8d2d177a7d3e8ee47548708",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 107520
+      },
+      "side": "left",
+      "patchSHA256": "59e85fb8f8a03811a1ab392f23c7671f72cf2f140c400c5fc05dc289d6c8de03",
+      "box": [
+        176,
+        79,
+        202,
+        105
+      ],
+      "componentAttribution": "oblique",
+      "reviewStatus": "insufficientGripCrop",
+      "benchmarkReferenceUnchanged": true
+    }
+  ]
+}

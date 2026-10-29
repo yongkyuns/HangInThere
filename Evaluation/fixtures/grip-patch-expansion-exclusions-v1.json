@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "evidence": "Pre-inference visual check of all 631 new automatic crops and 38 manual-search/SDK crops; two release/open-hand outliers excluded, plus the existing original owner open-hand exclusion. Both model runs use these identical exclusions. No class or split inferred from predictions.",
+  "exclusions": [
+    {
+      "recordingId": "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+      "imageSHA256": "e27f1be2e0b6fb675a88329ee4dd1a7786565d19f29c3e9ae2187324e111c8ed",
+      "side": "left",
+      "patchSHA256": "1ffa4ae89eafe227979b4cd6c8ddf822085684a80e43e725582bd2d360126523",
+      "reason": "openHand"
+    },
+    {
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "imageSHA256": "bb6239a728bcf6872dffc6f1b9d8894107bfde8fbae982cd311095827dc95c50",
+      "side": "right",
+      "patchSHA256": "6825be6d73b2791f13d987df6e485d3fe825585784c1f94056562f0cb22a832a",
+      "reason": "openHand"
+    },
+    {
+      "recordingId": "70d86c46b35d4458f342f45d1c4ea341c0afbaf55f79a97981a3e142e8f7290f",
+      "imageSHA256": "20c4b7ae1d918e77abf49718abb4157fe592b22cfdffeed30a0ec9dd1015852d",
+      "side": "right",
+      "patchSHA256": "b0ea5a9408a53026982ab75929daada26b4ffd788d5e7d468167f823bb16b7f0",
+      "reason": "openHand"
+    }
+  ]
+}

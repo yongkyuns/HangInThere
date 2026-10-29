@@ -4,16 +4,54 @@ This document defines the customer-facing experience for the current iPhone POC.
 It deliberately separates **workout UX** from engineering diagnostics while preserving
 the evidence needed to understand tracking failures.
 
+## Home and launch
+
+The home screen follows the system's light/dark appearance with warm cream, soft green,
+coral and forest tones. Two background-free pull-up/dip illustrations, rounded H / hanging-person
+mark and friendly rounded typography connect home, icon and splash.
+Live workout is the primary action; video review and history remain directly accessible.
+Landscape and larger text are supported, with decoration reduced at accessibility sizes.
+Settings and results follow the system; the camera overlay alone keeps a local dark
+appearance for contrast over video. The brief, nonblocking entrance respects Reduce Motion.
+The illustrations are in `PullUpIllustration.imageset` and `DipIllustration.imageset`; icon and launch lockups
+are exported with `Evaluation/BrandAssetRender.swift`.
+Asset provenance and previous photographic studies are recorded in [brand-assets.json](brand-assets.json).
+
+## Set videos and history
+
+Live workouts save silent local video for the interval from the first completed
+rep to the last return. Zero-rep attempts, setup, release and between-set rest
+are not retained. A compressed 12-second rolling window recovers delayed automatic
+starts; temporary chunks are pruned, and abandoned files expire after a day.
+Videos have a 10-minute set limit and reuse library retention (initially up to
+20 clips, 200 MB, 30 days). Recording errors do not gate counting or set transitions.
+Turn recording off in workout settings or history; existing clips remain until
+retention/deletion. Old sets have no retroactive video.
+
+History groups recent sets by date, filters by exercise, shows counted reps apart
+from user-reported/practice attempts, and opens saved clips directly. Measurements,
+corrections, grouping and deletion remain behind set options/organize controls.
+
+New automatic recordings save rep-to-video alignment and persistent start,
+turnaround and return thumbnails. Review opens a tappable frame strip, phase-time
+bars and an exercise-specific muscle illustration. Thumbnail generation is off
+the camera queue, limited to 60 reps / 2 MB per clip, and pruned with its video.
+Older/manual clips without alignment remain playable without guessed keyframes.
+Tempo change compares the last rep with the first two only when coverage and
+observed range are comparable; it is not a fatigue measurement. Muscle shading
+is an exercise guide, not measured activation. Skeleton/reference overlays are
+off by default and available from Diagnostics in live and imported-video views.
+
 ## Product promise for the current POC
 
-HangInThere supports live pull-up / parallel-bar-dip movement counting and recorded-video review on device.
+HangInThere supports live pull-up and dip movement counting on parallel rails or a shared straight bar, plus recorded-video review on device.
 
 The current customer-facing promise is deliberately narrow:
 
-- show the athlete's detected body joints over the video;
-- let the athlete choose pull-up or parallel-bar dip;
+- offer detected body joints through Diagnostics;
+- let the athlete choose pull-up or dip;
 - use both measurable arms for pull-ups, with one-arm fallback when obscured;
-- let the athlete choose the anatomical arm/rail for parallel-bar dips;
+- let the athlete choose the anatomical grip for dips;
 - establish fixed grip references automatically for pull-ups and dips, with manual fallback;
 - count observed movement cycles when the supported evidence is available;
 - clearly distinguish movement counting from form validation.
@@ -30,9 +68,7 @@ owns the most important live information:
 
 - selected exercise;
 - movement count;
-- visible skeleton;
-- both usable arms emphasized equally over the skeleton;
-- confirmed bar/rail edge;
+- optional skeleton and reference geometry through Diagnostics;
 - setup/tracking state.
 
 Raw timestamps, backend names, frame numbers, and processing milliseconds are useful
@@ -130,8 +166,9 @@ source so every counted frame uses the same reference.
 
 Pull-up setup runs automatically during playback. One athlete with both raised
 hands guides image-edge detection; a stable observed gripping edge locks and the
-video rewinds once, then continues counting from the start. Dip rails and ambiguous
-pull-up views use the short manual flow:
+video rewinds once, then continues counting from the start. Dip setup also acquires
+observed support automatically. Views without clear automatic apparatus evidence
+use the short manual flow:
 
 1. pause where the bar is clear;
 2. drag a tight region over one gripping edge;
@@ -223,6 +260,19 @@ not a single opaque "form score."
 
 ## Live workout mode
 
+While idle, the iPhone camera overlay shows a large action title and a short
+instruction intended to be read from equipment distance. **Show start checks**
+expands a scrollable checklist:
+camera/pose feed, athlete/arms, exercise, bar/rails, phone stability, background
+stability and starting position. Each row shows a passed, waiting or attention
+symbol and a text status. A short explanation identifies the first blocking check.
+Stability and starting-position checks wait for an acquired support reference;
+they are not reported as failures while apparatus acquisition is incomplete.
+Stale analyzed frames clear displayed passes. **Hide start checks** collapses the
+details; the large action and instruction remain visible. The card disappears when the set starts.
+This presentation uses existing live gates and does not change start/counting
+policy or add a leg-crossing requirement or classifier.
+
 The main live screen is a full-screen, aspect-fitted camera canvas with no
 navigation title, introduction, cards below the video, or scrolling. Controls
 respect the screen safe areas. The detected pose and fixed bar share the camera's
@@ -268,25 +318,27 @@ a dip. Contour acquisition runs alongside starting-pose confirmation, so a
 settling hang can supply a bar search before its extended-arm dwell completes.
 The header shows **Auto · detecting**, then **Pull-up detected** or
 **Dips detected**. Identity alone supplies no apparatus: existing contour and
-camera-stability checks must still qualify the setup before the three-second
-countdown. A changed/unclear pose or source-frame outage clears the pre-set
-identity, reference, and countdown. The chosen exercise is locked when a set
-starts and is reconsidered after **Next set**. Manual exercise selection remains
+camera-stability checks must still qualify setup before automatic readiness.
+A changed/unclear pose or source-frame outage clears pre-set readiness. The
+chosen exercise is locked when a set starts and is reconsidered for the next
+automatically acquired set. Manual exercise selection remains
 available; recorded review retains its explicit exercise selection. Opt-in debug
 recording freezes its already detected configuration for consistent exports.
 
 Framing readiness remains narrower than workout readiness. Live pull-up setup
 automatically looks for a stable observed bar near both raised hands and overlays
 the locked edge. Hands-free start is on by default for both exercises: the athlete
-holds an extended hang for pull-ups or steady top support for dips through a
-visible and spoken **3, 2, 1, go** countdown, then begins moving. The dip countdown
-shows **Hold your top support**. Crossed legs are optional; unavailable leg joints
-never prevent starting. Grip loss, shoulder movement during dip acquisition,
-missing frames, unstable calibration, manual setup,
-or camera changes cancel the countdown. Turning off **Hands-free start** restores
-the **Start set** button. Finished sets require **Next set** before arming again.
+holds an extended hang for pull-ups or steady top support for dips. After actual
+apparatus/camera qualification, 0.12 seconds of fresh eligible source frames
+starts tracking without a gesture or countdown. Missing frames, unstable
+calibration or camera changes reset readiness. Turning off **Hands-free start**
+restores the **Start set** button. A second of observed release by both hands
+completes a set; tracking loss interrupts it. Either outcome allows automatic
+reacquisition, while phone/scene faults remain explicit interruptions. The
+read-only analysis view shows timing, arm curves and dated history without
+pausing tracking. See [the lifecycle contracts](workout/AUTOMATIC_ANALYSIS.md).
 **Set bar manually** freezes the latest analyzed frame and opens the same guided/manual
-`BarSetupView` used by recorded replay. Dips first attempt automatic rail setup.
+`BarSetupView` used by recorded replay. Dips first attempt automatic support setup.
 
 A compact camera-switch button sits inside the lower-right of the live preview,
 beside the setup cue, without adding a row above the video. It toggles rear
@@ -400,10 +452,10 @@ The intended complete live flow remains:
 3. show framing status and detected body joints;
 4. confirm that the athlete/selected arm is measurable and visually check the apparatus;
 5. acquire the fixed bar automatically or confirm it manually;
-6. start set (implemented);
+6. begin tracking automatically after qualified readiness (implemented);
 7. provide restrained live movement count/tracking feedback (implemented);
-8. end set manually; automatic stop remains future work;
-9. show movement-only results (implemented).
+8. automatically complete on bilateral release or interrupt on tracking loss (implemented);
+9. show rep timing, arm curves, coverage and dated local history (implemented).
 
 The live workout screen should stay substantially simpler than the review/debug
 screen: large count, clear tracking state, and minimal controls.
@@ -531,7 +583,7 @@ Measurement gates:
 The engineering diagnostics remain valuable throughout development, but they should
 stay behind progressive disclosure in the customer experience.
 
-### Automatic dip rails
+### Automatic dip support
 
 Holding top support with both arms and hands visible triggers local contour
 searches beside each hand. The policy first requires two distinct observed
@@ -541,5 +593,10 @@ observations must stay stable for at least four observations across 0.9 seconds.
 It retains the selected anatomical rail as a fixed reference; it never draws a
 rail between wrists or uses a rack bounding box. Phone/scene calibration and
 freshness checks are shared with automatic pull-up setup. A three-second top-hold
-countdown starts after setup becomes ready. No manual confirmation is required
-when acquisition succeeds; unclear views retain the manual settings fallback.
+countdown starts after setup becomes ready. A separate common crop also permits
+a shared straight bar: every sample must observe a fresh paired silhouette with
+finite support near both hands, its center on/below both wrists, and no distinct
+eligible alternative. Losing that pair restarts dwell. Independent rail acquisition
+keeps priority; both modes retain an actual observed edge for the selected grip.
+No manual confirmation is required when acquisition succeeds; unclear views
+retain the manual settings fallback.

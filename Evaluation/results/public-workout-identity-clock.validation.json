@@ -1,0 +1,456 @@
+{
+  "apple_executable_sha256": "7c165edfdea5d73a47be138542cb49ebdd8a1d9c5208dfba793d7c50fa376712",
+  "apple_ffi": {
+    "acquisitionFeedbackCases": 22,
+    "acquisitionFramingFrames": 2000,
+    "acquisitionFramingHostBridgeP95Milliseconds": 0.155863,
+    "activeReps": 222,
+    "cases": 2,
+    "frames": 2000,
+    "framingCases": 12,
+    "framingFeedbackCases": 19,
+    "framingFrames": 2000,
+    "framingHostBridgeP95Milliseconds": 0.087514,
+    "gripCorrectionCases": 2,
+    "gripFrames": 2000,
+    "gripHostBridgeP95Milliseconds": 1.564904,
+    "gripInferenceCases": 2,
+    "gripTransportCases": 1,
+    "gripVisibilityCases": 7,
+    "gripVisibilityFeedbackCases": 3,
+    "gripVisibilityFramingFrames": 2000,
+    "gripVisibilityFramingHostBridgeP95Milliseconds": 0.191488,
+    "hostBridgeP95Milliseconds": 1.014764,
+    "overheadFramingFrames": 2000,
+    "overheadFramingHostBridgeP95Milliseconds": 0.145316,
+    "passed": true,
+    "persistenceSets": 55,
+    "practiceCases": 2,
+    "qualification": "synthetic Apple host FFI; camera/model/device performance not qualified",
+    "sceneQualificationCases": 3,
+    "timestampRegressionCases": 4
+  },
+  "apple_framework_sha256": "0b4b371aa2f672d7d26787f207bff6ec0e42b431e320dbb2412f19df95ed0edb",
+  "authored_identity_clock_cases": [
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        "pullUp"
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        "pullUp"
+      ],
+      "id": "pullUp-identity-clock-exact-dwell",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1100000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1300000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1500000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1700000
+        }
+      ]
+    },
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "id": "pullUp-identity-clock-short-dwell",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1100000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1300000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1500000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1699999
+        }
+      ]
+    },
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        "pullUp"
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        "pullUp"
+      ],
+      "id": "pullUp-identity-clock-exact-gap",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1000000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1200000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1550000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1650000
+        }
+      ]
+    },
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "id": "pullUp-identity-clock-gap-over-limit",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1000000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1200000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1550001
+        },
+        {
+          "timescale": 1000000,
+          "value": 1650000
+        }
+      ]
+    },
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        "dip"
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        "dip"
+      ],
+      "id": "dip-identity-clock-exact-dwell",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1100000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1300000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1500000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1700000
+        }
+      ]
+    },
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "id": "dip-identity-clock-short-dwell",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1100000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1300000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1500000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1699999
+        }
+      ]
+    },
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        "dip"
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        "dip"
+      ],
+      "id": "dip-identity-clock-exact-gap",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1000000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1200000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1550000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1650000
+        }
+      ]
+    },
+    {
+      "actual_swift_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "expected_identity": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "id": "dip-identity-clock-gap-over-limit",
+      "source_times": [
+        {
+          "timescale": 1000000,
+          "value": 1000000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1200000
+        },
+        {
+          "timescale": 1000000,
+          "value": 1550001
+        },
+        {
+          "timescale": 1000000,
+          "value": 1650000
+        }
+      ]
+    }
+  ],
+  "baseline": {
+    "jvm_failing_tests": [
+      "identitySourceDwellInRuntimeCannotInventApparatusCountdownOrReps[jvm]",
+      "identitySourceDwellIsExactButCannotRoundUpOrUseThreeSamples[jvm]",
+      "identitySourceGapAcceptsExactLimitAndRejectsOneTickMore[jvm]"
+    ],
+    "jvm_regression_tests": {
+      "errors": 0,
+      "failures": 3,
+      "skipped": 0,
+      "tests": 4
+    },
+    "jvm_xml_sha256": "f87713f519589b3fe9129a03d7522de777119334ba938457449e83825934098f",
+    "production_source_sha256": {
+      "ios/HangInThere/Analysis/AutomaticExerciseDetection.swift": "1bdf7e3587eabf6acae2f9af9ef9d9fda9d9aaf37df55b094a5bc7d5507056d4",
+      "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticExerciseDetection.kt": "f51f8bf64294de2e13641783306dd19f477a3ad832c1324086c26265dfe7f2fc"
+    },
+    "source_revision": "4c9bb225c8c5b28af72f209439c07a97f9f45957",
+    "swift_core_tests": {
+      "failing_tests": [
+        "identitySourceGapAcceptsExactLimitAndRejectsOneTickMore",
+        "identitySourceDwellIsExactButCannotRoundUpOrUseThreeSamples"
+      ],
+      "issues": 6,
+      "tests": 242
+    },
+    "test_source_sha256": {
+      "ios/HangInThereTests/Core/AutomaticExerciseDetectionTests.swift": "c609d2e8493a9f7f5ac2bd9f047770e960f050d5ead7625c3363ca3c010492cf",
+      "shared/src/commonTest/kotlin/dev/hanginthere/core/SetupPoliciesTest.kt": "d3a709fa349b09d8a949a6e69a92927e8635315dcd3f2ffb56615a22337e061e"
+    }
+  },
+  "changed_source_sha256": {
+    "Evaluation/SetupOracle.swift": "6fd68775ad96540bd3fef963356bd1aab1781fe81634c3f8007c5528c8386ad7",
+    "ios/HangInThere/Analysis/AutomaticExerciseDetection.swift": "2d0202054d6b14e6d4bbd45d1c9ed65972e9829536d66babbda495d2bfa2bbd2",
+    "ios/HangInThereTests/Core/AutomaticExerciseDetectionTests.swift": "c609d2e8493a9f7f5ac2bd9f047770e960f050d5ead7625c3363ca3c010492cf",
+    "scripts/prepare-setup-oracle.py": "fded350b9631098df8ed0ea55b539ec07fe040e871e31f3fac0456d4e04d9f07",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticExerciseDetection.kt": "071da52d3be7ed1ee3b53ff3831df0ad5275257f711f8299e6c1f24df11a42dd",
+    "shared/src/commonTest/kotlin/dev/hanginthere/core/SetupPoliciesTest.kt": "d3a709fa349b09d8a949a6e69a92927e8635315dcd3f2ffb56615a22337e061e",
+    "shared/src/jvmTest/kotlin/dev/hanginthere/core/SetupSwiftParityTest.kt": "8c86f411af5d2db77f083a30c174a41afb2c92eebfa2f5b92239af8207f303b3"
+  },
+  "common_tests": {
+    "jvmTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 328
+    },
+    "macosX64Test": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 326
+    }
+  },
+  "count_policy_version": 8,
+  "counter_parity": {
+    "cases": 30,
+    "checksum": 8892.549907689074,
+    "frames": 259,
+    "iterations": 100,
+    "p50NanosecondsPerFrame": 1465.111969111969,
+    "p95NanosecondsPerFrame": 2782.5521235521237,
+    "scope": "same-host core only; includes counter initialization; excludes inference and camera",
+    "swift": {
+      "cases": 30,
+      "checksum": 8892.549907689074,
+      "framesPerIteration": 259,
+      "iterations": 100,
+      "p50NanosecondsPerFrame": 6940.023166023166,
+      "p95NanosecondsPerFrame": 9060.212355212356,
+      "scope": "same-host core only; includes counter initialization, excludes pose inference and camera"
+    }
+  },
+  "counting_reference_countdown_geometry_confidence_gates_unchanged": true,
+  "epsilon_added": false,
+  "existing_source_tick_helper_reused": true,
+  "fresh_full_native_corpus": "Pending dispatch after push; last complete corpus source remains 1bb4378",
+  "independent_code_review": "No actionable findings",
+  "ios_tests": {
+    "failed": 0,
+    "full_app_build": true,
+    "passed": 20,
+    "runtime": "iOS 18.6",
+    "sdk": "iOS Simulator 18.5",
+    "suites": [
+      "AutomaticExerciseDetectionTests",
+      "LiveCameraSelectionTests"
+    ],
+    "summary_sha256": "b61f27298e11c0f2475801c60582105863d923aeba434b13931eb212b18da8be"
+  },
+  "log_sha256": {
+    "apple-bridge.log": "b6581e4da33c5ea0b473e26fde6d96cd97ba0b6c56d8a84d9bd676790e960438",
+    "baseline-jvm.log": "990690c67aae9bfcd5abbd9bd71a207a238be4d86a6200e96632811ef67e6dca",
+    "baseline-swift.log": "8bb09134854dff83aba3a74bcf20c0484d5264095d1c13ab291558c2aa25b97d",
+    "core-budget.log": "8156815e98f7b008fd96c29700068bc805cdef12a468103f186c432039d05482",
+    "counter-oracle.log": "7cc063346cac93c77481ddffab6a84ae2a9fc2eb7464b7d411710f4581be4ca2",
+    "current-swift.log": "98b41965b6cd4c4cf79fe70f9ae3b8cec597d8dec5ccfbccc85cc60fef0f4693",
+    "ios-identity.log": "adc1b5a7c04fcae3bce3df414fa01694643dfe516df81eed348fb902e82227eb",
+    "setup-oracle.log": "caa75587489297a9087d63e8742ee7750836aa29e79dc71d2ebf16fa1bfce350",
+    "shared-tests.log": "b68abcda0744546cfa1e6534b254852d9ad38b670a23f02d7ad0b4129a85c0b7"
+  },
+  "maximum_identity_frame_gap_seconds": 0.35,
+  "minimum_identity_dwell_seconds": 0.6,
+  "minimum_observations": 4,
+  "mixed_timescales": "Existing helper fallback subtracts Double seconds; no new exact-boundary guarantee",
+  "native_android_validation": "Pending fresh hosted CI",
+  "native_export_source_normalization": "Passed by shipping script after functional/performance guards",
+  "new_corpus_accuracy_gain_established": false,
+  "oracle_sha256": {
+    "counter-oracle": "18261e94d62605d1eb51a59d8cd7faa200c5b324e7cc79b351c4f7dac0e7e077",
+    "setup-oracle": "e8bb20606439a20247f3a41fa8ba7a353471fa7bf7bdb8e0f806ef02593f9804"
+  },
+  "oracle_transition": {
+    "cases_with_changed_snapshots": {},
+    "new_cases": [
+      "pullUp-identity-clock-exact-dwell",
+      "pullUp-identity-clock-short-dwell",
+      "pullUp-identity-clock-exact-gap",
+      "pullUp-identity-clock-gap-over-limit",
+      "dip-identity-clock-exact-dwell",
+      "dip-identity-clock-short-dwell",
+      "dip-identity-clock-exact-gap",
+      "dip-identity-clock-gap-over-limit"
+    ],
+    "original_inputs_and_labels_unchanged": true,
+    "prior_cases": 85,
+    "prior_frames": 4846
+  },
+  "physical_device_performance_qualified": false,
+  "prior_failed_timing_and_accuracy_records_preserved": true,
+  "prior_setup_oracle_sha256": "6fa301f9a344c6df2cadf48e40e3f6fc959b07db495c41385647b0ce7a432eee",
+  "scope": "Same-timescale source-tick precision for automatic exercise identity only; no new vision/model or corpus accuracy verdict",
+  "setup_parity": {
+    "cases": 93,
+    "frames": 4878,
+    "geometryCases": 17,
+    "matched": true,
+    "scope": "every-frame setup policies compared with production Swift; analytic and frozen public native observations; policy parity only, no new inference"
+  },
+  "source_revision": "41d51ca020804b0c96a734fcb50d220a72252d74",
+  "swift_core_tests": {
+    "failures": 0,
+    "tests": 242
+  },
+  "unchanged_clock_helper_and_count_acquisition_source_sha256": {
+    "ios/HangInThere/Analysis/AutomaticDipRails.swift": "67275e7e7193c6e86a7bb355dcc3bab17de9d687c553f03d6c7a50efa29589c2",
+    "ios/HangInThere/Analysis/AutomaticPullUpBar.swift": "0af39d5a240a01f49269087f75cecefd82ef732536706eec29818ce9f6809ae6",
+    "ios/HangInThere/Analysis/ExerciseCounter.swift": "f12bf0531a66979ccf1d57c9d70926c833b8a1676c2529dc9344bc6cb32412a7",
+    "ios/HangInThere/Analysis/HandsFreeSetStart.swift": "df3632e247da2a3942ba5e8e9950d6c07fd17acfdd1f17d12946ccdf7c0bccfa",
+    "ios/HangInThere/Analysis/PoseObservation.swift": "845b863d334f225dbc73d248ef310a66e3dff7fd7f3026923b4e9c988c394504",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticDipRails.kt": "95f21cd325514f946fc9b8a679592712d255fce63dc15f639de21224b7759483",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/AutomaticPullUpBar.kt": "f6e273296956d0e5bc7d057a1e3ac6e1d76b680e9b0cc153e87c8c3d56917d8b",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/ExerciseCounter.kt": "1eeb9f1bc8cd38264ffcc2132a46aeca27818334664c16dd4002615c95357d18",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/HandsFreeSetStart.kt": "12e6158d3cfb5335f19db8b1ff842a95dfa36448727c8c0d8f2bad0c51c0671b",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/PoseObservation.kt": "4d6e472ece55504475150fdb1ad25560a9a1d6893b77d842524e8783cc8a47d9"
+  }
+}

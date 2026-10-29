@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "selection": "Visual grip review of fresh SHA-sorted archive candidates 100..159, frozen before any fresh inference; all remain test",
+  "qualification": "provisional-agent-labels",
+  "cases": [
+    {
+      "id": "k700train_Fy2fOJBuLuc_000009_000019",
+      "recordingId": "ba839c826ec366b82c1aa0ab97e6feb9651901237ab5d495ba81d05633f4e588",
+      "originalVideoSHA256": "ba839c826ec366b82c1aa0ab97e6feb9651901237ab5d495ba81d05633f4e588",
+      "sourceGroup": "youtube:Fy2fOJBuLuc",
+      "subjectId": null,
+      "label": "overhand",
+      "split": "test",
+      "viewpoint": "front",
+      "start": 0.5,
+      "end": 4.2,
+      "publisher": {
+        "id": "k700train_Fy2fOJBuLuc_000009_000019",
+        "videoId": "Fy2fOJBuLuc",
+        "title": "Behind neck pull ups with raising stepper for Men - Superbody.com",
+        "author": "SuperBody",
+        "authorURL": "https://www.youtube.com/@Superbodycom"
+      },
+      "media": {
+        "id": "k700train_Fy2fOJBuLuc_000009_000019",
+        "sourceGroup": "youtube:Fy2fOJBuLuc",
+        "videoId": "Fy2fOJBuLuc",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Fy2fOJBuLuc_000009_000019.mp4",
+        "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+        "archiveMember": "pull ups/Fy2fOJBuLuc_000009_000019.mp4",
+        "bytes": 336631,
+        "sha256": "ba839c826ec366b82c1aa0ab97e6feb9651901237ab5d495ba81d05633f4e588"
+      },
+      "reviewFrames": [
+        {
+          "image": "frame-0004.png",
+          "sha256": "8e9056d92ad7c280d1855e31683dba55c4b342b9544430d99e4a2e87912fc692",
+          "timestamp": {
+            "timescale": 24000,
+            "value": 24024
+          }
+        },
+        {
+          "image": "frame-0009.png",
+          "sha256": "7474937ee4720ecc5cdcf1bb109ca78327b2d9c6437d8b29b029b39088abc290",
+          "timestamp": {
+            "timescale": 24000,
+            "value": 54054
+          }
+        },
+        {
+          "image": "frame-0014.png",
+          "sha256": "91babbcef4a8b235de13613ee1dd579df8f0625066bb880b0a9632b633c93840",
+          "timestamp": {
+            "timescale": 24000,
+            "value": 84084
+          }
+        }
+      ],
+      "evidence": "Provisional agent review of three native upper-body/hand views before any classifier score; palm/dorsum relative to athlete. No neutral/rotating/one-arm grips. Not independent adjudication."
+    },
+    {
+      "id": "k700train_LOBdUnEUTCk_000006_000016",
+      "recordingId": "052c0fbefc5d37d621c26f88f7a8ac9ba06ddb0f4a5d675345278dd61102c3f7",
+      "originalVideoSHA256": "052c0fbefc5d37d621c26f88f7a8ac9ba06ddb0f4a5d675345278dd61102c3f7",
+      "sourceGroup": "youtube:LOBdUnEUTCk",
+      "subjectId": null,
+      "label": "overhand",
+      "split": "test",
+      "viewpoint": "rear",
+      "start": 1.5,
+      "end": 8.5,
+      "publisher": {
+        "id": "k700train_LOBdUnEUTCk_000006_000016",
+        "videoId": "LOBdUnEUTCk",
+        "title": "Pull ups pronert grep",
+        "author": "Optimal Trening",
+        "authorURL": "https://www.youtube.com/@OptimalTreningnorge"
+      },
+      "media": {
+        "id": "k700train_LOBdUnEUTCk_000006_000016",
+        "sourceGroup": "youtube:LOBdUnEUTCk",
+        "videoId": "LOBdUnEUTCk",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/LOBdUnEUTCk_000006_000016.mp4",
+        "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+        "archiveMember": "pull ups/LOBdUnEUTCk_000006_000016.mp4",
+        "bytes": 2853947,
+        "sha256": "052c0fbefc5d37d621c26f88f7a8ac9ba06ddb0f4a5d675345278dd61102c3f7"
+      },
+      "reviewFrames": [
+        {
+          "image": "frame-0009.png",
+          "sha256": "1551a1a9aef1f5c3bbabd8fad2529de111c14d0383841ee8ddb2d6879879bdc3",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 72072
+          }
+        },
+        {
+          "image": "frame-0018.png",
+          "sha256": "30ae93a9972feceec240cc48add8c2d8638e5de4d5df9f266ec2229fb5710d4b",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 144144
+          }
+        },
+        {
+          "image": "frame-0027.png",
+          "sha256": "1c18633c2f92c114852970859c7e6bdb2bf4eb59ed992f18b4034f90ade97331",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 216216
+          }
+        }
+      ],
+      "evidence": "Provisional agent review of three native upper-body/hand views before any classifier score; palm/dorsum relative to athlete. No neutral/rotating/one-arm grips. Not independent adjudication."
+    },
+    {
+      "id": "k700train_PFISl6mVwtk_000045_000055",
+      "recordingId": "0cd78889103a6720846cbe0e3c3ac2c3e9e2c053ee358cecbcef95ae98300eb6",
+      "originalVideoSHA256": "0cd78889103a6720846cbe0e3c3ac2c3e9e2c053ee358cecbcef95ae98300eb6",
+      "sourceGroup": "youtube:PFISl6mVwtk",
+      "subjectId": null,
+      "label": "overhand",
+      "split": "test",
+      "viewpoint": "rear",
+      "start": 0.3,
+      "end": 2.2,
+      "publisher": {
+        "id": "k700train_PFISl6mVwtk_000045_000055",
+        "videoId": "PFISl6mVwtk",
+        "title": "Deep into Pull Ups",
+        "author": "mikefrench668",
+        "authorURL": "https://www.youtube.com/@mikefrench668"
+      },
+      "media": {
+        "id": "k700train_PFISl6mVwtk_000045_000055",
+        "sourceGroup": "youtube:PFISl6mVwtk",
+        "videoId": "PFISl6mVwtk",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/PFISl6mVwtk_000045_000055.mp4",
+        "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+        "archiveMember": "pull ups/PFISl6mVwtk_000045_000055.mp4",
+        "bytes": 459150,
+        "sha256": "0cd78889103a6720846cbe0e3c3ac2c3e9e2c053ee358cecbcef95ae98300eb6"
+      },
+      "reviewFrames": [
+        {
+          "image": "frame-0002.png",
+          "sha256": "3af4778f70d85b7be5e724795283b18274e1e73e154394d4117578669698122f",
+          "timestamp": {
+            "timescale": 15360,
+            "value": 8192
+          }
+        },
+        {
+          "image": "frame-0005.png",
+          "sha256": "e15063a017670bc423276a515239bfc1b7c79e67bf66e5b9ac9c75c1836ab210",
+          "timestamp": {
+            "timescale": 15360,
+            "value": 20480
+          }
+        },
+        {
+          "image": "frame-0007.png",
+          "sha256": "2cf3636e4ecd41f134197029f0dcfa74754606965ce838b01a2f5b1e731b625f",
+          "timestamp": {
+            "timescale": 15360,
+            "value": 28672
+          }
+        }
+      ],
+      "evidence": "Provisional agent review of three native upper-body/hand views before any classifier score; palm/dorsum relative to athlete. No neutral/rotating/one-arm grips. Not independent adjudication."
+    },
+    {
+      "id": "k700train_UiNqF_VyJBs_000000_000010",
+      "recordingId": "e415ba7ba7ada4b4970cbf66481e2de094dc65738cc2b3c777a93f552adcbbcd",
+      "originalVideoSHA256": "e415ba7ba7ada4b4970cbf66481e2de094dc65738cc2b3c777a93f552adcbbcd",
+      "sourceGroup": "youtube:UiNqF_VyJBs",
+      "subjectId": null,
+      "label": "underhand",
+      "split": "test",
+      "viewpoint": "front",
+      "start": 0.5,
+      "end": 6.5,
+      "publisher": {
+        "id": "k700train_UiNqF_VyJBs_000000_000010",
+        "videoId": "UiNqF_VyJBs",
+        "title": "Erin pull ups",
+        "author": "idjmark01",
+        "authorURL": "https://www.youtube.com/@idjmark01"
+      },
+      "media": {
+        "id": "k700train_UiNqF_VyJBs_000000_000010",
+        "sourceGroup": "youtube:UiNqF_VyJBs",
+        "videoId": "UiNqF_VyJBs",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/UiNqF_VyJBs_000000_000010.mp4",
+        "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+        "archiveMember": "pull ups/UiNqF_VyJBs_000000_000010.mp4",
+        "bytes": 339583,
+        "sha256": "e415ba7ba7ada4b4970cbf66481e2de094dc65738cc2b3c777a93f552adcbbcd"
+      },
+      "reviewFrames": [
+        {
+          "image": "frame-0007.png",
+          "sha256": "ef9e1b9989b52e06fb8813eae2c33504ae7163f5ccf2e4ff86acd3295c149dc7",
+          "timestamp": {
+            "timescale": 15360,
+            "value": 28672
+          }
+        },
+        {
+          "image": "frame-0015.png",
+          "sha256": "e46798055720319c4d9e3e6ecce9700ff5173d76d55bc75c57cf52e33a0e1b17",
+          "timestamp": {
+            "timescale": 15360,
+            "value": 61440
+          }
+        },
+        {
+          "image": "frame-0023.png",
+          "sha256": "8e5454f531addfa2225ac3578080ec431585da084fd3b075994affdb0f9050c8",
+          "timestamp": {
+            "timescale": 15360,
+            "value": 94208
+          }
+        }
+      ],
+      "evidence": "Provisional agent review of three native upper-body/hand views before any classifier score; palm/dorsum relative to athlete. No neutral/rotating/one-arm grips. Not independent adjudication."
+    },
+    {
+      "id": "k700train_fzPBhZBluR8_000007_000017",
+      "recordingId": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "originalVideoSHA256": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e",
+      "sourceGroup": "youtube:fzPBhZBluR8",
+      "subjectId": null,
+      "label": "overhand",
+      "split": "test",
+      "viewpoint": "oblique",
+      "start": 1.5,
+      "end": 8.5,
+      "publisher": {
+        "id": "k700train_fzPBhZBluR8_000007_000017",
+        "videoId": "fzPBhZBluR8",
+        "title": "wide grip pull ups",
+        "author": "Science of Exercise",
+        "authorURL": "https://www.youtube.com/@scienceofexercise6772"
+      },
+      "media": {
+        "id": "k700train_fzPBhZBluR8_000007_000017",
+        "sourceGroup": "youtube:fzPBhZBluR8",
+        "videoId": "fzPBhZBluR8",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/fzPBhZBluR8_000007_000017.mp4",
+        "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+        "archiveMember": "pull ups/fzPBhZBluR8_000007_000017.mp4",
+        "bytes": 337024,
+        "sha256": "9a2d71b6af9ee9771ed7821c4d3502640b335033e7eb382fe83a742e9a06042e"
+      },
+      "reviewFrames": [
+        {
+          "image": "frame-0008.png",
+          "sha256": "900aff38004ca44f637c3192fed2ad64cb32d43abd002a827308454066e99a43",
+          "timestamp": {
+            "timescale": 12800,
+            "value": 28672
+          }
+        },
+        {
+          "image": "frame-0017.png",
+          "sha256": "dd2796aee4dc8650cc60dd56458b0edbeb96a50f70875542ff88d2a05cb30658",
+          "timestamp": {
+            "timescale": 12800,
+            "value": 60928
+          }
+        },
+        {
+          "image": "frame-0026.png",
+          "sha256": "950576d560c6164fb04acf15dff1a740f8fc91bbf6eb137423113aec5f78ccdb",
+          "timestamp": {
+            "timescale": 12800,
+            "value": 93184
+          }
+        }
+      ],
+      "evidence": "Provisional agent review of three native upper-body/hand views before any classifier score; palm/dorsum relative to athlete. No neutral/rotating/one-arm grips. Not independent adjudication."
+    },
+    {
+      "id": "k700train_uSzYBHbjLFI_000017_000027",
+      "recordingId": "3969ae6392a2831205b084e7f50cfc6db8bc9905b8ce88f6cf909f5843a405a2",
+      "originalVideoSHA256": "3969ae6392a2831205b084e7f50cfc6db8bc9905b8ce88f6cf909f5843a405a2",
+      "sourceGroup": "youtube:uSzYBHbjLFI",
+      "subjectId": null,
+      "label": "underhand",
+      "split": "test",
+      "viewpoint": "front",
+      "start": 1.5,
+      "end": 8.5,
+      "publisher": {
+        "id": "k700train_uSzYBHbjLFI_000017_000027",
+        "videoId": "uSzYBHbjLFI",
+        "title": "Assisted Pull Ups with Resistance Band",
+        "author": "The Ridge Athletic Club",
+        "authorURL": "https://www.youtube.com/@TheRidgeAthleticClub"
+      },
+      "media": {
+        "id": "k700train_uSzYBHbjLFI_000017_000027",
+        "sourceGroup": "youtube:uSzYBHbjLFI",
+        "videoId": "uSzYBHbjLFI",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/uSzYBHbjLFI_000017_000027.mp4",
+        "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+        "archiveMember": "pull ups/uSzYBHbjLFI_000017_000027.mp4",
+        "bytes": 532877,
+        "sha256": "3969ae6392a2831205b084e7f50cfc6db8bc9905b8ce88f6cf909f5843a405a2"
+      },
+      "reviewFrames": [
+        {
+          "image": "frame-0009.png",
+          "sha256": "53f9da759dbbb7f7a52d2d8fb685abf6051c9e4454ee55b37d4e53b99190034d",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 72072
+          }
+        },
+        {
+          "image": "frame-0018.png",
+          "sha256": "37b308efdacd8f51b13310924465e7d9383387ac48465a12c816b3b508e41408",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 144144
+          }
+        },
+        {
+          "image": "frame-0027.png",
+          "sha256": "c58b00f942266aa0769e8c417369d2bcf970c2a874f1a8a2e3eba5c5d7de3166",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 216216
+          }
+        }
+      ],
+      "evidence": "Provisional agent review of three native upper-body/hand views before any classifier score; palm/dorsum relative to athlete. No neutral/rotating/one-arm grips. Not independent adjudication."
+    }
+  ]
+}

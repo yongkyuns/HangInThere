@@ -1,0 +1,156 @@
+{
+  "artifact_archives": [
+    {
+      "archive_sha256": "12620c93ef291a00b357783875cbf1aebbd85d8685fd280b1356b36f2617446d",
+      "id": 11945423399,
+      "name": "workout-analysis-contracts",
+      "run_id": 38670979769
+    },
+    {
+      "archive_sha256": "e96e58aecef172823fbd95204ff1b910acf102ad2caaaa9c90a734ce53457838",
+      "id": 11944194410,
+      "name": "shared-parity",
+      "run_id": 38670979690
+    },
+    {
+      "archive_sha256": "21efe136aed61da70611b79fe1f4b51f5680a00bd69c8f6c69c88e8b3068d20a",
+      "id": 11946228446,
+      "name": "android-swift-api-29",
+      "run_id": 38670979690
+    },
+    {
+      "archive_sha256": "3779abb48981ad7a218ba44c8aec9fd102e57cb14d784316824fd15b0896096e",
+      "id": 11945908744,
+      "name": "android-swift-api-35",
+      "run_id": 38670979690
+    }
+  ],
+  "checkout_commit": "d98daf32f8586d603d256a1603a1649ecb4fea5a",
+  "checkout_tree_matches_workflow_head": true,
+  "checkout_tree_sha": "0f862a43b8602e2d7ab1cbbdfaedd51ad847f81d",
+  "jvm_tests": {
+    "shared-parity": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 315
+    },
+    "workout-analysis-contracts": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 315
+    }
+  },
+  "local_failed_timings_preserved": true,
+  "native_android": {
+    "api29": {
+      "cases": [
+        {
+          "auto_movements": 1,
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "role": "positive",
+          "rounded_peak_pss_mib": 441.1,
+          "rounded_pipeline_p95_ms": 162.0,
+          "rounded_pose_p95_ms": 102.0
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 434.5,
+          "rounded_pipeline_p95_ms": 113.4,
+          "rounded_pose_p95_ms": 99.1
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 314.2,
+          "rounded_pipeline_p95_ms": 189.2,
+          "rounded_pose_p95_ms": 101.6
+        }
+      ],
+      "job_conclusion": "success",
+      "job_id": 116213788923,
+      "log_section": "actual check-android-evaluation --native step; unit-test fixture output excluded",
+      "log_sha256": "fc3c7bce81982686edf7a59f08d073775ecdef492fcb7a964d6983a1c1f20af7",
+      "scope": "CI-native emulator regression budgets; rounded scalar log summaries; physical camera/device performance excluded"
+    },
+    "api35": {
+      "cases": [
+        {
+          "auto_movements": 1,
+          "expected_movements": 1,
+          "fixed_edge_movements": 1,
+          "frames": 108,
+          "id": "pullup_margin",
+          "role": "positive",
+          "rounded_peak_pss_mib": 425.0,
+          "rounded_pipeline_p95_ms": 137.0,
+          "rounded_pose_p95_ms": 91.8
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 1,
+          "fixed_edge_movements": 0,
+          "frames": 40,
+          "id": "pullup_smoke",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 418.2,
+          "rounded_pipeline_p95_ms": 102.0,
+          "rounded_pose_p95_ms": 90.7
+        },
+        {
+          "auto_movements": 0,
+          "expected_movements": 9,
+          "fixed_edge_movements": 0,
+          "frames": 300,
+          "id": "dip_controlled_pexels",
+          "role": "diagnostic",
+          "rounded_peak_pss_mib": 302.6,
+          "rounded_pipeline_p95_ms": 166.0,
+          "rounded_pose_p95_ms": 94.4
+        }
+      ],
+      "job_conclusion": "success",
+      "job_id": 116213788665,
+      "log_section": "actual check-android-evaluation --native step; unit-test fixture output excluded",
+      "log_sha256": "eacef56f308c6e19dc96fb6bcada96a919de18e1beab8485b1cd57b7b2d67770",
+      "scope": "CI-native emulator regression budgets; rounded scalar log summaries; physical camera/device performance excluded"
+    }
+  },
+  "native_export_source_normalization": "independently checked from verified archive",
+  "original_accuracy": {
+    "api29": "failure",
+    "api35": "failure",
+    "dip_controlled_pexels": {
+      "auto": 0,
+      "expected": 9,
+      "fixed": 0
+    },
+    "pullup_smoke": {
+      "auto": 0,
+      "expected": 1,
+      "fixed": 0
+    },
+    "run_id": 38670979690
+  },
+  "retained_report_sha256": {
+    "public-workout-grip-assessment-ci.android-api29.parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "public-workout-grip-assessment-ci.android-api35.parity.json": "8787854c84e1ebd729dded906e1b4aa00758e9041f9548adfc77abfd8789e557",
+    "public-workout-grip-assessment-ci.bridge.json": "2f8b77bc6b8eaecc8ea4b6ce5b478625705809962fd6ac060027b72d1723091c",
+    "public-workout-grip-assessment-ci.core.json": "c3e74e9d125b6b5b68aa17f97ed8d54b1bb8b9b945edd66b008a3171cf2958b4"
+  },
+  "scope": "completed grip-assessment CI at 1bb4378; excludes later visibility-guidance changes and physical devices",
+  "workflow_head_sha": "1bb43782050142cbefe6ad15d215d13ae44b9dbf"
+}

@@ -1,0 +1,728 @@
+{
+  "schemaVersion": 1,
+  "qualification": "Two agent visual passes, not independent human gold labels; inference inputs remain unchanged",
+  "inputs": {
+    "build/grip-surface-v2/publisher-first-pass/rows.jsonl": "2c36be35ea04b3f38efb444343aff2af4f9482b25385ba47a488785fc38c4036",
+    "build/grip-surface-v2/publisher-first-review.json": "aed4f2c9d3d4355165bf0f0ca05385c10694e13c61b09af472fe082ed54f5093",
+    "build/grip-surface-v2/publisher-second-review.json": "7b9f7f6c11098716bdfaaaf2986bd285bc4c4a56bee55f6aaac679a40bb4ca11"
+  },
+  "outputSHA256": "c3e9275ab6ba194d364a00e9d2f048905de194d72c9a2b9d072f6b769eb3e5e8",
+  "reviewedPages": {
+    "first": [
+      "build/grip-surface-v2/publisher-first-pass/review-01.png",
+      "build/grip-surface-v2/publisher-first-pass/review-02.png"
+    ],
+    "second": [
+      "build/grip-surface-v2/publisher-second-pass/review-01.png",
+      "build/grip-surface-v2/publisher-second-pass/review-02.png"
+    ]
+  },
+  "frames": [
+    {
+      "id": "P0001",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "085b8b24f6ba1783884a5d5a2894df8fca4f734dd7c77eefe9ee4e7cc43f937c",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "P0002",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "abea9d7cab62204af7fbdbc75540b23eb0c1ac58ba7c231556f11c8e7d1c2ef6",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "P0003",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "c1689842aa31da57abbcd95c261c63be5e18d2ff36a83041270c6b7075400071",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "P0004",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "87b7564de5e5a59e26eef1e686f151375ddbd0acb5b552280f5a3913cb051f73",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 192000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "P0005",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "48b97081a8785159e04fca5fc591dc3d351e06422f1ca9cc6e600bc4c01babe5",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "P0006",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "a6ed1430b144edcdaac437ab59f472a89558248f7ce0d9e9f05aa8c4ad10f8b9",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "P0007",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "cc4b9febc20aa151bd66c93b5171a4d5c52fe29cb672bfa14ce031e81e73dacd",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "P0008",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "2a57859d0bae72ae7c1a47122d12022a7ebe33049f24a2f5564963409ba55918",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 192000
+      },
+      "split": "train",
+      "grip": "neutral",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    }
+  ],
+  "patches": [
+    {
+      "reviewId": "P0001",
+      "frameId": "P0001",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "085b8b24f6ba1783884a5d5a2894df8fca4f734dd7c77eefe9ee4e7cc43f937c",
+      "patchSHA256": "a60ff07f94189a6cf3f080393ef59d3dbe7e8814efea4d0e171c55f591a0e23f",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48000
+      },
+      "side": "left",
+      "box": [
+        664,
+        111,
+        766,
+        213
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0002",
+      "frameId": "P0001",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "085b8b24f6ba1783884a5d5a2894df8fca4f734dd7c77eefe9ee4e7cc43f937c",
+      "patchSHA256": "cb13adb4fa5ad8788d9a403017c00f50e148e5d37ce43e81a687ef0e85577b63",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48000
+      },
+      "side": "right",
+      "box": [
+        499,
+        144,
+        618,
+        263
+      ],
+      "split": "train",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0003",
+      "frameId": "P0002",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "abea9d7cab62204af7fbdbc75540b23eb0c1ac58ba7c231556f11c8e7d1c2ef6",
+      "patchSHA256": "d060c54509bb6289b4aab6ccb029575a9dc5bc3163c9c52ff1016443076d6329",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96000
+      },
+      "side": "left",
+      "box": [
+        647,
+        78,
+        777,
+        208
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0004",
+      "frameId": "P0002",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "abea9d7cab62204af7fbdbc75540b23eb0c1ac58ba7c231556f11c8e7d1c2ef6",
+      "patchSHA256": "3c33eae50d31434ab6bebc3d28c4e363da3f3aad677d7ffe8e2b58175085ec99",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96000
+      },
+      "side": "right",
+      "box": [
+        502,
+        185,
+        585,
+        268
+      ],
+      "split": "train",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0005",
+      "frameId": "P0003",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "c1689842aa31da57abbcd95c261c63be5e18d2ff36a83041270c6b7075400071",
+      "patchSHA256": "bc2a8eb272384d6c4c5af00d12d748871ffd69c260da691d60cfea0ac2e1bd16",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144000
+      },
+      "side": "left",
+      "box": [
+        665,
+        111,
+        766,
+        212
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0006",
+      "frameId": "P0003",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "c1689842aa31da57abbcd95c261c63be5e18d2ff36a83041270c6b7075400071",
+      "patchSHA256": "b91a3425823ee479e3d4d7f669b7395ae4c6a2a0285e71dadd8e5eba7da6c602",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144000
+      },
+      "side": "right",
+      "box": [
+        494,
+        142,
+        617,
+        265
+      ],
+      "split": "train",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0007",
+      "frameId": "P0004",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "87b7564de5e5a59e26eef1e686f151375ddbd0acb5b552280f5a3913cb051f73",
+      "patchSHA256": "cd1ea895574ed13d09fe4cc54c2dbe6c4614316e96cc737490fea7ff53b5e77d",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 192000
+      },
+      "side": "left",
+      "box": [
+        657,
+        103,
+        778,
+        224
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0008",
+      "frameId": "P0004",
+      "caseId": "gymkee-neutral-angle1",
+      "recordingId": "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+      "imageSHA256": "87b7564de5e5a59e26eef1e686f151375ddbd0acb5b552280f5a3913cb051f73",
+      "patchSHA256": "064ecc20c582f9fac4e89ca127273543c49769e6dacd90920a0b0f34f09e9dfe",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 192000
+      },
+      "side": "right",
+      "box": [
+        490,
+        139,
+        618,
+        267
+      ],
+      "split": "train",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0009",
+      "frameId": "P0005",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "48b97081a8785159e04fca5fc591dc3d351e06422f1ca9cc6e600bc4c01babe5",
+      "patchSHA256": "caee666dc4a95c3248d55572c4a6bbd8f2a2574679528360e8832cbb261d1024",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48000
+      },
+      "side": "left",
+      "box": [
+        694,
+        82,
+        795,
+        183
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0010",
+      "frameId": "P0005",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "48b97081a8785159e04fca5fc591dc3d351e06422f1ca9cc6e600bc4c01babe5",
+      "patchSHA256": "a62eaa7d80a7c8eba41a4a2a5937cebc8ecc5a7a69b557b13ee8156ed3ca0e0d",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48000
+      },
+      "side": "right",
+      "box": [
+        457,
+        85,
+        556,
+        184
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0011",
+      "frameId": "P0006",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "a6ed1430b144edcdaac437ab59f472a89558248f7ce0d9e9f05aa8c4ad10f8b9",
+      "patchSHA256": "67dcb9da4edad793b2aebe0cf069cb6dcdf79014d66bd02109b5a83ba8180c7b",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96000
+      },
+      "side": "left",
+      "box": [
+        697,
+        83,
+        794,
+        180
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0012",
+      "frameId": "P0006",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "a6ed1430b144edcdaac437ab59f472a89558248f7ce0d9e9f05aa8c4ad10f8b9",
+      "patchSHA256": "4f97c33a63d300e0d79e79135a88e1f8e26dde33094cc9a4a25c465700b5d848",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96000
+      },
+      "side": "right",
+      "box": [
+        455,
+        82,
+        546,
+        173
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0013",
+      "frameId": "P0007",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "cc4b9febc20aa151bd66c93b5171a4d5c52fe29cb672bfa14ce031e81e73dacd",
+      "patchSHA256": "373ee523ba67d9384b67c14b9cc5db91494bae002e0730396527cb2628b099f7",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144000
+      },
+      "side": "left",
+      "box": [
+        696,
+        80,
+        800,
+        184
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0014",
+      "frameId": "P0007",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "cc4b9febc20aa151bd66c93b5171a4d5c52fe29cb672bfa14ce031e81e73dacd",
+      "patchSHA256": "725e329475219c98c015a18316219a98ef9ee5e0a817896413f1d8870097e910",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144000
+      },
+      "side": "right",
+      "box": [
+        463,
+        92,
+        542,
+        171
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0015",
+      "frameId": "P0008",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "2a57859d0bae72ae7c1a47122d12022a7ebe33049f24a2f5564963409ba55918",
+      "patchSHA256": "38b479b8db778e3975d83d4affddaa30a668c14908ed11064f39984e8cf177b4",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 192000
+      },
+      "side": "left",
+      "box": [
+        701,
+        86,
+        793,
+        178
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "P0016",
+      "frameId": "P0008",
+      "caseId": "gymkee-neutral-angle2",
+      "recordingId": "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+      "imageSHA256": "2a57859d0bae72ae7c1a47122d12022a7ebe33049f24a2f5564963409ba55918",
+      "patchSHA256": "fdd22cdb234fe6477458c75f1b4fc430dfc7a49cbaae728fc943939ae6c91e1d",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 192000
+      },
+      "side": "right",
+      "box": [
+        452,
+        80,
+        560,
+        188
+      ],
+      "split": "train",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "front",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 9,
+  "scope": "Front/rear supported grip cohort; qualify image-only anatomy before bounded fusion",
+  "freshReserve": "build/grip-front-rear-v9/combined-final-reserve.json",
+  "oldTestPolicy": "Earlier test sets remain regression-only; none enter fitting or checkpoint selection",
+  "trainingCandidates": "Existing surface-v2 train sources unchanged; supported views only. New validation development groups frozen before fitting; two-pass reviewed automatic hand crops.",
+  "surfaceClasses": [
+    "palm",
+    "dorsum",
+    "side"
+  ],
+  "unclearPolicy": "Directly reviewed unclear crops supervise a separate clear-visibility head, not a fourth anatomical surface",
+  "labels": "Two explicit pixel review passes with disagreements adjudicated; surface never derived from grip or athlete view; not independent human gold labels",
+  "localization": "Existing frozen SDK and automatic observed-wrist fallback; no manually localized validation/test inputs",
+  "samplingSeconds": "See bound per-source mining intake and original frame/PTS references",
+  "candidates": [
+    "MobileNetV3-small heads then full encoder fine-tuning",
+    "MobileNetV3-small heads then last encoder blocks fine-tuning"
+  ],
+  "selection": "Known-surface equal-class/equal-video validation NLL plus 0.25 visibility NLL; validation-only calibration; fresh test unread until final model frozen",
+  "trainingBudget": {
+    "warmupEpochs": 3,
+    "fineTuneEpochs": 30,
+    "patience": 8,
+    "seed": 3104
+  },
+  "qualificationGate": {
+    "validationKnownSurfaceRecallPerClass": 0.65,
+    "validationKnownSurfaceMacroRecall": 0.7,
+    "minimumValidationCropsPerClass": 6,
+    "minimumValidationVideosPerClass": 3
+  },
+  "fusion": "Only after surface validation gate passes: freeze image encoder; fit RGB-only neutral probability and RGB binary-grip heads; bounded palm/dorsum x front/rear correction changes overhand-vs-underhand odds only. Neutral probability must be exactly invariant to supplied view.",
+  "confidence": {
+    "surface": 0.8,
+    "visible": 0.8,
+    "grip": 0.8,
+    "closedContact": 0.8
+  },
+  "testSelection": "At most four supported videos per grip/view cell in recording SHA order, before hand pixels or classifier scores; no replacements after crop review; missing and invalid inputs retained",
+  "storage": "Reuse cached publisher archive and existing fitting pixels. Bound native extraction to selected videos, check free space before export, clean compiler caches between jobs, retain evidence/models/labels.",
+  "trainingAddendum": {
+    "role": "validation",
+    "newPublishers": [
+      "Tuscaloosa Fitness",
+      "StrengthLog",
+      "MyTrainingPRO"
+    ],
+    "groupPolicy": "All angles and clips of each publisher athlete stay in validation; Legion oblique clips retained as unsupported inputs, not coverage"
+  },
+  "minimumReadableIndependentGroupsPerGripViewRole": 3,
+  "trainingCorrection": "Equal class/source-group loss per head via importance correction against sampled batch probabilities; keep positive and negative quality learning represented"
+}

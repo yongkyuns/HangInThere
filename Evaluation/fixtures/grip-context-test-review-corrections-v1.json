@@ -1,0 +1,12 @@
+{
+  "qualification": "pre-inference visual correction; original frozen annotation retained",
+  "corrections": [
+    {
+      "recordingId": "e415ba7ba7ada4b4970cbf66481e2de094dc65738cc2b3c777a93f552adcbbcd",
+      "caseId": "k700train_UiNqF_VyJBs_000000_000010",
+      "status": "unresolvedGrip",
+      "label": null,
+      "reason": "Enlarged review does not establish palm/dorsum clearly enough to justify a binary reference. Primary-body detection also yields no eligible hand patches, but that is not the basis for withdrawing the label. No classifier predictions inspected."
+    }
+  ]
+}

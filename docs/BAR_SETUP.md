@@ -26,13 +26,35 @@ replacement, and exercise changes discard acquisition history.
 In video review, press **Play** to acquire the bar. A successful lock automatically
 rewinds once and resumes with that fixed edge, including movements before lock.
 This assumes a fixed-camera recording, as the existing manual review workflow does.
-Dips also acquire grip rails automatically while the athlete holds top support
-with both hands visible. Separate local contour searches require paired visible
-handle edges, then stable grip/rail evidence before calibrating the selected
+Dips also acquire observed support automatically while the athlete holds top
+support with both hands visible. Separate local contour searches require paired
+visible handle edges, then stable grip/rail evidence before calibrating the selected
 anatomical rail. A fresh matching edge can maintain an already witnessed handle
-through partial occlusion. The rails may project vertically. Pose guides the
-search; it never creates the apparatus line. Live then waits for the three-second
-top-support countdown. Recorded review rewinds once with the acquired fixed rail.
+through partial occlusion. The rails may project vertically.
+The search retains observed straight fragments of curved handles down to the
+existing paired-support minimum (24 pixels or 4% of the image short side).
+Their visible endpoints may begin at the grip; an edge extending above the
+grip cannot qualify. No endpoints or silhouettes are inferred.
+
+Local single-rail and bilateral searches use measured-arm context policy 2.
+When the wrist lies clearly to one side of its shoulder, the crop includes an
+upper-arm length beyond that wrist, bounded by the source image. The original
+body exclusion and vertical range stay in place. This gives the detector room
+to observe rail pixels beyond an occluding hand. Qualification still requires
+the existing finite-pair, below-wrist, uniqueness and source-dwell checks.
+The shared central-bar and pull-up search regions use their existing recipes.
+
+A third bounded crop searches for a straight bar shared by both hands. Every
+sample must supply a fresh paired silhouette with finite overlapping support
+across at least half the grip span. Its near-horizontal upper observed edge must
+reach near both hands, and the paired centerline must lie on/below both wrists.
+Distinct eligible bars remain ambiguous. Missing paired evidence resets dwell;
+an old pair or an inferred between-wrists line cannot qualify shared support.
+Independent rail acquisition keeps priority. Both modes require four consistent
+observations over 0.9 source seconds and retain the selected anatomical grip role.
+Pose guides the search; it never creates the apparatus line. Live then waits for
+the three-second top-support countdown. Recorded review rewinds once with the
+acquired fixed reference.
 
 Use **Set bar manually** for unclear pull-up or dip views.
 

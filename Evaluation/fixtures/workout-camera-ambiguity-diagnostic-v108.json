@@ -1,0 +1,49 @@
+{
+  "at": "2026-10-28T18:38:06.532659+00:00",
+  "scope": "Postprediction development diagnostic only; no production detector or counter change, no fresh accuracy gain or qualification.",
+  "currentRuntime": {
+    "overheadCount": 4,
+    "overheadBoundary": 8,
+    "dipCount": 2,
+    "dipBoundary": 4,
+    "nativeCamera": 3
+  },
+  "source": {
+    "id": "e_qAb9j-Ws0",
+    "sha256": "ebfea2b7d399fa74246d35890d00f23039ec0854c1329f0a18cf495724e166a3",
+    "usage": "Already exposed development source; keep out of final untouched tests."
+  },
+  "actualNativeRawDeficitCauses": {
+    "cameraUnavailable": 2,
+    "bodyObservationOutage": 2
+  },
+  "directPixelEvidence": {
+    "originalProviderHashesVerified": 8,
+    "exactSameProductionRegistrationPairsVerified": 4,
+    "actualCancellationFrameAmbiguitiesVerified": 2
+  },
+  "proposedFallback": "Only competingTransforms; require all maximum-consensus hypotheses spatially supported and every four-corner translation, actual inlier translation and scale change within existing .008/.008/.012 limits. No selected favorable fit or averaging. Not integrated.",
+  "controls": {
+    "retainedNativeResultCases": 107,
+    "retainedAmbiguityCases": 1,
+    "authoredControlsPassed": 5,
+    "unsafeControlsNewlyAccepted": []
+  },
+  "samplingCorrection": "Periodic registration measurements persist in later rows. Comparing a row image to a prior sampled registration caused the earlier apparent PNG/direct differences. For all four identical reference/current pairs, direct and production reasons/correspondence/inlier counts agree. No PNG-induced discrepancy is established.",
+  "unchangedDevelopmentScore": {
+    "expectedCycles": 40,
+    "emittedCounts": 36,
+    "pairedPeakReturnMatchesAtHalfSecond": 32,
+    "rawExactSets": 5,
+    "sets": 8
+  },
+  "cacheBytesReclaimed": 123889245,
+  "phoneAccessed": false,
+  "qualifiedSets": 0,
+  "productionReady": false,
+  "evidence": [
+    "build/remaining-count-causes-v108/direct-verification.json",
+    "build/remaining-count-causes-v108/actual-native-interruptions.json",
+    "build/remaining-count-causes-v108/failure-source-examples.png"
+  ]
+}

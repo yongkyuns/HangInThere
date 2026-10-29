@@ -1,0 +1,74 @@
+{
+  "candidate_promotion": false,
+  "count_policy_changed": false,
+  "goal_complete": false,
+  "heavy_world_screen": {
+    "decision": "No demonstrated event recovery; not promoted",
+    "device_performance_qualified": false,
+    "host_median_ms": 124.21073648147285,
+    "host_p95_ms": 133.09562904760242,
+    "model_sha256": "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
+    "runtime": "MediaPipe Python0.10.21 CPU VIDEO, two poses, matching pinned Android task/options; not native SDK runtime parity",
+    "sides": {
+      "left": {
+        "false_negatives": 9,
+        "false_positives": 0,
+        "true_positives": 0
+      },
+      "right": {
+        "false_negatives": 9,
+        "false_positives": 0,
+        "true_positives": 0
+      }
+    },
+    "source_frames": 300,
+    "source_inputs_verified": 300
+  },
+  "readiness_repair": {
+    "android_unit_tests": 31,
+    "baseline_failures": 7,
+    "baseline_tests": 12,
+    "compiled_swift_bridge": {
+      "host_budget_ms": 5,
+      "passed": true,
+      "performance_scope": "Authored Apple host FFI; not camera/model/device throughput",
+      "readiness_checks": 160,
+      "readiness_frames": 2000,
+      "readiness_host_p95_ms": 0.001471
+    },
+    "original_production_accuracy": "Last completed frozen production replay1/26 matched,25misses,0extras over1866frames. No improvement claimed by this timing change.",
+    "scope": "Exact rational source-clock hold/gap comparisons and retained high-water fences through missing, regressed, ineligible or mismatched-clock callbacks",
+    "shared_jvm_tests": 446,
+    "shared_native_tests": 433
+  },
+  "retained_evidence": {
+    "availability": "Ignored local public-only artifacts; hashes identify retained evidence, not independent reproduction",
+    "files": 17,
+    "path": "build/dip-heavy-provider-goal/rejected-acquisition-evidence.json",
+    "sha256": "c6ddb1c52c275c47ae322747b4a0709b950b38b80a477e52920020852d6dcbc9"
+  },
+  "schema_version": 1,
+  "scope": "Rejected public controlled-dip development screens; production readiness timing repair evaluated separately",
+  "starting_geometry_changed": false,
+  "strict_accuracy_gate_waived": false,
+  "supported_hold_screen": {
+    "decision": "No qualified hold even under bypass; prototype removed from shipping sources. No threshold retuning or rep acceptance inferred.",
+    "independent_apparatus_qualification_bypassed": true,
+    "independent_camera_qualification_bypassed": true,
+    "reference": "Each side uses one actual first-frame LSD proposal, frozen for this isolation diagnostic; not a qualified apparatus identity",
+    "scope": "isolated selected-dip activity gate; fixed actual first-frame LSD rail; bypasses independent camera and apparatus qualification; never events or production accuracy",
+    "sides": {
+      "left": {
+        "extended_start_frames": 0,
+        "qualified_holds": 0,
+        "support_frames": 28
+      },
+      "right": {
+        "extended_start_frames": 0,
+        "qualified_holds": 0,
+        "support_frames": 19
+      }
+    },
+    "source_frames": 300
+  }
+}

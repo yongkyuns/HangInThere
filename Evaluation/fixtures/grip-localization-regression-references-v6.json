@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 6,
+  "sourceInputSHA256": "17d19064bf97d2a609ca13956a46828419d5c2eff41f3ee99090d3115aa0c51e",
+  "annotation": "Source-only count/identity of complete visible target hands; no detector boxes/labels used as reference. Direct agent review, not independent human gold. No hand rectangles supplied to inference.",
+  "frames": [
+    {
+      "frameId": "R001",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "6a8fcbf5b5af12a722a0b4e974cd2f50fb3fffc5c43d1c8fa686a864a57e4139",
+      "expectedHands": [],
+      "reason": "Grip hands outside source image; forearms do not constitute complete hands.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R002",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "1850b378820f39ead9523ad0c15a151e80bd4130e7d9a1aad8386d9693f6cb54",
+      "expectedHands": [],
+      "reason": "Grip hands outside source image; forearms do not constitute complete hands.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R003",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "eac5e84daee2f7c57d69ee5f8369c023d7277663d90c6784021c532851aedcf1",
+      "expectedHands": [],
+      "reason": "Grip hands outside source image; forearms do not constitute complete hands.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R019",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "5b4d603a0b742fc8bec93524a9896b47fa244e5388a8169c50cb4b8ffbcea4dc",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R020",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "4fc71f99ef66a71a76dba7722ac0a3f82c51c4acd82e0a929a59d256d1a9631a",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R021",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "5dc8805718edb402d02f8498ee82a8f60134e701cff970ce4f776afef71b759c",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R010",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "ec47bc17ec7b616d7eea66de07c33f6f4e544a773011d2b61cb9a5bc8531891b",
+      "expectedHands": [],
+      "reason": "Main gripping hand at source edge/partly outside; relaxed hand is not grip evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R011",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "ec9783ed0bba290ab35ef704b144f554639b496762568828405441406de63887",
+      "expectedHands": [],
+      "reason": "Main gripping hand at source edge/partly outside; relaxed hand is not grip evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R012",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "1a4ba3222363499a42bfbdd50e7c811a37938f95a705cb4910ea933f1ceec974",
+      "expectedHands": [
+        "h1"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R007",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "b00bba03b17f162cfe0ed5cb3d1f98a5663afffc39b89020d16ee322ad4cf921",
+      "expectedHands": [
+        "h2"
+      ],
+      "reason": "Purple-shirt athlete clear with coach; image-left hand hidden behind equipment at overhead moments. Only image-right complete hand is eligible.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R008",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "612bb4cb3f955d6a8b7029679c6a8f2cc5fa60496378ca9ef935edaef590a090",
+      "expectedHands": [
+        "h2"
+      ],
+      "reason": "Purple-shirt athlete clear with coach; image-left hand hidden behind equipment at overhead moments. Only image-right complete hand is eligible.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R009",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "c15d0d96f79a6cb33581f5b09e1ed2b40b37682c6114b42d21dba21c54b16310",
+      "expectedHands": [
+        "h2"
+      ],
+      "reason": "Purple-shirt athlete clear with coach; image-left hand hidden behind equipment at overhead moments. Only image-right complete hand is eligible.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R013",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "0ce02f9472adcb2d1058527b0ce02395f1ab2f78262af0db7e26bf095d2414f0",
+      "expectedHands": [],
+      "reason": "Two simultaneously active athletes; no uniquely designated main subject.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R014",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "a4475a96ba98523347b5673385de250ac406846b3faa9f0a9e88033ae2099ed8",
+      "expectedHands": [],
+      "reason": "Two simultaneously active athletes; no uniquely designated main subject.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R015",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "2d768c79e6ff63d69f4fe2720092b260be15d462090ad9f98ad82fb445f2f24c",
+      "expectedHands": [],
+      "reason": "Two simultaneously active athletes; no uniquely designated main subject.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R022",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "b420bafb400d0978602d75dc51dd7d45b5599de4f2e5c9002fffb2a64a31d51c",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R023",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "6303fce8e65510b3c9f98415d57592c74fe738ce16e3f0d2be225231913cd70b",
+      "expectedHands": [
+        "h1"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R024",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "baa6fb77e813620a31e6bcc2262a2f0fa58971ad98f6f8908f629dbc6b1a5790",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R004",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "edb6c28ef9fba06bdb48a8095dbbf57d63cc5c80e9592916ca34e5b2ee182c6b",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R005",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "3c12780568a90c34c02f5f0b5720c31b5462e8fe3c69227ec630a2a2fb6f861d",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R006",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "2af7ebd98917ce60d3d69bb31f51ed1bc849f75ddaf779c5a30b82d56841f9ff",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R016",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "imageSHA256": "effaa268a68df44b98d3e82e0bbec3d7305753ffcc2c479191e5b0a8d67d9c07",
+      "expectedHands": [],
+      "reason": "Close hand partly outside image-left edge; full body pose absent.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R017",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "imageSHA256": "cba625e2d347c14508ab77967141c5653132d252dbf0a078fac8f18f10ebf9e5",
+      "expectedHands": [
+        "h1"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "R018",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "imageSHA256": "f39c2e64334362dd4e678d370305df6b9c91e75645a7e9ff962aec76d6b2f8d8",
+      "expectedHands": [],
+      "reason": "Close fingers/source hand edges clipped at image top.",
+      "reviewer": "agent",
+      "humanVerified": false
+    }
+  ]
+}

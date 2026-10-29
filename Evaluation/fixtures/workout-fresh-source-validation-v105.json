@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-28T16:58:34.182142+00:00",
+  "sourceBatches": 2,
+  "acquiredOriginalVideos": 7,
+  "acquiredOriginalVideoBytes": 89746265,
+  "sourceOnlyExcluded": [
+    {
+      "id": "HGws1jsdPTg",
+      "sourceSHA256": "16f33cd0c9b9f4b86a3b5c74c04bd0abb356326d5b683abf0fbc5d1952af5947",
+      "decision": "Exclude before inference: exercise is side-on; head/shoulders are cropped during support and camera framing changes between explanation and exercise.",
+      "reviewInventorySHA256": "c631af8b72d8e21c75c5b5b43fbcc003f16ac83fa8a32cdbb0fd2310f4e79477",
+      "screen": "Six original-frame samples only",
+      "inferenceRun": false,
+      "wholeSourceExhaustivelyReviewed": false,
+      "qualifiedSets": 0
+    },
+    {
+      "id": "7BQ-qXp7LGg",
+      "sourceSHA256": "406766b409b0b2a2e38626bcbecf10c2b6ada03bb3da6e771338317fb660763a",
+      "decision": "Exclude before inference: edited title cards and front/rear shot changes; active shots crop the head/upper body, with no continuous full-session setup/rest sequence.",
+      "reviewInventorySHA256": "493dab971225287eb0d4d370c7ba8efe140d059dfad890a3b01769e3168f5702",
+      "screen": "Six original-frame samples only",
+      "inferenceRun": false,
+      "wholeSourceExhaustivelyReviewed": false,
+      "qualifiedSets": 0
+    },
+    {
+      "id": "cychKNOaz9c",
+      "sourceSHA256": "891f586a4c66f8709317f4105629d086e16922cba0df7ce569bf0de47571f201",
+      "decision": "Exclude before inference: 192x144 source with moving low upward viewpoint and body/bar cropping, outside near-level clear-joint profile.",
+      "reviewInventorySHA256": "1a7f50a1b8a4b79f69b69bd13dc225d9669ebcd28723eaeac57ef232cbbcb84d",
+      "screen": "Six original-frame samples only",
+      "inferenceRun": false,
+      "wholeSourceExhaustivelyReviewed": false,
+      "qualifiedSets": 0
+    },
+    {
+      "id": "xQUmDMImx8s",
+      "sourceSHA256": "ac8a6cc046f1f513faacd260cbdeabf2db7bd6db81890647e7d71ea8db781a44",
+      "decision": "Exclude before inference: distant rear-oblique/side exercise, far arm hidden by torso/apparatus and initial camera framing changes.",
+      "reviewInventorySHA256": "7e1fe80fbabd8f0e518c2c0298daf13afcc4297636f4f1112cc2bd6c1fba07fc",
+      "screen": "Six original-frame samples only",
+      "inferenceRun": false,
+      "wholeSourceExhaustivelyReviewed": false,
+      "qualifiedSets": 0
+    },
+    {
+      "id": "MyoMCiKQTfY",
+      "sourceSHA256": "8e10a141ec4e1ea71aad032bf078c032da531e52f2f4b90de67b4770aee5f938",
+      "decision": "Exclude before inference: composited picture-in-picture duplicates the athlete, steep upward ceiling view, framing/head/arm occlusion and camera movement at source end. Not a single fixed near-level front/rear capture.",
+      "reviewInventorySHA256": "cab731beeb3d1f58cbbbd898fda24588405a90317be0c79d384953f59978be95",
+      "inferenceRun": false,
+      "qualifiedSets": 0
+    },
+    {
+      "id": "nlKzdNiu3pY",
+      "sourceSHA256": "34d97cea55cc9f9ca145b3c23e55a740533c8b4f2828e02aed3f0a36e5dd16c3",
+      "decision": "Exclude before inference: title/outro edits, changing exercise shots and camera viewpoints. Reviewed samples show rows/deadlifts/curls, not a continuous supported-view full pull-up session. No claim that every source frame was exhaustively reviewed.",
+      "reviewInventorySHA256": "511d636d8bec2b01ba45b0ca852a6e44ede5451e1315cda9a92e30a58bae25a5",
+      "inferenceRun": false,
+      "qualifiedSets": 0
+    }
+  ],
+  "freshSourceDiagnostic": {
+    "id": "MHtHRpQrgOY",
+    "sourceURL": "https://www.youtube.com/watch?v=MHtHRpQrgOY",
+    "sourceSHA256": "dda7ff0ca2558354b773ea57fd0e339aaa82de6ba100323a18aae5de258b46d8",
+    "view": "front",
+    "originalFrames": 361,
+    "labelsFrozenBeforeBodyAndCounterInference": true,
+    "reference": "build/controlled-source-intake-v105/front-dip-source-reference-frozen.json",
+    "referenceSHA256": "d7b90b3b47bdb85482dfd95601cd6a244efe65b85d64772cbf53045643bb763d",
+    "paired": {
+      "0.5": {
+        "expectedVisibleCycles": 5,
+        "emittedCompletedCycles": 5,
+        "strictMatches": 5,
+        "strictPrecision": 1.0,
+        "strictRecall": 1.0,
+        "exactCycleWindows": 1,
+        "exactNaturalLifecycleBouts": 0
+      },
+      "0.2": {
+        "expectedVisibleCycles": 5,
+        "emittedCompletedCycles": 5,
+        "strictMatches": 5,
+        "strictPrecision": 1.0,
+        "strictRecall": 1.0,
+        "exactCycleWindows": 1,
+        "exactNaturalLifecycleBouts": 0
+      }
+    },
+    "runningPrefixes": 280,
+    "activeAtEOF": true,
+    "closedRecords": 0,
+    "setupAndDismountCompletions": 0,
+    "scope": "New single-source challenge now consumed; keep out of future untouched final-test groups. Not a fresh physical iPhone test or full lifecycle/capture qualification."
+  },
+  "qualificationCoverage": {
+    "pullUpFront": 0,
+    "pullUpRear": 0,
+    "dipFront": 0,
+    "dipRear": 0,
+    "independentAthletes": 0
+  },
+  "sampleSizeAndUncertainty": "build/controlled-source-intake-v105/sample-size-and-uncertainty.json",
+  "nativeResult": "build/controlled-source-intake-v105/native-verification.json",
+  "nativeTerminalSession": 69647,
+  "runtime": "Reuse unchanged v102 count4/boundary8 overhead, dip2/boundary4, native camera3 simulator runtime and existing verified runtime archive.",
+  "cache": "No duplicate native build/runtime archive; no downloader cache. Retained original videos, source-only exclusions, labels, review images, poses and native failures/results.",
+  "phoneAccessed": false,
+  "productionSourceChanged": false,
+  "productionReady": false,
+  "next": "Find genuinely supported front/rear uncut sessions with mounting, long enough release/rest and consecutive sets; establish participant grouping and independent review before inference. Existing owner clips and target-phone fresh inference/soak remain deferred until owner readiness. No after-prediction exclusion or relabelling of this five-cycle source."
+}

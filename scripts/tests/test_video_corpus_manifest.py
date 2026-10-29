@@ -4,10 +4,10 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MANIFEST = ROOT / "HangInThereTests" / "Fixtures" / "corpus.json"
-RESULT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-result.json"
-NEXT_HELDOUT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-v2.json"
-HELDOUT_V2_RESULT = ROOT / "HangInThereTests" / "Fixtures" / "dip-heldout-v2-result.json"
+MANIFEST = ROOT / "ios" / "HangInThereTests" / "Fixtures" / "corpus.json"
+RESULT = ROOT / "ios" / "HangInThereTests" / "Fixtures" / "dip-heldout-result.json"
+NEXT_HELDOUT = ROOT / "ios" / "HangInThereTests" / "Fixtures" / "dip-heldout-v2.json"
+HELDOUT_V2_RESULT = ROOT / "ios" / "HangInThereTests" / "Fixtures" / "dip-heldout-v2-result.json"
 
 
 class VideoCorpusManifestTests(unittest.TestCase):

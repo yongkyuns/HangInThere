@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 1,
+  "qualification": "Metadata inventory of inherited two-pass agent annotations; not independent gold, not fresh-test accuracy, no relabeling or fitting.",
+  "input": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/fitting.jsonl",
+  "inputSHA256": "fe13da19ff490ea1d71d09837e3f7806b1897fb13690b0327ef20bb58e5ef1c7",
+  "scriptSHA256": "f3e7a3fb68cc7621d8b042aa0bb9416544597de4984b9b94620ded0d513f54d7",
+  "proposedSupportedViews": [
+    "front",
+    "rear"
+  ],
+  "unsupportedViews": [
+    "oblique",
+    "unverifiable"
+  ],
+  "gripClasses": [
+    "overhand",
+    "underhand",
+    "neutral"
+  ],
+  "minimumReadableGroupsPerFittingCell": 3,
+  "minimumDescription": "Development coverage floor, not a statistical reliability claim or replacement for existing model-validation gates.",
+  "sourceRolesPreserved": true,
+  "cells": [
+    {
+      "split": "train",
+      "grip": "neutral",
+      "view": "front",
+      "availablePatches": 17,
+      "readableClosedPatches": 15,
+      "readableSourceGroups": 4,
+      "sourceGroups": [
+        "gymkee:ckdpq4q1g002bfo488d871c7t:male",
+        "youtube:9JQRe4GZXG8",
+        "youtube:P8Hg-rCJwDY",
+        "youtube:s59PqZ9TTq0"
+      ],
+      "recordings": [
+        "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+        "31c2e88c1462eb5a8eafacd9a14d698c1a816885f36f6ae9b63b45400cd04264",
+        "8bd6b54ce6e7a788befee5c2ead7f0bb7dd2ce1bb56495f283c561376ec7ecfb",
+        "e2dacb2c0247ac8ff4fd7af1df477145a0cfcb2fa0697435929c436807b5ad70"
+      ]
+    },
+    {
+      "split": "train",
+      "grip": "neutral",
+      "view": "rear",
+      "availablePatches": 18,
+      "readableClosedPatches": 11,
+      "readableSourceGroups": 3,
+      "sourceGroups": [
+        "youtube:M4EjEpCwpnM",
+        "youtube:NFcwjLi-rJI",
+        "youtube:et1utOz1hZE"
+      ],
+      "recordings": [
+        "6b7f59321df8a300293985ff446b71035fe6e305d04d433c6c5f5e3568ea9cc3",
+        "90d32610742c65b3bc0ed4bb318c059ccc195b7339b5e97d6a702a193265eac4",
+        "ec7a04d4722755b96db65d63687233eeb65e08b4ed7be1c1b9028eb0c95acdde"
+      ]
+    },
+    {
+      "split": "train",
+      "grip": "overhand",
+      "view": "front",
+      "availablePatches": 105,
+      "readableClosedPatches": 90,
+      "readableSourceGroups": 24,
+      "sourceGroups": [
+        "recording:da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+        "youtube:3GtoTP6A9QY",
+        "youtube:9WvH8at_xJw",
+        "youtube:BrtUG9jAsJI",
+        "youtube:FYxB-Nxml-o",
+        "youtube:GBNGV08S_m0",
+        "youtube:OZJD5fKVE1Y",
+        "youtube:OhUyM53Y_74",
+        "youtube:SIAHCQ15a3k",
+        "youtube:TIZ4oTuiUog",
+        "youtube:TindOf7zyXM",
+        "youtube:UGFRvAB22fg",
+        "youtube:Vq7BKfn8PIQ",
+        "youtube:XFBNb_egCr8",
+        "youtube:cptVIr4OJx8",
+        "youtube:cvcuLaZeG2A",
+        "youtube:lTUoHbXpx5Y",
+        "youtube:rXKhJeF0HlU",
+        "youtube:rfnTdizkBcY",
+        "youtube:sBrsZ8VITLc",
+        "youtube:tSs1fVXMuPA",
+        "youtube:wWRoIIKdu0g",
+        "youtube:yLe2apbmnjY",
+        "youtube:z-5bAAt5omo"
+      ],
+      "recordings": [
+        "1239828dd12d94048982a8559d24f7826891833d2f68535c0754f89819b99e46",
+        "12c15f6c6f930f1bd83ddac46018e372e94f1257f60b16cb6c556352a54791bb",
+        "18f99ea2011c0b768ad8a13684023a62269f8c37469bcf8f1e737f5676f6d96d",
+        "19c37a92e3d962a86daf8ea68568a421412f84a6bf744e2f679f5697c72ab783",
+        "1a2c0d0c12ecfe461e4dd78b534534154e1c66df9759c0c3afadac1464a18b83",
+        "1ab47f6011b0b7700e4d3fab9dd62d87432d9fc94aa5baa057910c478cc25626",
+        "1dc066bdb3de484f4312e31401e171067d01650af8bc6d4eddb986dd92e11d5a",
+        "1e424fceef7e599ab8de8b437fec966fe087aa378fbe6d09543f60fcb5f34df6",
+        "21a7af651d66f431912c1f6c45f1e63bfb8ae00848aa213307c0873523db9af7",
+        "3eda74d2da970ac4bb48051b0bb066c088fbe0503c6788e0724d26b7573043dd",
+        "55141527cbccefcb598a1413fbbad56827fb92352517f2fed3402899c9d42cdf",
+        "6744f91c3e6c3c3a9303baf66c591680de969a0d08b6ee31649d3b9095d368d7",
+        "848f9af4629b7edc4108a8ef9167bc73b022b6055b8442ab84a17f713ac33f1c",
+        "8f12b17c9fb391fff5c63d9064a709ddd70b4f5a067d9bfd8d569939f09c1470",
+        "a3b4e533e643ba4de341339aabd19273e8ba680e030c799142d5c100a092dc65",
+        "a5f6ba1c1d137a0a8fe65974816ba03d39cad7bb7f7a5e299b2ca453cd96640a",
+        "af64ff36083980b846480b0c823031b7dcadd1f31465a3012e7198f255b99c93",
+        "afa3ecade3305a7265dd48add84e4aa65cc5a4c1e6853203cda265acfd9cdd45",
+        "d7aa8fb9058ee8eb04809ab032d775433637af45a80974da88a728bb27fddd23",
+        "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+        "e5eba570a989834ddfbf3bab847e6a703ebb4aa4690670f3053cee0345b60cd3",
+        "f055e2581715db2ffcba134185dcbbbe2a026b63c946e5234c9cea367d5af02d",
+        "f132252b789778709234de6ca79b9697a0deb72da32d7dadb8a36cb73bd4c799",
+        "f758fbde3a5e706cc484f146d44cf1d69f42a0774eeae9390bf0bcbff0b0500f"
+      ]
+    },
+    {
+      "split": "train",
+      "grip": "overhand",
+      "view": "rear",
+      "availablePatches": 91,
+      "readableClosedPatches": 72,
+      "readableSourceGroups": 20,
+      "sourceGroups": [
+        "youtube:0afhqysgAUE",
+        "youtube:1cZ2I-8DR-Q",
+        "youtube:3-XiWZ5ONLA",
+        "youtube:6cDE1YpzSaE",
+        "youtube:9VHz73p7Gfo",
+        "youtube:Ace4EsUWyYc",
+        "youtube:Fndz1dG5y54",
+        "youtube:O4MXIrHhqZo",
+        "youtube:WT-ADjiRB2Y",
+        "youtube:XadhprrLPAw",
+        "youtube:_KtitR_vvo0",
+        "youtube:bqwuhXMz228",
+        "youtube:gh77V08SQ34",
+        "youtube:ihFKM9w92MY",
+        "youtube:lX-Ao8Qubqw",
+        "youtube:o7rlgUGju1Y",
+        "youtube:r5k1vrqzhNc",
+        "youtube:smgEjkcIvq8",
+        "youtube:vH8bQkOEjuo",
+        "youtube:zVms_bNSnDs"
+      ],
+      "recordings": [
+        "14a3381b9a23303868a56d7a434295ddc909928560f3e400b0d1c0ca626aa0c9",
+        "33ee61f6bc30f80f7ad089753d1d179e4ac8e583edb3256e109fbeed8db2dd6e",
+        "3cc7a52de108e4219b820463e4811c1d6b0c61cbdc71b0f89939ccd2b7a74af7",
+        "4a9bbb1bfd7a110d439fb05e615514305533dff8d9b53750d78aa0304c853381",
+        "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+        "58b907b7675c0e40c74fe83f63aa186ca4e235ca8c53c5a1b37163988c63ce1a",
+        "59d140a674a5817d2b33efb5b1d60819e3fcee4a524d12317f23fee45ed201bb",
+        "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+        "7e581a0854b58a03d02400ccf5f1e3e1faf9b042a1fbb5c2d673ebf1d6173e74",
+        "7e940943fa0bf59f127f37f0a1997548b58efcd49ef4ddd82e24fcd04da6d65c",
+        "8e3b9e63666354a5f445856ef9f7bc3a57bf3517d4b7aca0a970cea014159c7c",
+        "936d612c646a78a01c5df43710bacad531cef8683d1bed64b72d3b191d515bf1",
+        "9e9d810e00aa87174ee5a2ed53d56ae3fa1355df4c5a020d95952f7e7b985f84",
+        "cb03d83591f20b299f0319d069cf3e03ac209e8b00476984532c2aabd4df5cdd",
+        "d858e8efd510f32a03bd46cd2e40cb98b0ac6e194225de343213d3721ddc24f7",
+        "e251f9ac514495ff036f567a68177ce3926114ed711cbce15f3a8ac9fc9482d1",
+        "e88c290992f06245f8f170b249fd9a1f8ef5e6178872aaf2574b49c8714f32e8",
+        "ed4de12e9944b8a7d5831344f2bb38f488a3d640ff516a90d37e89ce22cfa677",
+        "ee2d8771a4bca0e1d8fda5b2fa952bc5dfdf97a247ab213fa8f20a8f00c03361",
+        "fb05b3783a209fd71ade2990a9cf50ce0222079d6d1990387c93705181b5875c"
+      ]
+    },
+    {
+      "split": "train",
+      "grip": "underhand",
+      "view": "front",
+      "availablePatches": 72,
+      "readableClosedPatches": 43,
+      "readableSourceGroups": 11,
+      "sourceGroups": [
+        "youtube:-yQUE1H_Hn0",
+        "youtube:6kpsQxO-Vo0",
+        "youtube:AjmI_Z4evMI",
+        "youtube:GcuZO6jZhw0",
+        "youtube:IUSiAeljSwo",
+        "youtube:LslQbHZ1rRw",
+        "youtube:ZyBUAy8auRY",
+        "youtube:_65iwGkdm70",
+        "youtube:bAEua0zu_74",
+        "youtube:ud9cWaLSzbs",
+        "youtube:uygZMTrO5J0"
+      ],
+      "recordings": [
+        "08745e624c29289d1159f534944cf4a279c0614372db781c9bc490c16c42729e",
+        "0c842d5ebfaf3f93720001aae0429347b5ac583ad7cb3de1ae92752867fcd424",
+        "53b3f95c093abb0d2edc3d32402107aefda791b68b9bbf945d1dd9271551c90f",
+        "782414c583bb9a3a963a027503a8aaf5e01fa79477ae8e13a26bfd11617a6619",
+        "9f569fc8966ec334070bc05cc88a02b0fb0d8b457b6c9878b7b9f6fce500080f",
+        "a01fa62cf3e70fb01acffa14e24ac79634bd2553087e3954e585d10f5c636f09",
+        "afa88cc191cebdeec26ad010c234650024f2545ee25a5e9bdebb0a7a8ec8773e",
+        "bf24fdbf2af1cd9ef36b35770b71d475082585c2f76f5d4239c93bbd1ec5b0c8",
+        "e398217a3dfc5deed23bdfe2263c3965b78f2617d7f967b23c4f4f7ed1ff71fa",
+        "e7d65698595c0d845d464949df3865aece279db060f6222bcd0f0e13ddb2cb02",
+        "e859413080b1e2fe7d1bdedeb6b5338509eaa0ebf601edd34f26621234b57926"
+      ]
+    },
+    {
+      "split": "train",
+      "grip": "underhand",
+      "view": "rear",
+      "availablePatches": 26,
+      "readableClosedPatches": 20,
+      "readableSourceGroups": 6,
+      "sourceGroups": [
+        "youtube:1HibOxpJqQY",
+        "youtube:WaGRDOkXveE",
+        "youtube:d8RA0_YBltQ",
+        "youtube:fsQ-POpiemc",
+        "youtube:tMEuzebW8gQ",
+        "youtube:ySSh9x1X458"
+      ],
+      "recordings": [
+        "077035646cc9080213fd63068610e8a665af36eb5c3b360aa289519b779e76f8",
+        "48692fa2a6fe1e2e1aa7aa02a0b3f4df06e5a7f4a29b56fdd8dd8c3d804a8e20",
+        "69d04e6007abd1ec821e838f7b5c8af9d3d517e9378464fae70e4312933d3472",
+        "70d86c46b35d4458f342f45d1c4ea341c0afbaf55f79a97981a3e142e8f7290f",
+        "a5f482667454b44f682f9346398acc4c7d9799d3b4622cc5795ce4b13c9557ad",
+        "f32bfb3a4beaa796efd33f93e378a2c4d517f08312b0a021d4e86a6ee5428cb7"
+      ]
+    },
+    {
+      "split": "validation",
+      "grip": "neutral",
+      "view": "front",
+      "availablePatches": 22,
+      "readableClosedPatches": 16,
+      "readableSourceGroups": 3,
+      "sourceGroups": [
+        "publisher:tuscaloosa:jake-barnett",
+        "youtube:ZvkHAS7aJO8",
+        "youtube:kGDIhlrBW0M"
+      ],
+      "recordings": [
+        "971c232ed1fa5b976b174b38b0eef8ecb76781a5bebe4e9ff941c49c977d138e",
+        "c7887a1dbfd6514e83963591521d497efe7d29a29f4c47f6c6266ca4fc5778a5",
+        "e67bda8c378b9c30af2c54146ec6deeeb1e76f566db3a3feef0af6cc111eb4fd"
+      ]
+    },
+    {
+      "split": "validation",
+      "grip": "neutral",
+      "view": "rear",
+      "availablePatches": 28,
+      "readableClosedPatches": 20,
+      "readableSourceGroups": 3,
+      "sourceGroups": [
+        "publisher:mytrainingpro:blue-tank-female",
+        "publisher:tuscaloosa:jake-barnett",
+        "youtube:qdZgJXInPDI"
+      ],
+      "recordings": [
+        "971c232ed1fa5b976b174b38b0eef8ecb76781a5bebe4e9ff941c49c977d138e",
+        "d807297563097dcc14f0f9c0203f7c3524ba71f506e2a4943b019de647e738ac",
+        "d89468036de4a9b3b756d82d31f5956fadcf5d0001d6ff2a5f55eb0542c31957"
+      ]
+    },
+    {
+      "split": "validation",
+      "grip": "overhand",
+      "view": "front",
+      "availablePatches": 32,
+      "readableClosedPatches": 24,
+      "readableSourceGroups": 5,
+      "sourceGroups": [
+        "youtube:-GDrlYxrEQo",
+        "youtube:TKbunGZ4BNw",
+        "youtube:f2MOPqH4wrY",
+        "youtube:iD7kdQqttXI",
+        "youtube:sm_CjfH0U0A"
+      ],
+      "recordings": [
+        "56fcdfdddd7dbe872b306f040577219b3c803eb8e90fe4711dd7f022115dc995",
+        "6951a610d40988e45aa5746c20789151ba894f21d7c3de8ed00a69c40b95394e",
+        "bb647197a9ef333a8972650aff022fb57184715aa74966d6b2397a169f75b18b",
+        "c028dab8ea1c1f8b73dfa1d04d4f8014c3842732ea02e35be7171831894cc629",
+        "c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd"
+      ]
+    },
+    {
+      "split": "validation",
+      "grip": "overhand",
+      "view": "rear",
+      "availablePatches": 35,
+      "readableClosedPatches": 35,
+      "readableSourceGroups": 6,
+      "sourceGroups": [
+        "youtube:9ohUOUjnb_c",
+        "youtube:ID5_dnNIiks",
+        "youtube:S3jzFktsnwE",
+        "youtube:iKIKRztPIpQ",
+        "youtube:mgPhDrH6-rE",
+        "youtube:oSyUsQqHkmE"
+      ],
+      "recordings": [
+        "12f0d485c7b0c081d1c056567c841f60debd23b9da21be47521dae2ed3b579dd",
+        "4a345f5dca3b4e9e5111e507a6ae545df215d5a7d240001c2a44438b4ec455e1",
+        "70765daa15e5f3f192119c641a12cff9f5bd73a5bb08f6cd8fbb9b18a92d4da7",
+        "888f051f73c6fa28e9b7ef936d3df9d90e1f973edeb16ce21d8ca5a66edc5127",
+        "bd04164a4a528f9a75ddac5e9e483abfd1a2bd239c43ed16c41dcc4f5f8a79ac",
+        "fbdd7cb8403dc7151a10297605cd9468f211152a452c5fbd58e66dfdfefaa9c9"
+      ]
+    },
+    {
+      "split": "validation",
+      "grip": "underhand",
+      "view": "front",
+      "availablePatches": 23,
+      "readableClosedPatches": 14,
+      "readableSourceGroups": 3,
+      "sourceGroups": [
+        "youtube:LUlt4tPj5SQ",
+        "youtube:NwTo6r8853k",
+        "youtube:jC4O7gWJjPk"
+      ],
+      "recordings": [
+        "6e8ee262fa906d627ddc1e1395ef1073692aa2b37df9c33464a765e4eb3f0ee0",
+        "ac590c3b46fc26a02b8a85442d7877c54ca1c02e64b869df97d0e95c7ada3339",
+        "baddfc7a59a08481358a36396b5459cb4818c5b7c6e70df5e74a5b717d5d487a"
+      ]
+    },
+    {
+      "split": "validation",
+      "grip": "underhand",
+      "view": "rear",
+      "availablePatches": 22,
+      "readableClosedPatches": 20,
+      "readableSourceGroups": 3,
+      "sourceGroups": [
+        "publisher:strengthlog:female-rack",
+        "youtube:2p19BDth7Zc",
+        "youtube:cvc8HN__fxU"
+      ],
+      "recordings": [
+        "28ffa7a29d056a5a07306425094db8a16356e5bc0da339d457287c3578880b30",
+        "34d885bf17ae137691488f0325113da93b1d44866e6568d7e1c3335221beb128",
+        "f5e47570557c934079d8d7ba0b330d3601adec5ec98f346f8a565d83fa27e0e6"
+      ]
+    }
+  ],
+  "coverageGaps": [],
+  "cohortReadyForFullGripRetraining": true,
+  "policy": "Unsupported side views remain explicit input-rejection tests; do not silently discard their false accepts. Do not promote exposed test videos into fitting. View support is independent of grip/hand surface. No hard yaw angle inferred from 2D pose."
+}

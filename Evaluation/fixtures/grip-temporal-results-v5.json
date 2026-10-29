@@ -1,0 +1,450 @@
+{
+  "schemaVersion": 5,
+  "decision": "Offline negative experiment: repair source/crop/ownership contract and verify labels before more training; temporal agreement alone did not improve first-score video decisions.",
+  "population": {
+    "selectedVideos": 16,
+    "nativeReady": 15,
+    "nativeRejected": 1,
+    "frames": 127,
+    "handSlots": 254,
+    "crops": 108,
+    "missingSlots": 146
+  },
+  "firstEvaluation": {
+    "qualification": "Offline first-score video-group experiment; source and crop labels are agent annotations unless explicitly marked human. No model fitting or threshold changes. Oracle orientation is privileged diagnostic only.",
+    "inputSHA256": "d7b8e886395b237e4274f21e080ade46d650edce76dd9d851d4ccbab48d884ef",
+    "intakeSHA256": "dc88879192aaf4b9db2a0d147638ca7f0c5be66701c573f1d5ff3df9775b2fd6",
+    "referencesSHA256": "07089c37409ee8c2341ad46b3b02da9d2865ec87c31dd709b7a2e2c329c8ff6d",
+    "freezeSHA256": "0bdc578cf979f20dcb7458b0bb43df1c2b2d4ee7b938fba3607745bbced23250",
+    "scriptSHA256": "976b63c0a3f7984ac5b5a9e164f999db1d011eaf36c0ff89ffbf6aa452e3ee90",
+    "metrics": {
+      "frame-gated": {
+        "videos": 16,
+        "counts": {
+          "correct": 0,
+          "wrong": 0,
+          "unknown": 15,
+          "acceptedUnverifiable": 1
+        },
+        "byReferenceClass": {
+          "unknown": {
+            "unknown": 11,
+            "acceptedUnverifiable": 1
+          },
+          "overhand": {
+            "unknown": 2
+          },
+          "neutral": {
+            "unknown": 1
+          },
+          "underhand": {
+            "unknown": 1
+          }
+        },
+        "medianFirstDecisionSecondsOnCorrectFinalLabels": null
+      },
+      "temporal-contact-support": {
+        "videos": 16,
+        "counts": {
+          "correct": 0,
+          "wrong": 0,
+          "unknown": 15,
+          "acceptedUnverifiable": 1
+        },
+        "byReferenceClass": {
+          "unknown": {
+            "unknown": 11,
+            "acceptedUnverifiable": 1
+          },
+          "overhand": {
+            "unknown": 2
+          },
+          "neutral": {
+            "unknown": 1
+          },
+          "underhand": {
+            "unknown": 1
+          }
+        },
+        "medianFirstDecisionSecondsOnCorrectFinalLabels": null
+      },
+      "temporal-no-contact": {
+        "videos": 16,
+        "counts": {
+          "correct": 0,
+          "wrong": 0,
+          "unknown": 15,
+          "acceptedUnverifiable": 1
+        },
+        "byReferenceClass": {
+          "unknown": {
+            "unknown": 11,
+            "acceptedUnverifiable": 1
+          },
+          "overhand": {
+            "unknown": 2
+          },
+          "neutral": {
+            "unknown": 1
+          },
+          "underhand": {
+            "unknown": 1
+          }
+        },
+        "medianFirstDecisionSecondsOnCorrectFinalLabels": null
+      }
+    },
+    "oracleOrientationDiagnostic": {
+      "videos": 16,
+      "counts": {
+        "correct": 1,
+        "wrong": 0,
+        "unknown": 13,
+        "acceptedUnverifiable": 2
+      },
+      "byReferenceClass": {
+        "unknown": {
+          "unknown": 10,
+          "acceptedUnverifiable": 2
+        },
+        "overhand": {
+          "unknown": 1,
+          "correct": 1
+        },
+        "neutral": {
+          "unknown": 1
+        },
+        "underhand": {
+          "unknown": 1
+        }
+      },
+      "medianFirstDecisionSecondsOnCorrectFinalLabels": 7.4741333333333335
+    },
+    "cropDiagnostics": {
+      "crops": 108,
+      "unreadable": 83,
+      "qualityAccepted": 18,
+      "acceptedUnverifiable": 9,
+      "readable": 25,
+      "acceptedCorrect": 8,
+      "acceptedWrong": 1
+    },
+    "frames": 127,
+    "modelInferenceSeconds": 12.80870079100714,
+    "modelInferenceEnvironment": "Mac CPU, three frozen models, three neutral view passes; not phone latency",
+    "missingSlots": {
+      "noTrackedSubject": 136,
+      "trackedFallbackOnly": 7,
+      "acquiringAthlete": 3
+    },
+    "noFrameRows": [
+      "k700val_eP9CemlbImQ_000098_000108"
+    ]
+  },
+  "audit": {
+    "freezePinsVerified": 21,
+    "referenceFreezeVerified": true,
+    "reconstructed": {
+      "sourceFrames": 127,
+      "tightCrops": 108,
+      "widerCrops": 108
+    },
+    "videoDiagnostics": [
+      {
+        "reviewId": "V01",
+        "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+        "referenceGrip": "unknown",
+        "referenceView": "front",
+        "frames": 9,
+        "trackedFrames": 4,
+        "contextFrames": 4,
+        "tracks": [
+          1
+        ],
+        "crops": 5,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.61488276720047,
+        "maxNeutralEvidenceForAllViews": 0.3070223927497864
+      },
+      {
+        "reviewId": "V02",
+        "caseId": "k700val__5DiYoFndoc_000015_000025",
+        "referenceGrip": "unknown",
+        "referenceView": "rear",
+        "frames": 9,
+        "trackedFrames": 0,
+        "contextFrames": 0,
+        "tracks": [],
+        "crops": 0,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.3333333432674408,
+        "maxNeutralEvidenceForAllViews": 0
+      },
+      {
+        "reviewId": "V03",
+        "caseId": "k700val_dUbqRIerwMU_000012_000022",
+        "referenceGrip": "overhand",
+        "referenceView": "oblique",
+        "frames": 9,
+        "trackedFrames": 7,
+        "contextFrames": 7,
+        "tracks": [
+          2
+        ],
+        "crops": 14,
+        "appearanceQualified": 7,
+        "maxAutomaticFrontRearEvidence": 0.6004605293273926,
+        "maxNeutralEvidenceForAllViews": 0.24551285803318024
+      },
+      {
+        "reviewId": "V04",
+        "caseId": "k700val_eRMPonbF4AE_000004_000014",
+        "referenceGrip": "unknown",
+        "referenceView": "unknown",
+        "frames": 9,
+        "trackedFrames": 0,
+        "contextFrames": 0,
+        "tracks": [],
+        "crops": 0,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.3333333432674408,
+        "maxNeutralEvidenceForAllViews": 0
+      },
+      {
+        "reviewId": "V05",
+        "caseId": "k700val_brpaoi6BiQg_000028_000038",
+        "referenceGrip": "unknown",
+        "referenceView": "front",
+        "frames": 9,
+        "trackedFrames": 4,
+        "contextFrames": 4,
+        "tracks": [
+          1,
+          3,
+          4,
+          5
+        ],
+        "crops": 8,
+        "appearanceQualified": 2,
+        "maxAutomaticFrontRearEvidence": 0.9152202606201172,
+        "maxNeutralEvidenceForAllViews": 0.16336847841739655
+      },
+      {
+        "reviewId": "V06",
+        "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+        "referenceGrip": "neutral",
+        "referenceView": "oblique",
+        "frames": 7,
+        "trackedFrames": 1,
+        "contextFrames": 0,
+        "tracks": [
+          3
+        ],
+        "crops": 2,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.3333333432674408,
+        "maxNeutralEvidenceForAllViews": 0.2581441402435303
+      },
+      {
+        "reviewId": "V07",
+        "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+        "referenceGrip": "overhand",
+        "referenceView": "front",
+        "frames": 9,
+        "trackedFrames": 6,
+        "contextFrames": 6,
+        "tracks": [
+          1
+        ],
+        "crops": 12,
+        "appearanceQualified": 3,
+        "maxAutomaticFrontRearEvidence": 0.5318400859832764,
+        "maxNeutralEvidenceForAllViews": 0.16535046696662903
+      },
+      {
+        "reviewId": "V08",
+        "caseId": "k700val_eP9CemlbImQ_000098_000108",
+        "referenceGrip": "unknown",
+        "referenceView": "unknown",
+        "frames": 0,
+        "trackedFrames": 0,
+        "contextFrames": 0,
+        "tracks": [],
+        "crops": 0,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0,
+        "maxNeutralEvidenceForAllViews": 0
+      },
+      {
+        "reviewId": "V09",
+        "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+        "referenceGrip": "unknown",
+        "referenceView": "rear",
+        "frames": 9,
+        "trackedFrames": 5,
+        "contextFrames": 5,
+        "tracks": [
+          1,
+          2,
+          3
+        ],
+        "crops": 7,
+        "appearanceQualified": 2,
+        "maxAutomaticFrontRearEvidence": 0.823829710483551,
+        "maxNeutralEvidenceForAllViews": 0.24916434288024902
+      },
+      {
+        "reviewId": "V10",
+        "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+        "referenceGrip": "unknown",
+        "referenceView": "unknown",
+        "frames": 9,
+        "trackedFrames": 9,
+        "contextFrames": 9,
+        "tracks": [
+          1,
+          2
+        ],
+        "crops": 18,
+        "appearanceQualified": 1,
+        "maxAutomaticFrontRearEvidence": 0.7120679616928101,
+        "maxNeutralEvidenceForAllViews": 0.2573399245738983
+      },
+      {
+        "reviewId": "V11",
+        "caseId": "k700val_07xyK3Efyps_000339_000349",
+        "referenceGrip": "unknown",
+        "referenceView": "unknown",
+        "frames": 9,
+        "trackedFrames": 3,
+        "contextFrames": 3,
+        "tracks": [
+          3,
+          4,
+          6
+        ],
+        "crops": 3,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.6148210167884827,
+        "maxNeutralEvidenceForAllViews": 0.2227880358695984
+      },
+      {
+        "reviewId": "V12",
+        "caseId": "k700val_hXImBJEvqgY_000090_000100",
+        "referenceGrip": "unknown",
+        "referenceView": "rear",
+        "frames": 9,
+        "trackedFrames": 5,
+        "contextFrames": 5,
+        "tracks": [
+          1,
+          2
+        ],
+        "crops": 9,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.734759509563446,
+        "maxNeutralEvidenceForAllViews": 0.2822965383529663
+      },
+      {
+        "reviewId": "V13",
+        "caseId": "k700val_b8MNl0akNk4_000002_000012",
+        "referenceGrip": "unknown",
+        "referenceView": "rear",
+        "frames": 6,
+        "trackedFrames": 6,
+        "contextFrames": 6,
+        "tracks": [
+          1
+        ],
+        "crops": 12,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.8241651654243469,
+        "maxNeutralEvidenceForAllViews": 0.201214998960495
+      },
+      {
+        "reviewId": "V14",
+        "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+        "referenceGrip": "unknown",
+        "referenceView": "front",
+        "frames": 6,
+        "trackedFrames": 6,
+        "contextFrames": 6,
+        "tracks": [
+          1
+        ],
+        "crops": 12,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.8191955089569092,
+        "maxNeutralEvidenceForAllViews": 0.2464255839586258
+      },
+      {
+        "reviewId": "V15",
+        "caseId": "k700val_x0ikjxF1t58_000004_000014",
+        "referenceGrip": "underhand",
+        "referenceView": "front",
+        "frames": 9,
+        "trackedFrames": 0,
+        "contextFrames": 0,
+        "tracks": [],
+        "crops": 0,
+        "appearanceQualified": 0,
+        "maxAutomaticFrontRearEvidence": 0.3333333432674408,
+        "maxNeutralEvidenceForAllViews": 0
+      },
+      {
+        "reviewId": "V16",
+        "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+        "referenceGrip": "unknown",
+        "referenceView": "front",
+        "frames": 9,
+        "trackedFrames": 3,
+        "contextFrames": 3,
+        "tracks": [
+          1
+        ],
+        "crops": 6,
+        "appearanceQualified": 3,
+        "maxAutomaticFrontRearEvidence": 0.9583773612976074,
+        "maxNeutralEvidenceForAllViews": 0.13148245215415955
+      }
+    ],
+    "identityUnverifiedPatches": [
+      "T0041",
+      "T0043",
+      "T0044",
+      "T0045",
+      "T0046",
+      "T0078",
+      "T0079",
+      "T0080",
+      "T0081",
+      "T0082",
+      "T0083",
+      "T0084",
+      "T0085"
+    ],
+    "annotationMethod": "Source-sequence review plus two actual tight/wider crop passes, eight conflicts reopened visually before inference; agent annotations, not independent human gold labels.",
+    "humanReviewStatus": "Pending user response; not fabricated",
+    "decision": "Temporal prototype not adopted: no verified automatic video decisions. Correct the extraction/ownership contract and independently verify labels before additional classifier training."
+  },
+  "checks": {
+    "grip-surface-v2": 20,
+    "grip-quality-v3": 17,
+    "grip-contact-v4": 29,
+    "grip-temporal-v5": 21,
+    "testLogSHA256": "3ffd091cc87926a67752d6b3348093ace84913b70850e294b893d2eeaa35a6e5",
+    "pythonTests": 447,
+    "sharedPlannerLogSHA256": "31be5147495dae51eb34c303dd1d8ee326ebcd72246c5666cd1806f12c34e926",
+    "oldFreezesUnchanged": true
+  },
+  "storage": {
+    "prunedPNG": 400,
+    "prunedBytes": 170022792,
+    "freeBytesNow": 229785600000,
+    "retained": "All original videos, selected RGB/crops, native metadata, existing model evidence and first predictions"
+  },
+  "humanReviewStatus": "Pending user response; all experiment annotations are agent references, not human gold labels",
+  "report": "docs/workout/GRIP_TEMPORAL_OBSERVABILITY_EXPERIMENT_V5.md",
+  "examples": "build/grip-temporal-v5/examples.png",
+  "humanReview": "build/grip-temporal-v5/human-review/index.html"
+}

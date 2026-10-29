@@ -1,0 +1,766 @@
+{
+  "schemaVersion": 1,
+  "qualification": "Privileged diagnostic on exposed recordings, not fresh test or app accuracy. Agent labels not human gold. No fitting or threshold changes. Manual upper-bound diagnosis; source-reference uncertainty retained. No fresh qualification or app accuracy.",
+  "report": "/Users/yongkyunshin/Dev/HangInThere/build/grip-oracle-v7/final/report.json",
+  "reportSHA256": "ccf9878a0a67f362ea649f881c5ab51a9d03b711173566587ee3c87b87eee5dd",
+  "audit": {
+    "qualification": "Post-primary-score audit; agent-reviewed references, not independent human gold.",
+    "preScorePinsVerified": 147,
+    "priorFreezesVerified": {
+      "2": {
+        "path": "build/grip-surface-v2/pre-test-freeze.json",
+        "sha256": "c2ded13b0bc5ceba7546e577f438bd5b336960598267a74dc7bd2af4661b0736",
+        "pins": 20
+      },
+      "3": {
+        "path": "build/grip-quality-v3/pre-test-freeze.json",
+        "sha256": "80e3dc493b9172ca0d0963e12fac5e32a9f7f749332c44ee842739e93a6d4b62",
+        "pins": 17
+      },
+      "4": {
+        "path": "build/grip-contact-v4/pre-test-freeze.json",
+        "sha256": "584e0ffb366da4122f77c889d29bd948d404790f59e92b630323cd2da7e02c92",
+        "pins": 29
+      },
+      "5": {
+        "path": "build/grip-temporal-v5/pre-test-freeze.json",
+        "sha256": "0bdc578cf979f20dcb7458b0bb43df1c2b2d4ee7b938fba3607745bbced23250",
+        "pins": 21
+      },
+      "6": {
+        "path": "build/grip-localization-v6/pre-test-freeze.json",
+        "sha256": "056301ba6d4ac826fc3ebd1c9747d7634542e73c77f353d814a8abe2b14776fa",
+        "pins": 17
+      }
+    },
+    "originalVideosVerified": [
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Xcr5cGfRlrs_000013_000023.mp4",
+        "sha256": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+        "sourceGroup": "youtube:Xcr5cGfRlrs"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/y0QJ0dsQYbo_000000_000010.mp4",
+        "sha256": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+        "sourceGroup": "youtube:y0QJ0dsQYbo"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/-beNuPANrTI_000001_000011.mp4",
+        "sha256": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+        "sourceGroup": "youtube:-beNuPANrTI"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/NtLvahCWyCU_000008_000018.mp4",
+        "sha256": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+        "sourceGroup": "youtube:NtLvahCWyCU"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/RwTAihfNClg_000012_000022.mp4",
+        "sha256": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+        "sourceGroup": "youtube:RwTAihfNClg"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/lYyKBW4VmV4_000005_000015.mp4",
+        "sha256": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+        "sourceGroup": "youtube:lYyKBW4VmV4"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/v0KanSlWnPE_000010_000020.mp4",
+        "sha256": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+        "sourceGroup": "youtube:v0KanSlWnPE"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/oAG0XMYJV1U_000050_000060.mp4",
+        "sha256": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+        "sourceGroup": "youtube:oAG0XMYJV1U"
+      },
+      {
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/W_vw0P8EVwQ_000220_000230.mp4",
+        "sha256": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+        "sourceGroup": "youtube:W_vw0P8EVwQ"
+      }
+    ],
+    "exactManualPixelCropsVerified": 58,
+    "sourceSlots": 36,
+    "stagedModelFitGroupsDisjoint": true,
+    "anatomyDiagnostics": {
+      "automatic": {
+        "readableCrops": 16,
+        "stagedSurfaceCorrect": 3,
+        "v4SurfaceCorrect": 15
+      },
+      "manual1.6": {
+        "readableCrops": 16,
+        "stagedSurfaceCorrect": 5,
+        "v4SurfaceCorrect": 15
+      },
+      "manual2.0": {
+        "readableCrops": 16,
+        "stagedSurfaceCorrect": 2,
+        "v4SurfaceCorrect": 13
+      }
+    },
+    "strictOrientationDiagnostic": {
+      "strictReferenceFrames": 14,
+      "argmaxWrong": 4,
+      "argmaxCorrect": 6,
+      "missingContext": 4
+    },
+    "remainingPrimaryOracleErrors": [
+      "D07-h2",
+      "D08-h2"
+    ],
+    "postScoreViewTextureProbe": {
+      "original:front": {
+        "overhand": 17,
+        "underhand": 12
+      },
+      "original:rear": {
+        "overhand": 26,
+        "underhand": 3
+      },
+      "original:oblique": {
+        "neutral": 29
+      },
+      "constantMeanColor:front": {
+        "underhand": 27,
+        "neutral": 2
+      },
+      "constantMeanColor:rear": {
+        "neutral": 29
+      },
+      "constantMeanColor:oblique": {
+        "underhand": 29
+      }
+    },
+    "gallery": {
+      "path": "build/grip-oracle-v7/final/examples.png",
+      "sha256": "8f5c0a13da2b412949f1a7dc5ab98dd903edcbb0b1433f9db6fc5a5986e79656",
+      "ids": [
+        "D05-h2",
+        "D07-h2",
+        "D08-h2",
+        "D09-h1",
+        "D13-h1"
+      ]
+    },
+    "scriptSHA256": "47b372a5bb642e987aa616eb59211af1ad28c125952bbeaebebbe64bc8ddb058"
+  },
+  "summary": {
+    "automatic:automaticView": {
+      "total": {
+        "expectedSlots": 36,
+        "completeSourceHands": 29,
+        "rawCorrect": 17,
+        "unknown": 36,
+        "rawWrongOrInvalid": 7,
+        "rawUnknown": 12
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 11,
+          "rawCorrect": 9,
+          "unknown": 12,
+          "rawWrongOrInvalid": 3
+        },
+        "underhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 4,
+          "unknown": 12,
+          "rawCorrect": 4,
+          "rawUnknown": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "automatic:verifiedView": {
+      "total": {
+        "expectedSlots": 36,
+        "completeSourceHands": 29,
+        "rawCorrect": 25,
+        "unknown": 32,
+        "rawWrongOrInvalid": 7,
+        "rawUnknown": 4,
+        "acceptedCorrect": 4
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 11,
+          "rawCorrect": 9,
+          "unknown": 12,
+          "rawWrongOrInvalid": 3
+        },
+        "underhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 4,
+          "unknown": 12,
+          "rawCorrect": 4,
+          "rawUnknown": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "acceptedCorrect": 4,
+          "unknown": 8
+        }
+      }
+    },
+    "manual1.6:automaticView": {
+      "total": {
+        "expectedSlots": 36,
+        "completeSourceHands": 29,
+        "rawCorrect": 19,
+        "unknown": 36,
+        "rawUnknown": 15,
+        "rawWrongOrInvalid": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 11,
+          "rawCorrect": 11,
+          "unknown": 12,
+          "rawUnknown": 1
+        },
+        "underhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 6,
+          "rawUnknown": 6,
+          "unknown": 12,
+          "rawWrongOrInvalid": 2,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "manual1.6:verifiedView": {
+      "total": {
+        "expectedSlots": 36,
+        "completeSourceHands": 29,
+        "rawCorrect": 27,
+        "unknown": 34,
+        "rawUnknown": 7,
+        "rawWrongOrInvalid": 2,
+        "acceptedCorrect": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 11,
+          "rawCorrect": 11,
+          "unknown": 12,
+          "rawUnknown": 1
+        },
+        "underhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 6,
+          "rawUnknown": 6,
+          "unknown": 12,
+          "rawWrongOrInvalid": 2,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "unknown": 10,
+          "acceptedCorrect": 2
+        }
+      }
+    },
+    "manual2.0:automaticView": {
+      "total": {
+        "expectedSlots": 36,
+        "completeSourceHands": 29,
+        "rawCorrect": 19,
+        "unknown": 36,
+        "rawUnknown": 15,
+        "rawWrongOrInvalid": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 11,
+          "rawCorrect": 11,
+          "unknown": 12,
+          "rawUnknown": 1
+        },
+        "underhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 6,
+          "rawUnknown": 6,
+          "unknown": 12,
+          "rawWrongOrInvalid": 2,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "manual2.0:verifiedView": {
+      "total": {
+        "expectedSlots": 36,
+        "completeSourceHands": 29,
+        "rawCorrect": 27,
+        "unknown": 36,
+        "rawUnknown": 7,
+        "rawWrongOrInvalid": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 11,
+          "rawCorrect": 11,
+          "unknown": 12,
+          "rawUnknown": 1
+        },
+        "underhand": {
+          "expectedSlots": 12,
+          "completeSourceHands": 6,
+          "rawUnknown": 6,
+          "unknown": 12,
+          "rawWrongOrInvalid": 2,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "unknown": 12
+        }
+      }
+    }
+  },
+  "strictVerifiedViewCompleteHands": {
+    "automatic:automaticView": {
+      "total": {
+        "expectedSlots": 26,
+        "completeSourceHands": 26,
+        "rawCorrect": 14,
+        "unknown": 26,
+        "rawWrongOrInvalid": 4,
+        "rawUnknown": 8
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 8,
+          "completeSourceHands": 8,
+          "rawCorrect": 6,
+          "unknown": 8,
+          "rawWrongOrInvalid": 2
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "automatic:verifiedView": {
+      "total": {
+        "expectedSlots": 26,
+        "completeSourceHands": 26,
+        "rawCorrect": 22,
+        "unknown": 22,
+        "rawWrongOrInvalid": 4,
+        "acceptedCorrect": 4
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 8,
+          "completeSourceHands": 8,
+          "rawCorrect": 6,
+          "unknown": 8,
+          "rawWrongOrInvalid": 2
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "acceptedCorrect": 4,
+          "unknown": 8
+        }
+      }
+    },
+    "manual1.6:automaticView": {
+      "total": {
+        "expectedSlots": 26,
+        "completeSourceHands": 26,
+        "rawCorrect": 16,
+        "unknown": 26,
+        "rawWrongOrInvalid": 2,
+        "rawUnknown": 8
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 8,
+          "completeSourceHands": 8,
+          "rawCorrect": 8,
+          "unknown": 8
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "manual1.6:verifiedView": {
+      "total": {
+        "expectedSlots": 26,
+        "completeSourceHands": 26,
+        "rawCorrect": 24,
+        "unknown": 24,
+        "rawWrongOrInvalid": 2,
+        "acceptedCorrect": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 8,
+          "completeSourceHands": 8,
+          "rawCorrect": 8,
+          "unknown": 8
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "unknown": 10,
+          "acceptedCorrect": 2
+        }
+      }
+    },
+    "manual2.0:automaticView": {
+      "total": {
+        "expectedSlots": 26,
+        "completeSourceHands": 26,
+        "rawCorrect": 16,
+        "unknown": 26,
+        "rawWrongOrInvalid": 2,
+        "rawUnknown": 8
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 8,
+          "completeSourceHands": 8,
+          "rawCorrect": 8,
+          "unknown": 8
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "manual2.0:verifiedView": {
+      "total": {
+        "expectedSlots": 26,
+        "completeSourceHands": 26,
+        "rawCorrect": 24,
+        "unknown": 26,
+        "rawWrongOrInvalid": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 8,
+          "completeSourceHands": 8,
+          "rawCorrect": 8,
+          "unknown": 8
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "unknown": 12
+        }
+      }
+    }
+  },
+  "pairedCorrectAutomaticCrops": {
+    "automatic:automaticView": {
+      "total": {
+        "expectedSlots": 27,
+        "completeSourceHands": 27,
+        "rawCorrect": 17,
+        "unknown": 27,
+        "rawWrongOrInvalid": 2,
+        "rawUnknown": 8
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 9,
+          "completeSourceHands": 9,
+          "rawCorrect": 9,
+          "unknown": 9
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "automatic:verifiedView": {
+      "total": {
+        "expectedSlots": 27,
+        "completeSourceHands": 27,
+        "rawCorrect": 25,
+        "unknown": 23,
+        "rawWrongOrInvalid": 2,
+        "acceptedCorrect": 4
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 9,
+          "completeSourceHands": 9,
+          "rawCorrect": 9,
+          "unknown": 9
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "acceptedCorrect": 4,
+          "unknown": 8
+        }
+      }
+    },
+    "manual1.6:automaticView": {
+      "total": {
+        "expectedSlots": 27,
+        "completeSourceHands": 27,
+        "rawCorrect": 17,
+        "unknown": 27,
+        "rawWrongOrInvalid": 2,
+        "rawUnknown": 8
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 9,
+          "completeSourceHands": 9,
+          "rawCorrect": 9,
+          "unknown": 9
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "manual1.6:verifiedView": {
+      "total": {
+        "expectedSlots": 27,
+        "completeSourceHands": 27,
+        "rawCorrect": 25,
+        "unknown": 25,
+        "rawWrongOrInvalid": 2,
+        "acceptedCorrect": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 9,
+          "completeSourceHands": 9,
+          "rawCorrect": 9,
+          "unknown": 9
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "unknown": 10,
+          "acceptedCorrect": 2
+        }
+      }
+    },
+    "manual2.0:automaticView": {
+      "total": {
+        "expectedSlots": 27,
+        "completeSourceHands": 27,
+        "rawCorrect": 17,
+        "unknown": 27,
+        "rawWrongOrInvalid": 2,
+        "rawUnknown": 8
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 9,
+          "completeSourceHands": 9,
+          "rawCorrect": 9,
+          "unknown": 9
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawUnknown": 8,
+          "unknown": 12,
+          "rawCorrect": 4
+        }
+      }
+    },
+    "manual2.0:verifiedView": {
+      "total": {
+        "expectedSlots": 27,
+        "completeSourceHands": 27,
+        "rawCorrect": 25,
+        "unknown": 27,
+        "rawWrongOrInvalid": 2
+      },
+      "byClass": {
+        "overhand": {
+          "expectedSlots": 9,
+          "completeSourceHands": 9,
+          "rawCorrect": 9,
+          "unknown": 9
+        },
+        "underhand": {
+          "expectedSlots": 6,
+          "completeSourceHands": 6,
+          "rawWrongOrInvalid": 2,
+          "unknown": 6,
+          "rawCorrect": 4
+        },
+        "neutral": {
+          "expectedSlots": 12,
+          "completeSourceHands": 12,
+          "rawCorrect": 12,
+          "unknown": 12
+        }
+      }
+    }
+  },
+  "tests": {
+    "count": 466,
+    "passed": true,
+    "logSHA256": "2950f4fd3caa2a17f1cc17256e2ce288a42ad9100bd080892ab7e52850c99b2c"
+  },
+  "storage": {
+    "policy": "Removed only disposable bytecode of this run. No new downloads, native frame exports, training or compiler caches. Models, original videos, first predictions and reviewed pixels retained.",
+    "removed": [
+      {
+        "path": "scripts/__pycache__/evaluate-grip-oracle-v7.cpython-312.pyc",
+        "bytes": 20811,
+        "sha256": "9141fd70a78ce81e720206b98ed7ed8447b7d4a63a3c0b3aefdbc12925b739e8"
+      },
+      {
+        "path": "scripts/tests/__pycache__/test_grip_oracle_v7.cpython-312.pyc",
+        "bytes": 3806,
+        "sha256": "1ce4a447e8a65549bb43c096c092f01a14e35139df3c4c54430265d8f8936afa"
+      }
+    ],
+    "removedBytes": 24617,
+    "freeBytes": 179814400000,
+    "retainedExperimentBytes": 16977327
+  },
+  "doc": "docs/workout/GRIP_CROP_ORIENTATION_DIAGNOSTIC_V7.md"
+}

@@ -1,0 +1,480 @@
+{
+  "qualification": "Compare fixed models on original AND reviewed development references.",
+  "inputSHA256": "6dfb51bb104a4b01a855946c0ae595a1114acbd4e2b6b5dc561811f09b20832c",
+  "reviewSHA256": "ac32fa83c7d8b4ced2463d2a6cd70b4a76b1c66fd33c8da193ef8c6b15f0cdfc",
+  "freezeSHA256": "cbad4554d2d58f22731abe535ba8b1b3cdc4f428684986e16f30fcb8436022ef",
+  "samplePlansIdentical": true,
+  "results": {
+    "baseline": {
+      "modelSHA256": "cceacf786d77506fcd1a6f866abd0182e657c4f8b1c98608027809f2cfe12301",
+      "originalReferences": {
+        "surface": {
+          "dorsum": {
+            "correct": 34,
+            "total": 62,
+            "recall": 0.5483870967741935
+          },
+          "palm": {
+            "correct": 37,
+            "total": 43,
+            "recall": 0.8604651162790697
+          },
+          "side": {
+            "correct": 29,
+            "total": 32,
+            "recall": 0.90625
+          }
+        },
+        "macroRecall": 0.7717007376844212,
+        "sourceGroupMeanRecall": {
+          "palm": 0.7698412698412699,
+          "dorsum": 0.6055059523809524,
+          "side": 0.8377777777777778
+        },
+        "knownCrops": 137,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 81,
+          "dorsum": 62,
+          "palm": 43,
+          "side": 32
+        },
+        "acceptedAnatomyAndQuality": 0,
+        "acceptedCorrectClosed": 0,
+        "acceptedUnclearMixedOrNoncontact": 0,
+        "correctAcceptedPerAllInputCrops": 0.0,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      },
+      "reviewedReferences": {
+        "surface": {
+          "palm": {
+            "correct": 31,
+            "total": 35,
+            "recall": 0.8857142857142857
+          },
+          "dorsum": {
+            "correct": 25,
+            "total": 40,
+            "recall": 0.625
+          },
+          "side": {
+            "correct": 27,
+            "total": 29,
+            "recall": 0.9310344827586207
+          }
+        },
+        "macroRecall": 0.8139162561576354,
+        "sourceGroupMeanRecall": {
+          "palm": 0.8630952380952381,
+          "dorsum": 0.6058673469387755,
+          "side": 0.903030303030303
+        },
+        "knownCrops": 104,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 94,
+          "palm": 35,
+          "mixed": 20,
+          "dorsum": 40,
+          "side": 29
+        },
+        "acceptedAnatomyAndQuality": 0,
+        "acceptedCorrectClosed": 0,
+        "acceptedUnclearMixedOrNoncontact": 0,
+        "correctAcceptedPerAllInputCrops": 0.0,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      }
+    },
+    "anatomyOnly": {
+      "modelSHA256": "563b3c4930c33e8256f36740d9064ca855d4a9bd4c3855ed24744a634c7b6362",
+      "originalReferences": {
+        "surface": {
+          "dorsum": {
+            "correct": 31,
+            "total": 62,
+            "recall": 0.5
+          },
+          "palm": {
+            "correct": 40,
+            "total": 43,
+            "recall": 0.9302325581395349
+          },
+          "side": {
+            "correct": 28,
+            "total": 32,
+            "recall": 0.875
+          }
+        },
+        "macroRecall": 0.7684108527131782,
+        "sourceGroupMeanRecall": {
+          "palm": 0.8333333333333334,
+          "dorsum": 0.5333829365079364,
+          "side": 0.7779487179487179
+        },
+        "knownCrops": 137,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 81,
+          "dorsum": 62,
+          "palm": 43,
+          "side": 32
+        },
+        "acceptedAnatomyAndQuality": 3,
+        "acceptedCorrectClosed": 3,
+        "acceptedUnclearMixedOrNoncontact": 0,
+        "correctAcceptedPerAllInputCrops": 0.013761467889908258,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      },
+      "reviewedReferences": {
+        "surface": {
+          "palm": {
+            "correct": 33,
+            "total": 35,
+            "recall": 0.9428571428571428
+          },
+          "dorsum": {
+            "correct": 25,
+            "total": 40,
+            "recall": 0.625
+          },
+          "side": {
+            "correct": 27,
+            "total": 29,
+            "recall": 0.9310344827586207
+          }
+        },
+        "macroRecall": 0.8329638752052545,
+        "sourceGroupMeanRecall": {
+          "palm": 0.9166666666666666,
+          "dorsum": 0.7215136054421769,
+          "side": 0.9076923076923077
+        },
+        "knownCrops": 104,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 94,
+          "palm": 35,
+          "mixed": 20,
+          "dorsum": 40,
+          "side": 29
+        },
+        "acceptedAnatomyAndQuality": 3,
+        "acceptedCorrectClosed": 3,
+        "acceptedUnclearMixedOrNoncontact": 0,
+        "correctAcceptedPerAllInputCrops": 0.013761467889908258,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      }
+    },
+    "joint": {
+      "modelSHA256": "36eb23287cfeaf4ae56b4ce66da2c71fa0545654f550b314ca7a908093701f99",
+      "originalReferences": {
+        "surface": {
+          "dorsum": {
+            "correct": 35,
+            "total": 62,
+            "recall": 0.5645161290322581
+          },
+          "palm": {
+            "correct": 39,
+            "total": 43,
+            "recall": 0.9069767441860465
+          },
+          "side": {
+            "correct": 26,
+            "total": 32,
+            "recall": 0.8125
+          }
+        },
+        "macroRecall": 0.7613309577394348,
+        "sourceGroupMeanRecall": {
+          "palm": 0.8055555555555556,
+          "dorsum": 0.5795634920634921,
+          "side": 0.6911111111111111
+        },
+        "knownCrops": 137,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 81,
+          "dorsum": 62,
+          "palm": 43,
+          "side": 32
+        },
+        "acceptedAnatomyAndQuality": 9,
+        "acceptedCorrectClosed": 8,
+        "acceptedUnclearMixedOrNoncontact": 0,
+        "correctAcceptedPerAllInputCrops": 0.03669724770642202,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      },
+      "reviewedReferences": {
+        "surface": {
+          "palm": {
+            "correct": 33,
+            "total": 35,
+            "recall": 0.9428571428571428
+          },
+          "dorsum": {
+            "correct": 27,
+            "total": 40,
+            "recall": 0.675
+          },
+          "side": {
+            "correct": 25,
+            "total": 29,
+            "recall": 0.8620689655172413
+          }
+        },
+        "macroRecall": 0.8266420361247947,
+        "sourceGroupMeanRecall": {
+          "palm": 0.9166666666666666,
+          "dorsum": 0.7542517006802721,
+          "side": 0.7696969696969697
+        },
+        "knownCrops": 104,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 94,
+          "palm": 35,
+          "mixed": 20,
+          "dorsum": 40,
+          "side": 29
+        },
+        "acceptedAnatomyAndQuality": 9,
+        "acceptedCorrectClosed": 8,
+        "acceptedUnclearMixedOrNoncontact": 1,
+        "correctAcceptedPerAllInputCrops": 0.03669724770642202,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      }
+    },
+    "frozenQuality": {
+      "modelSHA256": "04146f525ade61bb7868828e90ff256d68db8c3219dc0f6e568665b78f19e571",
+      "originalReferences": {
+        "surface": {
+          "dorsum": {
+            "correct": 35,
+            "total": 62,
+            "recall": 0.5645161290322581
+          },
+          "palm": {
+            "correct": 39,
+            "total": 43,
+            "recall": 0.9069767441860465
+          },
+          "side": {
+            "correct": 26,
+            "total": 32,
+            "recall": 0.8125
+          }
+        },
+        "macroRecall": 0.7613309577394348,
+        "sourceGroupMeanRecall": {
+          "palm": 0.8055555555555556,
+          "dorsum": 0.5795634920634921,
+          "side": 0.6911111111111111
+        },
+        "knownCrops": 137,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 81,
+          "dorsum": 62,
+          "palm": 43,
+          "side": 32
+        },
+        "acceptedAnatomyAndQuality": 14,
+        "acceptedCorrectClosed": 12,
+        "acceptedUnclearMixedOrNoncontact": 1,
+        "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      },
+      "reviewedReferences": {
+        "surface": {
+          "palm": {
+            "correct": 33,
+            "total": 35,
+            "recall": 0.9428571428571428
+          },
+          "dorsum": {
+            "correct": 27,
+            "total": 40,
+            "recall": 0.675
+          },
+          "side": {
+            "correct": 25,
+            "total": 29,
+            "recall": 0.8620689655172413
+          }
+        },
+        "macroRecall": 0.8266420361247947,
+        "sourceGroupMeanRecall": {
+          "palm": 0.9166666666666666,
+          "dorsum": 0.7542517006802721,
+          "side": 0.7696969696969697
+        },
+        "knownCrops": 104,
+        "totalCrops": 218,
+        "referenceCategories": {
+          "unclear": 94,
+          "palm": 35,
+          "mixed": 20,
+          "dorsum": 40,
+          "side": 29
+        },
+        "acceptedAnatomyAndQuality": 14,
+        "acceptedCorrectClosed": 12,
+        "acceptedUnclearMixedOrNoncontact": 2,
+        "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+        "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+      }
+    }
+  },
+  "trainingReceipts": {
+    "anatomyOnly": {
+      "arm": "anatomyOnly",
+      "freezeSHA256": "cbad4554d2d58f22731abe535ba8b1b3cdc4f428684986e16f30fcb8436022ef",
+      "modelSHA256": "563b3c4930c33e8256f36740d9064ca855d4a9bd4c3855ed24744a634c7b6362",
+      "inputSHA256": "6dfb51bb104a4b01a855946c0ae595a1114acbd4e2b6b5dc561811f09b20832c",
+      "bestEpoch": 6,
+      "selectionLoss": 0.3515293598175049,
+      "coverage": {
+        "palm": {
+          "total": 35,
+          "correct": 33,
+          "groups": 6
+        },
+        "dorsum": {
+          "total": 40,
+          "correct": 25,
+          "groups": 7
+        },
+        "side": {
+          "total": 29,
+          "correct": 27,
+          "groups": 3
+        }
+      },
+      "macroRecall": 0.8329638752052545,
+      "reviewedAnatomyGatePassed": false,
+      "qualityHeadParametersUnchanged": true,
+      "samplePlanSHA256": "7a31596585868458e1d01ddffe8c2592c94c004f6f837af67bf7fc95ef52adef",
+      "calibration": [
+        {
+          "head": 0,
+          "temperature": 1.0,
+          "validationNLL": {
+            "1.0": 0.3515293598175049,
+            "1.25": 0.3544612228870392,
+            "1.5": 0.36855676770210266,
+            "2.0": 0.41069549322128296,
+            "3.0": 0.5043125152587891,
+            "4.0": 0.5856953859329224
+          }
+        }
+      ],
+      "epochsRun": 12,
+      "qualification": "Reviewed development-reference anatomy result only; no independent final-test or grip deployment qualification"
+    },
+    "joint": {
+      "arm": "joint",
+      "freezeSHA256": "cbad4554d2d58f22731abe535ba8b1b3cdc4f428684986e16f30fcb8436022ef",
+      "modelSHA256": "36eb23287cfeaf4ae56b4ce66da2c71fa0545654f550b314ca7a908093701f99",
+      "inputSHA256": "6dfb51bb104a4b01a855946c0ae595a1114acbd4e2b6b5dc561811f09b20832c",
+      "bestEpoch": 4,
+      "selectionLoss": 0.37134867906570435,
+      "coverage": {
+        "palm": {
+          "total": 35,
+          "correct": 33,
+          "groups": 6
+        },
+        "dorsum": {
+          "total": 40,
+          "correct": 27,
+          "groups": 7
+        },
+        "side": {
+          "total": 29,
+          "correct": 25,
+          "groups": 3
+        }
+      },
+      "macroRecall": 0.8266420361247947,
+      "reviewedAnatomyGatePassed": true,
+      "qualityHeadParametersUnchanged": false,
+      "samplePlanSHA256": "7a31596585868458e1d01ddffe8c2592c94c004f6f837af67bf7fc95ef52adef",
+      "calibration": [
+        {
+          "head": 0,
+          "temperature": 1.0,
+          "validationNLL": {
+            "1.0": 0.37134867906570435,
+            "1.25": 0.3837125301361084,
+            "1.5": 0.40464460849761963,
+            "2.0": 0.45559102296829224,
+            "3.0": 0.5557651519775391,
+            "4.0": 0.6367846727371216
+          }
+        },
+        {
+          "head": 1,
+          "temperature": 1.0,
+          "validationNLL": {
+            "1.0": 0.5593631267547607,
+            "1.25": 0.5613442659378052,
+            "1.5": 0.5682409405708313,
+            "2.0": 0.5842663049697876,
+            "3.0": 0.6097143888473511,
+            "4.0": 0.6263421773910522
+          }
+        },
+        {
+          "head": 2,
+          "temperature": 4.0,
+          "validationNLL": {
+            "1.0": 0.9579349756240845,
+            "1.25": 0.8551769256591797,
+            "1.5": 0.7937359809875488,
+            "2.0": 0.7287465333938599,
+            "3.0": 0.6833227276802063,
+            "4.0": 0.6709818243980408
+          }
+        }
+      ],
+      "epochsRun": 12,
+      "qualification": "Reviewed development-reference anatomy result only; no independent final-test or grip deployment qualification"
+    }
+  },
+  "caveat": "All references are agent development annotations. Both checkpoints were selected on this validation set. Revised-reference improvement is not new final-test accuracy; original-reference comparisons remain mandatory.",
+  "fullGripCohortReady": false,
+  "finalReserveInspected": false,
+  "phoneModelEnabled": false,
+  "verification": {
+    "patchesVerified": 744,
+    "sourceRolesAndOriginalReferencesUnchanged": true,
+    "samplePlansIdentical": true,
+    "frozenAnatomyPredictionsBitIdentical": true,
+    "priorV7PinsVerified": 147,
+    "priorV9OutputsUnchanged": true,
+    "confidenceThresholdsUnchanged": true,
+    "finalReserveInspected": false,
+    "fullGripCohortReady": false,
+    "rowMetadataRestorationVerified": true,
+    "outputHashes": {
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/fitting.jsonl": "6dfb51bb104a4b01a855946c0ae595a1114acbd4e2b6b5dc561811f09b20832c",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/fitting-restored-row-metadata.jsonl": "32e9cef5f16a96f45a85f387d4a1d704b59a7de1abe455d45b71c00530cf2c55",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/row-metadata-restoration.json": "fcaac18c7bc593f20e74e8a293c115bc23dfb5da5bc994d8e5650e6bd37d906c",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/review.json": "ac32fa83c7d8b4ced2463d2a6cd70b4a76b1c66fd33c8da193ef8c6b15f0cdfc",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/training-freeze.json": "cbad4554d2d58f22731abe535ba8b1b3cdc4f428684986e16f30fcb8436022ef",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/comparison.json": "20550688b3cd244975725c79944f7c3791d32a9395fa7945a1af0183181dcc68",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/comparison-quality.json": "6f11ae5e81afd8dca34c200193912578e54a3e8f732421cafb90ae0e774d2665",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/cohort-audit.json": "5f44d09fea6d1e9f546efd7af50dc870a324f761b88a448cab8eb299b9fafe98"
+    },
+    "scripts": {
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/evaluate-grip-anatomy-v11.py": "b11f5339234df20c69acd3b66ee0039c745a7fd09f9f737321561b0566a03fdc",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/verify-grip-anatomy-v11.py": "3d0b959d5b2a365ad5868a5ed50c39cb23a42c916fe58c36ca0ad1272109aea1",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/train-grip-anatomy-v11.py": "14f4b5fc45e39358f4a62084d9b44c2c48c723b4604c9093b3c1a32cf0c6db32",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/assemble-grip-anatomy-v11.py": "35705ad3f74bbb8cecde45ca94caefbad2048c5d0e289efda8025eea23a2b373",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/restore-grip-row-metadata-v11.py": "91ebe23a518360fea1a161c3c37de5e306cd0d150830fc15e5b8f07a0fa094a5",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/review-grip-anatomy-v11.py": "fdd8875bf570dd582f9d90d7831156c670484d6c69e4a82ee1d2bd8c6fc24d3a",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/train-grip-quality-v11.py": "6b934cf6e6a75244920dc25406d71b60216e32bba7e8d989f3a6e85a44894991"
+    }
+  }
+}

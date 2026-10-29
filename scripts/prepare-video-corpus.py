@@ -22,10 +22,10 @@ import tempfile
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC_PATH = ROOT / "HangInThereTests/Fixtures/corpus.json"
-DESTINATION = ROOT / "HangInThereTests/Fixtures/generated/corpus"
+SPEC_PATH = ROOT / "ios/HangInThereTests/Fixtures/corpus.json"
+DESTINATION = ROOT / "ios/HangInThereTests/Fixtures/generated/corpus"
 SOURCE_ROOT = ROOT / "Data/external/corpus"
-EXISTING_FIXTURE_ROOT = ROOT / "HangInThereTests/Fixtures/generated"
+EXISTING_FIXTURE_ROOT = ROOT / "ios/HangInThereTests/Fixtures/generated"
 
 
 def digest(path: Path) -> str:

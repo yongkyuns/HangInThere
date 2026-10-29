@@ -1,0 +1,974 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Privileged crop diagnostic only on previously exposed test recordings; no fitting, no fresh test claim.",
+  "reviewer": "Coding agent pixel review, not independent human gold.",
+  "selectedSHA256": "8f9faaded0738f8f01b5da7157a506c1dc242c09720bdae36d4a53f25172972c",
+  "manualGeometry": "Direct hand bounds enclose fingers/knuckles, palm/dorsum and wrist junction. Square centered on bounds with fixed 1.6 (primary) and 2.0 (prespecified sensitivity) padding. No synthetic pixels, mirror or rotation.",
+  "frames": {
+    "D01": {
+      "imageSHA256": "fb8078b44016ede99b6f55d2113fa96c112cabf8ccac20ed49f3fbd3ea5d1548",
+      "grip": "overhand",
+      "view": "rear",
+      "priorFrameReference": {
+        "id": "X0034",
+        "caseId": "k700train_-beNuPANrTI_000001_000011",
+        "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+        "imageSHA256": "fb8078b44016ede99b6f55d2113fa96c112cabf8ccac20ed49f3fbd3ea5d1548",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 56056
+        },
+        "split": "test",
+        "grip": "overhand",
+        "view": "rear",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            510,
+            48,
+            560,
+            95
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            744,
+            49,
+            790,
+            96
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D02": {
+      "imageSHA256": "a303bd8c94f4d20fa5e44232459ce6540b82852b84ef727adbc34ab30ba1f9a7",
+      "grip": "overhand",
+      "view": "rear",
+      "priorFrameReference": {
+        "id": "X0035",
+        "caseId": "k700train_-beNuPANrTI_000001_000011",
+        "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+        "imageSHA256": "a303bd8c94f4d20fa5e44232459ce6540b82852b84ef727adbc34ab30ba1f9a7",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 120120
+        },
+        "split": "test",
+        "grip": "overhand",
+        "view": "rear",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            510,
+            45,
+            558,
+            100
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            746,
+            48,
+            792,
+            100
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D03": {
+      "imageSHA256": "b079a7a3e59c95e47d695a8055c9d3cff89788a2ac3a505e68d17e8563c542d7",
+      "grip": "overhand",
+      "view": "rear",
+      "priorFrameReference": {
+        "id": "X0050",
+        "caseId": "k700train_RwTAihfNClg_000012_000022",
+        "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+        "imageSHA256": "b079a7a3e59c95e47d695a8055c9d3cff89788a2ac3a505e68d17e8563c542d7",
+        "timestamp": {
+          "timescale": 15360,
+          "value": 28672
+        },
+        "split": "test",
+        "grip": "overhand",
+        "view": "rear",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            85,
+            60,
+            104,
+            79
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            132,
+            85,
+            150,
+            101
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        }
+      },
+      "notes": "Rear/oblique white shirt; tiny low-resolution hands. Prior rear bin retained, coarse-view boundary is uncertain; exclude from strict verified-view subset.",
+      "strictViewVerified": false
+    },
+    "D04": {
+      "imageSHA256": "018eae3318eb10a450f1acfbb388d694819859ba7e994edd5c1e738e6f53f5ed",
+      "grip": "overhand",
+      "view": "rear",
+      "priorFrameReference": {
+        "id": "X0051",
+        "caseId": "k700train_RwTAihfNClg_000012_000022",
+        "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+        "imageSHA256": "018eae3318eb10a450f1acfbb388d694819859ba7e994edd5c1e738e6f53f5ed",
+        "timestamp": {
+          "timescale": 15360,
+          "value": 61440
+        },
+        "split": "test",
+        "grip": "overhand",
+        "view": "rear",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            82,
+            59,
+            100,
+            77
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        },
+        "h2": {
+          "status": "sourceOccluded",
+          "bounds": null,
+          "automaticSide": "right",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "unverifiable",
+          "note": "Source hand hidden behind head/machine; automatic right crop duplicates the other hand. Initial draft bounds included handle/head. Corrected in pixel review before any predictions. Native pixels too blurred/tiny for confident surface label."
+        }
+      },
+      "notes": "Rear/oblique white shirt; tiny low-resolution hands. Prior rear bin retained, coarse-view boundary is uncertain; exclude from strict verified-view subset.",
+      "strictViewVerified": false
+    },
+    "D05": {
+      "imageSHA256": "9fb8e74000cb099ab4ef71d4f5944c4ffca343868bdfa49daa184cb598238b1c",
+      "grip": "overhand",
+      "view": "front",
+      "priorFrameReference": {
+        "id": "X0079",
+        "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+        "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+        "imageSHA256": "9fb8e74000cb099ab4ef71d4f5944c4ffca343868bdfa49daa184cb598238b1c",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 56056
+        },
+        "split": "test",
+        "grip": "overhand",
+        "view": "front",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            578,
+            134,
+            628,
+            191
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "palm",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            895,
+            135,
+            936,
+            187
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D06": {
+      "imageSHA256": "b65686b35caeca43c0259d77656fc39d3c60dfcaf3f340e1abb88085d5b42ca3",
+      "grip": "overhand",
+      "view": "front",
+      "priorFrameReference": {
+        "id": "X0080",
+        "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+        "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+        "imageSHA256": "b65686b35caeca43c0259d77656fc39d3c60dfcaf3f340e1abb88085d5b42ca3",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 120120
+        },
+        "split": "test",
+        "grip": "overhand",
+        "view": "front",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            579,
+            134,
+            628,
+            188
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "palm",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            896,
+            135,
+            939,
+            193
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D07": {
+      "imageSHA256": "c7696084e5515d85e0dbbc1d2dd3d327ed0af06bc37136f729d821064496f973",
+      "grip": "underhand",
+      "view": "front",
+      "priorFrameReference": {
+        "id": "X0008",
+        "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+        "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+        "imageSHA256": "c7696084e5515d85e0dbbc1d2dd3d327ed0af06bc37136f729d821064496f973",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 56056
+        },
+        "split": "test",
+        "grip": "underhand",
+        "view": "front",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Full frame shows both hands on one transverse bar; visible dorsal hands from front indicate supination, not separate parallel handles"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "sourceClipped",
+          "bounds": null,
+          "automaticSide": "right",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "unverifiable",
+          "note": "Source fingers extend beyond top edge; cannot repair"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            773,
+            35,
+            834,
+            110
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D08": {
+      "imageSHA256": "91c8c0fa22f25c0bb1413b6881c601e7eda8ecc9c42e29022ea6fe971ccc82f4",
+      "grip": "underhand",
+      "view": "front",
+      "priorFrameReference": {
+        "id": "X0009",
+        "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+        "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+        "imageSHA256": "91c8c0fa22f25c0bb1413b6881c601e7eda8ecc9c42e29022ea6fe971ccc82f4",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 120120
+        },
+        "split": "test",
+        "grip": "underhand",
+        "view": "front",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Full frame shows both hands on one transverse bar; visible dorsal hands from front indicate supination, not separate parallel handles"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "sourceClipped",
+          "bounds": null,
+          "automaticSide": "right",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "unverifiable",
+          "note": "Source fingers extend beyond top edge; cannot repair"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            780,
+            14,
+            839,
+            100
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D09": {
+      "imageSHA256": "f9b3a72961cd150dfb09f8995ecc9d93415adadb1a0f322f8607636668cf0729",
+      "grip": "underhand",
+      "view": "front",
+      "priorFrameReference": {
+        "id": "X0046",
+        "caseId": "k700train_NtLvahCWyCU_000008_000018",
+        "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+        "imageSHA256": "f9b3a72961cd150dfb09f8995ecc9d93415adadb1a0f322f8607636668cf0729",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 56056
+        },
+        "split": "test",
+        "grip": "underhand",
+        "view": "front",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            438,
+            70,
+            509,
+            142
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            762,
+            74,
+            832,
+            150
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D10": {
+      "imageSHA256": "519f6afb04f94439a1d5afd8897847d11db663f709e9b8620f98d553f24d40ab",
+      "grip": "underhand",
+      "view": "front",
+      "priorFrameReference": {
+        "id": "X0047",
+        "caseId": "k700train_NtLvahCWyCU_000008_000018",
+        "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+        "imageSHA256": "519f6afb04f94439a1d5afd8897847d11db663f709e9b8620f98d553f24d40ab",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 120120
+        },
+        "split": "test",
+        "grip": "underhand",
+        "view": "front",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            442,
+            69,
+            509,
+            141
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            764,
+            76,
+            837,
+            151
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "dorsum",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness"
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D11": {
+      "imageSHA256": "d33f4ef39f89625cf908727a8d1302d837e060ad0b87d4d09c9fbd4dee41b429",
+      "grip": "underhand",
+      "view": "rear",
+      "priorFrameReference": {
+        "id": "X0075",
+        "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+        "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+        "imageSHA256": "d33f4ef39f89625cf908727a8d1302d837e060ad0b87d4d09c9fbd4dee41b429",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 56056
+        },
+        "split": "test",
+        "grip": "underhand",
+        "view": "rear",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "sourceClipped",
+          "bounds": null,
+          "automaticSide": "left",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "unverifiable",
+          "note": "Source fingers extend beyond top edge; cannot repair"
+        },
+        "h2": {
+          "status": "sourceClipped",
+          "bounds": null,
+          "automaticSide": "right",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "unverifiable",
+          "note": "Source fingers extend beyond top edge; cannot repair"
+        }
+      },
+      "notes": "Both gripping hands lie above the source boundary. Existing underhand activity reference cannot be independently established from this frame; no hand can be recovered or credited.",
+      "strictViewVerified": false
+    },
+    "D12": {
+      "imageSHA256": "5cfeee6a000e1874e38fc2d210e41b17d0c1b9e8eda63fab1721aa41bdcadd95",
+      "grip": "underhand",
+      "view": "rear",
+      "priorFrameReference": {
+        "id": "X0076",
+        "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+        "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+        "imageSHA256": "5cfeee6a000e1874e38fc2d210e41b17d0c1b9e8eda63fab1721aa41bdcadd95",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 120120
+        },
+        "split": "test",
+        "grip": "underhand",
+        "view": "rear",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "sourceClipped",
+          "bounds": null,
+          "automaticSide": "left",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "unverifiable",
+          "note": "Source fingers extend beyond top edge; cannot repair"
+        },
+        "h2": {
+          "status": "sourceClipped",
+          "bounds": null,
+          "automaticSide": "right",
+          "automaticCorrectHand": false,
+          "surface": "unclear",
+          "contact": "unverifiable",
+          "note": "Source fingers extend beyond top edge; cannot repair"
+        }
+      },
+      "notes": "Both gripping hands lie above the source boundary. Existing underhand activity reference cannot be independently established from this frame; no hand can be recovered or credited.",
+      "strictViewVerified": false
+    },
+    "D13": {
+      "imageSHA256": "968fd8e760c725433a5e163784c71816c55648f042633b82bedfb7895230d702",
+      "grip": "neutral",
+      "view": "oblique",
+      "priorFrameReference": {
+        "id": "X0022",
+        "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+        "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+        "imageSHA256": "968fd8e760c725433a5e163784c71816c55648f042633b82bedfb7895230d702",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 56056
+        },
+        "split": "test",
+        "grip": "neutral",
+        "view": "oblique",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            673,
+            84,
+            720,
+            140
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "side",
+          "contact": "closed",
+          "note": "Same-athlete second hand partly enters fixed padding; direct thumb-side appearance, retain overlap flag rather than synthesize separation.",
+          "sameAthleteOverlap": true
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            730,
+            86,
+            777,
+            151
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "side",
+          "contact": "closed",
+          "note": "Same-athlete second hand partly enters fixed padding; direct thumb-side appearance, retain overlap flag rather than synthesize separation.",
+          "sameAthleteOverlap": true
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D14": {
+      "imageSHA256": "d2dbd57adc8325cb4a2f6c0b9f11f4bc09b14b430be642d14601142fd570213c",
+      "grip": "neutral",
+      "view": "oblique",
+      "priorFrameReference": {
+        "id": "X0023",
+        "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+        "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+        "imageSHA256": "d2dbd57adc8325cb4a2f6c0b9f11f4bc09b14b430be642d14601142fd570213c",
+        "timestamp": {
+          "timescale": 30000,
+          "value": 120120
+        },
+        "split": "test",
+        "grip": "neutral",
+        "view": "oblique",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            680,
+            70,
+            727,
+            129
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "side",
+          "contact": "closed",
+          "note": "Same-athlete second hand partly enters fixed padding; direct thumb-side appearance, retain overlap flag rather than synthesize separation.",
+          "sameAthleteOverlap": true
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            738,
+            74,
+            782,
+            133
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "side",
+          "contact": "closed",
+          "note": "Same-athlete second hand partly enters fixed padding; direct thumb-side appearance, retain overlap flag rather than synthesize separation.",
+          "sameAthleteOverlap": true
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D15": {
+      "imageSHA256": "7ae0728f30dd2f0a544c18305cda9132917bf855d3cf2fd625fe46f613e6573e",
+      "grip": "neutral",
+      "view": "oblique",
+      "priorFrameReference": {
+        "id": "X0053",
+        "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+        "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+        "imageSHA256": "7ae0728f30dd2f0a544c18305cda9132917bf855d3cf2fd625fe46f613e6573e",
+        "timestamp": {
+          "timescale": 14964,
+          "value": 28000
+        },
+        "split": "test",
+        "grip": "neutral",
+        "view": "oblique",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            178,
+            139,
+            201,
+            159
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            236,
+            122,
+            265,
+            146
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D16": {
+      "imageSHA256": "3de4ae0ec95178f4271391a570d3b54ecb5aae177b97f86d06328fc581c77c32",
+      "grip": "neutral",
+      "view": "oblique",
+      "priorFrameReference": {
+        "id": "X0054",
+        "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+        "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+        "imageSHA256": "3de4ae0ec95178f4271391a570d3b54ecb5aae177b97f86d06328fc581c77c32",
+        "timestamp": {
+          "timescale": 14964,
+          "value": 60000
+        },
+        "split": "test",
+        "grip": "neutral",
+        "view": "oblique",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            173,
+            139,
+            196,
+            160
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            230,
+            123,
+            257,
+            148
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D17": {
+      "imageSHA256": "694b5aa0d00c181b7654d77f2384e7a6a6b12f4181a71fd6765a6cc532725699",
+      "grip": "neutral",
+      "view": "oblique",
+      "priorFrameReference": {
+        "id": "X0068",
+        "caseId": "k700train_v0KanSlWnPE_000010_000020",
+        "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+        "imageSHA256": "694b5aa0d00c181b7654d77f2384e7a6a6b12f4181a71fd6765a6cc532725699",
+        "timestamp": {
+          "timescale": 15360,
+          "value": 28672
+        },
+        "split": "test",
+        "grip": "neutral",
+        "view": "oblique",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            192,
+            13,
+            210,
+            35
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            221,
+            40,
+            241,
+            58
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    },
+    "D18": {
+      "imageSHA256": "6ffdeb53f83df94dbde20e3e2a550a29f19f641741bcbb5a29206049d79ad291",
+      "grip": "neutral",
+      "view": "oblique",
+      "priorFrameReference": {
+        "id": "X0069",
+        "caseId": "k700train_v0KanSlWnPE_000010_000020",
+        "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+        "imageSHA256": "6ffdeb53f83df94dbde20e3e2a550a29f19f641741bcbb5a29206049d79ad291",
+        "timestamp": {
+          "timescale": 15360,
+          "value": 61440
+        },
+        "split": "test",
+        "grip": "neutral",
+        "view": "oblique",
+        "active": true,
+        "bodyEligible": true,
+        "reason": "Direct source/crop review"
+      },
+      "adultSubject": true,
+      "hands": {
+        "h1": {
+          "status": "complete",
+          "bounds": [
+            193,
+            10,
+            211,
+            30
+          ],
+          "automaticSide": "right",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        },
+        "h2": {
+          "status": "complete",
+          "bounds": [
+            221,
+            37,
+            241,
+            54
+          ],
+          "automaticSide": "left",
+          "automaticCorrectHand": true,
+          "surface": "unclear",
+          "contact": "closed",
+          "note": "Actual same-athlete hand bounds; judge anatomical readability separately from completeness Native pixels too blurred/tiny for confident surface label."
+        }
+      },
+      "notes": "Source pixels and equipment reviewed; torso direction agrees with prior coarse orientation.",
+      "strictViewVerified": true
+    }
+  },
+  "preInferenceReview": {
+    "sources": [
+      "sources-1.png",
+      "sources-2.png",
+      "sources-3.png",
+      "detail-1.png",
+      "detail-2.png",
+      "detail-3.png",
+      "coordinate-detail.png",
+      "tiny-hand-check.png"
+    ],
+    "crops": [
+      "crop-review-1.png",
+      "crop-review-2.png",
+      "crop-review-3.png",
+      "crop-review-4.png",
+      "crop-review-5.png"
+    ],
+    "corrections": [
+      "D03-h2 moved bounds down to enclose actual hand rather than mostly bar.",
+      "D04-h2 source-occluded behind head; no valid manual crop. Initial draft kept for audit."
+    ],
+    "independentHumanGold": false
+  }
+}

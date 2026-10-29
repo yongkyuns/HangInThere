@@ -27,9 +27,21 @@ Models/downloads/
 # and explicitly approved small test fixtures under version control.
 
 # Reproducibly prepared public smoke media (test bundle only)
-HangInThereTests/Fixtures/generated/
-HangInThereTests/Fixtures/prepare-*/
+ios/HangInThereTests/Fixtures/generated/
+ios/HangInThereTests/Fixtures/prepare-*/
 __pycache__/
 
 # Optional host annotation environment
 .venv/
+
+# Android/Kotlin machine state, pinned downloaded assets and prepared test media
+.gradle/
+.kotlin/
+.cxx/
+local.properties
+android/app/src/main/assets/*.task
+android/app/src/androidTest/assets/generated/
+
+# Local owner recordings and copied research handoff (never publish)
+/Videos/
+/HangInThere-research-*/

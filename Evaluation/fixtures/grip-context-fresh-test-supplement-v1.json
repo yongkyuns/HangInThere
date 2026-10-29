@@ -1,0 +1,61 @@
+{
+  "reason": "Initial six-source test yields only two usable underhand patches due upstream detection; add this reviewed source before model scores, retain every original test source and its missing-hand denominator",
+  "cases": [
+    {
+      "id": "k700train_WBS79ibKwC8_000002_000012",
+      "recordingId": "9706e46efe9b9161a908059940eb54b0356f87f7e92b328eb4f578c499e09336",
+      "originalVideoSHA256": "9706e46efe9b9161a908059940eb54b0356f87f7e92b328eb4f578c499e09336",
+      "sourceGroup": "youtube:WBS79ibKwC8",
+      "subjectId": null,
+      "label": "underhand",
+      "split": "test",
+      "viewpoint": "oblique",
+      "start": 1.5,
+      "end": 8.5,
+      "publisher": {
+        "id": "k700train_WBS79ibKwC8_000002_000012",
+        "videoId": "WBS79ibKwC8",
+        "title": "The ymca 15 pull ups",
+        "author": "Stephen Rap songs",
+        "authorURL": "https://www.youtube.com/@stephenrapsongs4766"
+      },
+      "media": {
+        "id": "k700train_WBS79ibKwC8_000002_000012",
+        "sourceGroup": "youtube:WBS79ibKwC8",
+        "videoId": "WBS79ibKwC8",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/WBS79ibKwC8_000002_000012.mp4",
+        "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+        "archiveMember": "pull ups/WBS79ibKwC8_000002_000012.mp4",
+        "bytes": 1435111,
+        "sha256": "9706e46efe9b9161a908059940eb54b0356f87f7e92b328eb4f578c499e09336"
+      },
+      "reviewFrames": [
+        {
+          "image": "frame-0009.png",
+          "sha256": "2556e08232cdc788a322ec64da075536a1b881e6cd32e1605551427c1729e822",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 72072
+          }
+        },
+        {
+          "image": "frame-0018.png",
+          "sha256": "b289b0ea31622dcd0bd773cb5c4c6a15ee256f5f5136a838fc802a9dda1653d6",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 144144
+          }
+        },
+        {
+          "image": "frame-0027.png",
+          "sha256": "be52d784cbc4c327974179360e72db2e279d9ffb99f7dbc8241805755dd9364c",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 216216
+          }
+        }
+      ],
+      "evidence": "Provisional visual review: supinated grip on transverse bar facing the athlete; oblique view. Near hand partly hidden by machine, far hand visible. No model scores inspected."
+    }
+  ]
+}

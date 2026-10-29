@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 24,
+  "comparison": {
+    "schemaVersion": 24,
+    "scope": "Exposed development regression; original labels and source-view inputs retained. Not independent accuracy or phone acquisition.",
+    "widthPolicyVersion": 3,
+    "frozenPinsVerified": 25,
+    "counterAndExerciseFramesBitIdentical": {
+      "native": 1517,
+      "alternating": 2152,
+      "older": 7579
+    },
+    "gripPolicyOutputsBitIdentical": true,
+    "cases": [
+      {
+        "id": "qVztO-F-IwI",
+        "referenceWidth": "shoulderWidth",
+        "referenceUnchanged": true,
+        "baseline": {
+          "exerciseFrames": 152,
+          "knownWidthFrames": 45,
+          "coverage": 0.29605263157894735,
+          "bands": {
+            "shoulderWidth": 45,
+            "unknown": 107
+          },
+          "medianRatio": 1.2472782479109537,
+          "wrongKnownFrames": 0,
+          "unknownReasons": {
+            "bodyTrackingUnavailable": 6,
+            "waitingForStableHangBaseline": 88,
+            "confirmingWidth": 13
+          }
+        },
+        "candidate": {
+          "exerciseFrames": 152,
+          "knownWidthFrames": 138,
+          "coverage": 0.9078947368421053,
+          "bands": {
+            "shoulderWidth": 138,
+            "unknown": 14
+          },
+          "medianRatio": 1.2796544261883493,
+          "wrongKnownFrames": 0,
+          "unknownReasons": {
+            "confirmingWidth": 10,
+            "bodyTrackingUnavailable": 4
+          }
+        },
+        "gripStatesBitIdentical": true,
+        "negativeControls": {
+          "setupFrames": 263,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        }
+      },
+      {
+        "id": "88bye9FlQR8",
+        "referenceWidth": "uncertain",
+        "referenceUnchanged": true,
+        "baseline": {
+          "exerciseFrames": 197,
+          "knownWidthFrames": 76,
+          "coverage": 0.38578680203045684,
+          "bands": {
+            "narrow": 76,
+            "unknown": 121
+          },
+          "medianRatio": 0.6354570460370673,
+          "wrongKnownFrames": null,
+          "unknownReasons": {
+            "bodyTrackingUnavailable": 4,
+            "waitingForStableHangBaseline": 117
+          }
+        },
+        "candidate": {
+          "exerciseFrames": 197,
+          "knownWidthFrames": 197,
+          "coverage": 1.0,
+          "bands": {
+            "narrow": 197
+          },
+          "medianRatio": 0.6423990263209538,
+          "wrongKnownFrames": null,
+          "unknownReasons": {}
+        },
+        "gripStatesBitIdentical": true,
+        "negativeControls": {
+          "setupFrames": 84,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 88
+        }
+      },
+      {
+        "id": "PdRboCRf1Mg",
+        "referenceWidth": "wide",
+        "referenceUnchanged": true,
+        "baseline": {
+          "exerciseFrames": 385,
+          "knownWidthFrames": 0,
+          "coverage": 0.0,
+          "bands": {
+            "unknown": 385
+          },
+          "medianRatio": null,
+          "wrongKnownFrames": 0,
+          "unknownReasons": {
+            "bodyTrackingUnavailable": 385
+          }
+        },
+        "candidate": {
+          "exerciseFrames": 385,
+          "knownWidthFrames": 186,
+          "coverage": 0.4831168831168831,
+          "bands": {
+            "unknown": 199,
+            "wide": 186
+          },
+          "medianRatio": 2.4039104386799046,
+          "wrongKnownFrames": 0,
+          "unknownReasons": {
+            "bodyTrackingUnavailable": 6,
+            "waitingForStableHangBaseline": 148,
+            "confirmingWidth": 45
+          }
+        },
+        "gripStatesBitIdentical": true,
+        "negativeControls": {}
+      }
+    ],
+    "attempts": [
+      {
+        "recordingId": "80bfb654d34a169b93a479c5c9f97c2dfb74b17b1571fb843469800beb56fc4e",
+        "ordinal": 1,
+        "startedAt": 11.2,
+        "closedAt": 14.68,
+        "complete": true,
+        "baselineWidth": "unknown",
+        "candidateWidth": "shoulderWidth",
+        "baselineCoverage": 0.06896551724137936,
+        "candidateCoverage": 1.0
+      },
+      {
+        "recordingId": "80bfb654d34a169b93a479c5c9f97c2dfb74b17b1571fb843469800beb56fc4e",
+        "ordinal": 2,
+        "startedAt": 15.36,
+        "closedAt": 16.4,
+        "complete": false,
+        "baselineWidth": "unknown",
+        "candidateWidth": "unknown",
+        "baselineCoverage": 0.7692307692307688,
+        "candidateCoverage": 0.6153846153846164
+      },
+      {
+        "recordingId": "8b1ac96d3435ca6da4e355e2d5bcfb450cd837226a78d33ba7ad389c9308b4a9",
+        "ordinal": 1,
+        "startedAt": 3.628625,
+        "closedAt": 5.005,
+        "complete": false,
+        "baselineWidth": "narrow",
+        "candidateWidth": "narrow",
+        "baselineCoverage": 1.0,
+        "candidateCoverage": 0.9999999999999999
+      },
+      {
+        "recordingId": "8b1ac96d3435ca6da4e355e2d5bcfb450cd837226a78d33ba7ad389c9308b4a9",
+        "ordinal": 2,
+        "startedAt": 5.380375,
+        "closedAt": 8.425083333333333,
+        "complete": true,
+        "baselineWidth": "unknown",
+        "candidateWidth": "narrow",
+        "baselineCoverage": 0.41095890410958896,
+        "candidateCoverage": 0.9999999999999997
+      },
+      {
+        "recordingId": "8b1ac96d3435ca6da4e355e2d5bcfb450cd837226a78d33ba7ad389c9308b4a9",
+        "ordinal": 3,
+        "startedAt": 8.717041666666667,
+        "closedAt": 10.093416666666666,
+        "complete": false,
+        "baselineWidth": "unknown",
+        "candidateWidth": "narrow",
+        "baselineCoverage": 0.0,
+        "candidateCoverage": 0.9999999999999999
+      },
+      {
+        "recordingId": "8b1ac96d3435ca6da4e355e2d5bcfb450cd837226a78d33ba7ad389c9308b4a9",
+        "ordinal": 4,
+        "startedAt": 10.427083333333334,
+        "closedAt": 12.095416666666667,
+        "complete": false,
+        "baselineWidth": "unknown",
+        "candidateWidth": "narrow",
+        "baselineCoverage": 0.0,
+        "candidateCoverage": 0.9249999999999994
+      },
+      {
+        "recordingId": "2f48f25b7c300644afabecac835a6e332099a3b22946189ffa28bf306fe8b801",
+        "ordinal": 1,
+        "startedAt": 1.2,
+        "closedAt": 3.5,
+        "complete": true,
+        "baselineWidth": "unknown",
+        "candidateWidth": "unknown",
+        "baselineCoverage": 0.0,
+        "candidateCoverage": 0.08695652173913042
+      },
+      {
+        "recordingId": "2f48f25b7c300644afabecac835a6e332099a3b22946189ffa28bf306fe8b801",
+        "ordinal": 2,
+        "startedAt": 5.4,
+        "closedAt": 8.4,
+        "complete": true,
+        "baselineWidth": "unknown",
+        "candidateWidth": "unknown",
+        "baselineCoverage": 0.0,
+        "candidateCoverage": 0.4666666666666665
+      },
+      {
+        "recordingId": "2f48f25b7c300644afabecac835a6e332099a3b22946189ffa28bf306fe8b801",
+        "ordinal": 3,
+        "startedAt": 10.7,
+        "closedAt": 12.966666666666667,
+        "complete": false,
+        "baselineWidth": "unknown",
+        "candidateWidth": "wide",
+        "baselineCoverage": 0.0,
+        "candidateCoverage": 1.0
+      }
+    ],
+    "completedReps": 4,
+    "completedRepWidthBands": {
+      "shoulderWidth": 1,
+      "narrow": 1,
+      "unknown": 2
+    },
+    "noWidthCarryoverAcrossExplicitSetBoundaries": true,
+    "continuousAlternatingWorkoutValidated": false,
+    "sharedTests": {
+      "tests": 824,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "modelsChanged": false,
+    "repCounterChanged": false,
+    "categoryBoundariesChanged": false,
+    "confidenceThresholdsChanged": false,
+    "liveViewGateChanged": false,
+    "phoneInstalled": false,
+    "sha256": {
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/baseline-freeze.json": "0225a005875c566e87b815c44008eb765830a3183150ec06398aaa9b0c9cb9e9",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/candidate-freeze.json": "2da7e5c1cc9f76f3bd751121d67c4f1597088794e124248c354cda28d02594d2",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/native-output.jsonl": "f746cb83148d65a48f9bd66b9482ae14318a87f9dcf5a31c412730af85e1c6f2",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/native-rep-records.json": "743dba52a7dad9ab5756f51068ff07adc69d101c2f11c6e7b968f912369cc07b",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/alternating-output.jsonl": "5741922615ac4dc19d663c63aa53bb8b49fc396d8cbc6f1761eca32b25991ca5",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/alternating-rep-records.json": "c1d69a45661217d4c959634db331218743d0520b8fac5a4c9c55d9ef95047411",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/older-output.jsonl": "5ad24f865e13aff2ae7f68ca08310c6f35355f7fdea4c39dc5a3dd9b941711e8",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/older-rep-records.json": "ef84521ddb212efbd1da34d8663526abb92d7a4005e3ba68abc225a5402fb1ec",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/audit-grip-width-v24.py": "968e1ed24d9952e6edbe8138e163f3af85cdaf8d7cc7d76a4b70b2ed964138f4"
+    }
+  },
+  "freshWidthValidation": {
+    "schemaVersion": 24,
+    "scope": "Fresh width-only validation; agent source-only annotations before pose inference, not human gold. Source-confirmed front view, wrist-seeded support; not phone automatic acquisition. No model fitting or hand RGB inference.",
+    "newSources": 2,
+    "processedSources": 1,
+    "excludedBeforeInference": 1,
+    "originalNativeFrames": 854,
+    "cases": [
+      {
+        "id": "IK3sH7wOAWE",
+        "referenceWidth": "wide",
+        "referenceInterval": [
+          1.6046580605650682,
+          3.062692773738103
+        ],
+        "shotFrames": 99,
+        "knownWidthFrames": 12,
+        "coverage": 0.12121212121212122,
+        "bands": {
+          "unknown": 87,
+          "wide": 12
+        },
+        "wrongKnownFrames": 0,
+        "unknownReasons": {
+          "bodyTrackingUnavailable": 60,
+          "waitingForStableHangBaseline": 12,
+          "confirmingWidth": 15
+        },
+        "counterPhases": {
+          "seekingStart": 64,
+          "ready": 22,
+          "outbound": 13
+        },
+        "firstWidthSeconds": 9.4094
+      }
+    ],
+    "modelsFit": false,
+    "learnedHandInference": false,
+    "independentHumanGold": false,
+    "completeRepCycleAvailable": false,
+    "phoneAcquisitionValidated": false,
+    "sha256": {
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/fresh/reference-freeze.json": "fe0893aaa9fd40e05389ced1c781f4f85714e3702479e2d93d3dece27a918953",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/fresh/input-freeze.json": "5c9b0ff8612a6edcda7d820344e248e72b106d76fabcd2cf5105062e62c66c25",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/fresh/native-output.jsonl": "6f3384a0816404e08bd534577b36adfc9828787f90a9c476264a89682fe2a2ac",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/fresh/rep-records.json": "92abb5f0e777472465986338f70b015e2457079e13fc94c34ae6eecd5902ae43",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/validate-grip-width-v24.py": "7a9a3a029e75eb51a69c6d6e4804c1eb24064da1630e53df5c9e34792d2e1882"
+    }
+  },
+  "cacheCleanup": {
+    "mode": "removed",
+    "caches": [
+      {
+        "path": "build/DerivedData/SDKStatCaches.noindex",
+        "estimatedAllocatedBytes": 1585152
+      },
+      {
+        "path": "build/DerivedData/SDKExplicitPrecompiledModules",
+        "estimatedAllocatedBytes": 95801344
+      },
+      {
+        "path": "build/DerivedData/ModuleCache.noindex",
+        "estimatedAllocatedBytes": 8810496
+      },
+      {
+        "path": "build/DerivedData/CompilationCache.noindex",
+        "estimatedAllocatedBytes": 28672
+      },
+      {
+        "path": "build/DerivedData/Build/Intermediates.noindex",
+        "estimatedAllocatedBytes": 46014464
+      }
+    ],
+    "estimatedCacheBytes": 152240128,
+    "freeBytesBefore": 178995200000,
+    "freeBytesAfter": 179404800000,
+    "freeBytesChange": 409600000
+  },
+  "unsignedIPhoneBuildSucceeded": true,
+  "phoneInstalled": false,
+  "sha256": {
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/comparison.json": "0f94bc3eaa949d81556bfdf8483dbcc2cbe3d7cfd4688e2a62b2719918a42334",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/fresh/report.json": "c79a971f9e56894cd123b805b061c2f0e37c0140a2bf4db7dc56d7ce822204f0",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/cache-cleanup.json": "2fb0d19c715d2e4be96eb42ffd33b1a235035c3b18fcc6cc22f5a91f5cd6ca12",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/iphone-build.log": "c39768e0a5c31385b027bc6d61a7910dc8d176a46e2b794d8a59ef936a1ff314",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/shared-test-receipt.json": "bb4329829c7ad999a5136458d83db14b6f95efa27a6ff3a7688d821b0ada38b9",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/fresh/native-replay-junit.xml": "069ff0ed6bfebddfb19e3ad8eb5f838be58860251ed291ed04b0320171c7cfe3",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/source-exposure-ledger.json": "292bf01e957dc065582174bad0a5e633c140050a5e96eb1daef7b952153a6afd",
+    "/Users/yongkyunshin/Dev/HangInThere/docs/workout/GRIP_WIDTH_PIXEL_GATE_V24.md": "ea2e3a31e082c82eb14701094e89e9d32ad4429a88a31c5ebab97a692f030d44",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v24/medium-before-after.png": "6096891530e9716a7a17f95d256b1e4daf76018bd9deea2dd556d0103042db9d"
+  }
+}

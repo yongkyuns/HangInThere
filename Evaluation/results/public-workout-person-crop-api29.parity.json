@@ -1,0 +1,149 @@
+{
+  "policyVersion": 8,
+  "scope": "same diagnostic poses in original coordinates; fixed-reference counter parity only",
+  "cases": [
+    {
+      "id": "pullup_margin",
+      "mode": "video",
+      "frames": 108,
+      "traceSha256": "00bfd2bc812f2ea46dc3ba541a5ac91339f841a7fbf50bf493e91dfe47b34153",
+      "movements": 1,
+      "expectedMovements": 1,
+      "events": [
+        {
+          "outcome": "movement",
+          "reason": "barReferencedTop;chinClearanceNotMeasured",
+          "sourceSeconds": 1.933333
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "pullup_margin",
+      "mode": "image",
+      "frames": 108,
+      "traceSha256": "00bfd2bc812f2ea46dc3ba541a5ac91339f841a7fbf50bf493e91dfe47b34153",
+      "movements": 1,
+      "expectedMovements": 1,
+      "events": [
+        {
+          "outcome": "movement",
+          "reason": "barReferencedTop;chinClearanceNotMeasured",
+          "sourceSeconds": 1.933333
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "pullup_margin",
+      "mode": "crop",
+      "frames": 108,
+      "traceSha256": "00bfd2bc812f2ea46dc3ba541a5ac91339f841a7fbf50bf493e91dfe47b34153",
+      "movements": 1,
+      "expectedMovements": 1,
+      "events": [
+        {
+          "outcome": "movement",
+          "reason": "barReferencedTop;chinClearanceNotMeasured",
+          "sourceSeconds": 1.9
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "pullup_smoke",
+      "mode": "video",
+      "frames": 40,
+      "traceSha256": "dbb2b12565eceb612e90a34d6e97b46e62a1610df6722e7a6cc5a9c17d3b2577",
+      "movements": 0,
+      "expectedMovements": 1,
+      "events": [
+        {
+          "outcome": "interrupted",
+          "reason": "lowConfidence",
+          "sourceSeconds": 2.1
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "pullup_smoke",
+      "mode": "image",
+      "frames": 40,
+      "traceSha256": "dbb2b12565eceb612e90a34d6e97b46e62a1610df6722e7a6cc5a9c17d3b2577",
+      "movements": 0,
+      "expectedMovements": 1,
+      "events": [
+        {
+          "outcome": "interrupted",
+          "reason": "lowConfidence",
+          "sourceSeconds": 2.1
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "pullup_smoke",
+      "mode": "crop",
+      "frames": 40,
+      "traceSha256": "dbb2b12565eceb612e90a34d6e97b46e62a1610df6722e7a6cc5a9c17d3b2577",
+      "movements": 0,
+      "expectedMovements": 1,
+      "events": [],
+      "matched": true
+    },
+    {
+      "id": "dip_controlled_pexels",
+      "mode": "video",
+      "frames": 300,
+      "traceSha256": "d02e8e50d68d6e32dd3e3e5b02bcfccd8115d2e43782da825279cc560555dfd1",
+      "movements": 0,
+      "expectedMovements": 9,
+      "events": [
+        {
+          "outcome": "interrupted",
+          "reason": "dipGripMoved",
+          "sourceSeconds": 6.92
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "dip_controlled_pexels",
+      "mode": "image",
+      "frames": 300,
+      "traceSha256": "d02e8e50d68d6e32dd3e3e5b02bcfccd8115d2e43782da825279cc560555dfd1",
+      "movements": 0,
+      "expectedMovements": 9,
+      "events": [
+        {
+          "outcome": "interrupted",
+          "reason": "dipGripMoved",
+          "sourceSeconds": 6.92
+        }
+      ],
+      "matched": true
+    },
+    {
+      "id": "dip_controlled_pexels",
+      "mode": "crop",
+      "frames": 300,
+      "traceSha256": "d02e8e50d68d6e32dd3e3e5b02bcfccd8115d2e43782da825279cc560555dfd1",
+      "movements": 0,
+      "expectedMovements": 9,
+      "events": [
+        {
+          "outcome": "interrupted",
+          "reason": "dipGripMoved",
+          "sourceSeconds": 6.68
+        },
+        {
+          "outcome": "interrupted",
+          "reason": "dipSupportUnclear",
+          "sourceSeconds": 7.84
+        }
+      ],
+      "matched": true
+    }
+  ]
+}

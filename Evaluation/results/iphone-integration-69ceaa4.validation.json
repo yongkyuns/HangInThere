@@ -1,0 +1,134 @@
+{
+  "artifacts_sha256": {
+    "app_executable": "edec620e297bacda854cc97f963149a4859c5ef11fa2fc9143d8375e1a2f809a",
+    "build_invocation_local": "62b6e7f0909077efa6691100920a21ab81763a999a77d5ad5d465551d46b3110",
+    "device_workout_core_framework": "a8dda6dd07419a372debfa61c2a1b6d00cf52e412e775840b8275036fa8bf4a5",
+    "execution_invocation_local": "57123db452b82110a014cfd74ff0a2446e94ef34897cd6ff92c93a7875d60af0",
+    "successful_log": "5ee9dfb9a8d81f43913a393ef260dba6b22a55ff04452c23406402d0f328040c",
+    "successful_summary_local": "5482064226793145e9c8af659d3f455b26d9af0b757f1e586cb883cd489d42cc",
+    "successful_test_tree_local": "aae82b76fa6cbf05fed07f5009f528aa018409ac27fded9565eb9dccd3b07f9d",
+    "test_executable": "0f4ea6016a12424383a442df9500db6bfb2b7d4e8df84f79b05e80fc5b94c7f8"
+  },
+  "build_configuration": "Debug",
+  "compiled_source_file_count": 163,
+  "compiled_source_snapshot_sha256": "f580e29e2b94179173bad644846cab9a0ecc62025f92ccf0d7fa0fdbd1eeb6cb",
+  "critical_passed_test_identifiers": [
+    "WorkoutGripInferenceTests/testPinnedModelsExecuteWithoutInventingHands()",
+    "WorkoutGripInferenceTests/testPrimaryAndFallbackHandCropsDoNotInventHandsOnBlankPixels()",
+    "AutomaticBarReplayTests/automaticLockRewindsOnceAndResumesWithoutManualSetup()",
+    "AutomaticBarReplayTests/manualSetupCancelsAnAutomaticResultAlreadyInFlight()",
+    "AutomaticBarReplayTests/replacingSourceCannotPublishOldAutomaticGeometry()",
+    "AutomaticBarReplayTests/raisedHandsCannotBeMisclassifiedAsDipSupport()",
+    "AutomaticBarReplayTests/dipRailsAcquireAutomaticallyAndRewindWithFixedReference()",
+    "AutomaticBarReplayTests/sharedDipBarAcquiresAndRewindsForEitherTrackedHand()",
+    "AutomaticBarReplayTests/changingDipSideCannotPublishAnOldRailAcquisition()",
+    "AutomaticBarReplayTests/failedSourcePreservesOpeningErrorInsteadOfTimingOut()",
+    "AutomaticExerciseDetectionTests/identitySourceDwellIsExactButCannotRoundUpOrUseThreeSamples()",
+    "AutomaticExerciseDetectionTests/identitySourceGapAcceptsExactLimitAndRejectsOneTickMore()",
+    "AutomaticExerciseDetectionTests/identitySourceClockFaultsClearDwellAndMixedScalesRemainSupported()",
+    "AutomaticExerciseDetectionTests/distinguishesStableStartingPosesBeforeApparatusAcquisition()",
+    "AutomaticExerciseDetectionTests/rejectsMissingLowConfidenceMixedOrBentStartingArms()",
+    "AutomaticExerciseDetectionTests/raisedBentArmsCanGuideContourSearchButCannotConfirmExerciseOrStartSet()",
+    "AutomaticExerciseDetectionTests/qualifiedIdentitySurvivesFlexionWithFreshBilateralGrip()",
+    "AutomaticExerciseDetectionTests/unlockedFlexionIdentityNeverBridgesLostGripOrSourceContext()",
+    "AutomaticExerciseDetectionTests/switchingPoseClearsIdentityAndRequiresFreshDwell()",
+    "AutomaticExerciseDetectionTests/gapsDuplicateReversedInvalidTimesAndResizingCannotEarnDwell()",
+    "AutomaticExerciseDetectionTests/unclearPoseCancelsAnAlreadyDetectedIdentity()",
+    "AutomaticExerciseDetectionTests/setLockSurvivesMotionOcclusionAndOtherExerciseUntilReset()",
+    "LiveCameraSelectionTests/automaticIdentityChangesCounterAndRailRoleWithoutStartingOrInventingApparatus()",
+    "LiveCameraSelectionTests/manualExerciseSelectionOverridesPoseAndReturningToAutoRequiresNewEvidence()",
+    "LiveCameraSelectionTests/detailsPauseSurvivesSetupChangesWithoutChangingHandsFreePreference()",
+    "LiveCameraSelectionTests/handsFreePreferenceSurvivesCameraAndExerciseChanges()",
+    "LiveCameraSelectionTests/selectingFrontBeforeStartDoesNotStartOrAuthorizeCapture()",
+    "LiveCameraSelectionTests/cameraSelectionRoundTripRetainsWorkoutConfiguration()",
+    "LiveCameraSelectionTests/selectingSameCameraPreservesSessionConfiguration()",
+    "LiveCameraSelectionTests/portraitConnectionDisablesAutomaticMirroring()",
+    "RealVideoCorpusTests/realVideoCorpusMeetsPreReviewedTrackingAndMotionFloors()",
+    "RealVideoCorpusTests/countQualifiedCorpusCasesUseProductionMovementCounter()",
+    "VideoReplayReaderTests/pinnedH264DecodesVFRAndPortraitPixelsWithoutVision()",
+    "VisionSmokeTests/solidQuadrantVideoDoesNotFabricatePeople()",
+    "VisionSmokeTests/defaultControllerKeepsRealVisionAfterCloseAndReimport()",
+    "VisionSmokeTests/realWorkoutFixtureRunsThroughVisionCountingAndResults()",
+    "VisionSmokeTests/realVisionFixtureMatchesLiveSetSession()",
+    "VisionSmokeTests/realHumanImageProducesAnArmChain()",
+    "VisionSmokeTests/realVideoUsesTheAppReaderAndMatchesDecodedSourceTimestamps()"
+  ],
+  "device": {
+    "model": "iPhone 14 Pro",
+    "os_build": "23G90",
+    "os_version": "26.6.2",
+    "product_type": "iPhone15,2"
+  },
+  "held_out_accuracy_qualified": false,
+  "initial_attempts": [
+    {
+      "attempt": "initial build",
+      "exit_code": 65,
+      "failure": "Missing development provisioning profile; refresh requested from Xcode",
+      "log_sha256": "a42149da738da2b00089c7dd6e426b6d7799088dd947d4ddd86952225f5f3ef2",
+      "native_tests_started": false
+    },
+    {
+      "attempt": "profile refresh and full build",
+      "exit_code": 65,
+      "failure": "Locked-device preflight followed by test-runner exit before bootstrapping; the exit cause is not independently established",
+      "log_sha256": "764bf2bc2157509f46a7030905ca8f865801ff7d7d701ef0a81216a1c95f2e7b",
+      "native_tests_started": false
+    },
+    {
+      "attempt": "unlocked test-without-building",
+      "exit_code": 65,
+      "failure": "Device refused launch with developer-certificate trust/security error; local signature and certificate/profile match verified",
+      "log_sha256": "d01af57563cf1466ab158672497126dafc88cf1f637e6af27659b7452b6198c0",
+      "native_tests_started": false
+    }
+  ],
+  "intermittent_replay_latency_repaired": false,
+  "local_evidence_directory": "build/phone-current-69ceaa4",
+  "private_recordings_or_workout_archives_used": false,
+  "raw_logs_result_bundles_device_identifiers_or_credentials_published": false,
+  "reference_protocol": "docs/workout/FIELD_VALIDATION.md",
+  "release_qualified": false,
+  "run": {
+    "command_elapsed_seconds": 52.69672791287303,
+    "exit_code": 0,
+    "finished_at_utc": "2026-10-15T23:10:10.678968+00:00",
+    "started_at_utc": "2026-10-15T23:09:17.979913+00:00",
+    "test_execution": "test-without-building using the freshly compiled/signed products"
+  },
+  "schema_version": 1,
+  "scope": "Full native iPhone fixture/integration regression suite; no sustained live-camera, independent holdout accuracy or physical Android qualification",
+  "signature_checks": {
+    "app_identifier_matches_profile": true,
+    "certificate_matches_profile": true,
+    "profile_includes_tested_phone": true,
+    "valid_on_disk": true
+  },
+  "simulator_qualification_repaired": false,
+  "source_files_unchanged_during_build_and_execution": true,
+  "source_revision": "69ceaa4af9a93be9b29acd6017b1b8dba59db142",
+  "source_trees": {
+    "ios": "cd4cf3573fd9d0696d2a238b616057f1d1a1f056",
+    "models": "d282537de641f9cd52daf4e28409d05940ca4c3b",
+    "shared": "4e467cc49093f0a6a9c3750fcc8fd5ff012caacf"
+  },
+  "suite_selection": "Full unfiltered HangInThere shared scheme; parallel testing disabled",
+  "sustained_physical_device_performance_qualified": false,
+  "tests": {
+    "expected_failures": 0,
+    "failed": 0,
+    "passed": 320,
+    "skipped": 0,
+    "swift_testing": 307,
+    "swift_testing_elapsed_seconds": 43.581,
+    "total": 320,
+    "xctest": 13
+  },
+  "toolchain": {
+    "sdk": "iphoneos18.5",
+    "swift": "6.1.2",
+    "target_architecture": "arm64",
+    "xcode": "16.4",
+    "xcode_build": "16F6"
+  }
+}

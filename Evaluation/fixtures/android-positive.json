@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "counter_policy_version": 8,
+  "tolerance_seconds": 0.35,
+  "scope": "Prospective development positive reviewed on source pixels before this Android inference. One hang-to-top movement, not strict form or a held-out benchmark.",
+  "annotation_provenance": "After native run37983414013 failed on cropped pullup_smoke and panning dip_controlled_pexels, source-only capture review reclassified those original fixtures as diagnostic, preserving movement labels1/9 and failures. This new Commons window/full-bar annotation was frozen before its Android inference; prior iOS source exposure is disclosed.",
+  "sources": [
+    {
+      "bar_reference_edge": [
+        304,
+        128.5,
+        557,
+        89.5
+      ],
+      "bar_reference_provenance": "Full visible upper metal edge between uprights selected from source-only pixels at 960x540 before Android inference on this new window. Extends through hand occlusion; no SDK joints or predictions. Prior source exposure in iOS temporal development disclosed.",
+      "bytes": 358754,
+      "credit": "FitnessScape; source YouTube 0I6q9NqK9tM",
+      "encoder_time_base": "1:30",
+      "end_source_seconds": 6,
+      "events_source_seconds": [
+        [
+          4.433,
+          4.633
+        ]
+      ],
+      "exercise": "pullUp",
+      "first_source_pts": 2.4,
+      "frame_range": [
+        72,
+        180
+      ],
+      "id": "pullup_margin",
+      "last_source_pts": 5.967,
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "page": "https://commons.wikimedia.org/wiki/File:Pull-ups_-_exercise_demonstration_video.webm",
+      "review_notes": "Prospective Android source-only review of frames72..180: initial descent reaches a clearly extended hang at source3.0s, one visible hang-to-top at original4.433..4.633s, stationary apparatus/background, wrists/elbows/shoulders retain image margins. Lower legs cropped and fixed PULL-UPS text remain. No chin/form verdict. Initial opening graphic/in-progress first effort excluded by contiguous-prefix trim; no interior drops. Source was previously used for iOS development, not held out.",
+      "side": "left",
+      "source_frames": 180,
+      "source_group": "Commons-pullup_video",
+      "source_sha256": "1ddf02c690c6da9d27c9ca50453d2df212d777bb402203af116b70bf27a2227d",
+      "source_size": [
+        1280,
+        720
+      ],
+      "title": "Pull-ups - exercise demonstration video.webm",
+      "ungradable_source_intervals": [],
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Pull-ups_-_exercise_demonstration_video.webm",
+      "qualification_role": "positive",
+      "development_after_prior_counter_exposure": true
+    }
+  ]
+}

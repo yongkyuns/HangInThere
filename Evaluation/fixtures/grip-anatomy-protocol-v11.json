@@ -1,0 +1,44 @@
+{
+  "qualification": "Warm-start gradient-isolation experiment, not grip deployment qualification.",
+  "inputHashes": {
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/fitting.jsonl": "6dfb51bb104a4b01a855946c0ae595a1114acbd4e2b6b5dc561811f09b20832c",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/review.json": "ac32fa83c7d8b4ced2463d2a6cd70b4a76b1c66fd33c8da193ef8c6b15f0cdfc",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/review-protocol.json": "89feaef6e3eedcf11f52edd3366ae1ea5e4cbff638a9cf4fec49fb60f4c5f623",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/model/weights.pt": "ac6c1dc3a4b7fb46f9be020ecc23f80741b30347ca61c87e3ae02c1580b07af8",
+    "/Users/yongkyunshin/Dev/HangInThere/scripts/train-grip-anatomy-v11.py": "14f4b5fc45e39358f4a62084d9b44c2c48c723b4604c9093b3c1a32cf0c6db32",
+    "/Users/yongkyunshin/Dev/HangInThere/scripts/train-grip-front-rear-v9.py": "27b344f7a8cf10ea96073b6bac398095a132041091dd02973aba1d0c8adf6961",
+    "/Users/yongkyunshin/Dev/HangInThere/scripts/train-threeway-grip.py": "1ab27b94ee54feb325400505bb0144eb523f623a9d44f4524682b6af1ee41d3d"
+  },
+  "arms": [
+    "anatomyOnly",
+    "joint"
+  ],
+  "initialization": "Previous trained v2 image model; no ImageNet reset",
+  "baselineSHA256": "ac6c1dc3a4b7fb46f9be020ecc23f80741b30347ca61c87e3ae02c1580b07af8",
+  "seed": 4113,
+  "epochs": 12,
+  "encoderLearningRate": 3e-05,
+  "headLearningRate": 0.0001,
+  "encoderBlocks": "9 onward; BatchNorm always eval",
+  "batchSize": 16,
+  "sampler": "Identical class/source-group weighted .6 anatomy + .2 visibility + .2 contact; same sample and augmentation RNG plan in both arms",
+  "loss": "Importance-corrected per-head group-balanced cross entropy; anatomyOnly masks quality gradients and freezes quality-head parameters; joint uses coefficients 1/.25/.2",
+  "selection": "Minimum reviewed validation anatomy NLL, including unchanged baseline epoch 0; no quality term in either arm selection",
+  "qualityCalibration": "anatomyOnly preserves original quality temperatures; joint calibrates quality temperatures on reviewed validation",
+  "qualificationGate": {
+    "recallPerClass": 0.65,
+    "macroRecall": 0.7,
+    "minimumCropsPerClass": 6,
+    "minimumGroupsPerClass": 3
+  },
+  "confidence": {
+    "surface": 0.8,
+    "visible": 0.8,
+    "contact": 0.8,
+    "grip": 0.8
+  },
+  "trainingCrops": 526,
+  "validationCrops": 218,
+  "finalReserveInspected": false,
+  "deployment": "No fusion or phone activation; full grip cohort has reopened gaps. Keep both original-reference and reviewed-reference metrics."
+}
