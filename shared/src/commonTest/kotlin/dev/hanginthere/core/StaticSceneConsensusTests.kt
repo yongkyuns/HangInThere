@@ -16,6 +16,51 @@ class StaticSceneConsensusTests {
             permutations(items.filterIndexed { j, _ -> i != j }).map { listOf(items[i]) + it }
         }
 
+    @Test fun allStationaryPairWitnessesDoNotRequireAnIdenticalInlierSet() {
+        // Actual source registration: three independently sub-threshold corners
+        // have compatible pair centers, while a fourth is a moving outlier.
+        for (points in listOf(patches(-1.0 to 1.0, 0.0 to 2.0, -24.0 to -5.0, 0.0 to -5.0),
+                patches(0.0 to 1.0, 1.0 to 1.0, 0.0 to -4.0))) {
+            for (order in permutations(points)) {
+                val scene = monitor(order)
+                assertEquals(StaticSceneStability.State.stable, scene.state)
+                assertEquals(2, scene.latestConsensusPatches)
+                assertTrue(scene.latestShiftFraction!! < StaticSceneStability.movementThresholdFraction)
+            }
+        }
+    }
+    @Test fun stationaryPairAgreementStillNeedsScaleAndCannotHideAMovingWitness() {
+        val points = patches(0.0 to 1.0, 1.0 to 1.0, 0.0 to -4.0)
+        assertEquals(StaticSceneStability.State.calibrating, monitor(points, null).state)
+        val limit = StaticSceneStability.movementThresholdFraction * 720
+        for (shift in listOf(limit, limit + .001)) {
+            val scene = monitor(patches(-shift to 0.0, 0.0 to 0.0, 1.0 to 0.0))
+            assertEquals(StaticSceneStability.State.calibrating, scene.state)
+            assertNull(scene.latestShiftFraction)
+        }
+    }
+
+    @Test fun additionalSidePatchesResolveBorderlineCornerConsensusWithoutChangingTheLimit() {
+        val points = patches(0.0 to -5.0, -1.0 to -6.0, -6.0 to -5.0, 0.0 to -6.0, 0.0 to -5.0, 0.0 to -5.0)
+        for(order in permutations(points)) {
+            val scene = monitor(order)
+            assertEquals(StaticSceneStability.State.stable, scene.state)
+            assertEquals(5, scene.latestConsensusPatches)
+            assertEquals(5.0/720, scene.latestShiftFraction!!, 1e-12)
+        }
+    }
+    @Test fun sixPatchMotionAndEqualCompetingClustersKeepTheOriginalSafeguards() {
+        val moving = List(6) { StaticSceneStability.PatchTranslation(12.0, 0.0) }
+        val scene = monitor(moving)
+        scene.observe(moving,0.0,1.249999)
+        assertNotEquals(StaticSceneStability.State.moved,scene.state)
+        scene.observe(moving,0.0,1.25)
+        assertEquals(StaticSceneStability.State.moved,scene.state)
+        val contested = patches(0.0 to 0.0,0.0 to 0.0,0.0 to 0.0,20.0 to 0.0,20.0 to 0.0,20.0 to 0.0)
+        assertEquals(StaticSceneStability.State.calibrating,monitor(contested).state)
+        assertEquals(StaticSceneStability.State.calibrating,monitor(moving,null).state)
+    }
+
     @Test fun twoAgreeingCornersSurviveTwoUnrelatedOutliersInEveryOrder() {
         val points = patches(-54.0 to 57.0, -60.0 to 0.0, 1.0 to 0.0, 0.0 to 0.0)
         for (order in permutations(points)) {
@@ -81,7 +126,7 @@ class StaticSceneConsensusTests {
     }
 
     @Test fun nativePatchBudgetIsBoundedAndNonfinitePatchesNeverVote() {
-        val tooMany = List(5) { StaticSceneStability.PatchTranslation(0.0, 0.0) }
+        val tooMany = List(7) { StaticSceneStability.PatchTranslation(0.0, 0.0) }
         assertEquals(StaticSceneStability.State.calibrating, monitor(tooMany).state)
         val scene = monitor(patches(0.0 to 0.0, 1.0 to 0.0, Double.NaN to 0.0, 0.0 to Double.POSITIVE_INFINITY))
         assertEquals(StaticSceneStability.State.stable, scene.state)

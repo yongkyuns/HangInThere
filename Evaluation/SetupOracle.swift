@@ -88,7 +88,7 @@ private struct Report: Encodable {
         for step in input.steps {
             let pose = step.pose, seconds = pose.timestamp.seconds
             let previous = identity.exercise, previousApparatus = identity.apparatusCandidate
-            _ = identity.observe(pose)
+            _ = identity.observe(pose,reference:bar?.referenceEdge)
             if previousApparatus != identity.apparatusCandidate || (previous != nil && identity.exercise == nil) {
                 apparatus.reset(); countdown.reset(); phone.reset(); scene.reset(); bar = nil
             }

@@ -13,13 +13,15 @@ import kotlin.math.hypot
 object WorkoutGripInference {
     const val modelId = "mediapipe_hand_full_v1_pose_lite_v1"
     const val cropPolicyVersion = 3
-    const val bodyPreflightVersion = 1
+    const val bodyPreflightVersion = 2
     /** Gate the expensive hand stage using the same body frame required by
      * classification. Bind it to this primary pose; a cached/foreign context
      * cannot authorize crops from another source observation. Hands and their
      * orientation never affect eligibility. */
     fun handStageRequests(pose:PoseResult,context:GripObservation):List<GripHandCropRequest> {
-        if(context.seconds!=pose.timestamp.seconds || context.imageSize!=pose.imageSize || WorkoutGripGeometry.bodyBasis(context)==null)return emptyList()
+        if(context.seconds!=pose.timestamp.seconds || context.imageSize!=pose.imageSize)return emptyList()
+        val basis=WorkoutGripGeometry.bodyBasis(context) ?: return emptyList()
+        if(!WorkoutGripGeometry.supportsView(basis))return emptyList()
         val person=pose.people.singleOrNull() ?: return emptyList()
         val tracked=person.landmarks.mapNotNull { point ->
             GripBodyJoint.entries.firstOrNull { it.name==point.joint.name }?.let { GripTrackedPoint(it,point.position,point.confidence) }

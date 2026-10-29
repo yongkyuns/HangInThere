@@ -1,0 +1,121 @@
+{
+  "comparison": {
+    "scope": "Exposed regression; historical provisional medium references disputed and unchanged. No fresh accuracy claim.",
+    "nativeFrames": 7579,
+    "countingAndExerciseContextBitIdentical": true,
+    "shots": [
+      {
+        "caseId": "physitrack-underhand",
+        "frames": 122,
+        "before": {
+          "unknown": 121,
+          "wide": 1
+        },
+        "after": {
+          "unknown": 118,
+          "wide": 4
+        },
+        "medianRatio": 1.6104288120590384,
+        "firstKnownSeconds": 28.16
+      },
+      {
+        "caseId": "physitrack-overhand",
+        "frames": 128,
+        "before": {
+          "unknown": 126,
+          "wide": 2
+        },
+        "after": {
+          "unknown": 124,
+          "wide": 4
+        },
+        "medianRatio": 1.7954562362666382,
+        "firstKnownSeconds": 32.64
+      },
+      {
+        "caseId": "strong-close",
+        "frames": 240,
+        "before": {
+          "unknown": 240
+        },
+        "after": {
+          "unknown": 240
+        },
+        "medianRatio": null,
+        "firstKnownSeconds": null
+      },
+      {
+        "caseId": "timms-alternating",
+        "frames": 91,
+        "before": {
+          "unknown": 91
+        },
+        "after": {
+          "unknown": 91
+        },
+        "medianRatio": null,
+        "firstKnownSeconds": null
+      }
+    ],
+    "sharedTests": 820
+  },
+  "verification": {
+    "schemaVersion": 22,
+    "scope": "Exposed development/regression. Historical provisional medium references disputed, not relabeled. No qualified narrow/medium accuracy gain.",
+    "frozenPinsVerified": 23,
+    "nativeCounterContextFramesBitIdentical": 7579,
+    "assembledCounterContextFramesBitIdentical": 5112,
+    "widthPolicyVersion": 2,
+    "noWidthStateCarryover": true,
+    "negativeControls": {
+      "setupFrames": 288,
+      "newMovements": 0,
+      "exerciseAdmissions": 0,
+      "knownWidthFrames": 0,
+      "releaseFrames": 148
+    },
+    "sharedTests": 820,
+    "learnedModelsChanged": false,
+    "categoryThresholdsChanged": false,
+    "repCounterChanged": false,
+    "independentAccuracyQualified": false,
+    "sha256": {
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v22/comparison-r3.json": "ac15ebead49c53ab198616f156c36f0e528e6de6644e3680be50b493d3a53bee",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v22/native-output-r3.jsonl": "b4cbffd8b08ae22576c0e1875d840a5eceeac8c45f7a2f0592827179c749eed6",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v22/rep-records-r3.json": "47a43b166c530a60f0dc0bbddd8d00beb114f76d8ba70cdd892cbd5ee623bc1a",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v22/alternating-output-r3.jsonl": "3faedfa86056a3df9a23f450bae04386f382bff6b6574ff09d2f50ae47c6a4f3",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v22/alternating-rep-records-r3.json": "784a72e7a19fbf8a860f7f8d11c6436a37f4437147f6e1aa049466820fc27487",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v22/auxiliary-body.jsonl": "eb0463d6e615587b27b0917307941f1beecb38c11aff2a4ee888bac59991583f",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v22/candidate-revision3-freeze.json": "d77a5dec2a52b51fb75632f380dddaab4b9dc748185601888bd2f9775b4e40f3",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/audit-grip-width-v22.py": "360d1c5e78fd084ea30347b713908b4b541d1e959da30f7ae4b7dfb516762e20"
+    }
+  },
+  "auxiliaryComparison": [
+    {
+      "caseId": "physitrack-underhand",
+      "referenceSeconds": 27,
+      "historicalProvisionalManualRatio": 1.179245283018868,
+      "auxiliaryRatio": 1.4608772792588485,
+      "minimumConfidence": 0.9886899590492249,
+      "qualification": "Exposed component diagnostic, no label correction or accuracy credit. Model agreement does not adjudicate anatomical gold. Auxiliary narrow wrist association is poor; it is not promoted."
+    },
+    {
+      "caseId": "physitrack-overhand",
+      "referenceSeconds": 34,
+      "historicalProvisionalManualRatio": 1.1081081081081081,
+      "auxiliaryRatio": 1.5586496247577015,
+      "minimumConfidence": 0.840578019618988,
+      "qualification": "Exposed component diagnostic, no label correction or accuracy credit. Model agreement does not adjudicate anatomical gold. Auxiliary narrow wrist association is poor; it is not promoted."
+    },
+    {
+      "caseId": "strong-close",
+      "referenceSeconds": 3,
+      "historicalProvisionalManualRatio": 0.6337448559670782,
+      "auxiliaryRatio": 1.228558583148153,
+      "minimumConfidence": 0.45610538125038147,
+      "qualification": "Exposed component diagnostic, no label correction or accuracy credit. Model agreement does not adjudicate anatomical gold. Auxiliary narrow wrist association is poor; it is not promoted."
+    }
+  ],
+  "iphoneUnsignedBuild": "passed",
+  "phoneInstalled": false
+}

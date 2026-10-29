@@ -4,6 +4,7 @@ import ImageIO
 import Vision
 import WorkoutCore
 import simd
+import ObservedRailPixels
 
 struct StaticSceneRegistrationReference: Sendable {
     struct Patch: Sendable {
@@ -21,12 +22,17 @@ struct StaticSceneRegistrationMeasurement: Sendable {
     let globalScaleFraction: Double?
     // Optional evaluation evidence, in column-major order. Never used by policy.
     let diagnosticHomography: [Double]?
+    let diagnosticLegacyTranslations: [StaticSceneStability.PatchTranslation]?
+    let backgroundScale: BackgroundCameraMeasurement?
 
     init(translations: [StaticSceneStability.PatchTranslation], globalScaleFraction: Double?,
-         diagnosticHomography: [Double]? = nil) {
+         diagnosticHomography: [Double]? = nil, backgroundScale: BackgroundCameraMeasurement? = nil,
+         diagnosticLegacyTranslations: [StaticSceneStability.PatchTranslation]? = nil) {
         self.translations = translations
         self.globalScaleFraction = globalScaleFraction
         self.diagnosticHomography = diagnosticHomography
+        self.backgroundScale = backgroundScale
+        self.diagnosticLegacyTranslations = diagnosticLegacyTranslations
     }
 }
 
@@ -35,11 +41,12 @@ protocol StaticSceneRegistering: Sendable {
         -> StaticSceneRegistrationMeasurement
 }
 
-// Peripheral patches keep the moving athlete from dominating lateral translation.
-// A separate full-frame homography supplies image-center area scale because
-// local corner homographies proved too fragile in synthetic qualification.
-// Its geometry alone does not establish that it fits the static background.
+// Translation and scale come from measured reciprocal peripheral background
+// correspondences. Translation uses actual matched points, not a fitted warp. A
+// full-frame SDK homography can follow a moving athlete and remains diagnostic
+// only. Missing/ambiguous image evidence never becomes a zero-scale reading.
 actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
+    static let measurementPolicyVersion = 3
     private let includeDiagnosticHomography: Bool
 
     init(includeDiagnosticHomography: Bool = false) {
@@ -70,15 +77,15 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
     ) -> StaticSceneRegistrationReference? {
         let width = image.width
         let height = image.height
-        guard width >= 64, height >= 64 else { return nil }
+        guard width >= 64, height >= 96 else { return nil }
 
-        let rects = cornerPatchRects(width: width, height: height)
+        let rects = peripheralPatchRects(width: width, height: height)
         let patches = rects.compactMap { rect -> StaticSceneRegistrationReference.Patch? in
             guard let crop = image.cropping(to: rect) else { return nil }
             return .init(rect: rect, image: crop)
         }
 
-        guard patches.count == 4 else { return nil }
+        guard patches.count == StaticSceneStability.maximumRegistrationPatches else { return nil }
         return StaticSceneRegistrationReference(
             imageSize: ImageSize(width: Double(width), height: Double(height)),
             image: image,
@@ -99,35 +106,26 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
             throw RegistrationError.incompatibleGeometry
         }
 
-        var translations: [StaticSceneStability.PatchTranslation] = []
-        translations.reserveCapacity(reference.patches.count)
-
-        for patch in reference.patches {
-            guard let current = image.cropping(to: patch.rect),
-                  let translation = translationMeasurement(
-                    reference: patch.image,
-                    current: current,
-                    patchRect: patch.rect
-                  )
-            else { continue }
-
-            translations.append(.init(
-                dxPixels: translation.dx,
-                dyPixels: translation.dy
-            ))
+        var diagnosticHomography: [Double]?
+        var diagnosticLegacyTranslations: [StaticSceneStability.PatchTranslation]?
+        let backgroundScale = try BackgroundCameraPixels.measure(reference: reference.image, current: image)
+        if includeDiagnosticHomography {
+            diagnosticLegacyTranslations = reference.patches.compactMap { patch in
+                guard let current = image.cropping(to: patch.rect),
+                      let translation = translationMeasurement(reference: patch.image, current: current,
+                          patchRect: patch.rect) else { return nil }
+                return .init(dxPixels: translation.dx, dyPixels: translation.dy)
+            }
+            _ = homographicScaleMeasurement(reference: reference.image, current: image,
+                diagnosticHomography: &diagnosticHomography)
         }
 
-        var diagnosticHomography: [Double]?
-        let globalScale = homographicScaleMeasurement(
-            reference: reference.image,
-            current: image,
-            diagnosticHomography: &diagnosticHomography
-        )
-
         return StaticSceneRegistrationMeasurement(
-            translations: translations,
-            globalScaleFraction: globalScale,
-            diagnosticHomography: diagnosticHomography
+            translations: backgroundScale.translations.map { .init(dxPixels: $0.dxPixels, dyPixels: $0.dyPixels) },
+            globalScaleFraction: backgroundScale.scaleFraction,
+            diagnosticHomography: diagnosticHomography,
+            backgroundScale: backgroundScale,
+            diagnosticLegacyTranslations: diagnosticLegacyTranslations
         )
     }
 
@@ -216,7 +214,7 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
          matrix.columns.2.x, matrix.columns.2.y, matrix.columns.2.z].map(Double.init)
     }
 
-    private static func cornerPatchRects(
+    private static func peripheralPatchRects(
         width: Int,
         height: Int
     ) -> [CGRect] {
@@ -229,7 +227,11 @@ actor VisionStaticSceneRegistrationWorker: StaticSceneRegistering {
             CGRect(x: 0, y: 0, width: w, height: h),
             CGRect(x: maxX, y: 0, width: w, height: h),
             CGRect(x: 0, y: maxY, width: w, height: h),
-            CGRect(x: maxX, y: maxY, width: w, height: h)
+            CGRect(x: maxX, y: maxY, width: w, height: h),
+            // Middle-side regions provide independent background texture when
+            // upper foliage or lower moving shadows defeat corner alignment.
+            CGRect(x: 0, y: (height-h)/2, width: w, height: h),
+            CGRect(x: maxX, y: (height-h)/2, width: w, height: h)
         ]
     }
 }

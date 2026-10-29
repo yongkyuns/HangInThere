@@ -58,6 +58,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
       - name: Generate snapshots using production Swift policies
         run: |
+          PLATFORM_NAME=macosx CONFIGURATION=Debug scripts/build-workout-core.sh
           python3 scripts/prepare-workout-oracle.py
           python3 scripts/prepare-setup-oracle.py
       - name: Test shared engine and compare every frame

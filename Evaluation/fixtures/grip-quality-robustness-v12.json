@@ -1,0 +1,961 @@
+{
+  "protocol": {
+    "purpose": "Bounded development experiment: synthetic quality negatives, frozen anatomy.\n\nNo new test evidence is produced. Corrupted copies retain their parent's role\nand source group. Only the existing two-class readability head may change.\n",
+    "inputSHA256": "32e9cef5f16a96f45a85f387d4a1d704b59a7de1abe455d45b71c00530cf2c55",
+    "initialWeightsSHA256": "a9a7404619cfa4f0916c28ecf678417e32b1fca29ce51396bfc1e1d399030bd9",
+    "reserveManifestSHA256": "eb9153750869f28ce0f1c99e6de322d0dd92b2a0ee41b19631dd782bcfcb32ff",
+    "scripts": {
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/grip-quality-robustness-v12.py": "41d6b46427184308f2cf6731fc5b26a0819d1b644cfa70341adf35a6cf4ffc20",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/train-grip-front-rear-v9.py": "27b344f7a8cf10ea96073b6bac398095a132041091dd02973aba1d0c8adf6961",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/train-threeway-grip.py": "1ab27b94ee54feb325400505bb0144eb523f623a9d44f4524682b6af1ee41d3d",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/evaluate-grip-anatomy-v11.py": "b11f5339234df20c69acd3b66ee0039c745a7fd09f9f737321561b0566a03fdc"
+    },
+    "seed": 4115,
+    "trainingCrops": 526,
+    "validationCrops": 218,
+    "syntheticParents": 201,
+    "syntheticCopies": 402,
+    "syntheticFamilies": [
+      "defocus",
+      "washedBlur"
+    ],
+    "recipes": {
+      "defocus": "PIL GaussianBlur radius 12 at 128x128",
+      "washedBlur": "GaussianBlur radius 6, then RGB x * 0.12 + 0.86, uint8 rounded"
+    },
+    "rejectedBeforeTraining": "Exposure clipping alone retained readable side anatomy in the training preview; proposal-01 archived, never fitted.",
+    "supervision": "All 201 reviewed clear TRAIN crops only; synthetic target is unambiguous-anatomy=0. Original labels and all 526 real train crops retained.",
+    "arms": {
+      "realOnly": "Class/group balanced: 0.5 clear, 0.5 real unclear/mixed",
+      "synthetic": "0.5 clear, 0.25 real unclear/mixed, 0.25 corrupted. Equal source groups, parent crops and corruption families within synthetic mass."
+    },
+    "budget": {
+      "maxEpochs": 80,
+      "patience": 8,
+      "drawsPerEpoch": 526,
+      "batchSize": 16,
+      "learningRate": 0.0001,
+      "weightDecay": 0.02,
+      "labelSmoothing": 0.02
+    },
+    "selection": "Each arm: minimum class/source-group balanced NLL on all 218 real validation crops, including starting checkpoint. No selection on two known false accepts.",
+    "calibrationTemperatures": [
+      1.0,
+      1.25,
+      1.5,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "thresholds": {
+      "surface": 0.8,
+      "visible": 0.8,
+      "contact": 0.8,
+      "grip": 0.8
+    },
+    "frozen": "Encoder, anatomy, contact, normalization and their temperatures. Only visible MLP and visible temperature can change.",
+    "criteria": "Report good acceptance, wrong known acceptance, unclear/mixed/noncontact acceptance, source groups and full denominators. Rejecting everything is not a win.",
+    "limits": "Development validation reused for checkpoint/calibration, agent labels, severe simulated quality defects are not a fresh real-world quality benchmark.",
+    "finalReserveInspected": false,
+    "fullGripCohortReady": false,
+    "enabledInApp": false
+  },
+  "comparison": {
+    "protocolSHA256": "d6740a045b393e99fb3452b7acd06fefc4c75b2fe6ac5e5a4d4f90f8667775c2",
+    "results": {
+      "baseline": {
+        "reviewedReferences": {
+          "surface": {
+            "palm": {
+              "correct": 33,
+              "total": 35,
+              "recall": 0.9428571428571428
+            },
+            "dorsum": {
+              "correct": 27,
+              "total": 40,
+              "recall": 0.675
+            },
+            "side": {
+              "correct": 25,
+              "total": 29,
+              "recall": 0.8620689655172413
+            }
+          },
+          "macroRecall": 0.8266420361247947,
+          "sourceGroupMeanRecall": {
+            "palm": 0.9166666666666666,
+            "dorsum": 0.7542517006802721,
+            "side": 0.7696969696969697
+          },
+          "knownCrops": 104,
+          "totalCrops": 218,
+          "referenceCategories": {
+            "unclear": 94,
+            "palm": 35,
+            "mixed": 20,
+            "dorsum": 40,
+            "side": 29
+          },
+          "acceptedAnatomyAndQuality": 14,
+          "acceptedCorrectClosed": 12,
+          "acceptedUnclearMixedOrNoncontact": 2,
+          "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+          "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy",
+          "acceptedWrongKnownClosed": 0,
+          "acceptedSourceGroups": {
+            "youtube:ID5_dnNIiks": {
+              "badQuality": 2
+            },
+            "publisher:strengthlog:female-rack": {
+              "correctClosed": 4
+            },
+            "youtube:sm_CjfH0U0A": {
+              "correctClosed": 1
+            },
+            "youtube:iD7kdQqttXI": {
+              "correctClosed": 7
+            }
+          },
+          "acceptedDetails": [
+            {
+              "id": "H338",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/mined-wrist/J009.png",
+              "sourceGroup": "youtube:ID5_dnNIiks",
+              "surface": "unclear",
+              "category": "unclear",
+              "prediction": "palm",
+              "surfaceConfidence": 0.8236646056175232,
+              "readability": 0.8871796131134033,
+              "contact": 0.8508632183074951,
+              "outcome": "badQuality"
+            },
+            {
+              "id": "H573",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/mined-wrist/J010.png",
+              "sourceGroup": "youtube:ID5_dnNIiks",
+              "surface": "unclear",
+              "category": "unclear",
+              "prediction": "dorsum",
+              "surfaceConfidence": 0.9861352443695068,
+              "readability": 0.846346914768219,
+              "contact": 0.8166256546974182,
+              "outcome": "badQuality"
+            },
+            {
+              "id": "H454",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J023.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9211618900299072,
+              "readability": 0.9373227953910828,
+              "contact": 0.8227353692054749,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H397",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J035.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9940107464790344,
+              "readability": 0.8811588287353516,
+              "contact": 0.8111141920089722,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H517",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J034.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9434293508529663,
+              "readability": 0.9168112277984619,
+              "contact": 0.8160922527313232,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H688",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J032.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9390261769294739,
+              "readability": 0.9574634432792664,
+              "contact": 0.8465438485145569,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H093",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-expanded/patch-review/images/6951a610d40988e45aa5746c20789151ba894f21d7c3de8ed00a69c40b95394e-62384507136caaa027cb415a1f369bc83f94e032c4411a2e653271ac75f6eb54-left.png",
+              "sourceGroup": "youtube:sm_CjfH0U0A",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9304631352424622,
+              "readability": 0.9190598726272583,
+              "contact": 0.8030858039855957,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H471",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-075b4c4ef25b358246284f5ec2639c53011c69277e7854be4c29de739be5fd34-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9954472184181213,
+              "readability": 0.9071361422538757,
+              "contact": 0.834826648235321,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H742",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-075b4c4ef25b358246284f5ec2639c53011c69277e7854be4c29de739be5fd34-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.94465571641922,
+              "readability": 0.8933845162391663,
+              "contact": 0.808277428150177,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H013",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-3a2e9e89bdc0cb1a6071dd68353562ddd2b7416f0507446f14cc11bfe848de04-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9974886178970337,
+              "readability": 0.8334996700286865,
+              "contact": 0.8489021062850952,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H685",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-3a2e9e89bdc0cb1a6071dd68353562ddd2b7416f0507446f14cc11bfe848de04-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9966371059417725,
+              "readability": 0.9492855668067932,
+              "contact": 0.8546273112297058,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H392",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-b50523ade3776081a06b65712f38c8ea25b16d9cf5287a7b4120432b86bdf4ce-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9820342063903809,
+              "readability": 0.88035649061203,
+              "contact": 0.8617230653762817,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H116",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-f077d862fcb0745de1bc92c90eacc44133844a0c0e2139697f0709888b3b506d-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9753368496894836,
+              "readability": 0.867642343044281,
+              "contact": 0.8290951251983643,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H505",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-f077d862fcb0745de1bc92c90eacc44133844a0c0e2139697f0709888b3b506d-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9986802935600281,
+              "readability": 0.9600561857223511,
+              "contact": 0.816474199295044,
+              "outcome": "correctClosed"
+            }
+          ]
+        },
+        "originalReferences": {
+          "surface": {
+            "dorsum": {
+              "correct": 35,
+              "total": 62,
+              "recall": 0.5645161290322581
+            },
+            "palm": {
+              "correct": 39,
+              "total": 43,
+              "recall": 0.9069767441860465
+            },
+            "side": {
+              "correct": 26,
+              "total": 32,
+              "recall": 0.8125
+            }
+          },
+          "macroRecall": 0.7613309577394348,
+          "sourceGroupMeanRecall": {
+            "palm": 0.8055555555555556,
+            "dorsum": 0.5795634920634921,
+            "side": 0.6911111111111111
+          },
+          "knownCrops": 137,
+          "totalCrops": 218,
+          "referenceCategories": {
+            "unclear": 81,
+            "dorsum": 62,
+            "palm": 43,
+            "side": 32
+          },
+          "acceptedAnatomyAndQuality": 14,
+          "acceptedCorrectClosed": 12,
+          "acceptedUnclearMixedOrNoncontact": 1,
+          "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+          "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+        },
+        "anatomyAndContactPredictionsBitIdentical": true,
+        "quality": {
+          "realInputs": 218,
+          "known": 104,
+          "unreadableOrMixed": 114,
+          "readableKnown": 58,
+          "readableUnclearOrMixed": 12,
+          "groupBalancedCalibratedNLL": 0.4401242733001709
+        }
+      },
+      "realOnly": {
+        "reviewedReferences": {
+          "surface": {
+            "palm": {
+              "correct": 33,
+              "total": 35,
+              "recall": 0.9428571428571428
+            },
+            "dorsum": {
+              "correct": 27,
+              "total": 40,
+              "recall": 0.675
+            },
+            "side": {
+              "correct": 25,
+              "total": 29,
+              "recall": 0.8620689655172413
+            }
+          },
+          "macroRecall": 0.8266420361247947,
+          "sourceGroupMeanRecall": {
+            "palm": 0.9166666666666666,
+            "dorsum": 0.7542517006802721,
+            "side": 0.7696969696969697
+          },
+          "knownCrops": 104,
+          "totalCrops": 218,
+          "referenceCategories": {
+            "unclear": 94,
+            "palm": 35,
+            "mixed": 20,
+            "dorsum": 40,
+            "side": 29
+          },
+          "acceptedAnatomyAndQuality": 14,
+          "acceptedCorrectClosed": 12,
+          "acceptedUnclearMixedOrNoncontact": 2,
+          "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+          "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy",
+          "acceptedWrongKnownClosed": 0,
+          "acceptedSourceGroups": {
+            "youtube:ID5_dnNIiks": {
+              "badQuality": 2
+            },
+            "publisher:strengthlog:female-rack": {
+              "correctClosed": 4
+            },
+            "youtube:sm_CjfH0U0A": {
+              "correctClosed": 1
+            },
+            "youtube:iD7kdQqttXI": {
+              "correctClosed": 7
+            }
+          },
+          "acceptedDetails": [
+            {
+              "id": "H338",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/mined-wrist/J009.png",
+              "sourceGroup": "youtube:ID5_dnNIiks",
+              "surface": "unclear",
+              "category": "unclear",
+              "prediction": "palm",
+              "surfaceConfidence": 0.8236646056175232,
+              "readability": 0.8871796131134033,
+              "contact": 0.8508632183074951,
+              "outcome": "badQuality"
+            },
+            {
+              "id": "H573",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/mined-wrist/J010.png",
+              "sourceGroup": "youtube:ID5_dnNIiks",
+              "surface": "unclear",
+              "category": "unclear",
+              "prediction": "dorsum",
+              "surfaceConfidence": 0.9861352443695068,
+              "readability": 0.846346914768219,
+              "contact": 0.8166256546974182,
+              "outcome": "badQuality"
+            },
+            {
+              "id": "H454",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J023.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9211618900299072,
+              "readability": 0.9373227953910828,
+              "contact": 0.8227353692054749,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H397",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J035.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9940107464790344,
+              "readability": 0.8811588287353516,
+              "contact": 0.8111141920089722,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H517",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J034.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9434293508529663,
+              "readability": 0.9168112277984619,
+              "contact": 0.8160922527313232,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H688",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J032.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9390261769294739,
+              "readability": 0.9574634432792664,
+              "contact": 0.8465438485145569,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H093",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-expanded/patch-review/images/6951a610d40988e45aa5746c20789151ba894f21d7c3de8ed00a69c40b95394e-62384507136caaa027cb415a1f369bc83f94e032c4411a2e653271ac75f6eb54-left.png",
+              "sourceGroup": "youtube:sm_CjfH0U0A",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9304631352424622,
+              "readability": 0.9190598726272583,
+              "contact": 0.8030858039855957,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H471",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-075b4c4ef25b358246284f5ec2639c53011c69277e7854be4c29de739be5fd34-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9954472184181213,
+              "readability": 0.9071361422538757,
+              "contact": 0.834826648235321,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H742",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-075b4c4ef25b358246284f5ec2639c53011c69277e7854be4c29de739be5fd34-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.94465571641922,
+              "readability": 0.8933845162391663,
+              "contact": 0.808277428150177,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H013",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-3a2e9e89bdc0cb1a6071dd68353562ddd2b7416f0507446f14cc11bfe848de04-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9974886178970337,
+              "readability": 0.8334996700286865,
+              "contact": 0.8489021062850952,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H685",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-3a2e9e89bdc0cb1a6071dd68353562ddd2b7416f0507446f14cc11bfe848de04-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9966371059417725,
+              "readability": 0.9492855668067932,
+              "contact": 0.8546273112297058,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H392",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-b50523ade3776081a06b65712f38c8ea25b16d9cf5287a7b4120432b86bdf4ce-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9820342063903809,
+              "readability": 0.88035649061203,
+              "contact": 0.8617230653762817,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H116",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-f077d862fcb0745de1bc92c90eacc44133844a0c0e2139697f0709888b3b506d-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9753368496894836,
+              "readability": 0.867642343044281,
+              "contact": 0.8290951251983643,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H505",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-f077d862fcb0745de1bc92c90eacc44133844a0c0e2139697f0709888b3b506d-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9986802935600281,
+              "readability": 0.9600561857223511,
+              "contact": 0.816474199295044,
+              "outcome": "correctClosed"
+            }
+          ]
+        },
+        "originalReferences": {
+          "surface": {
+            "dorsum": {
+              "correct": 35,
+              "total": 62,
+              "recall": 0.5645161290322581
+            },
+            "palm": {
+              "correct": 39,
+              "total": 43,
+              "recall": 0.9069767441860465
+            },
+            "side": {
+              "correct": 26,
+              "total": 32,
+              "recall": 0.8125
+            }
+          },
+          "macroRecall": 0.7613309577394348,
+          "sourceGroupMeanRecall": {
+            "palm": 0.8055555555555556,
+            "dorsum": 0.5795634920634921,
+            "side": 0.6911111111111111
+          },
+          "knownCrops": 137,
+          "totalCrops": 218,
+          "referenceCategories": {
+            "unclear": 81,
+            "dorsum": 62,
+            "palm": 43,
+            "side": 32
+          },
+          "acceptedAnatomyAndQuality": 14,
+          "acceptedCorrectClosed": 12,
+          "acceptedUnclearMixedOrNoncontact": 1,
+          "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+          "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+        },
+        "anatomyAndContactPredictionsBitIdentical": true,
+        "quality": {
+          "realInputs": 218,
+          "known": 104,
+          "unreadableOrMixed": 114,
+          "readableKnown": 58,
+          "readableUnclearOrMixed": 12,
+          "groupBalancedCalibratedNLL": 0.4401242733001709
+        }
+      },
+      "synthetic": {
+        "reviewedReferences": {
+          "surface": {
+            "palm": {
+              "correct": 33,
+              "total": 35,
+              "recall": 0.9428571428571428
+            },
+            "dorsum": {
+              "correct": 27,
+              "total": 40,
+              "recall": 0.675
+            },
+            "side": {
+              "correct": 25,
+              "total": 29,
+              "recall": 0.8620689655172413
+            }
+          },
+          "macroRecall": 0.8266420361247947,
+          "sourceGroupMeanRecall": {
+            "palm": 0.9166666666666666,
+            "dorsum": 0.7542517006802721,
+            "side": 0.7696969696969697
+          },
+          "knownCrops": 104,
+          "totalCrops": 218,
+          "referenceCategories": {
+            "unclear": 94,
+            "palm": 35,
+            "mixed": 20,
+            "dorsum": 40,
+            "side": 29
+          },
+          "acceptedAnatomyAndQuality": 14,
+          "acceptedCorrectClosed": 12,
+          "acceptedUnclearMixedOrNoncontact": 2,
+          "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+          "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy",
+          "acceptedWrongKnownClosed": 0,
+          "acceptedSourceGroups": {
+            "youtube:ID5_dnNIiks": {
+              "badQuality": 2
+            },
+            "publisher:strengthlog:female-rack": {
+              "correctClosed": 4
+            },
+            "youtube:sm_CjfH0U0A": {
+              "correctClosed": 1
+            },
+            "youtube:iD7kdQqttXI": {
+              "correctClosed": 7
+            }
+          },
+          "acceptedDetails": [
+            {
+              "id": "H338",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/mined-wrist/J009.png",
+              "sourceGroup": "youtube:ID5_dnNIiks",
+              "surface": "unclear",
+              "category": "unclear",
+              "prediction": "palm",
+              "surfaceConfidence": 0.8236646056175232,
+              "readability": 0.8871796131134033,
+              "contact": 0.8508632183074951,
+              "outcome": "badQuality"
+            },
+            {
+              "id": "H573",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/mined-wrist/J010.png",
+              "sourceGroup": "youtube:ID5_dnNIiks",
+              "surface": "unclear",
+              "category": "unclear",
+              "prediction": "dorsum",
+              "surfaceConfidence": 0.9861352443695068,
+              "readability": 0.846346914768219,
+              "contact": 0.8166256546974182,
+              "outcome": "badQuality"
+            },
+            {
+              "id": "H454",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J023.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9211618900299072,
+              "readability": 0.9373227953910828,
+              "contact": 0.8227353692054749,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H397",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J035.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9940107464790344,
+              "readability": 0.8811588287353516,
+              "contact": 0.8111141920089722,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H517",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J034.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9434293508529663,
+              "readability": 0.9168112277984619,
+              "contact": 0.8160922527313232,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H688",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/publishers/mined-pyramid/J032.png",
+              "sourceGroup": "publisher:strengthlog:female-rack",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9390261769294739,
+              "readability": 0.9574634432792664,
+              "contact": 0.8465438485145569,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H093",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-expanded/patch-review/images/6951a610d40988e45aa5746c20789151ba894f21d7c3de8ed00a69c40b95394e-62384507136caaa027cb415a1f369bc83f94e032c4411a2e653271ac75f6eb54-left.png",
+              "sourceGroup": "youtube:sm_CjfH0U0A",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9304631352424622,
+              "readability": 0.9190598726272583,
+              "contact": 0.8030858039855957,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H471",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-075b4c4ef25b358246284f5ec2639c53011c69277e7854be4c29de739be5fd34-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9954472184181213,
+              "readability": 0.9071361422538757,
+              "contact": 0.834826648235321,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H742",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-075b4c4ef25b358246284f5ec2639c53011c69277e7854be4c29de739be5fd34-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.94465571641922,
+              "readability": 0.8933845162391663,
+              "contact": 0.808277428150177,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H013",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-3a2e9e89bdc0cb1a6071dd68353562ddd2b7416f0507446f14cc11bfe848de04-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9974886178970337,
+              "readability": 0.8334996700286865,
+              "contact": 0.8489021062850952,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H685",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-3a2e9e89bdc0cb1a6071dd68353562ddd2b7416f0507446f14cc11bfe848de04-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9966371059417725,
+              "readability": 0.9492855668067932,
+              "contact": 0.8546273112297058,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H392",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-b50523ade3776081a06b65712f38c8ea25b16d9cf5287a7b4120432b86bdf4ce-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9820342063903809,
+              "readability": 0.88035649061203,
+              "contact": 0.8617230653762817,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H116",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-f077d862fcb0745de1bc92c90eacc44133844a0c0e2139697f0709888b3b506d-right.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9753368496894836,
+              "readability": 0.867642343044281,
+              "contact": 0.8290951251983643,
+              "outcome": "correctClosed"
+            },
+            {
+              "id": "H505",
+              "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-surface-v2/crops/images/c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd-f077d862fcb0745de1bc92c90eacc44133844a0c0e2139697f0709888b3b506d-left.png",
+              "sourceGroup": "youtube:iD7kdQqttXI",
+              "surface": "palm",
+              "category": "palm",
+              "prediction": "palm",
+              "surfaceConfidence": 0.9986802935600281,
+              "readability": 0.9600561857223511,
+              "contact": 0.816474199295044,
+              "outcome": "correctClosed"
+            }
+          ]
+        },
+        "originalReferences": {
+          "surface": {
+            "dorsum": {
+              "correct": 35,
+              "total": 62,
+              "recall": 0.5645161290322581
+            },
+            "palm": {
+              "correct": 39,
+              "total": 43,
+              "recall": 0.9069767441860465
+            },
+            "side": {
+              "correct": 26,
+              "total": 32,
+              "recall": 0.8125
+            }
+          },
+          "macroRecall": 0.7613309577394348,
+          "sourceGroupMeanRecall": {
+            "palm": 0.8055555555555556,
+            "dorsum": 0.5795634920634921,
+            "side": 0.6911111111111111
+          },
+          "knownCrops": 137,
+          "totalCrops": 218,
+          "referenceCategories": {
+            "unclear": 81,
+            "dorsum": 62,
+            "palm": 43,
+            "side": 32
+          },
+          "acceptedAnatomyAndQuality": 14,
+          "acceptedCorrectClosed": 12,
+          "acceptedUnclearMixedOrNoncontact": 1,
+          "correctAcceptedPerAllInputCrops": 0.05504587155963303,
+          "qualification": "All 218 inputs retained; component confidence only, not final grip or end-to-end camera accuracy"
+        },
+        "anatomyAndContactPredictionsBitIdentical": true,
+        "quality": {
+          "realInputs": 218,
+          "known": 104,
+          "unreadableOrMixed": 114,
+          "readableKnown": 58,
+          "readableUnclearOrMixed": 12,
+          "groupBalancedCalibratedNLL": 0.4401242733001709
+        }
+      },
+      "knownWashedOutFrame": {
+        "baseline": {
+          "H338": {
+            "readability": 0.8871796131134033,
+            "passesReadability": true
+          },
+          "H573": {
+            "readability": 0.846346914768219,
+            "passesReadability": true
+          }
+        },
+        "realOnly": {
+          "H338": {
+            "readability": 0.8871796131134033,
+            "passesReadability": true
+          },
+          "H573": {
+            "readability": 0.846346914768219,
+            "passesReadability": true
+          }
+        },
+        "synthetic": {
+          "H338": {
+            "readability": 0.8871796131134033,
+            "passesReadability": true
+          },
+          "H573": {
+            "readability": 0.846346914768219,
+            "passesReadability": true
+          }
+        }
+      }
+    },
+    "historicalV7PinsVerified": 147,
+    "historicalV9AndV11OutputsUnchanged": true,
+    "confidenceThresholdsUnchanged": true,
+    "finalReserveInspected": false,
+    "fullGripCohortReady": false,
+    "enabledInApp": false,
+    "qualification": "Repeated development validation only. No grip, video, bilateral or fresh-test accuracy claim."
+  },
+  "verification": {
+    "realTrainingCropsVerified": 526,
+    "realValidationCropsVerified": 218,
+    "syntheticCopiesVerified": 402,
+    "syntheticParents": 201,
+    "noValidationPatchesInSyntheticTraining": true,
+    "noSourceGroupSplitLeakage": true,
+    "duplicateCopiesDoNotIncreaseSourceGroupMass": true,
+    "torchscriptRoundTripBitIdentical": true,
+    "anatomyAndContactFrozen": true,
+    "bothSelectedModelsBitIdenticalToBaseline": true,
+    "inputMetadataAndReferenceHashesVerified": true,
+    "confidenceThresholdsUnchanged": true,
+    "finalReserveManifestUnchanged": true,
+    "finalReserveInspected": false,
+    "enabledInApp": false,
+    "hashes": {
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/fitting-restored-row-metadata.jsonl": "32e9cef5f16a96f45a85f387d4a1d704b59a7de1abe455d45b71c00530cf2c55",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-anatomy-v11/frozenQuality/weights.pt": "a9a7404619cfa4f0916c28ecf678417e32b1fca29ce51396bfc1e1d399030bd9",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-front-rear-v9/combined-final-reserve.json": "eb9153750869f28ce0f1c99e6de322d0dd92b2a0ee41b19631dd782bcfcb32ff",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/protocol.json": "d6740a045b393e99fb3452b7acd06fefc4c75b2fe6ac5e5a4d4f90f8667775c2",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/synthetic-manifest.json": "8409d64889183a6a2bd15c4f25e9ff49546f5c1ad55b4be2ca7e94964cb97af4",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/preview-review.json": "43ea5d4d62cf9d94f93ba89628630cb1de36d72eed2f369673c5be8fcc4723a9",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/comparison.json": "73439ffd732271590b56b6f56c49e2700d6988f27d8bd66c35387b1e725b8b38",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/verify-grip-quality-v12.py": "e8fdae3c25b6936ffeb14743ff2a97251bd3c61129476b45ae7227854b0b0dbe",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/realOnly/weights.pt": "a9a7404619cfa4f0916c28ecf678417e32b1fca29ce51396bfc1e1d399030bd9",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/realOnly/GripSurfaceClassifier.pt": "8b5921550ce497ff534b09cc190d040428ecfc45c25683561e0897c638044c19",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/realOnly/receipt.json": "635e1eb91b39d2736f60c40767c56765b70ce6d4abf9e69ee9a751ab81b2b664",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/synthetic/weights.pt": "a9a7404619cfa4f0916c28ecf678417e32b1fca29ce51396bfc1e1d399030bd9",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/synthetic/GripSurfaceClassifier.pt": "cb3365f1fe5c610f982adf4c50fbd467b817831ce61bb3a6e2cbc9017d7345e5",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-quality-robustness-v12/synthetic/receipt.json": "1e70d53e648988e5ace5fc33a3240768e52d17dabf700a2424ff884c171b843e"
+    },
+    "historicalV7PinsVerified": 147,
+    "historicalV9AndV11OutputsUnchanged": true
+  }
+}

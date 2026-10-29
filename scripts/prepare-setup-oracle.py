@@ -274,6 +274,30 @@ def prepare(output):
     add('pullUp-two-separate-bars','pullUp',[step(i/10,'pullUp',candidates=ambiguous) for i in range(56)],False,False)
     thin=[[candidate(200,495,800,495),candidate(200,500,800,500)]]
     add('pullUp-thin-parallel-bar','pullUp',[step(i/10,'pullUp',candidates=thin) for i in range(56)],True,True)
+    # Narrow grip is a supported style. Acquisition uses the same distinguishable
+    # observed arm chains as the movement owner, rather than a wide-hand rule.
+    # These are setup/readiness contracts, not claims of automatic movement start.
+    for fault in ['none', 'pose-only', 'weak-wrist', 'collapsed-wrists',
+                  'collapsed-elbows', 'collapsed-shoulders', 'crossed-shoulders']:
+        narrow=[]
+        for i in range(56):
+            frame=step(i/10,'pullUp',candidates=[[candidate(400,495,600,495)]])
+            for point in frame['pose']['people'][0]['landmarks']:
+                side='left' if point['joint'].startswith('left') else 'right'
+                part=point['joint'][len(side):]
+                x={'Shoulder':300 if side=='left' else 700,
+                   'Elbow':385 if side=='left' else 615,
+                   'Wrist':470 if side=='left' else 530}[part]
+                y={'Shoulder':740,'Elbow':620,'Wrist':500}[part]
+                if fault=='collapsed-wrists' and part=='Wrist':x=500
+                if fault=='collapsed-elbows' and part=='Elbow':x=500
+                if fault=='collapsed-shoulders' and part=='Shoulder':x=500
+                if fault=='crossed-shoulders' and part=='Shoulder':x=700 if side=='left' else 300
+                point['position']=dict(x=x,y=y)
+                if fault=='weak-wrist' and point['joint']=='rightWrist':point['confidence']=.49
+            if fault=='pose-only':frame['candidates']=[[]]
+            narrow.append(frame)
+        add('pullUp-narrow-'+fault,'pullUp',narrow,fault=='none',fault=='none')
     # Exact authored hold duration, with a nonzero source-clock origin. Source
     # ticks must not turn 0.9s into an extra-observation requirement by rounding.
     add('pullUp-exact-source-dwell','pullUp',
@@ -305,6 +329,15 @@ def prepare(output):
         moving+[step(i/10,'pullUp') for i in range(56,96)],True,True)
     add('pullUp-flexion-identity-without-apparatus','pullUp',
         [step(i/10,'pullUp',degrees=170 if i<7 else 90,candidates=[]) for i in range(56)],False,False)
+    # Identity beside an observed bar is independent of starting extension.
+    # Without observed support, flexed overhead arms still cannot discover one.
+    add('pullUp-confirmed-flexed-identity-only','pullUp',
+        [step(i/10,'pullUp',degrees=130) for i in range(56)],True,False,
+        identity=[None if i<16 else 'pullUp' for i in range(56)])
+    add('pullUp-flexed-no-reference-no-identity','pullUp',
+        [step(i/10,'pullUp',degrees=130,candidates=[]) for i in range(56)],False,False,identity=[None]*56)
+    add('pullUp-confirmed-flexed-identity-then-start','pullUp',
+        [step(i/10,'pullUp',degrees=130 if i<20 else 170) for i in range(56)],True,True)
     # Preserve the actual failed public held-dip observations independently of
     # the unchanged positive native fixture. Projected foreground tube fragments
     # must never become two rails or earn countdown through a geometry relaxation.
@@ -338,7 +371,7 @@ def prepare(output):
     geometry_inputs=output/'geometry-inputs.json';geometry_inputs.write_text(json.dumps(geometry_cases,allow_nan=False))
     sources=sorted((ROOT/'ios/HangInThere/Analysis').glob('*.swift'))
     binary=output/'swift-setup-oracle'
-    subprocess.run(['swiftc','-O','-o',str(binary)]+list(map(str,sources))+[str(ROOT/'Evaluation/SetupOracle.swift')],check=True)
+    subprocess.run(fixtures.swift_compile_command(binary)+list(map(str,sources))+[str(ROOT/'Evaluation/SetupOracle.swift')],check=True)
     pending=output/'oracle.json.pending'
     with pending.open('w') as out:subprocess.run([str(binary),str(inputs),str(geometry_inputs)],stdout=out,check=True)
     pending.replace(output/'oracle.json')

@@ -1,7 +1,6 @@
 package dev.hanginthere.core
 
 import kotlin.math.abs
-import kotlin.math.hypot
 
 /** Source clocks for hand inference and body observations remain separate. Repeated
  * cached hand results cannot earn confirmation or observed hand time. */
@@ -38,14 +37,9 @@ class WorkoutGripAnalysis(private val setId: String) {
     private var lastBar:BarSegment?=null
     private var viewAt:Double?=null
     private var nearFrontal=false
-    private var shoulderSpan:Double?=null
-    private val calibration=mutableListOf<Pair<Double,Double>>()
-    private var widthCandidate=GripWidth.unknown
-    private var widthSince:Double?=null
-    private var widthCount=0
-    private var stableWidth=GripWidth.unknown
+    private var widthCutoff:Double?=null
+    private val widthMeasurement=WorkoutGripWidth()
     private var previousWidthValid=false
-    private val ratios=mutableListOf<Double>()
     private var orientation=emptyList<GripOrientationSpan>()
     private var widths=emptyList<GripWidthSpan>()
     private var orientationOrdinal=0
@@ -53,6 +47,9 @@ class WorkoutGripAnalysis(private val setId: String) {
     private var truncated=false
     var current=GripEstimate(reason="waitingForGripEvidence");private set
     val hasObservation get()=lastHand!=null
+    internal val confirmedOrientationSeconds get() = lastHand?.takeIf {
+        lastHandValid && current.orientation in WorkoutSetGrip.confirmedOrientations
+    }
     val record get()=WorkoutGripRecord(orientation,widths,current,truncated)
     val delta get()=record.copy(orientationSpans=orientation.takeLast(2),widthSpans=widths.takeLast(2))
     fun observe(pose:PoseResult,bar:BarSegment?,phase:ExerciseCounter.Phase,usable:Boolean,sourceSeconds:Double=pose.timestamp.seconds) {
@@ -61,8 +58,26 @@ class WorkoutGripAnalysis(private val setId: String) {
         if(!time.isFinite() || lastBody?.let { time<=it }==true) {interrupt();return}
         if(lastBody?.let { time-it>ExerciseCounter.maximumGapSeconds }==true || lastSize?.let { it!=pose.imageSize }==true ||
             lastBar?.let { it!=bar }==true) interrupt(time)
+        val widthFrame=pose.gripObservation?.takeIf { frame ->
+            frame.imageSize==pose.imageSize && frame.seconds.isFinite() && frame.seconds<=time &&
+                time-frame.seconds<=WorkoutGripGeometry.maximumAgeSeconds && frame.seconds>(widthCutoff ?: Double.NEGATIVE_INFINITY) &&
+                (modelId==null || modelId==frame.modelId) && (inferenceBackend==null || inferenceBackend==frame.backend) &&
+                WorkoutGripGeometry.bodyBasis(frame)?.let { WorkoutGripGeometry.supportsView(it) }==true &&
+                listOf(PoseJoint.leftShoulder,PoseJoint.rightShoulder,PoseJoint.leftWrist,PoseJoint.rightWrist).all { joint ->
+                    val current=pose.people.singleOrNull()?.landmark(joint,.5)?.position
+                    val original=frame.trackedBody.singleOrNull { it.joint.name==joint.name }?.position
+                    current!=null && original!=null && kotlin.math.hypot(current.x-original.x,current.y-original.y)<=minOf(pose.imageSize.width,pose.imageSize.height)*.12
+                }
+        }
+        val widthBodyUsable=WorkoutGripWidth.hasCurrentSupport(pose,bar) && (usable || widthFrame!=null)
         if(!usable) {
-            if(!bodyUnavailable)interrupt(time) else advanceCutoff(time)
+            // Missing elbow/arm geometry invalidates counting and hand evidence.
+            // Current supported wrists/shoulders can still measure spacing.
+            // A new, athlete-matched body result may qualify width even when
+            // its hand timestamp cannot qualify counting/hand evidence.
+            if(widthBodyUsable && widthFrame!=null) {viewAt=widthFrame.seconds;nearFrontal=true}
+            val retainWidth=widthBodyUsable && widthFrame!=null
+            if(!bodyUnavailable)interruptObservation(time,retainWidth) else advanceCutoff(time)
         }
         bodyUnavailable=!usable
         if(pose.gripObservation==null && lastHand==null) {
@@ -85,13 +100,17 @@ class WorkoutGripAnalysis(private val setId: String) {
             val oldHand=lastHand
             val raw=WorkoutGripGeometry.orientation(frame)
             val basis=WorkoutGripGeometry.bodyBasis(frame)
-            nearFrontal=basis?.let { abs(it.facing.z)>=.85 }==true;viewAt=frame.seconds
+            nearFrontal=basis?.let { WorkoutGripGeometry.supportsView(it) }==true;viewAt=frame.seconds
             // Require contact evidence from the original inference frame, not a
             // newer pose that happened to arrive when inference completed.
             val contact=bar?.isValid==true && listOf(GripBodyJoint.leftWrist,GripBodyJoint.rightWrist).all { joint ->
                 frame.trackedBody.singleOrNull { it.joint==joint }?.let { bar.distance(it.position)<=minOf(pose.imageSize.width,pose.imageSize.height)*.085 }==true
             }
-            val valid=usable && contact && basis!=null
+            val valid=usable && contact && basis!=null && nearFrontal
+            // Side-view loss invalidates confirmation immediately. Returning to
+            // a supported view must earn new hand evidence, not reuse support
+            // accumulated before the athlete/camera rotated.
+            if(!nearFrontal) {left.reset();right.reset()}
             left.observe(if(valid)raw.left else HandGrip.unknown,frame.seconds)
             right.observe(if(valid)raw.right else HandGrip.unknown,frame.seconds)
             reason=if(!valid)raw.reason ?: "gripContactUnavailable" else raw.reason
@@ -105,56 +124,32 @@ class WorkoutGripAnalysis(private val setId: String) {
             left.reset();right.reset();lastHandValid=false
             reason=if(!usable)"bodyTrackingUnavailable" else "handObservationUnavailable"
         }
-        val person=pose.people.singleOrNull()
-        val l=person?.landmark(PoseJoint.leftShoulder,.5)?.position
-        val r=person?.landmark(PoseJoint.rightShoulder,.5)?.position
-        val observedSpan=if(l!=null && r!=null)hypot(l.x-r.x,l.y-r.y) else null
-        val widthEligible=usable && viewFresh && nearFrontal && observedSpan!=null && observedSpan>minOf(pose.imageSize.width,pose.imageSize.height)*.08
-        if(shoulderSpan==null && widthEligible && phase==ExerciseCounter.Phase.ready) {
-            calibration+=time to observedSpan!!
-            while(calibration.size>32 || calibration.firstOrNull()?.let { time-it.first>.6 }==true)calibration.removeAt(0)
-            if(calibration.size>=5 && time-calibration.first().first>=.4) {
-                val values=calibration.map { it.second }.sorted()
-                if(values.last()/values.first()<=1.15)shoulderSpan=values[values.size/2]
-            }
-        } else if(shoulderSpan==null)calibration.clear()
-        val ratio=if(widthEligible)shoulderSpan?.let { WorkoutGripGeometry.projectedWidth(pose,bar,it) } else null
-        if(ratio==null) {
-            stableWidth=GripWidth.unknown;widthCandidate=GripWidth.unknown;widthSince=null;widthCount=0;ratios.clear()
-        } else {
-            ratios+=ratio;if(ratios.size>5)ratios.removeAt(0)
-            val measured=ratios.sorted()[ratios.size/2]
-            val band=when {
-                stableWidth==GripWidth.narrow && measured<.9 -> GripWidth.narrow
-                stableWidth==GripWidth.wide && measured>1.25 -> GripWidth.wide
-                stableWidth==GripWidth.shoulderWidth && measured in .8..1.35 -> GripWidth.shoulderWidth
-                else -> WorkoutGripGeometry.widthBand(measured)
-            }
-            if(widthCandidate!=band) {widthCandidate=band;widthSince=time;widthCount=0;stableWidth=GripWidth.unknown}
-            widthCount++
-            if(widthCount>=3 && time-(widthSince ?: time)>=confirmationSeconds)stableWidth=band
-        }
-        val widthReason=when {
-            !usable -> "bodyTrackingUnavailable"
-            !widthEligible -> "widthViewUnavailable"
-            shoulderSpan==null -> "waitingForStableHangBaseline"
-            ratio==null -> "gripContactUnavailable"
-            stableWidth==GripWidth.unknown -> "confirmingWidth"
-            else -> null
-        }
+        val measuredWidth=widthMeasurement.observe(pose,bar,phase,widthBodyUsable,viewFresh && nearFrontal,time,
+            allowCalibrationPause=usable && viewFresh && nearFrontal)
+        val stableWidth=measuredWidth.width
+        val ratio=measuredWidth.projectedSpanRatio
+        val widthReason=measuredWidth.reason
         val widthValid=ratio!=null && stableWidth!=GripWidth.unknown
         appendWidth(time,stableWidth,ratio,if(widthValid && previousWidthValid)dt ?: 0.0 else 0.0,widthReason)
         previousWidthValid=widthValid
         val overall=GripEstimate.combine(left.stable,right.stable)
+        val viewReason=if(usable && viewFresh && !nearFrontal && frame?.let { WorkoutGripGeometry.bodyBasis(it)!=null }==true)"gripViewUnsupported" else null
         current=GripEstimate(left.stable,right.stable,stableWidth,ratio,overall,
-            reason ?: if(overall==GripOrientation.unknown)"handOrientationAmbiguous" else widthReason,modelId,inferenceBackend=inferenceBackend)
+            viewReason ?: reason ?: if(overall==GripOrientation.unknown)"handOrientationAmbiguous" else widthReason,modelId,
+            inferenceBackend=inferenceBackend,widthPolicyVersion=WorkoutGripWidth.policyVersion,widthReason=widthReason)
         lastBody=time
     }
     fun interrupt(cutoff:Double?=lastBody) {
+        interruptObservation(cutoff,false)
+    }
+    private fun interruptObservation(cutoff:Double?,retainWidth:Boolean) {
         advanceCutoff(cutoff)
-        left.reset();right.reset();lastHandValid=false;viewAt=null;nearFrontal=false
-        shoulderSpan=null;calibration.clear();stableWidth=GripWidth.unknown;widthCandidate=GripWidth.unknown;widthSince=null;widthCount=0
-        ratios.clear();previousWidthValid=false
+        left.reset();right.reset();lastHandValid=false
+        if(!retainWidth) {
+            viewAt=null;nearFrontal=false;widthMeasurement.interrupt()
+            cutoff?.takeIf { it.isFinite() }?.let { widthCutoff=maxOf(widthCutoff ?: it,it) }
+        }
+        previousWidthValid=false
         current=GripEstimate(reason="observationInterrupted",modelId=modelId)
         // Break intervals explicitly. High-water timestamps are retained.
         lastHand?.let { appendOrientation(it,HandGrip.unknown,HandGrip.unknown,0.0,"observationInterrupted",modelId) }
@@ -205,7 +200,8 @@ class WorkoutGripAnalysis(private val setId: String) {
             val width=if(wc<.8)GripWidth.unknown else bands.singleOrNull() ?: GripWidth.varied
             return GripEstimate(l,r,width,widths.mapNotNull { it.projectedSpanRatio }.takeIf { it.isNotEmpty() }?.average(),orientation,
                 if(!reliable || wc<.8)"variationCoverageLow" else null,hands.mapNotNull { it.modelId }.distinct().singleOrNull(),hc,wc,
-                policyVersion=record.policyVersion,inferenceBackend=hands.mapNotNull { it.inferenceBackend }.distinct().singleOrNull())
+                policyVersion=record.policyVersion,inferenceBackend=hands.mapNotNull { it.inferenceBackend }.distinct().singleOrNull(),
+                widthPolicyVersion=record.latest.widthPolicyVersion,widthReason=if(wc<.8)"variationCoverageLow" else null)
         }
     }
 }

@@ -24,6 +24,7 @@ jobs:
         run: python3 scripts/verify-grip-models.py
       - name: Generate production Swift policy and setup oracles
         run: |
+          PLATFORM_NAME=macosx CONFIGURATION=Debug scripts/build-workout-core.sh
           python3 scripts/prepare-workout-oracle.py
           python3 scripts/prepare-setup-oracle.py
       - name: Shared metrics, lifecycle and persistence contract tests

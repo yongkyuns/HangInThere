@@ -5,6 +5,15 @@ import CoreMotion
 import Observation
 import SwiftUI
 import UIKit
+import class WorkoutCore.WorkoutGripCaptureBridge
+import class WorkoutCore.BilateralTorsoDipMotion
+import class WorkoutCore.RelativeDipWorkout
+import class WorkoutCore.CameraAcquisitionEvidence
+import class WorkoutCore.BodyAthleteSelection
+import class WorkoutCore.BodyAthleteAssociation
+import class WorkoutCore.OverheadPullUpMotion
+import class WorkoutCore.OverheadPullUpWorkout
+import class WorkoutCore.WorkoutLifecycle
 
 enum LiveDebugCaptureState: Equatable, Sendable {
     case unavailable
@@ -114,9 +123,10 @@ private enum LiveCameraSetupError: LocalizedError {
     }
 }
 
-private struct PhoneMotionSample: Sendable {
+struct PhoneMotionSample: Sendable {
     let attitude: PhoneOrientationStability.Quaternion
     let timestamp: Double
+    var gravity: SIMD3<Double>? = nil
 }
 
 private enum LiveAnalyzerEvent: Sendable {
@@ -133,13 +143,16 @@ private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleB
     private let estimator: any PoseEstimator
     private let gripInference = GripInferenceScheduler()
     private let publish: @Sendable (LiveAnalyzerEvent) -> Void
+    private let setVideoRecorder: CountedSetVideoRecorder
 
     init(
         estimator: any PoseEstimator = VisionPoseEstimator(),
         gripEnabled: Bool = true,
+        setVideoRecorder: CountedSetVideoRecorder,
         publish: @escaping @Sendable (LiveAnalyzerEvent) -> Void
     ) {
         self.estimator = estimator
+        self.setVideoRecorder = setVideoRecorder
         gripInference.setEnabled(gripEnabled)
         self.publish = publish
     }
@@ -152,6 +165,7 @@ private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleB
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
+        setVideoRecorder.append(sampleBuffer)
         autoreleasepool {
             let started = ContinuousClock.now
             let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
@@ -204,6 +218,12 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var cameraPosition: LiveCameraPosition = .rear
     private(set) var isSwitchingCamera = false
     private(set) var framing = LiveFramingAssessment()
+    private(set) var cameraPlacement = LiveCameraPlacement()
+    private var armVisibility = LiveArmVisibilityFeedback()
+    var needsArmRepositioning: Bool {
+        isCameraReady && !suspended && readinessFrameFresh && liveSet.phase == .running
+            && armVisibility.needsRepositioning
+    }
     var framingHint: String? {
         liveSet.phase == .idle ? workoutAnalysis.framingHint : nil
     }
@@ -227,24 +247,71 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var handsFreeStart = HandsFreeSetStart()
     private(set) var liveSet = LiveSetSession()
     private let workoutAnalysis = WorkoutAnalysisAdapter()
+    @ObservationIgnored private let dipAthleteSelection = BodyAthleteSelection()
+    private(set) var dipAthleteDecision: BodyAthleteSelectionDecision?
+    var usesBodyDipTracking: Bool { exercise == .dip }
+    var usesBodyPullUpTracking: Bool { exercise == .pullUp }
+    var usesBodyMotionTracking: Bool { usesBodyDipTracking || usesBodyPullUpTracking }
+    var bodyDipPreparation: BodyDipWorkoutSnapshot? { workoutAnalysis.bodyDipSnapshot }
+    var bodyPullUpPreparation: BodyPullUpWorkoutSnapshot? { workoutAnalysis.bodyPullUpSnapshot }
+    private struct BodyCameraCalibration {
+        let size: ImageSize
+        let backend: String
+        let revision: Int
+        let sourceTime: PresentationTime
+    }
+    @ObservationIgnored private let bodyCameraEvidence = CameraAcquisitionEvidence()
+    private(set) var bodyCameraReacquisitions = 0
+    var bodyCameraIndependentObservations: Int { Int(bodyCameraEvidence.independentObservations) }
+    var bodyCameraReferenceSeconds: Double? { hasBodyCameraCalibration ? bodyCameraCalibration?.sourceTime.seconds : nil }
+    private var bodyCameraCalibration: BodyCameraCalibration?
+    var hasBodyCameraCalibration: Bool { bodyCameraCalibration != nil && sceneReference != nil }
+    var hasBodyDipCameraCalibration: Bool { usesBodyDipTracking && hasBodyCameraCalibration }
+    private var hasCameraCalibration: Bool { bar != nil || hasBodyCameraCalibration }
+    private var liveCountMethod: String? { exercise == .dip ? BilateralTorsoDipMotion.companion.countMethod : OverheadPullUpMotion.companion.countMethod }
+    private var liveBoundaryPolicyVersion: Int { exercise == .dip ? Int(RelativeDipWorkout.companion.boundaryPolicyVersion) : Int(OverheadPullUpWorkout.companion.boundaryPolicyVersion) }
+    private var liveCountPolicyVersion: Int { exercise == .dip ? Int(BilateralTorsoDipMotion.companion.policyVersion) : Int(OverheadPullUpMotion.companion.policyVersion) }
+    private var liveStartingEvidencePolicyVersion: Int { usesBodyDipTracking || usesBodyPullUpTracking ? 1 : WorkoutAnalysisAdapter.startingEvidencePolicyVersion }
     private(set) var latestCompletedWorkout: WorkoutSetRecord?
     private(set) var latestAfterSetReport: WorkoutAfterSetReport?
     private(set) var workoutHistory: [WorkoutSetRecord] = []
     private(set) var workoutStorageError: String?
     var repAnalysis: [WorkoutRepRecord] { workoutAnalysis.reps }
     var gripLabel: String? { liveSet.phase == .running ? workoutAnalysis.gripLabel : nil }
+    var gripViewPrompt: String? {
+        guard resolvedExercise == .pullUp, isCameraReady, !suspended, liveSet.phase != .finished else { return nil }
+        return WorkoutGripViewFeedback(pose: latestPose).prompt
+    }
+    @ObservationIgnored private let gripCaptureBridge = WorkoutGripCaptureBridge()
+    private var latestGripCaptureFeedback = WorkoutGripCaptureFeedback(state: "checking")
+    var gripCaptureFeedback: WorkoutGripCaptureFeedback? {
+        guard exercise == .pullUp, isCameraReady, !suspended, liveSet.phase != .finished else { return nil }
+        guard readinessFrameFresh else { return WorkoutGripCaptureFeedback(state: "checking") }
+        return latestGripCaptureFeedback
+    }
     var activeWorkoutRecord: WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.currentRecord : nil }
+    // The legacy counter records acceptance at the top. Live rep totals use
+    // the same completed-return eligibility as saved history and results.
+    var completedRepCount: Int {
+        if liveSet.phase == .running { return workoutAnalysis.currentRecord?.completedCount ?? 0 }
+        return liveSet.phase == .finished ? latestCompletedWorkout?.completedCount ?? 0 : 0
+    }
     func workoutRecordForReview() -> WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.reviewRecord() : nil }
     var showsSetStarted: Bool { workoutAnalysis.showsSetStarted }
     private var archivedSetId: String?
     @ObservationIgnored private var workoutWriteTask: Task<Void, Never>?
     private var qualifiedStartPose: PoseResult?
     private var lastAnalyzedFrameUptime: Double?
+    private(set) var readinessFrameFresh = false
     private(set) var phoneOrientation = PhoneOrientationStability()
     private(set) var motionSampleAvailable = false
     private(set) var sceneTranslation = StaticSceneStability()
     private(set) var qualification = LiveDeviceQualificationRecorder()
     private(set) var debugCaptureState: LiveDebugCaptureState = .unavailable
+    private(set) var recordsSetVideos = UserDefaults.standard.object(forKey: "recordCountedSets") == nil || UserDefaults.standard.bool(forKey: "recordCountedSets")
+    private(set) var recordingVideoSetId: String?
+    private(set) var workoutVideoError: String?
+    @ObservationIgnored private let setVideoRecorder = CountedSetVideoRecorder()
 
     let session = AVCaptureSession()
 
@@ -257,7 +324,14 @@ final class LiveCameraPreviewController: NSObject {
         qos: .userInitiated
     )
     @ObservationIgnored private let motionManager = CMMotionManager()
-    @ObservationIgnored private let sceneRegistrationWorker = VisionStaticSceneRegistrationWorker()
+    @ObservationIgnored private let sceneRegistrationWorker: any StaticSceneRegistering
+    @ObservationIgnored private let phoneMotionProvider: (@MainActor () -> PhoneMotionSample?)?
+    @ObservationIgnored private var lastPhoneMotionTimestamp: Double?
+    @ObservationIgnored private var lastPhoneMotionReceiptUptime: Double?
+    #if DEBUG
+    private var evaluationInput = false
+    private var evaluationAcquisitionEvents: [[String: Any]] = []
+    #endif
     @ObservationIgnored private var configured = false
     @ObservationIgnored private var analysisGeneration: UInt64 = 0
     @ObservationIgnored private var startRequested = false
@@ -298,6 +372,94 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var debugCaptureQualificationJSON: String?
     @ObservationIgnored private var discardDebugCaptureWhenFinished = false
 
+    init(sceneRegistrationWorker: any StaticSceneRegistering = VisionStaticSceneRegistrationWorker(),
+         phoneMotionProvider: (@MainActor () -> PhoneMotionSample?)? = nil) {
+        self.sceneRegistrationWorker = sceneRegistrationWorker
+        self.phoneMotionProvider = phoneMotionProvider
+        super.init()
+    }
+
+    #if DEBUG
+    /// Authored controller tests only: no camera authorization, recording, disk
+    /// publication or speech. Production frame delivery still calls accept.
+    func beginEvaluationInput() {
+        precondition(!session.isRunning)
+        evaluationInput = true; startRequested = true; state = .ready
+    }
+    func acceptEvaluationFrame(_ frame: ProcessedFrame) {
+        precondition(evaluationInput)
+        pollPhoneOrientation()
+        accept(.frame(frame))
+    }
+    func settleEvaluationInput(waitForAcquisition: Bool = false) async {
+        if waitForAcquisition { await automaticBarTask?.value }
+        await sceneRegistrationTask?.value
+    }
+    /// Read-only policy diagnostics plus drained test-only events. No evidence
+    /// is supplied to acquisition, readiness, camera qualification or counting.
+    func takeEvaluationSetupDiagnostics() -> [String: Any] {
+        precondition(evaluationInput)
+        let diagnostic = automaticBarPolicy.referenceStabilityDiagnostic
+        let result: [String: Any] = [
+            "configuredExercise": exercise.rawValue,
+            "apparatusCandidate": automaticExercise.apparatusCandidate?.rawValue ?? "unknown",
+            "exerciseIdentityResolved": resolvedExercise != nil,
+            "observedBarConfirmed": bar.map { $0.role == barRole && $0.imageSize == latestFrame?.pose.imageSize } ?? false,
+            "recoveringSetup": recoveringAutomaticSetup,
+            "framing": framing.state.rawValue,
+            "startingPose": latestPose.map { hasStartingPoseEvidence($0) } ?? false,
+            "acquisitionState": String(describing: automaticBarState),
+            "barSelectionPolicyVersion": AutomaticPullUpBar.selectionPolicyVersion,
+            "barGripAssessmentPolicyVersion": AutomaticPullUpBar.gripAssessmentVersion,
+            "barEdgeExtractionPolicyVersion": VisionBarDetector.extractionPolicyVersion,
+            "barEdgePixelBackendVersion": VisionBarDetector.pixelBackendVersion,
+            "exerciseIdentityPolicyVersion": AutomaticExerciseDetection.identityPolicyVersion,
+            "bodyAthleteAssociationPolicyVersion": Int(BodyAthleteAssociation.companion.version),
+            "sceneConsensusPolicyVersion": StaticSceneStability.policyVersion,
+            "sceneRegistrationMeasurementPolicyVersion": VisionStaticSceneRegistrationWorker.measurementPolicyVersion,
+            "cameraAcquisitionPolicyVersion": Int(CameraAcquisitionEvidence.companion.policyVersion),
+            "bodyCameraIndependentObservations": bodyCameraIndependentObservations,
+            "bodyCameraReacquisitions": bodyCameraReacquisitions,
+            "bodyCameraReferenceSeconds": bodyCameraReferenceSeconds as Any? ?? NSNull(),
+            "startingEvidencePolicyVersion": liveStartingEvidencePolicyVersion,
+            "startingEvidenceMethod": liveCountMethod ?? "legacyStartingPose",
+            "capturePlacementPolicyVersion": LiveCameraPlacement.policyVersion,
+            "cameraTiltDegrees": cameraPlacement.tiltDegrees as Any? ?? NSNull(),
+            "cameraPlacementUsable": cameraPlacement.isUsable,
+            "acquisitionPending": automaticBarTask != nil,
+            "setupGeneration": setupGeneration,
+            "stabilityStatus": diagnostic?.status.rawValue as Any? ?? NSNull(),
+            "stableSeconds": diagnostic?.stableSeconds as Any? ?? NSNull(),
+            "stabilityObservations": diagnostic?.observations as Any? ?? NSNull(),
+            "events": evaluationAcquisitionEvents
+        ]
+        evaluationAcquisitionEvents.removeAll(keepingCapacity: true)
+        return result
+    }
+    private func recordEvaluationAcquisition(_ stage: String, seconds: Double,
+                                             counts: [Int] = [], candidates: [[BarLineCandidate]] = []) {
+        guard evaluationInput else { return }
+        evaluationAcquisitionEvents.append([
+            "stage": stage, "sourceSeconds": seconds,
+            "latestSourceSeconds": latestPose?.timestamp.seconds as Any? ?? NSNull(),
+            "generation": setupGeneration, "candidateCounts": counts,
+            "state": String(describing: automaticBarState),
+            "candidateEdges": candidates.map { batch in batch.map { candidate in
+                [candidate.edge.a.x, candidate.edge.a.y, candidate.edge.b.x, candidate.edge.b.y]
+            } }
+        ])
+    }
+    func endEvaluationInput() {
+        precondition(evaluationInput)
+        dipAthleteSelection.reset()
+        dipAthleteDecision = nil
+        workoutAnalysis.interrupt(reason: "evaluationEnded")
+        setupGeneration &+= 1
+        automaticBarTask?.cancel(); automaticBarTask = nil
+        startRequested = false; sceneRegistrationTask?.cancel(); sceneRegistrationTask = nil; state = .idle
+    }
+    #endif
+
     var isCameraReady: Bool { state == .ready }
     var resolvedExercise: ExerciseCounter.Exercise? {
         exerciseSelection.exercise ?? automaticExercise.exercise
@@ -318,6 +480,8 @@ final class LiveCameraPreviewController: NSObject {
     func selectCamera(_ position: LiveCameraPosition) async -> Bool {
         guard position != cameraPosition else { return true }
         guard canSwitchCamera else { return false }
+        dipAthleteSelection.reset()
+        dipAthleteDecision = nil
         cameraPosition = position
         automaticBarPolicy.reset()
         automaticExercise.reset()
@@ -416,7 +580,7 @@ final class LiveCameraPreviewController: NSObject {
             droppedFrames: droppedFrames,
             analysisFailures: analysisFailures,
             sceneRegistrationFailures: sceneRegistrationFailures,
-            counterPolicyVersion: ExerciseCounter.policyVersion,
+            counterPolicyVersion: liveCountPolicyVersion,
             exercise: liveSet.exercise.rawValue,
             side: liveSet.side.rawValue,
             observedMovements: liveSet.observedMovements,
@@ -426,7 +590,10 @@ final class LiveCameraPreviewController: NSObject {
             setUsableTrackingFrames: liveSet.usableTrackingFrameCount,
             trackingCoverage: liveSet.trackingCoverage,
             setPhase: liveSet.phase.rawValue,
-            setEndReason: liveSet.endReason?.rawValue
+            setEndReason: liveSet.endReason?.rawValue,
+            countMethod: liveCountMethod,
+            boundaryPolicyVersion: liveBoundaryPolicyVersion,
+            completedReps: completedRepCount
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -524,6 +691,23 @@ final class LiveCameraPreviewController: NSObject {
         var payload: [String: Any] = [
             "schemaVersion": 1,
             "scope": "local developer qualification capture; movement only, not form qualification",
+            "componentPolicies": [
+                "barEdgeExtraction": VisionBarDetector.extractionPolicyVersion,
+                "barEdgePixelBackend": VisionBarDetector.pixelBackendVersion,
+                "barSelection": AutomaticPullUpBar.selectionPolicyVersion,
+                "exerciseIdentity": AutomaticExerciseDetection.identityPolicyVersion,
+                "bodyAthleteAssociation": Int(BodyAthleteAssociation.companion.version),
+                "sceneConsensus": StaticSceneStability.policyVersion,
+                "cameraAcquisition": Int(CameraAcquisitionEvidence.companion.policyVersion),
+                "startingEvidence": liveStartingEvidencePolicyVersion
+            ],
+            "captureProfile": [
+                "placementPolicyVersion": LiveCameraPlacement.policyVersion,
+                "maximumTiltDegrees": LiveCameraPlacement.maximumTiltDegrees,
+                "placementInstruction": cameraPlacement.instruction,
+                "heightAutomaticallyMeasured": false,
+                "snapshotTiltDegrees": cameraPlacement.tiltDegrees as Any? ?? NSNull()
+            ],
             "capture": [
                 "backend": "AVCaptureMovieFileOutput",
                 "includesSetup": true,
@@ -540,14 +724,17 @@ final class LiveCameraPreviewController: NSObject {
                 "lastAnalyzedSourceSeconds":
                     (debugCaptureLastAnalyzedSourceSeconds as Any?) ?? NSNull()
             ],
-            "counterPolicyVersion": ExerciseCounter.policyVersion,
-            "armTracking": liveSet.counter.armTracking,
+            "counterPolicyVersion": liveCountPolicyVersion,
+            "countMethod": (liveCountMethod as Any?) ?? NSNull(),
+            "boundaryPolicyVersion": liveBoundaryPolicyVersion,
+            "armTracking": exercise == .dip ? "bilateralBodyArms" : liveSet.counter.armTracking,
             "exercise": liveSet.exercise.rawValue,
             "side": liveSet.side.rawValue,
             "set": [
                 "phase": liveSet.phase.rawValue,
                 "endReason": (liveSet.endReason?.rawValue as Any?) ?? NSNull(),
                 "observedMovements": liveSet.observedMovements,
+                "completedReps": completedRepCount,
                 "partialAttempts": liveSet.partialAttempts,
                 "interruptedAttempts": liveSet.interruptedAttempts,
                 "analyzedFrames": liveSet.analyzedFrameCount,
@@ -598,17 +785,42 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     var sceneIsReady: Bool {
-        sceneTranslation.isReady(at: latestFrame?.pose.timestamp.seconds)
+        sceneTranslation.isReady(at: latestFrame?.pose.timestamp.seconds) &&
+            (!hasBodyCameraCalibration || bodyCameraEvidence.hasIndependentEvidence)
     }
 
     var setupReadiness: LiveSetupReadiness {
         LiveSetupReadiness(
             cameraReady: isCameraReady,
-            framing: latestPose.map { hasStartingPoseEvidence($0) } == false ? .selectedArmHidden : framing.state,
+            framing: framing.state,
             barConfirmed: currentBar != nil,
             phoneStable: phoneOrientation.state.allowsLiveSet,
-            sceneStable: sceneIsReady
+            sceneStable: sceneIsReady,
+            bodyCameraCalibrated: usesBodyMotionTracking ? (hasBodyCameraCalibration || currentBar != nil) : nil,
+            startingPose: latestPose.map { hasStartingPoseEvidence($0) } ?? false,
+            placementReady: cameraPlacement.isUsable,
+            identityResolved: resolvedExercise != nil
         )
+    }
+
+    var readinessChecklist: LiveReadinessChecklist {
+        let arms = latestPose.map { PullUpArmMeasurement(pose: $0).arms } ?? []
+        let armDescription = arms.count == 2 ? "Both measurable" : arms.first.map {
+            $0.side == .left ? "Left measurable" : "Right measurable"
+        } ?? "No measurable arms"
+        return LiveReadinessChecklist(cameraReady: isCameraReady && !suspended,
+            frameFresh: readinessFrameFresh && latestPose != nil,
+            framing: framing, exerciseTitle: resolvedExercise?.title, armDescription: armDescription,
+            barConfirmed: bar.map { $0.role == barRole && $0.imageSize == latestFrame?.pose.imageSize } ?? false,
+            acquisition: automaticBarState,
+            stability: automaticBarPolicy.referenceStabilityDiagnostic,
+            motionAvailable: motionSampleAvailable, phoneStable: phoneOrientation.state.allowsLiveSet,
+            sceneStable: sceneIsReady,
+            startingPose: latestPose.map { hasStartingPoseEvidence($0) } ?? false,
+            paused: workoutDetailsPresented, handsFree: handsFreeStartEnabled,
+            setupBusy: pendingBarMotionSample != nil || !debugCaptureAllowsBarSetup,
+            bodyCameraCalibrated: usesBodyMotionTracking ? (hasBodyCameraCalibration || currentBar != nil) : nil,
+            placement: cameraPlacement, pullUpMotion: usesBodyPullUpTracking)
     }
 
     func configureWorkout(
@@ -629,16 +841,29 @@ final class LiveCameraPreviewController: NSObject {
         applyWorkout(exercise: selection.exercise ?? exercise, side: side)
     }
 
-    private func applyWorkout(exercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side) {
+    private func applyWorkout(exercise: ExerciseCounter.Exercise, side: ArmMeasurement.Side,
+                              preserveBodyCamera: Bool = false) {
         self.exercise = exercise
         trackingSide = side
-        clearBar()
+        if preserveBodyCamera {
+            // Pose identity/preparation and independently observed camera
+            // calibration have separate lifetimes. Do not replace the scene
+            // reference merely because the selected body is briefly absent.
+            resetFramingFeedback()
+            resetAutomaticBarSetup()
+            // The source-owned dip selector/counter handles actual observation
+            // loss. Static exercise search losing its candidate is not a new
+            // athlete, camera epoch or reason to erase a measured trajectory.
+        } else { clearBar() }
         liveSet.reset(exercise: exercise, side: side)
         updateFraming(latestFrame?.pose)
     }
 
     private func resetFramingFeedback() {
+        armVisibility.reset()
         workoutAnalysis.resetFramingFeedback()
+        gripCaptureBridge.reset()
+        latestGripCaptureFeedback = WorkoutGripCaptureFeedback(state: "checking")
     }
 
     private func updateFraming(_ pose: PoseResult?) {
@@ -648,7 +873,19 @@ final class LiveCameraPreviewController: NSObject {
             return
         }
         framing = LiveFramingAssessment(pose: pose, side: trackingSide,
-            usesBothArms: exerciseSelection == .automatic || exercise == .pullUp)
+            usesBothArms: exerciseSelection == .automatic || exercise == .pullUp,
+            requiresBothArms: usesBodyMotionTracking)
+        if let input = try? JSONEncoder().encode(pose),
+           let raw = try? gripCaptureBridge.observeJson(poseJson: String(decoding: input, as: UTF8.self)),
+           let assessment = try? JSONDecoder().decode(WorkoutGripCaptureFeedback.self, from: Data(raw.utf8)) {
+            latestGripCaptureFeedback = assessment
+        } else {
+            latestGripCaptureFeedback = WorkoutGripCaptureFeedback(state: "unavailable")
+        }
+        if usesBodyMotionTracking {
+            workoutAnalysis.resetFramingFeedback()
+            return
+        }
         _ = workoutAnalysis.observeSetupFraming(pose, idle: liveSet.phase == .idle,
             barConfirmed: bar != nil, automatic: exerciseSelection == .automatic, pullUp: exercise == .pullUp,
             side: trackingSide, acquisitionState: automaticBarState,
@@ -668,9 +905,25 @@ final class LiveCameraPreviewController: NSObject {
             resetHandsFreeStart()
             return
         }
-        let next = automaticExercise.observe(pose)
-        if previousApparatus != automaticExercise.apparatusCandidate || (previous != nil && next == nil) {
-            applyWorkout(exercise: automaticExercise.apparatusCandidate ?? exercise, side: trackingSide)
+        let next = automaticExercise.observe(pose,
+            reference:bar?.role == .pullUpGrip ? bar?.referenceEdge : nil)
+        // A selected athlete with two measured arms below the shoulders may
+        // prepare the rail-free owner without ever meeting rail-search width.
+        // This selects a private probe only: identity/start still requires the
+        // owner's corroborated full trajectory and independently ready camera.
+        let arms = PullUpArmMeasurement(pose:pose).arms
+        let mayPrepareDip = next == nil && automaticExercise.apparatusCandidate == nil &&
+            dipAthleteDecision?.status == "associated" && arms.count == 2 &&
+            arms.allSatisfy { $0.wrist.y > $0.shoulder.y }
+        let target = automaticExercise.apparatusCandidate ?? (mayPrepareDip ? .dip : exercise)
+        if previousApparatus != automaticExercise.apparatusCandidate || (previous != nil && next == nil) || target != exercise {
+            let sameCameraContext = bodyCameraCalibration.map {
+                $0.size == pose.imageSize && $0.backend == pose.backend && $0.revision == pose.requestRevision
+            } == true
+            let retainCamera = target == exercise && bar == nil &&
+                hasBodyCameraCalibration && sameCameraContext && cameraPlacement.isUsable &&
+                currentPhoneMotionSample() != nil && phoneOrientation.state != .moved && sceneTranslation.state != .moved
+            applyWorkout(exercise: target, side: trackingSide, preserveBodyCamera: retainCamera)
         }
     }
 
@@ -678,6 +931,7 @@ final class LiveCameraPreviewController: NSObject {
         guard liveSet.phase != .running,
               resolvedExercise != nil,
               isCameraReady,
+              cameraPlacement.isUsable,
               framing.state.isReady,
               debugCaptureAllowsBarSetup,
               let latestFrame,
@@ -746,11 +1000,15 @@ final class LiveCameraPreviewController: NSObject {
     func setHandsFreeStartEnabled(_ enabled: Bool) {
         guard liveSet.phase == .idle else { return }
         handsFreeStartEnabled = enabled
+        workoutAnalysis.resetBodyDipPreparation()
+        workoutAnalysis.resetBodyPullUpPreparation()
         resetHandsFreeStart()
     }
 
     func setWorkoutDetailsPresented(_ presented: Bool) {
         workoutDetailsPresented = presented
+        if liveSet.phase == .idle { workoutAnalysis.resetBodyDipPreparation() }
+        if liveSet.phase == .idle { workoutAnalysis.resetBodyPullUpPreparation() }
         resetHandsFreeStart()
     }
 
@@ -763,6 +1021,9 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func speakWorkoutCue(_ text: String) {
+        #if DEBUG
+        guard !evaluationInput else { return }
+        #endif
         countdownSpeech.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
@@ -770,7 +1031,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func updateHandsFreeStart(_ frame: ProcessedFrame) {
-        guard handsFreeStartEnabled, liveSet.phase == .idle else { return }
+        guard !usesBodyDipTracking, !usesBodyPullUpTracking, handsFreeStartEnabled, liveSet.phase == .idle else { return }
         var eligible = false
         if setupReadiness.state.isReady, pendingBarMotionSample == nil,
            debugCaptureAllowsBarSetup, currentPhoneMotionSample() != nil,
@@ -802,7 +1063,17 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func hasStartingPoseEvidence(_ pose: PoseResult, reference: BarSegment? = nil) -> Bool {
-        !recoveringAutomaticSetup && workoutAnalysis.hasStartingPose(pose, exercise: exercise,
+        if usesBodyPullUpTracking, reference == nil {
+            return workoutAnalysis.bodyPullUpSnapshot.map {
+                $0.motion.phase == "ready" && $0.motion.observationUsable && $0.motion.sourceAccepted && $0.motion.seconds == pose.timestamp.seconds
+            } ?? false
+        }
+        if usesBodyDipTracking, reference == nil {
+            return workoutAnalysis.bodyDipSnapshot.map {
+                $0.motion.phase == "ready" && $0.motion.observationUsable && $0.motion.sourceAccepted && $0.motion.seconds == pose.timestamp.seconds
+            } ?? false
+        }
+        return !recoveringAutomaticSetup && workoutAnalysis.hasStartingPose(pose, exercise: exercise,
             automatic: exerciseSelection == .automatic, side: trackingSide, reference: reference ?? currentBar?.referenceEdge)
     }
 
@@ -812,11 +1083,12 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func maybeFindAutomaticBar(_ frame: ProcessedFrame) {
-        guard exerciseSelection.exercise != nil || automaticExercise.apparatusCandidate != nil,
+        guard !usesBodyMotionTracking, exercise == .pullUp,
+              exerciseSelection.exercise != nil || automaticExercise.apparatusCandidate != nil,
               !recoveringAutomaticSetup,
               liveSet.phase == .idle, bar == nil,
               pendingBarMotionSample == nil, automaticBarTask == nil,
-              debugCaptureAllowsBarSetup, framing.state.isReady,
+              debugCaptureAllowsBarSetup, framing.state.isReady, cameraPlacement.isUsable,
               let motion = currentPhoneMotionSample() else { return }
         let seconds = frame.pose.timestamp.seconds
         guard seconds.isFinite else { return }
@@ -830,6 +1102,9 @@ final class LiveCameraPreviewController: NSObject {
         }
         guard let reference = VisionStaticSceneRegistrationWorker.makeReference(image: frame.image) else { return }
         let token = setupGeneration
+        #if DEBUG
+        recordEvaluationAcquisition("scheduled", seconds: seconds)
+        #endif
         automaticBarTask = Task { @MainActor [weak self] in
             guard let self else { return }
             var candidates: [[BarLineCandidate]] = []
@@ -839,17 +1114,31 @@ final class LiveCameraPreviewController: NSObject {
                         minimumObservedLength: grip.minimumObservedLength))
                 }
             } catch {
+                #if DEBUG
+                self.recordEvaluationAcquisition("detectorError", seconds: seconds)
+                #endif
                 guard self.setupGeneration == token else { return }
                 self.automaticBarTask = nil
                 self.resetAutomaticBarObservation(.findingEdge)
                 return
             }
-            guard self.setupGeneration == token else { return }
+            guard self.setupGeneration == token else {
+                #if DEBUG
+                self.recordEvaluationAcquisition("contextChanged", seconds: seconds, counts: candidates.map(\.count))
+                #endif
+                return
+            }
             self.automaticBarTask = nil
             // The result belongs to the last bilateral frame. During bounded
             // recovery, neither accept it nor erase the earlier observed dwell.
-            guard !self.recoveringAutomaticSetup else { return }
+            guard !self.recoveringAutomaticSetup else {
+                #if DEBUG
+                self.recordEvaluationAcquisition("recoveringSetup", seconds: seconds, counts: candidates.map(\.count))
+                #endif
+                return
+            }
             guard !Task.isCancelled, self.isCameraReady, !self.suspended,
+                  self.cameraPlacement.isUsable,
                   self.liveSet.phase == .idle, self.bar == nil,
                   self.pendingBarMotionSample == nil, self.debugCaptureAllowsBarSetup,
                   let latest = self.latestFrame,
@@ -860,11 +1149,17 @@ final class LiveCameraPreviewController: NSObject {
                   motion.attitude.angularDistanceDegrees(to: currentMotion.attitude) < PhoneOrientationStability.movementThresholdDegrees,
                   grip.matches(latestGrip, size: frame.pose.imageSize)
             else {
+                #if DEBUG
+                self.recordEvaluationAcquisition("resultRejected", seconds: seconds, counts: candidates.map(\.count))
+                #endif
                 self.resetAutomaticBarObservation()
                 return
             }
             let proposal = self.automaticBarPolicy.observe(pose: frame.pose, exercise: self.exercise, side: self.trackingSide, candidates: candidates)
             self.automaticBarState = self.automaticBarPolicy.state
+            #if DEBUG
+            self.recordEvaluationAcquisition("observed", seconds: seconds, counts: candidates.map(\.count), candidates: candidates)
+            #endif
             if self.automaticBarState != .holding {
                 self.workoutAnalysis.resetAcquisitionFramingFeedback()
             }
@@ -882,6 +1177,7 @@ final class LiveCameraPreviewController: NSObject {
     func confirmBar(_ bar: ConfirmedBar, for setup: BarSetupFrame) -> Bool {
         guard liveSet.phase != .running,
               isCameraReady,
+              cameraPlacement.isUsable,
               setup.generation == setupGeneration,
               setup.role == barRole,
               bar.role == barRole,
@@ -904,6 +1200,8 @@ final class LiveCameraPreviewController: NSObject {
         pendingBarMotionSample = nil
         pendingBarSceneReference = nil
         sceneReference = pendingScene.reference
+        bodyCameraCalibration = nil
+        bodyCameraEvidence.reset()
         sceneRegistrationTask?.cancel()
         sceneRegistrationTask = nil
         lastSceneRegistrationSeconds = nil
@@ -924,6 +1222,10 @@ final class LiveCameraPreviewController: NSObject {
         pendingBarMotionSample = nil
         pendingBarSceneReference = nil
         sceneReference = nil
+        bodyCameraCalibration = nil
+        bodyCameraEvidence.reset()
+        workoutAnalysis.resetBodyDipPreparation()
+        workoutAnalysis.resetBodyPullUpPreparation()
         phoneOrientation.reset()
         sceneTranslation.reset()
         sceneRegistrationTask?.cancel()
@@ -933,6 +1235,24 @@ final class LiveCameraPreviewController: NSObject {
 
     @discardableResult
     func startSet(discardQueuedFrame: Bool = true) -> Bool {
+        if usesBodyPullUpTracking {
+            guard liveSet.phase == .idle, setupReadiness.state.isReady, readinessFrameFresh,
+                  let snapshot = workoutAnalysis.bodyPullUpSnapshot else { return false }
+            if exerciseSelection == .automatic, !automaticExercise.lock() { return false }
+            guard workoutAnalysis.startBodyPullUpManually() else { return false }
+            beginBodyPullUpSet(snapshot)
+            discardNextSetFrame = discardQueuedFrame
+            return true
+        }
+        if usesBodyDipTracking {
+            guard liveSet.phase == .idle, setupReadiness.state.isReady, readinessFrameFresh,
+                  let snapshot = workoutAnalysis.bodyDipSnapshot else { return false }
+            if exerciseSelection == .automatic, !automaticExercise.lock() { return false }
+            guard workoutAnalysis.startBodyDipManually() else { return false }
+            beginBodyDipSet(snapshot)
+            discardNextSetFrame = discardQueuedFrame
+            return true
+        }
         guard setupReadiness.state.isReady,
               resolvedExercise != nil,
               liveSet.phase != .running
@@ -943,6 +1263,7 @@ final class LiveCameraPreviewController: NSObject {
         workoutAnalysis.start(exercise: exercise)
         archivedSetId = nil
         liveSet.start(exercise: exercise, side: trackingSide)
+        beginSetVideoIfNeeded()
         if workoutAnalysis.beginStartFeedback(isRunning: liveSet.phase == .running) {
             speakWorkoutCue(workoutAnalysis.startSpokenMessage)
         }
@@ -951,6 +1272,152 @@ final class LiveCameraPreviewController: NSObject {
         // a queued observation preceding the tap or spoken start cue.
         discardNextSetFrame = discardQueuedFrame
         return true
+    }
+
+    private func beginBodyDipSet(_ snapshot: BodyDipWorkoutSnapshot) {
+        resetHandsFreeStart()
+        archivedSetId = nil
+        liveSet.beginBodyDip(snapshot, side: trackingSide, startedAt: workoutAnalysis.currentRecord?.startedAt)
+        beginSetVideoIfNeeded()
+        if workoutAnalysis.beginStartFeedback(isRunning: true) { speakWorkoutCue(workoutAnalysis.startSpokenMessage) }
+        discardNextSetFrame = false
+    }
+
+    private func beginBodyPullUpSet(_ snapshot: BodyPullUpWorkoutSnapshot) {
+        resetHandsFreeStart(); archivedSetId = nil
+        liveSet.beginBodyPullUp(snapshot, side: trackingSide, startedAt: workoutAnalysis.currentRecord?.startedAt,
+            completedTimes: workoutAnalysis.reps.filter(\.isCompleteForAnalytics).compactMap(\.returnedAt))
+        beginSetVideoIfNeeded()
+        if workoutAnalysis.beginStartFeedback(isRunning: true) { speakWorkoutCue(workoutAnalysis.startSpokenMessage) }
+        discardNextSetFrame = false
+    }
+
+    private func consumeBodyPullUpFrame(_ frame: ProcessedFrame) {
+        guard usesBodyPullUpTracking, liveSet.phase != .finished else { return }
+        if liveSet.phase == .running, discardNextSetFrame { discardNextSetFrame = false; return }
+        let qualified = hasCameraCalibration && cameraPlacement.isUsable && currentPhoneMotionSample() != nil &&
+            phoneOrientation.state.allowsLiveSet && sceneIsReady
+        let moved = phoneOrientation.state == .moved || sceneTranslation.state == .moved
+        #if DEBUG
+        let recordCalendarTime = !evaluationInput
+        #else
+        let recordCalendarTime = true
+        #endif
+        guard let snapshot = workoutAnalysis.observeOverheadPullUp(frame.pose, selection: dipAthleteSelection,
+            camera: moved ? "moved" : qualified ? "ready" : "unavailable",
+            automaticStart: handsFreeStartEnabled && !workoutDetailsPresented && !recoveringAutomaticSetup,
+            recordCalendarTime: recordCalendarTime) else {
+            if liveSet.phase == .running {
+                liveSet.interruptAndFinish(reason: "bodyPullUpAnalysisFailure", endReason: .cameraFailure)
+                archiveWorkoutSet()
+            }
+            return
+        }
+        if liveSet.phase == .idle, snapshot.started {
+            guard qualified, !workoutDetailsPresented else { workoutAnalysis.resetBodyPullUpPreparation(); return }
+            if exerciseSelection == .automatic {
+                // A source-owned bilateral excursion is a separate identity
+                // route from the static 0.6s posture dwell. Never a grip gate.
+                if resolvedExercise != .pullUp,
+                   !automaticExercise.confirmObservedOverheadPullUpMovement(frame.pose) {
+                    workoutAnalysis.resetBodyPullUpPreparation(); return
+                }
+                guard automaticExercise.lock() else { workoutAnalysis.resetBodyPullUpPreparation(); return }
+            }
+            beginBodyPullUpSet(snapshot)
+        } else if liveSet.phase == .running { liveSet.consumeBodyPullUp(snapshot) }
+        if liveSet.phase == .running {
+            if let draft = workoutAnalysis.drainDraft() { persistWorkout(draft, finalized: false) }
+            if let reason = snapshot.endReason.flatMap(LiveSetSession.EndReason.init(rawValue:)) {
+                liveSet.finish(reason: reason); archiveWorkoutSet(); finishDebugCaptureIfNeeded()
+            }
+        }
+    }
+
+    /// Camera setup uses real pixels and motion measurements independently of
+    /// apparatus. A pose can permit calibration but cannot declare it stable.
+    private func maybeCalibrateBodyCamera(_ frame: ProcessedFrame) {
+        // A manually calibrated reference keeps its independent scene/phone
+        // lifetime. Automatic body setup never needs an apparatus reference.
+        guard usesBodyMotionTracking, bar == nil else { return }
+        let pose = frame.pose
+        if let old = bodyCameraCalibration,
+           old.size != pose.imageSize || old.backend != pose.backend || old.revision != pose.requestRevision {
+            if liveSet.phase == .running {
+                liveSet.interruptAndFinish(reason: "bodyCameraContextChanged", endReason: .setupInvalidated)
+                archiveWorkoutSet(); finishDebugCaptureIfNeeded()
+            }
+            clearBar()
+        }
+        let motion = currentPhoneMotionSample()
+        let eligible = cameraPlacement.isUsable && debugCaptureAllowsBarSetup && !workoutDetailsPresented &&
+            dipAthleteDecision?.status == "associated" && pose.people.count == 1 && motion != nil
+        let replacing = hasBodyCameraCalibration && bodyCameraEvidence.shouldReacquire(
+            sourceValue:pose.timestamp.value,sourceTimescale:pose.timestamp.timescale,
+            sceneReady:sceneTranslation.isReady(at:pose.timestamp.seconds),idle:liveSet.phase == .idle,
+            eligible:eligible && phoneOrientation.state.allowsLiveSet)
+        guard liveSet.phase == .idle, (!hasBodyCameraCalibration || replacing), eligible,
+              let motion,
+              let reference = VisionStaticSceneRegistrationWorker.makeReference(image: frame.image),
+              reference.imageSize == pose.imageSize,
+              phoneOrientation.calibrate(motion.attitude, timestamp: motion.timestamp),
+              sceneTranslation.calibrate(imageSize: reference.imageSize),
+              bodyCameraEvidence.beginReference(sourceValue:pose.timestamp.value,sourceTimescale:pose.timestamp.timescale) else { return }
+        setupGeneration &+= 1
+        sceneRegistrationTask?.cancel()
+        sceneRegistrationTask = nil
+        sceneReference = reference
+        bodyCameraCalibration = BodyCameraCalibration(size: pose.imageSize, backend: pose.backend, revision: pose.requestRevision,
+            sourceTime:pose.timestamp)
+        if replacing { bodyCameraReacquisitions += 1 }
+        workoutAnalysis.resetBodyDipPreparation()
+        workoutAnalysis.resetBodyPullUpPreparation()
+        lastSceneRegistrationSeconds = nil
+    }
+
+    private func consumeBodyDipFrame(_ frame: ProcessedFrame) {
+        guard usesBodyDipTracking, liveSet.phase != .finished else { return }
+        if liveSet.phase == .running, discardNextSetFrame { discardNextSetFrame = false; return }
+        let qualified = cameraPlacement.isUsable && hasBodyCameraCalibration && currentPhoneMotionSample() != nil &&
+            phoneOrientation.state.allowsLiveSet && sceneIsReady
+        let moved = phoneOrientation.state == .moved || sceneTranslation.state == .moved
+        #if DEBUG
+        let recordCalendarTime = !evaluationInput
+        #else
+        let recordCalendarTime = true
+        #endif
+        guard let snapshot = workoutAnalysis.observeBodyDip(frame.pose, selection: dipAthleteSelection,
+            camera: moved ? "moved" : qualified ? "ready" : "unavailable",
+            automaticStart: handsFreeStartEnabled && !workoutDetailsPresented && !recoveringAutomaticSetup,
+            recordCalendarTime: recordCalendarTime) else {
+            if liveSet.phase == .running {
+                liveSet.interruptAndFinish(reason: "bodyDipAnalysisFailure", endReason: .cameraFailure)
+                archiveWorkoutSet()
+            }
+            return
+        }
+        if liveSet.phase == .idle, snapshot.started {
+            guard qualified, !workoutDetailsPresented else { workoutAnalysis.resetBodyDipPreparation(); return }
+            if exerciseSelection == .automatic {
+                // The shared owner has committed a corroborated bilateral
+                // excursion with this selected athlete and ready camera.
+                // Static apparatus-search width/dwell is an alternative route.
+                if resolvedExercise != .dip,
+                   !automaticExercise.confirmObservedDipMovement(frame.pose) {
+                    workoutAnalysis.resetBodyDipPreparation(); return
+                }
+                guard automaticExercise.lock() else { workoutAnalysis.resetBodyDipPreparation(); return }
+            }
+            beginBodyDipSet(snapshot)
+        } else if liveSet.phase == .running {
+            liveSet.consumeBodyDip(snapshot)
+        }
+        if liveSet.phase == .running {
+            if let draft = workoutAnalysis.drainDraft() { persistWorkout(draft, finalized: false) }
+            if let reason = snapshot.endReason.flatMap(LiveSetSession.EndReason.init(rawValue:)) {
+                liveSet.finish(reason: reason); archiveWorkoutSet(); finishDebugCaptureIfNeeded()
+            }
+        }
     }
 
     func loadWorkoutHistory() async {
@@ -980,13 +1447,55 @@ final class LiveCameraPreviewController: NSObject {
             speakWorkoutCue(report.spokenCue)
         }
         latestCompletedWorkout = record.hasPractice ? record : nil
+        finishSetVideo(record)
         guard record.hasPractice else { return }
         workoutHistory.insert(record, at: 0)
         workoutHistory = Array(workoutHistory.prefix(50))
         persistWorkout(record, finalized: true)
     }
 
+    func setRecordsSetVideos(_ enabled: Bool) {
+        guard liveSet.phase != .running else { return }
+        recordsSetVideos = enabled
+        UserDefaults.standard.set(enabled, forKey: "recordCountedSets")
+        setVideoRecorder.setEnabled(enabled)
+    }
+
+    private func beginSetVideoIfNeeded() {
+        #if DEBUG
+        guard !evaluationInput else { return }
+        #endif
+        guard liveSet.phase == .running, let record = workoutAnalysis.currentRecord,
+              recordingVideoSetId == nil else { return }
+        recordsSetVideos = UserDefaults.standard.object(forKey: "recordCountedSets") == nil || UserDefaults.standard.bool(forKey: "recordCountedSets")
+        setVideoRecorder.setEnabled(recordsSetVideos)
+        guard recordsSetVideos else { return }
+        workoutVideoError = nil
+        recordingVideoSetId = record.id
+        setVideoRecorder.begin(setId: record.id, startedAt: record.startedAt)
+    }
+
+    private func finishSetVideo(_ record: WorkoutSetRecord) {
+        guard recordingVideoSetId == record.id else { return }
+        recordingVideoSetId = nil
+        setVideoRecorder.complete(record) { [weak self] result in
+            Task { @MainActor in
+                do {
+                    guard let url = try result.get() else { return }
+                    defer { try? FileManager.default.removeItem(at: url) }
+                    _ = try await WorkoutRecordStore.shared.saveRecordedSetVideo(source: url, record: record)
+                    NotificationCenter.default.post(name: .workoutVideoSaved, object: nil)
+                    self?.workoutVideoError = nil
+                } catch { self?.workoutVideoError = error.localizedDescription }
+            }
+        }
+    }
+
     private func persistWorkout(_ record: WorkoutSetRecord, finalized: Bool) {
+        if !finalized { beginSetVideoIfNeeded() }
+        #if DEBUG
+        guard !evaluationInput else { return }
+        #endif
         Task {
             do {
                 try await WorkoutRecordStore.shared.enqueue(record, finalized: finalized)
@@ -1039,6 +1548,8 @@ final class LiveCameraPreviewController: NSObject {
         finishDebugCaptureIfNeeded()
         discardNextSetFrame = false
         liveSet.prepareNextSet()
+        workoutAnalysis.resetBodyDipPreparation()
+        workoutAnalysis.resetBodyPullUpPreparation()
         if exerciseSelection == .automatic {
             automaticExercise.reset()
             clearBar()
@@ -1169,6 +1680,8 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     func stop() {
+        dipAthleteSelection.reset()
+        dipAthleteDecision = nil
         if liveSet.phase == .running {
             liveSet.finish()
             archiveWorkoutSet()
@@ -1290,6 +1803,9 @@ final class LiveCameraPreviewController: NSObject {
         analysisEventTask?.cancel()
         analysisEventTask = nil
         videoOutput?.setSampleBufferDelegate(nil, queue: nil)
+        // Reset after any in-flight callback from the old analyzer, before a
+        // replacement delegate can append frames from the new camera stream.
+        analysisQueue.async { [setVideoRecorder] in setVideoRecorder.reset() }
         analyzer = nil
     }
 
@@ -1299,7 +1815,8 @@ final class LiveCameraPreviewController: NSObject {
         let eventStream = AsyncStream<LiveAnalyzerEvent>(
             bufferingPolicy: .bufferingNewest(1)
         ) { continuation in
-            let analyzer = LiveFrameAnalyzer(gripEnabled: resolvedExercise != .dip) { event in
+            setVideoRecorder.setEnabled(recordsSetVideos)
+            let analyzer = LiveFrameAnalyzer(gripEnabled: resolvedExercise != .dip, setVideoRecorder: setVideoRecorder) { event in
                 continuation.yield(event)
             }
             self.analyzer = analyzer
@@ -1338,6 +1855,8 @@ final class LiveCameraPreviewController: NSObject {
         stopCapture: Bool
     ) {
         guard startRequested, !suspended else { return }
+        dipAthleteSelection.reset()
+        dipAthleteDecision = nil
 
         if liveSet.phase == .running {
             liveSet.interruptAndFinish(
@@ -1394,6 +1913,18 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func currentPhoneMotionSample() -> PhoneMotionSample? {
+        guard let sample = rawPhoneMotionSample(), sample.timestamp.isFinite else { return nil }
+        let now = ProcessInfo.processInfo.systemUptime
+        if let last = lastPhoneMotionTimestamp, sample.timestamp < last { return nil }
+        if lastPhoneMotionTimestamp == nil || sample.timestamp > lastPhoneMotionTimestamp! {
+            lastPhoneMotionTimestamp = sample.timestamp; lastPhoneMotionReceiptUptime = now
+        }
+        guard let receipt = lastPhoneMotionReceiptUptime, now-receipt <= ExerciseCounter.maximumGapSeconds else { return nil }
+        return sample
+    }
+
+    private func rawPhoneMotionSample() -> PhoneMotionSample? {
+        if let phoneMotionProvider { return phoneMotionProvider() }
         guard motionManager.isDeviceMotionActive,
               let motion = motionManager.deviceMotion,
               motion.timestamp.isFinite,
@@ -1405,19 +1936,19 @@ final class LiveCameraPreviewController: NSObject {
               )
         else { return nil }
 
-        return PhoneMotionSample(attitude: attitude, timestamp: motion.timestamp)
+        return PhoneMotionSample(attitude: attitude, timestamp: motion.timestamp,
+            gravity: .init(motion.gravity.x, motion.gravity.y, motion.gravity.z))
     }
 
     private func pollPhoneOrientation() {
         let sample = currentPhoneMotionSample()
         motionSampleAvailable = sample != nil
+        cameraPlacement = LiveCameraPlacement(gravity: sample?.gravity)
 
-        guard bar != nil else { return }
+        guard hasCameraCalibration else { return }
         guard let sample else {
-            if !motionManager.isDeviceMotionActive {
-                phoneOrientation.markUnavailable()
-                invalidateForPhoneOrientationLoss()
-            }
+            phoneOrientation.markUnavailable()
+            invalidateForPhoneOrientationLoss()
             return
         }
 
@@ -1427,7 +1958,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func invalidateForPhoneMovement() {
-        guard bar != nil else { return }
+        guard hasCameraCalibration else { return }
 
         if liveSet.phase == .running {
             liveSet.interruptAndFinish(
@@ -1450,7 +1981,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func invalidateForPhoneOrientationLoss() {
-        guard bar != nil else { return }
+        guard hasCameraCalibration else { return }
 
         if liveSet.phase == .running {
             liveSet.interruptAndFinish(
@@ -1473,13 +2004,15 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func maybeCheckSceneTranslation(_ frame: ProcessedFrame) {
-        guard bar != nil,
+        guard hasCameraCalibration,
               let reference = sceneReference,
               sceneRegistrationTask == nil
         else { return }
 
         let seconds = frame.pose.timestamp.seconds
         guard seconds.isFinite else { return }
+        if hasBodyCameraCalibration,
+           !bodyCameraEvidence.permitsRegistration(sourceValue:frame.pose.timestamp.value,sourceTimescale:frame.pose.timestamp.timescale) { return }
         if let lastSceneRegistrationSeconds,
            seconds - lastSceneRegistrationSeconds < 0.33 {
             return
@@ -1498,10 +2031,14 @@ final class LiveCameraPreviewController: NSObject {
                     image: image
                 )
             } catch {
-                if !Task.isCancelled, self.setupGeneration == token, self.bar != nil {
+                if !Task.isCancelled, self.setupGeneration == token, self.hasCameraCalibration {
                     self.sceneRegistrationFailures += 1
                     self.lastSceneRegistrationMilliseconds = nil
                     self.sceneTranslation.observe(translations: [], globalScaleFraction: nil, timestamp: seconds)
+                    if self.hasBodyCameraCalibration {
+                        self.bodyCameraEvidence.observeScene(sourceValue:frame.pose.timestamp.value,
+                            sourceTimescale:frame.pose.timestamp.timescale,stationary:false)
+                    }
                     self.sceneRegistrationTask = nil
                 }
                 return
@@ -1513,7 +2050,7 @@ final class LiveCameraPreviewController: NSObject {
 
             guard !Task.isCancelled,
                   self.setupGeneration == token,
-                  self.bar != nil
+                  self.hasCameraCalibration
             else {
                 if self.setupGeneration == token {
                     self.sceneRegistrationTask = nil
@@ -1527,6 +2064,14 @@ final class LiveCameraPreviewController: NSObject {
                 globalScaleFraction: measurement.globalScaleFraction,
                 timestamp: seconds
             )
+            if self.hasBodyCameraCalibration {
+                let stationary = state == .stable &&
+                    (self.sceneTranslation.latestShiftFraction ?? .infinity) < StaticSceneStability.movementThresholdFraction &&
+                    (self.sceneTranslation.latestScaleFraction ?? .infinity) < StaticSceneStability.scaleThresholdFraction &&
+                    self.sceneTranslation.latestConsensusPatches >= StaticSceneStability.minimumConsensusPatches
+                self.bodyCameraEvidence.observeScene(sourceValue:frame.pose.timestamp.value,
+                    sourceTimescale:frame.pose.timestamp.timescale,stationary:stationary)
+            }
             self.sceneRegistrationTask = nil
             if state == .moved {
                 self.invalidateForSceneMovement()
@@ -1535,7 +2080,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func invalidateForSceneMovement() {
-        guard bar != nil else { return }
+        guard hasCameraCalibration else { return }
 
         let kind = sceneTranslation.movementKind
         if liveSet.phase == .running {
@@ -1602,6 +2147,10 @@ final class LiveCameraPreviewController: NSObject {
                       self.state == .ready else { continue }
 
                 self.pollPhoneOrientation()
+                let fresh = self.lastAnalyzedFrameUptime.map {
+                    ProcessInfo.processInfo.systemUptime - $0 <= ExerciseCounter.maximumGapSeconds
+                } ?? false
+                if self.readinessFrameFresh != fresh { self.readinessFrameFresh = fresh }
                 if self.liveSet.phase == .running, let last = self.lastAnalyzedFrameUptime,
                    self.workoutAnalysis.observationOutage(elapsed: ProcessInfo.processInfo.systemUptime - last) {
                     self.liveSet.interruptAndFinish(reason: "sourceFramesUnavailable", endReason: .trackingLost)
@@ -1642,7 +2191,11 @@ final class LiveCameraPreviewController: NSObject {
         guard startRequested, !suspended, state == .ready else { return }
 
         switch event {
-        case .frame(let frame):
+        case .frame(let rawFrame):
+            let frame = selectBodyAthlete(rawFrame)
+            // Placement uses fresh absolute gravity; relative camera movement
+            // and image registration remain independent qualification gates.
+            pollPhoneOrientation()
             if debugCaptureState == .recording || debugCaptureState == .stopping {
                 let seconds = frame.pose.timestamp.seconds
                 if seconds.isFinite {
@@ -1674,12 +2227,14 @@ final class LiveCameraPreviewController: NSObject {
                 }
             }
             lastAnalyzedFrameUptime = ProcessInfo.processInfo.systemUptime
+            readinessFrameFresh = true
             latestFrame = frame
             analyzedFrames += 1
             if let cue = workoutAnalysis.trackingSpokenCue(isRunning: liveSet.phase == .running, issue: liveSet.trackingIssue) { speakWorkoutCue(cue) }
             lastProcessingMilliseconds = frame.processingMilliseconds
             observeExerciseSelection(frame.pose)
             updateFraming(frame.pose)
+            maybeCalibrateBodyCamera(frame)
             maybeFindAutomaticBar(frame)
             maybeCheckSceneTranslation(frame)
             recordQualificationSample()
@@ -1694,12 +2249,16 @@ final class LiveCameraPreviewController: NSObject {
 
             // Manual starts reject queued pixels. Automatic starts consume the
             // qualified source frame immediately and seed its observed baseline.
-            if liveSet.phase == .running, wasRunning || !discardNextSetFrame {
+            if usesBodyDipTracking {
+                consumeBodyDipFrame(frame)
+            } else if usesBodyPullUpTracking {
+                consumeBodyPullUpFrame(frame)
+            } else if liveSet.phase == .running, wasRunning || !discardNextSetFrame {
                 if discardNextSetFrame {
                     discardNextSetFrame = false
                 } else if let referenceEdge = currentBar?.referenceEdge {
-                    let frameReference = sceneTranslation.qualifiedReference(
-                        referenceEdge, at: frame.pose.timestamp.seconds)
+                    let frameReference = cameraPlacement.isUsable ? sceneTranslation.qualifiedReference(
+                        referenceEdge, at: frame.pose.timestamp.seconds) : nil
                     let eventCount = liveSet.counter.events.count
                     liveSet.consume(frame.pose, referenceEdge: frameReference)
                     let event = liveSet.counter.events.count > eventCount ? liveSet.counter.events.last : nil
@@ -1723,10 +2282,14 @@ final class LiveCameraPreviewController: NSObject {
                 }
             }
 
+            armVisibility.observe(frame.pose, running: liveSet.phase == .running,
+                side: trackingSide, usesBothArms: true, requiresBothArms: usesBodyMotionTracking)
+
         case .dropped:
             droppedFrames += 1
 
         case .failed:
+            readinessFrameFresh = false
             resetHandsFreeStart()
             if exerciseSelection == .automatic, liveSet.phase == .idle {
                 automaticExercise.reset()
@@ -1741,6 +2304,24 @@ final class LiveCameraPreviewController: NSObject {
             analyzer?.resetGripInference()
             workoutAnalysis.interrupt(reason: "inferenceFailure")
         }
+    }
+
+    /// Both exercise owners consume this original source selection. Selecting
+    /// one athlete never copies missing joints or changes the original pixels.
+    private func selectBodyAthlete(_ frame: ProcessedFrame) -> ProcessedFrame {
+        let decision: BodyAthleteSelectionDecision?
+        do {
+            let raw = try dipAthleteSelection.observeJson(poseJson: String(decoding: JSONEncoder().encode(frame.pose), as: UTF8.self))
+            decision = try JSONDecoder().decode(BodyAthleteSelectionDecision.self, from: Data(raw.utf8))
+        } catch { decision = nil }
+        dipAthleteDecision = decision
+        let index = decision?.candidateIndex.flatMap { frame.pose.people.indices.contains($0) ? $0 : nil }
+        let pose = PoseResult(timestamp: frame.pose.timestamp, imageSize: frame.pose.imageSize,
+            people: index.map { [frame.pose.people[$0]] } ?? [], backend: frame.pose.backend,
+            requestRevision: frame.pose.requestRevision,
+            gripObservation: index == 0 && !usesBodyDipTracking ? frame.pose.gripObservation : nil,
+            estimatedWorldConvention: frame.pose.estimatedWorldConvention)
+        return ProcessedFrame(image: frame.image, pose: pose, processingMilliseconds: frame.processingMilliseconds)
     }
 }
 

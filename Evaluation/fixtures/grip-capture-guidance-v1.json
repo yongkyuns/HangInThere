@@ -1,0 +1,58 @@
+{
+  "policyVersion": 1,
+  "scope": "Body-scale placement and hand-visibility guidance only; unchanged rep and grip policies",
+  "targets": {
+    "minimumShoulderFraction": 0.18,
+    "minimumTorsoFraction": 0.28,
+    "smallRule": "Both dimensions must be below target. Framing clipping/view/visibility handled separately in live policy."
+  },
+  "thresholdStatus": "Initial engineering placement target, not a validated grip recognition cutoff or physical distance.",
+  "findings": {
+    "train": {
+      "counts": {
+        "allPatches": 526,
+        "reviewedSupportedClosed": 348,
+        "readableAll": 171,
+        "readablePrimaryBodyUnavailable": 80,
+        "unclearOrMixedAll": 177,
+        "unclearOrMixedPrimaryBodyUnavailable": 103,
+        "unclearOrMixedBodyMeasurable": 74,
+        "unclearOrMixedScaleSufficient": 21,
+        "unclearOrMixedSmall": 53,
+        "readableBodyMeasurable": 91,
+        "readableSmall": 41,
+        "readableScaleSufficient": 50
+      },
+      "sourceGroups": {
+        "unclearOrMixedScaleSufficient": 7,
+        "unclearOrMixedSmall": 21,
+        "readableSmall": 13,
+        "readableScaleSufficient": 17
+      }
+    },
+    "validation": {
+      "counts": {
+        "allPatches": 218,
+        "reviewedSupportedClosed": 189,
+        "unclearOrMixedAll": 89,
+        "unclearOrMixedPrimaryBodyUnavailable": 43,
+        "unclearOrMixedBodyMeasurable": 46,
+        "unclearOrMixedSmall": 30,
+        "readableAll": 100,
+        "readablePrimaryBodyUnavailable": 80,
+        "unclearOrMixedScaleSufficient": 16,
+        "readableBodyMeasurable": 20,
+        "readableSmall": 8,
+        "readableScaleSufficient": 12
+      },
+      "sourceGroups": {
+        "unclearOrMixedSmall": 8,
+        "unclearOrMixedScaleSufficient": 5,
+        "readableSmall": 3,
+        "readableScaleSufficient": 4
+      }
+    }
+  },
+  "evidenceSHA256": "c7b2f11029176f9f77a0e5ce15738dcbbd82185ae9dc961df283390855f2aa98",
+  "finalReserveInspected": false
+}

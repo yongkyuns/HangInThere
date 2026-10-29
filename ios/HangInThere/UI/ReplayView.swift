@@ -11,9 +11,11 @@ struct ReplayView: View {
     #endif
     @State private var importing = false
     @State private var showingLiveWorkout = false
+    @State private var showingWorkoutHistory = false
     @State private var barSetup: BarSetupFrame?
-    @State private var showPoseOverlay = true
+    @State private var showPoseOverlay = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationStack {
@@ -44,9 +46,11 @@ struct ReplayView: View {
                         technicalDetails
                     }
                 }
-                .padding()
+                .padding(model.frame == nil ? 0 : 16)
             }
-            .navigationTitle(model.frame == nil ? "HangInThere" : "Workout Review")
+            .background { if model.frame == nil { HangPalette(colorScheme).background.ignoresSafeArea() } }
+            .navigationTitle(model.frame == nil ? "" : "Workout Review")
+            .toolbar(model.frame == nil ? .hidden : .visible, for: .navigationBar)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if model.frame != nil {
@@ -58,6 +62,16 @@ struct ReplayView: View {
             }
             .fullScreenCover(isPresented: $showingLiveWorkout) {
                 LiveSetupView()
+            }
+            .sheet(isPresented: $showingWorkoutHistory) {
+                NavigationStack {
+                    WorkoutLibraryView(section: "History")
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Done") { showingWorkoutHistory = false }
+                            }
+                        }
+                }
             }
             .fileImporter(
                 isPresented: $importing,
@@ -89,66 +103,9 @@ struct ReplayView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 24) {
-            Spacer(minLength: 28)
-
-            ZStack {
-                Circle()
-                    .fill(.thinMaterial)
-                    .frame(width: 96, height: 96)
-                Image(systemName: "figure.strengthtraining.traditional")
-                    .font(.system(size: 42, weight: .semibold))
-                    .accessibilityHidden(true)
-            }
-
-            VStack(spacing: 8) {
-                Text("Start your workout")
-                    .font(.largeTitle.bold())
-                    .multilineTextAlignment(.center)
-                Text("Count pull-up or parallel-bar dip movement cycles live, or review a workout video you already recorded.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 520)
-            }
-
-            VStack(spacing: 12) {
-                Button {
-                    showingLiveWorkout = true
-                } label: {
-                    Label("Live workout", systemImage: "camera.fill")
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .accessibilityIdentifier("startLiveWorkout")
-
-                Button {
-                    importing = true
-                } label: {
-                    Label("Review recorded video", systemImage: "video.badge.plus")
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .accessibilityIdentifier("importVideo")
-            }
-            .frame(maxWidth: 520)
-
-            VStack(spacing: 6) {
-                Label("Live and recorded analysis stays on this device.", systemImage: "lock.fill")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-
-                Text("Movement count only · Form scoring is not enabled yet")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 28)
-        }
-        .frame(maxWidth: 620)
-        .frame(maxWidth: .infinity)
+        HomeScreenView(onLiveWorkout: { showingLiveWorkout = true },
+            onImportVideo: { importing = true },
+            onHistory: { showingWorkoutHistory = true })
     }
 
     private var sessionHeader: some View {
@@ -187,7 +144,7 @@ struct ReplayView: View {
                                 usesBothArms: true)
                 }
 
-                BarOverlay(imageSize: frame.pose.imageSize, bar: model.currentBar)
+                if showPoseOverlay { BarOverlay(imageSize: frame.pose.imageSize, bar: model.currentBar) }
 
                 VStack {
                     HStack(alignment: .top) {
@@ -236,17 +193,6 @@ struct ReplayView: View {
                         }
 
                         Spacer()
-
-                        Button {
-                            showPoseOverlay.toggle()
-                        } label: {
-                            Image(systemName: showPoseOverlay ? "eye" : "eye.slash")
-                                .frame(width: 32, height: 32)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.white)
-                        .accessibilityLabel(showPoseOverlay ? "Hide joint overlay" : "Show joint overlay")
                     }
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 10)
@@ -620,6 +566,7 @@ struct ReplayView: View {
     private var technicalDetails: some View {
         DisclosureGroup {
             VStack(alignment: .leading, spacing: 16) {
+                Toggle("Show skeleton on video", isOn: $showPoseOverlay)
                 if let name = model.sourceName {
                     LabeledContent("Video", value: name)
                         .font(.caption)
@@ -650,7 +597,7 @@ struct ReplayView: View {
             }
             .padding(.top, 10)
         } label: {
-            Label("Tracking details", systemImage: "waveform.path.ecg.rectangle")
+            Label("Diagnostics", systemImage: "waveform.path.ecg.rectangle")
                 .font(.subheadline.weight(.semibold))
         }
         .padding(16)

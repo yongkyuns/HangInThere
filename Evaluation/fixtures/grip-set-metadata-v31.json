@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 31,
+  "result": "setMetadataPolicyImplemented",
+  "scope": "Exposed-v30 metadata reprojection using the same qualified decisions, source-identity episodes and unchanged measured reps. Not a classifier accuracy improvement, automatic physical-set acquisition or fresh test.",
+  "setMetadataPolicyVersion": 1,
+  "reviewPolicyVersion": 2,
+  "behavior": {
+    "basis": "Already-confirmed grip type observed within the same owned workout set.",
+    "lateIdentification": "Set annotation applies to earlier reps without changing their observed frame evidence.",
+    "missingHands": "Frame-level Unknown remains; a confirmed set annotation persists.",
+    "contradictoryEvidence": "Conflicting confirmed grip type or provenance leaves the automatic set label Unknown.",
+    "setBoundary": "New WorkoutAnalysis/set ID starts a new metadata owner.",
+    "userCorrections": "Explicit user labels override set inference; restoring automatic uses set inference."
+  },
+  "metadataProjection": {
+    "completedReps": 12,
+    "beforeCorrect": 8,
+    "beforeUnknown": 4,
+    "afterCorrect": 12,
+    "afterUnknown": 0,
+    "newlyAnnotatedReps": 4,
+    "repsCompletedBeforeFirstConfirmation": 2
+  },
+  "rawHandEvidenceChanged": false,
+  "confidenceThresholdsChanged": false,
+  "newTraining": false,
+  "repCountChanged": false,
+  "widthChanged": false,
+  "storedPerRepMeasurementsChanged": false,
+  "storage": "Optional setGrip annotation retained in native transport, compact summaries and merged draft records. Original per-rep coverage/labels stay measured; review identifies setEstimated provenance.",
+  "validation": {
+    "sharedTests": 860,
+    "sharedFailures": 0,
+    "nativeSwiftTests": 5,
+    "nativeSwiftFailures": 0,
+    "unsignedIPhoneBuild": "passed",
+    "reviewWidths": [
+      320,
+      430
+    ],
+    "androidAppCompiled": false,
+    "androidLimitation": "Android SDK unavailable; shared JVM tests pass and Android review consumes the shared report."
+  },
+  "phoneInstalled": false,
+  "limitations": [
+    "This is a semantic metadata reprojection of exposed v30 data, not a new held-out classifier accuracy result.",
+    "Real grip-change video qualification and Narrow/Medium width gaps from v30 remain open.",
+    "The trained RGB classifier remains offline; phone classification model is unchanged.",
+    "Width calibration is independent and unchanged."
+  ],
+  "evidence": {
+    "comparison": "build/grip-set-metadata-v31/comparison.json",
+    "baseline": "build/grip-set-metadata-v31/baseline-freeze.json",
+    "candidate": "build/grip-set-metadata-v31/candidate-freeze.json",
+    "sharedTests": "build/grip-set-metadata-v31/shared-test-receipt.json",
+    "nativeTests": "build/grip-set-metadata-v31/native-tests.log",
+    "reviewPreview": "build/grip-set-metadata-v31/set-grip-v31-320.png"
+  },
+  "sha256": {
+    "build/grip-set-metadata-v31/comparison.json": "6196a2b3bb9a86c30b9c0aac358e60e9df2627ed2e61fa308466e1c4672dbe4a",
+    "build/grip-set-metadata-v31/baseline-freeze.json": "a27308feb6e268ab80225ca481284eb522d797143b0aebc8d295f0ddefff774a",
+    "build/grip-set-metadata-v31/candidate-freeze.json": "a0fe02b8ad090ebf90957bbbf31455f227ee4dd587ee1515097378334b273fc9",
+    "build/grip-set-metadata-v31/shared-test-receipt.json": "e30ddbd5c2d2cdbb0e726067b83dd7ce2167611661f5b6051d982dbbc5555e40"
+  }
+}

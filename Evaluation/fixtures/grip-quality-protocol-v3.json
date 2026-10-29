@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 3,
+  "purpose": "Repair quality-head training/calibration while freezing appearance and thresholds",
+  "baseWeights": "build/grip-surface-v2/model/weights.pt",
+  "baseWeightsSHA256": "ac6c1dc3a4b7fb46f9be020ecc23f80741b30347ca61c87e3ae02c1580b07af8",
+  "fit": "build/grip-surface-v2/fitting.jsonl",
+  "fitSHA256": "4c9819180739ff22b2f7d532fbf7e8009cbfb463d618e6eabb12e839ccca8550",
+  "candidates": [
+    "final-scale",
+    "multi-scale"
+  ],
+  "features": "Frozen v2 encoder; original surface head and surface temperature immutable. Quality heads use normalized pooled feature activations, final only or stages 3/8/12.",
+  "loss": "Exact separate binary class/video-balanced full-batch cross entropy for each quality head; no appearance-biased mixed sampler.",
+  "selection": "29 original validation video groups split by fixed SHA into quality model-selection and disjoint calibration groups. Head checkpoints chosen separately by class/video-balanced NLL. Candidate chosen by equal-head selection NLL.",
+  "calibration": "Positive-slope affine logit calibration with regularization on calibration groups only, per-video natural prevalence weighting; unconstrained sign flips forbidden. Compare pre/post calibration and quality false accepts.",
+  "budget": {
+    "seed": 3105,
+    "epochs": 400,
+    "patience": 50,
+    "learningRate": 0.003,
+    "weightDecay": 0.03,
+    "hidden": 32
+  },
+  "confidence": {
+    "surface": 0.8,
+    "visible": 0.8,
+    "contact": 0.8
+  },
+  "testPolicy": "Original 32-video test is exposed regression only; new fixed 16-video reserve unused for fitting/selection/calibration. Freeze final weights/script/protocol before test hand review and prediction. Never retune against either test.",
+  "deployment": "Offline repair candidate; original anatomical qualification failure remains. No orientation fusion or phone deployment.",
+  "calibrationGuard": "Reject affine calibration for a head if it increases false accepts on its held-out calibration negatives at the unchanged 0.8 threshold; use the balanced-trained raw head instead. Applies before opening/predicting fresh hand test inputs.",
+  "calibrationAddendum": "First validation-only fit exposed 2 contact negatives vs 52 positives in the independent calibration split. Natural-prior affine fit collapsed contact slope to near zero and accepted both negatives. That proposal is rejected; do not turn majority prevalence into contact evidence. Preserve the complete original candidate run as a diagnostic and apply the explicit negative-protection guard to its unchanged trained heads."
+}

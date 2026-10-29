@@ -41,6 +41,8 @@ RUNTIME_END_REASONS = {
     "phoneMoved",
     "sceneShifted",
     "sceneScaled",
+    "disengaged",
+    "trackingLost",
 }
 
 
@@ -157,6 +159,24 @@ def validate_runtime_report(report: dict[str, Any]) -> None:
     require(integer(report.get("observedMovements")), "device report observedMovements is invalid")
     require(report.get("exercise") in RUNTIME_EXERCISE_MAP, "device report exercise is invalid")
     require(report.get("side") in RUNTIME_SIDES, "device report side is invalid")
+    method = report.get("countMethod")
+    boundary = report.get("boundaryPolicyVersion")
+    require(boundary is None or integer(boundary,1) and boundary in {1,2,3,4,5,6,7,8}, "device report boundary policy is unsupported")
+    versions = {1, 2, 3, 4} if method == "overheadPullUpRelativeMotion" else ({1, 2} if method == "bilateralTorsoDipRelativeMotion" else {1})
+    require(method is None or isinstance(method,str) and report["counterPolicyVersion"] in versions and (
+            report["exercise"] == "dip" and method in {"bilateralBodyDipMotion", "bilateralDipImageMotion", "bilateralDipRelativeMotion", "bilateralTorsoDipRelativeMotion"}
+            or report["exercise"] == "pullUp" and method in {"bilateralPullUpRelativeMotion", "overheadPullUpRelativeMotion"}),
+            "device report counting method/version is unsupported")
+    overhead_boundaries = {1: 5, 2: 6, 3: 7, 4: 8}
+    require(method != "overheadPullUpRelativeMotion" or boundary == overhead_boundaries.get(report["counterPolicyVersion"]),
+            "overhead pull-up count and boundary policies must match")
+    require(boundary not in overhead_boundaries.values() or report["exercise"] == "pullUp" and
+            method == "overheadPullUpRelativeMotion" and boundary == overhead_boundaries.get(report["counterPolicyVersion"]),
+            "device report overhead boundary requires its matching count policy")
+    require(boundary != 3 or report["exercise"] == "dip" and method in {"bilateralDipRelativeMotion", "bilateralTorsoDipRelativeMotion"},
+            "device report boundary policy 3 requires relative dip motion")
+    require(boundary != 4 or report["exercise"] == "dip" and method == "bilateralTorsoDipRelativeMotion" and report["counterPolicyVersion"] == 2,
+            "device report boundary policy 4 requires torso dip count policy 2")
 
     coverage = report.get("trackingCoverage")
     if analyzed == 0:
@@ -193,6 +213,8 @@ def build_session(review: dict[str, Any], report: dict[str, Any]) -> dict[str, A
         "id": review["id"],
         "exercise": review["exercise"],
         "counter_policy_version": report["counterPolicyVersion"],
+        **({"counter_method": report["countMethod"]} if report.get("countMethod") is not None else {}),
+        **({"boundary_policy_version": report["boundaryPolicyVersion"]} if report.get("boundaryPolicyVersion") is not None else {}),
         "tracking_side": report["side"],
         "evidence_class": review["evidence_class"],
         "population_eligible": review["population_eligible"],

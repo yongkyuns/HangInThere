@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 28,
+  "scope": "Exposed-source context lifecycle development regression, not fresh holdout accuracy.",
+  "policyVersion": 2,
+  "change": "Current confident wrist departure on a usable arm clears offline RGB exercise metadata; rearm requires an actual ready phase and subsequent outbound motion.",
+  "counterReadinessChanged": false,
+  "barImageDetectionRequired": false,
+  "readabilityGateAdded": false,
+  "modelRetrained": false,
+  "phoneInstalled": false,
+  "phoneIntegration": "Live phone geometric classifier does not currently consume this RGB research context.",
+  "replayedNativeFrames": 28985,
+  "replays": {
+    "fresh": {
+      "frames": 16883,
+      "counterAndWidthFramesBitIdentical": true,
+      "savedRepRecordsByteIdentical": true,
+      "newEligibilitySubsetOfBaseline": true,
+      "priorEligibleFrames": 4872,
+      "candidateEligibleFrames": 4462,
+      "observedDepartureFrames": 844
+    },
+    "native": {
+      "frames": 1517,
+      "counterAndWidthFramesBitIdentical": true,
+      "savedRepRecordsByteIdentical": true,
+      "newEligibilitySubsetOfBaseline": true,
+      "priorEligibleFrames": 685,
+      "candidateEligibleFrames": 684,
+      "observedDepartureFrames": 2
+    },
+    "alternating": {
+      "frames": 2152,
+      "counterAndWidthFramesBitIdentical": true,
+      "savedRepRecordsByteIdentical": true,
+      "newEligibilitySubsetOfBaseline": true,
+      "priorEligibleFrames": 815,
+      "candidateEligibleFrames": 814,
+      "observedDepartureFrames": 2
+    },
+    "older": {
+      "frames": 7579,
+      "counterAndWidthFramesBitIdentical": true,
+      "savedRepRecordsByteIdentical": true,
+      "newEligibilitySubsetOfBaseline": true,
+      "priorEligibleFrames": 487,
+      "candidateEligibleFrames": 487,
+      "observedDepartureFrames": 1
+    },
+    "freshRegression": {
+      "frames": 854,
+      "counterAndWidthFramesBitIdentical": true,
+      "savedRepRecordsByteIdentical": true,
+      "newEligibilitySubsetOfBaseline": true,
+      "priorEligibleFrames": 137,
+      "candidateEligibleFrames": 137,
+      "observedDepartureFrames": 1
+    }
+  },
+  "checks": {
+    "regularCorrectVisibleFramesNotRegressed": true,
+    "noNegativeLabels": true,
+    "regularCorrectRepMetadataNotRegressed": true,
+    "noNewWrongRegularRepMetadata": true,
+    "counterAndWidthUnchanged": true,
+    "newContextEligibilityNeverAddsFrames": true
+  },
+  "negativeControls": {
+    "referenceFrames": 4881,
+    "baseline": {
+      "visibleGripFrames": 303,
+      "eligibleFrames": 303,
+      "newGripDecisions": 37
+    },
+    "candidate": {
+      "visibleGripFrames": 0,
+      "eligibleFrames": 0,
+      "newGripDecisions": 0
+    }
+  },
+  "completedRepGripMetadata": {
+    "baseline": {
+      "correct": 18,
+      "wrong": 3,
+      "unknown": 13
+    },
+    "candidate": {
+      "correct": 18,
+      "wrong": 3,
+      "unknown": 13
+    }
+  },
+  "tests": {
+    "tests": 848,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "appleSharedCompilation": "passed :shared:compileKotlinIosArm64",
+  "supplementalRGBRegression": {
+    "sources": 3,
+    "frames": 1517,
+    "decisions": 71,
+    "allDecisionsIdentical": true,
+    "changedRetainedFrames": 1,
+    "allActiveWindowLabelsIdentical": true
+  },
+  "unresolved": [
+    "Rear close chin-up still has zero completed counter reps due to unusable arm observations.",
+    "Current-image MediaPipe hand/pose probe on 145 exposed images did not establish a reliable replacement; no joint fusion used.",
+    "Wrong hand-surface predictions remain; 18 correct, 3 wrong and 13 unknown completed-rep metadata results are unchanged.",
+    "Narrow/medium width accuracy and categorical width alternation remain unqualified."
+  ],
+  "candidateHistory": "Initial segment-distance candidate suppressed correct frames beyond the wrist-seeded endpoints. Archived unchanged; final candidate uses perpendicular distance to support line. Both are exposed development iterations.",
+  "evidence": {
+    "comparison": "build/grip-context-v28/final/comparison.json",
+    "supplementalRGB": "build/grip-context-v28/final/older-grip-regression.json",
+    "probe": "build/grip-context-v28/probe-receipt.json",
+    "poseExamples": "build/grip-context-v28/pose-failure-probe.png",
+    "restCleanup": "build/grip-context-v28/metadata-cleanup.png",
+    "candidateFreeze": "build/grip-context-v28/final/candidate-freeze.json",
+    "inputFreeze": "build/grip-context-v28/final/replay-input-freeze.json",
+    "firstCandidateAudit": "build/grip-context-v28/first-attempt-audit.json",
+    "testReceipt": "build/grip-context-v28/final/shared-test-receipt.json"
+  },
+  "sha256": {
+    "build/grip-context-v28/final/comparison.json": "8b59244a3dd84ff000ee76277f375fedc379ac9b8a794838ba67a4afc3833c59",
+    "build/grip-context-v28/final/older-grip-regression.json": "280fca9682e6570f58522ae3283c8a0fc5d4dc1f33ec98506025499762004861",
+    "build/grip-context-v28/probe-receipt.json": "93c31e3ade87ad810cffd246fcb953bf2330aafab8794c0da58fb59f62265983",
+    "build/grip-context-v28/final/shared-test-receipt.json": "dae217cf9b62b849353b24ebe639232015a498ea5244c897f498cffefcf0dd51"
+  }
+}

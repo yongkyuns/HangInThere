@@ -3,12 +3,66 @@ import SwiftUI
 // Both live and replay use the same counter snapshots and visual treatment.
 struct ExerciseProgressView: View {
     let counter: ExerciseCounter
+    var bodyDipSnapshot: BodyDipWorkoutSnapshot? = nil
+    var bodyPullUpSnapshot: BodyPullUpWorkoutSnapshot? = nil
     var body: some View {
-        if let progress = counter.pullUpProgress {
+        if let bodyPullUpSnapshot {
+            BodyPullUpProgressView(snapshot: bodyPullUpSnapshot)
+        } else if let bodyDipSnapshot {
+            BodyDipProgressView(snapshot: bodyDipSnapshot)
+        } else if let progress = counter.pullUpProgress {
             PullUpProgressView(progress: progress)
         } else if let progress = counter.dipProgress {
             DipProgressView(progress: progress)
         }
+    }
+}
+
+struct BodyPullUpProgressView: View {
+    let snapshot: BodyPullUpWorkoutSnapshot
+    private var motion: BodyPullUpWorkoutSnapshot.Motion { snapshot.motion }
+    private var counted: Bool { motion.event?.outcome == "imageCycle" }
+    private var cue: String {
+        if !motion.observationUsable {
+            return motion.reason == "cameraUnavailable" ? "Keep phone still · checking camera" : "Show both arms and hands clearly"
+        }
+        switch motion.phase {
+        case "ready": return "Ready · pull up"
+        case "outbound": return motion.progress > 0.5 ? "Lower to your starting position" : "Keep pulling"
+        case "returning": return "Lower to your starting position"
+        default: return "Show your starting hang with steady hands"
+        }
+    }
+    var body: some View {
+        RepProgressView(title: "Pull-up \(motion.cycles + (counted ? 0 : 1))", cue: counted ? "Rep counted" : cue,
+            fraction: motion.progress, resetFraction: nil, isStarting: motion.phase == "idle", isCounted: counted,
+            isPaused: !motion.observationUsable, isFinished: snapshot.endReason != nil,
+            trackedArmCount: motion.degrees.count, showsMidpoint: true, identifier: "bodyPullUpProgress")
+    }
+}
+
+struct BodyDipProgressView: View {
+    let snapshot: BodyDipWorkoutSnapshot
+    private var motion: BodyDipWorkoutSnapshot.Motion { snapshot.motion }
+    private var starting: Bool { motion.phase == "seekingTop" }
+    private var counted: Bool { motion.event?.outcome == "imageCycle" }
+    private var cue: String {
+        if !motion.observationUsable {
+            return motion.reason == "cameraUnavailable" ? "Keep phone still · checking camera" : "Show both arms and hands clearly"
+        }
+        switch motion.phase {
+        case "ready": return "Ready · lower"
+        case "outbound": return motion.progress > 0.5 ? "Push back to your top support" : "Lower under control"
+        case "returning": return "Push back to your top support"
+        default: return "Hold extended top support with steady hands"
+        }
+    }
+    var body: some View {
+        RepProgressView(title: starting ? "Find your top support" : "Dip \(motion.cycles + (counted ? 0 : 1))",
+            cue: counted ? "Dip counted" : cue, fraction: motion.progress, resetFraction: nil,
+            isStarting: starting, isCounted: counted, isPaused: !motion.observationUsable,
+            isFinished: snapshot.endReason != nil, trackedArmCount: motion.elbowDegrees.compactMap { $0 }.count,
+            showsMidpoint: true, identifier: "bodyDipProgress")
     }
 }
 

@@ -1,6 +1,7 @@
 package dev.hanginthere.core
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.math.*
@@ -9,10 +10,25 @@ import kotlin.math.*
 @Serializable data class MotionSample(
     val seconds: Double, val leftDegrees: Double?, val rightDegrees: Double?,
     val shoulderHeight: Double?, val usable: Boolean, val released: Boolean,
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val postureReleased: Boolean = false,
 )
 
 /** Camera/model adapters provide poses; all analysis geometry lives here. */
 object MotionFeatureExtractor {
+    private fun departureDistance(pose:PoseResult,left:ArmMeasurement.Estimate,right:ArmMeasurement.Estimate) =
+        max(min(pose.imageSize.width,pose.imageSize.height)*.12,
+            (left.upperArmPixels+left.forearmPixels+right.upperArmPixels+right.forearmPixels)*.125)
+    internal fun handsDeparted(pose:PoseResult,heldGrips:List<Point2D>?):Boolean {
+        val left=ArmMeasurement(pose,ArmMeasurement.Side.left).estimate ?: return false
+        val right=ArmMeasurement(pose,ArmMeasurement.Side.right).estimate ?: return false
+        val person=pose.people.singleOrNull() ?: return false
+        val hands=listOf(PoseJoint.leftWrist,PoseJoint.rightWrist).mapNotNull { person.landmark(it)?.position }
+        return hands.size==2 && heldGrips?.size==2 && hands.zip(heldGrips).all { (hand,grip) ->
+            hypot(hand.x-grip.x,hand.y-grip.y)>departureDistance(pose,left,right)
+        }
+    }
     fun extract(pose: PoseResult, reference: BarSegment?, policyUsable: Boolean, heldGrips: List<Point2D>? = null): MotionSample {
         val left = ArmMeasurement(pose, ArmMeasurement.Side.left).estimate
         val right = ArmMeasurement(pose, ArmMeasurement.Side.right).estimate
@@ -25,8 +41,7 @@ object MotionFeatureExtractor {
         // joints, empty frames and crowd ambiguity are never a release gesture.
         val hands = listOf(PoseJoint.leftWrist, PoseJoint.rightWrist).mapNotNull { person?.landmark(it)?.position }
         val released = reference?.isValid == true && left != null && right != null && hands.size == 2 && heldGrips?.size == 2 &&
-            hands.zip(heldGrips).all { (hand, grip) -> hypot(hand.x-grip.x,hand.y-grip.y) > max(short * .12, (left.upperArmPixels + left.forearmPixels + right.upperArmPixels + right.forearmPixels) * .125) } &&
-            hands.all { reference.distance(it) > max(short * .12, (left.upperArmPixels + left.forearmPixels + right.upperArmPixels + right.forearmPixels) * .125) }
+            handsDeparted(pose,heldGrips) && hands.all { reference.distance(it)>departureDistance(pose,left,right) }
         return MotionSample(pose.timestamp.seconds, left?.elbowDegrees, right?.elbowDegrees, height,
             policyUsable && (left != null || right != null), released)
     }
@@ -37,16 +52,61 @@ object MotionFeatureExtractor {
 class WorkoutMotionFeatures {
     private var heldGrips: List<Point2D>? = null
     private var imageSize: ImageSize? = null
+    private var backend: String? = null
+    private var modelRevision: Int? = null
+    private var witnessedOverheadHold = false
+    private var witnessedHandDeparture = false
     fun extract(pose: PoseResult, reference: BarSegment?, usable: Boolean, phase: ExerciseCounter.Phase): MotionSample {
+        if(heldGrips != null && (imageSize != pose.imageSize || backend != pose.backend || modelRevision != pose.requestRevision)) reset()
         if (heldGrips == null && phase == ExerciseCounter.Phase.ready && usable && reference?.isValid == true && pose.imageSize.isValid &&
             ArmMeasurement(pose,ArmMeasurement.Side.left).estimate != null && ArmMeasurement(pose,ArmMeasurement.Side.right).estimate != null) {
             val person = pose.people.singleOrNull()
             val hands = listOf(PoseJoint.leftWrist,PoseJoint.rightWrist).mapNotNull { person?.landmark(it)?.position }
-            if (hands.size == 2) { heldGrips=hands; imageSize=pose.imageSize }
+            if (hands.size == 2) { heldGrips=hands; imageSize=pose.imageSize;backend=pose.backend;modelRevision=pose.requestRevision }
         }
-        return MotionFeatureExtractor.extract(pose,reference,usable,heldGrips.takeIf { imageSize==pose.imageSize })
+        if(heldGrips != null && phase == ExerciseCounter.Phase.ready && usable && reference?.isValid == true &&
+            OverheadSupportReleasePosture.matches(pose,down=false)) witnessedOverheadHold=true
+        val measured=MotionFeatureExtractor.extract(pose,reference,usable,heldGrips.takeIf { imageSize==pose.imageSize })
+        if(!MotionFeatureExtractor.handsDeparted(pose,heldGrips)) witnessedHandDeparture=false
+        else if(measured.released) witnessedHandDeparture=true
+        // This is release evidence only. Missing background qualification still
+        // supplies no rep/hold motion. A witnessed overhead hang followed by
+        // both hands toward the hips cannot be created by image translation,
+        // in-plane rotation or uniform scale: it uses the current torso axis.
+        val postureReleased=witnessedOverheadHold && witnessedHandDeparture && OverheadSupportReleasePosture.matches(pose,down=true)
+        return measured.copy(released=measured.released || postureReleased,postureReleased=postureReleased)
     }
-    fun reset() { heldGrips=null;imageSize=null }
+    fun reset() { heldGrips=null;imageSize=null;backend=null;modelRevision=null;witnessedOverheadHold=false;witnessedHandDeparture=false }
+}
+
+/** Positive bilateral posture, never a camera-ready verdict or count event.
+ * It requires current measured arms/hips and a non-foreshortened torso. The
+ * The stronger categorical cue has its own source-time confirmation; the
+ * distance-only fallback retains its original one-second release dwell. */
+internal object OverheadSupportReleasePosture {
+    fun matches(pose: PoseResult, down: Boolean): Boolean {
+        if(!pose.imageSize.isValid) return false
+        val person=pose.people.singleOrNull() ?: return false
+        val arms=PullUpArmMeasurement(pose).arms
+        if(arms.size != 2) return false
+        val hips=listOf(PoseJoint.leftHip,PoseJoint.rightHip).map { joint ->
+            val point=person.landmarks.singleOrNull { it.joint==joint } ?: return false
+            if(!point.isVisible(ArmMeasurement.confidenceThreshold) ||
+                point.position.x !in 0.0..pose.imageSize.width || point.position.y !in 0.0..pose.imageSize.height) return false
+            point.position
+        }
+        val sx=arms.map { it.shoulder.x }.average();val sy=arms.map { it.shoulder.y }.average()
+        val dx=hips.map { it.x }.average()-sx;val dy=hips.map { it.y }.average()-sy
+        val torso=hypot(dx,dy)
+        if(!torso.isFinite() || torso < arms.minOf { it.estimate.upperArmPixels }) return false
+        val direction=if(down)1.0 else -1.0
+        return arms.all { arm ->
+            val elbow=person.landmark(arm.side.joints[1])?.position ?: return false
+            fun projection(point:Point2D) = ((point.x-arm.shoulder.x)*dx+(point.y-arm.shoulder.y)*dy)/torso*direction
+            projection(arm.wrist) >= (arm.estimate.upperArmPixels+arm.estimate.forearmPixels)*.5 &&
+                projection(elbow)>0 && (down || arm.estimate.elbowDegrees>=ExerciseCounter.extendedDegrees)
+        }
+    }
 }
 
 @Serializable data class AngleMetrics(
@@ -74,12 +134,18 @@ object WorkoutAnalytics {
     /** Null identifies the historical ExerciseCounter family. Versions are
      * scoped to a method; bilateral image motion v1 is never counter v1/v8. */
     val countMethod: String? = null,
+    /** Actual source frame on which a delayed image-cycle proof became public.
+     * Returned/closed times describe observed motion; this never adds hold time.
+     * Null preserves the historical immediate-confirmation methods. */
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val countConfirmedAt: Double? = null,
 ) {
     val isCompleteForAnalytics get() = WorkoutAnalytics.isCompletedRep(acceptedAt != null, returnedAt != null, closeReason)
     /** A lost observation is not evidence of an athlete's unfinished attempt.
      * Keep the raw quality record without calling it practice in summaries. */
     val isPracticeForAnalytics get() = !isCompleteForAnalytics &&
-        (countMethod != BilateralDipWorkout.countMethod || closeReason in listOf("partial", "manual", "endOfInput", "sourceEnded"))
+        (!WorkoutCountingMethod.isImageMotion(countMethod) || closeReason in listOf("partial", "manual", "endOfInput", "sourceEnded"))
 }
 @Serializable data class WorkoutSetRecord(
     val id: String, val exercise: ExerciseCounter.Exercise, val startedAt: Double?,
@@ -95,6 +161,11 @@ object WorkoutAnalytics {
     /** Schema 2 scopes the method even for a hold-only set with no reps. Older
      * apps reject this schema instead of silently stripping method identity. */
     val countMethod: String? = null, val countPolicyVersion: Int? = null,
+    val setGrip: WorkoutSetGrip? = null,
+    /** Missing in older records: their original boundary policy remains v1. */
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val boundaryPolicyVersion: Int = 1,
 ) {
     val acceptedCount get() = reps.count { it.acceptedAt != null }
     val completedReps get() = reps.filter { it.isCompleteForAnalytics }
@@ -134,6 +205,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise,
         val left = AngleAccumulator(); val right = AngleAccumulator()
         var extreme: Double? = null; var accepted: Double? = null
         var motionPeak: Double? = null
+        var countConfirmedAt: Double? = null
         var minimumMeanAngle: Double? = null
         var comparableExtreme = true
         var acceptanceReason: String? = null
@@ -180,11 +252,14 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise,
                     abs(left.extremeAt!! - right.extremeAt!!) else null,
                 usableSeconds, if (duration > 0) (usableSeconds / duration).coerceIn(0.0, 1.0) else null,
                 samples.toList(), truncated, countPolicyVersion=countPolicyVersion,
-                metricVersion=metricVersion, acceptanceReason=acceptanceReason, countMethod=countMethod)
+                metricVersion=metricVersion, acceptanceReason=acceptanceReason, countMethod=countMethod,
+                countConfirmedAt=countConfirmedAt.takeIf { returned })
         }
     }
     private val phases = WorkoutPhaseAnalysis(setId, exercise)
     private val grips = WorkoutGripAnalysis(setId)
+    private val setGrips = WorkoutSetGripAnalysis(setId)
+    val setGrip get() = setGrips.current.takeIf { grips.hasObservation }
     val gripRecord get() = if(exercise==ExerciseCounter.Exercise.pullUp && grips.hasObservation)grips.record else null
     val gripDelta get() = if(exercise==ExerciseCounter.Exercise.pullUp && grips.hasObservation)grips.delta else null
     val currentGrip get() = grips.current.takeIf { exercise==ExerciseCounter.Exercise.pullUp }
@@ -193,7 +268,15 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise,
             val before=grips.current
             grips.observe(pose,reference,phase,usable,sourceSeconds)
             val after=grips.current
-            if(before.left!=after.left || before.right!=after.right || before.width!=after.width || before.reason!=after.reason)revision++
+            val beforeSetGrip = setGrips.current
+            if (phase in listOf(ExerciseCounter.Phase.outbound, ExerciseCounter.Phase.returning) ||
+                phase == ExerciseCounter.Phase.ready && (attempt != null || closed.isNotEmpty())) {
+                grips.confirmedOrientationSeconds?.let {
+                    setGrips.observeConfirmed(after.orientation, it, after.modelId, after.inferenceBackend)
+                }
+            }
+            if(before.left!=after.left || before.right!=after.right || before.width!=after.width || before.reason!=after.reason ||
+                beforeSetGrip != setGrips.current)revision++
         }
     }
     val activity get() = phases.activity
@@ -221,9 +304,12 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise,
      * cycle are different events. Native adapters cannot turn one into the other. */
     enum class MotionOutcome { accepted, completed, partial, interrupted }
     data class MotionEvent(val outcome: MotionOutcome, val sourceSeconds: Double, val reason: String,
-        val observedPeakSeconds: Double? = null)
+        val observedPeakSeconds: Double? = null,val confirmationSourceSeconds: Double? = null)
     fun observeMotion(sample: MotionSample, phase: ExerciseCounter.Phase, event: MotionEvent?) {
         if (!sample.seconds.isFinite()) { interrupt("invalidTimestamp"); return }
+        if(countMethod==OverheadPullUpMotion.countMethod && event?.outcome==MotionOutcome.completed) {
+            require(event.confirmationSourceSeconds?.let { it.isFinite() && it>=sample.seconds }==true)
+        } else require(event?.confirmationSourceSeconds==null)
         val old = previous
         if (old != null && sample.seconds <= old.seconds) { interrupt("nonIncreasingTimestamp"); return }
         if (old != null && sample.seconds - old.seconds > maximumAttemptGapSeconds) interrupt("sourceTimeGap")
@@ -233,10 +319,20 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise,
             old?.let { attempt!!.observe(it, measureExtreme=false) }
         }
         attempt?.observe(sample)
+        // The set boundary deliberately confirms release over several frames.
+        // A pull-up return cannot use those intervening arms-down frames to
+        // finish an accepted attempt. Preserve the acceptance as an unreturned
+        // attempt; a transient later release flag cannot resurrect it.
+        if (countMethod == null && exercise == ExerciseCounter.Exercise.pullUp && sample.released) {
+            close(sample.seconds, "disengaged", false)
+            previous = sample; lastPhase = phase
+            return
+        }
         if (event != null && (event.outcome == MotionOutcome.accepted || event.outcome == MotionOutcome.completed)) {
             // Defensive: retain an accepted event even if an adapter attached late.
             if (attempt == null) attempt = Attempt(sample.seconds, ++ordinal).also { it.observe(sample) }
             attempt!!.accepted = event.sourceSeconds; attempt!!.acceptanceReason=event.reason; revision++
+            attempt!!.countConfirmedAt=event.confirmationSourceSeconds
             attempt!!.motionPeak = event.observedPeakSeconds?.takeIf { it.isFinite() && it in attempt!!.start..sample.seconds }
         }
         when {
@@ -268,6 +364,7 @@ class WorkoutAnalysis(val setId: String, val exercise: ExerciseCounter.Exercise,
 class AutomaticSetBoundary {
     private var last: Double? = null
     private var releaseSince: Double? = null
+    private var postureReleaseSince: Double? = null
     private var unavailableSince: Double? = null
     private var engaged=false
     fun observe(sample: MotionSample, hasActivity: Boolean): String? {
@@ -281,7 +378,11 @@ class AutomaticSetBoundary {
         if (last != null && time - last!! > ExerciseCounter.maximumGapSeconds) breakContinuity()
         last = time
         if(hasActivity) engaged=true
-        if (!engaged) { releaseSince = null; unavailableSince = null; return null }
+        if (!engaged) { releaseSince = null; postureReleaseSince = null; unavailableSince = null; return null }
+        if(sample.postureReleased) {
+            if(postureReleaseSince == null) postureReleaseSince = time
+            if(time-postureReleaseSince!! >= postureReleaseDwellSeconds) return "disengaged"
+        } else postureReleaseSince = null
         if (sample.released) {
             unavailableSince = null
             if (releaseSince == null) releaseSince = time
@@ -296,9 +397,16 @@ class AutomaticSetBoundary {
         return null
     }
     /** Within-set faults cannot earn dwell or erase the latest source time. */
-    fun breakContinuity() { releaseSince = null; unavailableSince = null }
+    fun breakContinuity() { releaseSince = null; postureReleaseSince = null; unavailableSince = null }
     fun reset() { last = null; breakContinuity(); engaged=false }
-    companion object { const val releaseDwellSeconds = 1.0; const val outageSeconds = 3.0 }
+    companion object {
+        const val releaseDwellSeconds = 1.0
+        // Confirm a stronger measured posture/support exit with fresh frames.
+        // Each versioned owner supplies its specific corroboration; ordinary
+        // distance-only release retains the one-second dwell above.
+        const val postureReleaseDwellSeconds = .25
+        const val outageSeconds = 3.0
+    }
 }
 
 /** Shared brief source-time readiness gate after actual apparatus/camera qualification.

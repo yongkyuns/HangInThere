@@ -3,7 +3,7 @@
 A lean, on-device iPhone app in development for pull-up and dip
 counting and camera-view-specific range-of-motion analysis.
 
-An Android client is under qualification on `codex/android-parity`: native
+The Android client remains under qualification: native
 Compose/CameraX with a framework-free Kotlin Multiplatform workout core. See
 [Android architecture and CI evidence](docs/ANDROID.md) and [build instructions](android/README.md).
 
@@ -27,88 +27,41 @@ Camera capture, pose inference and UI remain native. See
 Private recordings and downloaded datasets stay in ignored `Data/` directories;
 generated build results stay in ignored `build/` directories.
 
-**Current status (2026-10-21):** automatic dip source accuracy remains failed;
-PR #29 stays draft. See the [detection handoff and resume plan](docs/workout/DETECTION_HANDOFF.md)
-for verified results, local-only experiments and the next implementation task.
-
-**P0: video import/replay and real Apple Vision integration.** The source and
-GitHub qualification workflow are published in [PR #2](https://github.com/yongkyuns/HangInThere/pull/2).
-Use that PR's exact-head checks and [the evidence record](docs/P0_STATUS.md) for
-build/test status. A source change or passing core test does not establish that
-the iOS app runs, that exercise tracking is accurate, or that a phone keeps up.
+**Current status (2026-10-29):** build 123 is installed on the development iPhone.
+This is a development baseline, not a production-qualified release. Independent
+full-set accuracy and sustained physical-device qualification remain open; see
+[the detection handoff](docs/workout/DETECTION_HANDOFF.md).
 
 ## What this version does
 
-Import a local MP4 or MOV from Files, inspect the first processed frame, then
-play, pause, restart, or close the video. The preview displays the **same oriented
-image that Vision analyzed**, with separate skeleton overlays, landmark counts,
-source timestamps, and processing-time diagnostics. The measurement
-extension adds left/right **image-plane elbow estimates** with explicit reasons
-when an arm cannot be measured. These are raw per-frame diagnostics, not checked
-reps or form scores. Inference may slow replay;
-frames are processed sequentially instead of silently skipped. Audio is not played.
+- Automatically starts and counts pull-up/chin-up and dip image movement cycles
+  from posture and motion. Live grip classification, rail detection and crossed
+  legs are optional; they do not gate the workout.
+- Supports a controlled camera setup: front/rear view, approximately level at
+  chest/shoulder height, one athlete reasonably close with both arms visible.
+  Camera movement and unavailable observations remain explicit interruptions.
+- Shows a compact count/progress overlay. Skeleton and reference geometry are
+  off by default and available through Diagnostics.
+- Saves silent local video from the first completed rep to the last return,
+  excluding setup/release/rest outside the set. New clips retain aligned,
+  tappable start/turnaround/return keyframes. Clips and thumbnails share bounded
+  local retention; recording failures never block counting.
+- Groups history by date and exercise, with rep phase-time bars, comparable-rep
+  tempo changes, optional grip/width metadata and original measurement review.
+  Muscle illustrations describe the exercise; they do not measure activation.
+  Tempo change is not a physiological fatigue or calorie measurement.
+- Follows the system light/dark appearance with background-free exercise artwork.
+  Imported-video review remains local and retains the pixels used for analysis.
 
-The replay screen now adds **bar-relative timestamp-based movement counting** for
-pull-ups and dips on parallel rails or a shared straight bar. Pull-up setup finds
-a visible gripping edge near both raised hands and locks it after at least four consistent observations over
-0.9 seconds. Live workouts default to **Auto** exercise selection: a stable
-starting hang identifies pull-ups and top support identifies dips, with actual
-bar/rail contours required before tracking starts. The overlay shows the detected
-exercise; it remains fixed until the set ends and is detected again for the next
-set. Explicit exercise selection is available in settings.
-Both live exercises default to **Hands-free start**: hang with extended
-arms for pull-ups, or hold top support with steady hands for dips. After genuine
-apparatus/camera qualification, 0.12 seconds of fresh eligible source frames
-starts tracking. No gesture or countdown is required. Disable the toggle to use
-**Start set** manually. Video review automatically
-rewinds and resumes so earlier movements are counted too. Dip setup observes
-separate rails beside both hands or a paired straight bar shared by both grips,
-then uses the same readiness gate. Manual setup remains available for unclear views.
-Pull-ups use both measurable arms,
-each with its own extended-hang baseline; one arm can continue when the other is
-obscured. Both available arms must meet the endpoint gates. Dips retain an
-anatomical arm selector for the confirmed grip, with opposite-arm evidence checked
-when it has a usable starting baseline. Dip lowering follows a frozen
-grip-to-shoulder direction rather than the rail's silhouette direction; the count
-requires a return near the acquired top with arm recovery and retained grip.
-The counter combines the fixed apparatus reference with Apple Vision body landmarks.
-Missing bar setup cannot count. Partial/interrupted outcomes and explicit **Form unverified**
-status remain; chin clearance and strict dip depth are not yet acceptance criteria.
-Recorded review requires a stationary camera. It checks each sampled frame against
-the original bar-calibration image using the shared scene-stability policy, including
-after rewind. Unavailable camera evidence pauses counting; confirmed view movement
-interrupts the active attempt and excludes its unfinished return from analytics.
-Live video and recorded review show a compact **rep progress meter** at the video
-edge. Pull-ups follow both arms' angle and shoulder-travel evidence, with a separate
-reset meter for returning to the hang. Dips fill the first half through lowering
-and the bottom hold, then the second half through returning to top support and
-holding it. Both meters reserve completion for an actual count and turn green
-only then; missing tracking clears progress. They describe the counting criteria,
-not strict form.
-Sets automatically complete after a second of visible release by both hands;
-tracking loss closes them as interruptions. Long endpoint holds do not split
-sets. The analysis button shows per-rep phase timing, left/right angle curves,
-measurement coverage and dated local history. Accepted pull-up counts survive
-an unobserved return, with unavailable return metrics explicitly shown.
-See [the counter policy](docs/COUNTING.md), [bar setup](docs/BAR_SETUP.md) and
-[analysis contracts and qualification](docs/workout/AUTOMATIC_ANALYSIS.md).
+Only observed completed returns enter completed-rep analytics. User-reported
+corrections and practice attempts remain separate. Counting does not establish
+chin clearance, dip depth, anatomical lockout or coaching/form quality.
 
-Live Workout is a **full-screen video canvas** with rep count, progress, brief
-setup cues, and start/finish controls over the feed. The settings button opens
-Workout options, detailed results, placement help, and Diagnostics in a separate
-panel. Opening settings pauses readiness until the panel closes; opening the
-read-only workout analysis does not pause active tracking.
-A **camera-switch button inside the preview** toggles rear/front cameras before a
-set. Changing
-cameras clears framing and the fixed bar reference, so reacquire the bar before
-starting. Camera selection is locked during a set or debug recording. The front
-preview is unmirrored, matching analysis and recorded debug video.
-
-The iOS app uses SwiftUI, AVFoundation, Core Image, Vision and the linked Kotlin
-core/runtime. There are no backend services, accounts, downloaded pose models or
-remote analytics in the iOS app.
-Imported files are copied into app-local temporary storage and removed on close
-or replacement; recordings are never uploaded by the app.
+The native iOS and Android clients own capture, inference and UI. Shared Kotlin
+owns workout policy and versioned storage contracts; platform pose predictions
+and physical performance require separate qualification. No recording is uploaded
+by the app. See [product experience](docs/PRODUCT_UX.md),
+[shared architecture](shared/README.md) and [evaluation tools](Evaluation/README.md).
 
 ## Open the app
 
@@ -135,9 +88,10 @@ and its Apple references for account and provisioning restrictions.
 
 ## Tests
 
-Run the exact framework-free application sources and their Swift Testing tests
-on Linux or macOS with Swift 6. A disposable harness is created outside the repo;
-there is no second production package.
+Run the production Swift core/transport tests on macOS with Swift 6 and JDK 17.
+The script builds the shared framework and uses a disposable test harness. Shared
+JVM contracts also run on other hosts through Gradle (after generating the Swift
+parity oracles on macOS).
 
 ```sh
 ./scripts/test-core.sh
@@ -240,16 +194,16 @@ automatic release verdict. See [the physical-device protocol](docs/DEVICE_QUALIF
 
 ## Scope and next steps
 
-Read [the POC implementation and validation plan](docs/POC.md). First clear the
-real build/backend/video gates. Continue controlled fixed-camera pull-up **and dip** qualification with bar references
-frozen before counting, then add chin/depth endpoint evidence, live capture, and
-sustained physical-iPhone performance qualification. A skeleton alone does not establish chin-over-bar clearance
-or accurate 3D joint angles. Keep one app and small components, not services or a
-cross-platform architecture.
+Continue independently labelled full-set qualification for both exercises and
+front/rear views, then sustained physical-device recording/performance tests.
+Keep qualification failures and unsupported camera views explicit; source merges
+and passing contract tests do not qualify a release.
 
 ## Data and licensing
 
-No workout recordings or model weights are committed. The test-preparation
+Private recordings and learned research checkpoints stay local. The public
+MediaPipe model bundles in `models/grip/` are checksum-pinned with their licence
+and provenance. The test-preparation
 manifest records its public source, rights basis, and credit; generated media are
 ignored and are not app resources. No source-code licence has been selected.
 Public access does not replace checking media/model permissions, and smoke

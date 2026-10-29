@@ -2,6 +2,188 @@ import Testing
 @testable import HangInThere
 
 @Suite struct AutomaticExerciseDetectionTests {
+    @Test func committedOverheadIdentityUsesCurrentArmsWithoutRequiringAnImageReference() {
+        var identity=AutomaticExerciseDetection()
+        for t in [0.0,0.2,0.4,0.6] { let result=identity.observe(bentPullUpPose(t));#expect(result == nil) }
+        #expect(identity.exercise == nil)
+        let confirmed=identity.confirmObservedOverheadPullUpMovement(highPull(0.8));#expect(confirmed)
+        #expect(identity.exercise == .pullUp)
+        let locked=identity.lock();#expect(locked)
+        let different=identity.confirmObservedDipMovement(pose(.dip,1));#expect(!different)
+        for fault in ["missing","crowd","backend","revision","gap","regression"] {
+            var detector=AutomaticExerciseDetection()
+            for t in [0.0,0.2,0.4,0.6] {_ = detector.observe(bentPullUpPose(t))}
+            let p=highPull(0.8)
+            let people=fault == "missing" ? p.people.map { person in PoseObservation(landmarks:person.landmarks.filter {$0.joint != .rightWrist}) } : fault == "crowd" ? p.people+p.people : p.people
+            let changed=PoseResult(timestamp:fault == "gap" ? .init(value:2000,timescale:1000) : fault == "regression" ? .init(value:400,timescale:1000) : p.timestamp,
+                imageSize:p.imageSize,people:people,backend:fault == "backend" ? "changed" : p.backend,requestRevision:fault == "revision" ? 2 : p.requestRevision)
+            let result=detector.confirmObservedOverheadPullUpMovement(changed);#expect(!result)
+        }
+    }
+    @Test func actualObservedReferenceSurvivesUnqualifiedHighPullAndKeepsOriginalDwell() {
+        var known = AutomaticExerciseDetection(), unknown = AutomaticExerciseDetection()
+        let bar = AutomaticPullUpBarTests().candidate().edge
+        for t in [0.0,0.2,0.4,0.6] {
+            #expect(AutomaticExerciseDetection.apparatusCandidate(in: highPull(t)) == nil)
+            #expect(known.observe(highPull(t),reference:bar) == (t == 0.6 ? .pullUp : nil))
+            #expect(known.apparatusCandidate == .pullUp)
+            #expect(unknown.observe(highPull(t)) == nil)
+        }
+    }
+    @Test func weakCurrentHandPreservesSearchWithoutEarningPostureIdentity() {
+        var identity = AutomaticExerciseDetection()
+        let bar = AutomaticPullUpBarTests().candidate().edge
+        for t in [0.0,0.2,0.4,0.6,0.8] {
+            let p = bentPullUpPose(t)
+            let weak = PoseResult(timestamp:p.timestamp,imageSize:p.imageSize,
+                people:p.people.map { person in .init(landmarks:person.landmarks.map { point in
+                    .init(joint:point.joint,position:point.position,confidence:point.joint == .rightWrist ? 0.49 : point.confidence)
+                }) },backend:p.backend,requestRevision:p.requestRevision)
+            #expect(identity.observe(weak,reference:bar) == nil)
+            #expect(identity.apparatusCandidate == .pullUp)
+        }
+        let locked = identity.lock()
+        #expect(!locked)
+    }
+    @Test func observedBarArrivalPreservesAlreadyMeasuredExtendedHangDwell() {
+        var identity = AutomaticExerciseDetection()
+        for t in [0.0,0.2,0.4] { #expect(identity.observe(pose(.pullUp,t)) == nil) }
+        let reference = AutomaticPullUpBarTests().candidate().edge
+        #expect(identity.observe(bentPullUpPose(0.6),reference:reference) == .pullUp)
+        #expect(!HandsFreeSetStart.isStartingPosition(pose:bentPullUpPose(0.6),referenceEdge:reference))
+    }
+
+    @Test func confirmedSupportIdentifiesFlexedOverheadArmsButCannotStartThem() {
+        var identity = AutomaticExerciseDetection()
+        let reference = AutomaticPullUpBarTests().candidate().edge
+        for ticks:Int64 in [0,200_000,400_000,599_999,600_000] {
+            let original = bentPullUpPose(Double(ticks)/1e6)
+            let p = PoseResult(timestamp:.init(value:ticks,timescale:1_000_000),imageSize:original.imageSize,
+                people:original.people,backend:original.backend,requestRevision:original.requestRevision)
+            #expect(AutomaticExerciseDetection.candidate(in:p) == nil)
+            #expect(identity.observe(p,reference:reference) == (ticks == 600_000 ? .pullUp : nil))
+            #expect(!HandsFreeSetStart.isStartingPosition(pose:p,referenceEdge:reference))
+        }
+        #expect(!identity.isLocked)
+    }
+
+    @Test func knownSupportIdentityCannotBorrowTimeFromChangedOrMissingReference() {
+        let a = AutomaticPullUpBarTests().candidate().edge
+        let b = AutomaticPullUpBarTests().candidate(290).edge
+        for missing in [false,true] {
+            var identity = AutomaticExerciseDetection()
+            for t in [0.0,0.2,0.4] { #expect(identity.observe(bentPullUpPose(t),reference:a) == nil) }
+            #expect(identity.observe(bentPullUpPose(0.6),reference:missing ? nil : b) == nil)
+            for t in [0.8,1.0,1.2] {
+                #expect(identity.observe(bentPullUpPose(t),reference:b) == (!missing && t == 1.2 ? .pullUp : nil))
+            }
+            if missing { #expect(identity.observe(bentPullUpPose(1.4),reference:b) == .pullUp) }
+        }
+        var identity = AutomaticExerciseDetection()
+        for t in [0.0,0.2,0.4] { #expect(identity.observe(bentPullUpPose(t),reference:a) == nil) }
+        #expect(identity.observe(bentPullUpPose(0.6),reference:.init(a:a.b,b:a.a)) == .pullUp)
+    }
+
+    func highPull(_ seconds:Double) -> PoseResult {
+        let original = pose(.pullUp,seconds)
+        return .init(timestamp:original.timestamp,imageSize:original.imageSize,
+            people:[.init(landmarks:original.people[0].landmarks.map { point in
+                let position:Point2D
+                switch point.joint {
+                case .leftShoulder: position = .init(x:410,y:350)
+                case .rightShoulder: position = .init(x:280,y:350)
+                case .leftElbow: position = .init(x:580,y:400)
+                case .rightElbow: position = .init(x:130,y:400)
+                default: position = point.position
+                }
+                return .init(joint:point.joint,position:position,confidence:point.confidence)
+            })],backend:original.backend,requestRevision:original.requestRevision)
+    }
+
+    @Test func confirmedReferenceRetainsHangIdentityThroughHighPullWithoutEarningStart() {
+        var identity = AutomaticExerciseDetection()
+        for t in [0.0,0.2,0.4,0.6] { identity.observe(pose(.pullUp,t)) }
+        let reference = AutomaticPullUpBarTests().candidate().edge
+        for t in [0.8,1.0] {
+            let base = highPull(t)
+            let frame = PoseResult(timestamp:base.timestamp,imageSize:base.imageSize,
+                people:base.people.map { person in .init(landmarks:person.landmarks.map { point in
+                    guard t == 1.0, [.leftShoulder,.rightShoulder].contains(point.joint) else { return point }
+                    return .init(joint:point.joint,position:.init(x:point.position.x,y:270),confidence:point.confidence)
+                }) },backend:base.backend,requestRevision:base.requestRevision)
+            #expect(AutomaticExerciseDetection.candidate(in:frame) == nil)
+            #expect(!HandsFreeSetStart.isStartingPosition(pose:frame,referenceEdge:reference))
+            #expect(identity.observe(frame,reference:reference) == .pullUp)
+        }
+        #expect(!identity.isLocked)
+    }
+
+    @Test func confirmedHangRetentionRequiresFreshCurrentArmsAndSameSource() {
+        let reference = AutomaticPullUpBarTests().candidate().edge
+        for fault in ["invalidReference","distantReference","missingWrist","backend","revision","gap","notWitnessed"] {
+            var identity = AutomaticExerciseDetection()
+            if fault != "notWitnessed" {
+                for t in [0.0,0.2,0.4,0.6] { identity.observe(pose(.pullUp,t)) }
+            }
+            let base = highPull(fault == "gap" ? 1.0 : 0.8)
+            let frame = PoseResult(timestamp:base.timestamp,imageSize:base.imageSize,
+                people:base.people.map { person in .init(landmarks:person.landmarks.filter { fault != "missingWrist" || $0.joint != .rightWrist }) },
+                backend:fault == "backend" ? "changed" : base.backend,
+                requestRevision:fault == "revision" ? 2 : base.requestRevision)
+            let supplied:BarSegment? = fault == "invalidReference" ? .init(a:.init(x:0,y:0),b:.init(x:0,y:0)) : fault == "distantReference"
+                ? .init(a:.init(x:210,y:100),b:.init(x:490,y:100)) : reference
+            #expect(identity.observe(frame,reference:supplied) == nil, "\(fault)")
+        }
+    }
+    @Test func qualifiedHangIdentitySurvivesHighPullBeforeContourLockWithoutInventingSupport() {
+        var identity = AutomaticExerciseDetection()
+        for t in [0.0,0.2,0.4,0.6] { identity.observe(pose(.pullUp,t)) }
+        for t in [0.8,1.0,1.2] {
+            let frame = highPull(t)
+            #expect(AutomaticExerciseDetection.candidate(in:frame) == nil)
+            #expect(identity.observe(frame) == .pullUp)
+            #expect(!identity.isLocked)
+            #expect(!HandsFreeSetStart.isStartingPosition(pose:frame,
+                referenceEdge:AutomaticPullUpBarTests().candidate().edge))
+        }
+        var unknown = AutomaticExerciseDetection()
+        for t in [0.0,0.2,0.4,0.6,0.8] { #expect(unknown.observe(highPull(t)) == nil) }
+        let locked = unknown.lock()
+        #expect(!locked)
+    }
+
+    @Test func prelockHangRetentionCannotFollowIncrementalHandDriftOrWeakHands() {
+        let short = min(pose(.pullUp,0).imageSize.width,pose(.pullUp,0).imageSize.height)
+        for weak in [false,true] {
+            var identity = AutomaticExerciseDetection()
+            for t in [0.0,0.2,0.4,0.6] { identity.observe(pose(.pullUp,t)) }
+            for (t,offset) in [(0.8,0.019),(1.0,0.038)] {
+                let base = highPull(t)
+                let frame = PoseResult(timestamp:base.timestamp,imageSize:base.imageSize,
+                    people:base.people.map { person in .init(landmarks:person.landmarks.map { p in
+                        .init(joint:p.joint,position:.init(x:p.position.x+short*offset,y:p.position.y),
+                            confidence:weak && [.leftWrist,.rightWrist].contains(p.joint) ? 0.4 : p.confidence)
+                    }) },backend:base.backend,requestRevision:base.requestRevision)
+                #expect(identity.observe(frame) == (!weak && t == 0.8 ? .pullUp : nil))
+            }
+        }
+    }
+    @Test func measuredArmsPreserveConfirmedContextButCannotBypassDiscoveryQuality() {
+        let reference = AutomaticPullUpBarTests().candidate().edge
+        for confidence in [0.4,0.2] {
+            var identity = AutomaticExerciseDetection()
+            for t in [0.0,0.2,0.4,0.6] { identity.observe(pose(.pullUp,t)) }
+            let base = highPull(0.8)
+            let frame = PoseResult(timestamp:base.timestamp,imageSize:base.imageSize,
+                people:base.people.map { person in .init(landmarks:person.landmarks.map {
+                    .init(joint:$0.joint,position:$0.position,confidence:confidence)
+                }) },backend:base.backend,requestRevision:base.requestRevision)
+            #expect(AutomaticExerciseDetection.candidate(in:frame) == nil)
+            #expect(identity.observe(frame,reference:reference) == (confidence == 0.4 ? .pullUp : nil))
+            var unknown = AutomaticExerciseDetection()
+            #expect(unknown.observe(frame,reference:reference) == nil)
+        }
+    }
     func pose(_ exercise: ExerciseCounter.Exercise, _ seconds: Double) -> PoseResult {
         exercise == .pullUp ? AutomaticPullUpBarTests().pose(seconds) : AutomaticDipRailsTests().pose(seconds)
     }

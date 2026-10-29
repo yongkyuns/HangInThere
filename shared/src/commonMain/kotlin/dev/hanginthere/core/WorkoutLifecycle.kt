@@ -2,6 +2,25 @@ package dev.hanginthere.core
 
 /** Recovery policy is common; native adapters keep the camera/foreground lifetime. */
 object WorkoutLifecycle {
+    /** v2 adds body-relative release after a camera-qualified overhead hold. */
+    const val boundaryPolicyVersion = 2
+    /** Storage retains dip v3/v4 and source-owned overhead pull-up v5/v6/v7/v8;
+     * existing observed-bar/legacy owners retain their original v1/v2. */
+    const val supportedBoundaryPolicyVersion = 8
+    internal fun supportsBoundaryPolicy(exercise: ExerciseCounter.Exercise, method: String?, version: Int,
+        countVersion: Int?) = version in 1..boundaryPolicyVersion && method != OverheadPullUpMotion.countMethod ||
+        version == 3 && exercise == ExerciseCounter.Exercise.dip &&
+            method in listOf(DipCycleMotion.countMethod, BilateralTorsoDipMotion.countMethod) ||
+        version == 4 && exercise == ExerciseCounter.Exercise.dip &&
+            method == BilateralTorsoDipMotion.countMethod && countVersion == 2 ||
+        version == 5 && exercise == ExerciseCounter.Exercise.pullUp &&
+            method == OverheadPullUpMotion.countMethod && countVersion == 1 ||
+        version == 6 && exercise == ExerciseCounter.Exercise.pullUp &&
+            method == OverheadPullUpMotion.countMethod && countVersion == 2 ||
+        version == 7 && exercise == ExerciseCounter.Exercise.pullUp &&
+            method == OverheadPullUpMotion.countMethod && countVersion == 3 ||
+        version == 8 && exercise == ExerciseCounter.Exercise.pullUp &&
+            method == OverheadPullUpMotion.countMethod && countVersion == 4
     fun shouldResume(endReason: String?) = endReason == "disengaged" || endReason == "trackingLost"
     fun observationOutage(elapsedSeconds: Double) = elapsedSeconds.isFinite() && elapsedSeconds > AutomaticSetBoundary.outageSeconds
 }

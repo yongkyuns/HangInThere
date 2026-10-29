@@ -65,9 +65,10 @@ object WorkoutLibrary {
             val record = entry.measured
             require(WorkoutCorrections.safeId(record.id) && record == compact(record))
             require(record.schemaVersion in 1..2 && record.lifecycleVersion == 1 && record.endReason != "running")
+            require(WorkoutLifecycle.supportsBoundaryPolicy(record.exercise, record.countMethod, record.boundaryPolicyVersion, record.countPolicyVersion))
             if (record.schemaVersion == 1) require(record.countMethod == null && record.countPolicyVersion == null && record.reps.all { it.countMethod == null })
-            else require(record.countMethod == BilateralDipWorkout.countMethod && record.countPolicyVersion == BilateralDipMotion.policyVersion &&
-                record.exercise == ExerciseCounter.Exercise.dip && record.reps.all { it.countMethod == record.countMethod && it.countPolicyVersion == record.countPolicyVersion })
+            else require(WorkoutCountingMethod.isSupported(record.exercise, record.countMethod, record.countPolicyVersion) &&
+                record.reps.all { it.countMethod == record.countMethod && it.countPolicyVersion == record.countPolicyVersion })
             require(record.trackedAtEpochMilliseconds == null || record.trackedAtEpochMilliseconds > 0)
             require(record.trackedEndedAtEpochMilliseconds == null || record.trackedAtEpochMilliseconds != null && record.trackedEndedAtEpochMilliseconds >= record.trackedAtEpochMilliseconds)
             require(record.startedAt == null || record.startedAt.isFinite() && record.startedAt >= 0)
@@ -75,8 +76,8 @@ object WorkoutLibrary {
             require(record.reps.size <= 1000 && record.reps.all { it.setId == record.id && it.startedAt.isFinite() &&
                 it.closedAt.isFinite() && it.closedAt >= it.startedAt })
             record.reps.forEach { rep ->
-                require(rep.countMethod == null || rep.countMethod == BilateralDipWorkout.countMethod &&
-                    rep.countPolicyVersion == BilateralDipMotion.policyVersion && rep.exercise == ExerciseCounter.Exercise.dip)
+                require(WorkoutCountingMethod.validCountConfirmation(rep,record.endedAt))
+                require(rep.countMethod == null || WorkoutCountingMethod.isSupported(rep.exercise, rep.countMethod, rep.countPolicyVersion))
                 require(rep.metricVersion in 1..WorkoutAnalysis.metricVersion)
                 require(rep.ordinal in 1..1000 && rep.id.length in 1..128 && rep.startedAt >= 0)
                 require(listOfNotNull(rep.extremeAt, rep.acceptedAt, rep.returnedAt).all { it.isFinite() && it in rep.startedAt..rep.closedAt })
@@ -127,7 +128,7 @@ object WorkoutLibrary {
             plan.items.forEach { item ->
                 require(WorkoutCorrections.safeId(item.id) && item.sets in 1..100)
                 require(item.countMethod == null && item.countPolicyVersion == null ||
-                    item.exercise == ExerciseCounter.Exercise.dip && item.countMethod == BilateralDipWorkout.countMethod && item.countPolicyVersion == BilateralDipMotion.policyVersion)
+                    WorkoutCountingMethod.isSupported(item.exercise, item.countMethod, item.countPolicyVersion))
                 item.context.validate(); WorkoutGoal(item.exercise, item.metric, item.target).validate()
             }
         }

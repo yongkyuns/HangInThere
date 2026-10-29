@@ -45,7 +45,7 @@ object WorkoutEvidence {
             else -> WorkoutAttemptStatus.interrupted
         }
         val title = when (status) {
-            WorkoutAttemptStatus.completed -> if (rep.countMethod == BilateralDipWorkout.countMethod) "Observed image cycle" else "Completed cycle"
+            WorkoutAttemptStatus.completed -> if (WorkoutCountingMethod.isImageMotion(rep.countMethod)) "Observed image cycle" else "Completed cycle"
             WorkoutAttemptStatus.inProgress -> "In progress"
             WorkoutAttemptStatus.partialMovement -> "Partial movement observed"
             WorkoutAttemptStatus.returnNotRecorded -> "Return not recorded"
@@ -53,7 +53,7 @@ object WorkoutEvidence {
             WorkoutAttemptStatus.ended -> "Attempt ended"
         }
         val explanation = when (status) {
-            WorkoutAttemptStatus.completed -> if (rep.countMethod == BilateralDipWorkout.countMethod)
+            WorkoutAttemptStatus.completed -> if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 "Both-arm image travel and return were recorded. Anatomical depth, form and load are unverified."
                 else "The movement and return were recorded. This cycle is included in completed-rep statistics."
             WorkoutAttemptStatus.inProgress -> "This attempt is still being tracked. It is excluded from completed-rep statistics until a completed cycle is recorded."
@@ -66,7 +66,7 @@ object WorkoutEvidence {
         val left = coverage(rep.left.coverage)
         val right = coverage(rep.right.coverage)
         val notes = buildList {
-            if (rep.countMethod == BilateralDipWorkout.countMethod)
+            if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 add("Bilateral image-motion cycle. Anatomical depth, form and load are unverified.")
             if (duration == null) add("Observed-time coverage is unavailable.")
             else if (duration < 1 - 1e-9) add("Some source time was not observed; gaps do not add hold time.")

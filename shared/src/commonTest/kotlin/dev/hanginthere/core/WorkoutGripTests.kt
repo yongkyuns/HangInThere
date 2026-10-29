@@ -48,6 +48,67 @@ class WorkoutGripTests {
         }
         assertEquals(GripOrientation.mixed,WorkoutGripGeometry.orientation(observation(right=HandGrip.overhand)).orientation)
     }
+    @Test fun missingFailedStaleAndSideViewGripNeverDelayAutomaticStartOrChangeARep() {
+        val attitude=PhoneOrientationStability.Quaternion.create(0.0,0.0,0.0,1.0)!!
+        val inputs=listOf<(Double)->GripObservation?>(
+            { null },
+            { observation(it).copy(hands=emptyList()) },
+            { observation(it).copy(failure="gripInferenceUnavailable") },
+            { observation(it-2.0) },
+            { rotateTorso(observation(it),kotlin.math.PI/2) },
+            { observation(it,left=HandGrip.overhand,right=HandGrip.overhand) },
+            { observation(it,left=HandGrip.neutral,right=HandGrip.neutral) },
+        )
+        var baseline:List<RepRecord>?=null
+        for(input in inputs) {
+            val runtime=WorkoutRuntime(WorkoutExerciseSelection.pullUp,automaticWorkouts=true)
+            assertTrue(runtime.confirmManualBar(ConfirmedBar(ConfirmedBar.Role.pullUpGrip,
+                ConfirmedBar.Method.manualEdge,CounterFixtures.edge,imageSize=size,
+                sourceTime=PresentationTime(0,1000)),attitude,0.0))
+            for((time,angle) in listOf(0.0 to 170.0,.15 to 170.0,.3 to 170.0,.45 to 140.0,
+                    .6 to 90.0,.75 to 80.0,.9 to 80.0,1.05 to 120.0,1.2 to 170.0,1.35 to 170.0)) {
+                val p=CounterFixtures.bilateral(time,angle,angle).copy(gripObservation=input(time))
+                val result=runtime.observe(WorkoutRuntime.FrameInput(p,attitude=attitude,motionTimestamp=time,
+                    translations=List(3){StaticSceneStability.PatchTranslation(0.0,0.0)},
+                    globalScaleFraction=0.0,sceneTimestamp=time))
+                assertEquals(if(time==0.0)LiveSetSession.Phase.idle else LiveSetSession.Phase.running,result.phase)
+                assertNull(result.setupIssue)
+            }
+            runtime.session.finish()
+            assertEquals(1,runtime.session.observedMovements)
+            val reps=runtime.session.record.reps.map { it.copy(id="rep",setId="set",grip=null) }
+            assertEquals(1,reps.size)
+            assertNotNull(reps.single().returnedAt)
+            if(baseline==null)baseline=reps else assertEquals(baseline,reps)
+        }
+    }
+    @Test fun wideSpacingDoesNotInventOverhandOrOverwriteDirectHandEvidence() {
+        for(grip in listOf(HandGrip.underhand,HandGrip.overhand,HandGrip.neutral,HandGrip.unknown)) {
+            val analysis=WorkoutGripAnalysis("wide")
+            for(i in 0..60) {
+                val t=i*.05
+                analysis.observe(pose(t).copy(gripObservation=observation(t,left=grip,right=grip)),
+                    bar,ExerciseCounter.Phase.ready,true)
+            }
+            assertEquals(GripWidth.wide,analysis.current.width)
+            assertEquals(GripOrientation.valueOf(grip.name),analysis.current.orientation)
+        }
+    }
+    @Test fun setGripUsesConfirmedExerciseEvidenceAndSurvivesTemporaryMissingHands() {
+        val a=WorkoutAnalysis("set",ExerciseCounter.Exercise.pullUp)
+        for(i in 0..15)a.observeGrip(pose(i*.05,if(i%5==0)i*.05 else null),bar,ExerciseCounter.Phase.ready,true)
+        assertEquals(GripOrientation.unknown,a.setGrip?.orientation)
+        a.observeGrip(pose(.8,.8),bar,ExerciseCounter.Phase.outbound,true)
+        assertEquals(GripOrientation.underhand,a.setGrip?.orientation)
+        val confirmed=a.setGrip
+        a.observeGrip(pose(.9,null),bar,ExerciseCounter.Phase.returning,false)
+        assertEquals(GripOrientation.unknown,a.currentGrip?.orientation)
+        assertEquals(confirmed,a.setGrip)
+        a.interrupt("temporaryTrackingLoss")
+        assertEquals(confirmed,a.setGrip)
+        val next=WorkoutAnalysis("next",ExerciseCounter.Exercise.pullUp)
+        assertNull(next.setGrip)
+    }
     @Test fun contradictorySdkHandIdentityIsUnknown() {
         val o=observation()
         val contradictory=o.copy(hands=o.hands.map { it.copy(sdkHandedness=if(it.sdkHandedness=="left")"right" else "left",sdkHandednessScore=.99) })
@@ -127,6 +188,18 @@ class WorkoutGripTests {
         assertFalse(a.record.orientationSpans.any { it.startedAt==6.95 })
         assertEquals(GripOrientation.unknown,a.current.orientation)
         assertEquals(GripWidth.unknown,a.current.width)
+    }
+    @Test fun freshBodyOnlyWidthDuringArmLossDoesNotCreditHandOrientation() {
+        val a=WorkoutGripAnalysis("set")
+        for(i in 0..60)a.observe(pose(i/30.0),bar,ExerciseCounter.Phase.ready,true)
+        val hands=a.record.orientationSpans.filter { it.left!=HandGrip.unknown || it.right!=HandGrip.unknown }
+        assertTrue(hands.isNotEmpty())
+        for(i in 1..45) {
+            a.observe(pose(2.0+i/30.0),bar,ExerciseCounter.Phase.outbound,false)
+            assertEquals(GripOrientation.unknown,a.current.orientation)
+            assertEquals(GripWidth.wide,a.current.width)
+        }
+        assertEquals(hands,a.record.orientationSpans.filter { it.left!=HandGrip.unknown || it.right!=HandGrip.unknown })
     }
     @Test fun globallyInsideButOutsideSourceCropCannotBecomeOrientation() {
         val o=observation()
@@ -213,7 +286,45 @@ class WorkoutGripTests {
         assertEquals(expected,WorkoutRecordCodec.json.decodeFromString<List<GripHandCropRequest>>(
             bridge.handStageRequestsJson(WorkoutRecordCodec.json.encodeToString(p),WorkoutRecordCodec.json.encodeToString(o))))
         assertEquals("[]",bridge.handStageRequestsJson(WorkoutRecordCodec.json.encodeToString(p),WorkoutRecordCodec.json.encodeToString(invalid.first())))
-        assertEquals(1,bridge.bodyPreflightVersion)
+        assertEquals(2,bridge.bodyPreflightVersion)
+    }
+    private fun rotateTorso(o:GripObservation,angle:Double):GripObservation {
+        val c=kotlin.math.cos(angle);val s=kotlin.math.sin(angle)
+        return o.copy(body=o.body.map { p -> p.copy(world=GripVector3(p.world.x*c+p.world.z*s,p.world.y,-p.world.x*s+p.world.z*c)) })
+    }
+    @Test fun frontAndRearAreSupportedButSideNeverClassifiesEvenNeutral() {
+        for(grip in listOf(HandGrip.underhand,HandGrip.overhand,HandGrip.neutral)) {
+            val o=observation(left=grip,right=grip)
+            assertTrue(WorkoutGripGeometry.supportsView(WorkoutGripGeometry.bodyBasis(o)!!))
+            val rear=rotateTorso(o,kotlin.math.PI)
+            assertTrue(WorkoutGripGeometry.supportsView(WorkoutGripGeometry.bodyBasis(rear)!!))
+            val side=rotateTorso(o,kotlin.math.PI/2)
+            assertNotNull(WorkoutGripGeometry.bodyBasis(side))
+            assertEquals("gripViewUnsupported",WorkoutGripGeometry.orientation(side).reason)
+            assertEquals(GripOrientation.unknown,WorkoutGripGeometry.orientation(side).orientation)
+            val p=pose(0.0).copy(gripObservation=side)
+            assertTrue(WorkoutGripInference.handStageRequests(p,side).isEmpty())
+        }
+    }
+    @Test fun losingSupportedViewClearsConfirmationAndRequiresFreshSupport() {
+        val a=WorkoutGripAnalysis("view")
+        fun sample(t:Double,side:Boolean=false) {
+            val p=pose(t)
+            a.observe(if(side)p.copy(gripObservation=rotateTorso(p.gripObservation!!,kotlin.math.PI/2)) else p,
+                bar,ExerciseCounter.Phase.ready,true)
+        }
+        for(i in 0..4)sample(i*.25)
+        assertEquals(GripOrientation.underhand,a.current.orientation)
+        sample(1.25,true)
+        assertEquals(GripOrientation.unknown,a.current.orientation)
+        assertEquals("gripViewUnsupported",a.current.reason)
+        sample(1.5)
+        assertEquals(GripOrientation.unknown,a.current.orientation)
+        sample(1.75)
+        assertEquals(GripOrientation.unknown,a.current.orientation)
+        sample(2.0)
+        assertEquals(GripOrientation.underhand,a.current.orientation)
+        assertTrue(a.record.orientationSpans.filter { it.startedAt==1.25 }.all { it.observedSeconds==0.0 })
     }
     @Test fun handStageCannotUseACachedOrForeignPrimaryBodyContext() {
         val p=pose(0.0);val o=observation()

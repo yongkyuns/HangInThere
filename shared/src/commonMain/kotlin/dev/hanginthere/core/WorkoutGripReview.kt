@@ -15,7 +15,8 @@ import kotlinx.serialization.decodeFromString
     val width: GripWidth, val label: String, val orientationSource: String, val widthSource: String,
     val measured: GripEstimate?)
 @Serializable data class GripVariationTotal(val label: String, val completedReps: Int)
-@Serializable data class GripVariationReport(val reps: List<GripRepVariation>, val totals: List<GripVariationTotal>, val policyVersion: Int = 1)
+@Serializable data class GripVariationReport(val reps: List<GripRepVariation>, val totals: List<GripVariationTotal>, val policyVersion: Int = 2,
+    val setGrip: WorkoutSetGrip? = null)
 
 class WorkoutGripReviewBridge {
     @Throws(IllegalArgumentException::class)
@@ -67,17 +68,28 @@ object WorkoutGripReview {
     fun report(record: WorkoutSetRecord, ledger: GripCorrectionLedger? = null): GripVariationReport {
         if (ledger != null) validate(record, ledger)
         if (record.exercise != ExerciseCounter.Exercise.pullUp) return GripVariationReport(emptyList(), emptyList())
+        // The saved set owner supplies this annotation. Never pool labels from
+        // another set or relabel stored frame evidence/width measurements.
+        val setGrip = record.setGrip?.takeIf { metadata ->
+            metadata.setId == record.id && metadata.policyVersion == 1 &&
+                metadata.firstConfirmedAt?.let { it.isFinite() && it >= 0 &&
+                    (record.startedAt == null || it >= record.startedAt) } != false &&
+                metadata.lastConfirmedAt?.let { it.isFinite() &&
+                    metadata.firstConfirmedAt?.let { first -> it >= first } == true &&
+                    (record.endedAt == null || it <= record.endedAt) } != false &&
+                (!metadata.isConfirmed || metadata.firstConfirmedAt != null && metadata.lastConfirmedAt != null)
+        }
         val reps = record.reps.map { rep ->
             val event = ledger?.corrections?.lastOrNull { it.repId == null || it.repId == rep.id }
-            val orientation = event?.orientation ?: rep.grip?.orientation ?: GripOrientation.unknown
+            val orientation = event?.orientation ?: setGrip?.orientation ?: rep.grip?.orientation ?: GripOrientation.unknown
             val width = event?.width ?: rep.grip?.width ?: GripWidth.unknown
             GripRepVariation(rep.id, rep.ordinal, orientation, width,
                 GripEstimate.orientationTitle(orientation) + " · " + GripEstimate.widthTitle(width),
-                if(event?.orientation != null) "user" else "estimated", if(event?.width != null) "user" else "estimated", rep.grip)
+                if(event?.orientation != null) "user" else if(setGrip != null) "setEstimated" else "estimated", if(event?.width != null) "user" else "estimated", rep.grip)
         }
         val completed = record.reps.filter { it.isCompleteForAnalytics }.map { it.id }.toSet()
         val totals = reps.filter { it.repId in completed }.groupingBy { it.label }.eachCount()
             .map { (label, count) -> GripVariationTotal(label, count) }
-        return GripVariationReport(reps, totals)
+        return GripVariationReport(reps, totals, setGrip=setGrip)
     }
 }

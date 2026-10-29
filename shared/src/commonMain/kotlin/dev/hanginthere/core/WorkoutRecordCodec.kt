@@ -16,10 +16,14 @@ class WorkoutRecordCodec {
     companion object {
         fun mergeDraft(previous: WorkoutSetRecord?, delta: WorkoutSetRecord): WorkoutSetRecord {
             require(delta.schemaVersion in 1..2 && delta.lifecycleVersion==1)
+            require(WorkoutLifecycle.supportsBoundaryPolicy(delta.exercise, delta.countMethod, delta.boundaryPolicyVersion, delta.countPolicyVersion))
+            require(delta.setGrip == null || delta.setGrip.setId == delta.id)
+            require(delta.reps.all { WorkoutCountingMethod.validCountConfirmation(it,delta.endedAt) })
             if(previous==null) return summary(delta)
             require(previous.id==delta.id && previous.exercise==delta.exercise && previous.schemaVersion==delta.schemaVersion && previous.lifecycleVersion==delta.lifecycleVersion && previous.trackingSide==delta.trackingSide && previous.imageSize==delta.imageSize && previous.referenceEdge==delta.referenceEdge)
             require(previous.trackedAtEpochMilliseconds==delta.trackedAtEpochMilliseconds) { "Workout calendar timestamp is immutable" }
             require(previous.countMethod==delta.countMethod && previous.countPolicyVersion==delta.countPolicyVersion) { "Workout detection method is immutable" }
+            require(previous.boundaryPolicyVersion==delta.boundaryPolicyVersion) { "Workout boundary policy is immutable" }
             val reps=previous.reps.associateBy{it.id}.toMutableMap()
             delta.reps.forEach { next ->
                 require(next.setId==delta.id)
@@ -29,11 +33,13 @@ class WorkoutRecordCodec {
                 val eligible = old == null || (!terminal || next.closeReason != "inProgress") && next.closedAt >= old.closedAt
                 if (eligible) {
                     require(old?.acceptedAt==null || old.acceptedAt==next.acceptedAt) { "Accepted evidence cannot be erased" }
+                    require(old?.countConfirmedAt==null || old.countConfirmedAt==next.countConfirmedAt) { "Count confirmation is immutable" }
                     reps[next.id]=next
                 }
             }
             val newest = if ((delta.endedAt ?: Double.NEGATIVE_INFINITY) >= (previous.endedAt ?: Double.NEGATIVE_INFINITY)) delta else previous
-            return summary(newest.copy(startedAt=listOfNotNull(previous.startedAt,delta.startedAt).minOrNull(),reps=reps.values.sortedBy{it.ordinal},activity=if(newest===delta) mergeActivity(previous.activity,delta.activity) else previous.activity,grip=if(newest===delta)mergeGrip(previous.grip,delta.grip) else previous.grip))
+            return summary(newest.copy(startedAt=listOfNotNull(previous.startedAt,delta.startedAt).minOrNull(),reps=reps.values.sortedBy{it.ordinal},activity=if(newest===delta) mergeActivity(previous.activity,delta.activity) else previous.activity,grip=if(newest===delta)mergeGrip(previous.grip,delta.grip) else previous.grip,
+                setGrip=if(newest===delta)delta.setGrip ?: previous.setGrip else previous.setGrip))
         }
         fun mergeGrip(previous:WorkoutGripRecord?,delta:WorkoutGripRecord?):WorkoutGripRecord? {
             if(delta==null)return previous

@@ -90,10 +90,33 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
         "session counterPolicyVersion is invalid",
     )
     require(session.get("side") in {"left", "right"}, "session side is invalid")
+    boundary = session.get("boundaryPolicyVersion")
+    require(boundary is None or type(boundary) is int and boundary in {1,2,3,4,5}, "session boundaryPolicyVersion is unsupported")
+    method = session.get("countMethod")
+    count_version = session["counterPolicyVersion"]
+    require(method != "overheadPullUpRelativeMotion" or boundary == 5 and exercise == "pullUp" and type(count_version) is int and count_version == 1,
+            "overhead pull-up motion requires count policy 1 and boundary policy 5")
+    require(boundary != 5 or method == "overheadPullUpRelativeMotion" and exercise == "pullUp" and type(count_version) is int and count_version == 1,
+            "session boundary policy 5 requires overhead pull-up motion version 1")
+    require(boundary != 3 or exercise == "dip" and method in {"bilateralDipRelativeMotion", "bilateralTorsoDipRelativeMotion"}
+            and type(count_version) is int and count_version in ({1,2} if method == "bilateralTorsoDipRelativeMotion" else {1}),
+            "session boundary policy 3 requires supported relative dip motion")
+    require(boundary != 4 or exercise == "dip" and method == "bilateralTorsoDipRelativeMotion" and type(count_version) is int and count_version == 2,
+            "session boundary policy 4 requires torso dip motion version 2")
     set_report = session.get("set")
     require(isinstance(set_report, dict), "session set must be an object")
+    completed = set_report.get("completedReps")
+    qualification_completed = qualification.get("completedReps")
+    require(qualification_completed is None or type(qualification_completed) is int and qualification_completed >= 0,
+            "qualification completedReps is invalid")
+    require(completed is None or type(completed) is int and completed >= 0
+            and type(set_report.get("observedMovements")) is int
+            and completed <= set_report["observedMovements"], "session completedReps is invalid")
 
     consistency_checks = (
+        ("completedReps", qualification.get("completedReps"), completed),
+        ("countMethod", qualification.get("countMethod"), session.get("countMethod")),
+        ("boundaryPolicyVersion", qualification.get("boundaryPolicyVersion"), session.get("boundaryPolicyVersion")),
         (
             "counterPolicyVersion",
             qualification.get("counterPolicyVersion"),
@@ -210,6 +233,8 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
         "package": package.name,
         "files": verified,
         "session": {
+            "counter_method": session.get("countMethod"),
+            "boundary_policy_version": session.get("boundaryPolicyVersion"),
             "counter_policy_version": session["counterPolicyVersion"],
             "exercise": exercise,
             "side": session["side"],
@@ -221,6 +246,7 @@ def verify(package: pathlib.Path) -> dict[str, Any]:
             "set_phase": qualification.get("setPhase"),
             "set_end_reason": qualification.get("setEndReason"),
             "observed_movements": qualification.get("observedMovements"),
+            **({"completed_reps": completed} if completed is not None else {}),
         },
     }
 
@@ -260,6 +286,8 @@ def evaluation_manifest(
                     ],
                 },
                 "debug_session": {
+                    "counter_method": report["session"].get("counter_method"),
+                    "boundary_policy_version": report["session"].get("boundary_policy_version"),
                     "package": report["package"],
                     "counter_policy_version": report["session"]["counter_policy_version"],
                     "capture_exercise": exercise,

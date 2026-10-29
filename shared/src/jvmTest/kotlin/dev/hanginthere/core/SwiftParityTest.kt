@@ -57,7 +57,7 @@ class SwiftParityTest {
     @Test fun everyFrameMatchesSwiftPolicyAndExplicitMovementLabels() {
         val path = System.getenv("WORKOUT_ORACLE") ?: "../build/workout-oracle/oracle.json"
         val report = json.parseToJsonElement(File(path).readText()).jsonObject
-        assertEquals(8, report.getValue("policyVersion").jsonPrimitive.int)
+        assertEquals(9, report.getValue("policyVersion").jsonPrimitive.int)
         val cases = report.getValue("cases").jsonArray
         assertTrue(cases.size >= 25, "Parity fixture unexpectedly empty or reduced")
         val ids = cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }.toSet()

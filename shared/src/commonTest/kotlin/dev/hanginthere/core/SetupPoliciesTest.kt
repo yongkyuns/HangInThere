@@ -4,6 +4,248 @@ import kotlin.test.*
 import kotlin.math.*
 
 class SetupPoliciesTest {
+    @Test fun narrowMeasuredHandsCanAcquireARealBarWithoutStartingFromStaticPose() {
+        fun frame(t: Double) = PoseResult(PresentationTime((t*1000).roundToLong(),1000),
+            ImageSize(900.0,1400.0), listOf(PoseObservation(listOf(
+                Landmark(PoseJoint.leftShoulder,Point2D(250.0,600.0),.9),
+                Landmark(PoseJoint.leftElbow,Point2D(360.0,425.0),.9),
+                Landmark(PoseJoint.leftWrist,Point2D(470.0,250.0),.9),
+                Landmark(PoseJoint.rightShoulder,Point2D(650.0,600.0),.9),
+                Landmark(PoseJoint.rightElbow,Point2D(590.0,425.0),.9),
+                Landmark(PoseJoint.rightWrist,Point2D(530.0,250.0),.9)))),"authored",1)
+        assertNotNull(AutomaticPullUpBar.grip(frame(0.0)))
+        val policy = AutomaticPullUpBar()
+        val identity = AutomaticExerciseDetection()
+        val owner = BodyPullUpWorkout("narrow-static")
+        val bar = BarSegment(Point2D(350.0,245.0),Point2D(650.0,245.0))
+        for (t in listOf(0.0,.3,.6)) assertNull(policy.observe(frame(t),listOf(BarLineCandidate(bar,300.0))))
+        assertEquals(bar,assertNotNull(policy.observe(frame(.9),listOf(BarLineCandidate(bar,300.0)))).referenceEdge)
+        for (t in listOf(1.0,1.2,1.4,1.6)) {
+            assertEquals(if(t==1.6)ExerciseCounter.Exercise.pullUp else null,identity.observe(frame(t),bar))
+            assertFalse(owner.observe(frame(t),bar,PullUpCycleMotion.Camera.ready).started)
+        }
+        assertEquals(0,owner.record().completedCount)
+    }
+
+    @Test fun observedBarSurvivesFirstHighPullBeforeStaticIdentityHasQualified() {
+        val bar=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        fun high(t:Double)=mapLandmarks(pose(t,false)) { p ->
+            if(p.joint in listOf(PoseJoint.leftShoulder,PoseJoint.rightShoulder))p.copy(position=p.position.copy(y=220.0)) else p
+        }
+        val known=AutomaticExerciseDetection();val unknown=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4,.6)) {
+            assertNull(AutomaticExerciseDetection.apparatusCandidate(high(t)))
+            assertEquals(if(t==.6)ExerciseCounter.Exercise.pullUp else null,known.observe(high(t),bar))
+            assertEquals(ExerciseCounter.Exercise.pullUp,known.apparatusCandidate)
+            assertNull(unknown.observe(high(t)))
+        }
+    }
+    @Test fun weakerCurrentHandsCanPreserveReferenceSearchButCannotEarnIdentityDwell() {
+        val bar=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0));val policy=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4,.6,.8)) {
+            val p=mapLandmarks(bentPullUpPose(t)) { if(it.joint==PoseJoint.rightWrist)it.copy(confidence=.49) else it }
+            assertNull(policy.observe(p,bar));assertEquals(ExerciseCounter.Exercise.pullUp,policy.apparatusCandidate)
+        }
+        assertFalse(policy.lock())
+    }
+    @Test fun observedBarArrivalDoesNotRestartAlreadyMeasuredHangIdentity() {
+        val identity=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4)) assertNull(identity.observe(pose(t,false)))
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        assertEquals(ExerciseCounter.Exercise.pullUp,identity.observe(bentPullUpPose(.6),reference))
+        assertFalse(WorkoutStartEvidence.hasStartingPose(bentPullUpPose(.6),ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference))
+    }
+
+    @Test fun confirmedPullupSupportIdentifiesFlexedPostureWithoutStartingOrCounting() {
+        val identity=AutomaticExerciseDetection()
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        for(ticks in listOf(0L,200_000,400_000,599_999,600_000)) {
+            val p=bentPullUpPose(ticks/1e6).copy(timestamp=PresentationTime(ticks,1_000_000))
+            assertNull(AutomaticExerciseDetection.candidate(p))
+            assertEquals(if(ticks==600_000L) ExerciseCounter.Exercise.pullUp else null,identity.observe(p,reference))
+            assertFalse(WorkoutStartEvidence.hasStartingPose(p,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference))
+        }
+        val start=AutomaticWorkoutStart()
+        for(ticks in listOf(650_000L,700_000,769_999,770_000)) {
+            val p=pose(ticks/1e6,false).copy(timestamp=PresentationTime(ticks,1_000_000))
+            assertEquals(ExerciseCounter.Exercise.pullUp,identity.observe(p,reference))
+            val eligible=WorkoutStartEvidence.hasStartingPose(p,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference)
+            assertEquals(ticks==770_000L,start.observe(p.timestamp,eligible))
+        }
+    }
+
+    @Test fun flexedSupportIdentityCannotBorrowDwellAcrossChangedOrMissingReferences() {
+        val a=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        val b=BarSegment(Point2D(220.0,180.0),Point2D(780.0,180.0))
+        for(missing in listOf(false,true)) {
+            val identity=AutomaticExerciseDetection()
+            for(t in listOf(0.0,.2,.4)) assertNull(identity.observe(bentPullUpPose(t),a))
+            assertNull(identity.observe(bentPullUpPose(.6),if(missing)null else b))
+            for(t in listOf(.8,1.0,1.2)) {
+                val expected=if(!missing && t==1.2) ExerciseCounter.Exercise.pullUp else null
+                assertEquals(expected,identity.observe(bentPullUpPose(t),b))
+            }
+            if(missing) assertEquals(ExerciseCounter.Exercise.pullUp,identity.observe(bentPullUpPose(1.4),b))
+        }
+        val reversed=BarSegment(a.b,a.a)
+        val identity=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4)) assertNull(identity.observe(bentPullUpPose(t),a))
+        assertEquals(ExerciseCounter.Exercise.pullUp,identity.observe(bentPullUpPose(.6),reversed))
+    }
+
+    @Test fun committedOverheadIdentityNeedsCurrentArmsAndSameSourceContextWithoutAnImageReference() {
+        val identity=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4,.6)) assertNull(identity.observe(bentPullUpPose(t)))
+        assertNull(identity.exercise)
+        assertTrue(identity.confirmObservedOverheadPullUpMovement(highPull(.8)))
+        assertEquals(ExerciseCounter.Exercise.pullUp,identity.exercise)
+        assertTrue(identity.lock())
+        assertFalse(identity.confirmObservedDipMovement(pose(1.0,true)))
+        for(fault in listOf("missing","crowd","backend","revision","gap","regression")) {
+            val detector=AutomaticExerciseDetection()
+            for(t in listOf(0.0,.2,.4,.6))detector.observe(bentPullUpPose(t))
+            val frame=highPull(.8)
+            val changed=when(fault) {
+                "missing" -> frame.copy(people=frame.people.map { p -> p.copy(landmarks=p.landmarks.filterNot { it.joint==PoseJoint.rightWrist }) })
+                "crowd" -> frame.copy(people=frame.people+frame.people)
+                "backend" -> frame.copy(backend="changed")
+                "revision" -> frame.copy(requestRevision=2)
+                "gap" -> frame.copy(timestamp=PresentationTime(2000,1000))
+                else -> frame.copy(timestamp=PresentationTime(400,1000))
+            }
+            assertFalse(detector.confirmObservedOverheadPullUpMovement(changed),fault)
+        }
+    }
+
+    @Test fun flexedIdentityStillNeedsValidSupportAndFullDiscoveryJointQuality() {
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        for(fault in listOf("none","distant","outOfBounds","weakWrist","missingArm","crowd")) {
+            val identity=AutomaticExerciseDetection()
+            for(t in listOf(0.0,.2,.4,.6,.8)) {
+                val original=bentPullUpPose(t)
+                val p=when(fault) {
+                    "weakWrist" -> mapLandmarks(original){if(it.joint==PoseJoint.rightWrist) it.copy(confidence=.49) else it}
+                    "missingArm" -> original.copy(people=original.people.map{p->PoseObservation(p.landmarks.filter{it.joint!=PoseJoint.rightElbow})})
+                    "crowd" -> original.copy(people=original.people+original.people)
+                    else -> original
+                }
+                val ref=when(fault){"none"->null;"distant"->BarSegment(Point2D(220.0,20.0),Point2D(780.0,20.0));"outOfBounds"->BarSegment(Point2D(-1.0,190.0),Point2D(780.0,190.0));else->reference}
+                assertNull(identity.observe(p,ref),fault)
+            }
+        }
+    }
+
+    @Test fun knownReferenceStartUsesFreshBilateralMeasurementWithoutRepeatingDiscovery() {
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        val frame=mapLandmarks(pose(.8,false)) { if(it.joint==PoseJoint.rightWrist) it.copy(confidence=.39) else it }
+        assertEquals(2,PullUpArmMeasurement(frame).arms.size)
+        assertTrue(PullUpArmMeasurement(frame).isExtended)
+        assertNull(AutomaticExerciseDetection.candidate(frame))
+        assertTrue(WorkoutStartEvidence.hasStartingPose(frame,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference))
+        assertFalse(WorkoutStartEvidence.hasStartingPose(frame,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,null))
+        assertFalse(WorkoutStartEvidence.hasStartingPose(frame,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,
+            BarSegment(Point2D(220.0,50.0),Point2D(780.0,50.0))))
+    }
+    @Test fun confirmedReferenceCannotSupplyMissingBentOrUnmeasurableStartingArms() {
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        val original=pose(.8,false)
+        val faults=listOf(original.copy(people=original.people.map{p->PoseObservation(p.landmarks.filter{it.joint!=PoseJoint.rightWrist})}),
+            mapLandmarks(original){if(it.joint==PoseJoint.rightWrist) it.copy(confidence=.29) else it},
+            highPull(.8),original.copy(people=original.people+original.people),
+            original.copy(timestamp=PresentationTime(1,0)))
+        for(frame in faults) assertFalse(WorkoutStartEvidence.hasStartingPose(frame,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference))
+    }
+    private fun highPull(seconds:Double)=mapLandmarks(pose(seconds,false)) { point ->
+        val position=when(point.joint) {
+            PoseJoint.leftShoulder -> Point2D(300.0,210.0)
+            PoseJoint.rightShoulder -> Point2D(700.0,210.0)
+            PoseJoint.leftElbow -> Point2D(200.0,260.0)
+            PoseJoint.rightElbow -> Point2D(800.0,260.0)
+            else -> point.position
+        }
+        point.copy(position=position)
+    }
+    @Test fun confirmedReferenceRetainsHighPullIdentityButCannotEarnStartingPose() {
+        val identity=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4,.6)) identity.observe(pose(t,false))
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        for(t in listOf(.8,1.0)) {
+            val frame=mapLandmarks(highPull(t)) { point ->
+                if(t==1.0 && point.joint in listOf(PoseJoint.leftShoulder,PoseJoint.rightShoulder))
+                    point.copy(position=Point2D(point.position.x,150.0)) else point
+            }
+            assertNull(AutomaticExerciseDetection.candidate(frame))
+            assertFalse(WorkoutStartEvidence.hasStartingPose(frame,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference))
+            assertEquals(ExerciseCounter.Exercise.pullUp,identity.observe(frame,reference))
+        }
+        assertFalse(identity.isLocked)
+    }
+    @Test fun confirmedHangRetentionRequiresWitnessAndFreshUnchangedSource() {
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        for(fault in listOf("invalidReference","distantReference","missingWrist","backend","revision","gap","notWitnessed")) {
+            val identity=AutomaticExerciseDetection()
+            if(fault!="notWitnessed") for(t in listOf(0.0,.2,.4,.6)) identity.observe(pose(t,false))
+            val base=highPull(if(fault=="gap") 1.0 else .8)
+            val frame=base.copy(people=base.people.map { p -> PoseObservation(p.landmarks.filter { fault!="missingWrist" || it.joint!=PoseJoint.rightWrist }) },
+                backend=if(fault=="backend") "changed" else base.backend,requestRevision=if(fault=="revision") 2 else base.requestRevision)
+            val supplied=when(fault) { "invalidReference" -> BarSegment(Point2D(0.0,0.0),Point2D(0.0,0.0));"distantReference" -> BarSegment(Point2D(220.0,50.0),Point2D(780.0,50.0));else -> reference }
+            assertNull(identity.observe(frame,supplied),fault)
+        }
+    }
+    @Test fun qualifiedHangCanSurviveHighPullBeforeBarLockButCannotSupplyStartOrReference() {
+        val identity=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4,.6)) identity.observe(pose(t,false))
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        for(t in listOf(.8,1.0,1.2)) {
+            val frame=highPull(t)
+            assertNull(AutomaticExerciseDetection.candidate(frame))
+            assertEquals(ExerciseCounter.Exercise.pullUp,identity.observe(frame))
+            assertFalse(identity.isLocked)
+            assertFalse(WorkoutStartEvidence.hasStartingPose(frame,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference))
+        }
+        val unknown=AutomaticExerciseDetection()
+        for(t in listOf(0.0,.2,.4,.6,.8)) assertNull(unknown.observe(highPull(t)))
+        assertFalse(unknown.lock())
+    }
+    @Test fun prelockHangRetentionCannotFollowIncrementalHandDriftOrWeakWrists() {
+        for(weak in listOf(false,true)) {
+            val identity=AutomaticExerciseDetection()
+            for(t in listOf(0.0,.2,.4,.6)) identity.observe(pose(t,false))
+            for((t,offset) in listOf(.8 to .019,1.0 to .038)) {
+                val frame=mapLandmarks(highPull(t)) { p -> p.copy(position=Point2D(p.position.x+1000*offset,p.position.y),
+                    confidence=if(weak && p.joint in listOf(PoseJoint.leftWrist,PoseJoint.rightWrist)) .4 else p.confidence) }
+                assertEquals(if(!weak && t==.8) ExerciseCounter.Exercise.pullUp else null,identity.observe(frame))
+            }
+        }
+    }
+    @Test fun measuredArmsPreserveConfirmedIdentityButDoNotEarnNewDiscoveryOrStart() {
+        val reference=BarSegment(Point2D(220.0,190.0),Point2D(780.0,190.0))
+        for(confidence in listOf(.4,.2)) {
+            val identity=AutomaticExerciseDetection()
+            for(t in listOf(0.0,.2,.4,.6)) identity.observe(pose(t,false))
+            val frame=mapLandmarks(highPull(.8)) { it.copy(confidence=confidence) }
+            assertNull(AutomaticExerciseDetection.candidate(frame))
+            assertFalse(WorkoutStartEvidence.hasStartingPose(frame,ExerciseCounter.Exercise.pullUp,true,ArmMeasurement.Side.left,reference))
+            assertEquals(if(confidence==.4) ExerciseCounter.Exercise.pullUp else null,identity.observe(frame,reference))
+            assertNull(AutomaticExerciseDetection().observe(frame,reference))
+        }
+    }
+    @Test fun slopedPullUpEdgeIsComparedAtEachHandInsteadOfItsMidpoint() {
+        val size=ImageSize(720.0,1280.0)
+        for(slope in listOf(-tan(10*PI/180),tan(10*PI/180))) {
+            fun edge(offset:Double)=BarSegment(Point2D(210.0,300+slope*(210-350)+offset),
+                Point2D(490.0,300+slope*(490-350)+offset))
+            val left=Point2D(520.0,300+slope*(520-350)+3)
+            val right=Point2D(180.0,300+slope*(180-350)+3)
+            val grip=AutomaticPullUpBar.Grip(left,right,BarRegion(Point2D(100.0,200.0),Point2D(600.0,400.0)))
+            val observed=BarLineCandidate(edge(0.0),280.0)
+            assertEquals(observed.edge,AutomaticPullUpBar.select(listOf(observed),grip,size))
+            // Preserve the same physical side tolerance and finite-edge checks.
+            assertNull(AutomaticPullUpBar.select(listOf(BarLineCandidate(edge(28.0),280.0)),grip,size))
+            val reversed=BarLineCandidate(BarSegment(observed.edge.b,observed.edge.a),280.0)
+            assertEquals(observed.edge,AutomaticPullUpBar.select(listOf(reversed),grip,size))
+        }
+    }
     private val size=ImageSize(1000.0,1000.0)
     private fun pose(seconds:Double,dip:Boolean=true):PoseResult {
         val shoulders=if(dip) listOf(Point2D(350.0,300.0),Point2D(650.0,300.0)) else listOf(Point2D(300.0,500.0),Point2D(700.0,500.0))
@@ -103,12 +345,30 @@ class SetupPoliciesTest {
         fun shoulder(y:Double)=mapLandmarks(p){if(it.joint==PoseJoint.leftShoulder) it.copy(position=it.position.copy(y=y)) else it}
         assertEquals(AutomaticPullUpBar.GripRejection.handsNotAboveShoulders,AutomaticPullUpBar.assessGrip(shoulder(280.0)))
         assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(shoulder(280.000001)))
-        fun span(width:Double)=mapLandmarks(p){if(it.joint in ArmMeasurement.Side.right.joints) it.copy(position=it.position.copy(x=it.position.x-500+width)) else it}
-        assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(span(120.0)))
-        assertEquals(AutomaticPullUpBar.GripRejection.handSpanTooSmall,AutomaticPullUpBar.assessGrip(span(119.999999)))
+        fun span(width:Double)=mapLandmarks(p){if(it.joint==PoseJoint.rightWrist) it.copy(position=it.position.copy(x=250+width)) else it}
+        assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(span(40.0)))
+        assertEquals(AutomaticPullUpBar.GripRejection.handSpanTooSmall,AutomaticPullUpBar.assessGrip(span(39.999999)))
         fun wrist(y:Double)=mapLandmarks(p){if(it.joint==PoseJoint.rightWrist) it.copy(position=it.position.copy(y=y)) else it}
         assertIs<AutomaticPullUpBar.Grip>(AutomaticPullUpBar.assessGrip(wrist(300.0)))
         assertEquals(AutomaticPullUpBar.GripRejection.handsNotLevel,AutomaticPullUpBar.assessGrip(wrist(300.000001)))
+    }
+    @Test fun narrowSupportDoesNotPermitCollapsedOrCrossedArmChains() {
+        val original=pose(0.0,false)
+        for (fault in listOf("elbows", "shoulders", "crossedShoulders")) {
+            val frame=mapLandmarks(original) { point ->
+                when {
+                    fault=="elbows" && point.joint in listOf(PoseJoint.leftElbow,PoseJoint.rightElbow) -> point.copy(position=Point2D(500.0,350.0))
+                    fault=="shoulders" && point.joint in listOf(PoseJoint.leftShoulder,PoseJoint.rightShoulder) -> point.copy(position=Point2D(500.0,500.0))
+                    fault=="crossedShoulders" && point.joint==PoseJoint.leftShoulder -> point.copy(position=Point2D(700.0,500.0))
+                    fault=="crossedShoulders" && point.joint==PoseJoint.rightShoulder -> point.copy(position=Point2D(300.0,500.0))
+                    else -> point
+                }
+            }
+            assertEquals(2,PullUpArmMeasurement(frame).arms.size)
+            assertEquals(AutomaticPullUpBar.GripRejection.armChainsNotDistinct,AutomaticPullUpBar.assessGrip(frame),fault)
+            val identity=AutomaticExerciseDetection()
+            assertFalse(identity.confirmObservedPullUpMovement(frame,BarSegment(Point2D(200.0,200.0),Point2D(800.0,200.0))),fault)
+        }
     }
     @Test fun gripAssessmentCannotAdvanceOrResetApparatusDwell() {
         val policy=AutomaticPullUpBar()
@@ -653,7 +913,8 @@ class SetupPoliciesTest {
     }
     @Test fun setupGuidanceExplainsRequiredEvidenceWithoutMandatoryManualSetup() {
         assertEquals("Show both arms and hands clearly",WorkoutSetupGuidance.message("framingIncomplete"))
-        assertTrue(assertNotNull(WorkoutSetupGuidance.message("exerciseIdentityNeeded")).contains("hang or top support"))
+        val identity=assertNotNull(WorkoutSetupGuidance.message("exerciseIdentityNeeded"))
+        assertTrue(identity.contains("steady"));assertTrue(identity.contains("support"))
         val apparatus=assertNotNull(WorkoutSetupGuidance.message("barReferenceNeeded"))
         assertTrue(apparatus.contains("bar or rails"));assertTrue(apparatus.contains("beside your hands"))
         assertFalse(apparatus.contains("settings"));assertNull(WorkoutSetupGuidance.message("unknown"))

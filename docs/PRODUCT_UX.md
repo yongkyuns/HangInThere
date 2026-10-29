@@ -4,13 +4,51 @@ This document defines the customer-facing experience for the current iPhone POC.
 It deliberately separates **workout UX** from engineering diagnostics while preserving
 the evidence needed to understand tracking failures.
 
+## Home and launch
+
+The home screen follows the system's light/dark appearance with warm cream, soft green,
+coral and forest tones. Two background-free pull-up/dip illustrations, rounded H / hanging-person
+mark and friendly rounded typography connect home, icon and splash.
+Live workout is the primary action; video review and history remain directly accessible.
+Landscape and larger text are supported, with decoration reduced at accessibility sizes.
+Settings and results follow the system; the camera overlay alone keeps a local dark
+appearance for contrast over video. The brief, nonblocking entrance respects Reduce Motion.
+The illustrations are in `PullUpIllustration.imageset` and `DipIllustration.imageset`; icon and launch lockups
+are exported with `Evaluation/BrandAssetRender.swift`.
+Asset provenance and previous photographic studies are recorded in [brand-assets.json](brand-assets.json).
+
+## Set videos and history
+
+Live workouts save silent local video for the interval from the first completed
+rep to the last return. Zero-rep attempts, setup, release and between-set rest
+are not retained. A compressed 12-second rolling window recovers delayed automatic
+starts; temporary chunks are pruned, and abandoned files expire after a day.
+Videos have a 10-minute set limit and reuse library retention (initially up to
+20 clips, 200 MB, 30 days). Recording errors do not gate counting or set transitions.
+Turn recording off in workout settings or history; existing clips remain until
+retention/deletion. Old sets have no retroactive video.
+
+History groups recent sets by date, filters by exercise, shows counted reps apart
+from user-reported/practice attempts, and opens saved clips directly. Measurements,
+corrections, grouping and deletion remain behind set options/organize controls.
+
+New automatic recordings save rep-to-video alignment and persistent start,
+turnaround and return thumbnails. Review opens a tappable frame strip, phase-time
+bars and an exercise-specific muscle illustration. Thumbnail generation is off
+the camera queue, limited to 60 reps / 2 MB per clip, and pruned with its video.
+Older/manual clips without alignment remain playable without guessed keyframes.
+Tempo change compares the last rep with the first two only when coverage and
+observed range are comparable; it is not a fatigue measurement. Muscle shading
+is an exercise guide, not measured activation. Skeleton/reference overlays are
+off by default and available from Diagnostics in live and imported-video views.
+
 ## Product promise for the current POC
 
 HangInThere supports live pull-up and dip movement counting on parallel rails or a shared straight bar, plus recorded-video review on device.
 
 The current customer-facing promise is deliberately narrow:
 
-- show the athlete's detected body joints over the video;
+- offer detected body joints through Diagnostics;
 - let the athlete choose pull-up or dip;
 - use both measurable arms for pull-ups, with one-arm fallback when obscured;
 - let the athlete choose the anatomical grip for dips;
@@ -30,9 +68,7 @@ owns the most important live information:
 
 - selected exercise;
 - movement count;
-- visible skeleton;
-- both usable arms emphasized equally over the skeleton;
-- confirmed bar/rail edge;
+- optional skeleton and reference geometry through Diagnostics;
 - setup/tracking state.
 
 Raw timestamps, backend names, frame numbers, and processing milliseconds are useful
@@ -223,6 +259,19 @@ The intended hierarchy remains:
 not a single opaque "form score."
 
 ## Live workout mode
+
+While idle, the iPhone camera overlay shows a large action title and a short
+instruction intended to be read from equipment distance. **Show start checks**
+expands a scrollable checklist:
+camera/pose feed, athlete/arms, exercise, bar/rails, phone stability, background
+stability and starting position. Each row shows a passed, waiting or attention
+symbol and a text status. A short explanation identifies the first blocking check.
+Stability and starting-position checks wait for an acquired support reference;
+they are not reported as failures while apparatus acquisition is incomplete.
+Stale analyzed frames clear displayed passes. **Hide start checks** collapses the
+details; the large action and instruction remain visible. The card disappears when the set starts.
+This presentation uses existing live gates and does not change start/counting
+policy or add a leg-crossing requirement or classifier.
 
 The main live screen is a full-screen, aspect-fitted camera canvas with no
 navigation title, introduction, cards below the video, or scrolling. Controls

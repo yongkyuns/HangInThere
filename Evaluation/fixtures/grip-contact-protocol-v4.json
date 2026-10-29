@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 4,
+  "scope": "Targeted RGB contact repair; freeze v3 anatomical and visibility outputs and all 0.8 thresholds",
+  "fittingSHA256": "a00d9ad3071d2eb8820d75cac151d8d2c64bc560f1d13f47e1b1f5d7acbae2e3",
+  "reviewSHA256": "4e384796b4e1fda81b10681da188ac741a28302a93b579f24de330c11aab564b",
+  "baseWeights": "build/grip-quality-v3/model-guarded/weights.pt",
+  "baseWeightsSHA256": "2875215808ab7becfda48ed40bfaab9c016484fe962eb52d92b15ea4c77e6fdb",
+  "baseReceipt": "build/grip-quality-v3/model-guarded/training-receipt.json",
+  "reserveSHA256": "c4ee5faff6ffedc92dd5ad16ea21a872b368287d7ec909acba59a2e924689a76",
+  "candidates": [
+    "tight-control",
+    "tight-wide-frozen",
+    "tight-wide-finetune"
+  ],
+  "contactCrop": "scripts/prepare-grip-contact-v4.py: automatic 1.6x original crop, capped half short dimension without shrinking original box; RGB192; original hand RGB128 unchanged",
+  "data": "Inherited prior actual-pixel closed labels; every eligible existing open/invalid crop re-reviewed in wider RGB; 119 new automatic crops from 12 existing training videos at fixed transition times. Two explicit review passes; ambiguous inputs masked. No test enters fitting.",
+  "roles": "Keep original train/validation video roles. Deterministic label-only group partition of 29 validation groups into 15 selection and 14 calibration groups; search 4096 fixed-seed candidate partitions minimizing normalized closed/open/invalid count imbalance. Both sides must have positives, open and invalid negatives.",
+  "loss": "Binary contact loss with closed mass .5, open/released mass .25, invalid/empty mass .25; equal-video weighting within each subtype; ambiguous/identity-masked inputs excluded. Selection uses equal-class/equal-video binary NLL.",
+  "budget": {
+    "seed": 3106,
+    "headEpochs": 400,
+    "headPatience": 50,
+    "headLearningRate": 0.003,
+    "hidden": 32,
+    "weightDecay": 0.03,
+    "fineTuneEpochs": 12,
+    "fineTunePatience": 5,
+    "fineTuneEncoderLearningRate": 0.0001,
+    "fineTuneHeadLearningRate": 0.0003
+  },
+  "selection": "Lowest contact selection NLL across the three candidates. Report frozen-input control and wider/fine-tuned candidates. No test-driven candidate or threshold changes.",
+  "calibration": "Positive-slope affine calibration on separate calibration groups, class/video-balanced NLL; keep identity calibration if false accepts at 0.8 increase on reviewed negatives.",
+  "confidence": {
+    "surface": 0.8,
+    "visible": 0.8,
+    "contact": 0.8
+  },
+  "test": "Freeze chosen model, all candidates, protocol, cropper and evaluator before direct 19-video hand review/predictions. Old 32 and 16 videos are regression-only. Fixed2/4/6/8; missing/ambiguous inputs retained; report contact recall, negative false accepts, full-gate accepted correctness and per-video coverage.",
+  "storage": "Native batches bounded; preserve selected RGB, reviewed crops, models, source videos and evidence. Prune unreferenced native frames after binding reviewed rows."
+}

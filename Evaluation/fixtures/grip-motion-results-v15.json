@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 15,
+  "initial": {
+    "verifiedFreezePins": 43,
+    "allContactCounterfactualsIdentical": true,
+    "bodyEligibleVideos": 1,
+    "negativeVideos": {
+      "release": 8,
+      "setup": 8
+    },
+    "bodyEligibleRGBBlockReasons": {
+      "exerciseOrViewUnavailable": 3
+    },
+    "privilegedReviewedOrientationDiagnostic": {
+      "qualification": "Post-score oracle diagnostic, not automatic accuracy. Only known front/rear reference view substituted; no hand/threshold/motion changes.",
+      "counts": {
+        "unknown": 30
+      },
+      "accepted": []
+    },
+    "counts": {
+      "videos": 30,
+      "counts": {
+        "unknown": 30
+      },
+      "byReferenceClass": {
+        "underhand": {
+          "unknown": 4
+        },
+        "overhand": {
+          "unknown": 5
+        },
+        "unknown": {
+          "unknown": 17
+        },
+        "neutral": {
+          "unknown": 4
+        }
+      },
+      "sampledLifecycle": {
+        "exercise": {
+          "frames": 125,
+          "bodyEligible": 3,
+          "gripAccepted": 0
+        },
+        "release": {
+          "frames": 16,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        },
+        "setup": {
+          "frames": 29,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        },
+        "uncertain": {
+          "frames": 33,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        },
+        "otherExercise": {
+          "frames": 11,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        }
+      }
+    },
+    "outputSHA256": {
+      "build/grip-motion-v15/report.json": "67053da02c8c43dfa006c32a15c9ca4df49638564ee0847fbec5f2f72f749508",
+      "build/grip-motion-v15/results.json": "efd37f0bcb42f4b18874864e1f029dfb7725f6beca9b316a10bf8ea725268ca9",
+      "build/grip-motion-v15/observations.jsonl": "a2c73bb0c4bb3b0669b615146025c99457f14b836566f570f98aa084a1e8c080",
+      "build/grip-motion-v15/body-trajectories.jsonl": "ec8f4e5c858c2da8abec6344a4952a25c605270b3fe1668bb416e2dfc23607b4",
+      "build/grip-motion-v15/protocol-freeze.json": "961572113aff265fd10541812b54449ec4b565f7db5aefb5bed11b8c0e9e563a",
+      "build/grip-motion-v15/lifecycle-labels.json": "c828ce41209083ab953f6f9641e8e4dd92e61a290e59454ae3ff42969fb06c89",
+      "build/grip-motion-v15/lifecycle-references.json": "548d361c948d23437ab1d1fb1917e3e21c5d12a6c8dc4610176129e29bc91712"
+    }
+  },
+  "perArmRevision": {
+    "verifiedFreezePins": 47,
+    "allContactCounterfactualsIdentical": true,
+    "bodyEligibleVideos": 3,
+    "negativeVideos": {
+      "release": 8,
+      "setup": 8
+    },
+    "bodyEligibleRGBBlockReasons": {
+      "exerciseOrViewUnavailable": 5,
+      "handEvidenceUnavailable": 1
+    },
+    "privilegedReviewedOrientationDiagnostic": {
+      "qualification": "Post-score oracle diagnostic, not automatic accuracy. Only known front/rear reference view substituted; no hand/threshold/motion changes.",
+      "counts": {
+        "unknown": 29,
+        "correct": 1
+      },
+      "accepted": [
+        {
+          "caseId": "k700train_NtLvahCWyCU_000008_000018",
+          "grip": "underhand",
+          "prediction": "underhand",
+          "category": "correct"
+        }
+      ]
+    },
+    "counts": {
+      "videos": 30,
+      "counts": {
+        "unknown": 30
+      },
+      "byReferenceClass": {
+        "underhand": {
+          "unknown": 4
+        },
+        "overhand": {
+          "unknown": 5
+        },
+        "unknown": {
+          "unknown": 17
+        },
+        "neutral": {
+          "unknown": 4
+        }
+      },
+      "sampledLifecycle": {
+        "exercise": {
+          "frames": 125,
+          "bodyEligible": 6,
+          "gripAccepted": 0
+        },
+        "release": {
+          "frames": 16,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        },
+        "setup": {
+          "frames": 29,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        },
+        "uncertain": {
+          "frames": 33,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        },
+        "otherExercise": {
+          "frames": 11,
+          "bodyEligible": 0,
+          "gripAccepted": 0
+        }
+      }
+    },
+    "outputSHA256": {
+      "build/grip-motion-v15b/report.json": "fd3ca2ba1c0459ee5c996a0f8656fd1212e2f8c19b492ea46731ae152c34801f",
+      "build/grip-motion-v15b/results.json": "b1aff6e63d4d82af02fe0d2e5dc018a8be1d7626904534488ab28357fb38f085",
+      "build/grip-motion-v15b/observations.jsonl": "01a7cacce7cff9c46542a2e3523782fdff4a9787f399056194c9444f32811bb2",
+      "build/grip-motion-v15b/body-trajectories.jsonl": "f497adc364762a49d29b837916516467eb45ba21f888044007af9351f2a05a07",
+      "build/grip-motion-v15b/protocol-freeze.json": "1e858a8206e7b9d823f01bb3cae6f97811c786fdc92ce6d3979d2b44027c2e5d",
+      "build/grip-motion-v15b/lifecycle-labels.json": "c828ce41209083ab953f6f9641e8e4dd92e61a290e59454ae3ff42969fb06c89",
+      "build/grip-motion-v15b/lifecycle-references.json": "a562c704786f483b5bdbbe9927dbb1e33d72dac5d14e9f8c7d77cf620263e9f7"
+    }
+  },
+  "unchangedRGBObservations": 214,
+  "preservedEarlierPins": 152,
+  "behavioralTests": 20,
+  "phoneInstalled": false,
+  "qualification": "Offline only. No model fit, no grip confidence threshold change, no rep/readiness changes. No fresh qualification claimed."
+}

@@ -1,0 +1,588 @@
+{
+  "schemaVersion": 6,
+  "sourceInputSHA256": "81714d8307a112b94625b1ca1f639d4a4659828523ff732f691707830e4633c4",
+  "annotation": "Source-only count/identity of complete visible target hands; no detector boxes/labels used as reference. Direct agent review, not independent human gold. No hand rectangles supplied to inference.",
+  "frames": [
+    {
+      "frameId": "F001",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "f0c989f6574a703912c0a089709aa72e784e2c358505050824ede875ead74ce7",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F002",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "c2be0cbed19d1cb0309ba1525c7ba93c0928ef41c63fa8148a8194e86ff34991",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F003",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "8cf4d4c23d1867409ac79002147f1039b8a1d91b3b3fa9e7dfdf258d91d9047e",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F004",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "d1c168890dc6a05f02b5cab780080be1a10d5cebe0818828d0543c3ce58335f0",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F005",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "43647ab9ce16f62719eb1f3a18b252642b0f4c8c003fd780353dba3e74f164df",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F006",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "d6381b8dfd91bc21d0cd8659f41fb0ef979dc311ab26ff1f05d3bf11439e5ddf",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Direct source pixels: complete primary overhead/gripping hand(s), camera-image left=h1/right=h2.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F007",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "b22f1c8a93ea96dac2c8724012f7af4239629c6bcb61dde767133108c3a70291",
+      "expectedHands": [],
+      "reason": "Release/rest: hands are below work region, not eligible overhead/gripping evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F008",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "b4adc363a1e138165f40b2f93d5d046179a2804f9d1eb979bbc7a9d182b37da2",
+      "expectedHands": [],
+      "reason": "Release/rest: hands are below work region, not eligible overhead/gripping evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F009",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "imageSHA256": "2708f9330d642e9bf67edabcd222ad6f0311c87ce208e7697e3dd63b26f5eb6d",
+      "expectedHands": [],
+      "reason": "Release/rest: hands are below work region, not eligible overhead/gripping evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F010",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "74e54b19ce1e43c3ce7100f17f55c939c7d89ccf34be61c93b56114f3b74b5e3",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F011",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "0430f73bbf7e9597fc98bb3b10b4a6a37624074e622d786c4609468ba8f6fabb",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F012",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "3755e7e6a7b2b17d522e9fc16bcf9a56d4ee8c248fe0985c40a4a57ebab176a3",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F013",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "15cde1e38c50463b0821917ca1749a4d22fb5228ad27351ac39aafa8151efa4f",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F014",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "bc08aa4f2a1d90d94545dd011787685e354a23a622dabde0e9f42df55c20ab12",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F015",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "612c3391f2a4e117c4cb3e3ea4f3db34c9fc1fefb37a3f7b04cee07ce7052304",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F016",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "8dda1606396a58d707c0d3d749fc590f0c49319407de50e07507fd3a27208c84",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F017",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "b12fa659631d0479e3ec1eae03f8cde821324a25873589c68280fc5fb0f89794",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F018",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "6607a7513ee6479fc7e0a0b912458da41b3cafa48e926beb6cc4b35e71c29206",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F019",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "95bfd57b17b6b97a1155ec36a2479e9622a8b9dd1a330dbe8c3d33ce13952334",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F020",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "686d366ed494e106717e1e9fab0176ac4aa96b9c31c849575c810b958c516b1a",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F021",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "imageSHA256": "870a5156c2842e75f89a75d94260654af5d839570aea14808cc21ba3e346e2bc",
+      "expectedHands": [],
+      "reason": "Rotated, backlit multiperson source; target hand ownership/extent cannot be independently established. Retain ambiguous reference.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F022",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "a6b33ef7e34e8a49b78bd16791ede5a86cac93b24031c07c4c9043ca2d369672",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F023",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "4a641368df0a36a39ab996ff9c1d5a95ddcb37fe79672ca9c6f0309f7555116d",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F024",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "69218bb4786fbb1f0cabcd10cce0b40abeb6a2eeaddb168fa646cd72eb606b08",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F025",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "085d9c07b6fcd24fa076c662f679778dace5d879b8f80d4f185ef94a83690686",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F026",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "22f354e7ad4a80600ec120b3b4dc8d240bdc878035d428ac379c23c013974815",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F027",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "487d5baca3a4c123fc73d5a4647067d60761398dfcdf1800b19393bb250959db",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F028",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "b7b4bdeab49d9cd0853bec5829c6c4367919b58b1022c9c17c8919091c5a355b",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F029",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "d186e0af9628ced09fcf6caf71ff00e967f5d26175c0c3b14028aa28d63180a8",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F030",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "1dac445ea8aeeb6fb1c739df3e7e3b863a322cae1f605ff86903f6b1b883e7fc",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F031",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "f1c1f4ea838b045db21157a26ccb7fd062cf89c549a020bf1711bfd6a67e1f80",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F032",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "68bbb911a294cc8ce0ae5eb6d0fbfebebf63caa599a4f823859cc0f2f805f8b6",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F033",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "imageSHA256": "09fb42b5567b515756a136dfccc3c2c561f43b3701b8b3a4066591133697d7d3",
+      "expectedHands": [],
+      "reason": "Two simultaneous pull-up athletes; no unique main subject. Retain ambiguity.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F034",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "a5ec6fc3f42fca566d9dfe60bec23a98396c9c22982ffb2d4efc92499046523b",
+      "expectedHands": [],
+      "reason": "Child is clear intended subject with parent supporting, but hands are initially below work region.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F035",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "77ff055dc51670674dfa23e1c02f624ed0a582416cea509c45244bf1bd786564",
+      "expectedHands": [],
+      "reason": "Child is clear intended subject with parent supporting, but hands are initially below work region.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F036",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "712b9da0985f5e2ef7335b2c0e8b28301790b2ee97053ba46d68f043d80e7a11",
+      "expectedHands": [],
+      "reason": "Child is clear intended subject with parent supporting, but hands are initially below work region.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F037",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "22967995889d680b378afa49fea22033c7044ae1efb979444ff004cd901299c8",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F038",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "3c15c48fd103fca7fd6a7cf768db56e55d40d838dede75647616728d5e9af76e",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F039",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "faded4cceec0879c5f584ffda3ad9e8b049797cfdaf1dc3d6f7811a872b827ba",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F040",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "a371330d27c05ed3a944bf375ed3481c0799924e2673a410f570f0067854a349",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F041",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "fce9b340ef14e5c169c4e0f7ebafb233541cb19ac2efa21e5e760becaff50879",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F042",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "4706d491f7da25d4fa706091fb1db999faa1f8485252afeae28b3c3ef3f34734",
+      "expectedHands": [
+        "h1"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F043",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "f575d9b6d29a07b7b0cb3eb934a9a3f7b635f9fd835b72b555c35e85f65d2c90",
+      "expectedHands": [
+        "h1"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F044",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "8afdda46810290e0b07716dfc2111c328600c6822f334fe04d136a37773c4da2",
+      "expectedHands": [
+        "h1"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F045",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "imageSHA256": "351d0a8ef71b186965b3ea3cb6e7ef864a3917cee7cb7902c8311988c6ef84c8",
+      "expectedHands": [
+        "h1"
+      ],
+      "reason": "Child is clear intended subject; parent is support, not a reason to reject the video. Source-top truncation leaves only image-left complete hand in late samples.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F046",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "a11a512dc0dfbf78f22796559051ef9c0d4269c8ad8c2cab211988d026567b61",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F047",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "e76616419c0bfcfcb2210f069c46a348349906c916c6febcf94e7c4a74f04ea9",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F048",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "d919700b2fb6d5c451e5c4912b86465a4ef5bd8485868b12b153545b0224776b",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F049",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "9e90ff0e7ff24736215bbfdb80e0c440e324bb96f08bb4289e185388957ed98b",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F050",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "ebbb67a9177a25245b4fba89b807ffb509e47b43998f589118ae4102a9cb3399",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F051",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "3a8f051d9a035edb3b3bcf579a205b2b9d88eafac9e252addf02918bda3862cb",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F052",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "9d312411d72b09a66ce6deb99695ef12e71ae2fcafe44b86795268612d51f82b",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F053",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "6edb43c516f903030c57d147449e4e0284c7d5f0685f3080bf8b3bd020a5c9c9",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F054",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "7bcf9c4941e6c5df0d0221340711cac37303b77891f725f2045d0b7dab0c98cd",
+      "expectedHands": [
+        "h1",
+        "h2"
+      ],
+      "reason": "Sole outdoor athlete; both tiny hands localized at bar within source bounds. Anatomical surface need not be readable to count localization coverage.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F055",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "9b10d0ac32de713d5f99edb3ab2a9a44e65273c03abbcfa494cd5668a526f1ef",
+      "expectedHands": [],
+      "reason": "Release/rest: hands are below work region, not eligible overhead/gripping evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F056",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "f0f0843591f5f62d804f3133212ee3b7962045e3266f9b946c304c4ef1b1de0f",
+      "expectedHands": [],
+      "reason": "Release/rest: hands are below work region, not eligible overhead/gripping evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "frameId": "F057",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "imageSHA256": "1797c7aae91309907e03896f656df7d34b065834a2a5c5df0a3c3c8c0c15bd10",
+      "expectedHands": [],
+      "reason": "Release/rest: hands are below work region, not eligible overhead/gripping evidence.",
+      "reviewer": "agent",
+      "humanVerified": false
+    }
+  ]
+}

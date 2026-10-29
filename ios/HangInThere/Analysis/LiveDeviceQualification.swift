@@ -75,9 +75,12 @@ struct LiveDeviceQualificationRecorder: Sendable {
         let stability: StabilitySummary
         let thresholds: Thresholds
         let counterPolicyVersion: Int
+        let countMethod: String?
+        let boundaryPolicyVersion: Int?
         let exercise: String
         let side: String
         let observedMovements: Int
+        let completedReps: Int?
         let partialAttempts: Int
         let interruptedAttempts: Int
         let setAnalyzedFrames: Int
@@ -176,7 +179,10 @@ struct LiveDeviceQualificationRecorder: Sendable {
         setUsableTrackingFrames: Int,
         trackingCoverage: Double?,
         setPhase: String,
-        setEndReason: String?
+        setEndReason: String?,
+        countMethod: String? = nil,
+        boundaryPolicyVersion: Int? = nil,
+        completedReps: Int? = nil
     ) -> Report {
         let duration = max(
             0,
@@ -234,9 +240,12 @@ struct LiveDeviceQualificationRecorder: Sendable {
                 minimumTranslationConsensusPatches: StaticSceneStability.minimumConsensusPatches
             ),
             counterPolicyVersion: max(0, counterPolicyVersion),
+            countMethod: countMethod,
+            boundaryPolicyVersion: boundaryPolicyVersion,
             exercise: exercise,
             side: side,
             observedMovements: max(0, observedMovements),
+            completedReps: completedReps,
             partialAttempts: max(0, partialAttempts),
             interruptedAttempts: max(0, interruptedAttempts),
             setAnalyzedFrames: max(0, setAnalyzedFrames),

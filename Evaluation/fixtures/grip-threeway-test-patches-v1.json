@@ -1,0 +1,6240 @@
+{
+  "schemaVersion": 1,
+  "qualification": "Two agent visual passes, not independent human gold labels; inference inputs remain unchanged",
+  "inputs": {
+    "build/grip-threeway/test-first-pass/rows.jsonl": "c9e24713a8d6d8396c7eddf89a80bac6a3ab4fd70c4501f394dac4d61017e170",
+    "build/grip-threeway/test-first-review-notes.json": "0a4969fb3e35d85acc86bdf7859b2e9795fa0ca0db0f7fc9d35037ec335e0061",
+    "build/grip-threeway/test-second-review-notes.json": "bfd972e73b1e184a16806166cee5cdc461990f771afb37b38787742d18dddb31"
+  },
+  "outputSHA256": "d4b0494ad32ae0f604ef262c4008e4ff779bc13d6f73b1485eb27328f2ede933",
+  "reviewedPages": {
+    "first": [
+      "build/grip-threeway/test-first-pass/review-01.png",
+      "build/grip-threeway/test-first-pass/review-02.png",
+      "build/grip-threeway/test-first-pass/review-03.png",
+      "build/grip-threeway/test-first-pass/review-04.png",
+      "build/grip-threeway/test-first-pass/review-05.png",
+      "build/grip-threeway/test-first-pass/review-06.png",
+      "build/grip-threeway/test-first-pass/review-07.png",
+      "build/grip-threeway/test-first-pass/review-08.png",
+      "build/grip-threeway/test-first-pass/review-09.png",
+      "build/grip-threeway/test-first-pass/review-10.png",
+      "build/grip-threeway/test-first-pass/review-11.png",
+      "build/grip-threeway/test-first-pass/review-12.png"
+    ],
+    "second": [
+      "build/grip-threeway/test-second-pass/review-01.png",
+      "build/grip-threeway/test-second-pass/review-02.png",
+      "build/grip-threeway/test-second-pass/review-03.png",
+      "build/grip-threeway/test-second-pass/review-04.png",
+      "build/grip-threeway/test-second-pass/review-05.png",
+      "build/grip-threeway/test-second-pass/review-06.png",
+      "build/grip-threeway/test-second-pass/review-07.png",
+      "build/grip-threeway/test-second-pass/review-08.png",
+      "build/grip-threeway/test-second-pass/review-09.png",
+      "build/grip-threeway/test-second-pass/review-10.png",
+      "build/grip-threeway/test-second-pass/review-11.png",
+      "build/grip-threeway/test-second-pass/review-12.png"
+    ]
+  },
+  "frames": [
+    {
+      "id": "X0001",
+      "caseId": "k700train_BYHQ4KptOM4_000015_000025",
+      "recordingId": "d7964f5659892ff6a1e9680056715becae3f6ca51bc6f9a066f3d5a9ca083770",
+      "imageSHA256": "82699fda30e7b4527df84cdd9e7c4bee15463665437be8646bdf0d68fd20de7a",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "exclude",
+      "view": "rear",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Hand pixels too small/absent to verify provisional supination; source remains in crop/appearance audit, no confident grip truth"
+    },
+    {
+      "id": "X0002",
+      "caseId": "k700train_BYHQ4KptOM4_000015_000025",
+      "recordingId": "d7964f5659892ff6a1e9680056715becae3f6ca51bc6f9a066f3d5a9ca083770",
+      "imageSHA256": "3eb26b7db60759f650cdbde5478f43c15678543a39b8e5ca5353415b10af09d5",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "exclude",
+      "view": "rear",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Hand pixels too small/absent to verify provisional supination; source remains in crop/appearance audit, no confident grip truth"
+    },
+    {
+      "id": "X0003",
+      "caseId": "k700train_BYHQ4KptOM4_000015_000025",
+      "recordingId": "d7964f5659892ff6a1e9680056715becae3f6ca51bc6f9a066f3d5a9ca083770",
+      "imageSHA256": "02b088f8d06685b107e4876e2f372347efbe4ac1d2e416254cc1135be7d8ec5e",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "exclude",
+      "view": "rear",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Hand pixels too small/absent to verify provisional supination; source remains in crop/appearance audit, no confident grip truth"
+    },
+    {
+      "id": "X0004",
+      "caseId": "k700train_BYHQ4KptOM4_000015_000025",
+      "recordingId": "d7964f5659892ff6a1e9680056715becae3f6ca51bc6f9a066f3d5a9ca083770",
+      "imageSHA256": "f18dab261d4917f446c2ef669a565c2be3ec16f0e63686478443d21555e62c17",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "exclude",
+      "view": "rear",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Hand pixels too small/absent to verify provisional supination; source remains in crop/appearance audit, no confident grip truth"
+    },
+    {
+      "id": "X0005",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "019fa97e21db330642da462e7c1865908ac8b429ac6de8622848c4b372bed000",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48048
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Actual enlarged rear hand shows dorsal hand and pronated transverse-bar grasp, contradicting provisional source label"
+    },
+    {
+      "id": "X0006",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "08eb060b6c8f34f19483eec48855a6867e28702de84045045401b4cd90539074",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96096
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Actual enlarged rear hand shows dorsal hand and pronated transverse-bar grasp, contradicting provisional source label"
+    },
+    {
+      "id": "X0007",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "625f87efdc5cbb3e8b7d1c37a1c9d2387a1c2c01a70b58493ac07bbb96e7af05",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144144
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Actual enlarged rear hand shows dorsal hand and pronated transverse-bar grasp, contradicting provisional source label"
+    },
+    {
+      "id": "X0008",
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "imageSHA256": "c7696084e5515d85e0dbbc1d2dd3d327ed0af06bc37136f729d821064496f973",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Full frame shows both hands on one transverse bar; visible dorsal hands from front indicate supination, not separate parallel handles"
+    },
+    {
+      "id": "X0009",
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "imageSHA256": "91c8c0fa22f25c0bb1413b6881c601e7eda8ecc9c42e29022ea6fe971ccc82f4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Full frame shows both hands on one transverse bar; visible dorsal hands from front indicate supination, not separate parallel handles"
+    },
+    {
+      "id": "X0010",
+      "caseId": "k700train_S7SxGBsFkeA_000115_000125",
+      "recordingId": "79570696282f2922c20a9c3ed558ef63732e6bfd0a7f765012ec4923b90cad03",
+      "imageSHA256": "587b6c152879bfd0deb40abb3c11cd716e37be25b4967baa8619e0e235f8dead",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Full frame shows gloved hands on a continuous transverse doorway bar; earlier parallel-handle interpretation was wrong"
+    },
+    {
+      "id": "X0011",
+      "caseId": "k700train_S7SxGBsFkeA_000115_000125",
+      "recordingId": "79570696282f2922c20a9c3ed558ef63732e6bfd0a7f765012ec4923b90cad03",
+      "imageSHA256": "db740351fa2478f0bb24756303db607369060cb5ccf7fb103575fb1cdd25bba9",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Full frame shows gloved hands on a continuous transverse doorway bar; earlier parallel-handle interpretation was wrong"
+    },
+    {
+      "id": "X0012",
+      "caseId": "k700train_S7SxGBsFkeA_000115_000125",
+      "recordingId": "79570696282f2922c20a9c3ed558ef63732e6bfd0a7f765012ec4923b90cad03",
+      "imageSHA256": "b2a72749b408d2ea2ea17472d46e3af4f07fb4db25bbc7ce170997969edded3a",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0013",
+      "caseId": "k700train_S7SxGBsFkeA_000115_000125",
+      "recordingId": "79570696282f2922c20a9c3ed558ef63732e6bfd0a7f765012ec4923b90cad03",
+      "imageSHA256": "c49467ef6720b7bbbd0ce798794a81a46060a3ac4843530df5a1729b6929712f",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0014",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "4ab42a061a8688f0ad21d479d84c54c4a4818d4047163f99245d8c1a7e35fd4b",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 56000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0015",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "f17f06a002409df0823ea98b25466b96690e61e9705d0b49fc961072cebbfbbc",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 120000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0016",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "48d6d0a566e586d6e5d679b0dfc18d53edd81321f3a21564787c7ed20cb56255",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 176000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0017",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "4728fac3eec995140a5d23a4079a8767a2c99734c1e710ebf3488a4019b130b2",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 240000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0018",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "2b8427689feda7b714d4b4c7c0b13b18a03e00b4ffb8884b9fc36a609ecdea2e",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 25088
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0019",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "a79e4c3edf0a30705f637b763cae494bbf912eb14af66214633fa8f4375827e8",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 50176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0020",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "dbe4404796894622d1ea1981768b9c13d27e1306001cd5927225485d4854017e",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 75264
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0021",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "6189b4b2dd82b09da9cb20325bb8783b08fab20ed611bccf374cef8f761665df",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 103936
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0022",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "968fd8e760c725433a5e163784c71816c55648f042633b82bedfb7895230d702",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0023",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "d2dbd57adc8325cb4a2f6c0b9f11f4bc09b14b430be642d14601142fd570213c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0024",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "aba61f8a82ac0ede30bf76294e8b3ee91478a1f476d7d83dbfcc3367d6142fea",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0025",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "29abb350fa4e88f74cf97571812fabf02c6fd57f60f361b22d6c7b7eaa0ca0ba",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0026",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "55725444ce784dffc47044cbba504c7d4c41a463b12bd00cc2869ba549e4d423",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0027",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "9f07a6dc8ab240ff2c7edc73fc9a84a771bb13ba6ab4f2067351b5becd008e9a",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0028",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "8272d50480c47bc25d520459aa13b96349f99346944fdcca0ff65ae9e2573939",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0029",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "a206f6cbfc45d53b85e3a3da4c35ae4f2ce58fc80a0cc4ed388301a9e7bf0492",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0030",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "a4ec2117833565d45b746ffb81100e162f3c884658a91c410f6a567a0770beef",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Enlarged machine frame shows wide outward angled transverse handles and rear dorsal hands, not fore-aft parallel handles"
+    },
+    {
+      "id": "X0031",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "4ad718adfea49feb2ff4fbcac71f000db8b00588e1c79ae2de0eaa0932daed05",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Enlarged machine frame shows wide outward angled transverse handles and rear dorsal hands, not fore-aft parallel handles"
+    },
+    {
+      "id": "X0032",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "4980b5e54a381ade5bd501d60cf07e1fb198fe5ff54323beadef988b964b3f9d",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0033",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "7e9e7444df2ad0a2bfe58d03aa4ead97aa4f7c8668d89a89cd78b314f5379fa9",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0034",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "fb8078b44016ede99b6f55d2113fa96c112cabf8ccac20ed49f3fbd3ea5d1548",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0035",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "a303bd8c94f4d20fa5e44232459ce6540b82852b84ef727adbc34ab30ba1f9a7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0036",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "b0b0991115d862f11263e11f93dbfeef1b215530a010df89e4ad872f257a6254",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0037",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "74f02084c3500e7f6da41c347a4f71d971d93f3edc879044b9a1ce5396161209",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0038",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "126c06c2237add83c63de7695d2b1a597736c9b125d6286c0d8f989a8307fd74",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0039",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "045920c2509c18abef911f35a445337d93e127ff0d91f9a8da1fffa76753be8c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0040",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "539981c5e540c35f82d67285f2477e9c711828c4ee85bd248440ca1214a212e6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0041",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "ff6cb53a723cac93273b38a33ed20998e257079a316fd2ae2c2fc74a6a38b8a7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0042",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "93dabaf1657cc561cc4decf954731ab3610376b9610a3ba19d3d59de8aa5fc89",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0043",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "3c34cf667f34bb720baa2769fee6480212bb519bb15d40e94b41bba27bd89288",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0044",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "6a0cc4b43ea226a8fb1eb5d70a102f75c16354c9b2b8d3dd7e6b1ae71c915fe9",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0045",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "99aebc5aacfed91e5321c7837275100f4c90cca1d10d5f31d0e7b6001c2fe603",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0046",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "f9b3a72961cd150dfb09f8995ecc9d93415adadb1a0f322f8607636668cf0729",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0047",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "519f6afb04f94439a1d5afd8897847d11db663f709e9b8620f98d553f24d40ab",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0048",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "73c5031ca88849d5769ebf94f291b5eda34e1281f2fec040342c3ea0cfdfe12c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0049",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "b8674b77bda795d20035fcbe79d84526936b4969f758588c05109c09416af31c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0050",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "b079a7a3e59c95e47d695a8055c9d3cff89788a2ac3a505e68d17e8563c542d7",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0051",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "018eae3318eb10a450f1acfbb388d694819859ba7e994edd5c1e738e6f53f5ed",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0052",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "daeec1c47580fa5c4d5244b94457d82eec1bb58627cb85d021714c273d342751",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0053",
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "imageSHA256": "7ae0728f30dd2f0a544c18305cda9132917bf855d3cf2fd625fe46f613e6573e",
+      "timestamp": {
+        "timescale": 14964,
+        "value": 28000
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0054",
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "imageSHA256": "3de4ae0ec95178f4271391a570d3b54ecb5aae177b97f86d06328fc581c77c32",
+      "timestamp": {
+        "timescale": 14964,
+        "value": 60000
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0055",
+      "caseId": "k700train_Z4f5QLauKc0_000002_000012",
+      "recordingId": "0d7416238ca1ebf620f6d9b17022e79ca56708cf17388faad6364754f2353b8a",
+      "imageSHA256": "47ceab8a09130bb9b597b949d730729d89c8594cbc831c8934faa7d20854f49c",
+      "timestamp": {
+        "timescale": 14848,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0056",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "235df6768371e7eb2e88eacee3ce788d4f44ba7581517f8ec772726c1e112a7e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0057",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "fcedb9fd04f208415fda603627bd6c09e6dcde4fa88bbc100cbc57f506f36b2b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0058",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "014901dbfc37d1811b69459b3a59f641f950ff956c2eb906435287e828ed91ef",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0059",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "19851a129b3b493600936cd19065b58e3d4a2b6b0bb427c79ad7692a89b89003",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0060",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "66a08706dec4e86a5e460a1ca2d80fada5e73424c4c080f725fc59cd9eaf507c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0061",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "ee83424ee26540eec59379b9bf8998be6bfd07d5f113ca5f887f1eafce493e1b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0062",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "7bd373c5ef9946a29462c2b4c33fe68d8e0ea462d2c0ede426b858bedb4b5eda",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0063",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "f3cb3beea7983d4332855ddfbb958e161a68e2c1c8525bd725b7dab880957be5",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0064",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "7a83fe96e3796e1b3a669a9faecca68c72cb69599db66e827ee257e57fd91600",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0065",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "7b30c62978f8d38918439e2642e2a8ae4a266781ca108725ef9137278266733a",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0066",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "192bb25672cc9203fef6a62eb86166a09830510807f9aafade4d75f7ec786bf1",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0067",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "07610ee5707ff37788cee7abb6380d1bec09925f7efff7e16324600f43ec196c",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0068",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "694b5aa0d00c181b7654d77f2384e7a6a6b12f4181a71fd6765a6cc532725699",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0069",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "6ffdeb53f83df94dbde20e3e2a550a29f19f641741bcbb5a29206049d79ad291",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0070",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "c2aeaf3ed352d3fb38db3a8302a8fc19206f581626253ce2b1fb665c2880d574",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0071",
+      "caseId": "k700train_lgdXb6xpFns_000004_000014",
+      "recordingId": "d9f61a09a28678587f6688946e4a2b8a43c6286fce1036af2528cbba68685f2e",
+      "imageSHA256": "b227100de8f05a2158336ac4264088bd8fb74efee9a25f34e449d6b6e8665d1b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0072",
+      "caseId": "k700train_lgdXb6xpFns_000004_000014",
+      "recordingId": "d9f61a09a28678587f6688946e4a2b8a43c6286fce1036af2528cbba68685f2e",
+      "imageSHA256": "18ddc304628774bd66d90b91771967d4d6bef655048998ab13dfdc83c0d7a740",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0073",
+      "caseId": "k700train_lgdXb6xpFns_000004_000014",
+      "recordingId": "d9f61a09a28678587f6688946e4a2b8a43c6286fce1036af2528cbba68685f2e",
+      "imageSHA256": "a7cf8f14686a7da5eef192a98412f9cc57bf61eef04ffed1b9fa9b1e0ff7beb4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0074",
+      "caseId": "k700train_lgdXb6xpFns_000004_000014",
+      "recordingId": "d9f61a09a28678587f6688946e4a2b8a43c6286fce1036af2528cbba68685f2e",
+      "imageSHA256": "4d54fd10d9bdfc6ab51a4766a148ff0cc4c66113bd32fa3ffaa5720aecdbf3c7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0075",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "d33f4ef39f89625cf908727a8d1302d837e060ad0b87d4d09c9fbd4dee41b429",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0076",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "5cfeee6a000e1874e38fc2d210e41b17d0c1b9e8eda63fab1721aa41bdcadd95",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0077",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "e3df36f4b952fc08771b14b1e262a7b371fd2293359839eb84e8ffaea35de63d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0078",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "3d68682496073619c57cd0b06ef1e74da4cb3ac72cc60892915a1e72339a86c3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0079",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "9fb8e74000cb099ab4ef71d4f5944c4ffca343868bdfa49daa184cb598238b1c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0080",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "b65686b35caeca43c0259d77656fc39d3c60dfcaf3f340e1abb88085d5b42ca3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0081",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "0a80ee53e7c1535f55c4f37b0a901d1b49f9701c724ad744f90761a6689ce089",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0082",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "47772041a2be0584769b7e677a0ecfff1583142bbdba55719948fc2e30820779",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "active": false,
+      "bodyEligible": true,
+      "reason": "Visual frame audit: dismount, released grip or one-arm departure; retain all inference pixels"
+    },
+    {
+      "id": "X0083",
+      "caseId": "k700train_HesycfeXGkY_000002_000012",
+      "recordingId": "a8910290a164ecc7bd7d86baa0fae0f7aee73517fb79d33275e48b50c49b834e",
+      "imageSHA256": "177a64abbf51aab54fee847201af2c0f4e7a193998545fe08006519316c9b507",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0084",
+      "caseId": "k700train_HesycfeXGkY_000002_000012",
+      "recordingId": "a8910290a164ecc7bd7d86baa0fae0f7aee73517fb79d33275e48b50c49b834e",
+      "imageSHA256": "ea35b2affbc164d5bb0915a94a0b1ca87618504cceb0bfec0a8dcd40e31317ee",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    },
+    {
+      "id": "X0085",
+      "caseId": "k700train_HesycfeXGkY_000002_000012",
+      "recordingId": "a8910290a164ecc7bd7d86baa0fae0f7aee73517fb79d33275e48b50c49b834e",
+      "imageSHA256": "bd760a4c4763267abf311087b29dad99cca76ff9589110935783bbbea8cf03a4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "neutral",
+      "view": "oblique",
+      "active": true,
+      "bodyEligible": true,
+      "reason": "Direct source/crop review"
+    }
+  ],
+  "patches": [
+    {
+      "reviewId": "T0001",
+      "frameId": "X0003",
+      "caseId": "k700train_BYHQ4KptOM4_000015_000025",
+      "recordingId": "d7964f5659892ff6a1e9680056715becae3f6ca51bc6f9a066f3d5a9ca083770",
+      "imageSHA256": "02b088f8d06685b107e4876e2f372347efbe4ac1d2e416254cc1135be7d8ec5e",
+      "patchSHA256": "ab5261345370475db7970ca3d924980ca6dd2b9e005c9570d2b3ac3e909d6e83",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "left",
+      "box": [
+        76,
+        114,
+        100,
+        138
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0002",
+      "frameId": "X0003",
+      "caseId": "k700train_BYHQ4KptOM4_000015_000025",
+      "recordingId": "d7964f5659892ff6a1e9680056715becae3f6ca51bc6f9a066f3d5a9ca083770",
+      "imageSHA256": "02b088f8d06685b107e4876e2f372347efbe4ac1d2e416254cc1135be7d8ec5e",
+      "patchSHA256": "28526df58fcd1535c57bacf5086891184b91ac96d98e89a0eb25b30ee54b2eff",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "right",
+      "box": [
+        108,
+        113,
+        132,
+        137
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0003",
+      "frameId": "X0005",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "019fa97e21db330642da462e7c1865908ac8b429ac6de8622848c4b372bed000",
+      "patchSHA256": "798ba853211789eb1ce375ba7e155fd53d9de1cc3a33e86745110e81c8bb5d51",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48048
+      },
+      "side": "left",
+      "box": [
+        262,
+        88,
+        341,
+        167
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0004",
+      "frameId": "X0005",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "019fa97e21db330642da462e7c1865908ac8b429ac6de8622848c4b372bed000",
+      "patchSHA256": "556a9d5e711274315b2e35e5341ec10b4c38ceea5f1bbdb1332a6abe88fd6d4b",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48048
+      },
+      "side": "right",
+      "box": [
+        52,
+        81,
+        134,
+        163
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0005",
+      "frameId": "X0006",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "08eb060b6c8f34f19483eec48855a6867e28702de84045045401b4cd90539074",
+      "patchSHA256": "1a42c0d7beea0b5d03cbabcee3fa7259a2971b959e6203faf6c57b4f7df80e4b",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96096
+      },
+      "side": "left",
+      "box": [
+        289,
+        78,
+        374,
+        163
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0006",
+      "frameId": "X0006",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "08eb060b6c8f34f19483eec48855a6867e28702de84045045401b4cd90539074",
+      "patchSHA256": "fb5caf8f7ddc6ddb76a04c97c5322e0ebcc91045775a10808c4d689024c7708a",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96096
+      },
+      "side": "right",
+      "box": [
+        77,
+        74,
+        166,
+        163
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0007",
+      "frameId": "X0007",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "625f87efdc5cbb3e8b7d1c37a1c9d2387a1c2c01a70b58493ac07bbb96e7af05",
+      "patchSHA256": "be7212d527de690eaf75a7225e1889a733c6b6063423d5ec8d82cc6549d7b383",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144144
+      },
+      "side": "left",
+      "box": [
+        272,
+        51,
+        350,
+        129
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0008",
+      "frameId": "X0007",
+      "caseId": "k700train_-ijxbUIaFlU_000023_000033",
+      "recordingId": "ec101488cc48a6b52a812107f4f8b5fb18e51a84c18798bb170e6102502e6426",
+      "imageSHA256": "625f87efdc5cbb3e8b7d1c37a1c9d2387a1c2c01a70b58493ac07bbb96e7af05",
+      "patchSHA256": "9c56879dcda4492a5db30ed10dee25a1c78dabd45a7728afb41ea928742bc572",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144144
+      },
+      "side": "right",
+      "box": [
+        39,
+        0,
+        194,
+        155
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0009",
+      "frameId": "X0008",
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "imageSHA256": "c7696084e5515d85e0dbbc1d2dd3d327ed0af06bc37136f729d821064496f973",
+      "patchSHA256": "992b06e74e94e99d7f9cdf5c183f2c90c4b9d7f3729bc881d1fef906daecb58f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        675,
+        0,
+        886,
+        211
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0010",
+      "frameId": "X0008",
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "imageSHA256": "c7696084e5515d85e0dbbc1d2dd3d327ed0af06bc37136f729d821064496f973",
+      "patchSHA256": "e2bbc07a1fe58a3add5a24baa89dfa5f4ef8c60bdd23b8105e2b0d9369deb768",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        456,
+        0,
+        660,
+        204
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0011",
+      "frameId": "X0009",
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "imageSHA256": "91c8c0fa22f25c0bb1413b6881c601e7eda8ecc9c42e29022ea6fe971ccc82f4",
+      "patchSHA256": "1f46ae920c0f07d3f030fbd1b6d2cedfbfd9d7bac864b2412dc2f55190588ffd",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        723,
+        4,
+        884,
+        165
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0012",
+      "frameId": "X0009",
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "imageSHA256": "91c8c0fa22f25c0bb1413b6881c601e7eda8ecc9c42e29022ea6fe971ccc82f4",
+      "patchSHA256": "dbfe0c42dc99a3671b5c93cd459e34c0ccf7ea7a7d4d3f151bad4160b6533447",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        509,
+        15,
+        649,
+        155
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "front",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0013",
+      "frameId": "X0010",
+      "caseId": "k700train_S7SxGBsFkeA_000115_000125",
+      "recordingId": "79570696282f2922c20a9c3ed558ef63732e6bfd0a7f765012ec4923b90cad03",
+      "imageSHA256": "587b6c152879bfd0deb40abb3c11cd716e37be25b4967baa8619e0e235f8dead",
+      "patchSHA256": "3f24c0e8c6557b32b3f5749ff4d7ad687bdccc068afb697deb21415f8ab0777b",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "right",
+      "box": [
+        165,
+        92,
+        211,
+        138
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0014",
+      "frameId": "X0011",
+      "caseId": "k700train_S7SxGBsFkeA_000115_000125",
+      "recordingId": "79570696282f2922c20a9c3ed558ef63732e6bfd0a7f765012ec4923b90cad03",
+      "imageSHA256": "db740351fa2478f0bb24756303db607369060cb5ccf7fb103575fb1cdd25bba9",
+      "patchSHA256": "4a2ada91ace59d54f09903df419a519f00d9bea99c76416e42609679aba0263e",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "left",
+      "box": [
+        94,
+        112,
+        133,
+        151
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0015",
+      "frameId": "X0011",
+      "caseId": "k700train_S7SxGBsFkeA_000115_000125",
+      "recordingId": "79570696282f2922c20a9c3ed558ef63732e6bfd0a7f765012ec4923b90cad03",
+      "imageSHA256": "db740351fa2478f0bb24756303db607369060cb5ccf7fb103575fb1cdd25bba9",
+      "patchSHA256": "bd47e487e99f6080b2f9ffb31042732c6b1b2f689a506ec52210130dac313168",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "right",
+      "box": [
+        163,
+        92,
+        211,
+        140
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0016",
+      "frameId": "X0014",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "4ab42a061a8688f0ad21d479d84c54c4a4818d4047163f99245d8c1a7e35fd4b",
+      "patchSHA256": "3a28ae961a6168e31c66e751704b328be6ab665fa1cb875e961e7e8a77fd7a25",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 56000
+      },
+      "side": "left",
+      "box": [
+        243,
+        83,
+        269,
+        109
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0017",
+      "frameId": "X0014",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "4ab42a061a8688f0ad21d479d84c54c4a4818d4047163f99245d8c1a7e35fd4b",
+      "patchSHA256": "fdcd5a01b5e62487b276b8a95a6f8a2eab05d98626e10729885d4648a67e25de",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 56000
+      },
+      "side": "right",
+      "box": [
+        160,
+        93,
+        184,
+        117
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0018",
+      "frameId": "X0015",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "f17f06a002409df0823ea98b25466b96690e61e9705d0b49fc961072cebbfbbc",
+      "patchSHA256": "168e480f4c47d41ef0a5f72f0e22897dd607c951e90fa4b8bca9a13256174463",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 120000
+      },
+      "side": "left",
+      "box": [
+        156,
+        89,
+        180,
+        113
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0019",
+      "frameId": "X0015",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "f17f06a002409df0823ea98b25466b96690e61e9705d0b49fc961072cebbfbbc",
+      "patchSHA256": "3d31863e432a99784f65c01d04b47dff6db53b5a29fd098aaea300b0e513ee92",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 120000
+      },
+      "side": "right",
+      "box": [
+        231,
+        53,
+        310,
+        132
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": true,
+      "adjudication": {
+        "surface": "unclear",
+        "contact": "closed",
+        "reason": "Third actual-pixel inspection: closed hand present but very small inside wide fallback crop; palm versus side insufficiently resolved"
+      },
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0020",
+      "frameId": "X0016",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "48d6d0a566e586d6e5d679b0dfc18d53edd81321f3a21564787c7ed20cb56255",
+      "patchSHA256": "ad1cc4f2643fdfda5ed7f09de59fce3ba64bd30027223b9e1ea2cf553aa10a52",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 176000
+      },
+      "side": "left",
+      "box": [
+        244,
+        85,
+        269,
+        110
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0021",
+      "frameId": "X0016",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "48d6d0a566e586d6e5d679b0dfc18d53edd81321f3a21564787c7ed20cb56255",
+      "patchSHA256": "69da1c02c3cecf0d8b7c4598cbfbac328186a38abfe9d230a55a72f06c664a3d",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 176000
+      },
+      "side": "right",
+      "box": [
+        161,
+        93,
+        185,
+        117
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0022",
+      "frameId": "X0017",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "4728fac3eec995140a5d23a4079a8767a2c99734c1e710ebf3488a4019b130b2",
+      "patchSHA256": "cdb8e731e4c5ddd33c22ac5f12677101c099cd6037861f8fc64e322699b6036b",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 240000
+      },
+      "side": "left",
+      "box": [
+        160,
+        91,
+        184,
+        115
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0023",
+      "frameId": "X0017",
+      "caseId": "k700train_fXKuv18RO-c_000055_000065",
+      "recordingId": "1c358d80d022166c62c090ec881823d3c32a9e4ec9b35c54b815269be05a6345",
+      "imageSHA256": "4728fac3eec995140a5d23a4079a8767a2c99734c1e710ebf3488a4019b130b2",
+      "patchSHA256": "7c7764c420c6feaeb67513b6a90881ff668d5d2c3c0c03281cdba3412c397533",
+      "timestamp": {
+        "timescale": 29947,
+        "value": 240000
+      },
+      "side": "right",
+      "box": [
+        245,
+        84,
+        269,
+        108
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0024",
+      "frameId": "X0018",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "2b8427689feda7b714d4b4c7c0b13b18a03e00b4ffb8884b9fc36a609ecdea2e",
+      "patchSHA256": "a0c3b554861155b69c839dcf0a18ebc64314dd5371a227a14937e459a6c66bef",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 25088
+      },
+      "side": "left",
+      "box": [
+        183,
+        19,
+        234,
+        70
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0025",
+      "frameId": "X0018",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "2b8427689feda7b714d4b4c7c0b13b18a03e00b4ffb8884b9fc36a609ecdea2e",
+      "patchSHA256": "16896c0adc7798b544a80ba3c002cc5bd5cfd0c4aae488be25a94fc0bfae6b9b",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 25088
+      },
+      "side": "right",
+      "box": [
+        0,
+        7,
+        65,
+        72
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0026",
+      "frameId": "X0019",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "a79e4c3edf0a30705f637b763cae494bbf912eb14af66214633fa8f4375827e8",
+      "patchSHA256": "6162ecb8378c0f7b2d4fb4e55ae635fd65b8b433bfd7ef33446bdf4fefb58f8e",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 50176
+      },
+      "side": "left",
+      "box": [
+        181,
+        5,
+        234,
+        58
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0027",
+      "frameId": "X0020",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "dbe4404796894622d1ea1981768b9c13d27e1306001cd5927225485d4854017e",
+      "patchSHA256": "05a891174b3b43ab103f6eb0b40ee47d924639229895ee08ceb9d9afcf50c281",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 75264
+      },
+      "side": "left",
+      "box": [
+        183,
+        3,
+        240,
+        60
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0028",
+      "frameId": "X0020",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "dbe4404796894622d1ea1981768b9c13d27e1306001cd5927225485d4854017e",
+      "patchSHA256": "af8760f84c2785f23706c2e4afd3ed7ba3ccff227a1540abc2b5ad940f5a4334",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 75264
+      },
+      "side": "right",
+      "box": [
+        15,
+        1,
+        78,
+        64
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0029",
+      "frameId": "X0021",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "6189b4b2dd82b09da9cb20325bb8783b08fab20ed611bccf374cef8f761665df",
+      "patchSHA256": "59d6355a79de37100524b4ae0b0db15559980ab2c03494c6fc73e9f2f1552121",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 103936
+      },
+      "side": "left",
+      "box": [
+        186,
+        2,
+        241,
+        57
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0030",
+      "frameId": "X0021",
+      "caseId": "k700train_Q_yq6B9eSI4_000032_000042",
+      "recordingId": "0c0e4e566d34003ebb8a1e88c3800c2aa3f9bb6cb67527def8d4f5b67052f300",
+      "imageSHA256": "6189b4b2dd82b09da9cb20325bb8783b08fab20ed611bccf374cef8f761665df",
+      "patchSHA256": "5492bdeefb6cbbaa82ec188b0cc320402f77def3e2e5fa49f8f8c3e1df2dbdd9",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 103936
+      },
+      "side": "right",
+      "box": [
+        17,
+        0,
+        80,
+        63
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0031",
+      "frameId": "X0022",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "968fd8e760c725433a5e163784c71816c55648f042633b82bedfb7895230d702",
+      "patchSHA256": "12aef4b3f8d88af3418321ef59dfe06efaa356aa66420f09aeebb01fff285612",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        651,
+        76,
+        779,
+        204
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0032",
+      "frameId": "X0022",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "968fd8e760c725433a5e163784c71816c55648f042633b82bedfb7895230d702",
+      "patchSHA256": "83d55edf45bc9a7560a34919449b81f951e3a7cb4aa37d922797da6a34816f6a",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        667,
+        24,
+        837,
+        194
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0033",
+      "frameId": "X0023",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "d2dbd57adc8325cb4a2f6c0b9f11f4bc09b14b430be642d14601142fd570213c",
+      "patchSHA256": "e1507dc12849d502c9dae4f614b74dc3c8e444c3d8c34cf13567703b75298aa4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        670,
+        61,
+        772,
+        163
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0034",
+      "frameId": "X0023",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "imageSHA256": "d2dbd57adc8325cb4a2f6c0b9f11f4bc09b14b430be642d14601142fd570213c",
+      "patchSHA256": "b0ba699ac8b77c4973c5fd6c93e4a5276c8a7d9cfe097984d35d3503dcaece87",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        692,
+        11,
+        853,
+        172
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0035",
+      "frameId": "X0026",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "55725444ce784dffc47044cbba504c7d4c41a463b12bd00cc2869ba549e4d423",
+      "patchSHA256": "bdf8c47652905a895e91b9892606cacaf821d72dc1a560447b3dabfba50a59a7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        205,
+        40,
+        239,
+        74
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0036",
+      "frameId": "X0026",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "55725444ce784dffc47044cbba504c7d4c41a463b12bd00cc2869ba549e4d423",
+      "patchSHA256": "bcb388a055a5e138c28455d33c4ef800cfd08b664085959473629fdbbb8918d2",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        121,
+        40,
+        155,
+        74
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0037",
+      "frameId": "X0027",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "9f07a6dc8ab240ff2c7edc73fc9a84a771bb13ba6ab4f2067351b5becd008e9a",
+      "patchSHA256": "005ff4349d0682321dd667324625a84cf879fe572546af887b63a511870a2ec7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        208,
+        24,
+        245,
+        61
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0038",
+      "frameId": "X0027",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "9f07a6dc8ab240ff2c7edc73fc9a84a771bb13ba6ab4f2067351b5becd008e9a",
+      "patchSHA256": "d2ec6cc1853bbacef8dba98bb42712855f4ec603ac8f24c44d5b111ba10d6b68",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        124,
+        23,
+        161,
+        60
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0039",
+      "frameId": "X0028",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "8272d50480c47bc25d520459aa13b96349f99346944fdcca0ff65ae9e2573939",
+      "patchSHA256": "a137efcf41c95e91e465156e52982d80e2b442588ae77d582125b66b4f2796c3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        211,
+        27,
+        249,
+        65
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0040",
+      "frameId": "X0028",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "8272d50480c47bc25d520459aa13b96349f99346944fdcca0ff65ae9e2573939",
+      "patchSHA256": "479b90b53fdbff9000b41bad8a03a6b27b0a5052dff50ff3e674018f60d69212",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        124,
+        24,
+        164,
+        64
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0041",
+      "frameId": "X0029",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "a206f6cbfc45d53b85e3a3da4c35ae4f2ce58fc80a0cc4ed388301a9e7bf0492",
+      "patchSHA256": "bdd7f6decde4ef6fb251f264e0dfd5072eca898e696e9486374d7efe5ccbf272",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        225,
+        138,
+        249,
+        162
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "front",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0042",
+      "frameId": "X0029",
+      "caseId": "k700train_yv65F_QFytU_000076_000086",
+      "recordingId": "c2806769c97f837059278bf74c8c45e1da0e362b42e236036e0d0963e70645bc",
+      "imageSHA256": "a206f6cbfc45d53b85e3a3da4c35ae4f2ce58fc80a0cc4ed388301a9e7bf0492",
+      "patchSHA256": "951ba370382d472ec83357176a847676dc591052aeff8bb1f53ed4ab9a62559e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        133,
+        40,
+        166,
+        73
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0043",
+      "frameId": "X0030",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "a4ec2117833565d45b746ffb81100e162f3c884658a91c410f6a567a0770beef",
+      "patchSHA256": "9a0db3d865c8c8df4c9c404447e80603060a662ddbc1340ed50e49082fab6a40",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "left",
+      "box": [
+        0,
+        0,
+        114,
+        114
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0044",
+      "frameId": "X0030",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "a4ec2117833565d45b746ffb81100e162f3c884658a91c410f6a567a0770beef",
+      "patchSHA256": "f72d287fe6c19c3a2e83f1f179c57dded1c2980ca55e424a87ba6cb1670468fb",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "right",
+      "box": [
+        377,
+        0,
+        471,
+        94
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0045",
+      "frameId": "X0031",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "4ad718adfea49feb2ff4fbcac71f000db8b00588e1c79ae2de0eaa0932daed05",
+      "patchSHA256": "3409ee269549b97b9a45b3c2a3fa26d15e06cdc80b0d7800d13381f169b9b7b5",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "left",
+      "box": [
+        5,
+        0,
+        92,
+        87
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0046",
+      "frameId": "X0031",
+      "caseId": "k700train_7QmGi3r4RPE_000004_000014",
+      "recordingId": "9c43cc84410e3656ec8258bc732237f1d65dcb8952f3e876ef1cb80664a288d2",
+      "imageSHA256": "4ad718adfea49feb2ff4fbcac71f000db8b00588e1c79ae2de0eaa0932daed05",
+      "patchSHA256": "5f920771a0daa7197ee2e2a5319b9dd3e80aca4ed013b8bdb6e0be2c884580d8",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "right",
+      "box": [
+        367,
+        0,
+        473,
+        106
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0047",
+      "frameId": "X0034",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "fb8078b44016ede99b6f55d2113fa96c112cabf8ccac20ed49f3fbd3ea5d1548",
+      "patchSHA256": "942ffc9b705128930f8f21381d4748c9d951e5172fdad782b3bbc2d5b479178c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        487,
+        28,
+        578,
+        119
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0048",
+      "frameId": "X0034",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "fb8078b44016ede99b6f55d2113fa96c112cabf8ccac20ed49f3fbd3ea5d1548",
+      "patchSHA256": "2c8d827cdbf9cc4dff0129dbf75cdd06510b7a88efb1831571a15d185c92f06c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        712,
+        8,
+        820,
+        116
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0049",
+      "frameId": "X0035",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "a303bd8c94f4d20fa5e44232459ce6540b82852b84ef727adbc34ab30ba1f9a7",
+      "patchSHA256": "ba812337b7bc8b688581515feb55035eaec9fde2270e83579cbc69530f6b08d7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        492,
+        45,
+        571,
+        124
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0050",
+      "frameId": "X0035",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "a303bd8c94f4d20fa5e44232459ce6540b82852b84ef727adbc34ab30ba1f9a7",
+      "patchSHA256": "01fac9e3f9e1dbbbc4ec46629bb1193f810b6e730607bcd26b7f98260da35af6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        711,
+        7,
+        819,
+        115
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0051",
+      "frameId": "X0036",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "b0b0991115d862f11263e11f93dbfeef1b215530a010df89e4ad872f257a6254",
+      "patchSHA256": "729a3859ad90514c6c47645a92416f5eb82fe5073b75979b19f9e1a8d92cf135",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        487,
+        37,
+        576,
+        126
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0052",
+      "frameId": "X0036",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "b0b0991115d862f11263e11f93dbfeef1b215530a010df89e4ad872f257a6254",
+      "patchSHA256": "b59fb61022bb46bcdc8bc5c916544c4858866473a884d803cb2733e985ffe22f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        719,
+        14,
+        816,
+        111
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0053",
+      "frameId": "X0037",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "74f02084c3500e7f6da41c347a4f71d971d93f3edc879044b9a1ce5396161209",
+      "patchSHA256": "147b7e706dcd60c98f47f6ace16125d97def2877ddeae1642796a2f4bbc7f2e7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        491,
+        40,
+        576,
+        125
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0054",
+      "frameId": "X0037",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "imageSHA256": "74f02084c3500e7f6da41c347a4f71d971d93f3edc879044b9a1ce5396161209",
+      "patchSHA256": "41dd22514d48701c4b6fd9ab614327b7eb7da6dddb5c4f2d2a4fa244c4b79e57",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        716,
+        12,
+        818,
+        114
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0055",
+      "frameId": "X0038",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "126c06c2237add83c63de7695d2b1a597736c9b125d6286c0d8f989a8307fd74",
+      "patchSHA256": "92cfa23cf7b84a6ac36fd2f5107bb9a529de4d3eeca4d65bc05f8ffaef02842d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        313,
+        0,
+        349,
+        36
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0056",
+      "frameId": "X0038",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "126c06c2237add83c63de7695d2b1a597736c9b125d6286c0d8f989a8307fd74",
+      "patchSHA256": "1cb02634be1e4992b1c5000d5c0f91ed63a52704ce5eb4044491e2e21a93c95e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        388,
+        0,
+        434,
+        46
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0057",
+      "frameId": "X0039",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "045920c2509c18abef911f35a445337d93e127ff0d91f9a8da1fffa76753be8c",
+      "patchSHA256": "d4c15c6b7860d43b7275f10222fda82deba1ee5132c9a71163ccb4cca485eba6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        311,
+        0,
+        356,
+        45
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0058",
+      "frameId": "X0039",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "045920c2509c18abef911f35a445337d93e127ff0d91f9a8da1fffa76753be8c",
+      "patchSHA256": "6daaf073479be8789725d632972435b3fa21a8f22012f7ee833fa127da9f802d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        394,
+        0,
+        426,
+        32
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0059",
+      "frameId": "X0040",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "539981c5e540c35f82d67285f2477e9c711828c4ee85bd248440ca1214a212e6",
+      "patchSHA256": "fe0547f8a87a3114c08bcf59144053f37e307b8106bff2256e0423422f70ab1d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        310,
+        0,
+        358,
+        48
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0060",
+      "frameId": "X0040",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "539981c5e540c35f82d67285f2477e9c711828c4ee85bd248440ca1214a212e6",
+      "patchSHA256": "43485cb6ffc3dddb6707a1f5a05f609e81767669333db16c55e84dfdec445adc",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        394,
+        0,
+        427,
+        33
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0061",
+      "frameId": "X0041",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "ff6cb53a723cac93273b38a33ed20998e257079a316fd2ae2c2fc74a6a38b8a7",
+      "patchSHA256": "32474d4728fbcbe7d1c95454111e13e9bd25f9a01498ea85fb3c480c9f06e4a4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        314,
+        0,
+        349,
+        35
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0062",
+      "frameId": "X0041",
+      "caseId": "k700train_VXE3y7CwEjY_000002_000012",
+      "recordingId": "104142025edda609d994d67fb18217d9f4a34433d56fcdc6410b9d39ca807be6",
+      "imageSHA256": "ff6cb53a723cac93273b38a33ed20998e257079a316fd2ae2c2fc74a6a38b8a7",
+      "patchSHA256": "ca359bac814d866fbc983bb23f7b98b03212ef21b84be999d649850ab52461aa",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        394,
+        0,
+        428,
+        34
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0063",
+      "frameId": "X0042",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "93dabaf1657cc561cc4decf954731ab3610376b9610a3ba19d3d59de8aa5fc89",
+      "patchSHA256": "b665d225b8d862529c88a95876e1a2095488b58d74a738be49caf724589a03e2",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "left",
+      "box": [
+        735,
+        48,
+        892,
+        205
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0064",
+      "frameId": "X0042",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "93dabaf1657cc561cc4decf954731ab3610376b9610a3ba19d3d59de8aa5fc89",
+      "patchSHA256": "e63ea5b8bdfe7d6030a729d052c0a4cf69a5b98635d779a3b2987b65ca24b00d",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "right",
+      "box": [
+        425,
+        63,
+        578,
+        216
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0065",
+      "frameId": "X0043",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "3c34cf667f34bb720baa2769fee6480212bb519bb15d40e94b41bba27bd89288",
+      "patchSHA256": "9afba0ca22062873af93740c2f26b2ce19580d87774a851ee541ff7d94fcccb8",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "left",
+      "box": [
+        748,
+        25,
+        912,
+        189
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0066",
+      "frameId": "X0043",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "3c34cf667f34bb720baa2769fee6480212bb519bb15d40e94b41bba27bd89288",
+      "patchSHA256": "e6525638d90e007b17e65ee942b83b02684bd299dfb3ce604192b0c922c61c78",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "right",
+      "box": [
+        440,
+        37,
+        599,
+        196
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0067",
+      "frameId": "X0044",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "6a0cc4b43ea226a8fb1eb5d70a102f75c16354c9b2b8d3dd7e6b1ae71c915fe9",
+      "patchSHA256": "d565ba932171b04a27a0c86afb44fe2bf8a8c97484f77cbe37738bdb1a7a4782",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "left",
+      "box": [
+        738,
+        10,
+        903,
+        175
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0068",
+      "frameId": "X0044",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "6a0cc4b43ea226a8fb1eb5d70a102f75c16354c9b2b8d3dd7e6b1ae71c915fe9",
+      "patchSHA256": "764668cb704567b2ebc054709c051b1eee14a03c76832b5d8c0fdc32d71105fd",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "right",
+      "box": [
+        434,
+        22,
+        593,
+        181
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0069",
+      "frameId": "X0045",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "99aebc5aacfed91e5321c7837275100f4c90cca1d10d5f31d0e7b6001c2fe603",
+      "patchSHA256": "89103cc4b402014a5d99ab59562911d27870f6033d2b5ccd054573cd3892244f",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "side": "left",
+      "box": [
+        754,
+        0,
+        924,
+        170
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0070",
+      "frameId": "X0045",
+      "caseId": "k700train_JXwslkTQFUo_000107_000117",
+      "recordingId": "c618cad5a1cea01eb58dd9e8938670159b32012e60552f5f15401faae9f55fe4",
+      "imageSHA256": "99aebc5aacfed91e5321c7837275100f4c90cca1d10d5f31d0e7b6001c2fe603",
+      "patchSHA256": "17398a8b4917a1a51bac8e337c10ff4cf9a29bf99b7195a5d059a20a9c1d6c14",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "side": "right",
+      "box": [
+        433,
+        0,
+        603,
+        170
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0071",
+      "frameId": "X0046",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "f9b3a72961cd150dfb09f8995ecc9d93415adadb1a0f322f8607636668cf0729",
+      "patchSHA256": "e3349e321d8c676e441e2bd552eedebbaff47a5f16bd11f8fb23d468a05358b3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        712,
+        22,
+        876,
+        186
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0072",
+      "frameId": "X0046",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "f9b3a72961cd150dfb09f8995ecc9d93415adadb1a0f322f8607636668cf0729",
+      "patchSHA256": "0ecd856f05b25e607e24345d585748197825b2aab0562ea0df88cda89be9b9d7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        410,
+        25,
+        558,
+        173
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0073",
+      "frameId": "X0047",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "519f6afb04f94439a1d5afd8897847d11db663f709e9b8620f98d553f24d40ab",
+      "patchSHA256": "692a82ec4067bea37727bac6852062434c82106c263177a09676e65cb846214e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        717,
+        26,
+        882,
+        191
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0074",
+      "frameId": "X0047",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "519f6afb04f94439a1d5afd8897847d11db663f709e9b8620f98d553f24d40ab",
+      "patchSHA256": "20fb95fcaca596b3f467ad5623ce76454242271d958811f4f97dca27d182e280",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        408,
+        18,
+        572,
+        182
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0075",
+      "frameId": "X0048",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "73c5031ca88849d5769ebf94f291b5eda34e1281f2fec040342c3ea0cfdfe12c",
+      "patchSHA256": "bdb8dacea5f2d258f0613401d52bac0f3b999a2f2c7f7d2ef8b4651ef0a967da",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        706,
+        12,
+        878,
+        184
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0076",
+      "frameId": "X0048",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "73c5031ca88849d5769ebf94f291b5eda34e1281f2fec040342c3ea0cfdfe12c",
+      "patchSHA256": "ccb25d7335e55c261c39c79072317036900029a1597f0948a1eb3ee824c24b4a",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        382,
+        0,
+        586,
+        204
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0077",
+      "frameId": "X0049",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "b8674b77bda795d20035fcbe79d84526936b4969f758588c05109c09416af31c",
+      "patchSHA256": "0d9497cd219de591b5c1e6ae79d2aaef7e4961a2aca897fb65bdfd64ac81fa07",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        690,
+        8,
+        901,
+        219
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0078",
+      "frameId": "X0049",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "imageSHA256": "b8674b77bda795d20035fcbe79d84526936b4969f758588c05109c09416af31c",
+      "patchSHA256": "07967741218c1a12a108b8c2ae97e7352eb54653e5002e7d249072627a8b602f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        375,
+        5,
+        590,
+        220
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0079",
+      "frameId": "X0050",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "b079a7a3e59c95e47d695a8055c9d3cff89788a2ac3a505e68d17e8563c542d7",
+      "patchSHA256": "9519fa2afe0e086595cae4afd2fe38c2206947ea5d6a620a7cff957dee6ec6fa",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "left",
+      "box": [
+        79,
+        59,
+        104,
+        84
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0080",
+      "frameId": "X0050",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "b079a7a3e59c95e47d695a8055c9d3cff89788a2ac3a505e68d17e8563c542d7",
+      "patchSHA256": "2e7e0f4d6285c798e71c1917e5b20fa0b5fc90efea4514edfb2dac6f1f720b03",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "right",
+      "box": [
+        125,
+        79,
+        149,
+        103
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0081",
+      "frameId": "X0051",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "018eae3318eb10a450f1acfbb388d694819859ba7e994edd5c1e738e6f53f5ed",
+      "patchSHA256": "0d11718414773f0a399241dadf6b68e1e575f428ea4b50d5cbd7d9dfeab7016b",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "left",
+      "box": [
+        77,
+        57,
+        101,
+        81
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0082",
+      "frameId": "X0051",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "018eae3318eb10a450f1acfbb388d694819859ba7e994edd5c1e738e6f53f5ed",
+      "patchSHA256": "7b93103e4715fe7434f5b7d89d9259656d4300d3a1c946f37f96d17132c58918",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "right",
+      "box": [
+        78,
+        51,
+        123,
+        96
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0083",
+      "frameId": "X0052",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "daeec1c47580fa5c4d5244b94457d82eec1bb58627cb85d021714c273d342751",
+      "patchSHA256": "a60c229e57f3c7e17a415319f98e17066531e6622d6daffaf11bfea88975c78c",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "left",
+      "box": [
+        69,
+        78,
+        96,
+        105
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0084",
+      "frameId": "X0052",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "imageSHA256": "daeec1c47580fa5c4d5244b94457d82eec1bb58627cb85d021714c273d342751",
+      "patchSHA256": "195073511322dfde572fa8bb085a98fd12e080f77359e3bef703ea6d5eee6a07",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "right",
+      "box": [
+        112,
+        91,
+        136,
+        115
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0085",
+      "frameId": "X0053",
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "imageSHA256": "7ae0728f30dd2f0a544c18305cda9132917bf855d3cf2fd625fe46f613e6573e",
+      "patchSHA256": "84d677cd1f689b46027526bea41457610d40d67cd478a93d110895e6febb8454",
+      "timestamp": {
+        "timescale": 14964,
+        "value": 28000
+      },
+      "side": "left",
+      "box": [
+        224,
+        93,
+        270,
+        139
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0086",
+      "frameId": "X0053",
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "imageSHA256": "7ae0728f30dd2f0a544c18305cda9132917bf855d3cf2fd625fe46f613e6573e",
+      "patchSHA256": "593dd7d7cd31bf5a31ffff22c0d07710fcc7b6f3bc05867b33fa10f9db9eb869",
+      "timestamp": {
+        "timescale": 14964,
+        "value": 28000
+      },
+      "side": "right",
+      "box": [
+        175,
+        142,
+        207,
+        174
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0087",
+      "frameId": "X0054",
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "imageSHA256": "3de4ae0ec95178f4271391a570d3b54ecb5aae177b97f86d06328fc581c77c32",
+      "patchSHA256": "e44dac6b32131f8848926d18637339a4125e3cff320b32e9465c9520e8cfb0e0",
+      "timestamp": {
+        "timescale": 14964,
+        "value": 60000
+      },
+      "side": "left",
+      "box": [
+        214,
+        94,
+        265,
+        145
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0088",
+      "frameId": "X0054",
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "imageSHA256": "3de4ae0ec95178f4271391a570d3b54ecb5aae177b97f86d06328fc581c77c32",
+      "patchSHA256": "5c1d85473acae16084130eabdbd0ef30efeef88a1605b249f98ba02d05be9b6a",
+      "timestamp": {
+        "timescale": 14964,
+        "value": 60000
+      },
+      "side": "right",
+      "box": [
+        168,
+        144,
+        200,
+        176
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0089",
+      "frameId": "X0055",
+      "caseId": "k700train_Z4f5QLauKc0_000002_000012",
+      "recordingId": "0d7416238ca1ebf620f6d9b17022e79ca56708cf17388faad6364754f2353b8a",
+      "imageSHA256": "47ceab8a09130bb9b597b949d730729d89c8594cbc831c8934faa7d20854f49c",
+      "patchSHA256": "eaa557a3e22ba537b144fa10de6ec78ab5afd4a1a46f738d8818337bc540d392",
+      "timestamp": {
+        "timescale": 14848,
+        "value": 28672
+      },
+      "side": "left",
+      "box": [
+        713,
+        46,
+        772,
+        105
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0090",
+      "frameId": "X0055",
+      "caseId": "k700train_Z4f5QLauKc0_000002_000012",
+      "recordingId": "0d7416238ca1ebf620f6d9b17022e79ca56708cf17388faad6364754f2353b8a",
+      "imageSHA256": "47ceab8a09130bb9b597b949d730729d89c8594cbc831c8934faa7d20854f49c",
+      "patchSHA256": "8e58e789af23d6eb799dbbf932e36347ecdf3f5c4975513580708556db2c0e9f",
+      "timestamp": {
+        "timescale": 14848,
+        "value": 28672
+      },
+      "side": "right",
+      "box": [
+        617,
+        69,
+        673,
+        125
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0091",
+      "frameId": "X0056",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "235df6768371e7eb2e88eacee3ce788d4f44ba7581517f8ec772726c1e112a7e",
+      "patchSHA256": "155367fd7727a351b833bab705caeb1c92225a60b2a76b3ad39be72e7ddfb5f4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        549,
+        80,
+        603,
+        134
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0092",
+      "frameId": "X0056",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "235df6768371e7eb2e88eacee3ce788d4f44ba7581517f8ec772726c1e112a7e",
+      "patchSHA256": "62bb503b4bef86995c237681de69b07b96aaf6b7170c9642661bea157a294304",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        572,
+        80,
+        633,
+        141
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "rear",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0093",
+      "frameId": "X0058",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "014901dbfc37d1811b69459b3a59f641f950ff956c2eb906435287e828ed91ef",
+      "patchSHA256": "321a9124d164bcd6de80987a2cbb0f1bed6aab369aa0fdaf83740c2b0bc3fd71",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        488,
+        54,
+        577,
+        143
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0094",
+      "frameId": "X0058",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "014901dbfc37d1811b69459b3a59f641f950ff956c2eb906435287e828ed91ef",
+      "patchSHA256": "11e3b5cb6dfd530613f72c99e3ba64525095b35049d53ebfab5309f77b532b86",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        546,
+        45,
+        650,
+        149
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0095",
+      "frameId": "X0059",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "19851a129b3b493600936cd19065b58e3d4a2b6b0bb427c79ad7692a89b89003",
+      "patchSHA256": "c88c0c2e99ab4bb3abef3f56a1dfd0640519341062ccb48f84cccdf6eac2eb98",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        549,
+        61,
+        621,
+        133
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0096",
+      "frameId": "X0059",
+      "caseId": "k700train_ENr1x2kcNcU_000160_000170",
+      "recordingId": "938ac4714a19683d6af733a5557d328ade198d4fb039814bd7f11f34be787c19",
+      "imageSHA256": "19851a129b3b493600936cd19065b58e3d4a2b6b0bb427c79ad7692a89b89003",
+      "patchSHA256": "b328d2ef68f422acc27a13a6f7be2c4ca6c48b1e943a7d65d842c8ba5e95985a",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        616,
+        73,
+        683,
+        140
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0097",
+      "frameId": "X0060",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "66a08706dec4e86a5e460a1ca2d80fada5e73424c4c080f725fc59cd9eaf507c",
+      "patchSHA256": "5a1aa89688c69721a845ded2ffa8b9efadbe890a013b1f4cef5fe138a32376c1",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        154,
+        16,
+        205,
+        67
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0098",
+      "frameId": "X0061",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "ee83424ee26540eec59379b9bf8998be6bfd07d5f113ca5f887f1eafce493e1b",
+      "patchSHA256": "4a832395553c33eeb007621b9be7fbb1082ae47d8ad45b9bc6453f654495199a",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        152,
+        26,
+        204,
+        78
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0099",
+      "frameId": "X0062",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "7bd373c5ef9946a29462c2b4c33fe68d8e0ea462d2c0ede426b858bedb4b5eda",
+      "patchSHA256": "ddecdab7b6ece7c3ee842a8b26438b0c36c300a1a74279cf2ca1547c0194d7ef",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        263,
+        206,
+        308,
+        251
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "open",
+      "grip": "exclude",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "open"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "open"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0100",
+      "frameId": "X0062",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "7bd373c5ef9946a29462c2b4c33fe68d8e0ea462d2c0ede426b858bedb4b5eda",
+      "patchSHA256": "a41e2daf4a643fef3caa6f4ac7a0d0a1b3308b2422d80efc952134177224ccd1",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        232,
+        70,
+        260,
+        98
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0101",
+      "frameId": "X0063",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "f3cb3beea7983d4332855ddfbb958e161a68e2c1c8525bd725b7dab880957be5",
+      "patchSHA256": "99457371d4c753eee77e14e5198db47b269cb11906a91329c0bd44af1c660690",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        343,
+        234,
+        381,
+        272
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "open",
+      "grip": "exclude",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "open"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "open"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0102",
+      "frameId": "X0063",
+      "caseId": "k700train_KbH6JBXXrkE_000104_000114",
+      "recordingId": "ba46ebe939f102b6f772d04439f5175a27cfd5f9d075c6794c9e6cb9c218043f",
+      "imageSHA256": "f3cb3beea7983d4332855ddfbb958e161a68e2c1c8525bd725b7dab880957be5",
+      "patchSHA256": "994e1d196ce39b8d8707f04a67e227d97ed59278c578baf1a480d910e3cb488c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        190,
+        69,
+        225,
+        104
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0103",
+      "frameId": "X0064",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "7a83fe96e3796e1b3a669a9faecca68c72cb69599db66e827ee257e57fd91600",
+      "patchSHA256": "2ce4cc5bc14c52a03b345a7da0fa434608d749c93d30535510b756cdbf177e3e",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "left",
+      "box": [
+        117,
+        27,
+        141,
+        51
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0104",
+      "frameId": "X0064",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "7a83fe96e3796e1b3a669a9faecca68c72cb69599db66e827ee257e57fd91600",
+      "patchSHA256": "fe4f878eedb313f91d7d8d8e28b06670fa8d9b5c9209d70c60becf9f7caccf39",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "right",
+      "box": [
+        233,
+        27,
+        257,
+        51
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0105",
+      "frameId": "X0065",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "7b30c62978f8d38918439e2642e2a8ae4a266781ca108725ef9137278266733a",
+      "patchSHA256": "cd8542469dd8ab613e8ef4dab66a00695096bc3531ed6e4c06f515c1067ea5a0",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "left",
+      "box": [
+        117,
+        29,
+        141,
+        53
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0106",
+      "frameId": "X0065",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "7b30c62978f8d38918439e2642e2a8ae4a266781ca108725ef9137278266733a",
+      "patchSHA256": "d085ccb1166386eab48524a56cb55914bcc0cc309ad882568fdffa1f250040cd",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "right",
+      "box": [
+        232,
+        28,
+        256,
+        52
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0107",
+      "frameId": "X0066",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "192bb25672cc9203fef6a62eb86166a09830510807f9aafade4d75f7ec786bf1",
+      "patchSHA256": "d82286aa23e188cb4cddc98949d07aeca9a616c138ab18634b73080f08f03a7e",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "left",
+      "box": [
+        117,
+        29,
+        141,
+        53
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0108",
+      "frameId": "X0066",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "192bb25672cc9203fef6a62eb86166a09830510807f9aafade4d75f7ec786bf1",
+      "patchSHA256": "42593517883ce06a9009ab47716fb2e4661f34be892a7c69badeccb52f786288",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "right",
+      "box": [
+        231,
+        27,
+        256,
+        52
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0109",
+      "frameId": "X0067",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "07610ee5707ff37788cee7abb6380d1bec09925f7efff7e16324600f43ec196c",
+      "patchSHA256": "67705bb25de9421c902579dea1f861311b33644b02aa3e317f673b1cafdc0799",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "side": "left",
+      "box": [
+        115,
+        26,
+        142,
+        53
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0110",
+      "frameId": "X0067",
+      "caseId": "k700train__CyC5DewY6I_000238_000248",
+      "recordingId": "0b3bceb1ba5d621438516a6c5dbe210d0e2de2fa523263288f773887b6687a6e",
+      "imageSHA256": "07610ee5707ff37788cee7abb6380d1bec09925f7efff7e16324600f43ec196c",
+      "patchSHA256": "4e6a3a8c837879e5c69de114fe9fc66b3359451cb78fa9094b2304a81cbc8b6b",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "side": "right",
+      "box": [
+        230,
+        26,
+        257,
+        53
+      ],
+      "split": "test",
+      "surface": "dorsum",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "dorsum",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0111",
+      "frameId": "X0068",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "694b5aa0d00c181b7654d77f2384e7a6a6b12f4181a71fd6765a6cc532725699",
+      "patchSHA256": "37fbecbb8bf01b8efe04d5c0e0b9e394d436485b32f01ea31a8550cb38058b32",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "left",
+      "box": [
+        217,
+        41,
+        242,
+        66
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0112",
+      "frameId": "X0068",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "694b5aa0d00c181b7654d77f2384e7a6a6b12f4181a71fd6765a6cc532725699",
+      "patchSHA256": "a1d8efbc466bc2aafa3b7001374d575db2dda3a545d0722912e4bf48793a269c",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "side": "right",
+      "box": [
+        184,
+        7,
+        218,
+        41
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0113",
+      "frameId": "X0069",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "6ffdeb53f83df94dbde20e3e2a550a29f19f641741bcbb5a29206049d79ad291",
+      "patchSHA256": "74e5aa5117274752898b133c6d129532d6032c8b1aba402087fcd4fd373ad4f5",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "left",
+      "box": [
+        215,
+        35,
+        242,
+        62
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0114",
+      "frameId": "X0069",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "6ffdeb53f83df94dbde20e3e2a550a29f19f641741bcbb5a29206049d79ad291",
+      "patchSHA256": "d1b4c13aa80a6fb539dffed4f2c1381a8fa4f8044169d3d123a78a965d2ca5ec",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "side": "right",
+      "box": [
+        185,
+        8,
+        220,
+        43
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0115",
+      "frameId": "X0070",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "c2aeaf3ed352d3fb38db3a8302a8fc19206f581626253ce2b1fb665c2880d574",
+      "patchSHA256": "a8ccde9559d7cbba2fbdd9f89fe4ade372837382f71fcfa603bcb35ca4d6a64d",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "left",
+      "box": [
+        219,
+        34,
+        243,
+        58
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0116",
+      "frameId": "X0070",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "imageSHA256": "c2aeaf3ed352d3fb38db3a8302a8fc19206f581626253ce2b1fb665c2880d574",
+      "patchSHA256": "e6b1072a262d1bd7fcd5fb801d694a2ef35d950510e154a92fb1adbd8cd9a451",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "side": "right",
+      "box": [
+        185,
+        7,
+        219,
+        41
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0117",
+      "frameId": "X0071",
+      "caseId": "k700train_lgdXb6xpFns_000004_000014",
+      "recordingId": "d9f61a09a28678587f6688946e4a2b8a43c6286fce1036af2528cbba68685f2e",
+      "imageSHA256": "b227100de8f05a2158336ac4264088bd8fb74efee9a25f34e449d6b6e8665d1b",
+      "patchSHA256": "b17bbb696f92b25ce213b428e1145f530d62ef54b2b5bb5e17900306a57cfc6d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        525,
+        107,
+        605,
+        187
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0118",
+      "frameId": "X0071",
+      "caseId": "k700train_lgdXb6xpFns_000004_000014",
+      "recordingId": "d9f61a09a28678587f6688946e4a2b8a43c6286fce1036af2528cbba68685f2e",
+      "imageSHA256": "b227100de8f05a2158336ac4264088bd8fb74efee9a25f34e449d6b6e8665d1b",
+      "patchSHA256": "4f9bd7c5685ec0c338be850b975bbfa4d14a346a4f85e30e008d5f3650702e93",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        451,
+        0,
+        531,
+        80
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0119",
+      "frameId": "X0072",
+      "caseId": "k700train_lgdXb6xpFns_000004_000014",
+      "recordingId": "d9f61a09a28678587f6688946e4a2b8a43c6286fce1036af2528cbba68685f2e",
+      "imageSHA256": "18ddc304628774bd66d90b91771967d4d6bef655048998ab13dfdc83c0d7a740",
+      "patchSHA256": "a5c14d157f525f15e7c22e49254cb50c90e4b831a0d9f74b57f00efa8df6751c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        432,
+        140,
+        590,
+        298
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0120",
+      "frameId": "X0077",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "e3df36f4b952fc08771b14b1e262a7b371fd2293359839eb84e8ffaea35de63d",
+      "patchSHA256": "fc48497db95a5687184f31c7cd13fc867bd71f22451c9056f69458adedd07340",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        616,
+        67,
+        697,
+        148
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed",
+        "qualityEligible": false,
+        "reason": "Two overlapping closed gripping hands; not a local contact-negative reference"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": false,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0121",
+      "frameId": "X0077",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "e3df36f4b952fc08771b14b1e262a7b371fd2293359839eb84e8ffaea35de63d",
+      "patchSHA256": "96adf5bf68a6db97394e42d14eff1be58d051000dceebbfd0f388595a51ef322",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        641,
+        76,
+        711,
+        146
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed",
+        "qualityEligible": false,
+        "reason": "Two overlapping closed gripping hands; not a local contact-negative reference"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": false,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0122",
+      "frameId": "X0078",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "3d68682496073619c57cd0b06ef1e74da4cb3ac72cc60892915a1e72339a86c3",
+      "patchSHA256": "2ecf1415b4ba266400f3b1d8918497b3e6c2c28c6ea3aec1e479d67af78f6bc3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        607,
+        88,
+        687,
+        168
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed",
+        "qualityEligible": false,
+        "reason": "Two overlapping closed gripping hands; not a local contact-negative reference"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": false,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0123",
+      "frameId": "X0078",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "imageSHA256": "3d68682496073619c57cd0b06ef1e74da4cb3ac72cc60892915a1e72339a86c3",
+      "patchSHA256": "b4871ec178e80c1ffa2b8b02fb875d647c3514d63311d5adbe520498beb1de0c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        644,
+        88,
+        722,
+        166
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "underhand",
+      "view": "rear",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed",
+        "qualityEligible": false,
+        "reason": "Two overlapping closed gripping hands; not a local contact-negative reference"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": false,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0124",
+      "frameId": "X0079",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "9fb8e74000cb099ab4ef71d4f5944c4ffca343868bdfa49daa184cb598238b1c",
+      "patchSHA256": "5bda87b72b651149a37b0f7635c6eed1162bf53fa1caff00ed191f099c6edc75",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "left",
+      "box": [
+        827,
+        408,
+        877,
+        458
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "front",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0125",
+      "frameId": "X0079",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "9fb8e74000cb099ab4ef71d4f5944c4ffca343868bdfa49daa184cb598238b1c",
+      "patchSHA256": "bd09a62954b746e0e6362bc988ec366cb59ecb847d5eb8efadfaf77acc5b6141",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "side": "right",
+      "box": [
+        533,
+        90,
+        664,
+        221
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0126",
+      "frameId": "X0080",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "b65686b35caeca43c0259d77656fc39d3c60dfcaf3f340e1abb88085d5b42ca3",
+      "patchSHA256": "2e1eb6e2d67cbc3fb9f7dd51bbfe664e13e6b9a7a07a4fe61c53f05fca42d211",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        888,
+        302,
+        912,
+        326
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "front",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0127",
+      "frameId": "X0080",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "b65686b35caeca43c0259d77656fc39d3c60dfcaf3f340e1abb88085d5b42ca3",
+      "patchSHA256": "3e4a3456d1fb4219de20f8f94b23604c3241069b08b11d9a21b489fc3c0902e3",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        536,
+        97,
+        655,
+        216
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0128",
+      "frameId": "X0081",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "0a80ee53e7c1535f55c4f37b0a901d1b49f9701c724ad744f90761a6689ce089",
+      "patchSHA256": "3fb7b0b9c7bf1eca65f1696e55fe9bff5db30af945ca87be8549a2a97b521c19",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        879,
+        308,
+        903,
+        332
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "front",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0129",
+      "frameId": "X0081",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "0a80ee53e7c1535f55c4f37b0a901d1b49f9701c724ad744f90761a6689ce089",
+      "patchSHA256": "3a9ad33382d302a582c778f0071ed0c10a5997a16ffa8119135380a4d6b9b150",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "right",
+      "box": [
+        533,
+        89,
+        666,
+        222
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "closed",
+      "grip": "overhand",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0130",
+      "frameId": "X0082",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "47772041a2be0584769b7e677a0ecfff1583142bbdba55719948fc2e30820779",
+      "patchSHA256": "e58fd4a47035a68e36a271314eaf45ace396ecaf52e8a95a483dc755c84efcbf",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "left",
+      "box": [
+        848,
+        106,
+        990,
+        248
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "open",
+      "grip": "exclude",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "open"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "open"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0131",
+      "frameId": "X0082",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "imageSHA256": "47772041a2be0584769b7e677a0ecfff1583142bbdba55719948fc2e30820779",
+      "patchSHA256": "d6c04843003245f2b9e08b52c1ec2308e4db55d831ced3e01acc8a35ac6fc195",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "side": "right",
+      "box": [
+        526,
+        108,
+        668,
+        250
+      ],
+      "split": "test",
+      "surface": "palm",
+      "contact": "open",
+      "grip": "exclude",
+      "view": "front",
+      "firstPass": {
+        "surface": "palm",
+        "contact": "open"
+      },
+      "secondPass": {
+        "surface": "palm",
+        "contact": "open"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0132",
+      "frameId": "X0084",
+      "caseId": "k700train_HesycfeXGkY_000002_000012",
+      "recordingId": "a8910290a164ecc7bd7d86baa0fae0f7aee73517fb79d33275e48b50c49b834e",
+      "imageSHA256": "ea35b2affbc164d5bb0915a94a0b1ca87618504cceb0bfec0a8dcd40e31317ee",
+      "patchSHA256": "3d267e14eb4258e53908a54adeb3ce230ad09496fdbb8c912a3b3d56eba4659b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "left",
+      "box": [
+        59,
+        26,
+        100,
+        67
+      ],
+      "split": "test",
+      "surface": "side",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "side",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0133",
+      "frameId": "X0084",
+      "caseId": "k700train_HesycfeXGkY_000002_000012",
+      "recordingId": "a8910290a164ecc7bd7d86baa0fae0f7aee73517fb79d33275e48b50c49b834e",
+      "imageSHA256": "ea35b2affbc164d5bb0915a94a0b1ca87618504cceb0bfec0a8dcd40e31317ee",
+      "patchSHA256": "dc347e374f236fd15fe89301331198c160ad1bc82b8e9c1b04224620a899b735",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "side": "right",
+      "box": [
+        110,
+        54,
+        135,
+        79
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "invalid",
+      "grip": "exclude",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "invalid"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    },
+    {
+      "reviewId": "T0134",
+      "frameId": "X0085",
+      "caseId": "k700train_HesycfeXGkY_000002_000012",
+      "recordingId": "a8910290a164ecc7bd7d86baa0fae0f7aee73517fb79d33275e48b50c49b834e",
+      "imageSHA256": "bd760a4c4763267abf311087b29dad99cca76ff9589110935783bbbea8cf03a4",
+      "patchSHA256": "e815635e18e17881dcfa0b83ba322b9b5adc2ed6136fc49c3c4810324265f46a",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "side": "left",
+      "box": [
+        73,
+        47,
+        97,
+        71
+      ],
+      "split": "test",
+      "surface": "unclear",
+      "contact": "closed",
+      "grip": "neutral",
+      "view": "oblique",
+      "firstPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "secondPass": {
+        "surface": "unclear",
+        "contact": "closed"
+      },
+      "conflict": false,
+      "adjudication": null,
+      "qualityEligible": true,
+      "method": "Two explicit visual reviews of actual hand RGB; surface never derived from grip or athlete view"
+    }
+  ]
+}

@@ -41,11 +41,13 @@ struct ExerciseCounter: Sendable {
         let formVerification: String
     }
 
-    // Policy v8 retains pull-up v7 behavior. Dips use a fixed grip-to-shoulder
+    // Policy v9 retains the raw counter endpoints; shared analytics now reject
+    // pull-up completion after positive release during set-boundary dwell.
+    // Dips use a fixed grip-to-shoulder
     // axis and arm-scaled travel, require grip continuity and return near the
     // acquired top, and check the opposite arm when it has a usable baseline.
     // These are provisional movement counts, not anatomical form/depth grading.
-    static let policyVersion = 8
+    static let policyVersion = 9
     static let extendedDegrees = 155.0
     static let departureDegrees = 140.0
     static let bentDegrees = 100.0

@@ -1,0 +1,733 @@
+{
+  "schemaVersion": 23,
+  "scope": "Frozen new-video validation, no production changes. Source-confirmed view and wrist reference; not automatic phone qualification.",
+  "report": {
+    "schemaVersion": 23,
+    "scope": "New video groups; source-only joint-center region references frozen before inference. Source-confirmed view and wrist-seeded support remain diagnostic, not phone acquisition or human-adjudicated gold.",
+    "allNewSources": 6,
+    "supportedNewSources": 3,
+    "excludedNewSources": 3,
+    "cases": [
+      {
+        "id": "qVztO-F-IwI",
+        "role": "newSeparateSource",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "underhand",
+        "outcome": "correct",
+        "nativeFrames": 635,
+        "counterEligibleFrames": 130,
+        "originalScheduledFrames": 91,
+        "originalExerciseScheduledFrames": 22,
+        "exerciseLabelFrames": 12,
+        "exerciseLabelCoverage": 0.5454545454545454,
+        "firstCorrectSeconds": 13.16,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              10.8,
+              15.3
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {
+          "setupFrames": 263,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        },
+        "referenceWidth": "shoulderWidth",
+        "referenceInterval": [
+          0.8826183737090153,
+          1.2676011249259755
+        ],
+        "widthReferenceVerifiable": true,
+        "shotFrames": 197,
+        "exerciseNativeFrames": 152,
+        "exerciseWidthFrames": 45,
+        "widthCoverage": 0.29605263157894735,
+        "predictedWidthBands": {
+          "shoulderWidth": 45,
+          "unknown": 107
+        },
+        "medianRatio": 1.2472782479109537,
+        "correctWidthFrames": 45,
+        "wrongWidthFrames": 0,
+        "widthOutcome": "correct",
+        "widthUnavailableReasons": {
+          "bodyTrackingUnavailable": 6,
+          "waitingForStableHangBaseline": 88,
+          "confirmingWidth": 13
+        }
+      },
+      {
+        "id": "88bye9FlQR8",
+        "role": "newSeparateSource",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "underhand",
+        "outcome": "correct",
+        "nativeFrames": 386,
+        "counterEligibleFrames": 202,
+        "originalScheduledFrames": 65,
+        "originalExerciseScheduledFrames": 33,
+        "exerciseLabelFrames": 27,
+        "exerciseLabelCoverage": 0.8181818181818182,
+        "firstCorrectSeconds": 5.005,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              3.5,
+              7.5
+            ],
+            "correctVisible": true
+          },
+          {
+            "window": [
+              7.5,
+              11.5
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {
+          "setupFrames": 84,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 88
+        },
+        "referenceWidth": "uncertain",
+        "referenceInterval": [
+          0.5284223695933039,
+          1.3319166013617052
+        ],
+        "widthReferenceVerifiable": false,
+        "shotFrames": 264,
+        "exerciseNativeFrames": 197,
+        "exerciseWidthFrames": 76,
+        "widthCoverage": 0.38578680203045684,
+        "predictedWidthBands": {
+          "narrow": 76,
+          "unknown": 121
+        },
+        "medianRatio": 0.6354570460370673,
+        "correctWidthFrames": null,
+        "wrongWidthFrames": null,
+        "widthOutcome": "unverifiable",
+        "widthUnavailableReasons": {
+          "bodyTrackingUnavailable": 4,
+          "waitingForStableHangBaseline": 117
+        }
+      },
+      {
+        "id": "PdRboCRf1Mg",
+        "role": "newSeparateSource",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "overhand",
+        "outcome": "correct",
+        "nativeFrames": 496,
+        "counterEligibleFrames": 353,
+        "originalScheduledFrames": 62,
+        "originalExerciseScheduledFrames": 49,
+        "exerciseLabelFrames": 31,
+        "exerciseLabelCoverage": 0.6326530612244898,
+        "firstCorrectSeconds": 3.2,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              0,
+              5.3
+            ],
+            "correctVisible": true
+          },
+          {
+            "window": [
+              5.3,
+              8.8
+            ],
+            "correctVisible": true
+          },
+          {
+            "window": [
+              8.8,
+              12.8
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {},
+        "referenceWidth": "wide",
+        "referenceInterval": [
+          1.4523114058040743,
+          1.9915555878586682
+        ],
+        "widthReferenceVerifiable": true,
+        "shotFrames": 390,
+        "exerciseNativeFrames": 385,
+        "exerciseWidthFrames": 0,
+        "widthCoverage": 0.0,
+        "predictedWidthBands": {
+          "unknown": 385
+        },
+        "medianRatio": null,
+        "correctWidthFrames": 0,
+        "wrongWidthFrames": 0,
+        "widthOutcome": "unknown",
+        "widthUnavailableReasons": {
+          "bodyTrackingUnavailable": 385
+        }
+      }
+    ],
+    "nativeFrames": 1517,
+    "scheduledImages": 218,
+    "actualCounterAttempts": 9,
+    "completedCounterReps": 4,
+    "repWidthBands": {
+      "unknown": 8,
+      "narrow": 1
+    },
+    "newModelFit": false,
+    "thresholdsChanged": false,
+    "phoneInstalled": false
+  },
+  "verification": {
+    "schemaVersion": 23,
+    "frozenPinsVerified": 29,
+    "originalSourcesVerified": 6,
+    "fittingSourceOverlap": 0,
+    "processedSources": 3,
+    "excludedBeforeInference": 3,
+    "nativeFrames": 1517,
+    "scheduledOriginalPosesAndImagesVerified": 218,
+    "automaticCropsRebuiltExactly": 238,
+    "independentlyHumanAdjudicated": false,
+    "referenceConvention": "jointCenterRegions_v1",
+    "resolvedWidthReferences": 2,
+    "uncertainWidthReferences": 1,
+    "productionOrModelChanges": false,
+    "widthGateDiagnostics": [
+      {
+        "id": "qVztO-F-IwI",
+        "shotFrames": 197,
+        "firstGateCounts": {
+          "noTrackedPerson": 5,
+          "widthBodyUsable": 190,
+          "shoulderSpanBelowEightPercentShortSide": 2
+        },
+        "medianConfidentShoulderPixels": 68.0798576714291,
+        "shoulderPixelFloor": 57.6
+      },
+      {
+        "id": "88bye9FlQR8",
+        "shotFrames": 264,
+        "firstGateCounts": {
+          "noTrackedPerson": 1,
+          "noSupportReference": 10,
+          "widthBodyUsable": 245,
+          "shoulderSpanBelowEightPercentShortSide": 5,
+          "otherSupportGeometryOrRelease": 3
+        },
+        "medianConfidentShoulderPixels": 67.2790658707431,
+        "shoulderPixelFloor": 57.6
+      },
+      {
+        "id": "PdRboCRf1Mg",
+        "shotFrames": 390,
+        "firstGateCounts": {
+          "noTrackedPerson": 1,
+          "shoulderSpanBelowEightPercentShortSide": 385,
+          "jointMissingOrLowConfidence": 4
+        },
+        "medianConfidentShoulderPixels": 48.097323190612876,
+        "shoulderPixelFloor": 57.6
+      }
+    ],
+    "assembledFramesVerified": 2152,
+    "explicitSetResetOutputsMatchIsolated": true,
+    "assembledSets": [
+      {
+        "position": 0,
+        "id": "qVztO-F-IwI",
+        "frames": 635,
+        "gripOutcome": "correct",
+        "negativeControls": {
+          "setupFrames": 263,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        }
+      },
+      {
+        "position": 1,
+        "id": "PdRboCRf1Mg",
+        "frames": 496,
+        "gripOutcome": "correct",
+        "negativeControls": {}
+      },
+      {
+        "position": 2,
+        "id": "88bye9FlQR8",
+        "frames": 386,
+        "gripOutcome": "correct",
+        "negativeControls": {
+          "setupFrames": 84,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 88
+        }
+      },
+      {
+        "position": 3,
+        "id": "qVztO-F-IwI",
+        "frames": 635,
+        "gripOutcome": "correct",
+        "negativeControls": {
+          "setupFrames": 263,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        }
+      }
+    ],
+    "continuousAlternatingWorkoutValidated": false,
+    "phoneAutomaticAcquisitionValidated": false,
+    "sha256": {
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/report.json": "e2baf1c827d9cbcb45c3e5f2dbf31faa5dd3b586942ff083ee7c2b7dff7ad283",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/grip-results.json": "7433e4e1d952e99705ff1b84d7364cc970cfc62bce4b2f283e12cd5005adc09e",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/native-output.jsonl": "10dbbb1aedc4a5c585ecbde4173f569fb56d37ae9da32f712f3ed3b5ef9cf5aa",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/rep-records.json": "09976302705cc7bbbc15cc9e2b9bbfe27443633ac382243ae7d45993adb6ae7a",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/observations.jsonl": "a26fefae13b1b01be149128d4b3cbebda06a5aa6ba111b5a33ebc6a247f8ee07",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/alternating-output.jsonl": "cf96533130367798524a697c031f43c56427150588ee51be253cfb0a6cdfd667",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/alternating-rep-records.json": "f7406de2d611abf03881ad8250e65bb5132b43cc120ad3aed6883ca4c0e0fd65",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/protocol.json": "1b36c9d324eac0d0d2fa4289394a92c807b076d2d800fc5ba0b16aa754ee956c",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/reference-freeze.json": "2fdcb2042c58bb8186c3fc063b23afe635e2bbb33cf39b69ddb39faedd434d80",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/pre-inference-freeze.json": "ab45f83353962e0fcde3a336066ca8b91b0500534fd2ea704fefef8bdb1008b4",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/crop-review-receipt.json": "dd19476b400f5dc5732f6f6cd9e062dab092f152e6ad262933d1c2ad44793dd1",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/implementation-freeze.json": "d7bb263872d80346f696e0a2b675cbf22747b737ede19c816725409313e40730",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/alternating-plan.json": "7129adc26bc1edc6c25a90ca755907480d722708d5f230c1a214466b8fabeffc",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/native-replay-junit.xml": "cd4c443768ba3a169c42c764e9ee78a5087618b7bf39dc986a2d037f3a5c35a8",
+      "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/alternating-replay-junit.xml": "d89d5e4fd84d472e087a67e93d2d708e502c657fbbc7a14416bf1d37acfa5042",
+      "/Users/yongkyunshin/Dev/HangInThere/scripts/audit-grip-width-v23.py": "6bf8554db5c21f0baa9154e44f8598d4876489340fd07059958bd8c3bb00b1b6"
+    }
+  },
+  "sourceReferences": {
+    "cases": [
+      {
+        "id": "qVztO-F-IwI",
+        "title": "How to Perform a Close Grip Chinup | Nuffield Health",
+        "sourceURL": "https://www.youtube.com/watch?v=qVztO-F-IwI",
+        "sourceGroup": "youtube:qVztO-F-IwI",
+        "channel": "Nuffield Health",
+        "duration": 26,
+        "role": "newSeparateSource",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-width-v23/qVztO-F-IwI.mp4",
+        "sha256": "80bfb654d34a169b93a479c5c9f97c2dfb74b17b1571fb843469800beb56fc4e",
+        "bytes": 4126282,
+        "recordingId": "80bfb654d34a169b93a479c5c9f97c2dfb74b17b1571fb843469800beb56fc4e",
+        "supported": true,
+        "confirmedView": "front",
+        "grip": "underhand",
+        "activeWindow": [
+          10.5,
+          16.6
+        ],
+        "releaseStart": 100,
+        "fullCycleWindows": [
+          [
+            10.8,
+            15.3
+          ]
+        ],
+        "framesDirectory": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/native-rgb/frames/qVztO-F-IwI",
+        "bodyDirectory": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/native-body/qVztO-F-IwI",
+        "shots": [
+          {
+            "id": "eligible",
+            "window": [
+              8.7,
+              16.6
+            ],
+            "view": "front",
+            "referenceWidth": "shoulderWidth",
+            "referenceGrip": "underhand",
+            "fullCaptureSupported": true,
+            "gripInference": true,
+            "reference": {
+              "sourceImage": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/qVztO-F-IwI-10.png",
+              "sourceImageSHA256": "8b37baa3612cc0fe9c70a591d2085df243ce768940b3d91b5b2120b51eac2cbf",
+              "seconds": 10,
+              "imageSize": [
+                1280,
+                720
+              ],
+              "regions": {
+                "leftShoulder": [
+                  466,
+                  294,
+                  474,
+                  304
+                ],
+                "rightShoulder": [
+                  535,
+                  294,
+                  543,
+                  304
+                ],
+                "leftWrist": [
+                  466,
+                  155,
+                  470,
+                  164
+                ],
+                "rightWrist": [
+                  539,
+                  155,
+                  543,
+                  164
+                ]
+              },
+              "support": [
+                [
+                  460,
+                  136
+                ],
+                [
+                  550,
+                  140
+                ]
+              ],
+              "ratioInterval": [
+                0.8826183737090153,
+                1.2676011249259755
+              ],
+              "convention": "jointCenterRegions_v1",
+              "reviewQualification": "Agent source-only region annotations before inference; not independent human gold."
+            },
+            "note": "Clearly exercising athlete with coach. Coach is not an exclusion. Fixed full-body front shot, visible full extension before pull; other camera shots are outside this shot scope."
+          }
+        ]
+      },
+      {
+        "id": "88bye9FlQR8",
+        "title": "NARROW GRIP CHIN UPS - HRDR Exercise Video Library",
+        "sourceURL": "https://www.youtube.com/watch?v=88bye9FlQR8",
+        "sourceGroup": "youtube:88bye9FlQR8",
+        "channel": "Carlito",
+        "duration": 17,
+        "role": "newSeparateSource",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-width-v23/88bye9FlQR8.mp4",
+        "sha256": "8b1ac96d3435ca6da4e355e2d5bcfb450cd837226a78d33ba7ad389c9308b4a9",
+        "bytes": 2177587,
+        "recordingId": "8b1ac96d3435ca6da4e355e2d5bcfb450cd837226a78d33ba7ad389c9308b4a9",
+        "supported": true,
+        "confirmedView": "front",
+        "grip": "underhand",
+        "activeWindow": [
+          3.5,
+          11.7
+        ],
+        "releaseStart": 12.4,
+        "fullCycleWindows": [
+          [
+            3.5,
+            7.5
+          ],
+          [
+            7.5,
+            11.5
+          ]
+        ],
+        "framesDirectory": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/native-rgb/frames/88bye9FlQR8",
+        "bodyDirectory": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/native-body/88bye9FlQR8",
+        "shots": [
+          {
+            "id": "eligible",
+            "window": [
+              1.2,
+              12.2
+            ],
+            "view": "front",
+            "referenceWidth": "uncertain",
+            "referenceGrip": "underhand",
+            "fullCaptureSupported": true,
+            "gripInference": true,
+            "reference": {
+              "sourceImage": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/88bye9FlQR8-2.0.png",
+              "sourceImageSHA256": "cafc81cc47b4e2b306b0bb9ab6abe980ae5309b9e7e205c76feaa44df13d0624",
+              "seconds": 2,
+              "imageSize": [
+                1280,
+                720
+              ],
+              "regions": {
+                "leftShoulder": [
+                  589,
+                  259,
+                  601,
+                  273
+                ],
+                "rightShoulder": [
+                  646,
+                  259,
+                  658,
+                  273
+                ],
+                "leftWrist": [
+                  575,
+                  132,
+                  585,
+                  143
+                ],
+                "rightWrist": [
+                  624,
+                  132,
+                  634,
+                  143
+                ]
+              },
+              "support": [
+                [
+                  560,
+                  116
+                ],
+                [
+                  650,
+                  104
+                ]
+              ],
+              "ratioInterval": [
+                0.5284223695933039,
+                1.3319166013617052
+              ],
+              "convention": "jointCenterRegions_v1",
+              "reviewQualification": "Agent source-only region annotations before inference; not independent human gold."
+            },
+            "note": "Fixed slightly oblique front view, both hands separately visible. Narrow title is not width truth. Joint-center uncertainty may cross bands and stays uncertain. Text covers abdomen briefly; shoulders and arms remain visible."
+          }
+        ]
+      },
+      {
+        "id": "PdRboCRf1Mg",
+        "title": "Pull Up | Exercise Demo",
+        "sourceURL": "https://www.youtube.com/watch?v=PdRboCRf1Mg",
+        "sourceGroup": "youtube:PdRboCRf1Mg",
+        "channel": "Holly Skinner Coach - 40+ Women's Health & Fitness",
+        "duration": 17,
+        "role": "newSeparateSource",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-width-v23/PdRboCRf1Mg.mp4",
+        "sha256": "2f48f25b7c300644afabecac835a6e332099a3b22946189ffa28bf306fe8b801",
+        "bytes": 1560082,
+        "recordingId": "2f48f25b7c300644afabecac835a6e332099a3b22946189ffa28bf306fe8b801",
+        "supported": true,
+        "confirmedView": "front",
+        "grip": "overhand",
+        "activeWindow": [
+          0,
+          12.8
+        ],
+        "releaseStart": 100,
+        "fullCycleWindows": [
+          [
+            0,
+            5.3
+          ],
+          [
+            5.3,
+            8.8
+          ],
+          [
+            8.8,
+            12.8
+          ]
+        ],
+        "framesDirectory": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/native-rgb/frames/PdRboCRf1Mg",
+        "bodyDirectory": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/native-body/PdRboCRf1Mg",
+        "shots": [
+          {
+            "id": "eligible",
+            "window": [
+              0,
+              13.0
+            ],
+            "view": "front",
+            "referenceWidth": "wide",
+            "referenceGrip": "overhand",
+            "fullCaptureSupported": true,
+            "gripInference": true,
+            "reference": {
+              "sourceImage": "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/PdRboCRf1Mg-8.0.png",
+              "sourceImageSHA256": "a7bd199a26dcce6004db44b9d9d557d8efd328876d9d2e79b9e9bac35efca14d",
+              "seconds": 8,
+              "imageSize": [
+                1280,
+                720
+              ],
+              "regions": {
+                "leftShoulder": [
+                  600,
+                  259,
+                  606,
+                  268
+                ],
+                "rightShoulder": [
+                  666,
+                  256,
+                  672,
+                  265
+                ],
+                "leftWrist": [
+                  579,
+                  153,
+                  585,
+                  160
+                ],
+                "rightWrist": [
+                  691,
+                  140,
+                  697,
+                  147
+                ]
+              },
+              "support": [
+                [
+                  580,
+                  138
+                ],
+                [
+                  696,
+                  125
+                ]
+              ],
+              "ratioInterval": [
+                1.4523114058040743,
+                1.9915555878586682
+              ],
+              "convention": "jointCenterRegions_v1",
+              "reviewQualification": "Agent source-only region annotations before inference; not independent human gold."
+            },
+            "note": "Fixed moderate front-oblique view within front/rear setup, visible both hands and full body. No numeric yaw inferred; source-confirmed view is diagnostic input only."
+          }
+        ]
+      }
+    ],
+    "excludedCases": [
+      {
+        "id": "abY26INaGg8",
+        "title": "Close Grip Chin Ups",
+        "sourceURL": "https://www.youtube.com/watch?v=abY26INaGg8",
+        "sourceGroup": "youtube:abY26INaGg8",
+        "channel": "MrSupplement.com.au",
+        "duration": 116,
+        "role": "newValidationOnly",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-width-v23/abY26INaGg8.mp4",
+        "sha256": "b24ff4a5a18c93ae584820d9570856e6a76dff508a05c009dc8f8f208234a80f",
+        "bytes": 31611894,
+        "exclusion": "Oblique/side exercise footage with spotting and multiple edits; outside supported front/rear view. Coach alone is not an exclusion."
+      },
+      {
+        "id": "jgFel4wZl3I",
+        "title": "Strict Pull Up - OPEX Exercise Library",
+        "sourceURL": "https://www.youtube.com/watch?v=jgFel4wZl3I",
+        "sourceGroup": "youtube:jgFel4wZl3I",
+        "channel": "OPEX Fitness",
+        "duration": 12,
+        "role": "newValidationOnly",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-width-v23/jgFel4wZl3I.mp4",
+        "sha256": "115742c264fd7e58799186a7d2ab40a736f4c65085e8edcc076a8eb82e316cdc",
+        "bytes": 232728,
+        "exclusion": "Side camera; outside front/rear view."
+      },
+      {
+        "id": "a79hAiNCl9k",
+        "title": "PULL UPS - Exercise Video",
+        "sourceURL": "https://www.youtube.com/watch?v=a79hAiNCl9k",
+        "sourceGroup": "youtube:a79hAiNCl9k",
+        "channel": "FunctionalMuscleFitness",
+        "duration": 25,
+        "role": "newValidationOnly",
+        "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-width-v23/a79hAiNCl9k.mp4",
+        "sha256": "3b01621e29f29eaa401e30b6146c9de5efa3f91420809263309bb64135f75e71",
+        "bytes": 4704409,
+        "exclusion": "Cropped upper-body oblique/side shots and edits; outside fixed supported full capture."
+      }
+    ],
+    "allNewSources": 6,
+    "supportedSources": 3,
+    "qualification": "Region intervals and source scope locked before native pose/hand inference; uncertain widths stay unverifiable. No model-success screening."
+  },
+  "sourceExposureLedger": {
+    "schemaVersion": 23,
+    "status": "exposedValidationOnly",
+    "newFit": false,
+    "sources": [
+      {
+        "id": "qVztO-F-IwI",
+        "sourceURL": "https://www.youtube.com/watch?v=qVztO-F-IwI",
+        "sourceGroup": "youtube:qVztO-F-IwI",
+        "sha256": "80bfb654d34a169b93a479c5c9f97c2dfb74b17b1571fb843469800beb56fc4e",
+        "scope": "processedSupported",
+        "futureUse": "Exposed validation/development regression; never claim these as an unseen test for later fitted changes."
+      },
+      {
+        "id": "abY26INaGg8",
+        "sourceURL": "https://www.youtube.com/watch?v=abY26INaGg8",
+        "sourceGroup": "youtube:abY26INaGg8",
+        "sha256": "b24ff4a5a18c93ae584820d9570856e6a76dff508a05c009dc8f8f208234a80f",
+        "scope": "excludedBeforeInference",
+        "futureUse": "Exposed validation/development regression; never claim these as an unseen test for later fitted changes."
+      },
+      {
+        "id": "88bye9FlQR8",
+        "sourceURL": "https://www.youtube.com/watch?v=88bye9FlQR8",
+        "sourceGroup": "youtube:88bye9FlQR8",
+        "sha256": "8b1ac96d3435ca6da4e355e2d5bcfb450cd837226a78d33ba7ad389c9308b4a9",
+        "scope": "processedSupported",
+        "futureUse": "Exposed validation/development regression; never claim these as an unseen test for later fitted changes."
+      },
+      {
+        "id": "jgFel4wZl3I",
+        "sourceURL": "https://www.youtube.com/watch?v=jgFel4wZl3I",
+        "sourceGroup": "youtube:jgFel4wZl3I",
+        "sha256": "115742c264fd7e58799186a7d2ab40a736f4c65085e8edcc076a8eb82e316cdc",
+        "scope": "excludedBeforeInference",
+        "futureUse": "Exposed validation/development regression; never claim these as an unseen test for later fitted changes."
+      },
+      {
+        "id": "PdRboCRf1Mg",
+        "sourceURL": "https://www.youtube.com/watch?v=PdRboCRf1Mg",
+        "sourceGroup": "youtube:PdRboCRf1Mg",
+        "sha256": "2f48f25b7c300644afabecac835a6e332099a3b22946189ffa28bf306fe8b801",
+        "scope": "processedSupported",
+        "futureUse": "Exposed validation/development regression; never claim these as an unseen test for later fitted changes."
+      },
+      {
+        "id": "a79hAiNCl9k",
+        "sourceURL": "https://www.youtube.com/watch?v=a79hAiNCl9k",
+        "sourceGroup": "youtube:a79hAiNCl9k",
+        "sha256": "3b01621e29f29eaa401e30b6146c9de5efa3f91420809263309bb64135f75e71",
+        "scope": "excludedBeforeInference",
+        "futureUse": "Exposed validation/development regression; never claim these as an unseen test for later fitted changes."
+      }
+    ]
+  },
+  "referenceTests": {
+    "tests": 6,
+    "failures": 0,
+    "errors": 0
+  },
+  "sha256": {
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/test/report.json": "e2baf1c827d9cbcb45c3e5f2dbf31faa5dd3b586942ff083ee7c2b7dff7ad283",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/verification.json": "dccaa827abe4f01b0e6d8d2da5fad1d564389397916f4c9e5e9fd07ef9ad51d2",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/source-references.json": "8d5cc04f9705bea798a1fba78fe729da70028951983bd63f5b4246cfe3b5e338",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/source-exposure-ledger.json": "bb8106749a6428848ad55bb0f05170d8d8f2bffaf74eff2f9b9f710f56a11494",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/reference-tests-final.log": "cff3b632d675709eeb52ef6ee29ed430ee989b5e7a35599567c410328611c8a7",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-width-v23/cache-cleanup.json": "58bf048ebd5ec1e62a7e55c28f8a8e48b0a6bebba60696d025f33a0eff8c115e"
+  }
+}

@@ -1,0 +1,922 @@
+{
+  "schemaVersion": 20,
+  "scope": "Exposed supported-capture regression; source screen/view are diagnostic inputs, not an automatic phone eligibility or RGB-deployment claim.",
+  "comparisons": {
+    "previousReadability": [
+      {
+        "id": "pullup",
+        "role": "developmentControl",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "overhand",
+        "outcome": "correct",
+        "nativeFrames": 690,
+        "counterEligibleFrames": 294,
+        "originalScheduledFrames": 87,
+        "originalExerciseScheduledFrames": 56,
+        "exerciseLabelFrames": 29,
+        "exerciseLabelCoverage": 0.5178571428571429,
+        "firstCorrectSeconds": 12.016666666666667,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              10.5,
+              13.3
+            ],
+            "correctVisible": true
+          },
+          {
+            "window": [
+              14.7,
+              18.0
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {
+          "setupFrames": 144,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 74
+        },
+        "widthBands": {
+          "unknown": 54,
+          "wide": 394
+        },
+        "medianShoulderRatio": 2.5086621216255187,
+        "cycleMetadata": [
+          {
+            "window": [
+              10.5,
+              13.3
+            ],
+            "observedOrientations": [
+              "overhand"
+            ],
+            "observedWidths": [
+              "wide"
+            ]
+          },
+          {
+            "window": [
+              14.7,
+              18.0
+            ],
+            "observedOrientations": [
+              "overhand"
+            ],
+            "observedWidths": [
+              "wide"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "chinup",
+        "role": "developmentControl",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "underhand",
+        "outcome": "correct",
+        "nativeFrames": 648,
+        "counterEligibleFrames": 106,
+        "originalScheduledFrames": 81,
+        "originalExerciseScheduledFrames": 48,
+        "exerciseLabelFrames": 3,
+        "exerciseLabelCoverage": 0.0625,
+        "firstCorrectSeconds": 16.535,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              13.6,
+              17.2
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {
+          "setupFrames": 135,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 108
+        },
+        "widthBands": {
+          "unknown": 102,
+          "wide": 276
+        },
+        "medianShoulderRatio": 1.7170830305975462,
+        "cycleMetadata": [
+          {
+            "window": [
+              13.6,
+              17.2
+            ],
+            "observedOrientations": [
+              "underhand"
+            ],
+            "observedWidths": [
+              "wide"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "k600_1KJ2CrNPjI4_000061_000071",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Bent-arm hold/leg raises; no full starting hang or complete pull-up excursion. End card retained.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k600_5M1PFdVAblE_000019_000029",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Hands/forearms clip the upper image edge during extension; oblique low camera and later instructor cut.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k600_S1w26NGt6VQ_000084_000094",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Athlete too distant for verifiable hand surfaces; gloves and small hands. Visible release retained.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 231,
+        "counterEligibleFrames": 3,
+        "originalScheduledFrames": 29,
+        "originalExerciseScheduledFrames": 11,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": 0.0,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {
+          "releaseFrames": 126,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        },
+        "widthBands": {
+          "unknown": 82
+        },
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k600_qOYstr_A_5o_000157_000167",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Small blurred hands at top boundary during swinging pulls; source hand detail insufficient. Clearly identifiable performer and coach are not an exclusion by themselves.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 250,
+        "counterEligibleFrames": 167,
+        "originalScheduledFrames": 36,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_-5FM8mMJeYc_000075_000085",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Fingerboard/edge hanging and a later performer cut; unsupported apparatus/grip.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 250,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 36,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_2BC4P5QWDSk_000008_000018",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Inverted horizontal rows, outside upright hanging pull-up capture.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 215,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 27,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_BuJk69zP0No_000000_000010",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Movie sequence with dramatic exposure, camera cuts/angle changes and body occlusion; outside fixed phone capture.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_K6-XDRh0EYM_000043_000053",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "End-screen montage with simultaneous small videos and text; no single usable capture view.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 196,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 25,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_KjzNFkGb8Is_000217_000227",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Readable dorsal gloves and underhand front grip, but repeated camera zoom/reframing and later hips cropped. Useful future hand-only reference; excluded from fixed full-body capture qualification.",
+        "referenceGrip": "underhand",
+        "outcome": "excluded",
+        "nativeFrames": 139,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 24,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_SZ5Gkb_OyTM_000000_000010",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Side/oblique gym view, gripping hands cut above the image edge; initial title card.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_Y1TTOUienAA_000002_000012",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Close-up finger-under-bar gag, no full athlete/upper arms or starting hang.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 150,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_fKZHo9Oz-4o_000026_000036",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Very short oblique tuck/hold at rings/handles; no observed starting hang before a complete pulling cycle.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 60,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 8,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_-beNuPANrTI_000001_000011",
+        "role": "exposedRegression",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "overhand",
+        "outcome": "unknown",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 199,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 38,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": 0.0,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              2.3,
+              6.7
+            ],
+            "correctVisible": false
+          }
+        ],
+        "negativeControls": {},
+        "widthBands": {
+          "unknown": 111,
+          "wide": 186
+        },
+        "medianShoulderRatio": 1.9399522641158211,
+        "cycleMetadata": [
+          {
+            "window": [
+              2.3,
+              6.7
+            ],
+            "observedOrientations": [],
+            "observedWidths": [
+              "wide"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "k700train_W_vw0P8EVwQ_000220_000230",
+        "role": "exposedRegression",
+        "supported": false,
+        "exclusion": "Right gripping hand remains outside the image throughout; both separately visible hands required.",
+        "referenceGrip": "overhand",
+        "outcome": "excluded",
+        "nativeFrames": 270,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 34,
+        "originalExerciseScheduledFrames": 31,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": 0.0,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {
+          "releaseFrames": 15,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        },
+        "widthBands": {
+          "unknown": 243
+        },
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      }
+    ],
+    "supportedWithoutReadability": [
+      {
+        "id": "pullup",
+        "role": "developmentControl",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "overhand",
+        "outcome": "correct",
+        "nativeFrames": 690,
+        "counterEligibleFrames": 294,
+        "originalScheduledFrames": 87,
+        "originalExerciseScheduledFrames": 56,
+        "exerciseLabelFrames": 29,
+        "exerciseLabelCoverage": 0.5178571428571429,
+        "firstCorrectSeconds": 12.016666666666667,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              10.5,
+              13.3
+            ],
+            "correctVisible": true
+          },
+          {
+            "window": [
+              14.7,
+              18.0
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {
+          "setupFrames": 144,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 74
+        },
+        "widthBands": {
+          "unknown": 54,
+          "wide": 394
+        },
+        "medianShoulderRatio": 2.5086621216255187,
+        "cycleMetadata": [
+          {
+            "window": [
+              10.5,
+              13.3
+            ],
+            "observedOrientations": [
+              "overhand"
+            ],
+            "observedWidths": [
+              "wide"
+            ]
+          },
+          {
+            "window": [
+              14.7,
+              18.0
+            ],
+            "observedOrientations": [
+              "overhand"
+            ],
+            "observedWidths": [
+              "wide"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "chinup",
+        "role": "developmentControl",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "underhand",
+        "outcome": "correct",
+        "nativeFrames": 648,
+        "counterEligibleFrames": 106,
+        "originalScheduledFrames": 81,
+        "originalExerciseScheduledFrames": 48,
+        "exerciseLabelFrames": 5,
+        "exerciseLabelCoverage": 0.10416666666666667,
+        "firstCorrectSeconds": 16.001666666666665,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              13.6,
+              17.2
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {
+          "setupFrames": 135,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 108
+        },
+        "widthBands": {
+          "unknown": 102,
+          "wide": 276
+        },
+        "medianShoulderRatio": 1.7170830305975462,
+        "cycleMetadata": [
+          {
+            "window": [
+              13.6,
+              17.2
+            ],
+            "observedOrientations": [
+              "underhand"
+            ],
+            "observedWidths": [
+              "wide"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "k600_1KJ2CrNPjI4_000061_000071",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Bent-arm hold/leg raises; no full starting hang or complete pull-up excursion. End card retained.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k600_5M1PFdVAblE_000019_000029",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Hands/forearms clip the upper image edge during extension; oblique low camera and later instructor cut.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k600_S1w26NGt6VQ_000084_000094",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Athlete too distant for verifiable hand surfaces; gloves and small hands. Visible release retained.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 231,
+        "counterEligibleFrames": 3,
+        "originalScheduledFrames": 29,
+        "originalExerciseScheduledFrames": 11,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": 0.0,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {
+          "releaseFrames": 126,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        },
+        "widthBands": {
+          "unknown": 82
+        },
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k600_qOYstr_A_5o_000157_000167",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Small blurred hands at top boundary during swinging pulls; source hand detail insufficient. Clearly identifiable performer and coach are not an exclusion by themselves.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 250,
+        "counterEligibleFrames": 167,
+        "originalScheduledFrames": 36,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_-5FM8mMJeYc_000075_000085",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Fingerboard/edge hanging and a later performer cut; unsupported apparatus/grip.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 250,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 36,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_2BC4P5QWDSk_000008_000018",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Inverted horizontal rows, outside upright hanging pull-up capture.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 215,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 27,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_BuJk69zP0No_000000_000010",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Movie sequence with dramatic exposure, camera cuts/angle changes and body occlusion; outside fixed phone capture.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_K6-XDRh0EYM_000043_000053",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "End-screen montage with simultaneous small videos and text; no single usable capture view.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 196,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 25,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_KjzNFkGb8Is_000217_000227",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Readable dorsal gloves and underhand front grip, but repeated camera zoom/reframing and later hips cropped. Useful future hand-only reference; excluded from fixed full-body capture qualification.",
+        "referenceGrip": "underhand",
+        "outcome": "excluded",
+        "nativeFrames": 139,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 24,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_SZ5Gkb_OyTM_000000_000010",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Side/oblique gym view, gripping hands cut above the image edge; initial title card.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_Y1TTOUienAA_000002_000012",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Close-up finger-under-bar gag, no full athlete/upper arms or starting hang.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 150,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_fKZHo9Oz-4o_000026_000036",
+        "role": "separateSource",
+        "supported": false,
+        "exclusion": "Very short oblique tuck/hold at rings/handles; no observed starting hang before a complete pulling cycle.",
+        "referenceGrip": "unknown",
+        "outcome": "excluded",
+        "nativeFrames": 60,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 8,
+        "originalExerciseScheduledFrames": 0,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": null,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {},
+        "widthBands": {},
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      },
+      {
+        "id": "k700train_-beNuPANrTI_000001_000011",
+        "role": "exposedRegression",
+        "supported": true,
+        "exclusion": null,
+        "referenceGrip": "overhand",
+        "outcome": "correct",
+        "nativeFrames": 300,
+        "counterEligibleFrames": 199,
+        "originalScheduledFrames": 38,
+        "originalExerciseScheduledFrames": 38,
+        "exerciseLabelFrames": 19,
+        "exerciseLabelCoverage": 0.5,
+        "firstCorrectSeconds": 5.071733333333333,
+        "wrongNewDecisions": 0,
+        "cycles": [
+          {
+            "window": [
+              2.3,
+              6.7
+            ],
+            "correctVisible": true
+          }
+        ],
+        "negativeControls": {},
+        "widthBands": {
+          "unknown": 111,
+          "wide": 186
+        },
+        "medianShoulderRatio": 1.9399522641158211,
+        "cycleMetadata": [
+          {
+            "window": [
+              2.3,
+              6.7
+            ],
+            "observedOrientations": [
+              "overhand"
+            ],
+            "observedWidths": [
+              "wide"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "k700train_W_vw0P8EVwQ_000220_000230",
+        "role": "exposedRegression",
+        "supported": false,
+        "exclusion": "Right gripping hand remains outside the image throughout; both separately visible hands required.",
+        "referenceGrip": "overhand",
+        "outcome": "excluded",
+        "nativeFrames": 270,
+        "counterEligibleFrames": 0,
+        "originalScheduledFrames": 34,
+        "originalExerciseScheduledFrames": 31,
+        "exerciseLabelFrames": 0,
+        "exerciseLabelCoverage": 0.0,
+        "firstCorrectSeconds": null,
+        "wrongNewDecisions": 0,
+        "cycles": [],
+        "negativeControls": {
+          "releaseFrames": 15,
+          "newMovements": 0,
+          "exerciseAdmissions": 0,
+          "visibleLabels": 0
+        },
+        "widthBands": {
+          "unknown": 243
+        },
+        "medianShoulderRatio": null,
+        "cycleMetadata": []
+      }
+    ]
+  },
+  "readabilityVetoRemoved": true,
+  "thresholdsChanged": false,
+  "modelFitPerformed": false,
+  "newSourcesDecoded": 0,
+  "phoneInstalled": false,
+  "noFreshAccuracy": "Twelve newly screened sources remain outside scope; supported cases here are exposed development/regression sources.",
+  "widthOutputSHA256": "a434a65240d54328a65e671fbf9648d89aeb5eb525adf1f6ef5b53f0b4a93442",
+  "inputProtocolSHA256": "e416019e4d8d5cbdf8ef6eca5d83c2f1e6a69cfe2be0546aa30960b58f642453"
+}

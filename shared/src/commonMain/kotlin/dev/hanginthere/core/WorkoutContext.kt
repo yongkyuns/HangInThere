@@ -58,8 +58,8 @@ internal object WorkoutComparisonKey {
         require(value.length in 1..1024)
         val parts = WorkoutRecordCodec.json.decodeFromString<List<String>>(value)
         require(parts.size in 10..11 && parts[0] in ExerciseCounter.Exercise.entries.map { it.name })
-        if (parts.size == 11) require(parts[0] == ExerciseCounter.Exercise.dip.name &&
-            parts[10] == BilateralDipWorkout.countMethod && parts[9] == BilateralDipMotion.policyVersion.toString())
+        if (parts.size == 11) require(parts[9].toIntOrNull()?.toString() == parts[9] &&
+            WorkoutCountingMethod.isSupported(ExerciseCounter.Exercise.valueOf(parts[0]), parts[10], parts[9].toIntOrNull()))
         return parts
     }
 }

@@ -5,6 +5,39 @@ import kotlinx.serialization.encodeToString
 import kotlin.test.*
 
 class WorkoutReliabilityTests {
+    @Test fun acquiredPullupStartsThroughMeasuredDiscoveryScoreDipWithoutLosingReference() {
+        val exercise=ExerciseCounter.Exercise.pullUp
+        val runtime=acquired(exercise)
+        val bar=runtime.confirmedBar
+        runtime.observe(input(pose(1_000_000,exercise),exercise).copy(paused=true))
+        fun measured(t:Long)=pose(t,exercise).let { p -> p.copy(people=p.people.map { person ->
+            PoseObservation(person.landmarks.map { if(it.joint==PoseJoint.rightWrist) it.copy(confidence=.39) else it })
+        }) }
+        for(t in listOf(1_100_000L,1_150_000,1_219_999,1_220_000)) {
+            val p=measured(t)
+            assertNull(AutomaticExerciseDetection.candidate(p))
+            val snapshot=runtime.observe(input(p,exercise))
+            assertEquals(bar,runtime.confirmedBar)
+            assertEquals(exercise,snapshot.exercise)
+            assertEquals(if(t==1_220_000L) LiveSetSession.Phase.running else LiveSetSession.Phase.idle,snapshot.phase)
+            assertEquals(0,runtime.session.record.completedCount)
+        }
+    }
+    @Test fun measurableArmsCannotDiscoverOrStartAnUnknownWorkoutWithoutQualifiedReference() {
+        val exercise=ExerciseCounter.Exercise.pullUp
+        val runtime=WorkoutRuntime(automaticWorkouts=true)
+        for(t in 0L..2_000_000L step 100_000L) {
+            val original=pose(t,exercise)
+            val p=original.copy(people=original.people.map { person -> PoseObservation(person.landmarks.map {
+                if(it.joint==PoseJoint.rightWrist) it.copy(confidence=.39) else it
+            }) })
+            runtime.observe(input(p,exercise))
+            assertNull(runtime.resolvedExercise)
+            assertNull(runtime.confirmedBar)
+            assertEquals(LiveSetSession.Phase.idle,runtime.session.phase)
+            assertEquals(0,runtime.session.record.completedCount)
+        }
+    }
     private val attitude = PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)!!
     private val patches = List(3) { StaticSceneStability.PatchTranslation(0.0, 0.0) }
     private fun pose(ticks: Long, exercise: ExerciseCounter.Exercise, missing: ArmMeasurement.Side? = null): PoseResult =
@@ -113,6 +146,40 @@ class WorkoutReliabilityTests {
     }
 
     private fun sample(time: Double, left: Double?, right: Double? = left) = MotionSample(time, left, right, null, true, false)
+
+    @Test fun pullupReleaseCannotCompleteAnAcceptedAttemptDuringBoundaryDwell() {
+        for (returnOnReleaseFrame in listOf(false, true)) {
+            val analysis = WorkoutAnalysis("released-return", ExerciseCounter.Exercise.pullUp)
+            analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready, null)
+            analysis.observe(sample(.1, 130.0), ExerciseCounter.Phase.outbound, null)
+            analysis.observe(sample(.25, 80.0), ExerciseCounter.Phase.returning,
+                ExerciseCounter.Event(ExerciseCounter.Outcome.movement, .25, "observedTop"))
+            analysis.observe(sample(.4, 130.0).copy(released = true, postureReleased = true),
+                if (returnOnReleaseFrame) ExerciseCounter.Phase.ready else ExerciseCounter.Phase.returning, null)
+            // Even a subsequent transient false release flag cannot make the
+            // old accepted attempt complete when standing with straight arms.
+            analysis.observe(sample(.55, 170.0), ExerciseCounter.Phase.ready, null)
+            val rep = analysis.records.single()
+            assertEquals(.25, rep.acceptedAt)
+            assertNull(rep.returnedAt)
+            assertFalse(rep.isCompleteForAnalytics)
+            assertEquals("disengaged", rep.closeReason)
+        }
+    }
+
+    @Test fun pullupHeldReturnRemainsCompleteWhenReleaseFollows() {
+        val analysis = WorkoutAnalysis("held-return", ExerciseCounter.Exercise.pullUp)
+        analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready, null)
+        analysis.observe(sample(.1, 130.0), ExerciseCounter.Phase.outbound, null)
+        analysis.observe(sample(.25, 80.0), ExerciseCounter.Phase.returning,
+            ExerciseCounter.Event(ExerciseCounter.Outcome.movement, .25, "observedTop"))
+        analysis.observe(sample(.4, 170.0), ExerciseCounter.Phase.ready, null)
+        analysis.observe(sample(.55, 170.0).copy(released = true), ExerciseCounter.Phase.ready, null)
+        val rep = analysis.records.single()
+        assertTrue(rep.isCompleteForAnalytics)
+        assertEquals(.4, rep.returnedAt)
+        assertEquals("returned", rep.closeReason)
+    }
 
     @Test fun missingPeakArmCannotTurnLaterReturnIntoPreciseWholeRepTiming() {
         for (exercise in ExerciseCounter.Exercise.entries) {

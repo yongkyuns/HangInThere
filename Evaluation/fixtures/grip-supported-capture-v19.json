@@ -1,0 +1,786 @@
+{
+  "schemaVersion": 19,
+  "scope": "User retains full starting-hang requirement; outside-scope sources excluded before grip inference. No activity-gate decoupling.",
+  "frozenPinsVerified": 30,
+  "sourceImagesVerified": 615,
+  "automaticCropPixelsVerified": 330,
+  "nativePoseFramesVerified": 4599,
+  "newSourceGroupsDisjointFromBothModelsAllFittingRoles": true,
+  "newSourcesScreened": 12,
+  "supportedNewSources": 0,
+  "freshSupportedAccuracy": null,
+  "supportedRegressionCases": [
+    {
+      "id": "k700train_-beNuPANrTI_000001_000011",
+      "role": "exposedRegression",
+      "supported": true,
+      "exclusion": null,
+      "referenceGrip": "overhand",
+      "outcome": "unknown",
+      "nativeFrames": 300,
+      "counterEligibleFrames": 199,
+      "originalScheduledFrames": 38,
+      "originalExerciseScheduledFrames": 38,
+      "exerciseLabelFrames": 0,
+      "exerciseLabelCoverage": 0.0,
+      "firstCorrectSeconds": null,
+      "wrongNewDecisions": 0,
+      "cycles": [
+        {
+          "window": [
+            2.3,
+            6.7
+          ],
+          "correctVisible": false
+        }
+      ],
+      "negativeControls": {}
+    }
+  ],
+  "developmentControls": [
+    {
+      "id": "pullup",
+      "role": "developmentControl",
+      "supported": true,
+      "exclusion": null,
+      "referenceGrip": "overhand",
+      "outcome": "correct",
+      "nativeFrames": 690,
+      "counterEligibleFrames": 294,
+      "originalScheduledFrames": 87,
+      "originalExerciseScheduledFrames": 56,
+      "exerciseLabelFrames": 29,
+      "exerciseLabelCoverage": 0.5178571428571429,
+      "firstCorrectSeconds": 12.016666666666667,
+      "wrongNewDecisions": 0,
+      "cycles": [
+        {
+          "window": [
+            10.5,
+            13.3
+          ],
+          "correctVisible": true
+        },
+        {
+          "window": [
+            14.7,
+            18.0
+          ],
+          "correctVisible": true
+        }
+      ],
+      "negativeControls": {
+        "setupFrames": 144,
+        "newMovements": 0,
+        "exerciseAdmissions": 0,
+        "visibleLabels": 0,
+        "releaseFrames": 74
+      }
+    },
+    {
+      "id": "chinup",
+      "role": "developmentControl",
+      "supported": true,
+      "exclusion": null,
+      "referenceGrip": "underhand",
+      "outcome": "correct",
+      "nativeFrames": 648,
+      "counterEligibleFrames": 106,
+      "originalScheduledFrames": 81,
+      "originalExerciseScheduledFrames": 48,
+      "exerciseLabelFrames": 3,
+      "exerciseLabelCoverage": 0.0625,
+      "firstCorrectSeconds": 16.535,
+      "wrongNewDecisions": 0,
+      "cycles": [
+        {
+          "window": [
+            13.6,
+            17.2
+          ],
+          "correctVisible": true
+        }
+      ],
+      "negativeControls": {
+        "setupFrames": 135,
+        "newMovements": 0,
+        "exerciseAdmissions": 0,
+        "visibleLabels": 0,
+        "releaseFrames": 108
+      }
+    }
+  ],
+  "supportedNegativeFrames": {
+    "setupFrames": 279,
+    "newMovements": 0,
+    "exerciseAdmissions": 0,
+    "visibleLabels": 0,
+    "releaseFrames": 182
+  },
+  "handComponentDiagnostics": [
+    {
+      "id": "pullup",
+      "componentCounts": {
+        "eligibleHandCrops": 74,
+        "correctSurfaceAboveThreshold": 72,
+        "opposingSurfaceAboveThreshold": 0,
+        "readabilityAboveThreshold": 74
+      },
+      "examples": []
+    },
+    {
+      "id": "chinup",
+      "componentCounts": {
+        "eligibleHandCrops": 27,
+        "correctSurfaceAboveThreshold": 15,
+        "opposingSurfaceAboveThreshold": 0,
+        "readabilityAboveThreshold": 12,
+        "correctSurfaceRejectedByReadability": 11
+      },
+      "examples": [
+        {
+          "seconds": 14.4,
+          "side": "right",
+          "surface": [
+            0.11384192109107971,
+            0.8626435995101929,
+            0.023514438420534134
+          ],
+          "readability": 0.6260479688644409,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-7855c23432fe-right.png"
+        },
+        {
+          "seconds": 14.933333333333334,
+          "side": "left",
+          "surface": [
+            0.08370883762836456,
+            0.8882628679275513,
+            0.02802829071879387
+          ],
+          "readability": 0.7155506610870361,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-161a8b42dbd2-left.png"
+        },
+        {
+          "seconds": 14.933333333333334,
+          "side": "right",
+          "surface": [
+            0.09951731562614441,
+            0.8676276803016663,
+            0.03285504877567291
+          ],
+          "readability": 0.48824790120124817,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-161a8b42dbd2-right.png"
+        },
+        {
+          "seconds": 15.2,
+          "side": "right",
+          "surface": [
+            0.02998971939086914,
+            0.9631388187408447,
+            0.006871410179883242
+          ],
+          "readability": 0.719734251499176,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-2b991d234bed-right.png"
+        },
+        {
+          "seconds": 15.733333333333333,
+          "side": "right",
+          "surface": [
+            0.11655198037624359,
+            0.8700417280197144,
+            0.013406378217041492
+          ],
+          "readability": 0.7916147112846375,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-846bf54cdf87-right.png"
+        },
+        {
+          "seconds": 16.001666666666665,
+          "side": "right",
+          "surface": [
+            0.07812386751174927,
+            0.8986509442329407,
+            0.023225286975502968
+          ],
+          "readability": 0.6791718006134033,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-d6195c794ca2-right.png"
+        },
+        {
+          "seconds": 16.268333333333334,
+          "side": "right",
+          "surface": [
+            0.03694930672645569,
+            0.9599050283432007,
+            0.003145654685795307
+          ],
+          "readability": 0.7957803010940552,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-d1977fff53d7-right.png"
+        },
+        {
+          "seconds": 16.535,
+          "side": "right",
+          "surface": [
+            0.16806580126285553,
+            0.8010378479957581,
+            0.03089630790054798
+          ],
+          "readability": 0.4103706181049347,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-bdbd5a3609e9-right.png"
+        },
+        {
+          "seconds": 16.801666666666666,
+          "side": "right",
+          "surface": [
+            0.09969630092382431,
+            0.8907309174537659,
+            0.009572725743055344
+          ],
+          "readability": 0.6310054659843445,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-91c72f2ff9ec-right.png"
+        },
+        {
+          "seconds": 17.06833333333333,
+          "side": "left",
+          "surface": [
+            0.1559666246175766,
+            0.8372908234596252,
+            0.0067425137385725975
+          ],
+          "readability": 0.7788466811180115,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-7c10d12996a5-left.png"
+        },
+        {
+          "seconds": 17.06833333333333,
+          "side": "right",
+          "surface": [
+            0.16741974651813507,
+            0.8280214071273804,
+            0.004558799788355827
+          ],
+          "readability": 0.7088850736618042,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/71703c6361-7c10d12996a5-right.png"
+        }
+      ]
+    },
+    {
+      "id": "k700train_-beNuPANrTI_000001_000011",
+      "componentCounts": {
+        "eligibleHandCrops": 50,
+        "correctSurfaceAboveThreshold": 45,
+        "opposingSurfaceAboveThreshold": 0,
+        "readabilityAboveThreshold": 0,
+        "correctSurfaceRejectedByReadability": 45
+      },
+      "examples": [
+        {
+          "seconds": 3.4701333333333335,
+          "side": "left",
+          "surface": [
+            0.015487703494727612,
+            0.9835270047187805,
+            0.00098530319519341
+          ],
+          "readability": 0.344335675239563,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-24f2c7091d29-left.png"
+        },
+        {
+          "seconds": 3.4701333333333335,
+          "side": "right",
+          "surface": [
+            0.00877965148538351,
+            0.9911181330680847,
+            0.0001022164142341353
+          ],
+          "readability": 0.2397836446762085,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-24f2c7091d29-right.png"
+        },
+        {
+          "seconds": 3.7370666666666668,
+          "side": "left",
+          "surface": [
+            0.005852740723639727,
+            0.9932542443275452,
+            0.0008929778705351055
+          ],
+          "readability": 0.4804447293281555,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-0f18a6d3a9d5-left.png"
+        },
+        {
+          "seconds": 3.7370666666666668,
+          "side": "right",
+          "surface": [
+            0.003749636933207512,
+            0.9960933327674866,
+            0.00015697130584158003
+          ],
+          "readability": 0.2264014482498169,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-0f18a6d3a9d5-right.png"
+        },
+        {
+          "seconds": 4.004,
+          "side": "left",
+          "surface": [
+            0.003110534744337201,
+            0.9949801564216614,
+            0.0019092651782557368
+          ],
+          "readability": 0.34316375851631165,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a303bd8c94f4-left.png"
+        },
+        {
+          "seconds": 4.004,
+          "side": "right",
+          "surface": [
+            0.0031679978128522635,
+            0.9962009787559509,
+            0.0006311056204140186
+          ],
+          "readability": 0.43109431862831116,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a303bd8c94f4-right.png"
+        },
+        {
+          "seconds": 4.270933333333334,
+          "side": "left",
+          "surface": [
+            0.01708359085023403,
+            0.8525094985961914,
+            0.13040691614151
+          ],
+          "readability": 0.2995767891407013,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-2e0bfc00df39-left.png"
+        },
+        {
+          "seconds": 4.270933333333334,
+          "side": "right",
+          "surface": [
+            0.0011375175090506673,
+            0.9987484216690063,
+            0.0001140976237365976
+          ],
+          "readability": 0.5391479730606079,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-2e0bfc00df39-right.png"
+        },
+        {
+          "seconds": 4.537866666666667,
+          "side": "right",
+          "surface": [
+            0.0027062164153903723,
+            0.9958003163337708,
+            0.0014934815699234605
+          ],
+          "readability": 0.5878421068191528,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-bd1d0dc0a70f-right.png"
+        },
+        {
+          "seconds": 4.8048,
+          "side": "right",
+          "surface": [
+            0.0016879072645679116,
+            0.9981387853622437,
+            0.0001732143573462963
+          ],
+          "readability": 0.39311203360557556,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-9709a5354ded-right.png"
+        },
+        {
+          "seconds": 5.071733333333333,
+          "side": "left",
+          "surface": [
+            0.0014385959366336465,
+            0.9982598423957825,
+            0.00030160185997374356
+          ],
+          "readability": 0.44375598430633545,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-6bed2e31684c-left.png"
+        },
+        {
+          "seconds": 5.071733333333333,
+          "side": "right",
+          "surface": [
+            0.0009978238958865404,
+            0.9987360835075378,
+            0.00026609955239109695
+          ],
+          "readability": 0.45022639632225037,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-6bed2e31684c-right.png"
+        },
+        {
+          "seconds": 5.338666666666667,
+          "side": "left",
+          "surface": [
+            0.0028320804703980684,
+            0.996342122554779,
+            0.000825782713945955
+          ],
+          "readability": 0.3462519347667694,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-79617f5abfdb-left.png"
+        },
+        {
+          "seconds": 5.338666666666667,
+          "side": "right",
+          "surface": [
+            0.0027542917523533106,
+            0.9972178936004639,
+            2.77581020782236e-05
+          ],
+          "readability": 0.3061957061290741,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-79617f5abfdb-right.png"
+        },
+        {
+          "seconds": 5.6056,
+          "side": "left",
+          "surface": [
+            0.003413828555494547,
+            0.9930137991905212,
+            0.003572385525330901
+          ],
+          "readability": 0.4633789658546448,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-10f28d1e9f1c-left.png"
+        },
+        {
+          "seconds": 5.6056,
+          "side": "right",
+          "surface": [
+            0.012658823281526566,
+            0.9858387112617493,
+            0.0015024755848571658
+          ],
+          "readability": 0.36006876826286316,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-10f28d1e9f1c-right.png"
+        },
+        {
+          "seconds": 5.872533333333333,
+          "side": "left",
+          "surface": [
+            0.02100089192390442,
+            0.9764045476913452,
+            0.002594592282548547
+          ],
+          "readability": 0.4789784848690033,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-b0b0991115d8-left.png"
+        },
+        {
+          "seconds": 5.872533333333333,
+          "side": "right",
+          "surface": [
+            0.008084905333817005,
+            0.9915162324905396,
+            0.00039890746120363474
+          ],
+          "readability": 0.4373032748699188,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-b0b0991115d8-right.png"
+        },
+        {
+          "seconds": 6.139466666666666,
+          "side": "left",
+          "surface": [
+            0.023597348481416702,
+            0.9753899574279785,
+            0.0010127241257578135
+          ],
+          "readability": 0.31186941266059875,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-b41e22684c11-left.png"
+        },
+        {
+          "seconds": 6.139466666666666,
+          "side": "right",
+          "surface": [
+            0.02290976233780384,
+            0.9757924675941467,
+            0.0012976765865460038
+          ],
+          "readability": 0.22874341905117035,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-b41e22684c11-right.png"
+        },
+        {
+          "seconds": 6.4064,
+          "side": "left",
+          "surface": [
+            0.009260795079171658,
+            0.9904674887657166,
+            0.0002716313174460083
+          ],
+          "readability": 0.31316453218460083,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a6aca91f9151-left.png"
+        },
+        {
+          "seconds": 6.4064,
+          "side": "right",
+          "surface": [
+            0.045402124524116516,
+            0.9534033536911011,
+            0.0011945458827540278
+          ],
+          "readability": 0.21253108978271484,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a6aca91f9151-right.png"
+        },
+        {
+          "seconds": 6.673333333333333,
+          "side": "left",
+          "surface": [
+            0.020054319873452187,
+            0.9785435795783997,
+            0.001402075169607997
+          ],
+          "readability": 0.3235180079936981,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-add0633d1133-left.png"
+        },
+        {
+          "seconds": 6.673333333333333,
+          "side": "right",
+          "surface": [
+            0.039193812757730484,
+            0.9591171145439148,
+            0.0016890267143025994
+          ],
+          "readability": 0.2713158130645752,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-add0633d1133-right.png"
+        },
+        {
+          "seconds": 6.940266666666667,
+          "side": "left",
+          "surface": [
+            0.02624417282640934,
+            0.9725685715675354,
+            0.001187262823805213
+          ],
+          "readability": 0.20443189144134521,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-bee82c3baaf7-left.png"
+        },
+        {
+          "seconds": 6.940266666666667,
+          "side": "right",
+          "surface": [
+            0.14239127933979034,
+            0.8512923121452332,
+            0.0063164494931697845
+          ],
+          "readability": 0.3129724860191345,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-bee82c3baaf7-right.png"
+        },
+        {
+          "seconds": 7.2072,
+          "side": "left",
+          "surface": [
+            0.004692438989877701,
+            0.995059609413147,
+            0.0002480206894688308
+          ],
+          "readability": 0.25901082158088684,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-94b8cc93d84c-left.png"
+        },
+        {
+          "seconds": 7.2072,
+          "side": "right",
+          "surface": [
+            0.027693280950188637,
+            0.9667693376541138,
+            0.0055374386720359325
+          ],
+          "readability": 0.40468886494636536,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-94b8cc93d84c-right.png"
+        },
+        {
+          "seconds": 7.4741333333333335,
+          "side": "left",
+          "surface": [
+            0.017252055928111076,
+            0.982168972492218,
+            0.0005789364222437143
+          ],
+          "readability": 0.220979705452919,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a8eca3322411-left.png"
+        },
+        {
+          "seconds": 7.4741333333333335,
+          "side": "right",
+          "surface": [
+            0.022999560460448265,
+            0.974678099155426,
+            0.0023223417811095715
+          ],
+          "readability": 0.4253450036048889,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a8eca3322411-right.png"
+        },
+        {
+          "seconds": 7.741066666666667,
+          "side": "left",
+          "surface": [
+            0.009345329366624355,
+            0.9903123378753662,
+            0.00034231081372126937
+          ],
+          "readability": 0.27988365292549133,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-9cca66aeddde-left.png"
+        },
+        {
+          "seconds": 7.741066666666667,
+          "side": "right",
+          "surface": [
+            0.019035154953598976,
+            0.9806108474731445,
+            0.0003539205645211041
+          ],
+          "readability": 0.3715756833553314,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-9cca66aeddde-right.png"
+        },
+        {
+          "seconds": 8.008,
+          "side": "left",
+          "surface": [
+            0.03079281933605671,
+            0.9675475358963013,
+            0.0016596459317952394
+          ],
+          "readability": 0.14112922549247742,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-74f02084c350-left.png"
+        },
+        {
+          "seconds": 8.008,
+          "side": "right",
+          "surface": [
+            0.008314141072332859,
+            0.9915372133255005,
+            0.00014866462151985615
+          ],
+          "readability": 0.24657799303531647,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-74f02084c350-right.png"
+        },
+        {
+          "seconds": 8.274933333333333,
+          "side": "left",
+          "surface": [
+            0.04075372591614723,
+            0.9585334062576294,
+            0.0007128681754693389
+          ],
+          "readability": 0.40027594566345215,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a4559b23ea7a-left.png"
+        },
+        {
+          "seconds": 8.274933333333333,
+          "side": "right",
+          "surface": [
+            0.01648685522377491,
+            0.9830262064933777,
+            0.00048692055861465633
+          ],
+          "readability": 0.3505331575870514,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-a4559b23ea7a-right.png"
+        },
+        {
+          "seconds": 8.541866666666667,
+          "side": "left",
+          "surface": [
+            0.004107248038053513,
+            0.9951914548873901,
+            0.0007012276910245419
+          ],
+          "readability": 0.3181523084640503,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-8c7ba8b7a8ad-left.png"
+        },
+        {
+          "seconds": 8.541866666666667,
+          "side": "right",
+          "surface": [
+            0.001847079605795443,
+            0.9980996251106262,
+            5.3273008234100416e-05
+          ],
+          "readability": 0.3487594425678253,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-8c7ba8b7a8ad-right.png"
+        },
+        {
+          "seconds": 8.8088,
+          "side": "left",
+          "surface": [
+            0.013937127776443958,
+            0.9746428728103638,
+            0.011419935151934624
+          ],
+          "readability": 0.5084619522094727,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-126b6ec8bbe4-left.png"
+        },
+        {
+          "seconds": 8.8088,
+          "side": "right",
+          "surface": [
+            0.005302782170474529,
+            0.9839363098144531,
+            0.010760897770524025
+          ],
+          "readability": 0.40159177780151367,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-126b6ec8bbe4-right.png"
+        },
+        {
+          "seconds": 9.075733333333334,
+          "side": "right",
+          "surface": [
+            0.0012719030492007732,
+            0.9966193437576294,
+            0.002108637010678649
+          ],
+          "readability": 0.20354020595550537,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-755823d6dc2e-right.png"
+        },
+        {
+          "seconds": 9.342666666666666,
+          "side": "right",
+          "surface": [
+            0.0021655212622135878,
+            0.9973737001419067,
+            0.0004606969014275819
+          ],
+          "readability": 0.3519304692745209,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-348c64201f30-right.png"
+        },
+        {
+          "seconds": 9.6096,
+          "side": "right",
+          "surface": [
+            0.001929360325448215,
+            0.9980303645133972,
+            4.0205261029768735e-05
+          ],
+          "readability": 0.35239163041114807,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-d2ba1a147e51-right.png"
+        },
+        {
+          "seconds": 9.876533333333333,
+          "side": "left",
+          "surface": [
+            0.014261869713664055,
+            0.9755532741546631,
+            0.01018490083515644
+          ],
+          "readability": 0.24185627698898315,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-4ad6f6238085-left.png"
+        },
+        {
+          "seconds": 9.876533333333333,
+          "side": "right",
+          "surface": [
+            0.00961241964250803,
+            0.9897629022598267,
+            0.0006245920085348189
+          ],
+          "readability": 0.4498938024044037,
+          "patch": "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/patches/01f15b5c7c-4ad6f6238085-right.png"
+        }
+      ]
+    }
+  ],
+  "warning": "Correct per-hand surface evidence with source-confirmed view is a component diagnostic, not automatic grip video accuracy. Excluded sources do not count as classification successes or failures.",
+  "modelFitPerformed": false,
+  "modelThresholdsChanged": false,
+  "counterPolicyChanged": false,
+  "phoneInstalled": false,
+  "sha256": {
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/protocol.json": "4bfec3bd4c71065b704338f2b42e7ce5f58186109a2c080a300c23e7527ab4af",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/additional-intake-freeze.json": "1d5444c3d28e0c6e4f1067c6f379132f6690bfc2402c6673e812f0559ba4a70d",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/source-references.json": "ce1c72c7a03deb403f7ac966f6b7017fa6f3cd108ba9f5efe6c688280d028e03",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/pre-inference-freeze.json": "0f0a456b34289cd9d9e00aecda8e92802d48983016ab16737fe8d2f6cf4278a9",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/report.json": "6127f4903310b845b4700b8843cf1e8ec31914a839919b82ad5aff34ddd30e62",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/results.json": "79fff7afb1b39f31dd1accbc56f57ef6779b64183f646672df6bd714dc3efe30",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-supported-v19/test/observations.jsonl": "948e0451aa380b79d2567ff5858f2d614f51857ada95a9c4d8307bec62adfa80"
+  }
+}

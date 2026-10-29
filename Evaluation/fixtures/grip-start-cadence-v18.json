@@ -1,0 +1,166 @@
+{
+  "qualification": "Exposed-regression diagnostic; fixed hand models/readability, no independent accuracy or phone claim.",
+  "verifiedPins": 40,
+  "nativeFrames": 2689,
+  "originalDecodedFrames": 2798,
+  "cameraOrbitFramesOutsideFixedView": 109,
+  "originalRGBPosesBitIdentical": 362,
+  "originalRGBPixelsAndModelsUnchanged": true,
+  "ownerCheck": "A scheduled crop can be reused only if its original selected-person landmarks exactly match the current native selected-person pose. Missing/foreign ownership abstains.",
+  "denominatorNote": "The first report rgbExerciseFrames counts reusable owned RGB only. This addendum retains every original scheduled exercise sample in the denominator; no predicted labels or original result files changed.",
+  "cases": [
+    {
+      "id": "pullup",
+      "referenceGrip": "overhand",
+      "originalRGBScheduleFrames": 87,
+      "originalRGBExerciseFrames": 56,
+      "visibleLabelsOnOriginalExerciseSchedule": 29,
+      "rgbScheduleFramesWithoutReusableOwner": 21,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 141,
+        "startingHangNotObserved": 72,
+        "holdStartingHang": 4,
+        "waitingForExerciseMotion": 138,
+        "counterExerciseActive": 294,
+        "supportReferenceLost": 41
+      },
+      "measuredExtendedFrames": 221,
+      "firstCorrectSeconds": 12.016666666666667
+    },
+    {
+      "id": "chinup",
+      "referenceGrip": "underhand",
+      "originalRGBScheduleFrames": 81,
+      "originalRGBExerciseFrames": 48,
+      "visibleLabelsOnOriginalExerciseSchedule": 3,
+      "rgbScheduleFramesWithoutReusableOwner": 17,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 123,
+        "startingHangNotObserved": 54,
+        "holdStartingHang": 4,
+        "waitingForExerciseMotion": 274,
+        "counterExerciseActive": 106,
+        "supportReferenceLost": 87
+      },
+      "measuredExtendedFrames": 287,
+      "firstCorrectSeconds": 16.535
+    },
+    {
+      "id": "k600_EVO-6Z8j3Dk_000070_000080",
+      "referenceGrip": "overhand",
+      "originalRGBScheduleFrames": 38,
+      "originalRGBExerciseFrames": 38,
+      "visibleLabelsOnOriginalExerciseSchedule": 0,
+      "rgbScheduleFramesWithoutReusableOwner": 2,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 7,
+        "startingHangNotObserved": 69,
+        "holdStartingHang": 33,
+        "waitingForExerciseMotion": 135,
+        "counterExerciseActive": 56
+      },
+      "measuredExtendedFrames": 159,
+      "firstCorrectSeconds": null
+    },
+    {
+      "id": "k600_HhiuKOZrLX0_000019_000029",
+      "referenceGrip": "unknown",
+      "originalRGBScheduleFrames": 30,
+      "originalRGBExerciseFrames": 25,
+      "visibleLabelsOnOriginalExerciseSchedule": 0,
+      "rgbScheduleFramesWithoutReusableOwner": 6,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 41,
+        "startingHangNotObserved": 67,
+        "holdStartingHang": 8,
+        "waitingForExerciseMotion": 77,
+        "supportReferenceLost": 1,
+        "counterExerciseActive": 39,
+        "armsUnavailable": 1
+      },
+      "measuredExtendedFrames": 56,
+      "firstCorrectSeconds": null
+    },
+    {
+      "id": "k600_J5i4GcGt2oY_000004_000014",
+      "referenceGrip": "overhand",
+      "originalRGBScheduleFrames": 21,
+      "originalRGBExerciseFrames": 21,
+      "visibleLabelsOnOriginalExerciseSchedule": 0,
+      "rgbScheduleFramesWithoutReusableOwner": 7,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 25,
+        "startingHangNotObserved": 116
+      },
+      "measuredExtendedFrames": 0,
+      "firstCorrectSeconds": null
+    },
+    {
+      "id": "k600_ZLzPbmPVNv0_000019_000029",
+      "referenceGrip": "unknown",
+      "originalRGBScheduleFrames": 38,
+      "originalRGBExerciseFrames": 38,
+      "visibleLabelsOnOriginalExerciseSchedule": 0,
+      "rgbScheduleFramesWithoutReusableOwner": 19,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 138,
+        "startingHangNotObserved": 22,
+        "holdStartingHang": 4,
+        "waitingForExerciseMotion": 136
+      },
+      "measuredExtendedFrames": 133,
+      "firstCorrectSeconds": null
+    },
+    {
+      "id": "k600_c8QJc5EsThw_000013_000023",
+      "referenceGrip": "unknown",
+      "originalRGBScheduleFrames": 38,
+      "originalRGBExerciseFrames": 0,
+      "visibleLabelsOnOriginalExerciseSchedule": 0,
+      "rgbScheduleFramesWithoutReusableOwner": 38,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 150
+      },
+      "measuredExtendedFrames": 0,
+      "firstCorrectSeconds": null
+    },
+    {
+      "id": "k600_ncjx7j-GM0Q_000000_000010",
+      "referenceGrip": "unknown",
+      "originalRGBScheduleFrames": 29,
+      "originalRGBExerciseFrames": 25,
+      "visibleLabelsOnOriginalExerciseSchedule": 0,
+      "rgbScheduleFramesWithoutReusableOwner": 10,
+      "startingReasons": {
+        "athleteTrackingUnavailable": 59,
+        "startingHangNotObserved": 84,
+        "holdStartingHang": 4,
+        "waitingForExerciseMotion": 47,
+        "counterExerciseActive": 23,
+        "supportReferenceLost": 6,
+        "armsUnavailable": 3
+      },
+      "measuredExtendedFrames": 16,
+      "firstCorrectSeconds": null
+    }
+  ],
+  "negativeControls": {
+    "setupFrames": 459,
+    "newMovements": 0,
+    "exerciseAdmissions": 0,
+    "visibleGripLabels": 0,
+    "releaseFrames": 200
+  },
+  "diagnosticTestsPassed": 3,
+  "shippingPolicyChanged": false,
+  "phoneInstalled": false,
+  "newReservesRead": 0,
+  "hashes": {
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-start-v18/protocol.json": "19b08d9fd8ca993e9edd3e2f10ddf029488f0b936fd80732fba7b191156f7e3d",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-start-v18/pre-replay-freeze.json": "8aeb178193f35a2da09350fec6c311edcec96e38d7d2e1e8ce64cc2ab0c9b202",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-start-v18/report.json": "6f80c3e8523c63fb283b79717f894f1eed58875e247e5b12d89e130248aa5cd2",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-start-v18/results.json": "f468772cfcd57370f4ebaa8167e37f6b02accf04a2001819f9598179b54654ae",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-start-v18/start-diagnostics.jsonl": "3d4e9c040683434d9b4e975fb87368dc7b056002c0ce3343697e7c7011b52d90",
+    "/Users/yongkyunshin/Dev/HangInThere/shared/build/test-results/jvmTest/TEST-dev.hanginthere.evaluation.GripStartDiagnosticsV18Tests.xml": "1e57062d372b83a3c24b04a5acc3daf947f06c701c8acc5832d88e962b80b318"
+  }
+}

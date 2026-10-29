@@ -3,9 +3,138 @@ import Foundation
 import Testing
 import WorkoutCore
 import simd
+import CryptoKit
+import ImageIO
 @testable import HangInThere
 
 struct StaticSceneRegistrationTests {
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["CAMERA_POINT_PIXEL_MANIFEST"] != nil))
+    func nativePointTranslationsPreserveObservedPixelsAndRejectCameraMovement() async throws {
+        struct Point: Decodable { let reference: [Double]; let current: [Double]; let region: Int }
+        struct Control: Decodable {
+            let id: String; let truth: String; let reference: String; let current: String
+            let referenceSHA256: String; let currentSHA256: String
+            let expectedReason: String; let raster: [Double]; let expectedPoints: [Point]
+        }
+        let path = try #require(ProcessInfo.processInfo.environment["CAMERA_POINT_PIXEL_MANIFEST"])
+        let controls = try JSONDecoder().decode([Control].self, from: Data(contentsOf: URL(fileURLWithPath: path)))
+        #expect(controls.count == 107)
+        func image(_ path: String, expected: String) throws -> CGImage {
+            let data = try Data(contentsOf: URL(fileURLWithPath: path))
+            #expect(SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() == expected)
+            let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
+            return try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        }
+        let worker = VisionStaticSceneRegistrationWorker()
+        var rows: [[String: Any]] = []
+        for control in controls {
+            let referenceImage = try image(control.reference, expected: control.referenceSHA256)
+            let current = try image(control.current, expected: control.currentSHA256)
+            let reference = try #require(VisionStaticSceneRegistrationWorker.makeReference(image: referenceImage))
+            let measurement = try await worker.measure(reference: reference, image: current)
+            let pixels = try #require(measurement.backgroundScale)
+            #expect(pixels.reason == control.expectedReason, "\(control.id)")
+            #expect(pixels.translations.count == control.expectedPoints.count, "\(control.id)")
+            #expect(measurement.translations.count == pixels.translations.count)
+            #expect(Set(pixels.translations.map(\.region)).count == pixels.translations.count)
+            for point in pixels.translations {
+                let expected = try #require(control.expectedPoints.first { $0.region == point.region })
+                let sx = Double(current.width) / control.raster[0]
+                let sy = Double(current.height) / control.raster[1]
+                #expect(abs(point.referenceX - expected.reference[0] * sx) < 1e-6)
+                #expect(abs(point.referenceY - expected.reference[1] * sy) < 1e-6)
+                #expect(abs(point.currentX - expected.current[0] * sx) < 1e-6)
+                #expect(abs(point.currentY - expected.current[1] * sy) < 1e-6)
+            }
+            for (translation, point) in zip(measurement.translations, pixels.translations) {
+                #expect(translation.dxPixels == point.currentX - point.referenceX)
+                #expect(translation.dyPixels == point.currentY - point.referenceY)
+            }
+            let shared = bridge(measurement, times: [0.1, 0.4],
+                width: Double(current.width), height: Double(current.height))
+            if control.truth == "stationary" && control.expectedReason == "supported" {
+                #expect(shared.isReady(seconds: 0.4), "\(control.id)")
+            } else {
+                #expect(!shared.isReady(seconds: 0.4), "\(control.id)")
+            }
+            rows.append(["id": control.id, "truth": control.truth, "reason": pixels.reason,
+                "scale": measurement.globalScaleFraction as Any? ?? NSNull(),
+                "points": pixels.translations.map {
+                    ["reference": [$0.referenceX, $0.referenceY], "current": [$0.currentX, $0.currentY],
+                     "region": $0.region] as [String: Any]
+                }, "sceneState": shared.state, "movementKind": shared.movementKind as Any? ?? NSNull(),
+                "sceneReady": shared.isReady(seconds: 0.4)])
+        }
+        if let output = ProcessInfo.processInfo.environment["CAMERA_POINT_PIXEL_REPORT"] {
+            try JSONSerialization.data(withJSONObject: rows, options: [.sortedKeys, .prettyPrinted])
+                .write(to: URL(fileURLWithPath: output), options: .atomic)
+        }
+    }
+
+    @Test func blankBackgroundCannotSupplyZeroScaleEvidence() async throws {
+        let space = try #require(CGColorSpace(name: CGColorSpace.sRGB))
+        let context = try #require(CGContext(data: nil, width: 400, height: 400,
+            bitsPerComponent: 8, bytesPerRow: 0, space: space,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.setFillColor(CGColor(gray: 0.5, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: 400, height: 400))
+        let image = try #require(context.makeImage())
+        let reference = try #require(VisionStaticSceneRegistrationWorker.makeReference(image: image))
+        let measurement = try await VisionStaticSceneRegistrationWorker().measure(reference: reference, image: image)
+        #expect(measurement.globalScaleFraction == nil)
+        #expect(measurement.backgroundScale?.reason == "insufficientCorrespondences")
+        #expect(measurement.backgroundScale?.correspondences == 0)
+        #expect(measurement.translations.isEmpty)
+        #expect(measurement.backgroundScale?.translations.isEmpty == true)
+        let shared = bridge(measurement, times: [0.1, 0.4])
+        #expect(!shared.isReady(seconds: 0.4))
+    }
+
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["CAMERA_SCALE_PIXEL_MANIFEST"] != nil))
+    func pinnedStationarySourceDoesNotTriggerFalseScaleStop() async throws {
+        struct Pair: Decodable { let reference: String; let current: String; let referenceSHA256: String; let currentSHA256: String }
+        let path = try #require(ProcessInfo.processInfo.environment["CAMERA_SCALE_PIXEL_MANIFEST"])
+        let pairs = try JSONDecoder().decode([Pair].self, from: Data(contentsOf: URL(fileURLWithPath: path)))
+        #expect(!pairs.isEmpty)
+        func image(_ path: String, expected: String) throws -> CGImage {
+            let data = try Data(contentsOf: URL(fileURLWithPath: path))
+            #expect(SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() == expected)
+            let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
+            return try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        }
+        let worker = VisionStaticSceneRegistrationWorker(includeDiagnosticHomography: true)
+        for pair in pairs {
+            let referenceImage = try image(pair.reference, expected: pair.referenceSHA256)
+            let current = try image(pair.current, expected: pair.currentSHA256)
+            let reference = try #require(VisionStaticSceneRegistrationWorker.makeReference(image: referenceImage))
+            let measurement = try await worker.measure(reference: reference, image: current)
+            #expect(try #require(measurement.globalScaleFraction) < 0.005)
+            #expect(measurement.backgroundScale?.reason == "supported")
+            #expect((measurement.backgroundScale?.inliers ?? 0) >= 8)
+            let points = try #require(measurement.backgroundScale?.translations)
+            #expect((3...6).contains(points.count))
+            #expect(Set(points.map(\.region)).count == points.count)
+            #expect(measurement.translations.count == points.count)
+            for (patch, point) in zip(measurement.translations, points) {
+                #expect(patch.dxPixels == point.currentX - point.referenceX)
+                #expect(patch.dyPixels == point.currentY - point.referenceY)
+            }
+            let shared = bridge(measurement, times: [0.1, 0.4])
+            #expect(shared.state == "stable" && shared.isReady(seconds: 0.4))
+        }
+    }
+
+    @Test func cameraReferenceSamplesSixDisjointPeripheralRegions() throws {
+        let image = try #require(makePatternImage(shiftX:0,shiftY:0))
+        let reference = try #require(VisionStaticSceneRegistrationWorker.makeReference(image:image))
+        #expect(reference.patches.count == 6)
+        for i in reference.patches.indices {
+            for j in reference.patches.indices where j > i {
+                #expect(reference.patches[i].rect.intersection(reference.patches[j].rect).isEmpty)
+            }
+        }
+    }
+
     @Test func visionMatrixTransportPreservesPerspectiveAndPixelCoordinates() throws {
         let width = 960.0, height = 540.0, zoom = 1.05
         let x = width / 2, y = height / 2, p = 0.00002, q = -0.00007
@@ -92,6 +221,7 @@ struct StaticSceneRegistrationTests {
         )
         #expect(policy.state == .stable)
         #expect(measurement.diagnosticHomography == nil, "Shipping registration does not retain diagnostic matrices.")
+        #expect(measurement.diagnosticLegacyTranslations == nil)
         let shared = bridge(measurement, times: [0.1])
         #expect(shared.state == "stable" && shared.isReady(seconds: 0.1))
         #expect(!shared.isReady(seconds: 0.91), "Queries cannot freshen the registration clock.")
@@ -135,10 +265,13 @@ struct StaticSceneRegistrationTests {
         )
 
         #expect(policy.state == .moved)
-        #expect(policy.movementKind == .scale)
+        // Actual peripheral points move during zoom as well. The unchanged
+        // scene policy reports translation first when both measured limits
+        // are exceeded; scale must still be present and above its own limit.
+        #expect(policy.movementKind == .translation)
         #expect((policy.latestScaleFraction ?? 0) >= HangInThere.StaticSceneStability.scaleThresholdFraction)
         let shared = bridge(measurement, times: [0.1, 0.4])
-        #expect(shared.state == "moved" && shared.movementKind == "scale")
+        #expect(shared.state == "moved" && shared.movementKind == "translation")
         #expect(!shared.isReady(seconds: 0.4))
     }
 
@@ -156,9 +289,10 @@ struct StaticSceneRegistrationTests {
         }
     }
 
-    private func bridge(_ measurement: StaticSceneRegistrationMeasurement, times: [Double]) -> WorkoutSceneBridge {
+    private func bridge(_ measurement: StaticSceneRegistrationMeasurement, times: [Double],
+                        width: Double = 400, height: Double = 400) -> WorkoutSceneBridge {
         let shared = WorkoutSceneBridge()
-        #expect(shared.calibrate(width: 400, height: 400))
+        #expect(shared.calibrate(width: width, height: height))
         let values = KotlinDoubleArray(size: Int32(measurement.translations.count * 2))
         for (index, patch) in measurement.translations.enumerated() {
             values.set(index: Int32(index * 2), value: patch.dxPixels)

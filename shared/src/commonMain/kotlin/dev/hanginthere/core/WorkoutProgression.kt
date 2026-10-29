@@ -12,8 +12,7 @@ import kotlin.math.ceil
     fun validate() {
         require(target.isFinite() && target >= 1)
         require(if (metric == WorkoutGoalMetric.completedReps) target <= 1000 && target == target.toInt().toDouble() else target <= 3600)
-        require(countMethod == null && countPolicyVersion == null || exercise == ExerciseCounter.Exercise.dip &&
-            countMethod == BilateralDipWorkout.countMethod && countPolicyVersion == BilateralDipMotion.policyVersion)
+        require(countMethod == null && countPolicyVersion == null || WorkoutCountingMethod.isSupported(exercise, countMethod, countPolicyVersion))
     }
 }
 @Serializable data class WorkoutMilestone(val id: String, val title: String, val achieved: Boolean,
@@ -50,7 +49,7 @@ object WorkoutProgression {
      * method's cohort; another method cannot supply its baseline or milestones. */
     private fun cohort(history: List<WorkoutProgressEvidence>, exercise: ExerciseCounter.Exercise, goal: WorkoutGoal? = null): List<WorkoutProgressEvidence> {
         val candidates = history.filter { it.exercise == exercise && it.endReason != "running" && it.hasPractice &&
-            (it.countMethod == null || it.countMethod == BilateralDipWorkout.countMethod && it.countPolicyVersion == BilateralDipMotion.policyVersion) }
+            (it.countMethod == null || WorkoutCountingMethod.isSupported(it.exercise, it.countMethod, it.countPolicyVersion)) }
             .distinctBy { it.id }.sortedByDescending { it.trackedAtEpochMilliseconds ?: Long.MIN_VALUE }
         val method = if (goal != null) goal.countMethod else candidates.firstOrNull()?.countMethod
         val version = if (goal != null) goal.countPolicyVersion else candidates.firstOrNull()?.countPolicyVersion

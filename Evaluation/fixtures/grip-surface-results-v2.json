@@ -1,0 +1,946 @@
+{
+  "schemaVersion": 2,
+  "qualification": "Offline appearance experiment; failed validation gate; fusion not trained; no phone deployment. Agent-reviewed references, not independent human gold labels. Fresh test is now exposed regression data.",
+  "report": {
+    "qualification": "Independent RGB hand-surface comparison on separate public videos; two agent pixel-review passes, not independent human gold labels. Forced-known argmax compares three anatomical classes for both models, without claiming confidence acceptance.",
+    "modelSHA256": "cceacf786d77506fcd1a6f866abd0182e657c4f8b1c98608027809f2cfe12301",
+    "baselineSHA256": "ba52da15910afe64f56e5d0f6d84149a6513538f365e8187c7c1f69f363c11f2",
+    "inputSHA256": "ab841b14165d1419905db25815ffdfa76140254862c6f0a7bfcd0c5bb733818c",
+    "reviewSHA256": "9ac8097e36d556e542a20f6bf7aa0c4cb605854b8356336279e3f06be59de0e4",
+    "reserveSHA256": "e1c5f7c3d52a5cf85e8143c293b05085928f1535521832cebe92e7a9f0401c2c",
+    "freezeSHA256": "c2ded13b0bc5ceba7546e577f438bd5b336960598267a74dc7bd2af4661b0736",
+    "scriptSHA256": "32d9a641ac90965097c77d00e38c57a7321139594341529f1a2eb2fc854dffb2",
+    "population": {
+      "reservedVideos": 80,
+      "sampledVideos": 32,
+      "sampledFrames": 109,
+      "expectedHandSlots": 218,
+      "automaticHandCrops": 151
+    },
+    "surfaceValidationGatePassed": false,
+    "thresholds": {
+      "conditionalSurface": 0.8,
+      "visible": 0.8,
+      "contact": 0.8
+    },
+    "metrics": {
+      "previous": {
+        "crops": 151,
+        "known": 107,
+        "forcedKnownCorrect": 39,
+        "unknown": 105,
+        "unverifiable": 44,
+        "acceptedUnverifiable": 1,
+        "acceptedWrong": 2
+      },
+      "previous:side": {
+        "crops": 37,
+        "known": 37,
+        "forcedKnownCorrect": 19,
+        "unknown": 35,
+        "acceptedWrong": 2
+      },
+      "previous:grip:overhand:oblique": {
+        "crops": 20,
+        "known": 18,
+        "forcedKnownCorrect": 4,
+        "unknown": 18,
+        "unverifiable": 2,
+        "acceptedUnverifiable": 0
+      },
+      "new": {
+        "crops": 151,
+        "known": 107,
+        "forcedKnownCorrect": 64,
+        "unknown": 107,
+        "unverifiable": 44,
+        "acceptedUnverifiable": 0
+      },
+      "new:side": {
+        "crops": 37,
+        "known": 37,
+        "forcedKnownCorrect": 17,
+        "unknown": 37
+      },
+      "new:grip:overhand:oblique": {
+        "crops": 20,
+        "known": 18,
+        "forcedKnownCorrect": 5,
+        "unknown": 18,
+        "unverifiable": 2,
+        "acceptedUnverifiable": 0
+      },
+      "previous:unclear": {
+        "crops": 44,
+        "unverifiable": 44,
+        "acceptedUnverifiable": 1
+      },
+      "previous:grip:neutral:rear": {
+        "crops": 15,
+        "unverifiable": 6,
+        "acceptedUnverifiable": 0,
+        "known": 9,
+        "forcedKnownCorrect": 1,
+        "unknown": 7,
+        "acceptedWrong": 2
+      },
+      "new:unclear": {
+        "crops": 44,
+        "unverifiable": 44,
+        "acceptedUnverifiable": 0
+      },
+      "new:grip:neutral:rear": {
+        "crops": 15,
+        "unverifiable": 6,
+        "acceptedUnverifiable": 0,
+        "known": 9,
+        "forcedKnownCorrect": 3,
+        "unknown": 9
+      },
+      "previous:dorsum": {
+        "crops": 54,
+        "known": 54,
+        "forcedKnownCorrect": 12,
+        "unknown": 54
+      },
+      "new:dorsum": {
+        "crops": 54,
+        "known": 54,
+        "forcedKnownCorrect": 36,
+        "unknown": 54
+      },
+      "previous:grip:underhand:front": {
+        "crops": 4,
+        "known": 4,
+        "forcedKnownCorrect": 1,
+        "unknown": 4
+      },
+      "new:grip:underhand:front": {
+        "crops": 4,
+        "known": 4,
+        "forcedKnownCorrect": 4,
+        "unknown": 4
+      },
+      "previous:grip:neutral:oblique": {
+        "crops": 15,
+        "known": 14,
+        "forcedKnownCorrect": 7,
+        "unknown": 14,
+        "unverifiable": 1,
+        "acceptedUnverifiable": 0
+      },
+      "new:grip:neutral:oblique": {
+        "crops": 15,
+        "known": 14,
+        "forcedKnownCorrect": 6,
+        "unknown": 14,
+        "unverifiable": 1,
+        "acceptedUnverifiable": 0
+      },
+      "previous:grip:overhand:front": {
+        "crops": 32,
+        "unverifiable": 24,
+        "acceptedUnverifiable": 1,
+        "known": 8,
+        "forcedKnownCorrect": 5,
+        "unknown": 8
+      },
+      "new:grip:overhand:front": {
+        "crops": 32,
+        "unverifiable": 24,
+        "acceptedUnverifiable": 0,
+        "known": 8,
+        "forcedKnownCorrect": 6,
+        "unknown": 8
+      },
+      "previous:palm": {
+        "crops": 16,
+        "known": 16,
+        "forcedKnownCorrect": 8,
+        "unknown": 16
+      },
+      "new:palm": {
+        "crops": 16,
+        "known": 16,
+        "forcedKnownCorrect": 11,
+        "unknown": 16
+      },
+      "previous:grip:neutral:front": {
+        "crops": 12,
+        "known": 12,
+        "forcedKnownCorrect": 9,
+        "unknown": 12
+      },
+      "new:grip:neutral:front": {
+        "crops": 12,
+        "known": 12,
+        "forcedKnownCorrect": 10,
+        "unknown": 12
+      },
+      "previous:grip:overhand:rear": {
+        "crops": 39,
+        "known": 39,
+        "forcedKnownCorrect": 11,
+        "unknown": 39
+      },
+      "new:grip:overhand:rear": {
+        "crops": 39,
+        "known": 39,
+        "forcedKnownCorrect": 29,
+        "unknown": 39
+      }
+    },
+    "forcedKnownConfusion": {
+      "previous": {
+        "side": {
+          "palm": 13,
+          "side": 19,
+          "dorsum": 5
+        },
+        "unclear": {
+          "side": 11,
+          "palm": 29,
+          "dorsum": 4
+        },
+        "dorsum": {
+          "palm": 31,
+          "dorsum": 12,
+          "side": 11
+        },
+        "palm": {
+          "side": 7,
+          "dorsum": 1,
+          "palm": 8
+        }
+      },
+      "new": {
+        "side": {
+          "palm": 9,
+          "side": 17,
+          "dorsum": 11
+        },
+        "unclear": {
+          "side": 2,
+          "palm": 28,
+          "dorsum": 14
+        },
+        "dorsum": {
+          "dorsum": 36,
+          "side": 12,
+          "palm": 6
+        },
+        "palm": {
+          "palm": 11,
+          "dorsum": 3,
+          "side": 2
+        }
+      }
+    },
+    "sourceMacro": {
+      "previous:side": {
+        "videos": 9,
+        "meanSourceAccuracy": 0.5157407407407407
+      },
+      "new:side": {
+        "videos": 9,
+        "meanSourceAccuracy": 0.4722222222222222
+      },
+      "previous:dorsum": {
+        "videos": 11,
+        "meanSourceAccuracy": 0.18939393939393942
+      },
+      "new:dorsum": {
+        "videos": 11,
+        "meanSourceAccuracy": 0.7000000000000001
+      },
+      "previous:palm": {
+        "videos": 5,
+        "meanSourceAccuracy": 0.42000000000000004
+      },
+      "new:palm": {
+        "videos": 5,
+        "meanSourceAccuracy": 0.7
+      }
+    },
+    "contact": {
+      "previous": {
+        "falseNegative": 95,
+        "truePositive": 47,
+        "trueNegative": 9
+      },
+      "new": {
+        "falseNegative": 134,
+        "trueNegative": 9,
+        "truePositive": 8
+      }
+    },
+    "torchScriptEagerMaximumDifference": 0.0,
+    "missingStatus": {
+      "noRaisedHandsAthlete": 62,
+      "wristUnavailable": 3,
+      "acquiringAthlete": 2
+    }
+  },
+  "trainingReceipt": {
+    "selectedVariant": "full",
+    "modelSHA256": "cceacf786d77506fcd1a6f866abd0182e657c4f8b1c98608027809f2cfe12301",
+    "testReserveSHA256": "e1c5f7c3d52a5cf85e8143c293b05085928f1535521832cebe92e7a9f0401c2c",
+    "inputSHA256": "4c9819180739ff22b2f7d532fbf7e8009cbfb463d618e6eabb12e839ccca8550",
+    "reviewSHA256": "37d6a51d5c12ff552db6893fda32010c0a0c69479e24b53d5710cff0aec51ea5",
+    "protocolSHA256": "e7a8f395bd2cbc044449dd92e59b61fd08f0b94c30e1fae24431b0764a19baaa",
+    "scriptSHA256": "d95ff3e26c12282ba900d9b1b2ccbbf7388cd69263a4ce047325bc194eb381f8",
+    "originalTrainingScriptSHA256": "cc8ca2660e40b1d9d30d74a78eff615f0524e93091b4d1c4f9b88ac707b26255",
+    "metadataRecovery": "All training/checkpoint/calibration outputs completed before a None sourceGroup sorting error. Recovered receipts from unchanged completed weights and histories; eager/export equality checked on every validation crop. No extra training or selection variants.",
+    "recoveryScriptSHA256": "c92e64ce56b244aa656e990cd07dce9b4844b00600b42796e13a5e256067a2d6",
+    "candidates": {
+      "full": {
+        "variant": "full",
+        "bestEpoch": 6,
+        "selectionLoss": 0.7979554980993271,
+        "epochsRun": 14,
+        "surfaceCoverage": {
+          "palm": {
+            "crops": 27,
+            "videos": 7,
+            "correct": 22
+          },
+          "dorsum": {
+            "crops": 42,
+            "videos": 11,
+            "correct": 26
+          },
+          "side": {
+            "crops": 12,
+            "videos": 4,
+            "correct": 9
+          }
+        },
+        "surfaceConfusion": {
+          "0": {
+            "0": 22,
+            "1": 4,
+            "2": 1
+          },
+          "1": {
+            "1": 26,
+            "0": 7,
+            "2": 9
+          },
+          "2": {
+            "1": 2,
+            "2": 9,
+            "0": 1
+          }
+        },
+        "visibilityConfusion": {
+          "1": {
+            "1": 78,
+            "0": 3
+          },
+          "0": {
+            "1": 48,
+            "0": 7
+          }
+        },
+        "contactConfusion": {
+          "1": {
+            "1": 115,
+            "0": 4
+          },
+          "0": {
+            "1": 13,
+            "0": 1
+          }
+        },
+        "calibration": [
+          {
+            "temperature": 1.0,
+            "validationNLL": {
+              "1.0": 0.5785984396934509,
+              "1.25": 0.5958596467971802,
+              "1.5": 0.6195091009140015,
+              "2.0": 0.669111967086792,
+              "3.0": 0.7521377801895142,
+              "4.0": 0.8117445707321167
+            }
+          },
+          {
+            "temperature": 4.0,
+            "validationNLL": {
+              "1.0": 0.8774282336235046,
+              "1.25": 0.7841174006462097,
+              "1.5": 0.7309894561767578,
+              "2.0": 0.6790021657943726,
+              "3.0": 0.6493556499481201,
+              "4.0": 0.6456375122070312
+            }
+          },
+          {
+            "temperature": 4.0,
+            "validationNLL": {
+              "1.0": 1.331941843032837,
+              "1.25": 1.1343364715576172,
+              "1.5": 1.013120412826538,
+              "2.0": 0.8790878057479858,
+              "3.0": 0.7730765342712402,
+              "4.0": 0.7342560291290283
+            }
+          }
+        ],
+        "modelSHA256": "cceacf786d77506fcd1a6f866abd0182e657c4f8b1c98608027809f2cfe12301",
+        "changedFeatureParameterTensors": 138
+      },
+      "late": {
+        "variant": "late",
+        "bestEpoch": 3,
+        "selectionLoss": 0.9640646725893021,
+        "epochsRun": 11,
+        "surfaceCoverage": {
+          "palm": {
+            "crops": 27,
+            "videos": 7,
+            "correct": 23
+          },
+          "dorsum": {
+            "crops": 42,
+            "videos": 11,
+            "correct": 20
+          },
+          "side": {
+            "crops": 12,
+            "videos": 4,
+            "correct": 11
+          }
+        },
+        "surfaceConfusion": {
+          "0": {
+            "0": 23,
+            "1": 2,
+            "2": 2
+          },
+          "1": {
+            "2": 11,
+            "0": 11,
+            "1": 20
+          },
+          "2": {
+            "1": 1,
+            "2": 11
+          }
+        },
+        "visibilityConfusion": {
+          "1": {
+            "1": 79,
+            "0": 2
+          },
+          "0": {
+            "1": 52,
+            "0": 3
+          }
+        },
+        "contactConfusion": {
+          "1": {
+            "1": 119
+          },
+          "0": {
+            "1": 14
+          }
+        },
+        "calibration": [
+          {
+            "temperature": 1.0,
+            "validationNLL": {
+              "1.0": 0.7251920700073242,
+              "1.25": 0.7538741827011108,
+              "1.5": 0.78191077709198,
+              "2.0": 0.8298057317733765,
+              "3.0": 0.8956332206726074,
+              "4.0": 0.9366507530212402
+            }
+          },
+          {
+            "temperature": 4.0,
+            "validationNLL": {
+              "1.0": 0.9554904103279114,
+              "1.25": 0.8426700830459595,
+              "1.5": 0.7772088050842285,
+              "2.0": 0.710884153842926,
+              "3.0": 0.6685172319412231,
+              "4.0": 0.659183919429779
+            }
+          },
+          {
+            "temperature": 4.0,
+            "validationNLL": {
+              "1.0": 1.8120944499969482,
+              "1.25": 1.4901313781738281,
+              "1.5": 1.2870938777923584,
+              "2.0": 1.0552806854248047,
+              "3.0": 0.8629775047302246,
+              "4.0": 0.7886853218078613
+            }
+          }
+        ],
+        "modelSHA256": "d74e0db91c4a13c6a3f8f8043755b1f35515c81c9860a871e8bd653790ceacd9",
+        "changedFeatureParameterTensors": 0
+      }
+    },
+    "surfaceValidationGatePassed": false,
+    "macroRecall": 0.7279541446208113,
+    "trainingCrops": 526,
+    "validationCrops": 136,
+    "sources": {
+      "train": [
+        "03797dc5d91337610c4a4ec8ecb7571d56ec0151f1470a3462509a3816296a09",
+        "077035646cc9080213fd63068610e8a665af36eb5c3b360aa289519b779e76f8",
+        "08745e624c29289d1159f534944cf4a279c0614372db781c9bc490c16c42729e",
+        "0c842d5ebfaf3f93720001aae0429347b5ac583ad7cb3de1ae92752867fcd424",
+        "1239828dd12d94048982a8559d24f7826891833d2f68535c0754f89819b99e46",
+        "12c15f6c6f930f1bd83ddac46018e372e94f1257f60b16cb6c556352a54791bb",
+        "14a3381b9a23303868a56d7a434295ddc909928560f3e400b0d1c0ca626aa0c9",
+        "15afc6a379693a98ae37a978576ed7e8ecf03c68fefb9821d9717aa6a4c903a8",
+        "162648f46dce67d132d5d3120717f2788fdcecbd63265980ec83420daa9258e9",
+        "17ecf6e3eccd3efc2f0ca6a8ce4aa8661e3406aa0f515f40ff1c47a559fb2118",
+        "18852b617b2ba572a498e6af6b8aeb13aaab0355e20ee539778f509a0aebcc3b",
+        "18f99ea2011c0b768ad8a13684023a62269f8c37469bcf8f1e737f5676f6d96d",
+        "197d91fa8a256ce61cc42eb63f9b2ec0f9b03d926679f44f99016dd58cb342df",
+        "19c37a92e3d962a86daf8ea68568a421412f84a6bf744e2f679f5697c72ab783",
+        "1a2c0d0c12ecfe461e4dd78b534534154e1c66df9759c0c3afadac1464a18b83",
+        "1ab47f6011b0b7700e4d3fab9dd62d87432d9fc94aa5baa057910c478cc25626",
+        "1ce5c9ea0088c772bb5edd06c951e0e109d7d2504b8f1bb0ae4e3acdb2f9de94",
+        "1dc066bdb3de484f4312e31401e171067d01650af8bc6d4eddb986dd92e11d5a",
+        "1e424fceef7e599ab8de8b437fec966fe087aa378fbe6d09543f60fcb5f34df6",
+        "21a7af651d66f431912c1f6c45f1e63bfb8ae00848aa213307c0873523db9af7",
+        "22f98edd0b3c0f38b0b2701c5e88bfd7911114a16958a1dac91c4ad4736f1881",
+        "247c43a1960235980f2b8e35c757819b3c899e38fa2825eebb217ca90e351fa2",
+        "25176c37f7b1d004b461280d21a812577208c4016d1d5b2438893bcf5252741b",
+        "25c2bf2433d5983452bb24af75931385bb5393ae2f80e85e7141a96252f8f97d",
+        "2a6ed66b7f37614241ae19b5c6cfe0a4f57a51b2dce15ac6b2c10c65fc963a9f",
+        "2af910a9d09f69a97a8d4ccace430ea274d2bf0465ca33e2cef4539b42ea6f5a",
+        "31c2e88c1462eb5a8eafacd9a14d698c1a816885f36f6ae9b63b45400cd04264",
+        "33ee61f6bc30f80f7ad089753d1d179e4ac8e583edb3256e109fbeed8db2dd6e",
+        "3cc7a52de108e4219b820463e4811c1d6b0c61cbdc71b0f89939ccd2b7a74af7",
+        "3eda74d2da970ac4bb48051b0bb066c088fbe0503c6788e0724d26b7573043dd",
+        "3fb95d21c6ddca5df9f4c205e04983c3cb0a182520b32c53ee3a1374cec3d821",
+        "45beb04ca14edb6cd533ec71ebb7a8dd8db366bbc38b144577f0adf74cacde31",
+        "48692fa2a6fe1e2e1aa7aa02a0b3f4df06e5a7f4a29b56fdd8dd8c3d804a8e20",
+        "4a9bbb1bfd7a110d439fb05e615514305533dff8d9b53750d78aa0304c853381",
+        "53b3f95c093abb0d2edc3d32402107aefda791b68b9bbf945d1dd9271551c90f",
+        "55141527cbccefcb598a1413fbbad56827fb92352517f2fed3402899c9d42cdf",
+        "56b75f1255723d807a5b4e6535517b8c74257a8e3cb85c2b50cd2dad2e80bd39",
+        "58b907b7675c0e40c74fe83f63aa186ca4e235ca8c53c5a1b37163988c63ce1a",
+        "59d140a674a5817d2b33efb5b1d60819e3fcee4a524d12317f23fee45ed201bb",
+        "5e584fdb4f0dc4b2c82c78950a529b3b71120047fdc2eb33b48ffe60682be503",
+        "5ed23ba255add4fba2c695793abdc0ce41a6d4e476fe362cd8e4cd131d139692",
+        "63f45d356ec3df02078cd5a5ee0a1bfc436b49e6322fb74b52fd0335edc1d510",
+        "64e52db611ba9bbe91c0733c286b4e3f8882c7f3028460926d6e3575ce14ac71",
+        "6744f91c3e6c3c3a9303baf66c591680de969a0d08b6ee31649d3b9095d368d7",
+        "69d04e6007abd1ec821e838f7b5c8af9d3d517e9378464fae70e4312933d3472",
+        "6ae56b95e3a47c2e7ef8f37edfa0e710163931a9eacd3be49d499b18d95d2f24",
+        "6ae9001946c4904c5e871c6a7ad77a9df28a6eba16de027f497c2b91fee201c9",
+        "6b7f59321df8a300293985ff446b71035fe6e305d04d433c6c5f5e3568ea9cc3",
+        "6c7ac1e665cb739e2c932dd467bcacea24d633e30ba516cc13875efb61c992d2",
+        "6ce67315b9ae67f6b7b3fbea352fefd54f675bf1d96c4c8df3721e075609c306",
+        "6f7b22dd40c57584313d5b1bb682ce9939f3c14c64dfa597fa288e70f7229b9c",
+        "6fbedc5d15d84eb2d8270771d9f09fa96794ba9ba8fb329b836a768220c65baf",
+        "70d86c46b35d4458f342f45d1c4ea341c0afbaf55f79a97981a3e142e8f7290f",
+        "735ee8a733b9a5ec20079bf6ffbcc030c7006364ea08a18772a9f2382a611fa2",
+        "751ee0e4f36e09b0331ba0ccbe0fc5ae0d150645aca1be03227c5397076c1698",
+        "76b5728bd6759d1f388c24600e6d74c5d6ef48c9e917c7f3eff3de94f1a2e55e",
+        "782414c583bb9a3a963a027503a8aaf5e01fa79477ae8e13a26bfd11617a6619",
+        "7d78f95894f48a30fb676ecadc189dbfc4786803c00b719953ab31a5724cf44e",
+        "7e581a0854b58a03d02400ccf5f1e3e1faf9b042a1fbb5c2d673ebf1d6173e74",
+        "7e940943fa0bf59f127f37f0a1997548b58efcd49ef4ddd82e24fcd04da6d65c",
+        "7f205e3947b609de4afa1156197314b13bf10c0d61af7da3900c9fabf6255849",
+        "847ee4307867355e3e719a26bd3d19a6eec2d54e54697b6b0c08ec6030f7f514",
+        "848f9af4629b7edc4108a8ef9167bc73b022b6055b8442ab84a17f713ac33f1c",
+        "8bd6b54ce6e7a788befee5c2ead7f0bb7dd2ce1bb56495f283c561376ec7ecfb",
+        "8e3b9e63666354a5f445856ef9f7bc3a57bf3517d4b7aca0a970cea014159c7c",
+        "8ef4bfbbc537a3b9814d39a7ff2f2710beaa833bb9c2e2fe77edb04ea3e5dfbf",
+        "8f12b17c9fb391fff5c63d9064a709ddd70b4f5a067d9bfd8d569939f09c1470",
+        "8f9deeda3cff38f19df720a4e968da519ddac181f904fe3ceccabb5cfd3993bb",
+        "90d32610742c65b3bc0ed4bb318c059ccc195b7339b5e97d6a702a193265eac4",
+        "91312ed5ba498a171a60edcae2e680199b791b9977ea2f29eff07ec800306cfc",
+        "936d612c646a78a01c5df43710bacad531cef8683d1bed64b72d3b191d515bf1",
+        "93d1b37552c445916a6cff428b721761c4565058bb88479510f279168b1ceade",
+        "961f02ad92e1aaa9ddfca9aca510654b44f18a4f243849398cb26bb8a29efe82",
+        "9b42a923b0badc6017f81680d02dd133a1a74fe151c03c37a82d2c5fed35b7cf",
+        "9e9d810e00aa87174ee5a2ed53d56ae3fa1355df4c5a020d95952f7e7b985f84",
+        "9f569fc8966ec334070bc05cc88a02b0fb0d8b457b6c9878b7b9f6fce500080f",
+        "a01fa62cf3e70fb01acffa14e24ac79634bd2553087e3954e585d10f5c636f09",
+        "a13116992fb32d95d21293551d2aae55c4f8dbf72b8e2101641f08f538ae055d",
+        "a3b4e533e643ba4de341339aabd19273e8ba680e030c799142d5c100a092dc65",
+        "a475da5938238f288d1d1ad5c1e34392c2b00c8c33f3585a866fcf800e4a8a12",
+        "a54dac54fcfaef0bf2323ffd2513c61c193bdbbacb94cd77dc9a7f77be45273b",
+        "a5f482667454b44f682f9346398acc4c7d9799d3b4622cc5795ce4b13c9557ad",
+        "a5f6ba1c1d137a0a8fe65974816ba03d39cad7bb7f7a5e299b2ca453cd96640a",
+        "aaf3b67241eaf0baf026af11b9a0f16f8fec0cd83951eb89971026b4fed05b52",
+        "ab39a41376ba7b5b94afaea39c1623cca93caad678747d1b0cd20cb4efa49b9f",
+        "acd54b09654668083a31d0156db1f979e1c5b734d21e3811f1a828a6a76e9eec",
+        "aede1db129afbb15d4d731ed36c4c39bfee7407f911345bab4e62a89677e72a5",
+        "af64ff36083980b846480b0c823031b7dcadd1f31465a3012e7198f255b99c93",
+        "afa3ecade3305a7265dd48add84e4aa65cc5a4c1e6853203cda265acfd9cdd45",
+        "afa88cc191cebdeec26ad010c234650024f2545ee25a5e9bdebb0a7a8ec8773e",
+        "b3e1f391eddc836532ebea294699d6581ff000d9bcef615427f73e381dbd9968",
+        "bd939905d248cb63e8169c2900809fe533a680af4a1f1453542280c06ff0dc42",
+        "bf24fdbf2af1cd9ef36b35770b71d475082585c2f76f5d4239c93bbd1ec5b0c8",
+        "c083ef9fabef5fd19dcf4c11880dcb6a23bdee763ddcf861b3705d33ae730456",
+        "c0e9a7c7bc27a4547bd999878100c7b475270c9aa04fbe5e5b8ef88f0ce37ba1",
+        "c4a2ba30713daf09c7763b765acbf9083adb187b55f0b078cd4e40d28cff7c6e",
+        "c900f0853a36448da2bbef6850f0fd6d56f8d4898102adad657b147be71338c1",
+        "cae192f3181ce2e8e7a26ac04eee5d0c403aaa5df22c4ae8b36329efb0487995",
+        "caf5fc679a02aa1527746f0456173cd25dfb369d6249a711823df4777bca2bbe",
+        "cb03d83591f20b299f0319d069cf3e03ac209e8b00476984532c2aabd4df5cdd",
+        "cb7732d27385f53f92288b65833f4a6df0277c777b7b4fd766ad0686fc831d04",
+        "cc9a2d56a26ac4cea9d82b61942be7977d443f63c97504d88190c7eba809f1fd",
+        "d29d7ab0339ddc451e9410094eb26181f47d627c62da6c97538662d57d53d96b",
+        "d4319e5879bd60e47162108c4af17782fd0ccc0868cb93ab5b4d336c9eb5027f",
+        "d78424882e5e843b3b1f87de3e3c26d9516957eb155e4e668f6d8853f672012a",
+        "d7aa8fb9058ee8eb04809ab032d775433637af45a80974da88a728bb27fddd23",
+        "d858e8efd510f32a03bd46cd2e40cb98b0ac6e194225de343213d3721ddc24f7",
+        "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+        "de5fafa7cf0195dbbb917e032ddc3015053a3f2e4e60b55bef2566bfee8d145c",
+        "e251f9ac514495ff036f567a68177ce3926114ed711cbce15f3a8ac9fc9482d1",
+        "e2dacb2c0247ac8ff4fd7af1df477145a0cfcb2fa0697435929c436807b5ad70",
+        "e398217a3dfc5deed23bdfe2263c3965b78f2617d7f967b23c4f4f7ed1ff71fa",
+        "e5eba570a989834ddfbf3bab847e6a703ebb4aa4690670f3053cee0345b60cd3",
+        "e6ffcb1721c3285f96a1fff66f7872f14321f9b1cec45cc6161fd32a862d7e04",
+        "e7d65698595c0d845d464949df3865aece279db060f6222bcd0f0e13ddb2cb02",
+        "e859413080b1e2fe7d1bdedeb6b5338509eaa0ebf601edd34f26621234b57926",
+        "e88c290992f06245f8f170b249fd9a1f8ef5e6178872aaf2574b49c8714f32e8",
+        "ebfad2bb61dce2bdb3c59a60b337905e7344b44a6e4abfde61b8dc05e57d2ba3",
+        "ec7a04d4722755b96db65d63687233eeb65e08b4ed7be1c1b9028eb0c95acdde",
+        "ed4de12e9944b8a7d5831344f2bb38f488a3d640ff516a90d37e89ce22cfa677",
+        "ee2d8771a4bca0e1d8fda5b2fa952bc5dfdf97a247ab213fa8f20a8f00c03361",
+        "f055e2581715db2ffcba134185dcbbbe2a026b63c946e5234c9cea367d5af02d",
+        "f132252b789778709234de6ca79b9697a0deb72da32d7dadb8a36cb73bd4c799",
+        "f32bfb3a4beaa796efd33f93e378a2c4d517f08312b0a021d4e86a6ee5428cb7",
+        "f6380661d67b98dc25d00e48f475231ede33cd15366e499e5d1f5b17518239f1",
+        "f758fbde3a5e706cc484f146d44cf1d69f42a0774eeae9390bf0bcbff0b0500f",
+        "f8dfdfd8a2889c1d982fa2153da07576bee36ecc25fb779f78db0c547edfd804",
+        "fb05b3783a209fd71ade2990a9cf50ce0222079d6d1990387c93705181b5875c",
+        "fb2bd8d46267fc288b56064d21101271db9a29f3768d2e4c6c9123f8c760093e",
+        "fbd2b330cce6975c591ce39b13602acc5ffb0b28b28020f10e9c9eb2bb21ecb8",
+        "fd6e57b7aece30186370f1bdd882f5e25ced76a44bc1d5e3d3b8fd18c2debd82",
+        "fda0419138abc84d405829ad2978af37f2aa9c33c6fc7a7d012d09ee681b84d7",
+        "febf858630af0eedfd880ca40889a9eedf34c9f712adac93a67e35798f5ae049"
+      ],
+      "validation": [
+        "02a3063b3c0c46745d4431bbd8785990f18681174c6a6ef6224cb85ec340bce3",
+        "105213b5e50d01663c89507e1c1db99b8b0641ca583ce83e5e0e10086ebb72f3",
+        "259b7b99112ce9f5d4ee3ed10c0d48c99ead7cf757bfb2f97d6dce43a62bc7e5",
+        "28ffa7a29d056a5a07306425094db8a16356e5bc0da339d457287c3578880b30",
+        "4a345f5dca3b4e9e5111e507a6ae545df215d5a7d240001c2a44438b4ec455e1",
+        "54fbb8d961f21352c7038dc9b817c6ae9c0c8f9168a88dac654b7950e0453c39",
+        "56fcdfdddd7dbe872b306f040577219b3c803eb8e90fe4711dd7f022115dc995",
+        "60dbb98eda968bd98a56e6ea0594e659e38a88a9c9670474262f020bb7551695",
+        "6951a610d40988e45aa5746c20789151ba894f21d7c3de8ed00a69c40b95394e",
+        "6982364fcd7920ff55df37de32da9c30182055e902365b4be56e5a7e0794a4bc",
+        "6e8ee262fa906d627ddc1e1395ef1073692aa2b37df9c33464a765e4eb3f0ee0",
+        "70765daa15e5f3f192119c641a12cff9f5bd73a5bb08f6cd8fbb9b18a92d4da7",
+        "77f12e74515296f1243597c1d97fb95fe610c49c9f632ebe815bde6abb59364a",
+        "7af20fc86fa1212314ba2d44346d4ddfa5d7c93779db794242bb5653bb098c51",
+        "8700c73de2aea0238aff9867863c1860bde7e2e2f10ddf8a64cfb0fe644fda71",
+        "888f051f73c6fa28e9b7ef936d3df9d90e1f973edeb16ce21d8ca5a66edc5127",
+        "8934cc67c6c93cf4fed5632c13e314f79aab9616faee56a36b9062b79d6f3f89",
+        "8d19e258708df2c3fec19a3572fecf48479db752f9a6f596e97854a7a279293a",
+        "9c543e25a401601a784f2e5a1cece46cd22e423db4955b258291cc71bbf94049",
+        "ac590c3b46fc26a02b8a85442d7877c54ca1c02e64b869df97d0e95c7ada3339",
+        "b81c66fe043e4dab7afd2220596d887edf937183804a933c9072695cd616a5c6",
+        "baddfc7a59a08481358a36396b5459cb4818c5b7c6e70df5e74a5b717d5d487a",
+        "bb647197a9ef333a8972650aff022fb57184715aa74966d6b2397a169f75b18b",
+        "c028dab8ea1c1f8b73dfa1d04d4f8014c3842732ea02e35be7171831894cc629",
+        "c42eb7cad08c112afedb21d0af534a666838efc98b555d34a2b70129d469f8dd",
+        "c7887a1dbfd6514e83963591521d497efe7d29a29f4c47f6c6266ca4fc5778a5",
+        "d807297563097dcc14f0f9c0203f7c3524ba71f506e2a4943b019de647e738ac",
+        "e67bda8c378b9c30af2c54146ec6deeeb1e76f566db3a3feef0af6cc111eb4fd",
+        "edc7555cdb95cbfcd45ca901a4314da27ef019ea7f3853921f2aa3d4472615db",
+        "f5e47570557c934079d8d7ba0b330d3601adec5ec98f346f8a565d83fa27e0e6",
+        "f738ebaff3e156083b3649f00542c6dd82cf94f8b6403ed47bfecf28dfb22e0e",
+        "fbdd7cb8403dc7151a10297605cd9468f211152a452c5fbd58e66dfdfefaa9c9"
+      ]
+    },
+    "sourceGroups": {
+      "train": [
+        "gymkee:ckdpq4q1g002bfo488d871c7t:male",
+        "recording:da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+        "youtube:-yQUE1H_Hn0",
+        "youtube:0WzFqH4CPzI",
+        "youtube:0afhqysgAUE",
+        "youtube:0zJGjSfj7e8",
+        "youtube:1HibOxpJqQY",
+        "youtube:1cZ2I-8DR-Q",
+        "youtube:24Axf8dFQ0w",
+        "youtube:3-XiWZ5ONLA",
+        "youtube:3GtoTP6A9QY",
+        "youtube:4x9C-ZyHCzk",
+        "youtube:6cDE1YpzSaE",
+        "youtube:6kpsQxO-Vo0",
+        "youtube:7XMkg_cfbB8",
+        "youtube:8Wa_io1X4RA",
+        "youtube:9JQRe4GZXG8",
+        "youtube:9VHz73p7Gfo",
+        "youtube:9WvH8at_xJw",
+        "youtube:9_5z5PSAZYA",
+        "youtube:Ace4EsUWyYc",
+        "youtube:AjmI_Z4evMI",
+        "youtube:AvS-tDkwNTc",
+        "youtube:BrtUG9jAsJI",
+        "youtube:C60Wr-MAiV8",
+        "youtube:CgWZGGXYwLE",
+        "youtube:FYxB-Nxml-o",
+        "youtube:Fndz1dG5y54",
+        "youtube:GBNGV08S_m0",
+        "youtube:GQOf4jHJ4fs",
+        "youtube:GcuZO6jZhw0",
+        "youtube:HQJUZqpjHBM",
+        "youtube:HVDH5xfTIFw",
+        "youtube:IUSiAeljSwo",
+        "youtube:J4U-VxZIxZM",
+        "youtube:LslQbHZ1rRw",
+        "youtube:LxkdL0tGGxE",
+        "youtube:M4EjEpCwpnM",
+        "youtube:M8kUj0r6sMA",
+        "youtube:NFcwjLi-rJI",
+        "youtube:NKT4ylACJnI",
+        "youtube:O-q0UK1CV-M",
+        "youtube:O4MXIrHhqZo",
+        "youtube:OZJD5fKVE1Y",
+        "youtube:OhUyM53Y_74",
+        "youtube:P8Hg-rCJwDY",
+        "youtube:QSoCJSTW1qE",
+        "youtube:QjS3pU47foY",
+        "youtube:RQhU-oxOU4A",
+        "youtube:SIAHCQ15a3k",
+        "youtube:SluqGShKncc",
+        "youtube:T5fWYIZiW4A",
+        "youtube:TIZ4oTuiUog",
+        "youtube:TindOf7zyXM",
+        "youtube:TrNX8Mh9l1M",
+        "youtube:UGFRvAB22fg",
+        "youtube:VCPfhtGcqyM",
+        "youtube:VLQZyNKdnJI",
+        "youtube:VXvnQ6vnSTQ",
+        "youtube:VbUg3JjE1mM",
+        "youtube:Vq7BKfn8PIQ",
+        "youtube:WFLX7EequXM",
+        "youtube:WT-ADjiRB2Y",
+        "youtube:WaGRDOkXveE",
+        "youtube:XFBNb_egCr8",
+        "youtube:XadhprrLPAw",
+        "youtube:YVVns1LhKnM",
+        "youtube:ZyBUAy8auRY",
+        "youtube:_65iwGkdm70",
+        "youtube:_KtitR_vvo0",
+        "youtube:a162kOBlI4k",
+        "youtube:a3rmxPm_49Q",
+        "youtube:a8uEZjGD0A8",
+        "youtube:b6hO0rMRYjs",
+        "youtube:bAEua0zu_74",
+        "youtube:bqwuhXMz228",
+        "youtube:cXFmE9k0Nik",
+        "youtube:cptVIr4OJx8",
+        "youtube:cvcuLaZeG2A",
+        "youtube:d8RA0_YBltQ",
+        "youtube:dtvtA7H_Y1M",
+        "youtube:eMRW1vKyy9o",
+        "youtube:et1utOz1hZE",
+        "youtube:f7doRCZCwIc",
+        "youtube:fqv0D25vbp0",
+        "youtube:fsQ-POpiemc",
+        "youtube:gh77V08SQ34",
+        "youtube:hKX6CteXJUQ",
+        "youtube:hTBnrRl2UAs",
+        "youtube:iKKkKrJNDTs",
+        "youtube:ihFKM9w92MY",
+        "youtube:lTUoHbXpx5Y",
+        "youtube:lX-Ao8Qubqw",
+        "youtube:loyzYXc1olk",
+        "youtube:m0LSPTMkrc8",
+        "youtube:mNRUKvspyok",
+        "youtube:mkSvldU_VUw",
+        "youtube:mtRa0mcuAP0",
+        "youtube:o7rlgUGju1Y",
+        "youtube:oY1EO_43EV4",
+        "youtube:pGkJwIImUTc",
+        "youtube:pSMJrEOFJwU",
+        "youtube:q59-ruT-vPA",
+        "youtube:qDdiDk4BkNA",
+        "youtube:qi8yifwu2rg",
+        "youtube:r5k1vrqzhNc",
+        "youtube:rXKhJeF0HlU",
+        "youtube:reAv60s7fqY",
+        "youtube:rfnTdizkBcY",
+        "youtube:s59PqZ9TTq0",
+        "youtube:sBrsZ8VITLc",
+        "youtube:smgEjkcIvq8",
+        "youtube:smgLQZ4_zD8",
+        "youtube:t9BsmQIAFvk",
+        "youtube:tMEuzebW8gQ",
+        "youtube:tSs1fVXMuPA",
+        "youtube:tgH6YDosvEo",
+        "youtube:uI3_dvWJCzc",
+        "youtube:ud9cWaLSzbs",
+        "youtube:uygZMTrO5J0",
+        "youtube:vH8bQkOEjuo",
+        "youtube:wWRoIIKdu0g",
+        "youtube:x4UyaNoQJU4",
+        "youtube:xJHurF-EZp8",
+        "youtube:yLVMDD7b0xM",
+        "youtube:yLe2apbmnjY",
+        "youtube:yQ2GWCiLOsg",
+        "youtube:ySSh9x1X458",
+        "youtube:y_nbkwFR5AU",
+        "youtube:yhCVQxpnM30",
+        "youtube:z-5bAAt5omo",
+        "youtube:zVms_bNSnDs"
+      ],
+      "validation": [
+        "youtube:-GDrlYxrEQo",
+        "youtube:0s2L_EWqGgk",
+        "youtube:1urwXgykJAA",
+        "youtube:2p19BDth7Zc",
+        "youtube:73WUetd7mMg",
+        "youtube:9ohUOUjnb_c",
+        "youtube:DrPWsVUOXOI",
+        "youtube:G8G8g3etUTo",
+        "youtube:LUlt4tPj5SQ",
+        "youtube:NvqLMRadijE",
+        "youtube:NwTo6r8853k",
+        "youtube:NwUF_P6p4d8",
+        "youtube:S3jzFktsnwE",
+        "youtube:SV3NlbJMZNI",
+        "youtube:T5eqqBOQcGQ",
+        "youtube:TKbunGZ4BNw",
+        "youtube:VivTP-k7QMM",
+        "youtube:WSV8tsY6eJM",
+        "youtube:ZvkHAS7aJO8",
+        "youtube:akgqUO4MnOA",
+        "youtube:cvc8HN__fxU",
+        "youtube:f2MOPqH4wrY",
+        "youtube:iD7kdQqttXI",
+        "youtube:iKIKRztPIpQ",
+        "youtube:jC4O7gWJjPk",
+        "youtube:kGDIhlrBW0M",
+        "youtube:mlvpAlA8_ts",
+        "youtube:oSyUsQqHkmE",
+        "youtube:qdZgJXInPDI",
+        "youtube:rALdr8g6LUI",
+        "youtube:sm_CjfH0U0A",
+        "youtube:w5f9DVGjYhQ"
+      ]
+    },
+    "qualification": "Image-only surface/visibility/contact model; no orientation input; validation-only selection and calibration; no fresh test images opened"
+  },
+  "audit": {
+    "pixelChecks": {
+      "fitting": {
+        "frames": 498,
+        "torsoCrops": 346,
+        "handCrops": 662
+      },
+      "test": {
+        "frames": 109,
+        "handCrops": 151,
+        "torsoCrops": 69
+      }
+    },
+    "gripViewDistribution": {
+      "fitting": {
+        "train:overhand:rear": 91,
+        "train:underhand:rear": 26,
+        "train:overhand:front": 105,
+        "train:underhand:front": 72,
+        "validation:overhand:front": 32,
+        "train:overhand:oblique": 15,
+        "validation:underhand:front": 23,
+        "validation:overhand:rear": 17,
+        "validation:underhand:rear": 8,
+        "train:neutral:front": 17,
+        "validation:neutral:rear": 11,
+        "validation:neutral:front": 5,
+        "train:neutral:rear": 18,
+        "train:neutral:oblique": 41,
+        "train:underhand:oblique": 19,
+        "validation:neutral:oblique": 4,
+        "validation:underhand:oblique": 10,
+        "validation:overhand:oblique": 7
+      },
+      "test": {
+        "test:overhand:oblique": 20,
+        "test:neutral:rear": 15,
+        "test:underhand:front": 4,
+        "test:neutral:oblique": 15,
+        "test:overhand:front": 32,
+        "test:neutral:front": 12,
+        "test:overhand:rear": 39
+      }
+    },
+    "confidenceDiagnostics": {
+      "previous": {
+        "knownCrops": 107,
+        "surfaceAtLeastPointEight": 2,
+        "visibleAtLeastPointEight": 74,
+        "surfaceMaxQuantiles": [
+          0.36548057198524475,
+          0.48020681738853455,
+          0.5502593517303467,
+          0.6629611253738403,
+          0.8376998901367188
+        ],
+        "visibleQuantiles": [
+          0.42602962255477905,
+          0.747885450720787,
+          0.8929003328084946,
+          0.9428795594722033,
+          0.983081916347146
+        ]
+      },
+      "new": {
+        "knownCrops": 107,
+        "surfaceAtLeastPointEight": 41,
+        "visibleAtLeastPointEight": 0,
+        "surfaceMaxQuantiles": [
+          0.39505600929260254,
+          0.6061621308326721,
+          0.7491338849067688,
+          0.9108902513980865,
+          0.9994506239891052
+        ],
+        "visibleQuantiles": [
+          0.5417490005493164,
+          0.640973836183548,
+          0.6716418862342834,
+          0.7122929692268372,
+          0.7715014815330505
+        ]
+      }
+    },
+    "disjointSourceGroups": true,
+    "unchangedFreezePins": 20
+  },
+  "tests": {
+    "command": "OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 build/grip-training/venv/bin/python -m unittest discover -s scripts/tests",
+    "count": 414,
+    "passed": true,
+    "logSHA256": "b3f6334586611e4f7b8021b42f3b568895f082949700f8a16e7734e2913b6121",
+    "diffCheckPassed": true
+  },
+  "storage": {
+    "receipts": {
+      "build/grip-surface-v2/frame-cache-cleanup.json": "06851588b84e58cb1f46429113beb1b3a80301879f56eca664e683c216e2fbc5",
+      "build/grip-surface-v2/publisher-frame-cache-cleanup.json": "d499fb48d17883a72a80f5708483494ebc19955cf75c2ffe5404046a13058eb4",
+      "build/grip-surface-v2/test-frame-cache-cleanup.json": "e45aaa0fe030cf56ec8fc2f30683a72d4fd0955f3e49bc2e1cd0ad06c7d189c6"
+    },
+    "removedUnreferencedFrameBytes": 1455296860,
+    "preservedTrainingAndTestFrames": 607,
+    "preservedHandCrops": 813
+  },
+  "reviewBindings": {
+    "build/grip-surface-v2/test-first-review-notes.json": "3efc4de1bf00a1e4498c362fa0526be25bd6b60f90ee5810d67a7a82e2a1309a",
+    "build/grip-surface-v2/test-second-review-notes.json": "55a0e301cae474024cc4957baaa68826acce80e3dd88236ae9070c3c5785c982",
+    "Evaluation/fixtures/grip-surface-test-patches-v2.json": "9ac8097e36d556e542a20f6bf7aa0c4cb605854b8356336279e3f06be59de0e4"
+  },
+  "reportDocument": "docs/workout/GRIP_SURFACE_QUALIFICATION_V2.md",
+  "examples": "build/grip-surface-v2/test-comparison/examples.png"
+}

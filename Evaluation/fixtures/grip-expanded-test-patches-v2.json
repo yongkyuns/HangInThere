@@ -1,0 +1,3906 @@
+{
+  "schemaVersion": 2,
+  "qualification": "Completed agent manual frame and actual hand-pixel references, not independent gold labels; reviews do not gate inference inputs",
+  "inputs": {
+    "build/grip-expanded/test-patch-review/rows.jsonl": "f748e2d3d73a6737ea360e88ec49f025af394500ba78dc47215614a54994993f",
+    "Evaluation/fixtures/grip-expanded-test-source-labels-v2.json": "e24477d566121ff8f0ede69844e1eafcb563fb014ae047075a344956c4a29b35",
+    "build/grip-expanded/test-final-review-notes.json": "80f4fc9e381b6230cb62bb3823fcbc332741d5f5adb3c5378fba3e0e74f7b8bd"
+  },
+  "outputSHA256": "1922348eb1efa41dd046c8a5de4f9097296872b8f2cab41ea8981f78fbf83552",
+  "modelSHA256": "4c0f4f766d1d4db1c8d8fb8446e748a3f9e4ea4dcdc0a7ca556855ece86af6b9",
+  "reserveSHA256": "7a22e4145b08ad81f9e90fe490b75f66493fdc67f1696b87a6adfeb9f1745995",
+  "sourceCorrections": {
+    "k700train_ATQrlQnb_ME_000009_000019": {
+      "grip": "overhand",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions"
+    },
+    "k700train_3iN28g4XlMc_000003_000013": {
+      "grip": "overhand",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions"
+    }
+  },
+  "reviewedPages": [
+    "review-01.png",
+    "review-02.png",
+    "review-03.png",
+    "review-04.png",
+    "review-05.png",
+    "review-06.png",
+    "review-07.png",
+    "review-08.png",
+    "review-09.png",
+    "test-detail-review.png"
+  ],
+  "frames": [
+    {
+      "frameReviewId": "F0001",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "f516b3443bde4e40a73f961bae6922cdb1c284960259c2acf57e1bba8d697b4b",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0002",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "883b8e9d511cafee34946bac52c74b6c3520406e84ba98aae0da89d8dd100b61",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0003",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "84433e1fcae43d1ea98b5dff70a31b522a1a8e9436757dae801bab10ef9d425c",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0004",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "0ca48ccc851e548fa5bfd7022d12cc440a8bdc585b905c63b3c2f6aef2c158ee",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0005",
+      "caseId": "k700train_wgFvcB7WkEU_000016_000026",
+      "recordingId": "0adbf5c097cfa97601ba58e856b51bd5e9d76e7f00557bdd73763067ad6c4de0",
+      "imageSHA256": "16ae2480ff0f647261c684ae676938de9b6749e699f909daba60ccba057b5be0",
+      "timestamp": {
+        "timescale": 12288,
+        "value": 24576
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear black tank; dorsal closed grips on doorway transverse bar"
+    },
+    {
+      "frameReviewId": "F0006",
+      "caseId": "k700train_wgFvcB7WkEU_000016_000026",
+      "recordingId": "0adbf5c097cfa97601ba58e856b51bd5e9d76e7f00557bdd73763067ad6c4de0",
+      "imageSHA256": "69d5ed2e37a37434bdb5da535ace04f9594d8b16d8e0e3a5b4f34b9bd3468104",
+      "timestamp": {
+        "timescale": 12288,
+        "value": 49152
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black tank; dorsal closed grips on doorway transverse bar"
+    },
+    {
+      "frameReviewId": "F0007",
+      "caseId": "k700train_199O9PlZzsQ_000003_000013",
+      "recordingId": "6ac56221d16a1e26838b551fda0b1311b763946a958e32047b1dea2c41975bf5",
+      "imageSHA256": "dd4f6201c4d42f8590abb17dac2fa72138832297b678ae4b2cd26b4c2f9febb4",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Oblique front sports top; pronated straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0008",
+      "caseId": "k700train_199O9PlZzsQ_000003_000013",
+      "recordingId": "6ac56221d16a1e26838b551fda0b1311b763946a958e32047b1dea2c41975bf5",
+      "imageSHA256": "3b89bb04869b811e8f47a8051fedb52c17bbc68fc501ddc4e6294d0ef34e7a42",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "gripActive": false,
+      "personIndex": 0,
+      "bodyEligible": false,
+      "reason": "Standing/releasing at bar after L-sit; no active closed two-hand pull-up grip"
+    },
+    {
+      "frameReviewId": "F0009",
+      "caseId": "k700train_199O9PlZzsQ_000003_000013",
+      "recordingId": "6ac56221d16a1e26838b551fda0b1311b763946a958e32047b1dea2c41975bf5",
+      "imageSHA256": "91847af282140bd4fa7e3ee02a1082c345185c292279995b61143e29582b4aa3",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Athlete has dismounted and walked away"
+    },
+    {
+      "frameReviewId": "F0010",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "155a0bbb2d8696ba86fb4da19e783f1cf954d2077e4cefc36e86573f878cf063",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0011",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "2401baf8548a24868438a488d8098ccadf5571cd2576701d2175731a0ee5c4b5",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0012",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "5170e749d1ff349f987ee1a83a82a3b5dd7924f66f9ac7f624337fb31fe3ebfe",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0013",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "b97d179282dd8a1a4f04054dc0d48aae4f388189b7cdd33aa343fb16dec9cef0",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0014",
+      "caseId": "k700train__NvlngmQTQk_000049_000059",
+      "recordingId": "a2a121cffdb6a3be07a62a465f145d832b95214620708bb3aee089baa3437d4e",
+      "imageSHA256": "ebefbe1b5865f4c390937875c6482594d8b8df13c53d31a96e1eeac0b6fc524f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Standing setup before raising hands to bar"
+    },
+    {
+      "frameReviewId": "F0015",
+      "caseId": "k700train__NvlngmQTQk_000049_000059",
+      "recordingId": "a2a121cffdb6a3be07a62a465f145d832b95214620708bb3aee089baa3437d4e",
+      "imageSHA256": "4e1766911d5b63eb98aa9d54d235d3a028c3e9c91ab9041a51939dc0dace13df",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Setup before hands grip bar"
+    },
+    {
+      "frameReviewId": "F0016",
+      "caseId": "k700train__NvlngmQTQk_000049_000059",
+      "recordingId": "a2a121cffdb6a3be07a62a465f145d832b95214620708bb3aee089baa3437d4e",
+      "imageSHA256": "a88a9d81b3a18e5d58fd108caa64cba7bef7f41b5f856e71a99103d92192f70f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide pronated straight-bar grips after setup"
+    },
+    {
+      "frameReviewId": "F0017",
+      "caseId": "k700train__NvlngmQTQk_000049_000059",
+      "recordingId": "a2a121cffdb6a3be07a62a465f145d832b95214620708bb3aee089baa3437d4e",
+      "imageSHA256": "744869015e6b6967fd2cbef74a29b3397b31beb2f5317d120d0669dfb625f8a6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide pronated straight-bar grips after setup"
+    },
+    {
+      "frameReviewId": "F0018",
+      "caseId": "k700train_YKTyKmEd2Ok_000005_000015",
+      "recordingId": "10fd56dfc1e1f15516b585f844ea6471e004bf9d0cea8523400c1a6effc91944",
+      "imageSHA256": "34d2355044e30bb7b7fe98628e940aa4be65bdf8de9d8ebfbf65e9ead38af20e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0019",
+      "caseId": "k700train_YKTyKmEd2Ok_000005_000015",
+      "recordingId": "10fd56dfc1e1f15516b585f844ea6471e004bf9d0cea8523400c1a6effc91944",
+      "imageSHA256": "bea8e66f09147c2c320a28cbf94a22f0cb8712037df1df1620297391ad84ed1f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0020",
+      "caseId": "k700train_YKTyKmEd2Ok_000005_000015",
+      "recordingId": "10fd56dfc1e1f15516b585f844ea6471e004bf9d0cea8523400c1a6effc91944",
+      "imageSHA256": "566ca3aec34a8fd32118b9af9d08f335313ac018516d884e318906b77712b5cc",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0021",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "7931dcd88ca2edcd19157a9469d3f6f78e810179923260e39316261fd17b0bcc",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 37632
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 1,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0022",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "fad7e2a1b4e847bc28ccce2a535136a31f36990d2f6d71f4f7814e9b64dfede9",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 75264
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 1,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0023",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "222118c744cc7f9b138b039efcdcf0261d0c95adbe2f3ad30a278bd4045bb1e6",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 112896
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 1,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0024",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "0b2f57cfda9ecd09b0b372ecf24ba7d5235553f3a4c205db39425fb7dacb90e9",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 150528
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 1,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0025",
+      "caseId": "k700train_63M4BBkuG_E_000001_000011",
+      "recordingId": "62f3dd9a2d5fc1fc44ac530021b36a8fb3a19145fdd48a4f671fc734006e5f1a",
+      "imageSHA256": "d69b2e85291d87f3b27b5b4df2e8d12d6176f0f55487c57282905537a28ed5ab",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; close supinated straight-bar grips and palmar wrists toward camera"
+    },
+    {
+      "frameReviewId": "F0026",
+      "caseId": "k700train_63M4BBkuG_E_000001_000011",
+      "recordingId": "62f3dd9a2d5fc1fc44ac530021b36a8fb3a19145fdd48a4f671fc734006e5f1a",
+      "imageSHA256": "987dc2774053bbcb203c111e6dcecbe2ee8fe84129bcc2298916e0349c6d55cb",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; close supinated straight-bar grips and palmar wrists toward camera"
+    },
+    {
+      "frameReviewId": "F0027",
+      "caseId": "k700train_ayzMLAVi7yk_000009_000019",
+      "recordingId": "2e1c7e548f66316f7c7677c167bed21686e7317cd3de7da29e3cfbd10137fbf2",
+      "imageSHA256": "ae668387bc7e4b97422ee385d054673a6f8eff96b2b278f26f14dc62b0325c55",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": false,
+      "reason": "Pose torso box falls on L-sit lower abdomen/hip rather than stable upper-torso context"
+    },
+    {
+      "frameReviewId": "F0028",
+      "caseId": "k700train_ayzMLAVi7yk_000009_000019",
+      "recordingId": "2e1c7e548f66316f7c7677c167bed21686e7317cd3de7da29e3cfbd10137fbf2",
+      "imageSHA256": "77b34d28928c232b0608c6dadcc4a99bfecd9e9ae49b40554246c19e93091f49",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "oblique",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": false,
+      "reason": "Pose torso box falls on L-sit lower abdomen/hip rather than stable upper-torso context"
+    },
+    {
+      "frameReviewId": "F0029",
+      "caseId": "k700train_87_7TkSyX4w_000006_000016",
+      "recordingId": "82ad0d0962e53e9cd7cd78ad8117d90ee3979334aab3dd3d54c99d4b6fe073e7",
+      "imageSHA256": "abb76ba383e4c5aa0a286e21aa54f1267c30287952f3919cb4f001adf1f5b8a7",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0030",
+      "caseId": "k700train_87_7TkSyX4w_000006_000016",
+      "recordingId": "82ad0d0962e53e9cd7cd78ad8117d90ee3979334aab3dd3d54c99d4b6fe073e7",
+      "imageSHA256": "9f64ed88670be691065c52339c5c79ab1d14dcd95dff57e4adf9cf49e1474049",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear red shirt; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0031",
+      "caseId": "k700train_87_7TkSyX4w_000006_000016",
+      "recordingId": "82ad0d0962e53e9cd7cd78ad8117d90ee3979334aab3dd3d54c99d4b6fe073e7",
+      "imageSHA256": "d8ba377a737f36ae8018dba9cf00268a1c25e8fedddd69d8c37bd6dd0071a0b6",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear red shirt; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0032",
+      "caseId": "k700train_87_7TkSyX4w_000006_000016",
+      "recordingId": "82ad0d0962e53e9cd7cd78ad8117d90ee3979334aab3dd3d54c99d4b6fe073e7",
+      "imageSHA256": "5245e96f41f509e69633056e93fa6bbeb0b550b1f524f7bf6d02659f52b5bb28",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0033",
+      "caseId": "k700train_YZHUgis4Dmk_000007_000017",
+      "recordingId": "96c3c4019836bb83752f8443d25ff432e13834430daa2b710fad7439f1e993ae",
+      "imageSHA256": "987cd929fca708c1d43aaac880a2accd68842f485589a719ad65e0b1230729a3",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 25088
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0034",
+      "caseId": "k700train_YZHUgis4Dmk_000007_000017",
+      "recordingId": "96c3c4019836bb83752f8443d25ff432e13834430daa2b710fad7439f1e993ae",
+      "imageSHA256": "64d0c8f443a6cbe44e48f93df6da1c8d83305e869107309d460e19ab1924a2e1",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 50176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0035",
+      "caseId": "k700train_YZHUgis4Dmk_000007_000017",
+      "recordingId": "96c3c4019836bb83752f8443d25ff432e13834430daa2b710fad7439f1e993ae",
+      "imageSHA256": "136330889ffd2a66f053bb0e5a38f132b21714e97245064b9841de713f4775ce",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 75264
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0036",
+      "caseId": "k700train_YZHUgis4Dmk_000007_000017",
+      "recordingId": "96c3c4019836bb83752f8443d25ff432e13834430daa2b710fad7439f1e993ae",
+      "imageSHA256": "63a8e558a9c6961474c5b1cfd06f275b2ed262bf4711883a773306c18637428e",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 103936
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0037",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "06170fbc4498aa6dd17cad889a1852a6510d2b58bfeeb0f2f78e35a178dd5443",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; closed pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0038",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "a156199ce1e7b6d38bd9ebd3b55e8f42eb5e011c74b4c1ac36d37123e75dd4d4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 1,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; closed pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0039",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "e7d361f6349d8eac53eb32253ca0593e0a68ef09c009ca7c18d6c43035ab084e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; closed pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0040",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "5abd7a8ae21deee328136b046dc5416594c24262d47e97021d2d895f22098e70",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; closed pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0041",
+      "caseId": "k700train_xqIj9hlNT2k_000000_000010",
+      "recordingId": "a63e50b08fa5a39a99ac4e82af8fcf3abf11321ef918d1aaa962277411226cbd",
+      "imageSHA256": "f70b1a150166df635bd1a89e28e9b04fb46b370cda508cb1a7c3a7799ecfb51c",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 21504
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0042",
+      "caseId": "k700train_xqIj9hlNT2k_000000_000010",
+      "recordingId": "a63e50b08fa5a39a99ac4e82af8fcf3abf11321ef918d1aaa962277411226cbd",
+      "imageSHA256": "2b97791d3216798b2f204f8ec4e0c322b7eaf2d6efb1a2f08b1dbae767e6ec43",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 46080
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0043",
+      "caseId": "k700train_yaFs9C35Xb8_000018_000028",
+      "recordingId": "ea252914cad46d5f2ef43119e91d91056b0c3b8eb8c24c0fa456dab7ae50b0bc",
+      "imageSHA256": "445cb0d43128ed32c59a0e9291f1c8cc1e9275875be2a1e3f17c15f7c45d8e08",
+      "timestamp": {
+        "timescale": 15104,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front black shirt; pronated doorway straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0044",
+      "caseId": "k700train_yaFs9C35Xb8_000018_000028",
+      "recordingId": "ea252914cad46d5f2ef43119e91d91056b0c3b8eb8c24c0fa456dab7ae50b0bc",
+      "imageSHA256": "d13f273f05b8c64afee79f73489bf7925ffb69eb34d36170881b2314d6f083cf",
+      "timestamp": {
+        "timescale": 15104,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; pronated doorway straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0045",
+      "caseId": "k700train_yaFs9C35Xb8_000018_000028",
+      "recordingId": "ea252914cad46d5f2ef43119e91d91056b0c3b8eb8c24c0fa456dab7ae50b0bc",
+      "imageSHA256": "6d4bd3994674be567d5a00210da604db1d993795140f15eb9bd75e843cb54ae0",
+      "timestamp": {
+        "timescale": 15104,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; pronated doorway straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0046",
+      "caseId": "k700train_WMDA1CsyDQs_000013_000023",
+      "recordingId": "60066a755f74f3b88cb9ce81824df3f371d667e239e69f16d8c6061d10e58169",
+      "imageSHA256": "14edc2a22cc4abda128101644ee18fb99bbfcd3d0b97ee24c9fc9945bbe83f19",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front white shirt; wide pronated straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0047",
+      "caseId": "k700train_WMDA1CsyDQs_000013_000023",
+      "recordingId": "60066a755f74f3b88cb9ce81824df3f371d667e239e69f16d8c6061d10e58169",
+      "imageSHA256": "2e5726a0e871535669aa20f42ce3a945272f5b8700085980663472218090df32",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front white shirt; wide pronated straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0048",
+      "caseId": "k700train_WMDA1CsyDQs_000013_000023",
+      "recordingId": "60066a755f74f3b88cb9ce81824df3f371d667e239e69f16d8c6061d10e58169",
+      "imageSHA256": "17e4abafcaeb47e6d36234534a7e279c0e7f04a885ddfe933400e8d9dcbee61e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front white shirt; wide pronated straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0049",
+      "caseId": "k700train_WMDA1CsyDQs_000013_000023",
+      "recordingId": "60066a755f74f3b88cb9ce81824df3f371d667e239e69f16d8c6061d10e58169",
+      "imageSHA256": "19530136265038f79bc719caac90a232c6f0ae0070eb8629fe93a1ce2334a58e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Dismounted and hands released"
+    },
+    {
+      "frameReviewId": "F0050",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "5456cb716fe187769c6e8991ff2af3b1f96783c1c0a936c7d52cf1a83141be9d",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut"
+    },
+    {
+      "frameReviewId": "F0051",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "efb42fe309f7b52057295bfee2013be453c30b9e5b8a766bd483e0f8dcf2d83f",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 1,
+      "bodyEligible": true,
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut"
+    },
+    {
+      "frameReviewId": "F0052",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "a5f12ac6546a99b02432e1044296067cc34e538c79f8c643f28cbd528573f1c4",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut"
+    },
+    {
+      "frameReviewId": "F0053",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "5680f65a611121e3924cefb88cb8f51eeeaeea67db3c5e56a87d9d4cc084a514",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": false,
+      "personIndex": 0,
+      "bodyEligible": false,
+      "reason": "Cut to different front-facing athlete beyond prespecified active window"
+    },
+    {
+      "frameReviewId": "F0054",
+      "caseId": "k700train_OhQcWwqQDR4_000042_000052",
+      "recordingId": "b688c2bdfa9daabe013620c3ada0101212fe3c3fe4461cde0971acf3c4bc2ac6",
+      "imageSHA256": "402d301ef5ed76c05e24af812ae65f91649058a5b80347506d0ec2e6d837a54e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Standing setup with observer in foreground"
+    },
+    {
+      "frameReviewId": "F0055",
+      "caseId": "k700train_OhQcWwqQDR4_000042_000052",
+      "recordingId": "b688c2bdfa9daabe013620c3ada0101212fe3c3fe4461cde0971acf3c4bc2ac6",
+      "imageSHA256": "d6f0f0f978d8a5cb93a5798b897b280873976231e70aa0acbff7a6d662b40774",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front white-shirt primary athlete with observer; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0056",
+      "caseId": "k700train_OhQcWwqQDR4_000042_000052",
+      "recordingId": "b688c2bdfa9daabe013620c3ada0101212fe3c3fe4461cde0971acf3c4bc2ac6",
+      "imageSHA256": "8f222340f8dcf571f3c007a46a00659c38113fa65ed8c35fecde2839d13c6b06",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front white-shirt primary athlete with observer; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0057",
+      "caseId": "k700train_OhQcWwqQDR4_000042_000052",
+      "recordingId": "b688c2bdfa9daabe013620c3ada0101212fe3c3fe4461cde0971acf3c4bc2ac6",
+      "imageSHA256": "e46b597faaedc52389892c3164de5399d6d3eac2458da30a51856aea577a0551",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front white-shirt primary athlete with observer; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0058",
+      "caseId": "k700train_wu_ri4LnCSA_000002_000012",
+      "recordingId": "277ee9a07a60f96660f495e726cebd26615f157a5fb380f90541dce64d3894cb",
+      "imageSHA256": "9dad0456b126f56ec53a7e9cb570d25b1c4487906bb8e16a141453af40d4b08c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front gray tank; wide pronated straight-bar grip before dismount"
+    },
+    {
+      "frameReviewId": "F0059",
+      "caseId": "k700train_wu_ri4LnCSA_000002_000012",
+      "recordingId": "277ee9a07a60f96660f495e726cebd26615f157a5fb380f90541dce64d3894cb",
+      "imageSHA256": "4cd7735bc0f992b42a44b79cd3dbb41aac508556fd67b692cbd0f617c6b9579a",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": false,
+      "personIndex": 0,
+      "bodyEligible": false,
+      "reason": "Front gray tank; wide pronated straight-bar grip before dismount"
+    },
+    {
+      "frameReviewId": "F0060",
+      "caseId": "k700train_wu_ri4LnCSA_000002_000012",
+      "recordingId": "277ee9a07a60f96660f495e726cebd26615f157a5fb380f90541dce64d3894cb",
+      "imageSHA256": "4e66efc1c09ca71aba0c6b86fe6735e35bedfc8df440dc6c330c516b26ba6996",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front gray tank; wide pronated straight-bar grip before dismount"
+    },
+    {
+      "frameReviewId": "F0061",
+      "caseId": "k700train_0WQRBqw77PI_000001_000011",
+      "recordingId": "fdee0723bb0b07c48422b5de89e05e4ecc6b4bbea1fb09d94a88903a9ee8b956",
+      "imageSHA256": "a3c2952521b07ca3514f4facdd31cc7e857fbfddb17bbb0c4737eea8a4517966",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear red shirt; close supinated straight-bar grips with palmar wrists toward camera; caption agrees"
+    },
+    {
+      "frameReviewId": "F0062",
+      "caseId": "k700train_0WQRBqw77PI_000001_000011",
+      "recordingId": "fdee0723bb0b07c48422b5de89e05e4ecc6b4bbea1fb09d94a88903a9ee8b956",
+      "imageSHA256": "625344d8fa1b433500f209306fa07438000672dc3131e4f3ce1e463438ea4b07",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear red shirt; close supinated straight-bar grips with palmar wrists toward camera; caption agrees"
+    },
+    {
+      "frameReviewId": "F0063",
+      "caseId": "k700train_0WQRBqw77PI_000001_000011",
+      "recordingId": "fdee0723bb0b07c48422b5de89e05e4ecc6b4bbea1fb09d94a88903a9ee8b956",
+      "imageSHA256": "ff98f2351cf840c1328a628eadc4517e9137904edac799ab92a395ea533982c7",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Black title/transition frame"
+    },
+    {
+      "frameReviewId": "F0064",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "71567d158205c343156836be8f83e1e709d7928e7ed74ff3f271bb60032b174f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0065",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "421f1d9d2cdbc41e386f0f9a0f1c7ecfe24d69dd93c473850d03023e9df99f7c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0066",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "8c7239b047884dfff40a4cb45fad7e10ca48416e0db433ad88e2d05594d2b13b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0067",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "c025bac0cf397358f901e449a8da5cb9ae865689de8abe0fc26f56cb3dfd2a56",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0068",
+      "caseId": "k700train_9tV_rYBN3g0_000036_000046",
+      "recordingId": "851ba7417fc45fd2a7d920f16c389132f5ed8ef859b256742e5bab272f0dfa22",
+      "imageSHA256": "28abe18df2070ba2e4fce7c13bad0c0bd218268276eb54e1376f7ab167fee462",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear gray tank; wide dorsal grips before release"
+    },
+    {
+      "frameReviewId": "F0069",
+      "caseId": "k700train_9tV_rYBN3g0_000036_000046",
+      "recordingId": "851ba7417fc45fd2a7d920f16c389132f5ed8ef859b256742e5bab272f0dfa22",
+      "imageSHA256": "8efacb18fd994ee45094a7feb72c0b52d4beea041b784ce430a0a4a1a8ecb831",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": 0,
+      "bodyEligible": false,
+      "reason": "Rear gray tank; wide dorsal grips before release"
+    },
+    {
+      "frameReviewId": "F0070",
+      "caseId": "k700train_U83l0DCt3OA_000208_000218",
+      "recordingId": "0da9e396d55845e145192f824d5edb4df845e12b9fe6df1e484054be9e984092",
+      "imageSHA256": "233b109da429cc8b9727a2e7e37ddd430d16e7acfded0a3a87a7957dde578747",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48048
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front shirtless torso; close supinated doorway straight-bar grip with dorsal wrists toward camera"
+    },
+    {
+      "frameReviewId": "F0071",
+      "caseId": "k700train_U83l0DCt3OA_000208_000218",
+      "recordingId": "0da9e396d55845e145192f824d5edb4df845e12b9fe6df1e484054be9e984092",
+      "imageSHA256": "8184389d32f467ffc53f116b64d88970e287b69f4b43a6909d47382405787d89",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 96096
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front shirtless torso; close supinated doorway straight-bar grip with dorsal wrists toward camera"
+    },
+    {
+      "frameReviewId": "F0072",
+      "caseId": "k700train_U83l0DCt3OA_000208_000218",
+      "recordingId": "0da9e396d55845e145192f824d5edb4df845e12b9fe6df1e484054be9e984092",
+      "imageSHA256": "843f8be0020bfca851f469eecd6a784b3a6f77bf4a22baa2ff80f51f760722db",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144144
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front shirtless torso; close supinated doorway straight-bar grip with dorsal wrists toward camera"
+    },
+    {
+      "frameReviewId": "F0073",
+      "caseId": "k700train_U83l0DCt3OA_000208_000218",
+      "recordingId": "0da9e396d55845e145192f824d5edb4df845e12b9fe6df1e484054be9e984092",
+      "imageSHA256": "edb0296188f7e9b39e61b34d16430714b5d6d93306912471f7b45c78322becef",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 192192
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front shirtless torso; close supinated doorway straight-bar grip with dorsal wrists toward camera"
+    },
+    {
+      "frameReviewId": "F0074",
+      "caseId": "k700train_ubxm0Ivg3Rs_000045_000055",
+      "recordingId": "c9b39e9b7101c5c9f9e9698f2bd843760cf5f061068be83b8e5b9ce904f6a6de",
+      "imageSHA256": "077245443fd3eaf2ec52850d6be401dbe59b05df4012db8f842315c986435c7b",
+      "timestamp": {
+        "timescale": 12000,
+        "value": 24024
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear white shirt; wide dorsal straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0075",
+      "caseId": "k700train_rFRinf9b-Vw_000001_000011",
+      "recordingId": "1941ff309bcfc6188c4fb317e26e4ad885753e8b76e7ce3ba1c1ed6efc451c65",
+      "imageSHA256": "5cd58e06994833f2693a9dc5043be1f87a71f2cd9e0e3cf51bbf72db1af0af89",
+      "timestamp": {
+        "timescale": 14336,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Oblique front torso; close supinated straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0076",
+      "caseId": "k700train_rFRinf9b-Vw_000001_000011",
+      "recordingId": "1941ff309bcfc6188c4fb317e26e4ad885753e8b76e7ce3ba1c1ed6efc451c65",
+      "imageSHA256": "90e06b18c682d80ae0e126bbf501899ba2711d309fb406c1dd52e3f1e3889dc3",
+      "timestamp": {
+        "timescale": 14336,
+        "value": 57344
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Oblique front torso; close supinated straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0077",
+      "caseId": "k700train_rFRinf9b-Vw_000001_000011",
+      "recordingId": "1941ff309bcfc6188c4fb317e26e4ad885753e8b76e7ce3ba1c1ed6efc451c65",
+      "imageSHA256": "98d1c955dc5a19ec957282c176203fc09901c27b8d3e7335056957e2be21e224",
+      "timestamp": {
+        "timescale": 14336,
+        "value": 86016
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Oblique front torso; close supinated straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0078",
+      "caseId": "k700train_rFRinf9b-Vw_000001_000011",
+      "recordingId": "1941ff309bcfc6188c4fb317e26e4ad885753e8b76e7ce3ba1c1ed6efc451c65",
+      "imageSHA256": "ef29ac5aa44b95158ac28c7bf0d34e5822c9335b8c149714ed21edb3e7d90926",
+      "timestamp": {
+        "timescale": 14336,
+        "value": 114688
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "oblique",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Oblique front torso; close supinated straight-bar grips, requires per-patch verification"
+    },
+    {
+      "frameReviewId": "F0079",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "6086cc282dbbce2c4f0df012d601a8f680084f26169f0bd2cffd60538bd4e0be",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 28000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide dorsal doorway straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0080",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "cf88227a798cabd971d5e3c8e4a220bbdf5f67f5c48c3d53c79b9bce5a82f7d6",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 60000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear black shirt; wide dorsal doorway straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0081",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "270965868f7423828f0f72dc73cf5daded7e2be7bd622dcef2e9bf5a41e9c901",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 88000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear black shirt; wide dorsal doorway straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0082",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "8bfda80244ed92e013abbdc3e7e2f0e9c872ec5977a04bc297ff4ded9252c12b",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 120000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear black shirt; wide dorsal doorway straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0083",
+      "caseId": "k700train_HrsaSFTGt4o_000003_000013",
+      "recordingId": "90a55025630c6b993a25437487731a5e1d241bd850747c12d2af780dbf14d4ef",
+      "imageSHA256": "9e41e7d82345a22e993eeb683dbec25418ca4898f4db71c765ddda883e277c3f",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated outdoor straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0084",
+      "caseId": "k700train_HrsaSFTGt4o_000003_000013",
+      "recordingId": "90a55025630c6b993a25437487731a5e1d241bd850747c12d2af780dbf14d4ef",
+      "imageSHA256": "0f9ebf9290884b868c8129b872b983b201570e3b2a2d0f192d440be31e536373",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated outdoor straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0085",
+      "caseId": "k700train_HrsaSFTGt4o_000003_000013",
+      "recordingId": "90a55025630c6b993a25437487731a5e1d241bd850747c12d2af780dbf14d4ef",
+      "imageSHA256": "154760d494014a09cb1b6289cad6670567f6950038c953651cc0e25a7dcb8ddc",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated outdoor straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0086",
+      "caseId": "k700train_HrsaSFTGt4o_000003_000013",
+      "recordingId": "90a55025630c6b993a25437487731a5e1d241bd850747c12d2af780dbf14d4ef",
+      "imageSHA256": "7b35ac20bfe2c4d6a6dc25720a753e54a72f0fa5a9ee182cf9f9de1e00319557",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated outdoor straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0087",
+      "caseId": "k700train_S6udD0IlSRM_000012_000022",
+      "recordingId": "7e84ae865bcb26986adb2a4f37e4d85b50d9c3d9ab7a23bdf099d339531ba66d",
+      "imageSHA256": "40f1f1b0f9298e807858025de41ada7ecd6a96b9213f60220680f699aaceb523",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear white tank; wide pronated transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0088",
+      "caseId": "k700train_S6udD0IlSRM_000012_000022",
+      "recordingId": "7e84ae865bcb26986adb2a4f37e4d85b50d9c3d9ab7a23bdf099d339531ba66d",
+      "imageSHA256": "64d2ae7d65797ff81b2af761c85dd6b5b6788813b0288fb94142f0a1b4552c9c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 2,
+      "bodyEligible": true,
+      "reason": "Rear white tank; wide pronated transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0089",
+      "caseId": "k700train_S6udD0IlSRM_000012_000022",
+      "recordingId": "7e84ae865bcb26986adb2a4f37e4d85b50d9c3d9ab7a23bdf099d339531ba66d",
+      "imageSHA256": "19225fa369bc609b20db4b665d26c31bc282581512a4c04d64d65c4fe00aa9a2",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear white tank; wide pronated transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0090",
+      "caseId": "k700train_S6udD0IlSRM_000012_000022",
+      "recordingId": "7e84ae865bcb26986adb2a4f37e4d85b50d9c3d9ab7a23bdf099d339531ba66d",
+      "imageSHA256": "caf566ccaaaecea60327bc38f4276a1d16522f0df1e0cd80cc35d354f1682d0b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear white tank; wide pronated transverse-bar grips"
+    },
+    {
+      "frameReviewId": "F0091",
+      "caseId": "k700train_2m977kSaW1U_000027_000037",
+      "recordingId": "a1bc8a37d0d357a5299bb308e75b56fcc38f4ded5a1f51337d999312e9bc48ee",
+      "imageSHA256": "0dd9a22ff357ec810412429788512331fa05897232cee648f09a1f98dd0f599f",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 21504
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front red shirt; close straight-bar grips, provisional supination requires enlarged patch verification"
+    },
+    {
+      "frameReviewId": "F0092",
+      "caseId": "k700train_2m977kSaW1U_000027_000037",
+      "recordingId": "a1bc8a37d0d357a5299bb308e75b56fcc38f4ded5a1f51337d999312e9bc48ee",
+      "imageSHA256": "a809c12c6b39d61cd3bc6fec83075d38855a37990db1f39fe774934c5c083083",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 46080
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front red shirt; close straight-bar grips, provisional supination requires enlarged patch verification"
+    },
+    {
+      "frameReviewId": "F0093",
+      "caseId": "k700train_2m977kSaW1U_000027_000037",
+      "recordingId": "a1bc8a37d0d357a5299bb308e75b56fcc38f4ded5a1f51337d999312e9bc48ee",
+      "imageSHA256": "a3c3f56e6bb40d25279e494c57b5d7d49e3be9543aa5ad599431cee640c7bd25",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 67584
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front red shirt; close straight-bar grips, provisional supination requires enlarged patch verification"
+    },
+    {
+      "frameReviewId": "F0094",
+      "caseId": "k700train_2m977kSaW1U_000027_000037",
+      "recordingId": "a1bc8a37d0d357a5299bb308e75b56fcc38f4ded5a1f51337d999312e9bc48ee",
+      "imageSHA256": "33026126465eb06d69115f99fc42c868c0411bad0e5e2eec20b04156cc0c635d",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 92160
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front red shirt; close straight-bar grips, provisional supination requires enlarged patch verification"
+    },
+    {
+      "frameReviewId": "F0095",
+      "caseId": "k700train_wtVAoIi2ugc_000004_000014",
+      "recordingId": "c381b7d7109dd6f533323ee31ca25990f89896579db50e46ffa5ecc124173434",
+      "imageSHA256": "280ba4aec9e82985fb3dfaadf7dccb49b51c9978ed186a9cce43cc63b444bced",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front gray shirt; close-up dorsal hands in closed supinated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0096",
+      "caseId": "k700train_wtVAoIi2ugc_000004_000014",
+      "recordingId": "c381b7d7109dd6f533323ee31ca25990f89896579db50e46ffa5ecc124173434",
+      "imageSHA256": "1480e8514bfe5758385ab0a396011f10eb2e76b18847a5fbe1c25ea6bf83568a",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front gray shirt; close-up dorsal hands in closed supinated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0097",
+      "caseId": "k700train_wtVAoIi2ugc_000004_000014",
+      "recordingId": "c381b7d7109dd6f533323ee31ca25990f89896579db50e46ffa5ecc124173434",
+      "imageSHA256": "b1f113fd52a2c6a6193b3ef9e6303bece1700bdd63e31dbb8b3f721c993b087f",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "underhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Front gray shirt; close-up dorsal hands in closed supinated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0098",
+      "caseId": "k700train_2ssA3WpaB14_000024_000034",
+      "recordingId": "e9c48cc5c28d77501568f4df75677a6f0f53a0303900c140448cdc0481930e98",
+      "imageSHA256": "77029eb4473d36e644573825839cbdf425dc8eaab50deca03914686bc320adc1",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear white shirt; wide dorsal doorway straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0099",
+      "caseId": "k700train_2ssA3WpaB14_000024_000034",
+      "recordingId": "e9c48cc5c28d77501568f4df75677a6f0f53a0303900c140448cdc0481930e98",
+      "imageSHA256": "d06affdaff88b973d977ecd1a8ac44a7603122b2cd960f3112472d722b2d75e4",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear white shirt; wide dorsal doorway straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0100",
+      "caseId": "k700train_2ssA3WpaB14_000024_000034",
+      "recordingId": "e9c48cc5c28d77501568f4df75677a6f0f53a0303900c140448cdc0481930e98",
+      "imageSHA256": "f3d3e246a1eb06a87d24a94709cd83e02241418fefb49456aaa435ef666f33d1",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear white shirt; wide dorsal doorway straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0101",
+      "caseId": "k700train_aZO0Uxzm6_A_000257_000267",
+      "recordingId": "84741696945932a6241dffe4c0c910ffff841acd53ffc6fad2aff3994507de82",
+      "imageSHA256": "d59530843cff695ef67cbebc56d8a07ef03028618fb3114f450be44a778c96b2",
+      "timestamp": {
+        "timescale": 11428,
+        "value": 22400
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0102",
+      "caseId": "k700train_aZO0Uxzm6_A_000257_000267",
+      "recordingId": "84741696945932a6241dffe4c0c910ffff841acd53ffc6fad2aff3994507de82",
+      "imageSHA256": "be3317ab56c5c9361ec808e28d7a20fc396069ff07b8d6e29f32db53fbf63e0c",
+      "timestamp": {
+        "timescale": 11428,
+        "value": 44800
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0103",
+      "caseId": "k700train_aZO0Uxzm6_A_000257_000267",
+      "recordingId": "84741696945932a6241dffe4c0c910ffff841acd53ffc6fad2aff3994507de82",
+      "imageSHA256": "f41e3eb3f141436070e2bb3627e065f4ce437e89137fb40f848eaca2a7231d5b",
+      "timestamp": {
+        "timescale": 11428,
+        "value": 67200
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0104",
+      "caseId": "k700train_aZO0Uxzm6_A_000257_000267",
+      "recordingId": "84741696945932a6241dffe4c0c910ffff841acd53ffc6fad2aff3994507de82",
+      "imageSHA256": "bd85699956a02b2ef77c78b91eca6bc8c5852ba14b6bd023ca9c384baae734eb",
+      "timestamp": {
+        "timescale": 11428,
+        "value": 92800
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": false,
+      "personIndex": null,
+      "bodyEligible": false,
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips before dismount"
+    },
+    {
+      "frameReviewId": "F0105",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "ad5405ba8c31060871da9e72c8e999294c2897c0c9a3400ddebab069a647e790",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions"
+    },
+    {
+      "frameReviewId": "F0106",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "13a80ce333036e9a719867af5b69af048f7629a42d80c63e0816e354839ec85c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions"
+    },
+    {
+      "frameReviewId": "F0107",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "ebf6cd2363aa653976b7b6d14cc8fa8bb60c9123d32532f693b65da07c1c195e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions"
+    },
+    {
+      "frameReviewId": "F0108",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "2e896fc595aa416c85898f8a2aa2ae810ff296267b170255406b4bd0e9f50fce",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions"
+    },
+    {
+      "frameReviewId": "F0109",
+      "caseId": "k700train_cAyFmeNxyGg_000012_000022",
+      "recordingId": "1072ec9a36e9378c6b14a60938f7995eb388b70f422248a3b949ebf86a630b56",
+      "imageSHA256": "98884b06a43504682d19db64d03960eaa437f0d18f537b8a48dc4c06aadbf584",
+      "timestamp": {
+        "timescale": 14877,
+        "value": 28000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0110",
+      "caseId": "k700train_cAyFmeNxyGg_000012_000022",
+      "recordingId": "1072ec9a36e9378c6b14a60938f7995eb388b70f422248a3b949ebf86a630b56",
+      "imageSHA256": "909c4214b7faad1b21cf16a5015b713984aa435d2e425f73f86bfd33be607a01",
+      "timestamp": {
+        "timescale": 14877,
+        "value": 60000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0111",
+      "caseId": "k700train_cAyFmeNxyGg_000012_000022",
+      "recordingId": "1072ec9a36e9378c6b14a60938f7995eb388b70f422248a3b949ebf86a630b56",
+      "imageSHA256": "0a0babeb0e81c4acb8d8d4ac3a7a4b20c7a99a46fadf8fd24cc29e7dc85e3d09",
+      "timestamp": {
+        "timescale": 14877,
+        "value": 88000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0112",
+      "caseId": "k700train_cAyFmeNxyGg_000012_000022",
+      "recordingId": "1072ec9a36e9378c6b14a60938f7995eb388b70f422248a3b949ebf86a630b56",
+      "imageSHA256": "3911267ce7ea67c014c6ba8ffae16619976eb943abe4e8600d40f715dbe6c45a",
+      "timestamp": {
+        "timescale": 14877,
+        "value": 120000
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "front",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Front black shirt; wide pronated straight-bar grips"
+    },
+    {
+      "frameReviewId": "F0113",
+      "caseId": "k700train_3iN28g4XlMc_000003_000013",
+      "recordingId": "2d72f034dc44adf35e2bcbdc19912bbc91285326ee7bf0a9842c45d0c58fe456",
+      "imageSHA256": "6b8568e9ae9eaeb6c839597bb408ce2bde58d598be58b35c86a22904f041235f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Actual torso is rear-facing purple tank, not provisional front viewpoint"
+    },
+    {
+      "frameReviewId": "F0114",
+      "caseId": "k700train_3iN28g4XlMc_000003_000013",
+      "recordingId": "2d72f034dc44adf35e2bcbdc19912bbc91285326ee7bf0a9842c45d0c58fe456",
+      "imageSHA256": "ce6c786d08dca8b6a86fd11e1b1408da161f18e06e4c32f84ced298b2242912b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Actual torso is rear-facing purple tank, not provisional front viewpoint"
+    },
+    {
+      "frameReviewId": "F0115",
+      "caseId": "k700train_3iN28g4XlMc_000003_000013",
+      "recordingId": "2d72f034dc44adf35e2bcbdc19912bbc91285326ee7bf0a9842c45d0c58fe456",
+      "imageSHA256": "06c730b2e59994b54d60d3802df8ae2d7a2adec89ffe5b15a8b55a7b175bfbf6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Actual torso is rear-facing purple tank, not provisional front viewpoint"
+    },
+    {
+      "frameReviewId": "F0116",
+      "caseId": "k700train_3iN28g4XlMc_000003_000013",
+      "recordingId": "2d72f034dc44adf35e2bcbdc19912bbc91285326ee7bf0a9842c45d0c58fe456",
+      "imageSHA256": "94789f49ae353ad12b29b3fc92e0d120fc33cb02dbc7c72605116edd7a7a380d",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "grip": "overhand",
+      "view": "rear",
+      "gripActive": true,
+      "personIndex": 0,
+      "bodyEligible": true,
+      "reason": "Actual torso is rear-facing purple tank, not provisional front viewpoint"
+    }
+  ],
+  "patches": [
+    {
+      "reviewId": "E0001",
+      "frameReviewId": "F0001",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "f516b3443bde4e40a73f961bae6922cdb1c284960259c2acf57e1bba8d697b4b",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        305,
+        116,
+        375,
+        186
+      ],
+      "patchSHA256": "0ed3d3ea4dbab6eb9a560e0e7850be27655936c5608639ea14e492eda736d2dd",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0002",
+      "frameReviewId": "F0001",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "f516b3443bde4e40a73f961bae6922cdb1c284960259c2acf57e1bba8d697b4b",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        17,
+        116,
+        96,
+        195
+      ],
+      "patchSHA256": "fd4ae161b58979918bac12008f5c8c7df32bbcd48ced9ba9125e5583491ee193",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0003",
+      "frameReviewId": "F0002",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "883b8e9d511cafee34946bac52c74b6c3520406e84ba98aae0da89d8dd100b61",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        298,
+        113,
+        365,
+        180
+      ],
+      "patchSHA256": "e962ded8fc50ef1a048a105b9a03a2bea2e1a401fe99be41def0fde207987493",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0004",
+      "frameReviewId": "F0002",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "883b8e9d511cafee34946bac52c74b6c3520406e84ba98aae0da89d8dd100b61",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        14,
+        114,
+        91,
+        191
+      ],
+      "patchSHA256": "b944e8dd835d43fde43e7dd8eec4ddfea2e45d38bf11cf8d30a84ecf76140efc",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0005",
+      "frameReviewId": "F0003",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "84433e1fcae43d1ea98b5dff70a31b522a1a8e9436757dae801bab10ef9d425c",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        21,
+        117,
+        84,
+        180
+      ],
+      "patchSHA256": "b709575e38b2b72045934d34f88d4f6422b67f549c372ee661503ece6e51012a",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0006",
+      "frameReviewId": "F0004",
+      "caseId": "k700train_JmPMVRPNrYI_000001_000011",
+      "recordingId": "b57a8ff32e1234a06c4bf4fe3a0c71a963dc21e3fe20384bd46db9b739838bab",
+      "imageSHA256": "0ca48ccc851e548fa5bfd7022d12cc440a8bdc585b905c63b3c2f6aef2c158ee",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        0,
+        105,
+        87,
+        192
+      ],
+      "patchSHA256": "5445eba87e4b0a346964c54d01cfe196eda2114d8a1199fc4ee966ccde406719",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0007",
+      "frameReviewId": "F0008",
+      "caseId": "k700train_199O9PlZzsQ_000003_000013",
+      "recordingId": "6ac56221d16a1e26838b551fda0b1311b763946a958e32047b1dea2c41975bf5",
+      "imageSHA256": "3b89bb04869b811e8f47a8051fedb52c17bbc68fc501ddc4e6294d0ef34e7a42",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        247,
+        253,
+        290,
+        296
+      ],
+      "patchSHA256": "213431128a4674bddfae206613e76688880f36f9898b6ba2da9166b174db3be8",
+      "grip": "exclude",
+      "view": "oblique",
+      "reason": "Released/open hand during dismount",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0008",
+      "frameReviewId": "F0010",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "155a0bbb2d8696ba86fb4da19e783f1cf954d2077e4cefc36e86573f878cf063",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        114,
+        132,
+        186,
+        204
+      ],
+      "patchSHA256": "7aaff66e65a41594224764ef3fde85a0bb655be5d8168a4cf6fe444483fd2d96",
+      "grip": "underhand",
+      "view": "rear",
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0009",
+      "frameReviewId": "F0010",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "155a0bbb2d8696ba86fb4da19e783f1cf954d2077e4cefc36e86573f878cf063",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        197,
+        93,
+        299,
+        195
+      ],
+      "patchSHA256": "28b6a478245d2bef348d827f24372209a4927f03b3f605c2dcde053b445be03f",
+      "grip": "underhand",
+      "view": "rear",
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0010",
+      "frameReviewId": "F0011",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "2401baf8548a24868438a488d8098ccadf5571cd2576701d2175731a0ee5c4b5",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        199,
+        104,
+        307,
+        212
+      ],
+      "patchSHA256": "b6678f9c167c4032292c8ac446f1ec1e707d145a74a8c5fc97b4cd1bdd678ad8",
+      "grip": "underhand",
+      "view": "rear",
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0011",
+      "frameReviewId": "F0012",
+      "caseId": "k700train_MAWzre6_2jQ_000049_000059",
+      "recordingId": "443865cf4b7e12932b93f8a06b83b14c0de9dfa264df6ff2f458afe1e16c8f0b",
+      "imageSHA256": "5170e749d1ff349f987ee1a83a82a3b5dd7924f66f9ac7f624337fb31fe3ebfe",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 90112
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        202,
+        60,
+        269,
+        127
+      ],
+      "patchSHA256": "596f12cdf5f339593e864e87eae04b97efa41db0b6efaf524830d5903da7347b",
+      "grip": "underhand",
+      "view": "rear",
+      "reason": "Rear red shirt; close supinated transverse-bar grips, requires per-patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0012",
+      "frameReviewId": "F0018",
+      "caseId": "k700train_YKTyKmEd2Ok_000005_000015",
+      "recordingId": "10fd56dfc1e1f15516b585f844ea6471e004bf9d0cea8523400c1a6effc91944",
+      "imageSHA256": "34d2355044e30bb7b7fe98628e940aa4be65bdf8de9d8ebfbf65e9ead38af20e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        224,
+        42,
+        272,
+        90
+      ],
+      "patchSHA256": "26c643b4f000a753e02db9e30fcfbd95f6516bed162bd6ee09f9788bbe540229",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0013",
+      "frameReviewId": "F0018",
+      "caseId": "k700train_YKTyKmEd2Ok_000005_000015",
+      "recordingId": "10fd56dfc1e1f15516b585f844ea6471e004bf9d0cea8523400c1a6effc91944",
+      "imageSHA256": "34d2355044e30bb7b7fe98628e940aa4be65bdf8de9d8ebfbf65e9ead38af20e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        350,
+        48,
+        393,
+        91
+      ],
+      "patchSHA256": "1ad0d6e3cd4b1e0b0a791451f7b9e613f49a8a72c8b6ba4bc6a4abfae97e3d42",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0014",
+      "frameReviewId": "F0020",
+      "caseId": "k700train_YKTyKmEd2Ok_000005_000015",
+      "recordingId": "10fd56dfc1e1f15516b585f844ea6471e004bf9d0cea8523400c1a6effc91944",
+      "imageSHA256": "566ca3aec34a8fd32118b9af9d08f335313ac018516d884e318906b77712b5cc",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        219,
+        41,
+        269,
+        91
+      ],
+      "patchSHA256": "f6b8c88b20f84d41524027e6d90cde7695d0f16cd94c51c4958a4351546f3f1a",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0015",
+      "frameReviewId": "F0020",
+      "caseId": "k700train_YKTyKmEd2Ok_000005_000015",
+      "recordingId": "10fd56dfc1e1f15516b585f844ea6471e004bf9d0cea8523400c1a6effc91944",
+      "imageSHA256": "566ca3aec34a8fd32118b9af9d08f335313ac018516d884e318906b77712b5cc",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        349,
+        49,
+        392,
+        92
+      ],
+      "patchSHA256": "0655eb937563cb7c3c738d78c98c7fef23da329ca8fdb1c0eb9f6bf053c7d96c",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear shirtless torso; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0016",
+      "frameReviewId": "F0021",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "7931dcd88ca2edcd19157a9469d3f6f78e810179923260e39316261fd17b0bcc",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 37632
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        613,
+        2,
+        734,
+        123
+      ],
+      "patchSHA256": "b40293cd65752b6fada32ce48d460baf6deb6672b48e8acb24d6d69ff2e3a6b1",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0017",
+      "frameReviewId": "F0022",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "fad7e2a1b4e847bc28ccce2a535136a31f36990d2f6d71f4f7814e9b64dfede9",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 75264
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        402,
+        23,
+        494,
+        115
+      ],
+      "patchSHA256": "1404a37f0bf15a984145487c383c813be90ddcca5ca9e274a8cfbce557744f5a",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0018",
+      "frameReviewId": "F0022",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "fad7e2a1b4e847bc28ccce2a535136a31f36990d2f6d71f4f7814e9b64dfede9",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 75264
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        634,
+        5,
+        757,
+        128
+      ],
+      "patchSHA256": "1483ac5cbcdd9003e6f6cbc9633810c168f448488ef6a9e817539d1f63ec885d",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0019",
+      "frameReviewId": "F0023",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "222118c744cc7f9b138b039efcdcf0261d0c95adbe2f3ad30a278bd4045bb1e6",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 112896
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        662,
+        20,
+        776,
+        134
+      ],
+      "patchSHA256": "d902fde300f64b0c7cf05c55d46c3460ce49b514b6bd8ab6f9926fb6d72ad05e",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0020",
+      "frameReviewId": "F0024",
+      "caseId": "k700train_BmU9aTreUSw_000019_000029",
+      "recordingId": "fae9abd1f2f9f110580750533432b6f16411725ab1aca864daf83947a3b60a39",
+      "imageSHA256": "0b2f57cfda9ecd09b0b372ecf24ba7d5235553f3a4c205db39425fb7dacb90e9",
+      "timestamp": {
+        "timescale": 19136,
+        "value": 150528
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        643,
+        6,
+        757,
+        120
+      ],
+      "patchSHA256": "4ffe7880293bc9937bebd8b1c5e63a4c6ffe1f7f66f8cf695a73618184331352",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0021",
+      "frameReviewId": "F0026",
+      "caseId": "k700train_63M4BBkuG_E_000001_000011",
+      "recordingId": "62f3dd9a2d5fc1fc44ac530021b36a8fb3a19145fdd48a4f671fc734006e5f1a",
+      "imageSHA256": "987dc2774053bbcb203c111e6dcecbe2ee8fe84129bcc2298916e0349c6d55cb",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        506,
+        193,
+        644,
+        331
+      ],
+      "patchSHA256": "e80c8a80341826f670ff650e5befa3c8e7d00cfcf74e12f4562be7a1ec707463",
+      "grip": "underhand",
+      "view": "rear",
+      "reason": "Rear black shirt; close supinated straight-bar grips and palmar wrists toward camera",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0022",
+      "frameReviewId": "F0026",
+      "caseId": "k700train_63M4BBkuG_E_000001_000011",
+      "recordingId": "62f3dd9a2d5fc1fc44ac530021b36a8fb3a19145fdd48a4f671fc734006e5f1a",
+      "imageSHA256": "987dc2774053bbcb203c111e6dcecbe2ee8fe84129bcc2298916e0349c6d55cb",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        653,
+        209,
+        769,
+        325
+      ],
+      "patchSHA256": "2bd4333b1dd87397d22af7ad07036101ec09eaefcfd68ed02cce39e261d5a355",
+      "grip": "underhand",
+      "view": "rear",
+      "reason": "Rear black shirt; close supinated straight-bar grips and palmar wrists toward camera",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0023",
+      "frameReviewId": "F0028",
+      "caseId": "k700train_ayzMLAVi7yk_000009_000019",
+      "recordingId": "2e1c7e548f66316f7c7677c167bed21686e7317cd3de7da29e3cfbd10137fbf2",
+      "imageSHA256": "77b34d28928c232b0608c6dadcc4a99bfecd9e9ae49b40554246c19e93091f49",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        244,
+        70,
+        304,
+        130
+      ],
+      "patchSHA256": "4c7ed95ec8c14ba7f309dd56a26663e9b40e1596fc49f292713a506b9726fadf",
+      "grip": "overhand",
+      "view": "oblique",
+      "reason": "Oblique front torso in L-sit; pronated straight-bar grips, requires per-patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0024",
+      "frameReviewId": "F0028",
+      "caseId": "k700train_ayzMLAVi7yk_000009_000019",
+      "recordingId": "2e1c7e548f66316f7c7677c167bed21686e7317cd3de7da29e3cfbd10137fbf2",
+      "imageSHA256": "77b34d28928c232b0608c6dadcc4a99bfecd9e9ae49b40554246c19e93091f49",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        175,
+        37,
+        243,
+        105
+      ],
+      "patchSHA256": "e6379f28e68804a179cb76ebbf062e13e633e7f2f33a6baa7101eebd956769be",
+      "grip": "overhand",
+      "view": "oblique",
+      "reason": "Oblique front torso in L-sit; pronated straight-bar grips, requires per-patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0025",
+      "frameReviewId": "F0032",
+      "caseId": "k700train_87_7TkSyX4w_000006_000016",
+      "recordingId": "82ad0d0962e53e9cd7cd78ad8117d90ee3979334aab3dd3d54c99d4b6fe073e7",
+      "imageSHA256": "5245e96f41f509e69633056e93fa6bbeb0b550b1f524f7bf6d02659f52b5bb28",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 122880
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        174,
+        35,
+        219,
+        80
+      ],
+      "patchSHA256": "ecf7c299bcbfdc422565a11df82f5944e00ceae043ad65784fb04a54766c81f1",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; wide dorsal transverse-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0026",
+      "frameReviewId": "F0033",
+      "caseId": "k700train_YZHUgis4Dmk_000007_000017",
+      "recordingId": "96c3c4019836bb83752f8443d25ff432e13834430daa2b710fad7439f1e993ae",
+      "imageSHA256": "987cd929fca708c1d43aaac880a2accd68842f485589a719ad65e0b1230729a3",
+      "timestamp": {
+        "timescale": 12800,
+        "value": 25088
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        665,
+        172,
+        815,
+        322
+      ],
+      "patchSHA256": "687b51ecc4c310e9dc65ffbcce4317a6c8e0032a4485a650ac0910e95eea9c73",
+      "grip": "exclude",
+      "view": "rear",
+      "reason": "Crop contains forearm/wrist and omits closed gripping hand",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0027",
+      "frameReviewId": "F0037",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "06170fbc4498aa6dd17cad889a1852a6510d2b58bfeeb0f2f78e35a178dd5443",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        467,
+        90,
+        559,
+        182
+      ],
+      "patchSHA256": "97ff9718d178f853fe0722d38b6ecd3b10250187d6c14faddd0d9d748e690481",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0028",
+      "frameReviewId": "F0037",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "06170fbc4498aa6dd17cad889a1852a6510d2b58bfeeb0f2f78e35a178dd5443",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        720,
+        92,
+        811,
+        183
+      ],
+      "patchSHA256": "e823d18eb9a9cf9e823f5c81862aed861a2adb5346653beb21bd3424a458cb34",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0029",
+      "frameReviewId": "F0038",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "a156199ce1e7b6d38bd9ebd3b55e8f42eb5e011c74b4c1ac36d37123e75dd4d4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        457,
+        92,
+        551,
+        186
+      ],
+      "patchSHA256": "8eb4eb2277f7f3be21e3192cdf61d2c58244fdc9545c17badb2265d942083616",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0030",
+      "frameReviewId": "F0038",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "a156199ce1e7b6d38bd9ebd3b55e8f42eb5e011c74b4c1ac36d37123e75dd4d4",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        713,
+        94,
+        805,
+        186
+      ],
+      "patchSHA256": "05c294341be7e4b5f20a2fd67ed30fc85f6c01adcf720c889656115e21a95e8e",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0031",
+      "frameReviewId": "F0039",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "e7d361f6349d8eac53eb32253ca0593e0a68ef09c009ca7c18d6c43035ab084e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        464,
+        76,
+        558,
+        170
+      ],
+      "patchSHA256": "5c80e2b5fd9cfa006cf655718db34a1bd5e2b9ded2250fa664306da584190dd4",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0032",
+      "frameReviewId": "F0039",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "e7d361f6349d8eac53eb32253ca0593e0a68ef09c009ca7c18d6c43035ab084e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        718,
+        74,
+        819,
+        175
+      ],
+      "patchSHA256": "b33a70e45c779476bb46d2afa3653b7a8bab88ed68638d0fa1413b7baabedfc6",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0033",
+      "frameReviewId": "F0040",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "5abd7a8ae21deee328136b046dc5416594c24262d47e97021d2d895f22098e70",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        482,
+        58,
+        578,
+        154
+      ],
+      "patchSHA256": "ef1d0dba7c702e307ef3c265c08eba7cc5c9bcfabede3c14e328db6057e06b04",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0034",
+      "frameReviewId": "F0040",
+      "caseId": "k700train_RwknTOLag88_000000_000010",
+      "recordingId": "c79defff7b982383eca53dec757dc02789d8b227e21bac87b3ef30f32d27bc11",
+      "imageSHA256": "5abd7a8ae21deee328136b046dc5416594c24262d47e97021d2d895f22098e70",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        739,
+        55,
+        835,
+        151
+      ],
+      "patchSHA256": "c29dceed68e013a1ea587523e7642e22cafe8042953af9cfcd45682006481e72",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear red shirt; closed pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0035",
+      "frameReviewId": "F0041",
+      "caseId": "k700train_xqIj9hlNT2k_000000_000010",
+      "recordingId": "a63e50b08fa5a39a99ac4e82af8fcf3abf11321ef918d1aaa962277411226cbd",
+      "imageSHA256": "f70b1a150166df635bd1a89e28e9b04fb46b370cda508cb1a7c3a7799ecfb51c",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 21504
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        401,
+        32,
+        483,
+        114
+      ],
+      "patchSHA256": "56ebed6c768786048b55889a1da82e941971cb1dfc7892a782f223fa5f5ea045",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0036",
+      "frameReviewId": "F0041",
+      "caseId": "k700train_xqIj9hlNT2k_000000_000010",
+      "recordingId": "a63e50b08fa5a39a99ac4e82af8fcf3abf11321ef918d1aaa962277411226cbd",
+      "imageSHA256": "f70b1a150166df635bd1a89e28e9b04fb46b370cda508cb1a7c3a7799ecfb51c",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 21504
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        533,
+        58,
+        610,
+        135
+      ],
+      "patchSHA256": "3d985292580b7425d237f3b19d2a95fb5018c512400c693e3e295e29c8d8e3ab",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0037",
+      "frameReviewId": "F0042",
+      "caseId": "k700train_xqIj9hlNT2k_000000_000010",
+      "recordingId": "a63e50b08fa5a39a99ac4e82af8fcf3abf11321ef918d1aaa962277411226cbd",
+      "imageSHA256": "2b97791d3216798b2f204f8ec4e0c322b7eaf2d6efb1a2f08b1dbae767e6ec43",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 46080
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        372,
+        8,
+        444,
+        80
+      ],
+      "patchSHA256": "5d9c8d420e0d682663c5a126d0b3843720facad932f2c78106fbe32e12069347",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0038",
+      "frameReviewId": "F0044",
+      "caseId": "k700train_yaFs9C35Xb8_000018_000028",
+      "recordingId": "ea252914cad46d5f2ef43119e91d91056b0c3b8eb8c24c0fa456dab7ae50b0bc",
+      "imageSHA256": "d13f273f05b8c64afee79f73489bf7925ffb69eb34d36170881b2314d6f083cf",
+      "timestamp": {
+        "timescale": 15104,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        481,
+        243,
+        565,
+        327
+      ],
+      "patchSHA256": "ab4771536c6033319aff3e4721f47cab42673a731346644cc17af6f7c20a9c6a",
+      "grip": "exclude",
+      "view": "front",
+      "reason": "Motion blur and bar occlusion prevent verified closed grip in this crop",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0039",
+      "frameReviewId": "F0044",
+      "caseId": "k700train_yaFs9C35Xb8_000018_000028",
+      "recordingId": "ea252914cad46d5f2ef43119e91d91056b0c3b8eb8c24c0fa456dab7ae50b0bc",
+      "imageSHA256": "d13f273f05b8c64afee79f73489bf7925ffb69eb34d36170881b2314d6f083cf",
+      "timestamp": {
+        "timescale": 15104,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        372,
+        250,
+        435,
+        313
+      ],
+      "patchSHA256": "c39c71dac53b74aece9b01569166043c1e53314abf181c5a88a2fd9a3828269a",
+      "grip": "exclude",
+      "view": "front",
+      "reason": "Motion blur and bar occlusion prevent verified closed grip in this crop",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0040",
+      "frameReviewId": "F0045",
+      "caseId": "k700train_yaFs9C35Xb8_000018_000028",
+      "recordingId": "ea252914cad46d5f2ef43119e91d91056b0c3b8eb8c24c0fa456dab7ae50b0bc",
+      "imageSHA256": "6d4bd3994674be567d5a00210da604db1d993795140f15eb9bd75e843cb54ae0",
+      "timestamp": {
+        "timescale": 15104,
+        "value": 90112
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        389,
+        262,
+        461,
+        334
+      ],
+      "patchSHA256": "180352c618a4de2181f67f9fc032759f8ce78dae8849468ef0f5d624bf165047",
+      "grip": "exclude",
+      "view": "front",
+      "reason": "Open/releasing fingers; no verified closed contact",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0041",
+      "frameReviewId": "F0050",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "5456cb716fe187769c6e8991ff2af3b1f96783c1c0a936c7d52cf1a83141be9d",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        336,
+        143,
+        455,
+        262
+      ],
+      "patchSHA256": "a9920acbe3f599d002e0aac2cefe8eec9471ca7f91b4bb0aff182eed42bd596d",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0042",
+      "frameReviewId": "F0050",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "5456cb716fe187769c6e8991ff2af3b1f96783c1c0a936c7d52cf1a83141be9d",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        733,
+        154,
+        835,
+        256
+      ],
+      "patchSHA256": "cf343f6b6551b50e0e74668c4539193a0d0bf1f2b97b1fda4f2d7ddcaff66dfa",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0043",
+      "frameReviewId": "F0051",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "efb42fe309f7b52057295bfee2013be453c30b9e5b8a766bd483e0f8dcf2d83f",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        346,
+        146,
+        457,
+        257
+      ],
+      "patchSHA256": "451765e4ab0e69811c167d56a6356aab19caa4ea9d1c835860e9e2939ead2757",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0044",
+      "frameReviewId": "F0051",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "efb42fe309f7b52057295bfee2013be453c30b9e5b8a766bd483e0f8dcf2d83f",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        741,
+        165,
+        833,
+        257
+      ],
+      "patchSHA256": "8582765d23647224cbb5ab66ae196a36c7fe1b05de2c3b757cd3aeab62acec5a",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0045",
+      "frameReviewId": "F0053",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "5680f65a611121e3924cefb88cb8f51eeeaeea67db3c5e56a87d9d4cc084a514",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 122880
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        737,
+        248,
+        831,
+        342
+      ],
+      "patchSHA256": "0f9c2a1b5c6c84893434060a6221a382c8a2e2aa1e430159ddf01e43e8c3b8ce",
+      "grip": "exclude",
+      "view": "front",
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0046",
+      "frameReviewId": "F0053",
+      "caseId": "k700train_4jqm3Z2qjiI_000028_000038",
+      "recordingId": "a6815b9aee56325f64e6b6e0e0aacea4e45bf77b0ce4ae0d698b708eda02cdce",
+      "imageSHA256": "5680f65a611121e3924cefb88cb8f51eeeaeea67db3c5e56a87d9d4cc084a514",
+      "timestamp": {
+        "timescale": 15232,
+        "value": 122880
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        477,
+        226,
+        600,
+        349
+      ],
+      "patchSHA256": "64a0c4d5fe29cd959f1d451c508a21c509c5298e5046cd15cc7358d00240dd80",
+      "grip": "exclude",
+      "view": "front",
+      "reason": "Rear black tank; wide pronated grips before camera/athlete cut",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0047",
+      "frameReviewId": "F0064",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "71567d158205c343156836be8f83e1e709d7928e7ed74ff3f271bb60032b174f",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        444,
+        124,
+        545,
+        225
+      ],
+      "patchSHA256": "dd3afeb19193360fee0814063677a2fdade3e65ecc0328a893916f3bd07cbfa7",
+      "grip": "exclude",
+      "view": "rear",
+      "reason": "Expanded crop contains mostly forearm and misses finger/bar contact",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0048",
+      "frameReviewId": "F0065",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "421f1d9d2cdbc41e386f0f9a0f1c7ecfe24d69dd93c473850d03023e9df99f7c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        424,
+        13,
+        530,
+        119
+      ],
+      "patchSHA256": "a0db939780675f22d30c19ad3b767fe8882ca70430b0cbc4504b0cc71b432a50",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0049",
+      "frameReviewId": "F0065",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "421f1d9d2cdbc41e386f0f9a0f1c7ecfe24d69dd93c473850d03023e9df99f7c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        671,
+        16,
+        784,
+        129
+      ],
+      "patchSHA256": "5e74f0de7e264311aab90db113babc3555f91f74d96a4113b29a9f2ffe3ae351",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0050",
+      "frameReviewId": "F0066",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "8c7239b047884dfff40a4cb45fad7e10ca48416e0db433ad88e2d05594d2b13b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        439,
+        100,
+        543,
+        204
+      ],
+      "patchSHA256": "a6f678654d048eb4623757a73520f92ec47bb9bf432151b1b6f2820784c78468",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0051",
+      "frameReviewId": "F0066",
+      "caseId": "k700train_MxRReWdBzrE_000004_000014",
+      "recordingId": "65c1cb6c73b117aa2016758af70f0e8502f2f422a00eab38e904b2c8d7df6f03",
+      "imageSHA256": "8c7239b047884dfff40a4cb45fad7e10ca48416e0db433ad88e2d05594d2b13b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        679,
+        102,
+        792,
+        215
+      ],
+      "patchSHA256": "6dbaf036f7f9d7451501590e9ca582bc5c217c515272166aceedc445178de92d",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray hoodie; wide dorsal transverse-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0052",
+      "frameReviewId": "F0068",
+      "caseId": "k700train_9tV_rYBN3g0_000036_000046",
+      "recordingId": "851ba7417fc45fd2a7d920f16c389132f5ed8ef859b256742e5bab272f0dfa22",
+      "imageSHA256": "28abe18df2070ba2e4fce7c13bad0c0bd218268276eb54e1376f7ab167fee462",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        53,
+        48,
+        115,
+        110
+      ],
+      "patchSHA256": "1ad693e890c75faac0c460a856d9ae90cc186e2224f02e264d6f9718ec2deab8",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray tank; wide dorsal grips before release",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0053",
+      "frameReviewId": "F0068",
+      "caseId": "k700train_9tV_rYBN3g0_000036_000046",
+      "recordingId": "851ba7417fc45fd2a7d920f16c389132f5ed8ef859b256742e5bab272f0dfa22",
+      "imageSHA256": "28abe18df2070ba2e4fce7c13bad0c0bd218268276eb54e1376f7ab167fee462",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 28672
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        192,
+        3,
+        291,
+        102
+      ],
+      "patchSHA256": "5c97588acbb12c5361a15065c5c0982490b64e8eead3137e8455680be5a1f53f",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray tank; wide dorsal grips before release",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0054",
+      "frameReviewId": "F0069",
+      "caseId": "k700train_9tV_rYBN3g0_000036_000046",
+      "recordingId": "851ba7417fc45fd2a7d920f16c389132f5ed8ef859b256742e5bab272f0dfa22",
+      "imageSHA256": "8efacb18fd994ee45094a7feb72c0b52d4beea041b784ce430a0a4a1a8ecb831",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        49,
+        55,
+        117,
+        123
+      ],
+      "patchSHA256": "7932eb9cc6ddfab5a8b4e35bdc09253573f0b113e77d028bd087d96d4287ee0c",
+      "grip": "exclude",
+      "view": "rear",
+      "reason": "Rear gray tank; wide dorsal grips before release",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0055",
+      "frameReviewId": "F0069",
+      "caseId": "k700train_9tV_rYBN3g0_000036_000046",
+      "recordingId": "851ba7417fc45fd2a7d920f16c389132f5ed8ef859b256742e5bab272f0dfa22",
+      "imageSHA256": "8efacb18fd994ee45094a7feb72c0b52d4beea041b784ce430a0a4a1a8ecb831",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        193,
+        18,
+        284,
+        109
+      ],
+      "patchSHA256": "0effe39a7a1475879b396ba85bc3fdaad4351d86c7d93dfe767f701004bad350",
+      "grip": "exclude",
+      "view": "rear",
+      "reason": "Rear gray tank; wide dorsal grips before release",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0056",
+      "frameReviewId": "F0070",
+      "caseId": "k700train_U83l0DCt3OA_000208_000218",
+      "recordingId": "0da9e396d55845e145192f824d5edb4df845e12b9fe6df1e484054be9e984092",
+      "imageSHA256": "233b109da429cc8b9727a2e7e37ddd430d16e7acfded0a3a87a7957dde578747",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48048
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        653,
+        74,
+        859,
+        280
+      ],
+      "patchSHA256": "99676115dde6c0c3af38321fac0f54ea91018547e322099cd6390e9e05e12df4",
+      "grip": "underhand",
+      "view": "front",
+      "reason": "Front shirtless torso; close supinated doorway straight-bar grip with dorsal wrists toward camera",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0057",
+      "frameReviewId": "F0070",
+      "caseId": "k700train_U83l0DCt3OA_000208_000218",
+      "recordingId": "0da9e396d55845e145192f824d5edb4df845e12b9fe6df1e484054be9e984092",
+      "imageSHA256": "233b109da429cc8b9727a2e7e37ddd430d16e7acfded0a3a87a7957dde578747",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 48048
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        356,
+        137,
+        492,
+        273
+      ],
+      "patchSHA256": "ca97d763ddc18c20d6957ae0aa210a973b2c52aa0eb35a64849ed36a9f874bec",
+      "grip": "underhand",
+      "view": "front",
+      "reason": "Front shirtless torso; close supinated doorway straight-bar grip with dorsal wrists toward camera",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0058",
+      "frameReviewId": "F0072",
+      "caseId": "k700train_U83l0DCt3OA_000208_000218",
+      "recordingId": "0da9e396d55845e145192f824d5edb4df845e12b9fe6df1e484054be9e984092",
+      "imageSHA256": "843f8be0020bfca851f469eecd6a784b3a6f77bf4a22baa2ff80f51f760722db",
+      "timestamp": {
+        "timescale": 24000,
+        "value": 144144
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        350,
+        111,
+        500,
+        261
+      ],
+      "patchSHA256": "919be6a717cc0216d712f7251fe59432444b517a9af4093c27995accfeaba2bd",
+      "grip": "underhand",
+      "view": "front",
+      "reason": "Front shirtless torso; close supinated doorway straight-bar grip with dorsal wrists toward camera",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0059",
+      "frameReviewId": "F0079",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "6086cc282dbbce2c4f0df012d601a8f680084f26169f0bd2cffd60538bd4e0be",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 28000
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        534,
+        62,
+        623,
+        151
+      ],
+      "patchSHA256": "c996fc2c327ad07f066e8bbc34b9313522115cbb9b48b0b4b643c4179fd18f45",
+      "grip": "exclude",
+      "view": "rear",
+      "reason": "Open left hand reaching toward bar rather than closed grip",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0060",
+      "frameReviewId": "F0079",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "6086cc282dbbce2c4f0df012d601a8f680084f26169f0bd2cffd60538bd4e0be",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 28000
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        730,
+        75,
+        793,
+        138
+      ],
+      "patchSHA256": "e55f318ba883758a809b07fc077fb06e23db8350034197bba284fd2574e95da7",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal doorway straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0061",
+      "frameReviewId": "F0080",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "cf88227a798cabd971d5e3c8e4a220bbdf5f67f5c48c3d53c79b9bce5a82f7d6",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 60000
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        555,
+        76,
+        606,
+        127
+      ],
+      "patchSHA256": "f003dcf444949328b657bdbbe5a6c1bcb9bf380d75fda5b44a08c3e56087ae8d",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal doorway straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0062",
+      "frameReviewId": "F0080",
+      "caseId": "k700train_WcW3DUvNywQ_000001_000011",
+      "recordingId": "52cc30d093d8242ae7bc295761d10410e439f04611531404ead60005d2132208",
+      "imageSHA256": "cf88227a798cabd971d5e3c8e4a220bbdf5f67f5c48c3d53c79b9bce5a82f7d6",
+      "timestamp": {
+        "timescale": 14969,
+        "value": 60000
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        733,
+        78,
+        788,
+        133
+      ],
+      "patchSHA256": "3a76fb243e9be046b480f06e1d549a9da062a2321eb44b3c98505788242c8ac2",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear black shirt; wide dorsal doorway straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0063",
+      "frameReviewId": "F0084",
+      "caseId": "k700train_HrsaSFTGt4o_000003_000013",
+      "recordingId": "90a55025630c6b993a25437487731a5e1d241bd850747c12d2af780dbf14d4ef",
+      "imageSHA256": "0f9ebf9290884b868c8129b872b983b201570e3b2a2d0f192d440be31e536373",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        108,
+        65,
+        158,
+        115
+      ],
+      "patchSHA256": "41596342b93a878e4845c47efcd0920e98dc2390065408476a90d1dbeaa7c286",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated outdoor straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0064",
+      "frameReviewId": "F0084",
+      "caseId": "k700train_HrsaSFTGt4o_000003_000013",
+      "recordingId": "90a55025630c6b993a25437487731a5e1d241bd850747c12d2af780dbf14d4ef",
+      "imageSHA256": "0f9ebf9290884b868c8129b872b983b201570e3b2a2d0f192d440be31e536373",
+      "timestamp": {
+        "timescale": 15360,
+        "value": 61440
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        33,
+        66,
+        78,
+        111
+      ],
+      "patchSHA256": "d02b77d50d97c706b84b7ef2c777e45f5ab9adb61b17f92ef6434ed35c2d3cff",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated outdoor straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0065",
+      "frameReviewId": "F0092",
+      "caseId": "k700train_2m977kSaW1U_000027_000037",
+      "recordingId": "a1bc8a37d0d357a5299bb308e75b56fcc38f4ded5a1f51337d999312e9bc48ee",
+      "imageSHA256": "a809c12c6b39d61cd3bc6fec83075d38855a37990db1f39fe774934c5c083083",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 46080
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        241,
+        28,
+        328,
+        115
+      ],
+      "patchSHA256": "c6d764f80691c65e8d55de1075a2267786261e2dd44c81c93335d1021a450514",
+      "grip": "underhand",
+      "view": "front",
+      "reason": "Front red shirt; close straight-bar grips, provisional supination requires enlarged patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0066",
+      "frameReviewId": "F0093",
+      "caseId": "k700train_2m977kSaW1U_000027_000037",
+      "recordingId": "a1bc8a37d0d357a5299bb308e75b56fcc38f4ded5a1f51337d999312e9bc48ee",
+      "imageSHA256": "a3c3f56e6bb40d25279e494c57b5d7d49e3be9543aa5ad599431cee640c7bd25",
+      "timestamp": {
+        "timescale": 11488,
+        "value": 67584
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        257,
+        10,
+        319,
+        72
+      ],
+      "patchSHA256": "08c9dff8589c577084e1e9f97530c8beeb4def76ba9f051174abd3bc590a6b25",
+      "grip": "underhand",
+      "view": "front",
+      "reason": "Front red shirt; close straight-bar grips, provisional supination requires enlarged patch verification",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0067",
+      "frameReviewId": "F0101",
+      "caseId": "k700train_aZO0Uxzm6_A_000257_000267",
+      "recordingId": "84741696945932a6241dffe4c0c910ffff841acd53ffc6fad2aff3994507de82",
+      "imageSHA256": "d59530843cff695ef67cbebc56d8a07ef03028618fb3114f450be44a778c96b2",
+      "timestamp": {
+        "timescale": 11428,
+        "value": 22400
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        0,
+        33,
+        62,
+        95
+      ],
+      "patchSHA256": "fb1ab8d173e24877a36c7578799749845a10111c0d7c57cc793ed133837a4212",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Rear gray shirt; wide dorsal straight-bar grips before dismount",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0068",
+      "frameReviewId": "F0105",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "ad5405ba8c31060871da9e72c8e999294c2897c0c9a3400ddebab069a647e790",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        546,
+        68,
+        608,
+        130
+      ],
+      "patchSHA256": "f944d277e493818e22b7a92316d8891b3685072cd3536f13fba6b9b0eefb3bdc",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0069",
+      "frameReviewId": "F0105",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "ad5405ba8c31060871da9e72c8e999294c2897c0c9a3400ddebab069a647e790",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 56056
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        688,
+        56,
+        767,
+        135
+      ],
+      "patchSHA256": "e884e47c54989043663fd142ebbe446b37af2d5c8b33d14f1496a787b603f86d",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0070",
+      "frameReviewId": "F0106",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "13a80ce333036e9a719867af5b69af048f7629a42d80c63e0816e354839ec85c",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        686,
+        56,
+        765,
+        135
+      ],
+      "patchSHA256": "0ad4ce6926410158c87ae5b469f6b5f603f5b0969a1218212d25bb6b8f9dd48d",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0071",
+      "frameReviewId": "F0107",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "ebf6cd2363aa653976b7b6d14cc8fa8bb60c9123d32532f693b65da07c1c195e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        537,
+        60,
+        609,
+        132
+      ],
+      "patchSHA256": "080696b3ea7faeb59c0f40506267a589096056526a96cfdee4cd2cbaa9845036",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0072",
+      "frameReviewId": "F0107",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "ebf6cd2363aa653976b7b6d14cc8fa8bb60c9123d32532f693b65da07c1c195e",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        684,
+        55,
+        759,
+        130
+      ],
+      "patchSHA256": "fc24bef22e8e1354bb59c006312bf85eddb69fe4532ae2cea292fb4de14ab8eb",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0073",
+      "frameReviewId": "F0108",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "2e896fc595aa416c85898f8a2aa2ae810ff296267b170255406b4bd0e9f50fce",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        528,
+        54,
+        598,
+        124
+      ],
+      "patchSHA256": "2a6f020f540363b8c81788b0897f7108a95c11df39512993c2acf6ad35e66d4c",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0074",
+      "frameReviewId": "F0108",
+      "caseId": "k700train_ATQrlQnb_ME_000009_000019",
+      "recordingId": "ab732130127289f7b923b44b3307d25e73f3d8835531a5cfb344d2aaccac7aa3",
+      "imageSHA256": "2e896fc595aa416c85898f8a2aa2ae810ff296267b170255406b4bd0e9f50fce",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 240240
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        674,
+        45,
+        753,
+        124
+      ],
+      "patchSHA256": "353a565e42206212795da2b107d8ca1f684d3c9a2088e28875b5fa6041f32375",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0075",
+      "frameReviewId": "F0110",
+      "caseId": "k700train_cAyFmeNxyGg_000012_000022",
+      "recordingId": "1072ec9a36e9378c6b14a60938f7995eb388b70f422248a3b949ebf86a630b56",
+      "imageSHA256": "909c4214b7faad1b21cf16a5015b713984aa435d2e425f73f86bfd33be607a01",
+      "timestamp": {
+        "timescale": 14877,
+        "value": 60000
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        130,
+        203,
+        173,
+        246
+      ],
+      "patchSHA256": "b9c33232be2f39117d7e871d8c92ebe94b54aa615cbcad95c3a412c75cb46166",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0076",
+      "frameReviewId": "F0111",
+      "caseId": "k700train_cAyFmeNxyGg_000012_000022",
+      "recordingId": "1072ec9a36e9378c6b14a60938f7995eb388b70f422248a3b949ebf86a630b56",
+      "imageSHA256": "0a0babeb0e81c4acb8d8d4ac3a7a4b20c7a99a46fadf8fd24cc29e7dc85e3d09",
+      "timestamp": {
+        "timescale": 14877,
+        "value": 88000
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        122,
+        206,
+        179,
+        263
+      ],
+      "patchSHA256": "b0f11f920fe3b9265a9d7c6036822bf04f980bc2fadd9332824664a533496a8e",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Front black shirt; wide pronated straight-bar grips",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0077",
+      "frameReviewId": "F0114",
+      "caseId": "k700train_3iN28g4XlMc_000003_000013",
+      "recordingId": "2d72f034dc44adf35e2bcbdc19912bbc91285326ee7bf0a9842c45d0c58fe456",
+      "imageSHA256": "ce6c786d08dca8b6a86fd11e1b1408da161f18e06e4c32f84ced298b2242912b",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 120120
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        436,
+        66,
+        506,
+        136
+      ],
+      "patchSHA256": "22e9f61a4a2ddac9e289d7272e5d6b128a9fdf2fe3e5d057c210ea7766f31120",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0078",
+      "frameReviewId": "F0115",
+      "caseId": "k700train_3iN28g4XlMc_000003_000013",
+      "recordingId": "2d72f034dc44adf35e2bcbdc19912bbc91285326ee7bf0a9842c45d0c58fe456",
+      "imageSHA256": "06c730b2e59994b54d60d3802df8ae2d7a2adec89ffe5b15a8b55a7b175bfbf6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "left",
+      "box": [
+        393,
+        83,
+        446,
+        136
+      ],
+      "patchSHA256": "e179f7cc95cdd8c1bd7318e9a2433098bc7fc3176233640c83091dfb7b998430",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    },
+    {
+      "reviewId": "E0079",
+      "frameReviewId": "F0115",
+      "caseId": "k700train_3iN28g4XlMc_000003_000013",
+      "recordingId": "2d72f034dc44adf35e2bcbdc19912bbc91285326ee7bf0a9842c45d0c58fe456",
+      "imageSHA256": "06c730b2e59994b54d60d3802df8ae2d7a2adec89ffe5b15a8b55a7b175bfbf6",
+      "timestamp": {
+        "timescale": 30000,
+        "value": 176176
+      },
+      "split": "test",
+      "side": "right",
+      "box": [
+        535,
+        74,
+        605,
+        144
+      ],
+      "patchSHA256": "c2331b78e8e9dc794393137cf4e6df402f1facb378fca644a636cbd6660fb610",
+      "grip": "overhand",
+      "view": "rear",
+      "reason": "Enlarged actual RGB shows dorsal closed hands from rear; provisional supinated source label corrected before predictions",
+      "reviewMethod": "Actual corrected hand RGB and fixed source frame individually inspected before classifier scoring; no predicted labels shown"
+    }
+  ]
+}

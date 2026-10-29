@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 29,
+  "recordedAt": "2026-10-26T02:49:55.213449+00:00",
+  "scope": "Retrospective supported-condition review approved by user after failed results; not a pre-inference exclusion or a new holdout.",
+  "caseId": "c79BFTkrt9s",
+  "sourceURL": "https://www.youtube.com/watch?v=c79BFTkrt9s",
+  "sourceSHA256": "8b542ab93d56fc823d13fe893598d62b2051bd1a5bab48c7ffaf9d1f93edfe92",
+  "classification": "armOcclusionOutOfScopeForSupportedRepCounting",
+  "reason": "Rear close chin-up repeatedly hides hands/forearms behind head and torso at raised positions; sufficient arm motion is not visible throughout the cycle.",
+  "supportedCaptureRule": "Shoulders, elbows and wrists should remain visible through the movement. Front/rear alone is insufficient when narrow-grip self-occlusion hides the arms.",
+  "excludeFromFutureSupportedPoseAndRepAccuracy": true,
+  "retainAsOcclusionStressTest": true,
+  "retainRawHandPatchReferences": true,
+  "previousResultsPreserved": true,
+  "priorAggregateScoresRecomputed": false,
+  "phoneGuidance": {
+    "title": "SHOW YOUR ARMS",
+    "instruction": "Move camera so both arms are visible",
+    "continuousUnavailableSeconds": 1.0,
+    "maximumSourceGapSeconds": 0.35,
+    "pullUpFallback": "Either currently usable arm clears the warning.",
+    "activation": "Running set, one athlete, valid image, consecutive source frames with hidden or low-confidence arm chains.",
+    "priority": "Replaces grip setup card and grip label; orange CHECK VIEW header.",
+    "counterChanged": false,
+    "installedOnPhone": false
+  },
+  "evidenceSHA256": {
+    "build/grip-width-v27/run/source-references.json": "08d587b531ec24a8274ca60bdaeea961a216740ea46e9e8d2a89edc71a7a833f",
+    "Evaluation/fixtures/grip-full-set-validation-v27.json": "215a78fa7a11649c1b79aa2403b7fd6e630fcb1a7a30b27acf913797a9221e19",
+    "build/grip-context-v28/pose-failure-examples.json": "72c1eba56e236bfea250ed82222880539920d541d0ec6a4f0a1eabcff0117d29",
+    "build/grip-context-v28/pose-failure-probe.png": "14950626043bf3f299c638a1489ebbea89a07309ea3d748b802269556cbe7ee5"
+  },
+  "validation": {
+    "nativeSwiftTests": 24,
+    "newTemporalTests": 6,
+    "failures": 0,
+    "phoneWidthsRendered": [
+      320,
+      430
+    ],
+    "completeUnsignedIPhoneBuild": "passed",
+    "phoneInstalled": false
+  }
+}

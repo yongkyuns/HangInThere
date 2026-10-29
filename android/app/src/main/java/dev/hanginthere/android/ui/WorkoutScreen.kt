@@ -174,8 +174,13 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 else -> "Hold a hang or top support · show both hands"
             }
             if(running && !state.interrupted) state.result?.currentSet?.grip?.latest?.let { grip ->
+                if(grip.reason == "gripViewUnsupported") {
+                    Text("Move camera toward your front or back", Modifier.background(Color.Black.copy(alpha = 0.85f)).padding(16.dp),
+                        color = Color.White, style = MaterialTheme.typography.titleLarge)
+                    Text("Grip unknown · Rep counting can continue", color = Color.White)
+                }
                 Text("Estimated · ${grip.label}", Modifier.background(Color.Black.copy(alpha = 0.6f)).padding(8.dp),
-                    color = Color.White, style = MaterialTheme.typography.bodySmall)
+                    color = Color.White, style = MaterialTheme.typography.headlineSmall)
             }
             if(running && !state.interrupted) state.result?.currentSet?.activity?.phases?.lastOrNull()?.takeIf {
                 it.phase==WorkoutMotionPhase.hang || it.phase==WorkoutMotionPhase.support

@@ -3,6 +3,46 @@ import Testing
 @testable import HangInThere
 
 struct StaticSceneStabilityTests {
+    @Test func stationaryPairHypothesesNeedEveryContributingCornerBelowTheExistingLimit() {
+        let cases: [[(Double,Double)]] = [[(-1,1),(0,2),(-24,-5),(0,-5)],[(0,1),(1,1),(0,-4)]]
+        for points in cases {
+            var scene = StaticSceneStability()
+            _ = scene.calibrate(imageShortSide:720)
+            let patches = points.map { StaticSceneStability.PatchTranslation(dxPixels:$0.0,dyPixels:$0.1) }
+            scene.observe(translations:patches,globalScaleFraction:nil,timestamp:1)
+            #expect(!scene.isReady(at:1))
+            scene.observe(translations:patches,globalScaleFraction:0,timestamp:1.1)
+            #expect(scene.isReady(at:1.1))
+            #expect(scene.latestConsensusPatches == 2)
+        }
+        let limit = StaticSceneStability.movementThresholdFraction * 720
+        for shift in [limit,limit + 0.001] {
+            var scene = StaticSceneStability()
+            _ = scene.calibrate(imageShortSide:720)
+            scene.observe(translations:[.init(dxPixels:-shift,dyPixels:0),.init(dxPixels:0,dyPixels:0),.init(dxPixels:1,dyPixels:0)],globalScaleFraction:0,timestamp:1)
+            #expect(!scene.isReady(at:1))
+            #expect(scene.latestShiftFraction == nil)
+        }
+    }
+
+    @Test func sixRegionConsensusUsesAdditionalIndependentBackgroundWithoutRelaxingMotion() {
+        let scenePoints:[(Double,Double)] = [(0,-5),(-1,-6),(-6,-5),(0,-6),(0,-5),(0,-5)]
+        var scene = StaticSceneStability()
+        _ = scene.calibrate(imageShortSide:720)
+        scene.observe(translations:scenePoints.map { .init(dxPixels:$0.0,dyPixels:$0.1) },globalScaleFraction:0,timestamp:1)
+        #expect(scene.isReady(at:1))
+        #expect(scene.latestConsensusPatches == 5)
+        #expect(abs((scene.latestShiftFraction ?? 1)-5.0/720) < 1e-12)
+        let moving = Array(repeating:StaticSceneStability.PatchTranslation(dxPixels:12,dyPixels:0),count:6)
+        scene.observe(translations:moving,globalScaleFraction:0,timestamp:1.1)
+        scene.observe(translations:moving,globalScaleFraction:0,timestamp:1.35)
+        #expect(scene.state == .moved)
+        var contested = StaticSceneStability()
+        _ = contested.calibrate(imageShortSide:720)
+        contested.observe(translations:[0.0,0,0,20,20,20].map { .init(dxPixels:$0,dyPixels:0) },globalScaleFraction:0,timestamp:1)
+        #expect(!contested.isReady(at:1))
+    }
+
     @Test func smallConsensusShiftAndScaleStayStable() {
         var monitor = StaticSceneStability()
         let calibrated = monitor.calibrate(imageSize: .init(width: 1000, height: 1000))

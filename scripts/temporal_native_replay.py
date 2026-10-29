@@ -29,6 +29,7 @@ except ImportError:
 REPLAY_SOURCE_FILES = (
     "ios/HangInThere/App/WorkoutAnalysisAdapter.swift",
     "ios/HangInThere/App/WorkoutProgression.swift",
+    "ios/HangInThere/App/WorkoutRepPresentation.swift",
     "ios/HangInThere/App/WorkoutGripReview.swift",
     "ios/HangInThere/App/ReplayController.swift",
     "ios/HangInThere/UI/QualificationReportDocument.swift",

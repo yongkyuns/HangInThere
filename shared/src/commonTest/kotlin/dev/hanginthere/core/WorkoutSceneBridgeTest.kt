@@ -18,7 +18,7 @@ class WorkoutSceneBridgeTest {
     }
 
     @Test fun failedOrMalformedRegistrationRevokesOldAvailability() {
-        for (transport in listOf(doubleArrayOf(), doubleArrayOf(0.0), DoubleArray(10),
+        for (transport in listOf(doubleArrayOf(), doubleArrayOf(0.0), DoubleArray(14),
             doubleArrayOf(Double.NaN, 0.0, Double.NaN, 0.0))) {
             val bridge = ready()
             assertEquals("calibrating", bridge.observe(.3, transport, 0.0))

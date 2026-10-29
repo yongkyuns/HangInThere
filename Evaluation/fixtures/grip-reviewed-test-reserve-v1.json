@@ -1,0 +1,618 @@
+{
+  "schemaVersion": 1,
+  "role": "test",
+  "selection": "60 by SHA256 of archive member name starting at offset 160, before grip labels or classifier inference",
+  "archiveSHA256": "5b082c056828aeb5e3e4e8e7a3abe0262e7cbadf1b8d97e6cef89d274573f9d9",
+  "qualification": "Reserved before revised-model training; labels and predictions not inspected",
+  "sources": [
+    {
+      "id": "k700train_wHrlW4yOekM_000000_000010",
+      "sourceGroup": "youtube:wHrlW4yOekM",
+      "videoId": "wHrlW4yOekM",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/wHrlW4yOekM_000000_000010.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/wHrlW4yOekM_000000_000010.mp4",
+      "bytes": 656466,
+      "sha256": "2c7ac6b3b1b6a1b7c7383831ac6afb819bb30c2b53f5c4e889a741a8747eff87"
+    },
+    {
+      "id": "k700train_Xc6k-HMmpEE_000024_000034",
+      "sourceGroup": "youtube:Xc6k-HMmpEE",
+      "videoId": "Xc6k-HMmpEE",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Xc6k-HMmpEE_000024_000034.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/Xc6k-HMmpEE_000024_000034.mp4",
+      "bytes": 3688935,
+      "sha256": "ee318019ea5bc6710b8ef125f25e0cb62267cd48fd77bf511222b9f5c9e72439"
+    },
+    {
+      "id": "k700train_tG2828BYwHc_000001_000011",
+      "sourceGroup": "youtube:tG2828BYwHc",
+      "videoId": "tG2828BYwHc",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/tG2828BYwHc_000001_000011.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/tG2828BYwHc_000001_000011.mp4",
+      "bytes": 342701,
+      "sha256": "4122d590996c234d7acdacd70dbaa4d68c0d869b548c8a7376fa45c8ef92013a"
+    },
+    {
+      "id": "k700train_qyHMANKAqqY_000000_000010",
+      "sourceGroup": "youtube:qyHMANKAqqY",
+      "videoId": "qyHMANKAqqY",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/qyHMANKAqqY_000000_000010.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/qyHMANKAqqY_000000_000010.mp4",
+      "bytes": 659432,
+      "sha256": "39f633ae594ec2631380cfc6dca13b2d5bf76ca83cad64e944146b04d3176844"
+    },
+    {
+      "id": "k700train_7-HS6eEkaA4_000021_000031",
+      "sourceGroup": "youtube:7-HS6eEkaA4",
+      "videoId": "7-HS6eEkaA4",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/7-HS6eEkaA4_000021_000031.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/7-HS6eEkaA4_000021_000031.mp4",
+      "bytes": 404672,
+      "sha256": "a5be861ce8f4a4cabb1518b579a9f6dd29884b15d0d485d2c5b28e40ec4bf1c2"
+    },
+    {
+      "id": "k700train_m2d9aCSHWd8_000007_000017",
+      "sourceGroup": "youtube:m2d9aCSHWd8",
+      "videoId": "m2d9aCSHWd8",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/m2d9aCSHWd8_000007_000017.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/m2d9aCSHWd8_000007_000017.mp4",
+      "bytes": 421304,
+      "sha256": "f38e5b3465019481cc5fde4ef2f04bf8846faa1d2f7ca5dc41546a21a4b5b566"
+    },
+    {
+      "id": "k700train_vhKGSOC-rF8_000011_000021",
+      "sourceGroup": "youtube:vhKGSOC-rF8",
+      "videoId": "vhKGSOC-rF8",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/vhKGSOC-rF8_000011_000021.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/vhKGSOC-rF8_000011_000021.mp4",
+      "bytes": 579871,
+      "sha256": "bd314dc77b8c5af20e89f13cc2c3bb5e99c53f7d6a3a572c1bc58f210645d428"
+    },
+    {
+      "id": "k700train_RlDbigDNa9E_000015_000025",
+      "sourceGroup": "youtube:RlDbigDNa9E",
+      "videoId": "RlDbigDNa9E",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/RlDbigDNa9E_000015_000025.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/RlDbigDNa9E_000015_000025.mp4",
+      "bytes": 600578,
+      "sha256": "40e1a58751d67d87e71227d38180175260bfd862eab946d415f14a5988a5012b"
+    },
+    {
+      "id": "k700train_Tx08-jVQCaQ_000002_000012",
+      "sourceGroup": "youtube:Tx08-jVQCaQ",
+      "videoId": "Tx08-jVQCaQ",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Tx08-jVQCaQ_000002_000012.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/Tx08-jVQCaQ_000002_000012.mp4",
+      "bytes": 851523,
+      "sha256": "20b1cc518d5a88e204cbfc2d663cbbb7aaab493e6fa393bd92c9d7cf8b76ee43"
+    },
+    {
+      "id": "k700train_v4tU1wpSpoc_000021_000031",
+      "sourceGroup": "youtube:v4tU1wpSpoc",
+      "videoId": "v4tU1wpSpoc",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/v4tU1wpSpoc_000021_000031.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/v4tU1wpSpoc_000021_000031.mp4",
+      "bytes": 264863,
+      "sha256": "39d12df435b053f38102810a3ab61db9cae65501e9c42f0cd07b0a8b183e0217"
+    },
+    {
+      "id": "k700train_O8YcnJT4ofs_000000_000010",
+      "sourceGroup": "youtube:O8YcnJT4ofs",
+      "videoId": "O8YcnJT4ofs",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/O8YcnJT4ofs_000000_000010.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/O8YcnJT4ofs_000000_000010.mp4",
+      "bytes": 722714,
+      "sha256": "a9c6f2999d5b9d2434da823f0aa135577c8fa9aee65e60c7e3c53089629108ae"
+    },
+    {
+      "id": "k700train_bvlGDjSHklI_000051_000061",
+      "sourceGroup": "youtube:bvlGDjSHklI",
+      "videoId": "bvlGDjSHklI",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/bvlGDjSHklI_000051_000061.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/bvlGDjSHklI_000051_000061.mp4",
+      "bytes": 492359,
+      "sha256": "0e0b5f34f47766d2153197b2bc8dee79b9915ea9c498dd13c41fa67633700ce6"
+    },
+    {
+      "id": "k700train_utDJR0A5UkA_000025_000035",
+      "sourceGroup": "youtube:utDJR0A5UkA",
+      "videoId": "utDJR0A5UkA",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/utDJR0A5UkA_000025_000035.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/utDJR0A5UkA_000025_000035.mp4",
+      "bytes": 604729,
+      "sha256": "65a65f9d07399514145214d503483e771c0c80e32f5705ae340c503dd466589f"
+    },
+    {
+      "id": "k700train_cz7GdoszCMw_000010_000020",
+      "sourceGroup": "youtube:cz7GdoszCMw",
+      "videoId": "cz7GdoszCMw",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/cz7GdoszCMw_000010_000020.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/cz7GdoszCMw_000010_000020.mp4",
+      "bytes": 286086,
+      "sha256": "22ddb99c721dfab9fff4a9396d359be6faed06a96ebd0533d967f12a6ea0ba9b"
+    },
+    {
+      "id": "k700train_8nNRVvJwl8Y_000011_000021",
+      "sourceGroup": "youtube:8nNRVvJwl8Y",
+      "videoId": "8nNRVvJwl8Y",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/8nNRVvJwl8Y_000011_000021.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/8nNRVvJwl8Y_000011_000021.mp4",
+      "bytes": 652368,
+      "sha256": "8a5390841466478d5245bf2f1b7dd1e674533064480513a13c4d6188f177ca6b"
+    },
+    {
+      "id": "k700train_b0tRwrC2kVI_000000_000010",
+      "sourceGroup": "youtube:b0tRwrC2kVI",
+      "videoId": "b0tRwrC2kVI",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/b0tRwrC2kVI_000000_000010.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/b0tRwrC2kVI_000000_000010.mp4",
+      "bytes": 713854,
+      "sha256": "3f669f751a2d4bd517641cc1b82489ae422fb2da4250463959cf9d1ead70c263"
+    },
+    {
+      "id": "k700train_oBlqOt4yjqI_000001_000011",
+      "sourceGroup": "youtube:oBlqOt4yjqI",
+      "videoId": "oBlqOt4yjqI",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/oBlqOt4yjqI_000001_000011.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/oBlqOt4yjqI_000001_000011.mp4",
+      "bytes": 3054179,
+      "sha256": "9c694c79f6cdeb819bff252f1761603eb10883e32e73d23463271688fece3ce8"
+    },
+    {
+      "id": "k700train_arVGiLNJlCE_000084_000094",
+      "sourceGroup": "youtube:arVGiLNJlCE",
+      "videoId": "arVGiLNJlCE",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/arVGiLNJlCE_000084_000094.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/arVGiLNJlCE_000084_000094.mp4",
+      "bytes": 3674596,
+      "sha256": "fc9762dc621ca42245492830c3f508307c7bc061c722631f2f9325ceb26df67b"
+    },
+    {
+      "id": "k700train_mm5eH3ncpjE_000004_000014",
+      "sourceGroup": "youtube:mm5eH3ncpjE",
+      "videoId": "mm5eH3ncpjE",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/mm5eH3ncpjE_000004_000014.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/mm5eH3ncpjE_000004_000014.mp4",
+      "bytes": 654968,
+      "sha256": "4c70a7eb446876f060c235bd6b75ecbbedf34b9fe39b1163d44edf0e091cc2ec"
+    },
+    {
+      "id": "k700train_uCBHkZdS6d4_000062_000072",
+      "sourceGroup": "youtube:uCBHkZdS6d4",
+      "videoId": "uCBHkZdS6d4",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/uCBHkZdS6d4_000062_000072.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/uCBHkZdS6d4_000062_000072.mp4",
+      "bytes": 659944,
+      "sha256": "30bd57892ff329962220c2cff611a053b6c3e9fd87da2713d6f1a7faa421ba6f"
+    },
+    {
+      "id": "k700train_jPwenEeS6n8_000002_000012",
+      "sourceGroup": "youtube:jPwenEeS6n8",
+      "videoId": "jPwenEeS6n8",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/jPwenEeS6n8_000002_000012.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/jPwenEeS6n8_000002_000012.mp4",
+      "bytes": 309543,
+      "sha256": "b6c916263f5522a526e32e771841f4a54d142beb60c1de5606014147a9814690"
+    },
+    {
+      "id": "k700train_6FiVvY3WclY_000060_000070",
+      "sourceGroup": "youtube:6FiVvY3WclY",
+      "videoId": "6FiVvY3WclY",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/6FiVvY3WclY_000060_000070.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/6FiVvY3WclY_000060_000070.mp4",
+      "bytes": 1040467,
+      "sha256": "f25e5ab48962c240df706f6e23d1dcb697215b308b33de0a338cd4ae47d6e938"
+    },
+    {
+      "id": "k700train_i2iBb8knoVg_000001_000011",
+      "sourceGroup": "youtube:i2iBb8knoVg",
+      "videoId": "i2iBb8knoVg",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/i2iBb8knoVg_000001_000011.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/i2iBb8knoVg_000001_000011.mp4",
+      "bytes": 342689,
+      "sha256": "9f53ca2c4ef05a0a33b4811439ac687f82347cc1ae1c0075162429eb63903aa3"
+    },
+    {
+      "id": "k700train__xWx4X5IwZ8_000087_000097",
+      "sourceGroup": "youtube:_xWx4X5IwZ8",
+      "videoId": "_xWx4X5IwZ8",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/_xWx4X5IwZ8_000087_000097.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/_xWx4X5IwZ8_000087_000097.mp4",
+      "bytes": 2131437,
+      "sha256": "39c1fb3485554b5aa08314eccd8d85288490e9c53a859a6702ca482d4b434821"
+    },
+    {
+      "id": "k700train_BYdmO2PSJMU_000536_000546",
+      "sourceGroup": "youtube:BYdmO2PSJMU",
+      "videoId": "BYdmO2PSJMU",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/BYdmO2PSJMU_000536_000546.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/BYdmO2PSJMU_000536_000546.mp4",
+      "bytes": 620552,
+      "sha256": "85f69747fca00ec9a08ffa7d446cfcd3177a40978d69e934dd962c6f42f52a9b"
+    },
+    {
+      "id": "k700train_zaKbA_nvY74_000082_000092",
+      "sourceGroup": "youtube:zaKbA_nvY74",
+      "videoId": "zaKbA_nvY74",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/zaKbA_nvY74_000082_000092.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/zaKbA_nvY74_000082_000092.mp4",
+      "bytes": 363779,
+      "sha256": "b816987aa9abccde1c15ee55587a3fe40904f03ac3a06e3baac24e2c72d8410a"
+    },
+    {
+      "id": "k700train_0qH22DvX0Ig_000039_000049",
+      "sourceGroup": "youtube:0qH22DvX0Ig",
+      "videoId": "0qH22DvX0Ig",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/0qH22DvX0Ig_000039_000049.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/0qH22DvX0Ig_000039_000049.mp4",
+      "bytes": 486224,
+      "sha256": "0dbf0c77fc376230ed4fd89d866bfe6f5332fa64cc0230e7f554e20f016de047"
+    },
+    {
+      "id": "k700train_WRWt_WFaTIg_000004_000014",
+      "sourceGroup": "youtube:WRWt_WFaTIg",
+      "videoId": "WRWt_WFaTIg",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/WRWt_WFaTIg_000004_000014.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/WRWt_WFaTIg_000004_000014.mp4",
+      "bytes": 1174161,
+      "sha256": "c1613f55dcbc35c6647d965ac1dad086b337830ea33d46ce50d74bf8bdaa79f2"
+    },
+    {
+      "id": "k700train_07HsM5RLBcw_000018_000028",
+      "sourceGroup": "youtube:07HsM5RLBcw",
+      "videoId": "07HsM5RLBcw",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/07HsM5RLBcw_000018_000028.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/07HsM5RLBcw_000018_000028.mp4",
+      "bytes": 1671297,
+      "sha256": "9b7b043a772134891474b1f107bc2f20e50b79036c42afe992f455b12afd9dce"
+    },
+    {
+      "id": "k700train_OHRKwqoaOyE_000011_000021",
+      "sourceGroup": "youtube:OHRKwqoaOyE",
+      "videoId": "OHRKwqoaOyE",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/OHRKwqoaOyE_000011_000021.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/OHRKwqoaOyE_000011_000021.mp4",
+      "bytes": 979727,
+      "sha256": "dc20c82c61eb5a668598be3dddaa2a259a58e68ec1803a4c0556269f02bf78a9"
+    },
+    {
+      "id": "k700train_iIZzAN85knA_000002_000012",
+      "sourceGroup": "youtube:iIZzAN85knA",
+      "videoId": "iIZzAN85knA",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/iIZzAN85knA_000002_000012.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/iIZzAN85knA_000002_000012.mp4",
+      "bytes": 508259,
+      "sha256": "15ad2db573c02866970b6e91891356baaddc58f3b140e83a78f0d3a8dcaf0caf"
+    },
+    {
+      "id": "k700train_AlDL4qnNIME_000006_000016",
+      "sourceGroup": "youtube:AlDL4qnNIME",
+      "videoId": "AlDL4qnNIME",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/AlDL4qnNIME_000006_000016.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/AlDL4qnNIME_000006_000016.mp4",
+      "bytes": 469841,
+      "sha256": "ed9ffc9f1cc5e6adbdb3cf6d678c39c55a3dc881654ce5affb9c0bc442a51040"
+    },
+    {
+      "id": "k700train_eGZgHQt07U0_000054_000064",
+      "sourceGroup": "youtube:eGZgHQt07U0",
+      "videoId": "eGZgHQt07U0",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/eGZgHQt07U0_000054_000064.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/eGZgHQt07U0_000054_000064.mp4",
+      "bytes": 1326060,
+      "sha256": "fe4b38f7fd9e0e41d0602c3e7142be77c8d8400da17b6c6112221c403a1a7d3b"
+    },
+    {
+      "id": "k700train_pLQshupN7OY_000000_000010",
+      "sourceGroup": "youtube:pLQshupN7OY",
+      "videoId": "pLQshupN7OY",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/pLQshupN7OY_000000_000010.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/pLQshupN7OY_000000_000010.mp4",
+      "bytes": 242214,
+      "sha256": "63fc770e2a41ebdec0ef483d50064c34065f106f108ef739c189f617a60a84fb"
+    },
+    {
+      "id": "k700train_s6MZakx1l-0_000030_000040",
+      "sourceGroup": "youtube:s6MZakx1l-0",
+      "videoId": "s6MZakx1l-0",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/s6MZakx1l-0_000030_000040.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/s6MZakx1l-0_000030_000040.mp4",
+      "bytes": 606353,
+      "sha256": "9dc1952b84522c961327fd9a973ef72147cd6063e4b512a450a1b9aab691dcdd"
+    },
+    {
+      "id": "k700train_LLiStJjNqwc_000159_000169",
+      "sourceGroup": "youtube:LLiStJjNqwc",
+      "videoId": "LLiStJjNqwc",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/LLiStJjNqwc_000159_000169.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/LLiStJjNqwc_000159_000169.mp4",
+      "bytes": 4449217,
+      "sha256": "ccb291be82d20cfda24d1604a2a838ada3654ebd20382c69e608e790868fc064"
+    },
+    {
+      "id": "k700train_skwQNmN0tGM_000034_000044",
+      "sourceGroup": "youtube:skwQNmN0tGM",
+      "videoId": "skwQNmN0tGM",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/skwQNmN0tGM_000034_000044.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/skwQNmN0tGM_000034_000044.mp4",
+      "bytes": 364371,
+      "sha256": "2192f8a2ddd0d7d4e45cbcc739030440f15446611de90f9622d13f1f0eabde02"
+    },
+    {
+      "id": "k700train_KGmoJM3SvDQ_000029_000039",
+      "sourceGroup": "youtube:KGmoJM3SvDQ",
+      "videoId": "KGmoJM3SvDQ",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/KGmoJM3SvDQ_000029_000039.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/KGmoJM3SvDQ_000029_000039.mp4",
+      "bytes": 3992680,
+      "sha256": "78d6213cc953b6ad463acb22f76fae2c4013ad338998acf1ee6d38efddd8117c"
+    },
+    {
+      "id": "k700train_86OiCJY7AFU_000190_000200",
+      "sourceGroup": "youtube:86OiCJY7AFU",
+      "videoId": "86OiCJY7AFU",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/86OiCJY7AFU_000190_000200.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/86OiCJY7AFU_000190_000200.mp4",
+      "bytes": 441267,
+      "sha256": "b2521cf3a3b6244ba668041ede159101fc674490c34b2c20c074c0b98d44f56e"
+    },
+    {
+      "id": "k700train_Y2ht2qdBZ-Y_000002_000012",
+      "sourceGroup": "youtube:Y2ht2qdBZ-Y",
+      "videoId": "Y2ht2qdBZ-Y",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Y2ht2qdBZ-Y_000002_000012.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/Y2ht2qdBZ-Y_000002_000012.mp4",
+      "bytes": 345551,
+      "sha256": "e410d4ad6d525ac18f8703b83b06d22c44eab900de2290e507941dbde395e2e8"
+    },
+    {
+      "id": "k700train_UigJ_f4ah20_000410_000420",
+      "sourceGroup": "youtube:UigJ_f4ah20",
+      "videoId": "UigJ_f4ah20",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/UigJ_f4ah20_000410_000420.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/UigJ_f4ah20_000410_000420.mp4",
+      "bytes": 574885,
+      "sha256": "6b122620deae26b08ac6dd5a4dacad21878c7672446fb2e045dec717e6fc2f2a"
+    },
+    {
+      "id": "k700train_Rz_hvEIvuPE_000005_000015",
+      "sourceGroup": "youtube:Rz_hvEIvuPE",
+      "videoId": "Rz_hvEIvuPE",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Rz_hvEIvuPE_000005_000015.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/Rz_hvEIvuPE_000005_000015.mp4",
+      "bytes": 1411171,
+      "sha256": "5f3ff5709d30560e0a015f879e3a88f7ee3225be0577a7a08a98752117ec488a"
+    },
+    {
+      "id": "k700train_65TYkOw-R6o_000006_000016",
+      "sourceGroup": "youtube:65TYkOw-R6o",
+      "videoId": "65TYkOw-R6o",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/65TYkOw-R6o_000006_000016.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/65TYkOw-R6o_000006_000016.mp4",
+      "bytes": 377230,
+      "sha256": "ee342b0df8bc270edc73b199312105c66ef08dfa48c4b75855ea9fb3f2690b9d"
+    },
+    {
+      "id": "k700train_qMj6haNe6eE_000195_000205",
+      "sourceGroup": "youtube:qMj6haNe6eE",
+      "videoId": "qMj6haNe6eE",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/qMj6haNe6eE_000195_000205.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/qMj6haNe6eE_000195_000205.mp4",
+      "bytes": 602066,
+      "sha256": "1dfe0c0ddb6ad5fa8b53f7bdac928962097b1ac79e2eb98c78f7fb2fee109547"
+    },
+    {
+      "id": "k700train_l7MRm1qzmZ8_000003_000013",
+      "sourceGroup": "youtube:l7MRm1qzmZ8",
+      "videoId": "l7MRm1qzmZ8",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/l7MRm1qzmZ8_000003_000013.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/l7MRm1qzmZ8_000003_000013.mp4",
+      "bytes": 1016884,
+      "sha256": "f53556964bba45cb7568129060d01e9736a36f216d2d3c38aea33c5d65b8aec9"
+    },
+    {
+      "id": "k700train_WGadHIMsrdU_000002_000012",
+      "sourceGroup": "youtube:WGadHIMsrdU",
+      "videoId": "WGadHIMsrdU",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/WGadHIMsrdU_000002_000012.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/WGadHIMsrdU_000002_000012.mp4",
+      "bytes": 321192,
+      "sha256": "26feb8503128125e7553c3f4c81ba5463e5834ad08128a337ebdb69988e244d6"
+    },
+    {
+      "id": "k700train_NEYzcVnLP3w_000029_000039",
+      "sourceGroup": "youtube:NEYzcVnLP3w",
+      "videoId": "NEYzcVnLP3w",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/NEYzcVnLP3w_000029_000039.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/NEYzcVnLP3w_000029_000039.mp4",
+      "bytes": 4278654,
+      "sha256": "2318773bb3790ba289cd112741b32060e6f5b77017f6f84b4825c9bbeeec4eba"
+    },
+    {
+      "id": "k700train_7INToTt7Sjs_000004_000014",
+      "sourceGroup": "youtube:7INToTt7Sjs",
+      "videoId": "7INToTt7Sjs",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/7INToTt7Sjs_000004_000014.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/7INToTt7Sjs_000004_000014.mp4",
+      "bytes": 497072,
+      "sha256": "2296e4bba1121a35d36ac3ca237b771d52f12b29f1a2f9413892811c48454c68"
+    },
+    {
+      "id": "k700train_HBTx111kAA0_000259_000269",
+      "sourceGroup": "youtube:HBTx111kAA0",
+      "videoId": "HBTx111kAA0",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/HBTx111kAA0_000259_000269.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/HBTx111kAA0_000259_000269.mp4",
+      "bytes": 725168,
+      "sha256": "bde98bff22118fa50c87723e6dc06c3c6d9c3e32bb44776ed2388034f1f5594d"
+    },
+    {
+      "id": "k700train_Ogt_wE90mpI_000021_000031",
+      "sourceGroup": "youtube:Ogt_wE90mpI",
+      "videoId": "Ogt_wE90mpI",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Ogt_wE90mpI_000021_000031.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/Ogt_wE90mpI_000021_000031.mp4",
+      "bytes": 967807,
+      "sha256": "21f1864ec4cf8ee5c948a301916807141021963f42dfb91c71155c5459aa8c74"
+    },
+    {
+      "id": "k700train_0XSV_RCdCfU_000056_000066",
+      "sourceGroup": "youtube:0XSV_RCdCfU",
+      "videoId": "0XSV_RCdCfU",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/0XSV_RCdCfU_000056_000066.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/0XSV_RCdCfU_000056_000066.mp4",
+      "bytes": 1716926,
+      "sha256": "416e2181cce879b651d8566a89ebfe8647f31102405a94e0f53b725458ed87f1"
+    },
+    {
+      "id": "k700train_lzQbyA75kfg_000002_000012",
+      "sourceGroup": "youtube:lzQbyA75kfg",
+      "videoId": "lzQbyA75kfg",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/lzQbyA75kfg_000002_000012.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/lzQbyA75kfg_000002_000012.mp4",
+      "bytes": 1292054,
+      "sha256": "6a68994229ea56f2549875307fad81214dbc8904a2ea6eb6244041d02f217d41"
+    },
+    {
+      "id": "k700train_dcwAzUBtqEw_000013_000023",
+      "sourceGroup": "youtube:dcwAzUBtqEw",
+      "videoId": "dcwAzUBtqEw",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/dcwAzUBtqEw_000013_000023.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/dcwAzUBtqEw_000013_000023.mp4",
+      "bytes": 191235,
+      "sha256": "90ea98a33c185fc51f603322a13c2e3407d9caeb684d2bd93f09ba9070426166"
+    },
+    {
+      "id": "k700train_klHQVbogkYw_000037_000047",
+      "sourceGroup": "youtube:klHQVbogkYw",
+      "videoId": "klHQVbogkYw",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/klHQVbogkYw_000037_000047.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/klHQVbogkYw_000037_000047.mp4",
+      "bytes": 166275,
+      "sha256": "f10cbd3a1dc94fe492365ddebd3870e3bedeb4f3dbe26532021a28371c1a17b9"
+    },
+    {
+      "id": "k700train_JKNwmx4b7HE_000024_000034",
+      "sourceGroup": "youtube:JKNwmx4b7HE",
+      "videoId": "JKNwmx4b7HE",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/JKNwmx4b7HE_000024_000034.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/JKNwmx4b7HE_000024_000034.mp4",
+      "bytes": 2840159,
+      "sha256": "576d8742001e89853cd80715fc48edc0e43be046dfd24742faa1276328bf418f"
+    },
+    {
+      "id": "k700train_5Z3_7lD7UAI_000001_000011",
+      "sourceGroup": "youtube:5Z3_7lD7UAI",
+      "videoId": "5Z3_7lD7UAI",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/5Z3_7lD7UAI_000001_000011.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/5Z3_7lD7UAI_000001_000011.mp4",
+      "bytes": 281163,
+      "sha256": "2fce2601d312049fa43511720f4d51a1edcc6a548c3233a339adf5025bb7f0c6"
+    },
+    {
+      "id": "k700train_urGu51W98yw_000028_000038",
+      "sourceGroup": "youtube:urGu51W98yw",
+      "videoId": "urGu51W98yw",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/urGu51W98yw_000028_000038.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/urGu51W98yw_000028_000038.mp4",
+      "bytes": 543973,
+      "sha256": "85ab41125670ed61513124c78a92659512c7607e03d49987460e2944292f2273"
+    },
+    {
+      "id": "k700train_N4HNxuOIVEs_000029_000039",
+      "sourceGroup": "youtube:N4HNxuOIVEs",
+      "videoId": "N4HNxuOIVEs",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/N4HNxuOIVEs_000029_000039.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/N4HNxuOIVEs_000029_000039.mp4",
+      "bytes": 491712,
+      "sha256": "8c8113b45834d47c78774987e2cd52558fdbb57af0bf819863f0665370384d43"
+    },
+    {
+      "id": "k700train_Rw-MKKaM51M_000011_000021",
+      "sourceGroup": "youtube:Rw-MKKaM51M",
+      "videoId": "Rw-MKKaM51M",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/Rw-MKKaM51M_000011_000021.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/Rw-MKKaM51M_000011_000021.mp4",
+      "bytes": 2794146,
+      "sha256": "d9034739814421118b2a1194bf517009eef6f046c70adde7a6ca5e21e0850fba"
+    },
+    {
+      "id": "k700train_wTAIqfTi_0M_000039_000049",
+      "sourceGroup": "youtube:wTAIqfTi_0M",
+      "videoId": "wTAIqfTi_0M",
+      "path": "/Users/yongkyunshin/Dev/HangInThere/Data/external/grip-expansion-kinetics/wTAIqfTi_0M_000039_000049.mp4",
+      "sourceURL": "https://s3.amazonaws.com/kinetics/700_2020/train/k700_train_454.tar.gz",
+      "archiveMember": "pull ups/wTAIqfTi_0M_000039_000049.mp4",
+      "bytes": 470256,
+      "sha256": "0559e00558153ab4f7a58fef6998dd8dacfaf035afb421794cb464a33c5d1cdd"
+    }
+  ],
+  "frameSampling": {
+    "seconds": [
+      2,
+      4,
+      6,
+      8
+    ],
+    "rule": "nearest unique native source frame to each fixed time, chosen before hand detection, labels or classifier inference; full native frame sequence supplies body acquisition first"
+  }
+}

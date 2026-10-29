@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 17,
+  "qualification": "Offline confirmed-view diagnostic; sparse source sampling, no phone qualification.",
+  "verification": {
+    "pinsVerified": 31,
+    "verifiedSourceFrames": 362,
+    "verifiedCrops": 493,
+    "originalSeparateFrames": 209,
+    "evaluatedSeparateFrames": 194,
+    "predeclaredCameraOrbitFrames": 15,
+    "recordingAndSourceGroupDisjointFromBothModelsAllFittingRoles": true,
+    "originalPosesTimestampsAndAutomaticCropsVerified": true,
+    "frozenReadabilityAblationNotPromoted": true,
+    "modelFitPerformed": false,
+    "phoneInstalled": false
+  },
+  "metrics": {
+    "baseline": {
+      "withReadability": {
+        "videos": {
+          "correct": 2
+        },
+        "recordings": [
+          {
+            "id": "pullup",
+            "referenceGrip": "overhand",
+            "outcome": "correct",
+            "captureEligible": true,
+            "observedLabels": [
+              "overhand"
+            ],
+            "counterEligibleFrames": 37,
+            "firstCorrectSeconds": 12.016666666666667,
+            "exerciseLabelCoverage": 0.5178571428571429,
+            "completeSetPassed": true,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "chinup",
+            "referenceGrip": "underhand",
+            "outcome": "correct",
+            "captureEligible": true,
+            "observedLabels": [
+              "underhand"
+            ],
+            "counterEligibleFrames": 13,
+            "firstCorrectSeconds": 16.535,
+            "exerciseLabelCoverage": 0.0625,
+            "completeSetPassed": true,
+            "wrongConfirmedDecisions": 0
+          }
+        ],
+        "negatives": {
+          "setupFrames": 35,
+          "counterEligible": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 23
+        }
+      },
+      "withoutReadability": {
+        "videos": {
+          "correct": 2
+        },
+        "recordings": [
+          {
+            "id": "pullup",
+            "referenceGrip": "overhand",
+            "outcome": "correct",
+            "captureEligible": true,
+            "observedLabels": [
+              "overhand"
+            ],
+            "counterEligibleFrames": 37,
+            "firstCorrectSeconds": 12.016666666666667,
+            "exerciseLabelCoverage": 0.5178571428571429,
+            "completeSetPassed": true,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "chinup",
+            "referenceGrip": "underhand",
+            "outcome": "correct",
+            "captureEligible": true,
+            "observedLabels": [
+              "underhand"
+            ],
+            "counterEligibleFrames": 13,
+            "firstCorrectSeconds": 16.001666666666665,
+            "exerciseLabelCoverage": 0.10416666666666667,
+            "completeSetPassed": true,
+            "wrongConfirmedDecisions": 0
+          }
+        ],
+        "negatives": {
+          "setupFrames": 35,
+          "counterEligible": 0,
+          "visibleLabels": 0,
+          "releaseFrames": 23
+        }
+      }
+    },
+    "test": {
+      "withReadability": {
+        "videos": {
+          "unknown": 2,
+          "unverifiableAccepted": 1,
+          "unverifiableAbstained": 3
+        },
+        "recordings": [
+          {
+            "id": "k600_EVO-6Z8j3Dk_000070_000080",
+            "referenceGrip": "overhand",
+            "outcome": "unknown",
+            "captureEligible": true,
+            "observedLabels": [],
+            "counterEligibleFrames": 24,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.0,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_HhiuKOZrLX0_000019_000029",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAccepted",
+            "captureEligible": false,
+            "observedLabels": [
+              "overhand"
+            ],
+            "counterEligibleFrames": 9,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.08,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_J5i4GcGt2oY_000004_000014",
+            "referenceGrip": "overhand",
+            "outcome": "unknown",
+            "captureEligible": true,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.0,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_ZLzPbmPVNv0_000019_000029",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAbstained",
+            "captureEligible": false,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.0,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_c8QJc5EsThw_000013_000023",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAbstained",
+            "captureEligible": false,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": null,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_ncjx7j-GM0Q_000000_000010",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAbstained",
+            "captureEligible": false,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.0,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          }
+        ],
+        "negatives": {
+          "releaseFrames": 3,
+          "counterEligible": 0,
+          "visibleLabels": 0,
+          "setupFrames": 42
+        }
+      },
+      "withoutReadability": {
+        "videos": {
+          "wrongOrInconsistent": 1,
+          "unverifiableAccepted": 1,
+          "unknown": 1,
+          "unverifiableAbstained": 3
+        },
+        "recordings": [
+          {
+            "id": "k600_EVO-6Z8j3Dk_000070_000080",
+            "referenceGrip": "overhand",
+            "outcome": "wrongOrInconsistent",
+            "captureEligible": true,
+            "observedLabels": [
+              "underhand"
+            ],
+            "counterEligibleFrames": 24,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.10526315789473684,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 1
+          },
+          {
+            "id": "k600_HhiuKOZrLX0_000019_000029",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAccepted",
+            "captureEligible": false,
+            "observedLabels": [
+              "overhand"
+            ],
+            "counterEligibleFrames": 9,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.08,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_J5i4GcGt2oY_000004_000014",
+            "referenceGrip": "overhand",
+            "outcome": "unknown",
+            "captureEligible": true,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.0,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_ZLzPbmPVNv0_000019_000029",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAbstained",
+            "captureEligible": false,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.0,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_c8QJc5EsThw_000013_000023",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAbstained",
+            "captureEligible": false,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": null,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          },
+          {
+            "id": "k600_ncjx7j-GM0Q_000000_000010",
+            "referenceGrip": "unknown",
+            "outcome": "unverifiableAbstained",
+            "captureEligible": false,
+            "observedLabels": [],
+            "counterEligibleFrames": 0,
+            "firstCorrectSeconds": null,
+            "exerciseLabelCoverage": 0.0,
+            "completeSetPassed": false,
+            "wrongConfirmedDecisions": 0
+          }
+        ],
+        "negatives": {
+          "releaseFrames": 3,
+          "counterEligible": 0,
+          "visibleLabels": 0,
+          "setupFrames": 42
+        }
+      }
+    }
+  },
+  "scorerCaveat": "Original firstCorrectSeconds erroneously matches unknown==unknown for unlabelled references. This addendum guards referenceGrip!=unknown; no correctness credit is given to those four sources. Frozen files unchanged.",
+  "evidenceHashes": {
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/crop-review-receipt.json": "9d91dfa7f11d3f657552cd0f506eb041bd6636338d0776ae2593ca40616eca87",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/native-input.jsonl": "51436309e12d1136caaac78f35b6d78036315034bb43f581fdf8d9b8496ce3e1",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/rows.jsonl": "e085967d1ff258f046becd9b2dac4e68ff5626d81f69afacf8ae4bf87bf64465",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/observations.jsonl": "2960622e6b7dca1bc0cf7be8fcb3f374f457e498cf615327730c91aa6ec84b14",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/report.json": "3d5564acc8adc558b3e8cde06d46d3b9128a7a59aef9890f36454a528bbf861a",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/results.json": "e6f124b8390f5de0b74ac745fa39c915668c31071d27b1b857482390d5aaccc8",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/prepare-receipt.json": "8fdc5722dbab5be597b48e185cd5d527f796453d651553ddade7bcd6ab7303e0",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/baseline/native-output.jsonl": "fe42f58fab25a5cc4f2206d7018508ac40bd80869fad84e43d67e8fa8e754fa3",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/native-input.jsonl": "b9337c3bfb65343c2b7506ae2029255603e3a5fd3681ee20ca886cf8f8733e4d",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/rows.jsonl": "748353611dfb3e8582ba45d53d7cdfd73c47cdb421241e591cf0a06981341ca7",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/observations.jsonl": "ad249d4b69c2bd1e1ac2ae9438af3e2060d377a268df28a1fb38aba08a3a3260",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/report.json": "dfbb6257cb045fca4e61ed9ebd4cb41152d1a825c64f40d00b9ca48a33af313c",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/pre-inference-freeze.json": "69b6421885ed2b5c828c14062d73cab1f5baac177d895fbf2a214fee93ed69cc",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/results.json": "11641e74dbcd05a02e6969a8a0bf015d57f79dcba159f2cdded11bf244857fd2",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/prepare-receipt.json": "2286d10cfd5730036cb931051074a5b8e131b656fa4b25c7d0d150e5a72eed3a",
+    "/Users/yongkyunshin/Dev/HangInThere/build/grip-controlled-v17/test/native-output.jsonl": "d8384e78fcad6e6033f010e0b06680a5c349b872ebeb30625a912205b65c56f8"
+  },
+  "protocolSHA256": "2ce5e08711b533e5590e9fd110b3ff0aaa54ca7ca9f17a80083c946f7bb2f1fc",
+  "candidateSHA256": "eb8486fa9fec33a61b7c6734dbf8e1b9df59c61521214824009342b5ce52431c"
+}

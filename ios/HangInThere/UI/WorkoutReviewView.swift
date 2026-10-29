@@ -50,6 +50,10 @@ struct WorkoutReviewView: View {
                 } else if let summary {
                     headline(summary)
                     JourneyCoachingCard(coaching: summary.coaching)
+                    if let record, showsSourcePhases {
+                        WorkoutTempoCard(record: record)
+                        WorkoutMuscleCard(exercise: record.exercise)
+                    }
                     if !completed.isEmpty {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack { Text("Your reps").font(.title3.bold()); Spacer(); Text("Tap to explore").font(.caption).foregroundStyle(.secondary) }

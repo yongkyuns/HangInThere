@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "role": "privilegedDiagnosticOnly",
+  "selection": "First three recording SHA per final reviewed class with >=2 active frames, earliest two fixed-time active frames, no crop/model availability selection. Every selected slot retained.",
+  "preScoreFreezeSHA256": "837cf5a36211fcc940cb98d9db20dd085b8223221eda74a3571d1609816e4f0b",
+  "freeze": "/Users/yongkyunshin/Dev/HangInThere/build/grip-oracle-v7/final/inference-freeze.json",
+  "references": "Evaluation/fixtures/grip-oracle-references-v7.json",
+  "models": {
+    "grip": "build/grip-threeway/staged-models/threeway/GripHandClassifier.pt",
+    "quality": "build/grip-contact-v4/model/GripSurfaceClassifier.pt",
+    "torso": "build/grip-reviewed/model/GripContextClassifier.pt"
+  },
+  "thresholds": {
+    "grip": 0.8,
+    "contact": 0.8,
+    "surface": 0.8,
+    "visibility": 0.8
+  },
+  "policy": "Full 2x2 crop/view factorial plus prespecified 2.0 crop-padding sensitivity. Same frozen staged grip and contact head for all main comparisons; v4 surface/visibility/contact only extra component diagnostics. Torso-only automatic view follows v5."
+}

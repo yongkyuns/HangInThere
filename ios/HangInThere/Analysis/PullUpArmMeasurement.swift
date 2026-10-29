@@ -33,4 +33,19 @@ struct PullUpArmMeasurement: Sendable {
                 && edge.midpoint.y <= $0.wrist.y + short * 0.015
         }
     }
+    // Match the shared movement owner's actual front/rear spatial resolution.
+    // Narrow hands are valid; collapsed or crossed SDK chains are unavailable.
+    static func hasDistinctFrontRearArms(in pose: PoseResult) -> Bool {
+        guard pose.people.count == 1, let person = pose.people.first,
+              person.landmarks.count <= 64,
+              Set(person.landmarks.map(\.joint)).count == person.landmarks.count else { return false }
+        let arms = PullUpArmMeasurement(pose: pose).arms.sorted { $0.wrist.x < $1.wrist.x }
+        guard arms.count == 2,
+              let leftElbow = person.landmark(.leftElbow)?.position,
+              let rightElbow = person.landmark(.rightElbow)?.position else { return false }
+        let floor = ArmMeasurement.minimumSegmentFraction * min(pose.imageSize.width, pose.imageSize.height)
+        return arms[1].wrist.x-arms[0].wrist.x >= 2*floor
+            && arms[1].shoulder.x-arms[0].shoulder.x >= floor
+            && hypot(leftElbow.x-rightElbow.x, leftElbow.y-rightElbow.y) >= floor
+    }
 }

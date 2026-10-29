@@ -36,7 +36,8 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
                 eventReason: String?, hasActivity: Boolean, automaticFinish: Boolean): String? {
         sourceTimeline.observe(seconds)
         this.backend=backend;this.modelRevision=modelRevision
-        val pose = workoutBridgePose(seconds, width, height, peopleCount, joints, triples).copy(gripObservation=gripObservation)
+        val pose = workoutBridgePose(seconds, width, height, peopleCount, joints, triples)
+            .copy(gripObservation=gripObservation,backend=backend,requestRevision=modelRevision)
         val bar = if (reference.size == 4) BarSegment(Point2D(reference[0], reference[1]), Point2D(reference[2], reference[3])) else null
         this.trackingSide=ArmMeasurement.Side.valueOf(trackingSide)
         if(imageSize==null) imageSize=pose.imageSize
@@ -75,7 +76,8 @@ class WorkoutAnalysisBridge(setId: String, exercise: String, private val tracked
     private fun recordJson(reps:List<RepRecord>,activity:WorkoutActivity,grip:WorkoutGripRecord?=analysis.gripRecord) = WorkoutAnalysis.json.encodeToString(
         WorkoutSetRecord(setId,exercise,sourceTimeline.firstSeconds,sourceTimeline.lastSeconds,endReason,reps,backend,modelRevision,
             trackingSide=trackingSide,imageSize=imageSize,referenceEdge=referenceEdge,
-            trackedAtEpochMilliseconds=trackedAtEpochMilliseconds.takeIf { it > 0 },activity=activity,grip=grip))
+            trackedAtEpochMilliseconds=trackedAtEpochMilliseconds.takeIf { it > 0 },activity=activity,grip=grip,setGrip=analysis.setGrip,
+            boundaryPolicyVersion=WorkoutLifecycle.boundaryPolicyVersion))
     fun recordsJson() = analysis.recordsJson()
     fun lastClosedRecordJson():String? = analysis.records.lastOrNull()?.let{WorkoutAnalysis.json.encodeToString(it)}
 }

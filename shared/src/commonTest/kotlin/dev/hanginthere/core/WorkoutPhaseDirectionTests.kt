@@ -163,7 +163,7 @@ class WorkoutPhaseDirectionTests {
             assertEquals(80.0, assertNotNull(rep.left.minimum), 1e-9)
             assertEquals(170.0, assertNotNull(rep.right.maximum), 1e-9)
             assertEquals(1.0, rep.durationCoverage)
-            assertEquals(8, rep.countPolicyVersion)
+            assertEquals(9, rep.countPolicyVersion)
             assertEquals(2, rep.metricVersion)
             assertEquals(3, session.record.activity!!.metricVersion)
         }

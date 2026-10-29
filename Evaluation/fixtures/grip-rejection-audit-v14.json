@@ -1,0 +1,756 @@
+{
+  "protocol": {
+    "purpose": "Diagnose fixed-model rejection on exposed development inputs; never change gates.\n\nBypass/raw-temperature results are diagnostic counterfactuals, not candidates.\nReadable subsets use agent reference labels and cannot be deployed as filters.\n",
+    "inputSHA256": "32e9cef5f16a96f45a85f387d4a1d704b59a7de1abe455d45b71c00530cf2c55",
+    "modelSHA256": "04146f525ade61bb7868828e90ff256d68db8c3219dc0f6e568665b78f19e571",
+    "weightsSHA256": "a9a7404619cfa4f0916c28ecf678417e32b1fca29ce51396bfc1e1d399030bd9",
+    "scriptSHA256": "2f437e5462e91dbeefe14dae4336b707fceab8e28cdb87dbeeffca7acd820066",
+    "helperSHA256": "27b344f7a8cf10ea96073b6bac398095a132041091dd02973aba1d0c8adf6961",
+    "confidenceThresholds": {
+      "surface": 0.8,
+      "readability": 0.8,
+      "contact": 0.8
+    },
+    "fitting": false,
+    "appChanged": false,
+    "analysis": "All 218 validation crops, reviewed clear closed front/rear subset, correct vs incorrect anatomy, independent gate patterns and single-gate bypass counterfactuals.",
+    "sampleReview": "Six source-diverse contact-only correct rejections; six multiple-gate correct rejections; all eight existing clear open-hand controls; six training unclear-anatomy/closed-contact examples. Model-dependent error sampling is diagnostic, not independent gold.",
+    "annotationRule": "Inspect contact evidence in both source and patch. Unclear anatomy does NOT automatically imply unclear contact. Preserve every original reference and source role. No new label enters fitting.",
+    "selectionSeed": 4214,
+    "finalReserveInspected": false
+  },
+  "analysis": {
+    "protocolSHA256": "b7f4cdcfef2954a2dfa9e10e7dd40d14e90d12f290a9740a01d5aa2a1e65d0e3",
+    "temperatures": [
+      1.0,
+      1.0,
+      4.0
+    ],
+    "cleanCorrect": {
+      "crops": 83,
+      "failurePatterns": {
+        "readability+contact": 28,
+        "surface+readability+contact": 8,
+        "accepted": 12,
+        "contact": 23,
+        "surface+contact": 11,
+        "surface": 1
+      },
+      "failedEachGate": {
+        "readability": 36,
+        "contact": 70,
+        "surface": 20
+      }
+    },
+    "cleanWrong": {
+      "crops": 17,
+      "failurePatterns": {
+        "contact": 1,
+        "surface+readability+contact": 8,
+        "surface+contact": 8
+      },
+      "failedEachGate": {
+        "contact": 17,
+        "surface": 16,
+        "readability": 8
+      }
+    },
+    "cleanAll": {
+      "crops": 100,
+      "failurePatterns": {
+        "readability+contact": 28,
+        "surface+readability+contact": 16,
+        "accepted": 12,
+        "contact": 24,
+        "surface+contact": 19,
+        "surface": 1
+      },
+      "failedEachGate": {
+        "readability": 44,
+        "contact": 87,
+        "surface": 36
+      }
+    },
+    "allUnclearOrMixed": {
+      "crops": 114,
+      "failurePatterns": {
+        "surface+readability+contact": 66,
+        "readability+contact": 36,
+        "surface+contact": 2,
+        "surface": 2,
+        "contact": 6,
+        "accepted": 2
+      },
+      "failedEachGate": {
+        "surface": 70,
+        "readability": 102,
+        "contact": 110
+      }
+    },
+    "counterfactuals": {
+      "current": {
+        "allValidation": {
+          "accepted": 14,
+          "correctClosed": 12,
+          "wrongKnownClosed": 0,
+          "unclearMixedOrNoncontact": 2,
+          "ids": [
+            "H338",
+            "H573",
+            "H454",
+            "H397",
+            "H517",
+            "H688",
+            "H093",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H116",
+            "H505"
+          ],
+          "sourceGroups": 4
+        },
+        "reviewedReadableClosed": {
+          "accepted": 12,
+          "correctClosed": 12,
+          "wrongKnownClosed": 0,
+          "unclearMixedOrNoncontact": 0,
+          "ids": [
+            "H454",
+            "H397",
+            "H517",
+            "H688",
+            "H093",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H116",
+            "H505"
+          ],
+          "sourceGroups": 3
+        }
+      },
+      "bypass_surface": {
+        "allValidation": {
+          "accepted": 17,
+          "correctClosed": 13,
+          "wrongKnownClosed": 0,
+          "unclearMixedOrNoncontact": 4,
+          "ids": [
+            "H263",
+            "H434",
+            "H338",
+            "H573",
+            "H454",
+            "H397",
+            "H517",
+            "H688",
+            "H492",
+            "H093",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H116",
+            "H505"
+          ],
+          "sourceGroups": 5
+        },
+        "reviewedReadableClosed": {
+          "accepted": 13,
+          "correctClosed": 13,
+          "wrongKnownClosed": 0,
+          "unclearMixedOrNoncontact": 0,
+          "ids": [
+            "H454",
+            "H397",
+            "H517",
+            "H688",
+            "H492",
+            "H093",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H116",
+            "H505"
+          ],
+          "sourceGroups": 4
+        }
+      },
+      "bypass_readability": {
+        "allValidation": {
+          "accepted": 14,
+          "correctClosed": 12,
+          "wrongKnownClosed": 0,
+          "unclearMixedOrNoncontact": 2,
+          "ids": [
+            "H338",
+            "H573",
+            "H454",
+            "H397",
+            "H517",
+            "H688",
+            "H093",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H116",
+            "H505"
+          ],
+          "sourceGroups": 4
+        },
+        "reviewedReadableClosed": {
+          "accepted": 12,
+          "correctClosed": 12,
+          "wrongKnownClosed": 0,
+          "unclearMixedOrNoncontact": 0,
+          "ids": [
+            "H454",
+            "H397",
+            "H517",
+            "H688",
+            "H093",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H116",
+            "H505"
+          ],
+          "sourceGroups": 3
+        }
+      },
+      "bypass_contact": {
+        "allValidation": {
+          "accepted": 45,
+          "correctClosed": 35,
+          "wrongKnownClosed": 1,
+          "unclearMixedOrNoncontact": 9,
+          "ids": [
+            "H067",
+            "H338",
+            "H573",
+            "H454",
+            "H397",
+            "H517",
+            "H578",
+            "H302",
+            "H688",
+            "H107",
+            "H352",
+            "H287",
+            "H391",
+            "H093",
+            "H246",
+            "H344",
+            "H554",
+            "H523",
+            "H603",
+            "H239",
+            "H459",
+            "H327",
+            "H325",
+            "H138",
+            "H514",
+            "H521",
+            "H512",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H582",
+            "H116",
+            "H505",
+            "H264",
+            "H683",
+            "H560",
+            "H658",
+            "H123",
+            "H388",
+            "H308",
+            "H198",
+            "H162",
+            "H644"
+          ],
+          "sourceGroups": 12
+        },
+        "reviewedReadableClosed": {
+          "accepted": 36,
+          "correctClosed": 35,
+          "wrongKnownClosed": 1,
+          "unclearMixedOrNoncontact": 0,
+          "ids": [
+            "H454",
+            "H397",
+            "H517",
+            "H578",
+            "H302",
+            "H688",
+            "H391",
+            "H093",
+            "H246",
+            "H344",
+            "H603",
+            "H239",
+            "H459",
+            "H327",
+            "H325",
+            "H138",
+            "H514",
+            "H521",
+            "H512",
+            "H471",
+            "H742",
+            "H013",
+            "H685",
+            "H392",
+            "H582",
+            "H116",
+            "H505",
+            "H264",
+            "H683",
+            "H560",
+            "H658",
+            "H123",
+            "H388",
+            "H308",
+            "H162",
+            "H644"
+          ],
+          "sourceGroups": 9
+        }
+      }
+    },
+    "rawContactTemperatureOne": {
+      "allValidation": {
+        "accepted": 44,
+        "correctClosed": 35,
+        "wrongKnownClosed": 1,
+        "unclearMixedOrNoncontact": 8,
+        "ids": [
+          "H067",
+          "H338",
+          "H573",
+          "H454",
+          "H397",
+          "H517",
+          "H578",
+          "H302",
+          "H688",
+          "H107",
+          "H287",
+          "H391",
+          "H093",
+          "H246",
+          "H344",
+          "H554",
+          "H523",
+          "H603",
+          "H239",
+          "H459",
+          "H327",
+          "H325",
+          "H138",
+          "H514",
+          "H521",
+          "H512",
+          "H471",
+          "H742",
+          "H013",
+          "H685",
+          "H392",
+          "H582",
+          "H116",
+          "H505",
+          "H264",
+          "H683",
+          "H560",
+          "H658",
+          "H123",
+          "H388",
+          "H308",
+          "H198",
+          "H162",
+          "H644"
+        ],
+        "sourceGroups": 12
+      },
+      "reviewedReadableClosed": {
+        "accepted": 36,
+        "correctClosed": 35,
+        "wrongKnownClosed": 1,
+        "unclearMixedOrNoncontact": 0,
+        "ids": [
+          "H454",
+          "H397",
+          "H517",
+          "H578",
+          "H302",
+          "H688",
+          "H391",
+          "H093",
+          "H246",
+          "H344",
+          "H603",
+          "H239",
+          "H459",
+          "H327",
+          "H325",
+          "H138",
+          "H514",
+          "H521",
+          "H512",
+          "H471",
+          "H742",
+          "H013",
+          "H685",
+          "H392",
+          "H582",
+          "H116",
+          "H505",
+          "H264",
+          "H683",
+          "H560",
+          "H658",
+          "H123",
+          "H388",
+          "H308",
+          "H162",
+          "H644"
+        ],
+        "sourceGroups": 9
+      },
+      "warning": "Diagnostic only. Existing calibration selected T=4 over T=1 by lower balanced validation NLL. Confidence inflation is not a fix."
+    },
+    "qualityCalibration": {
+      "visible": {
+        "bestEpoch": 17,
+        "history": [
+          {
+            "epoch": 0,
+            "validationNLL": 0.5593631267547607
+          },
+          {
+            "epoch": 1,
+            "validationNLL": 0.5329151153564453
+          },
+          {
+            "epoch": 2,
+            "validationNLL": 0.5250711441040039
+          },
+          {
+            "epoch": 3,
+            "validationNLL": 0.5173076391220093
+          },
+          {
+            "epoch": 4,
+            "validationNLL": 0.5073861479759216
+          },
+          {
+            "epoch": 5,
+            "validationNLL": 0.49927735328674316
+          },
+          {
+            "epoch": 6,
+            "validationNLL": 0.4951470196247101
+          },
+          {
+            "epoch": 7,
+            "validationNLL": 0.487827867269516
+          },
+          {
+            "epoch": 8,
+            "validationNLL": 0.4804264307022095
+          },
+          {
+            "epoch": 9,
+            "validationNLL": 0.4743715524673462
+          },
+          {
+            "epoch": 10,
+            "validationNLL": 0.473471999168396
+          },
+          {
+            "epoch": 11,
+            "validationNLL": 0.4664158821105957
+          },
+          {
+            "epoch": 12,
+            "validationNLL": 0.4641110897064209
+          },
+          {
+            "epoch": 13,
+            "validationNLL": 0.45871618390083313
+          },
+          {
+            "epoch": 14,
+            "validationNLL": 0.45341524481773376
+          },
+          {
+            "epoch": 15,
+            "validationNLL": 0.44949331879615784
+          },
+          {
+            "epoch": 16,
+            "validationNLL": 0.445008248090744
+          },
+          {
+            "epoch": 17,
+            "validationNLL": 0.4401242733001709
+          },
+          {
+            "epoch": 18,
+            "validationNLL": 0.44259029626846313
+          },
+          {
+            "epoch": 19,
+            "validationNLL": 0.44556915760040283
+          },
+          {
+            "epoch": 20,
+            "validationNLL": 0.45053616166114807
+          },
+          {
+            "epoch": 21,
+            "validationNLL": 0.45382624864578247
+          },
+          {
+            "epoch": 22,
+            "validationNLL": 0.45326605439186096
+          },
+          {
+            "epoch": 23,
+            "validationNLL": 0.4560048282146454
+          },
+          {
+            "epoch": 24,
+            "validationNLL": 0.4562463164329529
+          },
+          {
+            "epoch": 25,
+            "validationNLL": 0.4577683210372925
+          }
+        ],
+        "temperature": 1.0,
+        "calibration": {
+          "1.0": 0.4401242733001709,
+          "1.25": 0.44492846727371216,
+          "1.5": 0.45666390657424927,
+          "2.0": 0.4840993881225586,
+          "3.0": 0.5297263264656067,
+          "4.0": 0.5608087778091431
+        }
+      },
+      "contact": {
+        "bestEpoch": 4,
+        "history": [
+          {
+            "epoch": 0,
+            "validationNLL": 0.9579349756240845
+          },
+          {
+            "epoch": 1,
+            "validationNLL": 0.8926594853401184
+          },
+          {
+            "epoch": 2,
+            "validationNLL": 0.9509749412536621
+          },
+          {
+            "epoch": 3,
+            "validationNLL": 0.9200778007507324
+          },
+          {
+            "epoch": 4,
+            "validationNLL": 0.8792951107025146
+          },
+          {
+            "epoch": 5,
+            "validationNLL": 0.9261192083358765
+          },
+          {
+            "epoch": 6,
+            "validationNLL": 0.9247894883155823
+          },
+          {
+            "epoch": 7,
+            "validationNLL": 0.9272698760032654
+          },
+          {
+            "epoch": 8,
+            "validationNLL": 0.9411200881004333
+          },
+          {
+            "epoch": 9,
+            "validationNLL": 0.9935297966003418
+          },
+          {
+            "epoch": 10,
+            "validationNLL": 0.9875378012657166
+          },
+          {
+            "epoch": 11,
+            "validationNLL": 0.9952505826950073
+          },
+          {
+            "epoch": 12,
+            "validationNLL": 1.0030685663223267
+          }
+        ],
+        "temperature": 4.0,
+        "calibration": {
+          "1.0": 0.8792951107025146,
+          "1.25": 0.7960182428359985,
+          "1.5": 0.7467564940452576,
+          "2.0": 0.6958103179931641,
+          "3.0": 0.6628142595291138,
+          "4.0": 0.6560410857200623
+        }
+      }
+    },
+    "labelInventory": {
+      "train": {
+        "targetInventory": {
+          "closed / palm / eligible=True": 108,
+          "invalid / unclear / eligible=True": 62,
+          "closed / unclear / eligible=True": 184,
+          "closed / mixed / eligible=True": 47,
+          "closed / dorsum / eligible=True": 67,
+          "invalid / unclear / eligible=False": 12,
+          "open / unclear / eligible=True": 3,
+          "open / palm / eligible=True": 1,
+          "open / mixed / eligible=True": 8,
+          "closed / side / eligible=True": 18,
+          "invalid / mixed / eligible=False": 9,
+          "invalid / dorsum / eligible=False": 2,
+          "invalid / palm / eligible=False": 2,
+          "open / side / eligible=True": 1,
+          "open / dorsum / eligible=True": 2
+        },
+        "clearOpenSourceGroups": [
+          "youtube:GQOf4jHJ4fs",
+          "youtube:XFBNb_egCr8",
+          "youtube:x4UyaNoQJU4"
+        ],
+        "clearClosedSourceGroups": [
+          "da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+          "gymkee:ckdpq4q1g002bfo488d871c7t:male",
+          "youtube:-yQUE1H_Hn0",
+          "youtube:0WzFqH4CPzI",
+          "youtube:0afhqysgAUE",
+          "youtube:1HibOxpJqQY",
+          "youtube:1cZ2I-8DR-Q",
+          "youtube:3-XiWZ5ONLA",
+          "youtube:6cDE1YpzSaE",
+          "youtube:6kpsQxO-Vo0",
+          "youtube:9VHz73p7Gfo",
+          "youtube:9WvH8at_xJw",
+          "youtube:Ace4EsUWyYc",
+          "youtube:AvS-tDkwNTc",
+          "youtube:BrtUG9jAsJI",
+          "youtube:GBNGV08S_m0",
+          "youtube:GQOf4jHJ4fs",
+          "youtube:HVDH5xfTIFw",
+          "youtube:NFcwjLi-rJI",
+          "youtube:NKT4ylACJnI",
+          "youtube:O4MXIrHhqZo",
+          "youtube:OZJD5fKVE1Y",
+          "youtube:OhUyM53Y_74",
+          "youtube:P8Hg-rCJwDY",
+          "youtube:SIAHCQ15a3k",
+          "youtube:T5fWYIZiW4A",
+          "youtube:TIZ4oTuiUog",
+          "youtube:UGFRvAB22fg",
+          "youtube:WT-ADjiRB2Y",
+          "youtube:WaGRDOkXveE",
+          "youtube:XFBNb_egCr8",
+          "youtube:XadhprrLPAw",
+          "youtube:YVVns1LhKnM",
+          "youtube:ZyBUAy8auRY",
+          "youtube:_KtitR_vvo0",
+          "youtube:a3rmxPm_49Q",
+          "youtube:bAEua0zu_74",
+          "youtube:bqwuhXMz228",
+          "youtube:cptVIr4OJx8",
+          "youtube:cvcuLaZeG2A",
+          "youtube:d8RA0_YBltQ",
+          "youtube:fsQ-POpiemc",
+          "youtube:gh77V08SQ34",
+          "youtube:ihFKM9w92MY",
+          "youtube:lTUoHbXpx5Y",
+          "youtube:pGkJwIImUTc",
+          "youtube:pSMJrEOFJwU",
+          "youtube:r5k1vrqzhNc",
+          "youtube:rfnTdizkBcY",
+          "youtube:s59PqZ9TTq0",
+          "youtube:smgEjkcIvq8",
+          "youtube:tSs1fVXMuPA",
+          "youtube:x4UyaNoQJU4",
+          "youtube:yLVMDD7b0xM",
+          "youtube:z-5bAAt5omo",
+          "youtube:zVms_bNSnDs"
+        ]
+      },
+      "validation": {
+        "targetInventory": {
+          "closed / unclear / eligible=True": 69,
+          "invalid / unclear / eligible=True": 14,
+          "closed / palm / eligible=True": 35,
+          "closed / mixed / eligible=True": 20,
+          "open / unclear / eligible=True": 8,
+          "open / dorsum / eligible=True": 3,
+          "closed / dorsum / eligible=True": 37,
+          "invalid / unclear / eligible=False": 3,
+          "closed / side / eligible=True": 28,
+          "open / side / eligible=True": 1
+        },
+        "clearOpenSourceGroups": [
+          "youtube:ZvkHAS7aJO8",
+          "youtube:sn4lGirMyfU"
+        ],
+        "clearClosedSourceGroups": [
+          "publisher:mytrainingpro:blue-tank-female",
+          "publisher:strengthlog:female-rack",
+          "publisher:tuscaloosa:jake-barnett",
+          "youtube:2p19BDth7Zc",
+          "youtube:LUlt4tPj5SQ",
+          "youtube:S3jzFktsnwE",
+          "youtube:ZvkHAS7aJO8",
+          "youtube:cvc8HN__fxU",
+          "youtube:f2MOPqH4wrY",
+          "youtube:iD7kdQqttXI",
+          "youtube:iKIKRztPIpQ",
+          "youtube:mgPhDrH6-rE",
+          "youtube:oSyUsQqHkmE",
+          "youtube:sm_CjfH0U0A"
+        ]
+      }
+    },
+    "primaryFinding": "Contact rejects 70/83 correctly classified readable closed hands; it is not the only blocker.",
+    "finalReserveInspected": false,
+    "thresholdsChanged": false,
+    "modelChanged": false,
+    "appChanged": false
+  },
+  "visualReview": {
+    "counts": {
+      "grasp": 14,
+      "unclear": 8,
+      "openOrEmpty": 4
+    },
+    "reviewSHA256": "c9cfe90c05ab3c0881f9f83bbecc88221f503cdd57be973c434708ff64600cb2",
+    "independentGold": false,
+    "originalReferencesChanged": false
+  }
+}

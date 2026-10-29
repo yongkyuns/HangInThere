@@ -40,6 +40,37 @@ tasks.named<org.gradle.api.tasks.testing.Test>("jvmTest") {
     val progressReport = providers.environmentVariable("PUBLIC_REPLAY_PROGRESS_REPORT")
     inputs.property("PUBLIC_REPLAY_PROGRESS_REPORT", progressReport.orElse(""))
     progressReport.orNull?.let { outputs.file(it).withPropertyName("PUBLIC_REPLAY_PROGRESS_REPORT") }
+    // Opt-in rail-free development replay binds its actual external observations
+    // and scoring reference; changing the output path must also rerun the export.
+    for (name in listOf("BODY_DIP_POSES", "BODY_DIP_REFERENCE")) {
+        val value = providers.environmentVariable(name)
+        inputs.property(name, value.orElse(""))
+        value.orNull?.let { inputs.file(it).withPropertyName(name).withPathSensitivity(PathSensitivity.ABSOLUTE) }
+    }
+    val bodyDipReport = providers.environmentVariable("BODY_DIP_REPORT")
+    inputs.property("BODY_DIP_REPORT", bodyDipReport.orElse(""))
+    bodyDipReport.orNull?.let { outputs.file(it).withPropertyName("BODY_DIP_REPORT") }
+    val pullUpMotionInput = providers.environmentVariable("PULLUP_MOTION_INPUT")
+    inputs.property("PULLUP_MOTION_INPUT", pullUpMotionInput.orElse(""))
+    pullUpMotionInput.orNull?.let { inputs.file(it).withPropertyName("PULLUP_MOTION_INPUT").withPathSensitivity(PathSensitivity.ABSOLUTE) }
+    val pullUpMotionOutput = providers.environmentVariable("PULLUP_MOTION_OUTPUT")
+    inputs.property("PULLUP_MOTION_OUTPUT", pullUpMotionOutput.orElse(""))
+    pullUpMotionOutput.orNull?.let { outputs.file(it).withPropertyName("PULLUP_MOTION_OUTPUT") }
+    val pullUpProductionReport = providers.environmentVariable("PULLUP_PRODUCTION_PARITY_REPORT")
+    inputs.property("PULLUP_PRODUCTION_PARITY_REPORT", pullUpProductionReport.orElse(""))
+    pullUpProductionReport.orNull?.let { outputs.file(it).withPropertyName("PULLUP_PRODUCTION_PARITY_REPORT") }
+    val pullUpLowerRecoveryReport = providers.environmentVariable("PULLUP_LOWER_RECOVERY_REPORT")
+    inputs.property("PULLUP_LOWER_RECOVERY_REPORT", pullUpLowerRecoveryReport.orElse(""))
+    pullUpLowerRecoveryReport.orNull?.let { outputs.file(it).withPropertyName("PULLUP_LOWER_RECOVERY_REPORT") }
+    val overheadPullUpInput = providers.environmentVariable("OVERHEAD_PULLUP_INPUT")
+    inputs.property("OVERHEAD_PULLUP_INPUT", overheadPullUpInput.orElse(""))
+    overheadPullUpInput.orNull?.let { inputs.file(it).withPropertyName("OVERHEAD_PULLUP_INPUT") }
+    val overheadPullUpOutput = providers.environmentVariable("OVERHEAD_PULLUP_OUTPUT")
+    inputs.property("OVERHEAD_PULLUP_OUTPUT", overheadPullUpOutput.orElse(""))
+    overheadPullUpOutput.orNull?.let { outputs.dir(it).withPropertyName("OVERHEAD_PULLUP_OUTPUT") }
+    val overheadOwnerOutput = providers.environmentVariable("OVERHEAD_OWNER_OUTPUT")
+    inputs.property("OVERHEAD_OWNER_OUTPUT", overheadOwnerOutput.orElse(""))
+    overheadOwnerOutput.orNull?.let { outputs.dir(it).withPropertyName("OVERHEAD_OWNER_OUTPUT") }
 }
 if (!appleOnly) extensions.configure<com.android.build.gradle.LibraryExtension> {
     namespace = "dev.hanginthere.core"

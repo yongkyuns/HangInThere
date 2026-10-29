@@ -41,3 +41,7 @@ __pycache__/
 local.properties
 android/app/src/main/assets/*.task
 android/app/src/androidTest/assets/generated/
+
+# Local owner recordings and copied research handoff (never publish)
+/Videos/
+/HangInThere-research-*/

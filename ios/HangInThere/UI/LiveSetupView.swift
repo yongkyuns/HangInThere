@@ -7,16 +7,16 @@ struct LiveSetupGuide: Equatable, Sendable {
     let side: ArmMeasurement.Side
 
     var selectedArmText: String {
-        exercise == .pullUp ? "Both shoulders, elbows, and wrists; one arm can continue if obscured"
-            : "Both shoulders, elbows, and wrists; the selected hand anchors its rail"
+        exercise == .pullUp ? "Both shoulders, elbows, and wrists clearly visible throughout"
+            : "Both shoulders, elbows, and wrists throughout the movement"
     }
 
     var apparatusText: String {
         switch exercise {
         case .pullUp:
-            "Keep the gripping bar and both hands visible."
+            "Face the camera or turn your back to it. Keep both hands visible; bar detection is not required."
         case .dip:
-            "Keep both dip grips and the rails beside your hands visible."
+            "Keep both hands visible and steady. The rails do not need to be visible."
         }
     }
 
@@ -25,7 +25,7 @@ struct LiveSetupGuide: Equatable, Sendable {
         case .pullUp:
             "Keep both arms, torso, hips, and as much of the legs as practical in frame."
         case .dip:
-            "Use a front or oblique view with both arms, torso, hips, and grip rails clearly visible."
+            "Face the camera or turn your back to it. Keep both arms and your upper body clearly visible."
         }
     }
 }
@@ -39,6 +39,7 @@ struct LiveSetupView: View {
         case diagnostics = "Diagnostics"
     }
     @State private var showingAnalysis = false
+    @State private var showDiagnosticPose = false
     @State private var reviewRecord: WorkoutSetRecord?
     @State private var showingDetails = false
     @State private var detailsTab: DetailsTab = .workout
@@ -83,12 +84,18 @@ struct LiveSetupView: View {
                 cameraSurface.ignoresSafeArea()
                 LiveWorkoutOverlay(
                     session: camera.liveSet,
+                    liveCompletedReps: camera.completedRepCount,
                     latestCompletedSet: camera.latestCompletedWorkout,
                     afterSetReport: camera.latestAfterSetReport,
                     showsSetStarted: camera.showsSetStarted,
                     activity: camera.activeWorkoutRecord?.activity,
                     exerciseTitle: camera.workoutTitle,
                     gripLabel: camera.gripLabel,
+                    needsArmRepositioning: camera.needsArmRepositioning,
+                    gripCaptureFeedback: camera.gripCaptureFeedback,
+                    readiness: camera.readinessChecklist,
+                    cameraPlacement: camera.cameraPlacement,
+                    onReadinessDetails: { openDetails(tab: .diagnostics) },
                     cameraReady: camera.isCameraReady,
                     status: overlayStatus,
                     statusSymbol: overlayStatusSymbol,
@@ -97,7 +104,7 @@ struct LiveSetupView: View {
                     canStart: camera.setupReadiness.state.isReady,
                     canSwitchCamera: camera.canSwitchCamera,
                     nextCameraName: camera.cameraPosition == .rear ? "front" : "rear",
-                    isRecording: camera.debugCaptureState.isActive,
+                    isRecording: camera.debugCaptureState.isActive || camera.recordingVideoSetId != nil,
                     countdown: countdownSeconds,
                     canClose: !preparingDebugSessionExport,
                     onClose: { dismiss() },
@@ -111,9 +118,9 @@ struct LiveSetupView: View {
                     onNextSet: { camera.prepareNextSet() },
                     onResults: { showingAnalysis = true }
                 )
+                .environment(\.colorScheme, .dark) // Contrast over the camera; sheets follow the system.
             }
             .background(.black)
-            .preferredColorScheme(.dark)
             .toolbar(.hidden, for: .navigationBar)
             .statusBarHidden(true)
             .sheet(isPresented: $showingDetails, onDismiss: {
@@ -183,7 +190,7 @@ struct LiveSetupView: View {
     private var overlayStatus: String {
         if camera.liveSet.phase == .running {
             if camera.liveSet.trackingIssue != nil { return liveTrackingTitle }
-            switch camera.liveSet.counter.phase {
+            switch camera.liveSet.motionPhase {
             case .seekingStart: return "Hold the starting position"
             case .ready: return "Ready"
             case .outbound: return "Lowering"
@@ -194,6 +201,7 @@ struct LiveSetupView: View {
         if let hint = camera.framingHint { return hint }
         if !camera.framing.state.isReady { return camera.framing.title }
         if isDetectingExercise { return automaticExerciseGuidance }
+        if camera.usesBodyDipTracking { return camera.readinessChecklist.actionDetail }
         if camera.currentBar == nil {
             if exercise == .dip {
                 switch camera.automaticBarState {
@@ -232,7 +240,7 @@ struct LiveSetupView: View {
                 // Keep the feed and all geometry aspect-fitted to the same full
                 // viewport; filling/cropping the camera would misalign the bar.
                 LiveCameraPreviewSurface(session: camera.session)
-                if let pose = camera.latestPose {
+                if showDiagnosticPose, let pose = camera.latestPose {
                     PoseOverlay(result: pose, selectedSide: side, usesBothArms: true)
                     BarOverlay(imageSize: pose.imageSize, bar: camera.currentBar)
                 }
@@ -256,6 +264,9 @@ struct LiveSetupView: View {
                     }
                     .pickerStyle(.segmented)
 
+                    if let videoError = camera.workoutVideoError {
+                        Label(videoError, systemImage: "video.slash").font(.callout).foregroundStyle(.orange)
+                    }
                     switch detailsTab {
                     case .workout:
                         switch camera.liveSet.phase {
@@ -270,6 +281,11 @@ struct LiveSetupView: View {
                             liveResultsCard
                         }
                     case .diagnostics:
+                        Toggle("Show skeleton on camera", isOn: $showDiagnosticPose)
+                        LiveReadinessChecklistView(checklist: camera.readinessChecklist, initiallyExpanded: true)
+                        if exercise == .pullUp, let feedback = camera.gripCaptureFeedback {
+                            LiveGripCaptureCard(feedback: feedback, initiallyExpanded: true)
+                        }
                         qualificationDisclosure
                         scopeNote
                     }
@@ -349,7 +365,6 @@ struct LiveSetupView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .preferredColorScheme(.dark)
         .interactiveDismissDisabled(preparingDebugSessionExport)
     }
 
@@ -400,21 +415,22 @@ struct LiveSetupView: View {
             }
             .pickerStyle(.segmented)
 
+            Toggle("Record counted sets", isOn: Binding(get: { camera.recordsSetVideos }, set: { camera.setRecordsSetVideos($0) }))
+                .disabled(camera.liveSet.phase == .running)
+            Text("Silent clips save only the counted part of each set. Setup and rest aren't kept.")
+                .font(.caption).foregroundStyle(.secondary)
+
             if exerciseSelection == .automatic {
                 Text(camera.resolvedExercise == nil
-                     ? "Hold a hang or top support with both hands visible. Tracking starts once the exercise, apparatus and camera are ready."
+                     ? "Hold a hang or top support with both hands visible. Tracking starts once your starting posture and camera are ready."
                      : "\(camera.workoutTitle). The exercise stays fixed throughout the set.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             if exerciseSelection != .pullUp {
-                Picker("Tracking side", selection: $side) {
-                    ForEach(ArmMeasurement.Side.allCases, id: \.rawValue) { side in
-                        Text(side.rawValue.capitalized).tag(side)
-                    }
-                }
-                .pickerStyle(.segmented)
+                Text("Dips use both arms. Keep both shoulders, elbows and wrists visible.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
 
             if camera.debugCaptureState.isActive {
@@ -446,10 +462,10 @@ struct LiveSetupView: View {
             setupRow("Tracked arms", detail: isDetectingExercise ? "Show both shoulders, elbows, and wrists to detect the starting pose." : guide.selectedArmText, symbol: "figure.arms.open")
             setupRow(
                 "Apparatus",
-                detail: isDetectingExercise ? "Keep the gripping bar or both dip rails visible beside your hands." : "Visual check only. " + guide.apparatusText,
+                detail: isDetectingExercise ? "Keep both hands visible. Bar or rail detection is not required." : guide.apparatusText,
                 symbol: "line.diagonal"
             )
-            setupRow("Body position", detail: isDetectingExercise ? "Hold an extended hang or top support. Use a front or oblique view with both arms visible." : guide.bodyText, symbol: "viewfinder")
+            setupRow("Body position", detail: isDetectingExercise ? "Use a level front or rear view at chest/shoulder height. Hold an extended hang or top support with both arms visible." : guide.bodyText, symbol: "viewfinder")
             setupRow(
                 "Phone orientation",
                 detail: phoneStabilityDetail,
@@ -469,7 +485,7 @@ struct LiveSetupView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Bar reference")
+                    Text(camera.usesBodyMotionTracking ? "Camera calibration" : "Bar reference")
                         .font(.headline)
                     Text(barCalibrationDetail)
                         .font(.caption)
@@ -478,12 +494,20 @@ struct LiveSetupView: View {
 
                 Spacer()
 
-                Image(systemName: camera.currentBar == nil ? "line.diagonal" : "checkmark.circle.fill")
+                Image(systemName: (camera.usesBodyMotionTracking ? camera.hasBodyCameraCalibration : camera.currentBar != nil) ? "checkmark.circle.fill" : "viewfinder")
                     .font(.title2)
-                    .foregroundStyle(camera.currentBar == nil ? .orange : .green)
+                    .foregroundStyle((camera.usesBodyMotionTracking ? camera.hasBodyCameraCalibration : camera.currentBar != nil) ? .green : .orange)
                     .accessibilityHidden(true)
             }
 
+            if camera.usesBodyMotionTracking {
+                Text("Calibration is automatic. Keep the phone fixed and show both arms; no bar or rail selection is required. Leg crossing is optional.")
+                    .font(.callout)
+                if camera.hasBodyCameraCalibration {
+                    Button("Recalibrate camera") { camera.clearBar() }
+                        .disabled(camera.liveSet.phase == .running)
+                }
+            } else {
             Button {
                 barSetup = camera.beginBarSetup()
             } label: {
@@ -515,6 +539,7 @@ struct LiveSetupView: View {
                     camera.clearBar()
                 }
                 .font(.caption)
+            }
             }
         }
         .padding(16)
@@ -552,10 +577,10 @@ struct LiveSetupView: View {
                 .accessibilityIdentifier("handsFreeLiveStart")
                 Text(camera.handsFreeStartEnabled
                      ? (isDetectingExercise
-                        ? "Hold a hang or top support with both hands visible. Tracking starts once the exercise, apparatus and camera are ready."
+                        ? "Hold a hang or top support with both hands visible. Tracking starts once your starting posture and camera are ready."
                         : exercise == .pullUp
-                        ? "Show a full hang after bar setup. Tracking begins automatically."
-                        : "Show both grips and hold top support. Dip support is found automatically; keep your arms extended and hands steady. Tracking begins automatically. Crossed legs are optional.")
+                        ? "Hold a clear hang with steady hands. Tracking begins automatically."
+                        : "Hold extended top support with steady hands, then lower to begin your set. Keep both arms visible. Crossed legs are optional.")
                      : "Tap Start set when ready, or enable automatic start.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -592,7 +617,7 @@ struct LiveSetupView: View {
 
                 Spacer()
 
-                Text("\(camera.liveSet.observedMovements)")
+                Text("\(camera.completedRepCount)")
                     .font(.system(size: 52, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText())
@@ -634,10 +659,10 @@ struct LiveSetupView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(camera.liveSet.observedMovements)")
+                Text("\(camera.completedRepCount)")
                     .font(.system(size: 64, weight: .bold, design: .rounded))
                     .monospacedDigit()
-                Text(camera.liveSet.observedMovements == 1 ? "observed movement" : "observed movements")
+                Text(camera.completedRepCount == 1 ? "completed cycle" : "completed cycles")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -773,14 +798,14 @@ struct LiveSetupView: View {
         if let issue = camera.liveSet.trackingIssue {
             return liveIssueTitle(issue)
         }
-        return camera.liveSet.counter.phase.title
+        return camera.liveSet.motionPhase.title
     }
 
     private var liveTrackingDetail: String {
         if let issue = camera.liveSet.trackingIssue {
             return liveIssueDetail(issue)
         }
-        switch camera.liveSet.counter.phase {
+        switch camera.liveSet.motionPhase {
         case .seekingStart:
             return "Hold the extended starting position until tracking is ready."
         case .ready:
@@ -879,14 +904,18 @@ struct LiveSetupView: View {
         if camera.handsFreeStartEnabled {
             return exercise == .pullUp
                 ? "Hang from the bar with extended arms. Tracking begins once setup is ready."
-                : "Hold top support with extended arms and steady hands. Tracking begins once setup is ready. Crossed legs are optional."
+                : "Hold extended top support with steady hands, then lower to begin. Crossed legs are optional."
         }
-        return exercise == .pullUp ? "Camera, arms, and fixed bar reference are ready."
-            : "Camera, selected arm, and fixed bar reference are ready."
+        return exercise == .pullUp ? "Camera and both arms are ready. Pull up when ready."
+            : "Camera and both arms are ready. Tap Start set to track movement or hold-only practice."
     }
 
     private var barCalibrationDetail: String {
         if isDetectingExercise { return automaticExerciseGuidance }
+        if camera.usesBodyMotionTracking {
+            return camera.hasBodyCameraCalibration ? "Camera calibrated against the background. Keep the phone fixed."
+                : "Show both arms and keep the phone still while the camera calibrates."
+        }
         if let bar = camera.currentBar {
             return bar.method == .automaticContours
                 ? "\(exercise == .dip ? "Dip support" : "Bar") found automatically. Keep the phone fixed. \(liveStartHelp)"
@@ -920,6 +949,9 @@ struct LiveSetupView: View {
     private var readyStateHelp: String {
         if !camera.isCameraReady { return "Start the selected camera." }
         if !camera.framing.state.isReady { return camera.framing.detail }
+        if camera.usesBodyDipTracking {
+            return camera.readinessChecklist.actionDetail
+        }
         if camera.currentBar == nil { return barCalibrationDetail }
         if !camera.phoneOrientation.state.allowsLiveSet {
             return "Phone orientation is not stable against the calibration baseline."
@@ -932,7 +964,7 @@ struct LiveSetupView: View {
 
     private var scopeNote: some View {
         Label(
-            "Live sets use the same bar-relative movement counter as recorded review. Sustained phone rotation, background translation, or radial background scale change after calibration invalidates the set. These checks still do not constitute full camera-pose estimation.",
+            "Pull-ups use the bar reference. Dips use both-arm movement with steady hands. Phone rotation or background movement after calibration interrupts the set. Movement counts do not verify exercise form.",
             systemImage: "info.circle"
         )
         .font(.footnote)

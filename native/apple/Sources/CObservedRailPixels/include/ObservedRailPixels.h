@@ -26,6 +26,34 @@ int32_t HITCopyRailPixelContours(CGImageRef image, int32_t left, int32_t top,
     int32_t width, int32_t height, HITRailPixelContours *result);
 void HITFreeRailPixelContours(HITRailPixelContours *result);
 const char *HITRailPixelBackendVersion(void);
+
+typedef struct {
+    int32_t supported;
+    int32_t reason;
+    int32_t reference_features;
+    int32_t correspondences;
+    int32_t inliers;
+    double scale_fraction;
+    int32_t translation_count;
+} HITBackgroundScaleMeasurement;
+
+enum { HITBackgroundMaximumTranslations = 6 };
+typedef struct {
+    double reference_x, reference_y, current_x, current_y;
+    int32_t region;
+} HITBackgroundPointTranslation;
+
+// Image-only current/reference correspondence; no pose, apparatus or contact
+// input. Unsupported evidence is distinct from a measured zero scale change.
+// Bounded64 corners, reciprocal15/31px NCC,0.75px geometric residual.
+// Same status codes as the pixel API above; result owns no allocation.
+int32_t HITMeasureBackgroundScale(CGImageRef reference, CGImageRef current,
+    HITBackgroundScaleMeasurement *result);
+// Actual observed inlier points in original image pixels, one per perimeter
+// region (largest measured displacement), up to the existing six-patch budget.
+// Caller provides six output slots. Unsupported evidence supplies no points.
+int32_t HITMeasureBackgroundGeometry(CGImageRef reference, CGImageRef current,
+    HITBackgroundScaleMeasurement *result, HITBackgroundPointTranslation *translations);
 #ifdef __cplusplus
 }
 #endif

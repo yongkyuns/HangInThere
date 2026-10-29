@@ -7,10 +7,19 @@ Explicit movement labels guard against two engines sharing the same counting bug
 import argparse
 import json
 import math
+import os
 from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
+
+def swift_compile_command(binary):
+    # Current observation DTOs reference shared transport types. The counter
+    # snapshots still execute the actual Swift source with independent labels.
+    framework = Path(os.environ.get('WORKOUT_FRAMEWORK', ROOT/'build/WorkoutCore/macosx/Debug')).resolve()
+    if not (framework/'WorkoutCore.framework').is_dir():
+        raise SystemExit('Build the native Mac WorkoutCore framework first: PLATFORM_NAME=macosx CONFIGURATION=Debug scripts/build-workout-core.sh')
+    return ['swiftc', '-O', '-F', str(framework), '-framework', 'WorkoutCore', '-lc++', '-o', str(binary)]
 
 def pose(t, degrees=170, exercise='pullUp', right=None, missing=False, people=1,
          confidence=1, rotation=0, scale=1, timescale=1000):
@@ -260,7 +269,7 @@ def prepare(output):
     # Match the other native harnesses: this layer contains SDK-free policy and
     # transport types, including optional metadata referenced by PoseResult.
     sources=sorted((ROOT/'ios/HangInThere/Analysis').glob('*.swift'))
-    subprocess.run(['swiftc','-O','-o',str(binary)]+list(map(str,sources))+[str(ROOT/'Evaluation/WorkoutOracle.swift')],check=True)
+    subprocess.run(swift_compile_command(binary)+list(map(str,sources))+[str(ROOT/'Evaluation/WorkoutOracle.swift')],check=True)
     temporary=output/'oracle.json.tmp'
     with temporary.open('w') as out: subprocess.run([str(binary),str(inputs)],stdout=out,check=True)
     temporary.replace(output/'oracle.json')

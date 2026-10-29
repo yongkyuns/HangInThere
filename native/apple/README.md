@@ -35,3 +35,28 @@ in SwiftPM caches; the manifest pins the cross-platform Apple archive and checks
 published by [opencv-spm 4.11.0](https://github.com/yeatse/opencv-spm/tree/4.11.0).
 The OpenCV license and the vendored headers' copyright, redistribution and
 disclaimer notices are bundled with the Swift product.
+
+## Background camera motion
+
+`BackgroundCameraPixels.measure(reference:current:)` also uses the existing
+image-processing dependency; it does not detect rails, hands or exercise type.
+It samples at most 64 corners across eight perimeter regions, matches current
+pixels with reciprocal normalized correlation (15px context, 31px when needed),
+and accepts a similarity fit only with bounded residuals and spatial support.
+Ambiguous or unobservable input returns no translations and a missing scale
+measurement, never an assumed zero. Its measurement policy version is 2.
+Translation uses actual matched inlier points in original image pixels, one
+maximum-displacement point per perimeter region, at most six regions. It never
+projects the fitted warp into synthetic patch vectors.
+
+The iOS registration worker uses these measured point displacements and scale
+with the existing shared camera policy and independent phone/source checks
+(registration measurement version 3). The legacy SDK translation patches and
+full-image homography are diagnostic only: they can follow the moving athlete.
+Missing/ambiguous point support still makes the camera unavailable. Complete
+automatic-controller development replay is required before claiming a count
+improvement; physical iPhone and population qualification remain separate.
+
+This camera measurement establishes neither exercise contact/load nor anatomical
+joint correctness. Native development replay and camera tests are separate from
+physical-device and production accuracy qualification.

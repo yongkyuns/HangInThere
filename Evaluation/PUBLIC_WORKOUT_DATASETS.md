@@ -1,5 +1,9 @@
 # Public workout repetition diagnostics
 
+Grip training is a separate [public-data experiment](../docs/workout/GRIP_DATA_EXPANSION.md).
+Its visual grip annotations, source-separated splits and corrections do not
+modify the published repetition/count references documented here.
+
 This extends the production replay evaluation to public labelled videos. It
 reuses the existing Countix inventory, native Apple `ReplayController` and
 shipping analysis bridge, Android `NativeReplayEvaluator`/`AnalysisPipeline`,
@@ -241,11 +245,16 @@ exposure. The mirror declares its license as `other`; source-video licenses rema
 individual/unresolved. Raw sources are kept outside Git and public CI artifacts.
 No qualified human review or consent attestation is fabricated.
 
-This batch contains no annotated parallel dips, grip classes, strict-form verdicts,
+Published annotations for this batch contain no parallel dips, grip classes, strict-form verdicts,
 hang/support phases, automatic set boundaries or gym usability observations.
 It does not close those roadmap gates. Native Mac and emulator replay timing does
 not establish sustained physical-device camera/sensor, battery or thermal parity.
 The original accuracy and Apple simulator failures remain active.
+
+A separate [provisional visual grip review](../docs/workout/PUBLIC_GRIP_EVALUATION.md)
+now restores all 33 originals, retains ambiguous cases and compares the learned
+classifier on separate source recordings. Its annotations do not replace the
+published labels or establish athlete-independent binary grip accuracy.
 
 Sources: [RepCount authors and download page](https://svip-lab.github.io/dataset/RepCount_dataset),
 [author open-set annotations](https://github.com/SvipRepetitionCounting/TransRAC/tree/main/open_set),
@@ -253,3 +262,39 @@ Sources: [RepCount authors and download page](https://svip-lab.github.io/dataset
 [Countix/RepNet](https://sites.google.com/view/repnet/home),
 [CVDF published inputs](https://github.com/cvdfoundation/kinetics-dataset),
 [source-video license distinction](https://github.com/google-deepmind/tapnet#license-and-disclaimer).
+
+
+The [front/rear grip implementation and cohort expansion](../docs/workout/GRIP_FRONT_REAR_IMPLEMENTATION_V9.md)
+records official Kinetics 600 intake, directly reviewed publisher hand crops,
+whole-athlete validation grouping and fourteen untouched final reserve groups.
+Its retrained anatomical model fails qualification and remains offline; raw
+public media remains outside Git. The app view prompt does not require this
+failed learned candidate.
+
+### Grip full-set validation v27
+
+`Data/external/grip-width-v27/` retains twelve public source groups acquired for
+frozen full-set testing. The ledger is
+`build/grip-width-v27/run/source-references.json`; the checked-in summary is
+`Evaluation/fixtures/grip-full-set-validation-v27.json`. Five source exclusions
+and one native VP9 decoding failure remain in all-source accounting. Six
+recordings were processed, including two real continuous grip-change sequences.
+All twelve groups are now exposed evaluation sources and must not be counted
+as fresh holdout footage in subsequent experiments. No footage or patches from
+this cohort were added to model fitting. A recorded source-only temporal
+correction fixes the close chin-up's final release; original labels remain saved.
+
+### Visible-arm source validation v30
+
+`Data/external/grip-fullsets-v30/` retains eighteen acquired public recordings
+from nineteen selected groups; one unavailable source remains in acquisition
+accounting. Source-only screening excludes fourteen before any pose/RGB inference.
+Two complete-set recordings and two partial-cycle diagnostics are processed;
+their roles and references are frozen separately in
+`build/grip-fullsets-v30/run/source-references.json`. Two explicit source-only
+acquisition expansions are preserved. All nineteen selected groups are now
+exposed intake/evaluation sources and must not be presented as untouched holdout
+footage. None entered fitting. This cohort does not establish Narrow/Medium width
+accuracy or real grip-change qualification. Results and post-inference crop/width
+attribution are in `Evaluation/fixtures/grip-visible-arms-validation-v30.json` and
+the v30 section of `docs/grip-variations.md`.

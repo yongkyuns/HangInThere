@@ -76,6 +76,10 @@ struct WorkoutLibraryDocument: FileDocument {
 struct WorkoutLibraryView: View {
     private enum Tab: String, CaseIterable { case progress = "Progress", history = "History", plans = "Plans", storage = "Storage", trends = "Trends" }
     @State private var tab = Tab.progress
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("recordCountedSets") private var recordsSetVideos = true
+    @State private var historyFilter = "all"
+    @State private var organizingHistory = false
     @State private var dashboard: LibraryDashboard?
     @State private var history: [LibrarySet] = []
     @State private var comparison: String?
@@ -88,7 +92,7 @@ struct WorkoutLibraryView: View {
     @State private var importing = false
     @State private var importingMedia = false
     @State private var mediaSetId: String?
-    @State private var mediaURL: URL?
+    @State private var mediaReview: WorkoutVideoReviewData?
     @State private var deleting: LibrarySet?
     @State private var goalTarget = ""
     @State private var goalMetric = "holdSeconds"
@@ -113,7 +117,7 @@ struct WorkoutLibraryView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            if tab != .progress {
+            if tab != .progress && tab != .history {
                 HStack { Button("Back to progress", systemImage: "chevron.left") { tab = .progress }; Spacer() }.padding()
             }
             ScrollView {
@@ -132,10 +136,12 @@ struct WorkoutLibraryView: View {
                     } else { ProgressView("Loading workout library…") }
                 }.padding()
             }
-        }.navigationTitle(tab == .progress ? "Your progress" : tab.rawValue)
+        }.background(HangPalette(colorScheme).background)
+        .navigationTitle(tab == .progress ? "Your progress" : tab == .history ? "Your workouts" : tab.rawValue)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
+                        Button("Your progress") { tab = .progress }
                         Button("Goals and trends") { tab = .trends }
                         Button("Manage recordings") { tab = .history }
                         Button("Training plans") { tab = .plans }
@@ -144,6 +150,10 @@ struct WorkoutLibraryView: View {
                 }
             }
             .task { if !previewMode { await load() } }
+            .refreshable { if !previewMode { await load() } }
+            .onReceive(NotificationCenter.default.publisher(for: .workoutVideoSaved).receive(on: RunLoop.main)) { _ in
+                if !previewMode { Task { await load() } }
+            }
             .sheet(item: $editing) { record in
                 NavigationStack {
                     LibraryCorrectionEditor(record: record, correction: correction, errorMessage: error) { next in
@@ -158,8 +168,8 @@ struct WorkoutLibraryView: View {
                         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { evidenceRecord = nil } } }
                 }
             }
-            .sheet(isPresented: Binding(get: { mediaURL != nil }, set: { if !$0 { mediaURL = nil } })) {
-                if let mediaURL { VideoPlayer(player: AVPlayer(url: mediaURL)).ignoresSafeArea() }
+            .sheet(isPresented: Binding(get: { mediaReview != nil }, set: { if !$0 { mediaReview = nil } })) {
+                if let mediaReview { NavigationStack { WorkoutVideoReview(data: mediaReview).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { self.mediaReview = nil } } } } }
             }
             .fileExporter(isPresented: $exporting, document: document, contentType: .json, defaultFilename: "HangInThere-workouts") { result in
                 if case .failure(let failure) = result { error = failure.localizedDescription }
@@ -179,10 +189,10 @@ struct WorkoutLibraryView: View {
                     catch { self.error = "Video attachment failed: \(error.localizedDescription)" }
                 }
             }
-            .alert("Delete original recordings and their local review videos?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
+            .alert("Delete this set?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
                 Button("Delete", role: .destructive) { if let deleting { Task { if await command(["action": "deleteSources", "setIds": deleting.sourceSetIds]) { self.deleting = nil } } } }
                 Button("Cancel", role: .cancel) { deleting = nil }
-            } message: { Text("This removes \(deleting?.sourceSetIds.count ?? 0) original recording(s), all their splits and their contribution to progress. Backups cannot undo deletion." + (error.map { "\n" + $0 } ?? "")) }
+            } message: { Text("This removes the set and its saved videos from your history." + (error.map { "\n" + $0 } ?? "")) }
     }
     private func progress(_ report: LibraryInsights) -> some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -243,51 +253,162 @@ struct WorkoutLibraryView: View {
             DisclosureGroup("Milestone history") { ForEach(report.milestones.filter(\.achieved)) { item in Text(item.title + (item.achievedAtEpochMilliseconds.map { " · " + Date(timeIntervalSince1970: Double($0) / 1000).formatted(date: .abbreviated, time: .omitted) } ?? " · date unavailable")) } }
         }
     }
+    private var historyPalette: HangPalette { HangPalette(colorScheme) }
+    private var filteredHistory: [LibrarySet] {
+        history.filter { historyFilter == "all" || $0.exercise.rawValue == historyFilter }
+    }
+    private var historyDays: [String] {
+        var keys: [String] = []
+        for set in filteredHistory { let key = historyDay(set); if !keys.contains(key) { keys.append(key) } }
+        return keys
+    }
+    private func historyDay(_ set: LibrarySet) -> String {
+        guard let time = set.trackedAtEpochMilliseconds else { return "Earlier workouts" }
+        let date = Date(timeIntervalSince1970: Double(time) / 1000)
+        if Calendar.current.isDateInToday(date) { return "Today" }
+        if Calendar.current.isDateInYesterday(date) { return "Yesterday" }
+        return date.formatted(.dateTime.month(.abbreviated).day().year())
+    }
     private func historyList(_ dashboard: LibraryDashboard) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Review and correct").font(.title2.bold())
-            Text("Corrections retain original measurements. User-reported completions are separate from measured cycles.").font(.caption)
-            ForEach(history) { set in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(set.exercise.title).font(.headline)
-                    Text("\(set.measuredCompletedReps) measured cycles · \(set.userReportedCompletedReps) user-reported · \(set.practiceAttempts) practice attempts")
-                    if let hold = set.holdSeconds { Text("Observed hold: \(hold.formatted()) s") }
-                    if let time = set.trackedAtEpochMilliseconds { Text(Date(timeIntervalSince1970: Double(time) / 1000).formatted()).font(.caption) }
-                    ForEach(set.sourceSetIds, id: \.self) { sourceId in
-                        VStack(alignment: .leading, spacing: 8) {
-                            if set.sourceSetIds.count > 1 { Text("Original recording · \(sourceId.prefix(8))").font(.subheadline.bold()) }
-                            HStack {
-                                Button("Measurements") { Task { do { evidenceRecord = try await WorkoutRecordStore.shared.libraryRecord(id: sourceId) } catch { self.error = error.localizedDescription } } }
-                                Button("Edit") { Task { await edit(sourceId) } }
-                                Button("Undo edit") { Task { await command(["action": "undo", "setId": sourceId]) } }
-                            }
-                            if dashboard.mediaPolicy.enabled { Button("Attach local review video") { mediaSetId = sourceId; importingMedia = true } }
-                            ForEach(dashboard.media.filter { $0.setId == sourceId }) { media in
-                                HStack {
-                                    Button("Play review video") { Task { do { mediaURL = try await WorkoutRecordStore.shared.libraryMediaURL(id: media.id) } catch { self.error = error.localizedDescription } } }
-                                    Button("Delete video", role: .destructive) { Task { await command(["action": "deleteMedia", "id": media.id]) } }
-                                }
-                            }
-                        }
-                    }
-                    Button(set.sourceSetIds.count > 1 ? "Delete recordings" : "Delete source recording", role: .destructive) { error = nil; deleting = set }
-                    if set.isMerged { Text("Merged group · \(set.sourceSetIds.count) original recording(s); source timing remains separate.").font(.caption) }
-                    if set.isMerged { Button("Unmerge grouped set") { Task { await command(["action": "unmerge", "id": set.id]) } } }
-                    Toggle("Select for grouping or merging", isOn: Binding(get: { selectedForGrouping.contains(set.id) }, set: { if $0 { selectedForGrouping.insert(set.id) } else { selectedForGrouping.remove(set.id) } }))
-                }.padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
+        VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Your effort, collected.").font(.system(.title2, design: .rounded, weight: .bold))
+                Text("A look back at your recent sets.").font(.subheadline).foregroundStyle(historyPalette.secondary)
             }
-            if dashboard.page.nextCursor != nil { Button("Load more history") { Task { await load(more: true) } } }
-            Button("Group selected sets into a workout") { Task { await groupSelected() } }.disabled(selectedForGrouping.count < 2)
-            Button("Merge selected comparable sets") { Task { if await command(["action": "merge", "id": UUID().uuidString, "setIds": selectedForGrouping.sorted()]) { selectedForGrouping = [] } } }.disabled(selectedForGrouping.count < 2)
-            DisclosureGroup("Workouts and exercise transitions") {
-                ForEach(dashboard.insights.sessions) { session in
-                    Text("\(session.exercises.map(\.title).joined(separator: " → ")) · \(session.setIds.count) sets · \(session.measuredCompletedReps) measured cycles")
-                    if !session.restSeconds.isEmpty { Text("Between recorded set boundaries: \(session.restSeconds.map { "\(Int($0)) s" }.joined(separator: ", "))").font(.caption) }
-                    else if !session.startIntervalsSeconds.isEmpty { Text("Finish clock unavailable. Intervals between starts: \(session.startIntervalsSeconds.map { "\(Int($0)) s" }.joined(separator: ", "))").font(.caption) }
-                    if session.interruptedSets > 0 { Text("\(session.interruptedSets) interrupted sets retained").font(.caption) }
+            HStack(spacing: 0) {
+                historyStat(filteredHistory.count, title: "Sets", symbol: "square.stack")
+                historyStat(filteredHistory.reduce(0) { $0 + $1.measuredCompletedReps }, title: "Reps", symbol: "arrow.up.arrow.down")
+                historyStat(dashboard.media.filter { Set(filteredHistory.flatMap(\.sourceSetIds)).contains($0.setId) }.count, title: "Videos", symbol: "play.rectangle")
+            }
+            .padding(.vertical, 16)
+            .background(historyPalette.garden, in: RoundedRectangle(cornerRadius: 22))
+            HStack {
+                Picker("Exercise", selection: $historyFilter) {
+                    Text("All").tag("all")
+                    Text("Pull-ups").tag(ExerciseCounter.Exercise.pullUp.rawValue)
+                    Text("Dips").tag(ExerciseCounter.Exercise.dip.rawValue)
+                }.pickerStyle(.segmented).labelsHidden()
+                Button { organizingHistory.toggle(); if !organizingHistory { selectedForGrouping = [] } } label: {
+                    Image(systemName: organizingHistory ? "checkmark.circle.fill" : "checklist")
+                        .font(.title3)
+                }.accessibilityLabel(organizingHistory ? "Finish organizing" : "Organize sets")
+            }.buttonStyle(.plain)
+            if history.isEmpty {
+                ContentUnavailableView("Your first set belongs here", systemImage: "figure.strengthtraining.traditional",
+                    description: Text("Start a live workout. Counted sets and their videos will appear here."))
+            } else if filteredHistory.isEmpty {
+                ContentUnavailableView("No sets for this exercise yet", systemImage: "figure.arms.open")
+            }
+            ForEach(historyDays, id: \.self) { day in
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(day).font(.headline).foregroundStyle(historyPalette.secondary)
+                    ForEach(filteredHistory.filter { historyDay($0) == day }) { set in
+                        historyCard(set, dashboard: dashboard)
+                    }
+                }
+            }
+            if dashboard.page.nextCursor != nil {
+                Button("Show earlier sets", systemImage: "clock.arrow.circlepath") { Task { await load(more: true) } }
+                    .frame(maxWidth: .infinity).padding(12)
+            }
+            if organizingHistory {
+                Text("Select at least two sets to organize them.").font(.caption).foregroundStyle(historyPalette.secondary)
+                Button("Group into a workout") { Task { await groupSelected() } }.disabled(selectedForGrouping.count < 2)
+                Button("Merge comparable sets") { Task {
+                    if await command(["action": "merge", "id": UUID().uuidString, "setIds": selectedForGrouping.sorted()]) { selectedForGrouping = [] }
+                } }.disabled(selectedForGrouping.count < 2)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Record counted sets", isOn: $recordsSetVideos).font(.subheadline.weight(.semibold))
+                Text("Silent, on-device clips. Setup and rest aren't kept.")
+                    .font(.caption).foregroundStyle(historyPalette.secondary)
+            }
+            .padding(16).background(historyPalette.surface, in: RoundedRectangle(cornerRadius: 22))
+        }
+        .foregroundStyle(historyPalette.foreground)
+        .fontDesign(.rounded)
+    }
+    private func historyStat(_ value: Int, title: String, symbol: String) -> some View {
+        VStack(spacing: 5) {
+            Image(systemName: symbol).font(.subheadline).foregroundStyle(historyPalette.secondary)
+            Text(value.formatted()).font(.system(.title2, design: .rounded, weight: .bold)).monospacedDigit()
+            Text(title).font(.caption).foregroundStyle(historyPalette.secondary)
+        }.frame(maxWidth: .infinity)
+    }
+    private func historyCard(_ set: LibrarySet, dashboard: LibraryDashboard) -> some View {
+        let clips = dashboard.media.filter { set.sourceSetIds.contains($0.setId) }
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                if organizingHistory {
+                    Button { if selectedForGrouping.contains(set.id) { selectedForGrouping.remove(set.id) } else { selectedForGrouping.insert(set.id) } } label: {
+                        Image(systemName: selectedForGrouping.contains(set.id) ? "checkmark.circle.fill" : "circle").font(.title2)
+                    }.accessibilityLabel("Select \(set.exercise.title) set")
+                }
+                Image(systemName: set.exercise == .pullUp ? "figure.strengthtraining.traditional" : "figure.gymnastics")
+                    .font(.system(size: 24)).frame(width: 46, height: 46)
+                    .background(historyPalette.garden, in: RoundedRectangle(cornerRadius: 15))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(set.exercise.title).font(.headline)
+                    if let time = set.trackedAtEpochMilliseconds {
+                        Text(Date(timeIntervalSince1970: Double(time) / 1000), format: .dateTime.hour().minute())
+                            .font(.caption).foregroundStyle(historyPalette.secondary)
+                    }
+                }
+                Spacer(minLength: 4)
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(set.measuredCompletedReps.formatted()).font(.system(size: 32, weight: .bold, design: .rounded)).monospacedDigit()
+                    Text("reps").font(.caption).foregroundStyle(historyPalette.secondary)
+                }.accessibilityElement(children: .ignore).accessibilityLabel("\(set.measuredCompletedReps) counted reps")
+            }
+            if set.userReportedCompletedReps > 0 || set.practiceAttempts > 0 {
+                Text([set.userReportedCompletedReps > 0 ? "\(set.userReportedCompletedReps) user-reported" : nil,
+                      set.practiceAttempts > 0 ? "\(set.practiceAttempts) practice attempts" : nil].compactMap { $0 }.joined(separator: " · "))
+                    .font(.caption).foregroundStyle(historyPalette.secondary)
+            }
+            HStack {
+                if let clip = clips.first {
+                    Button { playMedia(clip) } label: {
+                        Label(clips.count > 1 ? "Review sets (\(clips.count))" : "Review set", systemImage: "play.circle.fill")
+                            .font(.subheadline.bold())
+                    }.accessibilityIdentifier("playSetVideo-\(set.id)")
+                } else {
+                    Label("No video", systemImage: "video.slash").font(.caption).foregroundStyle(historyPalette.secondary)
+                }
+                Spacer()
+                Menu { historyActions(set, dashboard: dashboard) } label: {
+                    Image(systemName: "ellipsis").font(.headline).frame(width: 44, height: 32)
+                }.accessibilityLabel("Set options")
+            }
+        }
+        .padding(16)
+        .background(historyPalette.surface, in: RoundedRectangle(cornerRadius: 23))
+        .buttonStyle(.plain)
+        .tint(historyPalette.isDark ? HangBrand.lime : HangBrand.ink)
+        .accessibilityElement(children: .contain)
+    }
+    private func playMedia(_ media: LibraryMedia) {
+        Task {
+            do {
+                guard let review = try await WorkoutRecordStore.shared.libraryVideoReview(id: media.id) else { error = "This video is no longer available."; await load(); return }
+                mediaReview = review
+            } catch { self.error = error.localizedDescription }
+        }
+    }
+    @ViewBuilder private func historyActions(_ set: LibrarySet, dashboard: LibraryDashboard) -> some View {
+        ForEach(set.sourceSetIds, id: \.self) { sourceId in
+            Section(set.sourceSetIds.count > 1 ? "Original \(sourceId.prefix(6))" : "This set") {
+                Button("View measurements", systemImage: "waveform.path") { Task { do { evidenceRecord = try await WorkoutRecordStore.shared.libraryRecord(id: sourceId) } catch { self.error = error.localizedDescription } } }
+                Button("Edit set", systemImage: "pencil") { Task { await edit(sourceId) } }
+                Button("Undo edits", systemImage: "arrow.uturn.backward") { Task { await command(["action": "undo", "setId": sourceId]) } }
+                if dashboard.mediaPolicy.enabled { Button("Attach video", systemImage: "paperclip") { mediaSetId = sourceId; importingMedia = true } }
+                ForEach(dashboard.media.filter { $0.setId == sourceId }) { media in
+                    Button("Play video", systemImage: "play") { playMedia(media) }
+                    Button("Delete video", systemImage: "trash", role: .destructive) { Task { await command(["action": "deleteMedia", "id": media.id]) } }
                 }
             }
         }
+        if set.isMerged { Button("Unmerge sets") { Task { await command(["action": "unmerge", "id": set.id]) } } }
+        Button("Delete set", systemImage: "trash", role: .destructive) { error = nil; deleting = set }
     }
     private func trendPlot(_ title: String, unit: String, points: [LibraryTrend], metric: KeyPath<LibraryTrend, Double?>) -> some View {
         var segment = 0
@@ -345,11 +466,12 @@ struct WorkoutLibraryView: View {
             Text("Backup contains measured summaries, corrections, goals and plans. Videos and diagnostic consent are excluded.")
             Button("Export backup / analysis") { Task { do { document = WorkoutLibraryDocument(text: try await WorkoutRecordStore.shared.libraryExport()); exporting = true } catch { self.error = error.localizedDescription } } }
             Button("Restore backup") { importing = true }
-            Toggle("Keep explicitly attached review videos", isOn: Binding(get: { dashboard.mediaPolicy.enabled }, set: { enabled in Task {
+            Toggle("Keep saved workout videos", isOn: Binding(get: { dashboard.mediaPolicy.enabled }, set: { enabled in Task {
+                if !enabled { recordsSetVideos = false }
                 var policy = dashboard.mediaPolicy; policy.enabled = enabled
                 await command(["action": "mediaPolicy", "mediaPolicy": jsonObject(policy)])
             } }))
-            Text("Off by default. Up to \(dashboard.mediaPolicy.maximumClips) videos, \(dashboard.mediaPolicy.maximumBytes / 1048576) MB and \(dashboard.mediaPolicy.maximumAgeDays) days. Turning this off deletes retained videos.").font(.caption)
+            Text("Up to \(dashboard.mediaPolicy.maximumClips) videos, \(dashboard.mediaPolicy.maximumBytes / 1048576) MB and \(dashboard.mediaPolicy.maximumAgeDays) days. Turning this off deletes retained videos.").font(.caption)
             DisclosureGroup("Video retention limits") {
                 Stepper("Keep up to \(dashboard.mediaPolicy.maximumClips) videos", value: Binding(get: { dashboard.mediaPolicy.maximumClips }, set: { value in Task { var policy = dashboard.mediaPolicy; policy.maximumClips = value; await command(["action": "mediaPolicy", "mediaPolicy": jsonObject(policy)]) } }), in: 1...100)
                 Stepper("Keep for \(dashboard.mediaPolicy.maximumAgeDays) days", value: Binding(get: { dashboard.mediaPolicy.maximumAgeDays }, set: { value in Task { var policy = dashboard.mediaPolicy; policy.maximumAgeDays = value; await command(["action": "mediaPolicy", "mediaPolicy": jsonObject(policy)]) } }), in: 1...365)

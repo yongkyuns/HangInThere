@@ -1,15 +1,231 @@
 import SwiftUI
 
+struct LiveReadinessChecklistView: View {
+    let checklist: LiveReadinessChecklist
+    let showsDetails: Bool
+    var onDetails: (() -> Void)?
+
+    init(checklist: LiveReadinessChecklist, initiallyExpanded: Bool = false, onDetails: (() -> Void)? = nil) {
+        self.checklist = checklist
+        showsDetails = initiallyExpanded
+        self.onDetails = onDetails
+    }
+
+    var body: some View {
+        Group {
+            if showsDetails {
+                VStack(alignment: .leading, spacing: 12) {
+                ForEach(checklist.checks) { check in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label(check.title + " · " + check.value, systemImage: symbol(check.status))
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(color(check.status))
+                        Text(check.detail).font(.callout).foregroundStyle(.white)
+                    }
+                    .accessibilityIdentifier("liveReadiness-\(check.id)")
+                }
+                Text(checklist.summary)
+                    .font(.callout)
+                    .foregroundStyle(checklist.allPassed ? .green : .white)
+                    .accessibilityIdentifier("liveReadinessBlocker")
+                }
+                .padding(14)
+                .background(.black.opacity(0.82), in: RoundedRectangle(cornerRadius: 16))
+            } else {
+                Button { onDetails?() } label: {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 8) {
+                            Image(systemName: checklist.allPassed ? "checkmark.circle.fill" :
+                                    checklist.checks.first(where: { $0.status == .blocked }).map { checkIcon($0.id) } ?? "hourglass")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundStyle(checklist.allPassed ? .green : .orange)
+                            Text(compactTitle)
+                                .font(.system(size: 21, weight: .heavy, design: .rounded))
+                                .lineLimit(1).minimumScaleFactor(0.65)
+                                .accessibilityIdentifier("liveReadinessAction")
+                            Spacer(minLength: 0)
+                            Image(systemName: "info.circle").font(.system(size: 16))
+                                .foregroundStyle(.white.opacity(0.65))
+                        }
+                        HStack(spacing: 2) {
+                            ForEach(checklist.checks) { check in
+                                Image(systemName: checkIcon(check.id))
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundStyle(color(check.status))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 28)
+                                    .overlay(alignment: .bottomTrailing) {
+                                        Image(systemName: symbol(check.status))
+                                            .font(.system(size: 9, weight: .bold))
+                                            .foregroundStyle(color(check.status))
+                                            .background(.black, in: Circle())
+                                    }
+                                    .accessibilityLabel("\(check.title): \(statusTitle(check.status)). \(check.value)")
+                                    .accessibilityIdentifier("liveReadiness-\(check.id)")
+                            }
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .frame(height: 96)
+                    .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
+                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(checklist.allPassed ? .green : .orange.opacity(0.7)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Open workout details for the complete start checks. \(checklist.actionDetail)")
+            }
+        }
+        .accessibilityIdentifier("liveReadinessChecklist")
+    }
+
+    private func checkIcon(_ id: String) -> String {
+        switch id {
+        case "feed": "camera.fill"
+        case "placement": "level"
+        case "arms": "figure.arms.open"
+        case "exercise": "dumbbell.fill"
+        case "rails": "viewfinder"
+        case "phone": "iphone"
+        case "scene": "photo"
+        default: "figure.strengthtraining.traditional"
+        }
+    }
+
+    private var compactTitle: String {
+        switch checklist.actionTitle {
+        case "READY TO START": "READY"
+        case "LEVEL YOUR PHONE": "LEVEL PHONE"
+        case "IDENTIFYING EXERCISE": "FINDING EXERCISE"
+        case "SHOW START POSITION", "HOLD START POSITION": "HOLD START POSE"
+        default: checklist.actionTitle
+        }
+    }
+
+    private func symbol(_ status: LiveReadinessChecklist.Status) -> String {
+        switch status {
+        case .passed: "checkmark.circle.fill"
+        case .waiting: "clock"
+        case .blocked: "exclamationmark.circle.fill"
+        }
+    }
+    private func color(_ status: LiveReadinessChecklist.Status) -> Color {
+        switch status {
+        case .passed: .green
+        case .waiting: .white.opacity(0.65)
+        case .blocked: .orange
+        }
+    }
+    private func statusTitle(_ status: LiveReadinessChecklist.Status) -> String {
+        switch status {
+        case .passed: "Passed"
+        case .waiting: "Waiting"
+        case .blocked: "Needs attention"
+        }
+    }
+}
+
+struct LiveGripCaptureCard: View {
+    let feedback: WorkoutGripCaptureFeedback
+    @State private var showsDiagnostics = false
+    init(feedback: WorkoutGripCaptureFeedback, initiallyExpanded: Bool = false) {
+        self.feedback = feedback
+        _showsDiagnostics = State(initialValue: initiallyExpanded)
+    }
+    private var accent: Color { feedback.isGood ? .green : feedback.isChecking ? .cyan : .orange }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("GRIP · OPTIONAL", systemImage: feedback.isGood ? "checkmark.circle.fill" : "camera.viewfinder")
+                .font(.system(size: 20, weight: .bold)).foregroundStyle(.cyan)
+            Text("Start and reps don't wait for grip")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("gripDoesNotBlockWorkout")
+            Text(feedback.title)
+                .font(.system(size: 30, weight: .heavy, design: .rounded))
+                .fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(accent)
+                .accessibilityIdentifier("gripCaptureAction")
+            Text(feedback.handsDiagnostic)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .fixedSize(horizontal: false, vertical: true)
+            Button {
+                showsDiagnostics.toggle()
+            } label: {
+                HStack {
+                    Text(feedback.bodyDiagnostic).font(.system(size: 15, weight: .semibold).monospacedDigit())
+                    Spacer(minLength: 4)
+                    Image(systemName: showsDiagnostics ? "chevron.up" : "chevron.down")
+                }
+                .frame(minHeight: 32)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(showsDiagnostics ? "Hide" : "Show") grip capture diagnostics. \(feedback.bodyDiagnostic)")
+            .accessibilityIdentifier("gripCaptureDiagnostics")
+            if showsDiagnostics {
+                Text(feedback.detail).font(.system(size: 15, weight: .medium))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(feedback.targetDiagnostic).font(.system(size: 14, weight: .medium))
+                Text(feedback.contextDiagnostic).font(.system(size: 14, weight: .semibold))
+                Text("Percent of the image's short side. Body size estimates distance; it does not measure hand detail.")
+                    .font(.system(size: 13))
+                if let age = feedback.observationAge {
+                    Text(String(format: "Hand analysis age: %.2f s · Policy %d", age, feedback.policyVersion))
+                        .font(.system(size: 13).monospacedDigit())
+                }
+            }
+        }
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color.black.opacity(0.92), in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(accent, lineWidth: 3))
+        .accessibilityIdentifier("liveGripCaptureCard")
+    }
+}
+
+struct LiveCameraPlacementCard: View {
+    let placement: LiveCameraPlacement
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "level").font(.system(size: 38))
+                .foregroundStyle(placement.isUsable ? Color.green : .orange)
+            VStack(alignment: .leading, spacing: 5) {
+                Text("LEVEL YOUR PHONE")
+                    .font(.system(size: 21, weight: .heavy, design: .rounded)).lineLimit(1).minimumScaleFactor(0.75)
+                Text("Chest height · front or rear")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            Spacer(minLength: 0)
+        }
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .frame(height: 96)
+        .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(placement.title). \(placement.instruction). \(placement.diagnostic)")
+        .accessibilityIdentifier("liveCameraPlacementPrompt")
+    }
+}
+
 // Camera-independent chrome, shared by the live feed and render reviews. The
 // owner supplies current session evidence and handles camera/presentation work.
 struct LiveWorkoutOverlay: View {
     let session: LiveSetSession
+    let liveCompletedReps: Int
     var latestCompletedSet: WorkoutSetRecord? = nil
     var afterSetReport: WorkoutAfterSetReport? = nil
     var showsSetStarted = false
     var activity: WorkoutActivity? = nil
     var exerciseTitle: String? = nil
     var gripLabel: String? = nil
+    var needsArmRepositioning = false
+    var gripViewPrompt: String? = nil
+    var gripCaptureFeedback: WorkoutGripCaptureFeedback? = nil
+    var readiness: LiveReadinessChecklist? = nil
+    var cameraPlacement: LiveCameraPlacement? = nil
+    var onReadinessDetails: (() -> Void)? = nil
     let cameraReady: Bool
     let status: String
     let statusSymbol: String
@@ -33,16 +249,20 @@ struct LiveWorkoutOverlay: View {
         if session.phase == .idle || session.phase == .finished {
             return afterSetReport?.measuredCompletedReps ?? latestCompletedSet?.completedCount ?? 0
         }
-        return session.observedMovements
+        return liveCompletedReps
     }
 
+    private var needsCameraRepositioning: Bool { cameraPlacement?.isUsable == false }
+
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Spacer(minLength: 16)
-            footer
-                .frame(maxWidth: 500)
-                .frame(maxWidth: .infinity)
+        GeometryReader { available in
+            let landscape = available.size.width > available.size.height
+            VStack(spacing: 0) {
+                header
+                Spacer(minLength: 12)
+                footer.frame(maxWidth: landscape ? 260 : 360)
+                    .frame(maxWidth: .infinity, alignment: landscape ? .trailing : .center)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
@@ -58,37 +278,29 @@ struct LiveWorkoutOverlay: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
         }
-        .overlay {
-            if showsSetStarted, session.phase == .running {
-                VStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill").font(.system(size: 40))
-                    Text("SET STARTED")
-                        .font(.system(size: 42, weight: .heavy, design: .rounded))
-                        .minimumScaleFactor(0.65).lineLimit(1)
-                    Text(session.trackingIssue == nil ? "Tracking your reps" : "Reacquiring your pose")
-                        .font(.headline).foregroundStyle(session.trackingIssue == nil ? .white : .orange)
+        .overlay(alignment: .top) {
+            if showsSetStarted, session.phase == .running, !needsArmRepositioning, !needsCameraRepositioning {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                    Text("SET STARTED").font(.system(size: 20, weight: .heavy, design: .rounded))
                 }
                 .foregroundStyle(.green)
-                .padding(24)
-                .frame(maxWidth: 420)
-                .background(.black.opacity(0.85), in: RoundedRectangle(cornerRadius: 24))
-                .overlay(RoundedRectangle(cornerRadius: 24).stroke(.green.opacity(0.7), lineWidth: 2))
-                .padding(.horizontal, 24)
+                .frame(width: 210, height: 48)
+                .background(.black.opacity(0.8), in: Capsule())
+                .padding(.top, 84)
                 .allowsHitTesting(false)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(session.trackingIssue == nil ? "Set started. Tracking your reps." : "Set started. Reacquiring your pose.")
                 .accessibilityIdentifier("liveSetStarted")
             } else if let countdown {
-                VStack(spacing: 4) {
-                    Text("Starting in").font(.headline)
-                    Text("\(countdown)")
-                        .font(.system(size: 76, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                    Text(countdownCue).font(.subheadline)
+                HStack(spacing: 8) {
+                    Image(systemName: "timer")
+                    Text("Starting in \(countdown)").font(.system(size: 22, weight: .bold, design: .rounded)).monospacedDigit()
                 }
                 .foregroundStyle(.white)
-                .padding(24)
-                .background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 24))
+                .frame(width: 210, height: 48)
+                .background(.black.opacity(0.8), in: Capsule())
+                .padding(.top, 84)
                 .allowsHitTesting(false)
                 .accessibilityLabel("Starting in \(countdown) seconds. \(countdownCue).")
             }
@@ -107,9 +319,9 @@ struct LiveWorkoutOverlay: View {
                 Text(exerciseTitle ?? (session.exercise == .pullUp ? "Pull-up" : "Dips"))
                     .font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
                 if session.phase == .running {
-                    Label(session.trackingIssue == nil ? "TRACKING" : "PAUSED", systemImage: "circle.fill")
+                    Label(needsArmRepositioning || needsCameraRepositioning ? "CHECK VIEW" : session.trackingIssue == nil ? "TRACKING" : "PAUSED", systemImage: "circle.fill")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(session.trackingIssue == nil ? .green : .orange)
+                        .foregroundStyle(session.trackingIssue == nil && !needsArmRepositioning && !needsCameraRepositioning ? .green : .orange)
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
                         .accessibilityIdentifier("liveTrackingStatus")
@@ -126,12 +338,12 @@ struct LiveWorkoutOverlay: View {
                 }
                 .foregroundStyle(.white)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(displayedCount) \(session.phase == .idle || session.phase == .finished ? "measured completed cycles in the last set" : "observed movements")")
+                .accessibilityLabel("\(displayedCount) \(session.phase == .idle || session.phase == .finished ? "measured completed cycles in the last set" : "measured completed cycles")")
                 .accessibilityIdentifier("liveMovementCount")
             }
             if isRecording {
                 Circle().fill(.red).frame(width: 9, height: 9)
-                    .accessibilityLabel("Debug video recording active")
+                    .accessibilityLabel("Video recording active")
             }
             iconButton("chart.xyaxis.line", label: "Workout analysis", action: onResults)
             iconButton("slider.horizontal.3", label: "Workout settings and details", action: onOptions)
@@ -142,9 +354,31 @@ struct LiveWorkoutOverlay: View {
     @ViewBuilder
     private var footer: some View {
         VStack(spacing: 12) {
+            if session.phase == .idle, let readiness {
+                LiveReadinessChecklistView(checklist: readiness, onDetails: onReadinessDetails ?? onOptions)
+            } else if needsCameraRepositioning, let cameraPlacement, session.phase != .finished {
+                LiveCameraPlacementCard(placement: cameraPlacement)
+            } else if needsArmRepositioning, session.phase == .running {
+                HStack(spacing: 14) {
+                    Image(systemName: "figure.arms.open").font(.system(size: 38)).foregroundStyle(.orange)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("SHOW BOTH ARMS").font(.system(size: 21, weight: .heavy, design: .rounded))
+                            .lineLimit(1).minimumScaleFactor(0.75)
+                        Text("Shoulders · elbows · hands").font(.system(size: 14, weight: .medium))
+                    }
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity).frame(height: 96)
+                .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(LiveArmVisibilityFeedback.title). \(LiveArmVisibilityFeedback.instruction)")
+                .accessibilityIdentifier("liveArmRepositionPrompt")
+            }
             switch session.phase {
             case .idle:
-                if cameraReady, showsManualStart { statusChip }
+                if cameraReady, showsManualStart, readiness == nil { statusChip }
                 HStack {
                     if cameraReady {
                         if showsManualStart {
@@ -152,7 +386,7 @@ struct LiveWorkoutOverlay: View {
                                 .disabled(!canStart)
                                 .opacity(canStart ? 1 : 0.45)
                                 .accessibilityIdentifier("startLiveSet")
-                        } else {
+                        } else if readiness == nil {
                             statusChip
                         }
                     }
@@ -165,8 +399,9 @@ struct LiveWorkoutOverlay: View {
                 }
                 if latestCompletedSet != nil, let afterSetReport { afterSetSummary(afterSetReport) }
             case .running:
-                if let gripLabel, session.exercise == .pullUp {
-                    Text("Estimated · " + gripLabel).font(.caption.weight(.medium)).foregroundStyle(.white)
+                if let gripLabel, session.exercise == .pullUp, !needsArmRepositioning, !needsCameraRepositioning {
+                    Text("Grip · " + gripLabel).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+                        .multilineTextAlignment(.center).lineLimit(1).minimumScaleFactor(0.8)
                         .padding(.horizontal, 12).padding(.vertical, 6)
                         .background(.black.opacity(0.7), in: Capsule()).accessibilityIdentifier("liveGripLabel")
                 }
@@ -177,7 +412,16 @@ struct LiveWorkoutOverlay: View {
                         .background(.black.opacity(0.7), in: Capsule())
                         .accessibilityIdentifier("liveHoldTime")
                 }
-                ExerciseProgressView(counter: session.counter)
+                if !needsArmRepositioning && !needsCameraRepositioning {
+                    ExerciseProgressView(counter: session.counter, bodyDipSnapshot: session.bodyDipSnapshot,
+                        bodyPullUpSnapshot: session.bodyPullUpSnapshot)
+                }
+                if gripLabel == nil, session.exercise == .pullUp, !needsArmRepositioning, !needsCameraRepositioning,
+                   gripCaptureFeedback != nil || gripViewPrompt != nil {
+                    Label("Grip unknown · optional", systemImage: "hand.raised")
+                        .font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.7))
+                        .accessibilityHint("Rep counting continues. Open Diagnostics for grip details.")
+                }
                 actionButton("Finish set", symbol: "stop.fill", action: onFinish)
                     .accessibilityIdentifier("stopLiveSet")
             case .finished:

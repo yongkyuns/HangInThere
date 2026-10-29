@@ -25,12 +25,13 @@ struct StaticSceneStability: Sendable {
         case scale
     }
 
+    static let policyVersion = 3
     static let movementThresholdFraction = 0.008
     static let consensusToleranceFraction = 0.006
     static let scaleThresholdFraction = 0.012
     static let movementDwellSeconds = 0.25
     static let minimumConsensusPatches = 2
-    static let maximumRegistrationPatches = 4
+    static let maximumRegistrationPatches = 6
     static let maximumObservationGapSeconds = 0.8
     static let maximumFutureSkewSeconds = 0.05
 
@@ -211,9 +212,10 @@ struct StaticSceneStability: Sendable {
         _ translations: [PatchTranslation],
         imageShortSide: Double
     ) -> (fraction: Double?, count: Int) {
-        // Match shared bounded subset consensus. Multiple inlier sets can
-        // describe one hypothesis only with two shared original patches,
-        // pairwise center agreement and an identical movement classification.
+        // Match the shared bounded consensus. Moving hypotheses still need
+        // two shared patches. A stationary-only alternative must also prove
+        // every contributing original patch is below the movement limit;
+        // all hypothesis centers retain the same pairwise agreement radius.
         guard translations.count <= Self.maximumRegistrationPatches else { return (nil, 0) }
         let finite = translations.filter(\.isFinite)
         guard finite.count >= Self.minimumConsensusPatches else { return (nil, finite.count) }
@@ -232,10 +234,17 @@ struct StaticSceneStability: Sendable {
             best.append((x, y, mask))
         }
         guard !best.isEmpty else { return (nil, 0) }
+        let stationaryWitnesses = best.allSatisfy { hypothesis in
+            hypot(hypothesis.x,hypothesis.y) / imageShortSide < Self.movementThresholdFraction &&
+                finite.indices.allSatisfy { i in
+                    hypothesis.mask & (1 << i) == 0 ||
+                        hypot(finite[i].dxPixels,finite[i].dyPixels) / imageShortSide < Self.movementThresholdFraction
+                }
+        }
         for i in best.indices {
             for j in (i + 1)..<best.count {
                 let a = best[i], b = best[j]
-                guard (a.mask & b.mask).nonzeroBitCount >= Self.minimumConsensusPatches,
+                guard (stationaryWitnesses || (a.mask & b.mask).nonzeroBitCount >= Self.minimumConsensusPatches),
                       hypot(a.x - b.x, a.y - b.y) <= tolerance else { return (nil, 0) }
             }
         }

@@ -1,0 +1,332 @@
+{
+  "schemaVersion": 15,
+  "scope": "Per-arm architecture revision after disclosed v15 failure. Same exposed recording-held-out regression; no fresh qualification and no model fitting/threshold changes.",
+  "cases": [
+    {
+      "id": "M01",
+      "caseId": "k700train_Xcr5cGfRlrs_000013_000023",
+      "recordingId": "01aaff39998edbf46dc0d60daef24d077d3b5effabcfad864320b0230dad4aa9",
+      "sourceGroup": "youtube:Xcr5cGfRlrs",
+      "frames": 2,
+      "grip": "underhand",
+      "view": "front"
+    },
+    {
+      "id": "M02",
+      "caseId": "k700train_-beNuPANrTI_000001_000011",
+      "recordingId": "01f15b5c7c2f914dfdcb07079c5afba41c20e855d8c03279a7bcfb8a9008c5a9",
+      "sourceGroup": "youtube:-beNuPANrTI",
+      "frames": 4,
+      "grip": "overhand",
+      "view": "rear"
+    },
+    {
+      "id": "M03",
+      "caseId": "k700train_RwTAihfNClg_000012_000022",
+      "recordingId": "0381f49b5b559a842ab9cf523701d4c440d9d76f622448083497ca565a844eb2",
+      "sourceGroup": "youtube:RwTAihfNClg",
+      "frames": 3,
+      "grip": "overhand",
+      "view": "rear"
+    },
+    {
+      "id": "M04",
+      "caseId": "k700val_ElRBcnnMw3A_000050_000060",
+      "recordingId": "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810",
+      "sourceGroup": "youtube:ElRBcnnMw3A",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "M05",
+      "caseId": "k700train_W_vw0P8EVwQ_000220_000230",
+      "recordingId": "09f825ae684a2e6fa15b407f7f03992ed4e7db0426ae16777f8513044025cb00",
+      "sourceGroup": "youtube:W_vw0P8EVwQ",
+      "frames": 4,
+      "grip": "overhand",
+      "view": "front"
+    },
+    {
+      "id": "M06",
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "sourceGroup": "youtube:0vMCq_b2nFo",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "front"
+    },
+    {
+      "id": "M07",
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "sourceGroup": "youtube:b8MNl0akNk4",
+      "frames": 6,
+      "grip": "unknown",
+      "view": "rear"
+    },
+    {
+      "id": "M08",
+      "caseId": "k700train_NtLvahCWyCU_000008_000018",
+      "recordingId": "2170102ff7ab30e358a5370b4e25620f25623ecea699ad023702579c90a50850",
+      "sourceGroup": "youtube:NtLvahCWyCU",
+      "frames": 4,
+      "grip": "underhand",
+      "view": "front"
+    },
+    {
+      "id": "M09",
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "sourceGroup": "youtube:hXImBJEvqgY",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "rear"
+    },
+    {
+      "id": "M10",
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "sourceGroup": "youtube:By6Q1K6y1-4",
+      "frames": 6,
+      "grip": "unknown",
+      "view": "front"
+    },
+    {
+      "id": "M11",
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "sourceGroup": "youtube:ENMZ3yxq1dM",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "front"
+    },
+    {
+      "id": "M12",
+      "caseId": "k700train_oAG0XMYJV1U_000050_000060",
+      "recordingId": "38bfdd72d5d3f2704dd7eca49a8e8b1805243bbe206306424a6d686bcff9007b",
+      "sourceGroup": "youtube:oAG0XMYJV1U",
+      "frames": 4,
+      "grip": "underhand",
+      "view": "rear"
+    },
+    {
+      "id": "M13",
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "sourceGroup": "youtube:Gjw2SxfDoaM",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "M14",
+      "caseId": "k700train_y0QJ0dsQYbo_000000_000010",
+      "recordingId": "3cf4121374535ffe4128c501d69e93886f6eff1d09ce57f23995b0165fd359b2",
+      "sourceGroup": "youtube:y0QJ0dsQYbo",
+      "frames": 4,
+      "grip": "neutral",
+      "view": "oblique"
+    },
+    {
+      "id": "M15",
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "sourceGroup": "youtube:dUbqRIerwMU",
+      "frames": 9,
+      "grip": "overhand",
+      "view": "oblique"
+    },
+    {
+      "id": "M16",
+      "caseId": "k700val_WUO4duX2E2k_000024_000034",
+      "recordingId": "79bd872e1575e9a50545d3644a6290e9a8afa6e79c36510f64cd16c1903e4919",
+      "sourceGroup": "youtube:WUO4duX2E2k",
+      "frames": 12,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "M17",
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "sourceGroup": "youtube:7yzvcnYWHNY",
+      "frames": 7,
+      "grip": "neutral",
+      "view": "oblique"
+    },
+    {
+      "id": "M18",
+      "caseId": "k700train_lYyKBW4VmV4_000005_000015",
+      "recordingId": "94b1dcf5250de3094be74184e8a20b9cb875f8676689152d21118c3e4bf4cc97",
+      "sourceGroup": "youtube:lYyKBW4VmV4",
+      "frames": 2,
+      "grip": "neutral",
+      "view": "oblique"
+    },
+    {
+      "id": "M19",
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "sourceGroup": "youtube:eRMPonbF4AE",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "M20",
+      "caseId": "k700train_v0KanSlWnPE_000010_000020",
+      "recordingId": "a7c0e633fb4bbcd02edce9e74befc6021e0e7db2a76cb0d4da9a96c860ae1bee",
+      "sourceGroup": "youtube:v0KanSlWnPE",
+      "frames": 3,
+      "grip": "neutral",
+      "view": "oblique"
+    },
+    {
+      "id": "M21",
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "sourceGroup": "youtube:bWcwPwQr4CU",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "rear"
+    },
+    {
+      "id": "M22",
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "sourceGroup": "youtube:brpaoi6BiQg",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "front"
+    },
+    {
+      "id": "M23",
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "sourceGroup": "youtube:VLhgkbuEO1U",
+      "frames": 9,
+      "grip": "overhand",
+      "view": "front"
+    },
+    {
+      "id": "M24",
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "sourceGroup": "youtube:_5DiYoFndoc",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "rear"
+    },
+    {
+      "id": "M25",
+      "caseId": "k700val_Xg6fBFiEFyM_000028_000038",
+      "recordingId": "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2",
+      "sourceGroup": "youtube:Xg6fBFiEFyM",
+      "frames": 12,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "M26",
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "sourceGroup": "youtube:x0ikjxF1t58",
+      "frames": 9,
+      "grip": "underhand",
+      "view": "front"
+    },
+    {
+      "id": "M27",
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "sourceGroup": "youtube:07xyK3Efyps",
+      "frames": 9,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "M28",
+      "caseId": "k700val_dtlZKxVH6Vs_000014_000024",
+      "recordingId": "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747",
+      "sourceGroup": "youtube:dtlZKxVH6Vs",
+      "frames": 12,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "M29",
+      "caseId": "k700val_j8_xX8q9ZV4_000054_000064",
+      "recordingId": "f5ef2635b24f109a329beb0feabe8201b4ba4fb6ab8d22f382012b3b51e78750",
+      "sourceGroup": "youtube:j8_xX8q9ZV4",
+      "frames": 12,
+      "grip": "unknown",
+      "view": "unknown"
+    },
+    {
+      "id": "native-failure",
+      "caseId": "k700val_eP9CemlbImQ_000098_000108",
+      "recordingId": "2982df3ac05adc4845e958267c9f6d2c1c7e99446c6d07606062442aa3e1d01a",
+      "grip": "unknown",
+      "view": "unknown",
+      "frames": 0
+    }
+  ],
+  "initialPolicy": {
+    "jointConfidence": 0.3,
+    "maximumGapSeconds": 0.4,
+    "baselineSeconds": 0.3,
+    "baselineSamples": 3,
+    "extensionDegrees": 150.0,
+    "minimumArmDegrees": 140.0,
+    "flexionDegrees": 25.0,
+    "bentDegrees": 140.0,
+    "riseTorsoFraction": 0.15,
+    "hipRiseFraction": 0.5,
+    "wristDriftTorsoFraction": 0.2,
+    "overheadTorsoFraction": 0.15,
+    "motionDwellSeconds": 0.12,
+    "motionFreshSeconds": 3.0,
+    "maximumScaleRatio": 1.33
+  },
+  "perArmPolicy": {
+    "jointConfidence": 0.3,
+    "maximumGapSeconds": 0.4,
+    "baselineSeconds": 0.3,
+    "baselineSamples": 3,
+    "extensionDegrees": 150.0,
+    "flexionDegrees": 25.0,
+    "bentDegrees": 140.0,
+    "riseArmFraction": 0.12,
+    "wristDriftArmFraction": 0.12,
+    "overheadArmFraction": 0.1,
+    "motionDwellSeconds": 0.12,
+    "motionFreshSeconds": 3.0,
+    "maximumScaleRatio": 1.33,
+    "revision": "Visible arms independently; missing hips/other arm do not veto observed exercise."
+  },
+  "models": {
+    "quality": "build/grip-anatomy-v11/frozenQuality/GripSurfaceClassifier.pt",
+    "neutral": "build/grip-threeway/staged-models/threeway/GripHandClassifier.pt",
+    "torso": "build/grip-reviewed/model/GripContextClassifier.pt"
+  },
+  "thresholds": {
+    "surface": 0.8,
+    "readability": 0.8,
+    "frontRear": 0.8,
+    "neutralEveryView": 0.8,
+    "contactComparator": 0.8
+  },
+  "modes": [
+    "image-contact",
+    "no-contact",
+    "motion-and-contact",
+    "motion-no-contact"
+  ],
+  "accounting": "Every source including native failures retained. Current-frame output, separate setup/release false accepts and body-only activation, exercise-only actual grip video labels, per-class counts. Agent labels, not human gold. No tuning after score. RGB hand inputs from original automatic crops; wrong crop remains failure.",
+  "inference": "Torso-only frozen RGB orientation; no face absence vote. v11 frozen anatomy/readability; prior frozen neutral head, all three counterfactual supplied views. Front/rear required even for neutral. No side=>neutral shortcut.",
+  "lifecycle": "Source-frame annotations frozen before new predictions. Sparse sampled phases are not continuous transition-time ground truth.",
+  "deployment": "Offline experiment; RGB model is not the live phone geometry classifier. No rep/readiness changes. Untouched final reserve remains unopened.",
+  "sourceDisjointFromFittingAndCalibration": true,
+  "firstScoreFrozen": true
+}

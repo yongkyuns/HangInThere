@@ -3,6 +3,77 @@ import Testing
 @testable import HangInThere
 
 @Suite struct AutomaticPullUpBarTests {
+    @Test func narrowMeasuredHandsAcquireOnlyObservedStableSupport() throws {
+        func frame(_ t: Double) -> PoseResult {
+            let points: [(PoseJoint,Double,Double)] = [
+                (.leftShoulder,250,600),(.leftElbow,360,425),(.leftWrist,470,250),
+                (.rightShoulder,650,600),(.rightElbow,590,425),(.rightWrist,530,250)]
+            return PoseResult(timestamp:.init(value:Int64((t*1000).rounded()),timescale:1000),
+                imageSize:.init(width:900,height:1400),people:[.init(landmarks:points.map {
+                    .init(joint:$0.0,position:.init(x:$0.1,y:$0.2),confidence:0.9)
+                })],backend:"authored",requestRevision:1)
+        }
+        let bar=BarSegment(a:.init(x:350,y:245),b:.init(x:650,y:245))
+        #expect(AutomaticPullUpBar.grip(in:frame(0)) != nil)
+        var acquisition=AutomaticPullUpBar()
+        for t in [0.0,0.3,0.6] {
+            #expect(acquisition.observe(pose:frame(t),candidates:[.init(edge:bar,geometryScore:300)]) == nil)
+        }
+        let confirmed=acquisition.observe(pose:frame(0.9),candidates:[.init(edge:bar,geometryScore:300)])
+        #expect(try #require(confirmed).referenceEdge == bar)
+        var identity=AutomaticExerciseDetection()
+        for t in [1.0,1.2,1.4,1.6] {
+            let observed=identity.observe(frame(t),reference:bar)
+            #expect(observed == (t == 1.6 ? .pullUp : nil))
+        }
+        var noPixels=AutomaticPullUpBar()
+        for t in [0.0,0.3,0.6,0.9] { #expect(noPixels.observe(pose:frame(t),candidates:[]) == nil) }
+    }
+
+    @Test func distinctWristsCannotHideCollapsedOrCrossedArms() {
+        for fault in ["elbows","shoulders","crossedShoulders"] {
+            let original=pose(0)
+            let modified=original.people[0].landmarks.map { point -> Landmark in
+                let position: Point2D
+                if fault == "elbows", [.leftElbow,.rightElbow].contains(point.joint) {
+                    position = .init(x:350,y:440)
+                } else if fault == "shoulders", [.leftShoulder,.rightShoulder].contains(point.joint) {
+                    position = .init(x:350,y:550)
+                } else if fault == "crossedShoulders", point.joint == .leftShoulder {
+                    position = .init(x:280,y:550)
+                } else if fault == "crossedShoulders", point.joint == .rightShoulder {
+                    position = .init(x:410,y:550)
+                } else { position=point.position }
+                return .init(joint:point.joint,position:position,confidence:point.confidence)
+            }
+            let frame=PoseResult(timestamp:original.timestamp,imageSize:original.imageSize,
+                people:[.init(landmarks:modified)],backend:original.backend,requestRevision:original.requestRevision)
+            #expect(PullUpArmMeasurement(pose:frame).arms.count == 2)
+            #expect(AutomaticPullUpBar.grip(in:frame) == nil)
+            var identity=AutomaticExerciseDetection()
+            let confirmed=identity.confirmObservedPullUpMovement(frame,reference:candidate().edge)
+            #expect(!confirmed)
+        }
+    }
+
+    @Test func slopedEdgeUsesEachHandLocationWithoutRelaxingSideTolerance() throws {
+        let size = ImageSize(width:720,height:1280)
+        for slope in [-tan(10 * Double.pi/180),tan(10 * Double.pi/180)] {
+            func edge(_ offset:Double) -> BarSegment {
+                .init(a:.init(x:210,y:300+slope*(210-350)+offset),
+                      b:.init(x:490,y:300+slope*(490-350)+offset))
+            }
+            let grip = AutomaticPullUpBar.Grip(
+                left:.init(x:520,y:300+slope*(520-350)+3),
+                right:.init(x:180,y:300+slope*(180-350)+3),
+                region:.init(.init(x:100,y:200),.init(x:600,y:400)))
+            let observed = BarLineCandidate(edge:edge(0),geometryScore:280)
+            #expect(AutomaticPullUpBar.select(candidates:[observed],grip:grip,size:size) == observed.edge)
+            #expect(AutomaticPullUpBar.select(candidates:[.init(edge:edge(28),geometryScore:280)],grip:grip,size:size) == nil)
+            let reversed = BarLineCandidate(edge:.init(a:observed.edge.b,b:observed.edge.a),geometryScore:280)
+            #expect(AutomaticPullUpBar.select(candidates:[reversed],grip:grip,size:size) == observed.edge)
+        }
+    }
     let size = ImageSize(width: 720, height: 1280)
     func pose(_ seconds: Double, offset: Double = 0) -> PoseResult {
         let points: [(PoseJoint, Double, Double)] = [

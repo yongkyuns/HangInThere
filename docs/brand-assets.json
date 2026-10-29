@@ -1,0 +1,55 @@
+{
+  "tool": "Built-in image_gen; no external API/CLI",
+  "artwork": [
+    {
+      "prompt": "Use case: photorealistic-natural. Asset type: production artwork for the home hero and launch screen of HangInThere, a serious calisthenics iPhone app. Create a premium editorial sports photograph, landscape 3:2 composition. One adult athlete viewed directly from behind, wearing a plain charcoal sleeveless training top and black shorts, hanging naturally from a simple matte black horizontal pull-up bar, arms extended, hands visibly gripping slightly wider than shoulders, feet suspended. The full athlete and both hands fit inside the photograph. Athlete positioned slightly right of center, around 58% of image width; leave quiet negative space on the left and around the lower-left quarter for native interface typography. Minimal architectural gym with warm off-white plaster wall, dark floor, quiet window light from the right. Strong charcoal silhouette, subtle warm monochrome colors, realistic human anatomy, tactile restrained fine film grain, confident calm mood, beautifully composed high-end independent fitness brand campaign. Near-level rear camera view around shoulder height, no dramatic floor angle. Frame the bar near the top but with safe margin. No text, typography, letters, logos, watermark, UI, border, neon lighting, extra people, extra limbs, or collage. This is artwork, not an app screenshot.",
+      "archivedFrom": "ios/HangInThere/Assets.xcassets/TrainingScene.imageset/training-scene.png",
+      "localArchive": "build/main-integration-cleanup/unused-artwork/TrainingScene.imageset/training-scene.png"
+    },
+    {
+      "reference": "TrainingScene",
+      "prompt": "Use case: compositing. Asset type: portrait iPhone launch-screen photograph for HangInThere. Reframe the provided sports photograph as a tall portrait composition, approximately 9:16, extending the same minimal architectural gym naturally. Preserve this exact athlete from behind, black training clothes, plausible anatomy and overhand grip, pull-up bar, warm side-window light and restrained editorial photographic style. Center the athlete horizontally within the middle 40% of the canvas so the shoulders and both hands remain inside a narrow phone crop. Fit the complete figure and both hands, with safe margin above the bar. Leave generous dark quiet negative space in the lower quarter for a native logo lockup that will be added in code. Maintain the charcoal, warm off-white and subdued neutral palette. The result should be a premium, realistic, calm fitness brand launch photograph. No text, logo, UI, borders, collage, extra people, or extra limbs. Change the framing/background canvas, not the athlete or outfit.",
+      "archivedFrom": "ios/HangInThere/Assets.xcassets/LaunchScene.imageset/launch-scene.png",
+      "localArchive": "build/main-integration-cleanup/unused-artwork/LaunchScene.imageset/launch-scene.png"
+    },
+    {
+      "tool": "Built-in image_gen; transparent output preserved",
+      "prompt": "Use case: stylized-concept. Asset type: production illustration for Hang In There, a friendly but polished adult fitness iPhone app. Create an original, beautifully art-directed editorial cartoon of one adult athlete doing a pull-up, full figure and both hands included. The athlete hangs from one simple horizontal muted-olive bar, arms raised with credible anatomy, knees gently bent, ankles loosely crossed. Warm medium-brown skin, sculpted dark wavy hair, terracotta-orange short-sleeve training shirt, deep forest-green shorts, cream athletic shoes. Calm, appealing face with a subtle smile; stylish adult proportions, purposeful athletic pose. Rich cut-paper / painted gouache treatment: expertly designed flowing silhouettes, subtle tactile grain, restrained soft dimensional shading, lovely rounded edges and carefully balanced details. A few overlapping soft sage and pale-lime organic shapes behind the figure create a cohesive contained composition and preserve contrast on both cream and dark forest UI backgrounds. Elegant independent wellness brand quality, inviting and memorable, polished enough for a featured App Store editorial illustration. Portrait 4:5 composition with generous transparent margin, centered subject, visually clear at 160-220 pixels wide. Genuine transparent background beyond the contained illustration. No typography, letters, logo, UI, borders, watermark, bar posts, scenery, extra people or limbs. Avoid stick figures, bean-shaped bodies, emoji, crude flat clip-art, thick black outlines, childish proportions, bodybuilding caricature, photorealism.",
+      "source": "/Users/yongkyunshin/.codex/generated_images/01a15e1d-99e8-7563-a919-f2c3f9127fed/exec-d4272eff-c59c-44e6-9da0-333d8a22e3e6.png",
+      "archivedFrom": "ios/HangInThere/Assets.xcassets/TrainingIllustration.imageset/training-illustration.png",
+      "localArchive": "build/main-integration-cleanup/unused-artwork/TrainingIllustration.imageset/training-illustration.png"
+    },
+    {
+      "path": "ios/HangInThere/Assets.xcassets/PullUpIllustration.imageset/illustration.png",
+      "tool": "Built-in image_gen; transparent alpha preserved",
+      "prompt": "Use case: stylized-concept. Production transparent illustration for an adult calisthenics app. Use the supplied image only as a reference for its refined painted editorial style, textured gouache, natural attractive adult proportions and warm terracotta / sage / forest / cream palette. Create one isolated exercise illustration, full figure, carefully drawn hands and believable anatomy, crisp appealing silhouette at 140 pixels wide. The entire space outside the athlete and essential exercise equipment MUST be genuinely transparent. No abstract shapes, blobs, leaves, backdrop, floor, shadow, scenery, decorative marks, text, letters, logo, UI, frame or watermark. No thick cartoon outlines or primitive stick/bean figures. Subject and equipment are the only visible pixels. Portrait 4:5 canvas with modest safe margin. Subject: athletic adult man, warm medium-brown skin and dark wavy hair, terracotta short-sleeve shirt, dark forest shorts, cream shoes. Show a clean pull-up starting posture: hanging from a single horizontal bar ABOVE his head, both arms fully extended overhead, shoulders engaged, hands a little wider than shoulders, body upright, hips aligned, legs together with knees softly bent and feet together. Uncrossed legs. Near-frontal view, calm focused expression. Preserve the appealing character identity and outfit of the reference. Show the complete bar and both hands with margin.",
+      "referenceRole": "Previous artwork used for rendering style and character continuity only; new pose and no backdrop."
+    },
+    {
+      "path": "ios/HangInThere/Assets.xcassets/DipIllustration.imageset/illustration.png",
+      "tool": "Built-in image_gen; transparent alpha preserved",
+      "prompt": "Use case: stylized-concept. Production transparent illustration for an adult calisthenics app. Use the supplied image only as a reference for its refined painted editorial style, textured gouache, natural attractive adult proportions and warm terracotta / sage / forest / cream palette. Create one isolated exercise illustration, full figure, carefully drawn hands and believable anatomy, crisp appealing silhouette at 140 pixels wide. The entire space outside the athlete and essential exercise equipment MUST be genuinely transparent. No abstract shapes, blobs, leaves, backdrop, floor, shadow, scenery, decorative marks, text, letters, logo, UI, frame or watermark. No thick cartoon outlines or primitive stick/bean figures. Subject and equipment are the only visible pixels. Portrait 4:5 canvas with modest safe margin. Subject: athletic adult woman with warm medium-brown skin, dark hair in a neat ponytail, muted sage fitted training top, terracotta training leggings and cream shoes. Show a clean parallel-bar dip TOP SUPPORT: both hands planted on two stable parallel handles beside her hips, arms straight and pushing down, shoulders lowered, torso upright, hips aligned, legs together, knees gently bent behind, feet together. Uncrossed legs. Slight front three-quarter view so both straight arms and both handles are clearly readable. She is supporting her body above the handles, not hanging from an overhead bar. Calm confident expression. Compact simple dark olive dip equipment, no oversized gym structure. Woman and handles fully inside canvas.",
+      "referenceRole": "Previous artwork used for rendering style and character continuity only; new pose and no backdrop."
+    }
+  ],
+  "nativeBrandMark": {
+    "source": "ios/HangInThere/UI/HomeScreenView.swift",
+    "exporter": "Evaluation/BrandAssetRender.swift",
+    "design": "Rounded H / hanging-person mark with a coral head. System-adaptive cream and forest UI, soft green actions and rounded typography. Paired background-free pull-up/dip illustrations are shared by home and launch.",
+    "theme": "Home, native launch, settings, history and results follow system appearance. Only the camera overlay has a local dark environment for contrast."
+  },
+  "assetSHA256": {
+    "ios/HangInThere/Assets.xcassets/AppIcon.appiconset/app-icon.png": "50e1e2da22d69a736bf5f309d910eea2ca2281224ea60fdb0c9b12e18e748a56",
+    "ios/HangInThere/Assets.xcassets/DipIllustration.imageset/illustration.png": "5eca9752a8169fa9ac2a8ffd6eb6369628f216e4028ab1dcbe04e3f5bead8921",
+    "ios/HangInThere/Assets.xcassets/LaunchLockup.imageset/launch-dark.png": "5ed585a504e70710edff857649cf06340efefd90dd38bdc77d96e5ad2ce5b516",
+    "ios/HangInThere/Assets.xcassets/LaunchLockup.imageset/launch-light.png": "bd7ad7367263e59668bc9a982cdbca863311ab8fc678c24d80eeebcc1a12bfeb",
+    "ios/HangInThere/Assets.xcassets/LaunchLockup.imageset/launch-lockup.png": "d892d32b8234b01deec38221793ad8a1990c728f429e2dfb89ebe192fefb7280",
+    "ios/HangInThere/Assets.xcassets/LaunchScene.imageset/launch-landscape.png": "70a69f4a8fea284e9c3d714e2dd2aa2b1b644f66aaca0249fd403f067a47741d",
+    "ios/HangInThere/Assets.xcassets/LaunchScene.imageset/launch-scene.png": "43d5c3f745bdf64d6e9fb859412e83cd7192df18e7e00a4f5f389cea75e16fef",
+    "ios/HangInThere/Assets.xcassets/PullUpIllustration.imageset/illustration.png": "6dadd79f355a15ac994844ae93c3de0f1fccdf0cb9a75a413aa5e77a22001b0b",
+    "ios/HangInThere/Assets.xcassets/TrainingIllustration.imageset/training-illustration.png": "d188938965f7f6cea2b15186cfc09d2090d9bac0e512cbdca5b60ea844ce46e7",
+    "ios/HangInThere/Assets.xcassets/TrainingScene.imageset/training-scene.png": "70a69f4a8fea284e9c3d714e2dd2aa2b1b644f66aaca0249fd403f067a47741d"
+  },
+  "scope": "Decorative synthetic brand artwork, excluded from detection evaluation datasets.",
+  "artworkStatus": "Home and splash show a man in a clean pull-up hang and a woman in dip top support. The illustrations have genuine transparency, without decorative backgrounds."
+}

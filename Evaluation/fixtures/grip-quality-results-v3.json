@@ -1,0 +1,1907 @@
+{
+  "schemaVersion": 3,
+  "qualification": "Blanket rejection repaired by quality-only training and guarded calibration; original surface model and thresholds unchanged. Offline, not production qualified. Fresh successes are two correlated crops from one video.",
+  "diagnosis": {
+    "training": {
+      "visible": {
+        "positive": 341,
+        "negative": 185,
+        "sampledPositiveMass": 0.8485183715820312,
+        "balancedCalibrationPositiveMass": 0.4999999701976776,
+        "ROC_AUC": 0.8762780427932739,
+        "rawAtPointEight": 430,
+        "calibratedAtPointEight": 23,
+        "positiveCalibratedQuantiles": [
+          0.49557194113731384,
+          0.7002184391021729,
+          0.8727510571479797
+        ],
+        "negativeCalibratedQuantiles": [
+          0.3326379656791687,
+          0.5948904752731323,
+          0.7713534832000732
+        ]
+      },
+      "contact": {
+        "positive": 424,
+        "negative": 77,
+        "sampledPositiveMass": 0.8489368557929993,
+        "balancedCalibrationPositiveMass": 0.5,
+        "ROC_AUC": 0.9046802520751953,
+        "rawAtPointEight": 390,
+        "calibratedAtPointEight": 27,
+        "positiveCalibratedQuantiles": [
+          0.3827071785926819,
+          0.6776130199432373,
+          0.8724844455718994
+        ],
+        "negativeCalibratedQuantiles": [
+          0.2539399266242981,
+          0.4946383833885193,
+          0.7034382820129395
+        ]
+      }
+    },
+    "validation": {
+      "visible": {
+        "positive": 81,
+        "negative": 55,
+        "sampledPositiveMass": 0.8398809432983398,
+        "balancedCalibrationPositiveMass": 0.5,
+        "ROC_AUC": 0.7488215565681458,
+        "rawAtPointEight": 102,
+        "calibratedAtPointEight": 6,
+        "positiveCalibratedQuantiles": [
+          0.4587099254131317,
+          0.6661611199378967,
+          0.829520046710968
+        ],
+        "negativeCalibratedQuantiles": [
+          0.4258885979652405,
+          0.605452299118042,
+          0.7225157618522644
+        ]
+      },
+      "contact": {
+        "positive": 119,
+        "negative": 14,
+        "sampledPositiveMass": 0.8533405065536499,
+        "balancedCalibrationPositiveMass": 0.5,
+        "ROC_AUC": 0.6176470518112183,
+        "rawAtPointEight": 105,
+        "calibratedAtPointEight": 6,
+        "positiveCalibratedQuantiles": [
+          0.43912652134895325,
+          0.6684173345565796,
+          0.8398333191871643
+        ],
+        "negativeCalibratedQuantiles": [
+          0.4585917592048645,
+          0.6318753957748413,
+          0.7642425894737244
+        ]
+      }
+    }
+  },
+  "trainingReceipt": {
+    "selectedVariant": "multi-scale",
+    "candidates": {
+      "final-scale": {
+        "candidate": "final-scale",
+        "selectionNLL": 0.5009980201721191,
+        "heads": [
+          {
+            "head": "visible",
+            "bestEpoch": 3,
+            "selectionNLL": 0.5022150278091431,
+            "slope": 1.0,
+            "bias": 0.0,
+            "history": [
+              {
+                "epoch": 1,
+                "trainNLL": 0.6990495920181274,
+                "selectionNLL": 0.5516011714935303
+              },
+              {
+                "epoch": 2,
+                "trainNLL": 0.547797441482544,
+                "selectionNLL": 0.5082635283470154
+              },
+              {
+                "epoch": 3,
+                "trainNLL": 0.4728625416755676,
+                "selectionNLL": 0.5022150278091431
+              },
+              {
+                "epoch": 4,
+                "trainNLL": 0.42458683252334595,
+                "selectionNLL": 0.5097275972366333
+              },
+              {
+                "epoch": 5,
+                "trainNLL": 0.3946976959705353,
+                "selectionNLL": 0.517479419708252
+              },
+              {
+                "epoch": 6,
+                "trainNLL": 0.37027549743652344,
+                "selectionNLL": 0.5217474699020386
+              },
+              {
+                "epoch": 7,
+                "trainNLL": 0.33353763818740845,
+                "selectionNLL": 0.5225796699523926
+              },
+              {
+                "epoch": 8,
+                "trainNLL": 0.30339619517326355,
+                "selectionNLL": 0.521011233329773
+              },
+              {
+                "epoch": 9,
+                "trainNLL": 0.27901947498321533,
+                "selectionNLL": 0.5183120369911194
+              },
+              {
+                "epoch": 10,
+                "trainNLL": 0.2541190981864929,
+                "selectionNLL": 0.5171979665756226
+              },
+              {
+                "epoch": 11,
+                "trainNLL": 0.22621363401412964,
+                "selectionNLL": 0.5190730690956116
+              },
+              {
+                "epoch": 12,
+                "trainNLL": 0.20891529321670532,
+                "selectionNLL": 0.5240017175674438
+              },
+              {
+                "epoch": 13,
+                "trainNLL": 0.18424513936042786,
+                "selectionNLL": 0.5322287082672119
+              },
+              {
+                "epoch": 14,
+                "trainNLL": 0.1728130578994751,
+                "selectionNLL": 0.545258104801178
+              },
+              {
+                "epoch": 15,
+                "trainNLL": 0.1608005166053772,
+                "selectionNLL": 0.5607779622077942
+              },
+              {
+                "epoch": 16,
+                "trainNLL": 0.14147868752479553,
+                "selectionNLL": 0.5781345963478088
+              },
+              {
+                "epoch": 17,
+                "trainNLL": 0.12962418794631958,
+                "selectionNLL": 0.5972302556037903
+              },
+              {
+                "epoch": 18,
+                "trainNLL": 0.1171792522072792,
+                "selectionNLL": 0.6181035041809082
+              },
+              {
+                "epoch": 19,
+                "trainNLL": 0.10252071917057037,
+                "selectionNLL": 0.6406928300857544
+              },
+              {
+                "epoch": 20,
+                "trainNLL": 0.08918692916631699,
+                "selectionNLL": 0.6637343168258667
+              },
+              {
+                "epoch": 21,
+                "trainNLL": 0.08511875569820404,
+                "selectionNLL": 0.6858279705047607
+              },
+              {
+                "epoch": 22,
+                "trainNLL": 0.06904144585132599,
+                "selectionNLL": 0.7061985731124878
+              },
+              {
+                "epoch": 23,
+                "trainNLL": 0.06447974592447281,
+                "selectionNLL": 0.7245559692382812
+              },
+              {
+                "epoch": 24,
+                "trainNLL": 0.054419953376054764,
+                "selectionNLL": 0.7415547370910645
+              },
+              {
+                "epoch": 25,
+                "trainNLL": 0.04428669065237045,
+                "selectionNLL": 0.7577981948852539
+              },
+              {
+                "epoch": 26,
+                "trainNLL": 0.0422656275331974,
+                "selectionNLL": 0.77219158411026
+              },
+              {
+                "epoch": 27,
+                "trainNLL": 0.03878495469689369,
+                "selectionNLL": 0.7852568626403809
+              },
+              {
+                "epoch": 28,
+                "trainNLL": 0.03602629527449608,
+                "selectionNLL": 0.7968672513961792
+              },
+              {
+                "epoch": 29,
+                "trainNLL": 0.030819188803434372,
+                "selectionNLL": 0.8081653714179993
+              },
+              {
+                "epoch": 30,
+                "trainNLL": 0.03070933371782303,
+                "selectionNLL": 0.8174843788146973
+              },
+              {
+                "epoch": 31,
+                "trainNLL": 0.024952419102191925,
+                "selectionNLL": 0.8269752264022827
+              },
+              {
+                "epoch": 32,
+                "trainNLL": 0.0188541691750288,
+                "selectionNLL": 0.8367459774017334
+              },
+              {
+                "epoch": 33,
+                "trainNLL": 0.01673671416938305,
+                "selectionNLL": 0.847413957118988
+              },
+              {
+                "epoch": 34,
+                "trainNLL": 0.014746008440852165,
+                "selectionNLL": 0.8596237897872925
+              },
+              {
+                "epoch": 35,
+                "trainNLL": 0.015669986605644226,
+                "selectionNLL": 0.8725857138633728
+              },
+              {
+                "epoch": 36,
+                "trainNLL": 0.013641620054841042,
+                "selectionNLL": 0.8860912322998047
+              },
+              {
+                "epoch": 37,
+                "trainNLL": 0.009993625804781914,
+                "selectionNLL": 0.9005544781684875
+              },
+              {
+                "epoch": 38,
+                "trainNLL": 0.01320444792509079,
+                "selectionNLL": 0.9148024320602417
+              },
+              {
+                "epoch": 39,
+                "trainNLL": 0.011302201077342033,
+                "selectionNLL": 0.9299436807632446
+              },
+              {
+                "epoch": 40,
+                "trainNLL": 0.009196228347718716,
+                "selectionNLL": 0.9462460279464722
+              },
+              {
+                "epoch": 41,
+                "trainNLL": 0.006978371646255255,
+                "selectionNLL": 0.9620987176895142
+              },
+              {
+                "epoch": 42,
+                "trainNLL": 0.007430696859955788,
+                "selectionNLL": 0.9770649671554565
+              },
+              {
+                "epoch": 43,
+                "trainNLL": 0.005905769765377045,
+                "selectionNLL": 0.9920799732208252
+              },
+              {
+                "epoch": 44,
+                "trainNLL": 0.005913948640227318,
+                "selectionNLL": 1.006507396697998
+              },
+              {
+                "epoch": 45,
+                "trainNLL": 0.00849006325006485,
+                "selectionNLL": 1.021666169166565
+              },
+              {
+                "epoch": 46,
+                "trainNLL": 0.0067988550290465355,
+                "selectionNLL": 1.0315839052200317
+              },
+              {
+                "epoch": 47,
+                "trainNLL": 0.0050831688567996025,
+                "selectionNLL": 1.0434467792510986
+              },
+              {
+                "epoch": 48,
+                "trainNLL": 0.004573157988488674,
+                "selectionNLL": 1.0550012588500977
+              },
+              {
+                "epoch": 49,
+                "trainNLL": 0.0040944283828139305,
+                "selectionNLL": 1.0657209157943726
+              },
+              {
+                "epoch": 50,
+                "trainNLL": 0.005158650688827038,
+                "selectionNLL": 1.0778690576553345
+              },
+              {
+                "epoch": 51,
+                "trainNLL": 0.005933462642133236,
+                "selectionNLL": 1.0895767211914062
+              },
+              {
+                "epoch": 52,
+                "trainNLL": 0.0034508556127548218,
+                "selectionNLL": 1.1013673543930054
+              },
+              {
+                "epoch": 53,
+                "trainNLL": 0.003074781969189644,
+                "selectionNLL": 1.1129858493804932
+              }
+            ],
+            "metrics": {
+              "selection": {
+                "raw": {
+                  "positive": 45,
+                  "negative": 34,
+                  "truePositive": 16,
+                  "falsePositive": 0,
+                  "trueNegative": 34,
+                  "falseNegative": 29,
+                  "nll": 0.4515751302242279,
+                  "brier": 0.14569494128227234
+                },
+                "calibrated": {
+                  "positive": 45,
+                  "negative": 34,
+                  "truePositive": 31,
+                  "falsePositive": 2,
+                  "trueNegative": 32,
+                  "falseNegative": 14,
+                  "nll": 0.4831579327583313,
+                  "brier": 0.16774897277355194
+                }
+              },
+              "calibration": {
+                "raw": {
+                  "positive": 36,
+                  "negative": 21,
+                  "truePositive": 10,
+                  "falsePositive": 0,
+                  "trueNegative": 21,
+                  "falseNegative": 26,
+                  "nll": 0.6775965690612793,
+                  "brier": 0.2272535264492035
+                },
+                "calibrated": {
+                  "positive": 36,
+                  "negative": 21,
+                  "truePositive": 10,
+                  "falsePositive": 0,
+                  "trueNegative": 21,
+                  "falseNegative": 26,
+                  "nll": 0.6775965690612793,
+                  "brier": 0.2272535264492035
+                }
+              }
+            },
+            "proposedSlope": 0.9272010326385498,
+            "proposedBias": 1.2301758527755737,
+            "calibrationGuard": {
+              "slope": 1.0,
+              "bias": 0.0,
+              "rejected": true,
+              "rawFalseAccepts": 0,
+              "proposedFalseAccepts": 1,
+              "reason": "Affine calibration increases false accepts on reviewed calibration negatives"
+            }
+          },
+          {
+            "head": "contact",
+            "bestEpoch": 3,
+            "selectionNLL": 0.4997810125350952,
+            "slope": 1.0,
+            "bias": 0.0,
+            "history": [
+              {
+                "epoch": 1,
+                "trainNLL": 0.7045444250106812,
+                "selectionNLL": 0.5838106870651245
+              },
+              {
+                "epoch": 2,
+                "trainNLL": 0.5279490947723389,
+                "selectionNLL": 0.5173709988594055
+              },
+              {
+                "epoch": 3,
+                "trainNLL": 0.45682212710380554,
+                "selectionNLL": 0.4997810125350952
+              },
+              {
+                "epoch": 4,
+                "trainNLL": 0.40943092107772827,
+                "selectionNLL": 0.5057962536811829
+              },
+              {
+                "epoch": 5,
+                "trainNLL": 0.3866313397884369,
+                "selectionNLL": 0.5221535563468933
+              },
+              {
+                "epoch": 6,
+                "trainNLL": 0.36315441131591797,
+                "selectionNLL": 0.5412736535072327
+              },
+              {
+                "epoch": 7,
+                "trainNLL": 0.34129977226257324,
+                "selectionNLL": 0.5595966577529907
+              },
+              {
+                "epoch": 8,
+                "trainNLL": 0.32268616557121277,
+                "selectionNLL": 0.5766559839248657
+              },
+              {
+                "epoch": 9,
+                "trainNLL": 0.2933168411254883,
+                "selectionNLL": 0.5901955366134644
+              },
+              {
+                "epoch": 10,
+                "trainNLL": 0.2790687084197998,
+                "selectionNLL": 0.6033930778503418
+              },
+              {
+                "epoch": 11,
+                "trainNLL": 0.2608277201652527,
+                "selectionNLL": 0.6144710183143616
+              },
+              {
+                "epoch": 12,
+                "trainNLL": 0.24455976486206055,
+                "selectionNLL": 0.6255999207496643
+              },
+              {
+                "epoch": 13,
+                "trainNLL": 0.22470134496688843,
+                "selectionNLL": 0.6416875123977661
+              },
+              {
+                "epoch": 14,
+                "trainNLL": 0.2070852518081665,
+                "selectionNLL": 0.6624964475631714
+              },
+              {
+                "epoch": 15,
+                "trainNLL": 0.17493951320648193,
+                "selectionNLL": 0.6876166462898254
+              },
+              {
+                "epoch": 16,
+                "trainNLL": 0.17400294542312622,
+                "selectionNLL": 0.7182691097259521
+              },
+              {
+                "epoch": 17,
+                "trainNLL": 0.15273065865039825,
+                "selectionNLL": 0.75693678855896
+              },
+              {
+                "epoch": 18,
+                "trainNLL": 0.13665565848350525,
+                "selectionNLL": 0.8071258068084717
+              },
+              {
+                "epoch": 19,
+                "trainNLL": 0.11877627670764923,
+                "selectionNLL": 0.8627433776855469
+              },
+              {
+                "epoch": 20,
+                "trainNLL": 0.10764260590076447,
+                "selectionNLL": 0.9336431622505188
+              },
+              {
+                "epoch": 21,
+                "trainNLL": 0.10098530352115631,
+                "selectionNLL": 1.0117712020874023
+              },
+              {
+                "epoch": 22,
+                "trainNLL": 0.09190260618925095,
+                "selectionNLL": 1.092224359512329
+              },
+              {
+                "epoch": 23,
+                "trainNLL": 0.08055457472801208,
+                "selectionNLL": 1.170959711074829
+              },
+              {
+                "epoch": 24,
+                "trainNLL": 0.06680874526500702,
+                "selectionNLL": 1.248486042022705
+              },
+              {
+                "epoch": 25,
+                "trainNLL": 0.06214659661054611,
+                "selectionNLL": 1.3230149745941162
+              },
+              {
+                "epoch": 26,
+                "trainNLL": 0.054229266941547394,
+                "selectionNLL": 1.4015942811965942
+              },
+              {
+                "epoch": 27,
+                "trainNLL": 0.05221238732337952,
+                "selectionNLL": 1.4646596908569336
+              },
+              {
+                "epoch": 28,
+                "trainNLL": 0.04089619219303131,
+                "selectionNLL": 1.5127527713775635
+              },
+              {
+                "epoch": 29,
+                "trainNLL": 0.04098903387784958,
+                "selectionNLL": 1.5540658235549927
+              },
+              {
+                "epoch": 30,
+                "trainNLL": 0.03419148176908493,
+                "selectionNLL": 1.5867977142333984
+              },
+              {
+                "epoch": 31,
+                "trainNLL": 0.032639771699905396,
+                "selectionNLL": 1.6203868389129639
+              },
+              {
+                "epoch": 32,
+                "trainNLL": 0.031827911734580994,
+                "selectionNLL": 1.6405706405639648
+              },
+              {
+                "epoch": 33,
+                "trainNLL": 0.026638690382242203,
+                "selectionNLL": 1.6501481533050537
+              },
+              {
+                "epoch": 34,
+                "trainNLL": 0.02381581813097,
+                "selectionNLL": 1.6613821983337402
+              },
+              {
+                "epoch": 35,
+                "trainNLL": 0.019585534930229187,
+                "selectionNLL": 1.6875488758087158
+              },
+              {
+                "epoch": 36,
+                "trainNLL": 0.0215597040951252,
+                "selectionNLL": 1.7197442054748535
+              },
+              {
+                "epoch": 37,
+                "trainNLL": 0.01564270257949829,
+                "selectionNLL": 1.7561721801757812
+              },
+              {
+                "epoch": 38,
+                "trainNLL": 0.015145400539040565,
+                "selectionNLL": 1.8048739433288574
+              },
+              {
+                "epoch": 39,
+                "trainNLL": 0.01446976512670517,
+                "selectionNLL": 1.8549268245697021
+              },
+              {
+                "epoch": 40,
+                "trainNLL": 0.008748983964323997,
+                "selectionNLL": 1.90562105178833
+              },
+              {
+                "epoch": 41,
+                "trainNLL": 0.010554938577115536,
+                "selectionNLL": 1.9521008729934692
+              },
+              {
+                "epoch": 42,
+                "trainNLL": 0.010891471058130264,
+                "selectionNLL": 2.0014753341674805
+              },
+              {
+                "epoch": 43,
+                "trainNLL": 0.010871024802327156,
+                "selectionNLL": 2.0503416061401367
+              },
+              {
+                "epoch": 44,
+                "trainNLL": 0.009496573358774185,
+                "selectionNLL": 2.093496084213257
+              },
+              {
+                "epoch": 45,
+                "trainNLL": 0.009435310959815979,
+                "selectionNLL": 2.119962215423584
+              },
+              {
+                "epoch": 46,
+                "trainNLL": 0.006615690886974335,
+                "selectionNLL": 2.1374993324279785
+              },
+              {
+                "epoch": 47,
+                "trainNLL": 0.004324718378484249,
+                "selectionNLL": 2.1492576599121094
+              },
+              {
+                "epoch": 48,
+                "trainNLL": 0.005161960609257221,
+                "selectionNLL": 2.158216953277588
+              },
+              {
+                "epoch": 49,
+                "trainNLL": 0.008503349497914314,
+                "selectionNLL": 2.152269124984741
+              },
+              {
+                "epoch": 50,
+                "trainNLL": 0.0067817773669958115,
+                "selectionNLL": 2.1436123847961426
+              },
+              {
+                "epoch": 51,
+                "trainNLL": 0.0048594227991998196,
+                "selectionNLL": 2.1383719444274902
+              },
+              {
+                "epoch": 52,
+                "trainNLL": 0.006951529998332262,
+                "selectionNLL": 2.1348061561584473
+              },
+              {
+                "epoch": 53,
+                "trainNLL": 0.005750876851379871,
+                "selectionNLL": 2.13641357421875
+              }
+            ],
+            "metrics": {
+              "selection": {
+                "raw": {
+                  "positive": 67,
+                  "negative": 12,
+                  "truePositive": 21,
+                  "falsePositive": 1,
+                  "trueNegative": 11,
+                  "falseNegative": 46,
+                  "nll": 0.4916245639324188,
+                  "brier": 0.16253633797168732
+                },
+                "calibrated": {
+                  "positive": 67,
+                  "negative": 12,
+                  "truePositive": 67,
+                  "falsePositive": 12,
+                  "trueNegative": 0,
+                  "falseNegative": 0,
+                  "nll": 0.42607375979423523,
+                  "brier": 0.1288478672504425
+                }
+              },
+              "calibration": {
+                "raw": {
+                  "positive": 52,
+                  "negative": 2,
+                  "truePositive": 11,
+                  "falsePositive": 1,
+                  "trueNegative": 1,
+                  "falseNegative": 41,
+                  "nll": 1.063355565071106,
+                  "brier": 0.373089998960495
+                },
+                "calibrated": {
+                  "positive": 52,
+                  "negative": 2,
+                  "truePositive": 11,
+                  "falsePositive": 1,
+                  "trueNegative": 1,
+                  "falseNegative": 41,
+                  "nll": 1.063355565071106,
+                  "brier": 0.373089998960495
+                }
+              }
+            },
+            "proposedSlope": 1.1050618198282791e-08,
+            "proposedBias": 1.6835453510284424,
+            "calibrationGuard": {
+              "slope": 1.0,
+              "bias": 0.0,
+              "rejected": true,
+              "rawFalseAccepts": 1,
+              "proposedFalseAccepts": 2,
+              "reason": "Affine calibration increases false accepts on reviewed calibration negatives"
+            }
+          }
+        ],
+        "modelSHA256": "8591d4d31f85a6cc91dd70a66ee40d67540e9626dc31b8553aa58f0f302bbe36",
+        "originalCandidateReceiptSHA256": "35c884ff763ad63c8ac64d7dc355ef1bd137cb3f4a7e1d9768c41192a21d339f"
+      },
+      "multi-scale": {
+        "candidate": "multi-scale",
+        "selectionNLL": 0.45259472727775574,
+        "heads": [
+          {
+            "head": "visible",
+            "bestEpoch": 12,
+            "selectionNLL": 0.43851083517074585,
+            "slope": 0.6802612543106079,
+            "bias": 1.1025185585021973,
+            "history": [
+              {
+                "epoch": 1,
+                "trainNLL": 0.7657520771026611,
+                "selectionNLL": 0.5859822630882263
+              },
+              {
+                "epoch": 2,
+                "trainNLL": 0.5534137487411499,
+                "selectionNLL": 0.5189002752304077
+              },
+              {
+                "epoch": 3,
+                "trainNLL": 0.4693256914615631,
+                "selectionNLL": 0.4995354413986206
+              },
+              {
+                "epoch": 4,
+                "trainNLL": 0.43840330839157104,
+                "selectionNLL": 0.4968577027320862
+              },
+              {
+                "epoch": 5,
+                "trainNLL": 0.40486860275268555,
+                "selectionNLL": 0.49682801961898804
+              },
+              {
+                "epoch": 6,
+                "trainNLL": 0.3764075040817261,
+                "selectionNLL": 0.49281567335128784
+              },
+              {
+                "epoch": 7,
+                "trainNLL": 0.3480914235115051,
+                "selectionNLL": 0.4832603335380554
+              },
+              {
+                "epoch": 8,
+                "trainNLL": 0.3259662687778473,
+                "selectionNLL": 0.4710187315940857
+              },
+              {
+                "epoch": 9,
+                "trainNLL": 0.2984684407711029,
+                "selectionNLL": 0.45866549015045166
+              },
+              {
+                "epoch": 10,
+                "trainNLL": 0.264354407787323,
+                "selectionNLL": 0.4485887885093689
+              },
+              {
+                "epoch": 11,
+                "trainNLL": 0.23939910531044006,
+                "selectionNLL": 0.4416031539440155
+              },
+              {
+                "epoch": 12,
+                "trainNLL": 0.2199566513299942,
+                "selectionNLL": 0.43851083517074585
+              },
+              {
+                "epoch": 13,
+                "trainNLL": 0.19650958478450775,
+                "selectionNLL": 0.4406183958053589
+              },
+              {
+                "epoch": 14,
+                "trainNLL": 0.18750621378421783,
+                "selectionNLL": 0.44700342416763306
+              },
+              {
+                "epoch": 15,
+                "trainNLL": 0.1677180528640747,
+                "selectionNLL": 0.4565982520580292
+              },
+              {
+                "epoch": 16,
+                "trainNLL": 0.15309302508831024,
+                "selectionNLL": 0.46852296590805054
+              },
+              {
+                "epoch": 17,
+                "trainNLL": 0.14259910583496094,
+                "selectionNLL": 0.4822370111942291
+              },
+              {
+                "epoch": 18,
+                "trainNLL": 0.1299877166748047,
+                "selectionNLL": 0.49821868538856506
+              },
+              {
+                "epoch": 19,
+                "trainNLL": 0.11446034908294678,
+                "selectionNLL": 0.5160044431686401
+              },
+              {
+                "epoch": 20,
+                "trainNLL": 0.09952329844236374,
+                "selectionNLL": 0.5345381498336792
+              },
+              {
+                "epoch": 21,
+                "trainNLL": 0.09214741736650467,
+                "selectionNLL": 0.5539883971214294
+              },
+              {
+                "epoch": 22,
+                "trainNLL": 0.07442793250083923,
+                "selectionNLL": 0.5735077261924744
+              },
+              {
+                "epoch": 23,
+                "trainNLL": 0.06976263970136642,
+                "selectionNLL": 0.5941852927207947
+              },
+              {
+                "epoch": 24,
+                "trainNLL": 0.06061024218797684,
+                "selectionNLL": 0.6146860122680664
+              },
+              {
+                "epoch": 25,
+                "trainNLL": 0.05148442089557648,
+                "selectionNLL": 0.6360552310943604
+              },
+              {
+                "epoch": 26,
+                "trainNLL": 0.05004953220486641,
+                "selectionNLL": 0.6551641225814819
+              },
+              {
+                "epoch": 27,
+                "trainNLL": 0.038902197033166885,
+                "selectionNLL": 0.6739325523376465
+              },
+              {
+                "epoch": 28,
+                "trainNLL": 0.03411641716957092,
+                "selectionNLL": 0.6907083988189697
+              },
+              {
+                "epoch": 29,
+                "trainNLL": 0.034984417259693146,
+                "selectionNLL": 0.7051640748977661
+              },
+              {
+                "epoch": 30,
+                "trainNLL": 0.030605487525463104,
+                "selectionNLL": 0.7187870144844055
+              },
+              {
+                "epoch": 31,
+                "trainNLL": 0.025824828073382378,
+                "selectionNLL": 0.7317653894424438
+              },
+              {
+                "epoch": 32,
+                "trainNLL": 0.01984013244509697,
+                "selectionNLL": 0.7442821264266968
+              },
+              {
+                "epoch": 33,
+                "trainNLL": 0.02018001116812229,
+                "selectionNLL": 0.756777286529541
+              },
+              {
+                "epoch": 34,
+                "trainNLL": 0.015581708401441574,
+                "selectionNLL": 0.7682421207427979
+              },
+              {
+                "epoch": 35,
+                "trainNLL": 0.014764798805117607,
+                "selectionNLL": 0.7797367572784424
+              },
+              {
+                "epoch": 36,
+                "trainNLL": 0.013858303427696228,
+                "selectionNLL": 0.7910792827606201
+              },
+              {
+                "epoch": 37,
+                "trainNLL": 0.011353188194334507,
+                "selectionNLL": 0.8024836778640747
+              },
+              {
+                "epoch": 38,
+                "trainNLL": 0.01013968139886856,
+                "selectionNLL": 0.8140124082565308
+              },
+              {
+                "epoch": 39,
+                "trainNLL": 0.0105853620916605,
+                "selectionNLL": 0.8256275653839111
+              },
+              {
+                "epoch": 40,
+                "trainNLL": 0.010115395300090313,
+                "selectionNLL": 0.8378300666809082
+              },
+              {
+                "epoch": 41,
+                "trainNLL": 0.01008782908320427,
+                "selectionNLL": 0.8495864868164062
+              },
+              {
+                "epoch": 42,
+                "trainNLL": 0.008203689940273762,
+                "selectionNLL": 0.8616029024124146
+              },
+              {
+                "epoch": 43,
+                "trainNLL": 0.007483630441129208,
+                "selectionNLL": 0.8738102912902832
+              },
+              {
+                "epoch": 44,
+                "trainNLL": 0.00701963109895587,
+                "selectionNLL": 0.8860060572624207
+              },
+              {
+                "epoch": 45,
+                "trainNLL": 0.0073148286901414394,
+                "selectionNLL": 0.8965297341346741
+              },
+              {
+                "epoch": 46,
+                "trainNLL": 0.005774837918579578,
+                "selectionNLL": 0.9070489406585693
+              },
+              {
+                "epoch": 47,
+                "trainNLL": 0.006834610365331173,
+                "selectionNLL": 0.9185844659805298
+              },
+              {
+                "epoch": 48,
+                "trainNLL": 0.004512962885200977,
+                "selectionNLL": 0.9290705323219299
+              },
+              {
+                "epoch": 49,
+                "trainNLL": 0.004736143164336681,
+                "selectionNLL": 0.9396229982376099
+              },
+              {
+                "epoch": 50,
+                "trainNLL": 0.004509372636675835,
+                "selectionNLL": 0.949883222579956
+              },
+              {
+                "epoch": 51,
+                "trainNLL": 0.0030882717110216618,
+                "selectionNLL": 0.9597877264022827
+              },
+              {
+                "epoch": 52,
+                "trainNLL": 0.0030408413149416447,
+                "selectionNLL": 0.9697825908660889
+              },
+              {
+                "epoch": 53,
+                "trainNLL": 0.002726115984842181,
+                "selectionNLL": 0.9796103239059448
+              },
+              {
+                "epoch": 54,
+                "trainNLL": 0.00373424612917006,
+                "selectionNLL": 0.9898539781570435
+              },
+              {
+                "epoch": 55,
+                "trainNLL": 0.006628788076341152,
+                "selectionNLL": 0.9997832775115967
+              },
+              {
+                "epoch": 56,
+                "trainNLL": 0.0030763212125748396,
+                "selectionNLL": 1.0098762512207031
+              },
+              {
+                "epoch": 57,
+                "trainNLL": 0.005466648377478123,
+                "selectionNLL": 1.0195115804672241
+              },
+              {
+                "epoch": 58,
+                "trainNLL": 0.003204826032742858,
+                "selectionNLL": 1.0283091068267822
+              },
+              {
+                "epoch": 59,
+                "trainNLL": 0.0030175969004631042,
+                "selectionNLL": 1.0365424156188965
+              },
+              {
+                "epoch": 60,
+                "trainNLL": 0.004724804311990738,
+                "selectionNLL": 1.044424295425415
+              },
+              {
+                "epoch": 61,
+                "trainNLL": 0.004197971895337105,
+                "selectionNLL": 1.0520460605621338
+              },
+              {
+                "epoch": 62,
+                "trainNLL": 0.0018164407229050994,
+                "selectionNLL": 1.059342622756958
+              }
+            ],
+            "metrics": {
+              "selection": {
+                "raw": {
+                  "positive": 45,
+                  "negative": 34,
+                  "truePositive": 30,
+                  "falsePositive": 0,
+                  "trueNegative": 34,
+                  "falseNegative": 15,
+                  "nll": 0.3743404448032379,
+                  "brier": 0.12538224458694458
+                },
+                "calibrated": {
+                  "positive": 45,
+                  "negative": 34,
+                  "truePositive": 34,
+                  "falsePositive": 2,
+                  "trueNegative": 32,
+                  "falseNegative": 11,
+                  "nll": 0.4214310050010681,
+                  "brier": 0.1456199288368225
+                }
+              },
+              "calibration": {
+                "raw": {
+                  "positive": 36,
+                  "negative": 21,
+                  "truePositive": 17,
+                  "falsePositive": 0,
+                  "trueNegative": 21,
+                  "falseNegative": 19,
+                  "nll": 0.6552872061729431,
+                  "brier": 0.20167256891727448
+                },
+                "calibrated": {
+                  "positive": 36,
+                  "negative": 21,
+                  "truePositive": 18,
+                  "falsePositive": 0,
+                  "trueNegative": 21,
+                  "falseNegative": 18,
+                  "nll": 0.407622367143631,
+                  "brier": 0.13436251878738403
+                }
+              }
+            },
+            "proposedSlope": 0.6802612543106079,
+            "proposedBias": 1.1025185585021973,
+            "calibrationGuard": {
+              "slope": 0.6802612543106079,
+              "bias": 1.1025185585021973,
+              "rejected": false,
+              "rawFalseAccepts": 0,
+              "proposedFalseAccepts": 0,
+              "reason": "No increase in reviewed calibration-negative false accepts"
+            }
+          },
+          {
+            "head": "contact",
+            "bestEpoch": 3,
+            "selectionNLL": 0.4666786193847656,
+            "slope": 1.0,
+            "bias": 0.0,
+            "history": [
+              {
+                "epoch": 1,
+                "trainNLL": 0.6995973587036133,
+                "selectionNLL": 0.5404525995254517
+              },
+              {
+                "epoch": 2,
+                "trainNLL": 0.5242719650268555,
+                "selectionNLL": 0.48047977685928345
+              },
+              {
+                "epoch": 3,
+                "trainNLL": 0.4675064980983734,
+                "selectionNLL": 0.4666786193847656
+              },
+              {
+                "epoch": 4,
+                "trainNLL": 0.43230271339416504,
+                "selectionNLL": 0.47241663932800293
+              },
+              {
+                "epoch": 5,
+                "trainNLL": 0.4031361937522888,
+                "selectionNLL": 0.4858701229095459
+              },
+              {
+                "epoch": 6,
+                "trainNLL": 0.3761589527130127,
+                "selectionNLL": 0.5021765232086182
+              },
+              {
+                "epoch": 7,
+                "trainNLL": 0.3464198112487793,
+                "selectionNLL": 0.5190552473068237
+              },
+              {
+                "epoch": 8,
+                "trainNLL": 0.3185777962207794,
+                "selectionNLL": 0.5365667343139648
+              },
+              {
+                "epoch": 9,
+                "trainNLL": 0.2990674674510956,
+                "selectionNLL": 0.5583042502403259
+              },
+              {
+                "epoch": 10,
+                "trainNLL": 0.267598956823349,
+                "selectionNLL": 0.5807614326477051
+              },
+              {
+                "epoch": 11,
+                "trainNLL": 0.25172239542007446,
+                "selectionNLL": 0.6029791831970215
+              },
+              {
+                "epoch": 12,
+                "trainNLL": 0.22827684879302979,
+                "selectionNLL": 0.6222164034843445
+              },
+              {
+                "epoch": 13,
+                "trainNLL": 0.2052871584892273,
+                "selectionNLL": 0.6406615972518921
+              },
+              {
+                "epoch": 14,
+                "trainNLL": 0.19523867964744568,
+                "selectionNLL": 0.6592695713043213
+              },
+              {
+                "epoch": 15,
+                "trainNLL": 0.16692064702510834,
+                "selectionNLL": 0.6829037070274353
+              },
+              {
+                "epoch": 16,
+                "trainNLL": 0.14814215898513794,
+                "selectionNLL": 0.7120508551597595
+              },
+              {
+                "epoch": 17,
+                "trainNLL": 0.13552182912826538,
+                "selectionNLL": 0.7553327679634094
+              },
+              {
+                "epoch": 18,
+                "trainNLL": 0.11215953528881073,
+                "selectionNLL": 0.8161487579345703
+              },
+              {
+                "epoch": 19,
+                "trainNLL": 0.10235285758972168,
+                "selectionNLL": 0.8862357139587402
+              },
+              {
+                "epoch": 20,
+                "trainNLL": 0.08836723864078522,
+                "selectionNLL": 0.9741368293762207
+              },
+              {
+                "epoch": 21,
+                "trainNLL": 0.07820452749729156,
+                "selectionNLL": 1.072148084640503
+              },
+              {
+                "epoch": 22,
+                "trainNLL": 0.06652842462062836,
+                "selectionNLL": 1.1775240898132324
+              },
+              {
+                "epoch": 23,
+                "trainNLL": 0.06337731331586838,
+                "selectionNLL": 1.289268970489502
+              },
+              {
+                "epoch": 24,
+                "trainNLL": 0.04794320464134216,
+                "selectionNLL": 1.394010066986084
+              },
+              {
+                "epoch": 25,
+                "trainNLL": 0.04702840745449066,
+                "selectionNLL": 1.4956974983215332
+              },
+              {
+                "epoch": 26,
+                "trainNLL": 0.041480597108602524,
+                "selectionNLL": 1.5782090425491333
+              },
+              {
+                "epoch": 27,
+                "trainNLL": 0.03301325812935829,
+                "selectionNLL": 1.647130012512207
+              },
+              {
+                "epoch": 28,
+                "trainNLL": 0.03354011848568916,
+                "selectionNLL": 1.6969058513641357
+              },
+              {
+                "epoch": 29,
+                "trainNLL": 0.02549072541296482,
+                "selectionNLL": 1.741507887840271
+              },
+              {
+                "epoch": 30,
+                "trainNLL": 0.0285709910094738,
+                "selectionNLL": 1.7715986967086792
+              },
+              {
+                "epoch": 31,
+                "trainNLL": 0.023146148771047592,
+                "selectionNLL": 1.7994983196258545
+              },
+              {
+                "epoch": 32,
+                "trainNLL": 0.022425858303904533,
+                "selectionNLL": 1.8120503425598145
+              },
+              {
+                "epoch": 33,
+                "trainNLL": 0.016146821901202202,
+                "selectionNLL": 1.8067699670791626
+              },
+              {
+                "epoch": 34,
+                "trainNLL": 0.014493189752101898,
+                "selectionNLL": 1.8151509761810303
+              },
+              {
+                "epoch": 35,
+                "trainNLL": 0.011744738556444645,
+                "selectionNLL": 1.8362290859222412
+              },
+              {
+                "epoch": 36,
+                "trainNLL": 0.011729253455996513,
+                "selectionNLL": 1.8662221431732178
+              },
+              {
+                "epoch": 37,
+                "trainNLL": 0.013125010766088963,
+                "selectionNLL": 1.9154553413391113
+              },
+              {
+                "epoch": 38,
+                "trainNLL": 0.010211264714598656,
+                "selectionNLL": 1.9759600162506104
+              },
+              {
+                "epoch": 39,
+                "trainNLL": 0.0068784551694989204,
+                "selectionNLL": 2.0426526069641113
+              },
+              {
+                "epoch": 40,
+                "trainNLL": 0.011646323837339878,
+                "selectionNLL": 2.1143646240234375
+              },
+              {
+                "epoch": 41,
+                "trainNLL": 0.0056106820702552795,
+                "selectionNLL": 2.1860194206237793
+              },
+              {
+                "epoch": 42,
+                "trainNLL": 0.004511705134063959,
+                "selectionNLL": 2.2539210319519043
+              },
+              {
+                "epoch": 43,
+                "trainNLL": 0.007696317508816719,
+                "selectionNLL": 2.3157060146331787
+              },
+              {
+                "epoch": 44,
+                "trainNLL": 0.005886662285774946,
+                "selectionNLL": 2.364290952682495
+              },
+              {
+                "epoch": 45,
+                "trainNLL": 0.0057761152274906635,
+                "selectionNLL": 2.395599365234375
+              },
+              {
+                "epoch": 46,
+                "trainNLL": 0.004708040971308947,
+                "selectionNLL": 2.4260382652282715
+              },
+              {
+                "epoch": 47,
+                "trainNLL": 0.005095591768622398,
+                "selectionNLL": 2.447685956954956
+              },
+              {
+                "epoch": 48,
+                "trainNLL": 0.008144013583660126,
+                "selectionNLL": 2.460747718811035
+              },
+              {
+                "epoch": 49,
+                "trainNLL": 0.003922265488654375,
+                "selectionNLL": 2.4682488441467285
+              },
+              {
+                "epoch": 50,
+                "trainNLL": 0.0037630938459187746,
+                "selectionNLL": 2.4767045974731445
+              },
+              {
+                "epoch": 51,
+                "trainNLL": 0.004864147864282131,
+                "selectionNLL": 2.4868128299713135
+              },
+              {
+                "epoch": 52,
+                "trainNLL": 0.002963363192975521,
+                "selectionNLL": 2.4944915771484375
+              },
+              {
+                "epoch": 53,
+                "trainNLL": 0.004115503281354904,
+                "selectionNLL": 2.4976871013641357
+              }
+            ],
+            "metrics": {
+              "selection": {
+                "raw": {
+                  "positive": 67,
+                  "negative": 12,
+                  "truePositive": 14,
+                  "falsePositive": 0,
+                  "trueNegative": 12,
+                  "falseNegative": 53,
+                  "nll": 0.5077161192893982,
+                  "brier": 0.16834041476249695
+                },
+                "calibrated": {
+                  "positive": 67,
+                  "negative": 12,
+                  "truePositive": 67,
+                  "falsePositive": 12,
+                  "trueNegative": 0,
+                  "falseNegative": 0,
+                  "nll": 0.42607381939888,
+                  "brier": 0.1288478523492813
+                }
+              },
+              "calibration": {
+                "raw": {
+                  "positive": 52,
+                  "negative": 2,
+                  "truePositive": 9,
+                  "falsePositive": 0,
+                  "trueNegative": 2,
+                  "falseNegative": 43,
+                  "nll": 1.1946234703063965,
+                  "brier": 0.4062936007976532
+                },
+                "calibrated": {
+                  "positive": 52,
+                  "negative": 2,
+                  "truePositive": 9,
+                  "falsePositive": 0,
+                  "trueNegative": 2,
+                  "falseNegative": 43,
+                  "nll": 1.1946234703063965,
+                  "brier": 0.4062936007976532
+                }
+              }
+            },
+            "proposedSlope": 5.235490618815675e-08,
+            "proposedBias": 1.6835401058197021,
+            "calibrationGuard": {
+              "slope": 1.0,
+              "bias": 0.0,
+              "rejected": true,
+              "rawFalseAccepts": 0,
+              "proposedFalseAccepts": 2,
+              "reason": "Affine calibration increases false accepts on reviewed calibration negatives"
+            }
+          }
+        ],
+        "modelSHA256": "18f24e054aefb5eaca2739b7f7000fc55db541f3fa519cb76f1a7656c6c1035a",
+        "originalCandidateReceiptSHA256": "1eb2d93f9332a5f0219d2b8f75f1bdb1a7619852e78cee963d997d69a1b726ff"
+      }
+    },
+    "modelSHA256": "18f24e054aefb5eaca2739b7f7000fc55db541f3fa519cb76f1a7656c6c1035a",
+    "weightsSHA256": "2875215808ab7becfda48ed40bfaab9c016484fe962eb52d92b15ea4c77e6fdb",
+    "baseWeightsSHA256": "ac6c1dc3a4b7fb46f9be020ecc23f80741b30347ca61c87e3ae02c1580b07af8",
+    "protocolSHA256": "71e8c4abc5bc71fa7f360514d9b5f4e5b8563bf068bd081a80ee5195c5d29769",
+    "scriptSHA256": "0beeb73f582498e6587645e3d001604840631e6e553c460333164094ec70af4c",
+    "fittingSHA256": "4c9819180739ff22b2f7d532fbf7e8009cbfb463d618e6eabb12e839ccca8550",
+    "reviewSHA256": "37d6a51d5c12ff552db6893fda32010c0a0c69479e24b53d5710cff0aec51ea5",
+    "qualityRoles": {
+      "train": {
+        "crops": 526,
+        "groups": [
+          "gymkee:ckdpq4q1g002bfo488d871c7t:male",
+          "recording:da6b98074bad56ca285f08dfbf973e040b425bfde03952637f35f14b149ee83f",
+          "youtube:-yQUE1H_Hn0",
+          "youtube:0WzFqH4CPzI",
+          "youtube:0afhqysgAUE",
+          "youtube:1HibOxpJqQY",
+          "youtube:1cZ2I-8DR-Q",
+          "youtube:24Axf8dFQ0w",
+          "youtube:3-XiWZ5ONLA",
+          "youtube:3GtoTP6A9QY",
+          "youtube:4x9C-ZyHCzk",
+          "youtube:6cDE1YpzSaE",
+          "youtube:6kpsQxO-Vo0",
+          "youtube:7XMkg_cfbB8",
+          "youtube:8Wa_io1X4RA",
+          "youtube:9JQRe4GZXG8",
+          "youtube:9VHz73p7Gfo",
+          "youtube:9WvH8at_xJw",
+          "youtube:9_5z5PSAZYA",
+          "youtube:Ace4EsUWyYc",
+          "youtube:AjmI_Z4evMI",
+          "youtube:AvS-tDkwNTc",
+          "youtube:BrtUG9jAsJI",
+          "youtube:CgWZGGXYwLE",
+          "youtube:FYxB-Nxml-o",
+          "youtube:Fndz1dG5y54",
+          "youtube:GBNGV08S_m0",
+          "youtube:GQOf4jHJ4fs",
+          "youtube:GcuZO6jZhw0",
+          "youtube:HQJUZqpjHBM",
+          "youtube:HVDH5xfTIFw",
+          "youtube:IUSiAeljSwo",
+          "youtube:LslQbHZ1rRw",
+          "youtube:LxkdL0tGGxE",
+          "youtube:M4EjEpCwpnM",
+          "youtube:M8kUj0r6sMA",
+          "youtube:NFcwjLi-rJI",
+          "youtube:NKT4ylACJnI",
+          "youtube:O-q0UK1CV-M",
+          "youtube:O4MXIrHhqZo",
+          "youtube:OZJD5fKVE1Y",
+          "youtube:OhUyM53Y_74",
+          "youtube:P8Hg-rCJwDY",
+          "youtube:QSoCJSTW1qE",
+          "youtube:QjS3pU47foY",
+          "youtube:SIAHCQ15a3k",
+          "youtube:SluqGShKncc",
+          "youtube:T5fWYIZiW4A",
+          "youtube:TIZ4oTuiUog",
+          "youtube:TindOf7zyXM",
+          "youtube:TrNX8Mh9l1M",
+          "youtube:UGFRvAB22fg",
+          "youtube:VCPfhtGcqyM",
+          "youtube:VLQZyNKdnJI",
+          "youtube:VXvnQ6vnSTQ",
+          "youtube:Vq7BKfn8PIQ",
+          "youtube:WT-ADjiRB2Y",
+          "youtube:WaGRDOkXveE",
+          "youtube:XFBNb_egCr8",
+          "youtube:XadhprrLPAw",
+          "youtube:YVVns1LhKnM",
+          "youtube:ZyBUAy8auRY",
+          "youtube:_65iwGkdm70",
+          "youtube:_KtitR_vvo0",
+          "youtube:a3rmxPm_49Q",
+          "youtube:a8uEZjGD0A8",
+          "youtube:bAEua0zu_74",
+          "youtube:bqwuhXMz228",
+          "youtube:cXFmE9k0Nik",
+          "youtube:cptVIr4OJx8",
+          "youtube:cvcuLaZeG2A",
+          "youtube:d8RA0_YBltQ",
+          "youtube:eMRW1vKyy9o",
+          "youtube:et1utOz1hZE",
+          "youtube:f7doRCZCwIc",
+          "youtube:fqv0D25vbp0",
+          "youtube:fsQ-POpiemc",
+          "youtube:gh77V08SQ34",
+          "youtube:hKX6CteXJUQ",
+          "youtube:hTBnrRl2UAs",
+          "youtube:iKKkKrJNDTs",
+          "youtube:ihFKM9w92MY",
+          "youtube:lTUoHbXpx5Y",
+          "youtube:lX-Ao8Qubqw",
+          "youtube:loyzYXc1olk",
+          "youtube:m0LSPTMkrc8",
+          "youtube:mNRUKvspyok",
+          "youtube:mkSvldU_VUw",
+          "youtube:mtRa0mcuAP0",
+          "youtube:o7rlgUGju1Y",
+          "youtube:oY1EO_43EV4",
+          "youtube:pGkJwIImUTc",
+          "youtube:pSMJrEOFJwU",
+          "youtube:q59-ruT-vPA",
+          "youtube:qDdiDk4BkNA",
+          "youtube:qi8yifwu2rg",
+          "youtube:r5k1vrqzhNc",
+          "youtube:rXKhJeF0HlU",
+          "youtube:reAv60s7fqY",
+          "youtube:rfnTdizkBcY",
+          "youtube:s59PqZ9TTq0",
+          "youtube:sBrsZ8VITLc",
+          "youtube:smgEjkcIvq8",
+          "youtube:smgLQZ4_zD8",
+          "youtube:t9BsmQIAFvk",
+          "youtube:tMEuzebW8gQ",
+          "youtube:tSs1fVXMuPA",
+          "youtube:tgH6YDosvEo",
+          "youtube:ud9cWaLSzbs",
+          "youtube:uygZMTrO5J0",
+          "youtube:vH8bQkOEjuo",
+          "youtube:wWRoIIKdu0g",
+          "youtube:x4UyaNoQJU4",
+          "youtube:xJHurF-EZp8",
+          "youtube:yLVMDD7b0xM",
+          "youtube:yLe2apbmnjY",
+          "youtube:yQ2GWCiLOsg",
+          "youtube:ySSh9x1X458",
+          "youtube:y_nbkwFR5AU",
+          "youtube:yhCVQxpnM30",
+          "youtube:z-5bAAt5omo",
+          "youtube:zVms_bNSnDs"
+        ]
+      },
+      "selection": {
+        "crops": 79,
+        "groups": [
+          "youtube:-GDrlYxrEQo",
+          "youtube:1urwXgykJAA",
+          "youtube:73WUetd7mMg",
+          "youtube:LUlt4tPj5SQ",
+          "youtube:NvqLMRadijE",
+          "youtube:SV3NlbJMZNI",
+          "youtube:T5eqqBOQcGQ",
+          "youtube:TKbunGZ4BNw",
+          "youtube:VivTP-k7QMM",
+          "youtube:akgqUO4MnOA",
+          "youtube:cvc8HN__fxU",
+          "youtube:iD7kdQqttXI",
+          "youtube:oSyUsQqHkmE",
+          "youtube:qdZgJXInPDI",
+          "youtube:w5f9DVGjYhQ"
+        ]
+      },
+      "calibration": {
+        "crops": 57,
+        "groups": [
+          "youtube:0s2L_EWqGgk",
+          "youtube:2p19BDth7Zc",
+          "youtube:9ohUOUjnb_c",
+          "youtube:DrPWsVUOXOI",
+          "youtube:NwTo6r8853k",
+          "youtube:S3jzFktsnwE",
+          "youtube:WSV8tsY6eJM",
+          "youtube:ZvkHAS7aJO8",
+          "youtube:f2MOPqH4wrY",
+          "youtube:iKIKRztPIpQ",
+          "youtube:jC4O7gWJjPk",
+          "youtube:kGDIhlrBW0M",
+          "youtube:rALdr8g6LUI",
+          "youtube:sm_CjfH0U0A"
+        ]
+      }
+    },
+    "thresholds": {
+      "surface": 0.8,
+      "visible": 0.8,
+      "contact": 0.8
+    },
+    "qualification": "Frozen appearance encoder/head; quality-only retraining and calibration. No test inputs used for fitting or selection; no phone deployment.",
+    "finalizationScriptSHA256": "2133868460107bc71218d59c08a13eac99bdba85dbe106718ebe630c8ae6ee2f",
+    "originalTrainingScriptSHA256": "6bb30e19725fd0aec1410a4446dc6b318a7fc6be17367a0bb96589266e0efaef",
+    "calibrationGuardFinalization": "Identical trained parameters and original validation-only selection; rejected unsafe contact affine mapping. Only slope/bias export buffers may change. No test hand images opened before this finalization."
+  },
+  "comparison": {
+    "regression": {
+      "qualification": "Appearance unchanged; quality-only repair. Old holdout is regression evidence; new reserve previously unscored. Two agent crop-review passes, not independent human gold labels.",
+      "inputSHA256": "ab841b14165d1419905db25815ffdfa76140254862c6f0a7bfcd0c5bb733818c",
+      "reviewSHA256": "9ac8097e36d556e542a20f6bf7aa0c4cb605854b8356336279e3f06be59de0e4",
+      "modelSHA256": "18f24e054aefb5eaca2739b7f7000fc55db541f3fa519cb76f1a7656c6c1035a",
+      "baselineSHA256": "cceacf786d77506fcd1a6f866abd0182e657c4f8b1c98608027809f2cfe12301",
+      "freezeSHA256": "80e3dc493b9172ca0d0963e12fac5e32a9f7f749332c44ee842739e93a6d4b62",
+      "scriptSHA256": "3167e01aa1863ab7e7380ff648d3a15bf6ccc46a4d7a442a9fb8f194e6921fa3",
+      "thresholds": {
+        "surface": 0.8,
+        "visible": 0.8,
+        "contact": 0.8
+      },
+      "population": {
+        "videos": 32,
+        "frames": 109,
+        "handSlots": 218,
+        "crops": 151
+      },
+      "metrics": {
+        "previous": {
+          "visibility": {
+            "falseNegative": 107,
+            "trueNegative": 44
+          },
+          "contact": {
+            "falseNegative": 134,
+            "trueNegative": 9,
+            "truePositive": 8
+          },
+          "appearanceGate": {
+            "crops": 151,
+            "known": 107,
+            "rawCorrect": 64,
+            "rejected": 151
+          },
+          "fullQualityGate": {
+            "crops": 151,
+            "known": 107,
+            "rawCorrect": 64,
+            "rejected": 151
+          }
+        },
+        "new": {
+          "visibility": {
+            "truePositive": 64,
+            "trueNegative": 32,
+            "falseNegative": 43,
+            "falsePositive": 12
+          },
+          "contact": {
+            "falseNegative": 109,
+            "truePositive": 33,
+            "trueNegative": 9
+          },
+          "appearanceGate": {
+            "crops": 151,
+            "known": 107,
+            "rawCorrect": 64,
+            "rejected": 110,
+            "accepted": 41,
+            "acceptedCorrect": 29,
+            "acceptedNonContact": 0,
+            "acceptedIdentityUnverified": 0,
+            "acceptedUsableCorrect": 29,
+            "acceptedUnverifiable": 8,
+            "acceptedUnsafe": 12,
+            "acceptedWrong": 4
+          },
+          "fullQualityGate": {
+            "crops": 151,
+            "known": 107,
+            "rawCorrect": 64,
+            "rejected": 129,
+            "accepted": 22,
+            "acceptedCorrect": 20,
+            "acceptedNonContact": 0,
+            "acceptedIdentityUnverified": 0,
+            "acceptedUsableCorrect": 20,
+            "acceptedWrong": 2,
+            "acceptedUnsafe": 2
+          }
+        }
+      },
+      "missingStatus": {
+        "noRaisedHandsAthlete": 62,
+        "wristUnavailable": 3,
+        "acquiringAthlete": 2
+      },
+      "anatomicalMaximumDifference": 0.0,
+      "eagerExportMaximumDifference": 0.0
+    },
+    "fresh": {
+      "qualification": "Appearance unchanged; quality-only repair. Old holdout is regression evidence; new reserve previously unscored. Two agent crop-review passes, not independent human gold labels.",
+      "inputSHA256": "d085506232fced5a4514d29f05627fed316f5341e003112663decc20864acad0",
+      "reviewSHA256": "03cf1b34b085ee70bfa9472df403eaae1f3abd7b74e45da16c166c4de79b1c10",
+      "modelSHA256": "18f24e054aefb5eaca2739b7f7000fc55db541f3fa519cb76f1a7656c6c1035a",
+      "baselineSHA256": "cceacf786d77506fcd1a6f866abd0182e657c4f8b1c98608027809f2cfe12301",
+      "freezeSHA256": "80e3dc493b9172ca0d0963e12fac5e32a9f7f749332c44ee842739e93a6d4b62",
+      "scriptSHA256": "3167e01aa1863ab7e7380ff648d3a15bf6ccc46a4d7a442a9fb8f194e6921fa3",
+      "thresholds": {
+        "surface": 0.8,
+        "visible": 0.8,
+        "contact": 0.8
+      },
+      "population": {
+        "videos": 16,
+        "frames": 59,
+        "handSlots": 118,
+        "crops": 88
+      },
+      "metrics": {
+        "previous": {
+          "visibility": {
+            "trueNegative": 66,
+            "falseNegative": 22
+          },
+          "contact": {
+            "falseNegative": 72,
+            "trueNegative": 12,
+            "masked": 4
+          },
+          "appearanceGate": {
+            "crops": 88,
+            "known": 22,
+            "rawCorrect": 10,
+            "rejected": 88
+          },
+          "fullQualityGate": {
+            "crops": 88,
+            "known": 22,
+            "rawCorrect": 10,
+            "rejected": 88
+          }
+        },
+        "new": {
+          "visibility": {
+            "trueNegative": 63,
+            "truePositive": 11,
+            "falsePositive": 3,
+            "falseNegative": 11
+          },
+          "contact": {
+            "falseNegative": 69,
+            "trueNegative": 12,
+            "truePositive": 3,
+            "masked": 4
+          },
+          "appearanceGate": {
+            "crops": 88,
+            "known": 22,
+            "rawCorrect": 10,
+            "rejected": 82,
+            "accepted": 6,
+            "acceptedWrong": 3,
+            "acceptedNonContact": 0,
+            "acceptedIdentityUnverified": 0,
+            "acceptedUnsafe": 3,
+            "acceptedCorrect": 3,
+            "acceptedUsableCorrect": 3
+          },
+          "fullQualityGate": {
+            "crops": 88,
+            "known": 22,
+            "rawCorrect": 10,
+            "rejected": 86,
+            "accepted": 2,
+            "acceptedCorrect": 2,
+            "acceptedNonContact": 0,
+            "acceptedIdentityUnverified": 0,
+            "acceptedUsableCorrect": 2
+          }
+        }
+      },
+      "missingStatus": {
+        "noRaisedHandsAthlete": 28,
+        "acquiringAthlete": 2
+      },
+      "anatomicalMaximumDifference": 0.0,
+      "eagerExportMaximumDifference": 0.0
+    }
+  },
+  "audit": {
+    "unchangedFreezePins": 17,
+    "unchangedAppearanceStateTensors": 255,
+    "guardOnlyChangesCalibrationBuffers": true,
+    "pixelChecks": {
+      "regression": {
+        "frames": 109,
+        "handCrops": 151
+      },
+      "fresh": {
+        "frames": 59,
+        "handCrops": 88
+      }
+    },
+    "populationBySurface": {
+      "regression": {
+        "side": 37,
+        "unclear": 44,
+        "dorsum": 54,
+        "palm": 16
+      },
+      "fresh": {
+        "unclear": 66,
+        "dorsum": 11,
+        "palm": 7,
+        "side": 4
+      }
+    },
+    "acceptedSourceCounts": {
+      "regression": {
+        "crops": 22,
+        "videos": 8
+      },
+      "fresh": {
+        "crops": 2,
+        "videos": 1
+      }
+    }
+  },
+  "tests": {
+    "pythonCount": 425,
+    "pythonPassed": true,
+    "logSHA256": "1bc5b32a58e4274be512fb78f4d4df8c67fe8eeff7018d67d9769808963e024b",
+    "diffCheckPassed": true,
+    "sharedPlannerExportPassed": true,
+    "sharedPlannerLogSHA256": "9b342533a230becb5e51513e50cb706b6ee00b740ab0f55fcdeb5086e2d0118a"
+  },
+  "storage": {
+    "cleanupReceiptSHA256": "0e953eab8646d4be80e88b4b40ecf0ae2e507ec6e52871bb3f00b58a2f771d92",
+    "removedFrameBytes": 193633826,
+    "removedFrames": 492,
+    "preservedFreshFrames": 59,
+    "compilerInspection": {
+      "mode": "inspection",
+      "caches": [],
+      "estimatedCacheBytes": 0,
+      "freeBytesBefore": 136396800000,
+      "freeBytesAfter": 136396800000,
+      "freeBytesChange": 0
+    }
+  },
+  "reviewBindings": {
+    "build/grip-quality-v3/fresh-first-review-notes.json": "8189f88d6045b6063b8d27dd7d840bc43d5fbd3fd4a207ac993d32e926d51476",
+    "build/grip-quality-v3/fresh-second-review-notes.json": "c8fc5ed26167a178ab24ad9e48e69aa09db0e0da374562ed0dda4fab32b711de",
+    "Evaluation/fixtures/grip-quality-test-patches-v3.json": "03cf1b34b085ee70bfa9472df403eaae1f3abd7b74e45da16c166c4de79b1c10"
+  },
+  "document": "docs/workout/GRIP_QUALITY_GATE_REPAIR_V3.md",
+  "examples": "build/grip-quality-v3/examples.png"
+}

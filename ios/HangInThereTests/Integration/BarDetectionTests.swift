@@ -3,7 +3,7 @@ import CoreGraphics
 import Testing
 @testable import HangInThere
 
-// Real Apple contour requests on original analytic pixels, independent of the
+// Real native contour requests on original analytic pixels, independent of the
 // human-pose model and its known simulator asset failure. Not real-bar accuracy.
 @Suite struct BarDetectionTests {
     @Test func shortHandleExtractionUsesRequestedObservedLength() async throws {
@@ -25,7 +25,9 @@ import Testing
         }
         let region = BarRegion(Point2D(x:40,y:60),Point2D(x:600,y:160))
         let candidates = try await VisionBarDetector().detect(image:image,region:region)
-        let candidate = try #require(candidates.first)
+        // Geometry-score order is not an upper-silhouette classification.
+        // Both sides of the tube remain valid observed candidates.
+        let candidate = try #require(candidates.first { abs($0.edge.midpoint.y-95) < 4 })
         #expect(abs(candidate.edge.midpoint.y-95) < 4)
         #expect(candidate.edge.length > 440)
     }
@@ -35,7 +37,9 @@ import Testing
         }
         let candidates = try await VisionBarDetector().detect(image:image,
             region:BarRegion(Point2D(x:50,y:50),Point2D(x:600,y:230)))
-        let candidate = try #require(candidates.first)
+        let candidate = try #require(candidates.first {
+            abs($0.edge.midpoint.y - (65+0.2*$0.edge.midpoint.x)) < 4
+        })
         #expect(abs(candidate.edge.midpoint.y - (65+0.2*candidate.edge.midpoint.x)) < 4)
         #expect(candidate.edge.length > 420)
     }
@@ -53,7 +57,7 @@ import Testing
         }
         let candidates = try await VisionBarDetector().detect(image:image,
             region:BarRegion(Point2D(x:40,y:60),Point2D(x:600,y:160)))
-        let edge = try #require(candidates.first?.edge)
+        let edge = try #require(candidates.first { abs($0.edge.midpoint.y-95) < 4 }?.edge)
         #expect(edge.a.x >= 75 && edge.a.x <= 85)
         #expect(edge.b.x >= 545 && edge.b.x <= 555)
         #expect(abs(edge.midpoint.y-95) < 4)
@@ -62,6 +66,20 @@ import Testing
         let image = try makeImage(width:160,height:100) { _,_ in false }
         #expect(try await VisionBarDetector().detect(image:image,
             region:BarRegion(Point2D(x:10,y:10),Point2D(x:150,y:90))).isEmpty)
+    }
+    @Test func automaticAssociationChoosesUpperObservedSilhouetteIndependentlyOfRanking() async throws {
+        let image = try makeImage(width:640,height:720) { x,y in
+            (80...550).contains(x) && (95...107).contains(y)
+        }
+        let region = BarRegion(.init(x:40,y:60),.init(x:600,y:160))
+        let candidates = try await VisionBarDetector().detect(image:image,region:region)
+        let grip = AutomaticPullUpBar.Grip(left:.init(x:200,y:116),right:.init(x:440,y:116),region:region)
+        for input in [candidates,Array(candidates.reversed())] {
+            let edge = try #require(AutomaticPullUpBar.select(candidates:input,grip:grip,
+                size:.init(width:640,height:720)))
+            #expect(abs(edge.midpoint.y-95) < 4)
+            #expect(edge.length > 440)
+        }
     }
     @Test func lowLightTexturedBackgroundStillPreservesObservedBarEdge() async throws {
         let width = 640, height = 360

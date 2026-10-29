@@ -1,0 +1,10 @@
+# Local training/extraction only; not an app dependency.
+# 1.0.1 crashes in its host Metal calculator on this Mac, including CPU mode.
+mediapipe==0.10.32
+numpy==2.3.5
+Pillow==12.3.0
+# Pixel classifier training/export (not runtime app dependencies).
+torch==2.9.0
+torchvision==0.24.0
+coremltools==9.0
+remotezip==0.12.3

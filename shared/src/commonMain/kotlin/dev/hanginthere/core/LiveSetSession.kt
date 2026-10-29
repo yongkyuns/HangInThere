@@ -18,7 +18,7 @@ class LiveSetSession {
     private var imageSize:ImageSize?=null
     private var reference:BarSegment?=null
     private var trackedAtEpochMilliseconds:Long?=null
-    val record get()=WorkoutSetRecord(setId,exercise,firstSourceSeconds,lastSourceSeconds,endReason?.name ?: "running",analysis.records,backend,modelRevision,trackingSide=side,imageSize=imageSize,referenceEdge=reference,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds,activity=analysis.activity,grip=analysis.gripRecord)
+    val record get()=WorkoutSetRecord(setId,exercise,firstSourceSeconds,lastSourceSeconds,endReason?.name ?: "running",analysis.records,backend,modelRevision,trackingSide=side,imageSize=imageSize,referenceEdge=reference,trackedAtEpochMilliseconds=trackedAtEpochMilliseconds,activity=analysis.activity,grip=analysis.gripRecord,boundaryPolicyVersion=WorkoutLifecycle.boundaryPolicyVersion)
     val draftDelta get()=if(record.hasPractice || analysis.activeRecord != null) record.copy(reps=listOfNotNull(analysis.activeRecord ?: analysis.records.lastOrNull()),activity=analysis.activityDelta,grip=analysis.gripDelta) else null
     var phase=Phase.idle;private set
     var endReason:EndReason?=null;private set

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlin.math.*
 
 /**
- * Policy v8 provisional movement counter. All time is source presentation time.
+ * Policy v9 provisional movement counter. All time is source presentation time.
  * Pull-ups retain each usable arm's hang baseline. Dips use a fixed retained grip
  * and frozen grip-to-shoulder axis, never the rail silhouette's direction.
  * This class is confined to one analysis owner; no camera/UI or form decisions.
@@ -33,7 +33,9 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
         val interruptedAttempts: Int, val trackingIssue: String? = null, val formVerification: String,
     )
     companion object {
-        const val policyVersion = 8
+        // v9 also prevents analytics completing a pull-up after positive hand
+        // release while the independent automatic set boundary is confirming it.
+        const val policyVersion = 9
         const val extendedDegrees = 155.0
         const val departureDegrees = 140.0
         const val bentDegrees = 100.0

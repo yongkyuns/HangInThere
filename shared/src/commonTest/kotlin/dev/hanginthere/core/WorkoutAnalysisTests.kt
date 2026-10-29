@@ -243,6 +243,21 @@ class WorkoutAnalysisTests {
 }
 
 class WorkoutSourceTimelineTests {
+    @Test fun boundaryPolicyProvenanceSurvivesSummaryAndCannotChangeInsideASet() {
+        val session=LiveSetSession();session.start(ExerciseCounter.Exercise.pullUp,ArmMeasurement.Side.left)
+        session.consume(CounterFixtures.bilateral(0.0,170.0,170.0),CounterFixtures.edge)
+        session.finish()
+        val record=session.record
+        assertEquals(2,record.boundaryPolicyVersion)
+        assertEquals(2,WorkoutRecordCodec.summary(record).boundaryPolicyVersion)
+        WorkoutLibrary.validate(WorkoutLibraryState(entries=listOf(WorkoutLibraryEntry(WorkoutLibrary.compact(record)))))
+        val raw=WorkoutRecordCodec.json.encodeToJsonElement(WorkoutSetRecord.serializer(),record) as kotlinx.serialization.json.JsonObject
+        val legacy=WorkoutRecordCodec.json.decodeFromJsonElement(WorkoutSetRecord.serializer(),
+            kotlinx.serialization.json.JsonObject(raw.filterKeys { it!="boundaryPolicyVersion" }))
+        assertEquals(1,legacy.boundaryPolicyVersion)
+        assertFailsWith<IllegalArgumentException> { WorkoutRecordCodec.mergeDraft(legacy,record) }
+        assertFailsWith<IllegalArgumentException> { WorkoutRecordCodec.mergeDraft(null,record.copy(boundaryPolicyVersion=99)) }
+    }
     @Test fun appleBridgeInterruptionCannotRebaseBoundaryWithOlderFrames() {
         val bridge = WorkoutAnalysisBridge("bounds", "pullUp", 0)
         fun observe(time: Double, usable: Boolean): String? {
@@ -381,6 +396,105 @@ class AutomaticWorkoutIntegrationTests {
 }
 
 class WorkoutGripReleaseTests {
+    private fun overheadPose(seconds: Double, wristY: Double = 500.0): PoseResult {
+        val points=listOf(700.0,1100.0).flatMapIndexed { i,x ->
+            val joints=ArmMeasurement.Side.entries[i].joints
+            listOf(Landmark(joints[0],Point2D(x,800.0),.9),
+                Landmark(joints[1],Point2D(x+if(i==0)-20.0 else 20.0,(800+wristY)/2),.9),
+                Landmark(joints[2],Point2D(x,wristY),.9))
+        }+listOf(Landmark(PoseJoint.leftHip,Point2D(750.0,1150.0),.9),
+            Landmark(PoseJoint.rightHip,Point2D(1050.0,1150.0),.9))
+        return PoseResult(PresentationTime((seconds*1000).toLong(),1000),ImageSize(1800.0,1800.0),listOf(PoseObservation(points)),"authored",1)
+    }
+    private val overheadEdge=BarSegment(Point2D(650.0,500.0),Point2D(1150.0,500.0))
+    @Test fun witnessedOverheadHoldThenArmsDownCanFinishWithoutDonatingCameraMissingMotion() {
+        val features=WorkoutMotionFeatures();val boundary=AutomaticSetBoundary()
+        boundary.observe(features.extract(overheadPose(0.0),overheadEdge,true,ExerciseCounter.Phase.ready),true)
+        for(t in listOf(.25,.5)) {
+            val sample=features.extract(overheadPose(t,720.0),overheadEdge,true,ExerciseCounter.Phase.seekingStart)
+            assertTrue(sample.released)
+            assertNull(boundary.observe(sample,true))
+        }
+        for(t in listOf(.75,.999)) {
+            val sample=features.extract(overheadPose(t,1100.0),null,false,ExerciseCounter.Phase.seekingStart)
+            assertFalse(sample.usable);assertTrue(sample.released)
+            assertTrue(sample.postureReleased)
+            assertNull(boundary.observe(sample,true))
+        }
+        assertEquals("disengaged",boundary.observe(features.extract(overheadPose(1.0,1100.0),null,false,ExerciseCounter.Phase.seekingStart),true))
+    }
+    @Test fun missingPoseSourceGapsAndRejectedTimesCannotEarnPostureReleaseConfirmation() {
+        for(kind in listOf("missing","gap","regression")) {
+            val f=WorkoutMotionFeatures();val b=AutomaticSetBoundary()
+            b.observe(f.extract(overheadPose(0.0),overheadEdge,true,ExerciseCounter.Phase.ready),true)
+            f.extract(overheadPose(.1,720.0),overheadEdge,true,ExerciseCounter.Phase.seekingStart)
+            assertNull(b.observe(f.extract(overheadPose(.25,1100.0),null,false,ExerciseCounter.Phase.seekingStart),true))
+            if(kind=="missing")b.observe(f.extract(overheadPose(.4).copy(people=emptyList()),null,false,ExerciseCounter.Phase.seekingStart),true)
+            if(kind=="regression")b.observe(f.extract(overheadPose(.2,1100.0),null,false,ExerciseCounter.Phase.seekingStart),true)
+            val start=if(kind=="gap").75 else .5
+            // A missing body revokes departure proof. Re-observe it with a
+            // qualified reference; the unavailable interval still earns no dwell.
+            if(kind=="missing")f.extract(overheadPose(.45,720.0),overheadEdge,true,ExerciseCounter.Phase.seekingStart)
+            assertNull(b.observe(f.extract(overheadPose(start,1100.0),null,false,ExerciseCounter.Phase.seekingStart),true))
+            assertNull(b.observe(f.extract(overheadPose(start+.249,1100.0),null,false,ExerciseCounter.Phase.seekingStart),true))
+            assertEquals("disengaged",b.observe(f.extract(overheadPose(start+.25,1100.0),null,false,ExerciseCounter.Phase.seekingStart),true))
+        }
+    }
+    @Test fun armsDownWithoutAnAcquiredOverheadHoldCannotInventRelease() {
+        for(wrist in listOf(500.0,1100.0)) {
+            val f=WorkoutMotionFeatures()
+            f.extract(overheadPose(0.0,wrist),if(wrist==500.0)null else overheadEdge,true,ExerciseCounter.Phase.ready)
+            assertFalse(f.extract(overheadPose(1.0,1100.0),null,false,ExerciseCounter.Phase.seekingStart).released)
+        }
+    }
+    @Test fun hangingFlexionMissingHipOrArmAndCrowdsCannotSupplyPostureRelease() {
+        for(kind in listOf("hang","flexion","hip","hipDuplicate","arm","crowd","confidence","size","backend","revision")) {
+            val f=WorkoutMotionFeatures();f.extract(overheadPose(0.0),overheadEdge,true,ExerciseCounter.Phase.ready)
+            var p=overheadPose(1.0,if(kind=="hang")500.0 else if(kind=="flexion")700.0 else 1100.0)
+            p=when(kind) {
+                "size" -> p.copy(imageSize=ImageSize(1900.0,1800.0))
+                "backend" -> p.copy(backend="other")
+                "revision" -> p.copy(requestRevision=2)
+                "crowd" -> p.copy(people=p.people+p.people)
+                else -> p.copy(people=p.people.map { person -> person.copy(landmarks=when(kind) {
+                    "hip" -> person.landmarks.filter { it.joint!=PoseJoint.leftHip }
+                    "hipDuplicate" -> person.landmarks+person.landmarks.last()
+                    "arm" -> person.landmarks.filter { it.joint!=PoseJoint.leftWrist }
+                    "confidence" -> person.landmarks.map { if(it.joint==PoseJoint.leftHip)it.copy(confidence=.1) else it }
+                    else -> person.landmarks
+                }) })
+            }
+            assertFalse(f.extract(p,null,false,ExerciseCounter.Phase.seekingStart).released,kind)
+        }
+    }
+    @Test fun cameraLikeImageTranslationRotationAndScaleCannotTurnAHangIntoArmsDown() {
+        for(down in listOf(false,true)) {
+            val f=WorkoutMotionFeatures();f.extract(overheadPose(0.0),overheadEdge,true,ExerciseCounter.Phase.ready)
+            f.extract(overheadPose(.1,720.0),overheadEdge,true,ExerciseCounter.Phase.seekingStart)
+            val p=overheadPose(1.0,if(down)1100.0 else 500.0)
+            for(degrees in listOf(0.0,30.0,90.0,180.0)) {
+                val angle=degrees*kotlin.math.PI/180;val scale=.75
+                val moved=p.copy(people=p.people.map { person -> person.copy(landmarks=person.landmarks.map { point ->
+                    val x=point.position.x-900;val y=point.position.y-900
+                    point.copy(position=Point2D(1000+scale*(x*kotlin.math.cos(angle)-y*kotlin.math.sin(angle)),
+                        850+scale*(x*kotlin.math.sin(angle)+y*kotlin.math.cos(angle))))
+                }) })
+                assertEquals(down,f.extract(moved,null,false,ExerciseCounter.Phase.seekingStart).released)
+            }
+        }
+    }
+    @Test fun aHighPullStillHoldingTheBarCannotSupplyArmsDownRelease() {
+        val f=WorkoutMotionFeatures();f.extract(overheadPose(0.0),overheadEdge,true,ExerciseCounter.Phase.ready)
+        // Hands remain at the original bar; torso/hips are above them.
+        val high=overheadPose(1.0,1100.0).let { p -> p.copy(people=p.people.map { person ->
+            person.copy(landmarks=person.landmarks.map { point ->point.copy(position=Point2D(point.position.x,point.position.y-600)) })
+        }) }
+        assertTrue(OverheadSupportReleasePosture.matches(high,down=true))
+        assertFalse(f.extract(high,null,false,ExerciseCounter.Phase.seekingStart).released)
+        assertFalse(f.extract(high,overheadEdge,true,ExerciseCounter.Phase.seekingStart).released)
+        assertFalse(f.extract(overheadPose(1.25,1100.0),null,false,ExerciseCounter.Phase.seekingStart).released,
+            "No qualified hand-departure evidence may be invented after camera loss")
+    }
     @Test fun separateDipRailsRequireBothHandsToLeaveTheirOwnStartingGrips() {
         val features=WorkoutMotionFeatures()
         val pose=CounterFixtures.bilateral(0.0,170.0,170.0,exercise=ExerciseCounter.Exercise.dip)

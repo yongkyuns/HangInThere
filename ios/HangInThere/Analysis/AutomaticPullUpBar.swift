@@ -2,7 +2,7 @@ import Foundation
 
 // Pose supplies a search area and grip association, never the reference line.
 // Only finite edges observed by the contour detector can become a fixed bar.
-// Version 1 is a conservative controlled-camera heuristic, not a trained model.
+// Controlled-camera acquisition uses observed geometry and is not a trained model.
 struct AutomaticPullUpBar: Sendable {
     enum State: Sendable {
         case lookingForGrip, findingEdge, ambiguous, holding, locked
@@ -13,6 +13,9 @@ struct AutomaticPullUpBar: Sendable {
         let region: BarRegion
     }
     static let samplingInterval = 0.3
+    // v2 compares each wrist with the local observed line, not its midpoint.
+    static let selectionPolicyVersion = 2
+    static let gripAssessmentVersion = 2
     private(set) var state: State = .lookingForGrip
     private var stability = AutomaticReferenceStability()
     var referenceStabilityDiagnostic: AutomaticReferenceStability.Diagnostic? {
@@ -33,7 +36,8 @@ struct AutomaticPullUpBar: Sendable {
         let l = points[0], r = points[1], short = min(pose.imageSize.width, pose.imageSize.height)
         guard points[2].y - l.y > short * 0.08,
               points[3].y - r.y > short * 0.08,
-              abs(l.x - r.x) >= short * 0.12,
+              abs(l.x - r.x) >= 2 * ArmMeasurement.minimumSegmentFraction * short,
+              PullUpArmMeasurement.hasDistinctFrontRearArms(in: pose),
               abs(l.y - r.y) <= short * 0.10 else { return nil }
         let region = BarRegion(
             Point2D(x: max(0, min(l.x, r.x) - short * 0.12),
@@ -60,8 +64,10 @@ struct AutomaticPullUpBar: Sendable {
             guard value.isValid, ordered.length >= span * 0.65,
                   abs(ordered.b.y - ordered.a.y) <= (ordered.b.x - ordered.a.x) * maximumSlope else { continue }
             let nearHands = [grip.left, grip.right].allSatisfy { wrist in
-                ordered.distance(to: wrist) <= short * 0.085
-                    && ordered.midpoint.y <= wrist.y + short * 0.015
+                let signed = ((ordered.b.x-ordered.a.x)*(wrist.y-ordered.a.y)
+                    - (ordered.b.y-ordered.a.y)*(wrist.x-ordered.a.x)) / ordered.length
+                return ordered.distance(to: wrist) <= short * 0.085
+                    && signed >= -short * 0.015
             }
             if nearHands { eligible.append(ordered) }
         }

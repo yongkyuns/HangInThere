@@ -108,7 +108,7 @@ class WorkoutRuntime(selection:WorkoutExerciseSelection=WorkoutExerciseSelection
         if(session.phase==LiveSetSession.Phase.idle && selection==WorkoutExerciseSelection.automatic && replayExercise==null) {
             val previous=identity.exercise;val previousApparatus=identity.apparatusCandidate
             recoveringSetup=setupRecovery.retain(pose,previous)
-            if(!recoveringSetup) identity.observe(pose)
+            if(!recoveringSetup) identity.observe(pose, confirmedBar?.takeIf { it.role==ConfirmedBar.Role.pullUpGrip }?.referenceEdge)
             if(previousApparatus!=identity.apparatusCandidate || (previous!=null && identity.exercise==null)) {
                 activeExercise=identity.apparatusCandidate ?: activeExercise
                 clearSetup();session.reset(activeExercise,side)
@@ -261,7 +261,7 @@ object WorkoutSetupGuidance {
     fun message(issue:String):String?=when(issue) {
         "multiplePeople" -> "Show one person"
         "framingIncomplete" -> "Show both arms and hands clearly"
-        "exerciseIdentityNeeded" -> "Hold a clear hang or top support with both arms and hands visible"
+        "exerciseIdentityNeeded" -> "Keep both arms visible and your hands steady at the support"
         "barReferenceNeeded", "barReferenceUnavailable" -> "Show the gripping bar or rails beside your hands"
         "dipRailsUnclear" -> "Show the bar at both hands, or two clearly separated rails"
         "pullUpBarUnclear" -> "Change the camera angle so the gripping bar is clearly visible"

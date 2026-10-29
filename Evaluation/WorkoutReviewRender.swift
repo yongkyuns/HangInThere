@@ -12,6 +12,271 @@ import WorkoutCore
         """
         NSApplication.shared.setActivationPolicy(.prohibited)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
+        if CommandLine.arguments.contains("--set-visuals-only") { try renderSetVisuals(input); return }
+        if CommandLine.arguments.contains("--history-refresh-only") { try renderHistory(); return }
+        if CommandLine.arguments.contains("--compact-live-only") {
+            let preview = ProcessInfo.processInfo.environment["COMPACT_CAMERA_PREVIEW"].flatMap { NSImage(contentsOfFile: $0) }
+            for (width, height) in [(320.0,640.0), (393.0,852.0), (844.0,390.0)] {
+                for state in ["ready", "angle", "arms", "started"] {
+                    let running = state == "arms" || state == "started"
+                    var session = LiveSetSession()
+                    if running { session.start(exercise: .pullUp, side: .left) }
+                    let placement = LiveCameraPlacement(tiltDegrees: state == "angle" ? 45 : 0)
+                    let checklist = LiveReadinessChecklist(cameraReady: true, frameFresh: true,
+                        framing: .init(state: .ready, usesBothArms: true), exerciseTitle: "Pull-ups", armDescription: "Both measurable",
+                        barConfirmed: false, acquisition: .lookingForGrip, motionAvailable: true, phoneStable: true,
+                        sceneStable: true, startingPose: true, paused: false, handsFree: true, setupBusy: false,
+                        bodyCameraCalibrated: true, placement: placement, pullUpMotion: true)
+                    let content = LiveWorkoutOverlay(session: session, liveCompletedReps: running ? 4 : 0,
+                        showsSetStarted: state == "started", needsArmRepositioning: state == "arms",
+                        gripCaptureFeedback: .init(state: "showHands", shoulderFraction: 0.24, torsoFraction: 0.38),
+                        readiness: checklist, cameraPlacement: placement,
+                        cameraReady: true, status: "Ready", statusSymbol: "viewfinder", needsAttention: false,
+                        showsManualStart: false, canStart: true, canSwitchCamera: !running, nextCameraName: "front",
+                        isRecording: false, countdown: nil, canClose: true,
+                        onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                        .frame(width: width, height: height)
+                        .background { ZStack {
+                            Color.black
+                            if let preview { Image(nsImage: preview).resizable().scaledToFit() }
+                        } }
+                    let filename = "compact-live-\(state)-\(Int(width)).png"
+                    let text = try render(content, width: width, height: height, filename: filename).joined()
+                    let expected = state == "ready" ? "ready" : state == "angle" ? "levelphone" : state == "arms" ? "showbotharms" : "setstarted"
+                    verify(text.contains(expected), "Compact status missing", filename: filename)
+                    verify(!text.contains("startandrepsdontwaitforgrip") && !text.contains("cameratilt"),
+                        "Verbose diagnostics cover the preview", filename: filename)
+                }
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--body-dip-live-only") {
+            for width in [320.0, 430.0] {
+                var idle = LiveSetSession(); idle.reset(exercise: .dip, side: .left)
+                let checklist = LiveReadinessChecklist(cameraReady:true,frameFresh:true,
+                    framing:.init(state:.ready,usesBothArms:true),exerciseTitle:"Dips",armDescription:"Both measurable",
+                    barConfirmed:false,acquisition:.lookingForGrip,motionAvailable:true,phoneStable:true,sceneStable:true,
+                    startingPose:true,paused:false,handsFree:true,setupBusy:false,bodyCameraCalibrated:true)
+                let waiting = LiveWorkoutOverlay(session:idle, liveCompletedReps: 0,readiness:checklist,cameraReady:true,
+                    status:"Ready",statusSymbol:"checkmark.circle.fill",needsAttention:false,
+                    showsManualStart:false,canStart:true,canSwitchCamera:true,nextCameraName:"front",isRecording:false,
+                    countdown:nil,canClose:true,onClose:{},onOptions:{},onSwitchCamera:{},onStart:{},onFinish:{},onNextSet:{},onResults:{})
+                    .frame(width:width,height:760).background(Color(white:0.18))
+                let idleName = "body-dip-v35-ready-\(Int(width)).png"
+                let readyText = try render(waiting,width:width,height:760,filename:idleName).joined()
+                verify(readyText.contains("readytostart") && readyText.contains("lowertobegin"),"Rail-free start instruction missing",filename:idleName)
+                for paused in [false,true] {
+                    let payload: [String:Any] = ["motion":["seconds":5,"phase":paused ? "seekingTop":"returning",
+                        "cycles":4,"partialAttempts":0,"interruptedAttempts":0,"reason":paused ? "bodyUnavailable":"tracking",
+                        "observationUsable":!paused,"sourceAccepted":true,"progress":paused ? 0:0.65,
+                        "elbowDegrees":paused ? []:[125.0,126.0],"travelArmFractions":[],"wristDriftArmFractions":[],"policyVersion":1],
+                        "started":true,"analysisRevision":1,"analyzedFrames":100,"usableFrames":paused ? 99:100]
+                    let snapshot = try JSONDecoder().decode(BodyDipWorkoutSnapshot.self,from:JSONSerialization.data(withJSONObject:payload))
+                    var running = LiveSetSession(); running.beginBodyDip(snapshot,side:.left,startedAt:0)
+                    let content = LiveWorkoutOverlay(session:running, liveCompletedReps: 0,cameraReady:true,status:"Tracking",statusSymbol:"viewfinder",needsAttention:paused,
+                        showsManualStart:false,canStart:false,canSwitchCamera:false,nextCameraName:"front",isRecording:false,
+                        countdown:nil,canClose:true,onClose:{},onOptions:{},onSwitchCamera:{},onStart:{},onFinish:{},onNextSet:{},onResults:{})
+                        .frame(width:width,height:760).background(Color(white:0.18))
+                    let name = "body-dip-v35-\(paused ? "paused":"tracking")-\(Int(width)).png"
+                    let text = try render(content,width:width,height:760,filename:name).joined()
+                    verify(text.contains("finishset") && !text.contains("settherail"),"Body-dip controls or guidance incorrect",filename:name)
+                    verify(text.contains(paused ? "showbotharmsandhandsclearly":"pushbacktoyourtopsupport"),"Body-motion cue missing",filename:name)
+                }
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--set-grip-only") {
+            var fixture = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
+            let id = "set-grip-v31-preview"; fixture["id"] = id; fixture["endedAt"] = 6
+            let base = (fixture["reps"] as! [[String: Any]])[0]
+            fixture["reps"] = (0...1).map { index in
+                var rep = base; rep["setId"] = id; rep["id"] = "\(id):\(index)"; rep["ordinal"] = index + 1
+                let offset = Double(index * 3)
+                for key in ["startedAt", "extremeAt", "acceptedAt", "returnedAt", "closedAt"] {
+                    if let time = rep[key] as? Double { rep[key] = time + offset }
+                }
+                rep["samples"] = []
+                rep["grip"] = ["left": index == 0 ? "unknown" : "underhand", "right": index == 0 ? "unknown" : "underhand",
+                    "orientation": index == 0 ? "unknown" : "underhand", "orientationCoverage": index == 0 ? 0.0 : 0.95,
+                    "width": "shoulderWidth", "projectedSpanRatio": 1.0, "widthCoverage": 0.95, "policyVersion": 4] as [String: Any]
+                return rep
+            }
+            fixture["setGrip"] = ["setId":id,"orientation":"underhand","firstConfirmedAt":5.5,"lastConfirmedAt":5.8,
+                "modelId":"synthetic render","inferenceBackend":"synthetic render","reason":"confirmedWithinSet","policyVersion":1] as [String: Any]
+            let set = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: fixture))
+            for width in [320.0, 430.0] {
+                let content = WorkoutGripView(set: set, allowsCorrections: false, initiallyExpanded: true)
+                    .padding(16).frame(width: width, height: 900, alignment: .topLeading).background(Color.white)
+                    .environment(\.colorScheme, .light)
+                let name = "set-grip-v31-\(Int(width)).png"
+                let text = try render(content, width: width, height: 900, filename: name).joined()
+                verify(text.contains("setgrip") && text.contains("underhand"), "Set-level grip missing", filename: name)
+                verify(text.contains("gripinferredfromthisset"), "Inherited label provenance missing", filename: name)
+                verify(text.contains("classifiedfor0ofthisattempt"), "Original missing-hand coverage must stay visible", filename: name)
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--arm-visibility-only") {
+            for width in [320.0, 430.0] {
+                var session = LiveSetSession(); session.start(exercise: .pullUp, side: .left)
+                let content = LiveWorkoutOverlay(session: session, liveCompletedReps: 0, gripLabel: "Underhand · Narrow",
+                    needsArmRepositioning: true,
+                    gripCaptureFeedback: .init(state: "handsDetected", leftHand: "detected", rightHand: "detected"),
+                    cameraReady: true, status: "Tracking", statusSymbol: "viewfinder", needsAttention: true,
+                    showsManualStart: false, canStart: false, canSwitchCamera: false, nextCameraName: "front",
+                    isRecording: false, countdown: nil, canClose: true,
+                    onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                    .frame(width: width, height: 760).background(Color(white: 0.18))
+                let filename = "arm-visibility-\(Int(width)).png"
+                let text = try render(content, width: width, height: 760, filename: filename).joined()
+                verify(text.contains("showyourarms") && text.contains("movecamera"), "Arm guidance missing", filename: filename)
+                verify(text.contains("checkview"), "Header must agree with arm guidance", filename: filename)
+                verify(!text.contains("reptrackingcancontinue") && !text.contains("estimated"),
+                    "Grip advice must not obscure arm failure", filename: filename)
+                verify(text.contains("finishset"), "Finish control missing", filename: filename)
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--grip-width-only") {
+            var fixture = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
+            fixture["id"] = "grip-width-v20-preview"
+            let base = (fixture["reps"] as! [[String: Any]])[0]
+            fixture["reps"] = [("narrow", 0.7, "overhand"), ("shoulderWidth", 1.0, "underhand"), ("wide", 1.6, "unknown")].enumerated().map { index, item in
+                var rep = base
+                rep["setId"] = "grip-width-v20-preview"
+                rep["id"] = "grip-width-v20-preview:\(index)"; rep["ordinal"] = index + 1
+                rep["grip"] = ["left": item.2, "right": item.2, "orientation": item.2, "width": item.0,
+                    "projectedSpanRatio": item.1, "orientationCoverage": item.2 == "unknown" ? 0.0 : 0.95,
+                    "widthCoverage": 0.97, "widthPolicyVersion": 1, "policyVersion": 4] as [String: Any]
+                return rep
+            }
+            let set = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: fixture))
+            for width in [320.0, 430.0] {
+                let detail = WorkoutGripView(set: set, allowsCorrections: false, initiallyExpanded: true)
+                    .padding(16).frame(width: width, height: 940, alignment: .topLeading).background(Color.white)
+                    .environment(\.colorScheme, .light)
+                let detailName = "grip-width-v20-review-\(Int(width)).png"
+                let detailText = try render(detail, width: width, height: 940, filename: detailName).joined()
+                verify(detailText.contains("medium") && detailText.contains("shoulders") && detailText.contains("97"),
+                    "Width ratios and per-attempt coverage missing", filename: detailName)
+                var session = LiveSetSession(); session.start(exercise: .pullUp, side: .left)
+                let live = LiveWorkoutOverlay(session: session, liveCompletedReps: 0, gripLabel: "Underhand · Medium · 1.0× shoulders",
+                    cameraReady: true, status: "Tracking", statusSymbol: "figure.strengthtraining.traditional", needsAttention: false,
+                    showsManualStart: false, canStart: false, canSwitchCamera: false, nextCameraName: "front",
+                    isRecording: false, countdown: nil, canClose: true,
+                    onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                    .frame(width: width, height: 760).background(Color(white: 0.18))
+                let liveName = "grip-width-v20-live-\(Int(width)).png"
+                let liveText = try render(live, width: width, height: 760, filename: liveName).joined()
+                verify(liveText.contains("medium") && liveText.contains("shoulders"), "Large live width label missing", filename: liveName)
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--grip-capture-only") {
+            let cases: [(String, WorkoutGripCaptureFeedback)] = [
+                ("far", .init(state: "moveCloser", shoulderFraction: 0.12, torsoFraction: 0.22)),
+                ("hidden", .init(state: "showHands", shoulderFraction: 0.24, torsoFraction: 0.38, leftHand: "detected", rightHand: "notDetected", observationAge: 0.2, bodyContext: "frameMatched")),
+                ("seen", .init(state: "handsDetected", shoulderFraction: 0.24, torsoFraction: 0.38, leftHand: "detected", rightHand: "detected", observationAge: 0.1, bodyContext: "frameMatched")),
+                ("edge", .init(state: "handsClipped", shoulderFraction: 0.32, torsoFraction: 0.46, leftHand: "edge", rightHand: "detected", observationAge: 0.2, bodyContext: "frameMatched")),
+                ("view", .init(state: "frontRear", shoulderFraction: 0.12, torsoFraction: 0.38, bodyContext: "viewUnsupported"))]
+            for (name, feedback) in cases {
+                for running in [false, true] {
+                    var session = LiveSetSession()
+                    if running { session.start(exercise: .pullUp, side: .left) }
+                    let readiness = LiveReadinessChecklist(cameraReady: true, frameFresh: true,
+                        framing: LiveFramingAssessment(state: .ready, usesBothArms: true),
+                        exerciseTitle: "Pull-ups", armDescription: "Both measurable", barConfirmed: true,
+                        acquisition: .locked, motionAvailable: true, phoneStable: true,
+                        sceneStable: true, startingPose: true, paused: false, handsFree: true, setupBusy: false)
+                    for width in [320.0, 430.0] {
+                        let content = LiveWorkoutOverlay(session: session, liveCompletedReps: 0, gripCaptureFeedback: feedback,
+                            readiness: running ? nil : readiness,
+                            cameraReady: true, status: "Hold a hang", statusSymbol: "viewfinder", needsAttention: false,
+                            showsManualStart: false, canStart: true, canSwitchCamera: !running, nextCameraName: "front",
+                            isRecording: false, countdown: nil, canClose: true,
+                            onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                            .frame(width: width, height: 760).background(Color(white: 0.18))
+                        let filename = "grip-capture-\(name)-\(running ? "running" : "idle")-\(Int(width)).png"
+                        let text = try render(content, width: width, height: 760, filename: filename).joined()
+                        verify(!text.contains("sizetarget") && !text.contains("torso"),
+                            "Detailed grip text must stay out of the camera overlay", filename: filename)
+                        if running { verify(text.contains("gripunknownoptional"), "Compact optional metadata missing", filename: filename) }
+                        verify(text.contains(running ? "tracking" : "ready"),
+                            "Workout status must remain visible beside optional grip guidance", filename: filename)
+                    }
+                }
+            }
+            let detail = LiveGripCaptureCard(feedback: cases[1].1, initiallyExpanded: true)
+                .frame(width: 320).padding(16).background(Color(white: 0.18))
+            let text = try render(detail, width: 352, height: 620, filename: "grip-capture-diagnostics.png").joined()
+            verify(text.contains("sizetarget") && text.contains("handanalysisage"),
+                "Expanded capture diagnostics missing", filename: "grip-capture-diagnostics.png")
+            return
+        }
+        if CommandLine.arguments.contains("--grip-view-only") {
+            for running in [false,true] {
+                var session = LiveSetSession()
+                if running { session.start(exercise: .pullUp,side: .left) }
+                for width in [320.0,430.0] {
+                    let content = LiveWorkoutOverlay(session: session, liveCompletedReps: 0,
+                        gripViewPrompt: WorkoutGripViewFeedback.repositionPrompt,
+                        cameraReady: true,status: "Hold a hang",statusSymbol: "viewfinder",needsAttention: false,
+                        showsManualStart: false,canStart: true,canSwitchCamera: !running,nextCameraName: "front",
+                        isRecording: false,countdown: nil,canClose: true,
+                        onClose: {},onOptions: {},onSwitchCamera: {},onStart: {},onFinish: {},onNextSet: {},onResults: {})
+                        .frame(width:width,height:760).background(Color(white:0.18))
+                    let filename="grip-view-\(running ? "running" : "idle")-\(Int(width)).png"
+                    let text=try render(content,width:width,height:760,filename:filename)
+                    precondition(!text.contains { $0.contains("movecamera") },"Optional grip must not interrupt the camera preview")
+                    if running { precondition(text.contains { $0.contains("gripunknownoptional") },"Optional grip indicator is missing") }
+                }
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--readiness-only") {
+            for (name, fresh, bar, motion, starting, acquisition) in [
+                ("rails", true, false, true, false, AutomaticPullUpBar.State.findingEdge),
+                ("ambiguous", true, false, true, false, .ambiguous),
+                ("stale", false, true, true, true, .locked),
+                ("motion", true, false, false, false, .lookingForGrip),
+                ("posture", true, true, true, false, .locked),
+                ("ready", true, true, true, true, .locked)
+            ] {
+                let checklist = LiveReadinessChecklist(cameraReady: true, frameFresh: fresh,
+                    framing: LiveFramingAssessment(state: .ready, usesBothArms: true),
+                    exerciseTitle: "Dips", armDescription: "Both measurable", barConfirmed: bar,
+                    acquisition: acquisition, motionAvailable: motion, phoneStable: true,
+                    sceneStable: true, startingPose: starting, paused: false, handsFree: true, setupBusy: false)
+                for width in [320.0, 393.0] {
+                    for expanded in [false, true] {
+                    let content = LiveWorkoutOverlay(session: LiveSetSession(), liveCompletedReps: 0, exerciseTitle: "Dips detected",
+                        readiness: checklist,  cameraReady: true, status: "Tracking starts automatically",
+                        statusSymbol: "viewfinder", needsAttention: !checklist.allPassed,
+                        showsManualStart: false, canStart: checklist.allPassed, canSwitchCamera: true,
+                        nextCameraName: "front", isRecording: false, countdown: nil, canClose: true,
+                        onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                        .frame(width: width, height: 760).background(Color(white: 0.18))
+                    let filename = "readiness-\(expanded ? "details" : "distance")-\(name)-\(Int(width)).png"
+                    let text: [String]
+                    if expanded {
+                        text = try render(ScrollView { LiveReadinessChecklistView(checklist: checklist, initiallyExpanded: true).padding() }
+                            .frame(width: width, height: 760).background(Color(white: 0.18)), width: width, height: 760, filename: filename)
+                        verify(text.contains { $0.contains("cameraposefeed") }, "Detailed checks are missing", filename: filename)
+                    } else {
+                        text = try render(content, width: width, height: 760, filename: filename)
+                        let title = name == "ready" ? "READY" : name == "posture" ? "HOLD START POSE" : checklist.actionTitle
+                        let action = title.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression).lowercased()
+                        verify(text.joined().contains(action), "Compact readiness action is missing", filename: filename)
+                    }
+                    if name == "stale" {
+                        verify(!text.contains { $0.contains("referenceset") || $0.contains("qualified") },
+                            "Stale frames display retained passes", filename: filename)
+                    }
+                    }
+                }
+            }
+            return
+        }
         if CommandLine.arguments.contains("--dip-progress-only") {
             let unavailableCue = "handtrackingunavailable"
             // Hosted Vision OCR read the correctly rendered word as
@@ -107,7 +372,7 @@ import WorkoutCore
                         .background(dark ? Color.black : Color.white)
                     let name = "library-\(section.lowercased())-\(dark ? "dark" : "light")-\(Int(width)).png"
                     let text = try render(content, width: width, height: 1100, filename: name)
-                    let expected = ["Progress": "yourpractice", "History": "reviewandcorrect", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
+                    let expected = ["Progress": "yourpractice", "History": "youreffortcollected", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
                     verify(text.contains { $0.contains(expected) }, "Workout library section missing: \(section)", filename: name)
                     if section == "Plans" {
                         verify(text.contains { $0.contains("setsmeetthistarget") }, "Saved plan progress is missing", filename: name)
@@ -159,7 +424,7 @@ import WorkoutCore
         feedbackLibrary = try libraryBridge.applyJson(stateJson: feedbackLibrary, commandJson: String(decoding: JSONSerialization.data(withJSONObject: correction), as: UTF8.self))
         let reviewedFeedback = try JSONDecoder().decode(WorkoutAfterSetReport.self, from: Data(try WorkoutFeedbackBridge().librarySummaryJson(stateJson: feedbackLibrary, setId: set.id).utf8))
         func completedOverlay(_ report: WorkoutAfterSetReport?) -> LiveWorkoutOverlay {
-            LiveWorkoutOverlay(session: LiveSetSession(), latestCompletedSet: set, afterSetReport: report,
+            LiveWorkoutOverlay(session: LiveSetSession(), liveCompletedReps: 0, latestCompletedSet: set, afterSetReport: report,
                 cameraReady: true, status: "Ready", statusSymbol: "checkmark", needsAttention: false,
                 showsManualStart: false, canStart: true, canSwitchCamera: true, nextCameraName: "front",
                 isRecording: false, countdown: nil, canClose: true, onClose: {}, onOptions: {},
@@ -267,7 +532,7 @@ import WorkoutCore
             ("acquisition", "Hold your start position · keep the phone steady", "holdyourstart")
         ] {
             for width in [320.0, 430.0] {
-                let content = LiveWorkoutOverlay(session: LiveSetSession(), cameraReady: true,
+                let content = LiveWorkoutOverlay(session: LiveSetSession(), liveCompletedReps: 0, cameraReady: true,
                     status: message, statusSymbol: "viewfinder", needsAttention: true,
                     showsManualStart: false, canStart: false, canSwitchCamera: true, nextCameraName: "front",
                     isRecording: false, countdown: nil, canClose: true,
@@ -285,7 +550,7 @@ import WorkoutCore
             for (name, session, cue) in [("idle", LiveSetSession(), true), ("started", running, true),
                 ("tracking", running, false), ("reacquiring", reacquiring, false), ("finished", ended, true)] {
                 for width in [320.0, 430.0] {
-                    let content = LiveWorkoutOverlay(session: session, showsSetStarted: cue,
+                    let content = LiveWorkoutOverlay(session: session, liveCompletedReps: 0, showsSetStarted: cue,
                         cameraReady: true, status: "Hold a hang or top support", statusSymbol: "figure.strengthtraining.traditional",
                         needsAttention: false, showsManualStart: false, canStart: true, canSwitchCamera: true,
                         nextCameraName: "front", isRecording: false, countdown: nil, canClose: true,
@@ -298,6 +563,70 @@ import WorkoutCore
                     // guidance (which can correctly say "Tracking paused").
                     precondition(text.contains("tracking") == (session.phase == .running && session.trackingIssue == nil), "Persistent live tracking state is unavailable or stale")
                     precondition(text.contains("paused") == (name == "reacquiring"), "Counter interruption is not reflected in the live indicator")
+                }
+            }
+        }
+    }
+
+    @MainActor private static func renderSetVisuals(_ input: String) throws {
+        let original = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
+        for exercise in ExerciseCounter.Exercise.allCases {
+            var object = original; object["exercise"] = exercise.rawValue
+            let source = (original["reps"] as! [[String: Any]])[0]
+            object["reps"] = (0..<5).map { index -> [String: Any] in
+                var rep = source
+                rep["id"] = "preview-\(index)"; rep["ordinal"] = index + 1
+                rep["exercise"] = exercise.rawValue
+                rep["startedAt"] = Double(index * 5)
+                let lifting = 1 + Double(index) * 0.12
+                let turn = Double(index * 5) + (exercise == .pullUp ? lifting : 1.3)
+                rep["extremeAt"] = turn
+                rep["returnedAt"] = turn + (exercise == .pullUp ? 1.3 : lifting)
+                return rep
+            }
+            let record = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: object))
+            for dark in [false, true] {
+                for width in [320.0, 430.0] {
+                    let view = VStack(alignment: .leading, spacing: 20) {
+                        Text("Set review").font(.largeTitle.bold())
+                        Text("\(exercise.title) · 5 reps").font(.headline)
+                        WorkoutTempoCard(record: record)
+                        WorkoutMuscleCard(exercise: exercise)
+                    }.padding().frame(width: width, height: 900, alignment: .top)
+                        .background(HangPalette(dark ? .dark : .light).background)
+                        .environment(\.colorScheme, dark ? .dark : .light)
+                    _ = try render(view, width: width, height: 900,
+                        filename: "set-visuals-\(exercise.rawValue)-\(dark ? "dark" : "light")-\(Int(width)).png")
+                }
+            }
+        }
+    }
+
+    /// Presentation fixtures only; no counting/accuracy evidence. Avoid Vision OCR
+    /// here so a graphics review cannot stall in the platform's OCR service.
+    @MainActor private static func renderHistory() throws {
+        let now = Int64(Date().timeIntervalSince1970 * 1000)
+        let sets = [("demo-dip", ExerciseCounter.Exercise.dip, 5, 0), ("demo-pull", .pullUp, 8, 0), ("demo-practice", .pullUp, 0, 2)].enumerated().map { index, row in
+            LibrarySet(id: row.0, sourceSetId: row.0, exercise: row.1, attemptIds: [], measuredCompletedReps: row.2,
+                userReportedCompletedReps: 0, practiceAttempts: row.3, holdSeconds: nil, context: LibraryContext(),
+                trackedAtEpochMilliseconds: now - Int64(index) * 86_400_000, comparisonKey: nil,
+                exerciseCorrected: false, sourceSetIds: [row.0], isMerged: false)
+        }
+        let focus = LibraryFocus(title: "", message: "", evidenceSetIds: [], recentMedian: nil, sampleSessions: 0, limitation: "")
+        let insights = LibraryInsights(overview: nil, sessions: [], comparisonKeys: [], selectedComparisonKey: nil,
+            unclassifiedSets: 0, trend: [], weekly: [], practiceDays: 0, consistencyDaysLast28: 0, plateau: nil,
+            goal: nil, suggestedGoal: nil, goalBest: nil, goalAchieved: false, milestones: [], focus: focus, plans: [])
+        let policy = LibraryMediaPolicy(enabled: true, maximumClips: 20, maximumBytes: 209715200, maximumAgeDays: 30)
+        let media = [LibraryMedia(id: "demo-video", setId: sets[0].id, bytes: 2048, attachedAtEpochMilliseconds: now)]
+        for empty in [false, true] {
+            let dashboard = LibraryDashboard(page: LibraryPage(sets: empty ? [] : sets, nextCursor: nil, revision: 1),
+                insights: insights, mediaPolicy: policy, media: empty ? [] : media, diagnosticsConsent: false, revision: 1)
+            for dark in [false, true] {
+                for width in empty ? [320.0] : [320.0, 430.0] {
+                    let view = NavigationStack { WorkoutLibraryView(preview: dashboard, section: "History") }
+                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1100)
+                    _ = try render(view, width: width, height: 1100,
+                        filename: "library-history-\(empty ? "empty-" : "")\(dark ? "dark" : "light")-\(Int(width)).png")
                 }
             }
         }
@@ -335,6 +664,12 @@ import WorkoutCore
         host.cacheDisplay(in: host.bounds, to: bitmap)
         guard let image = bitmap.cgImage, let data = bitmap.representation(using: .png, properties: [:]) else { fatalError("View pixels unavailable") }
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/render/\(filename)"))
+        if CommandLine.arguments.contains("--history-refresh-only") || CommandLine.arguments.contains("--set-visuals-only") {
+            let path = "build/workout-analysis/render/\(filename)"
+            try? FileManager.default.removeItem(atPath: path + ".ocr.json")
+            try JSONSerialization.data(withJSONObject: ["file": filename, "review": "Native view pixels for manual visual review; OCR intentionally not run."]).write(to: URL(fileURLWithPath: path + ".visual.json"))
+            return []
+        }
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate; request.recognitionLanguages = ["en-US"]
         try VNImageRequestHandler(cgImage: image).perform([request])

@@ -55,10 +55,10 @@ class StaticSceneStability {
         translationOverThresholdSince=null;scaleOverThresholdSince=null
     }
     private fun translationConsensus(translations:List<PatchTranslation>,short:Double):Pair<Double?,Int> {
-        // All native corner subsets are bounded. Distinct largest hypotheses
-        // remain unavailable. Different inlier sets may describe the same
-        // hypothesis only if they share two actual patches, their median
-        // centers agree pairwise, and every center has the same motion status.
+        // Every maximum hypothesis must agree. Two shared patches remain
+        // required for moving hypotheses. Stationary-only alternatives can
+        // instead prove that every contributing original patch is itself
+        // below the unchanged movement limit; their centers must still agree.
         if(translations.size>maximumRegistrationPatches) return null to 0
         val finite=translations.filter{it.isFinite}
         if(finite.size<minimumConsensusPatches) return null to finite.size
@@ -75,9 +75,14 @@ class StaticSceneStability {
             best+=TranslationHypothesis(x,y,mask)
         }
         if(best.isEmpty()) return null to 0
+        val stationaryWitnesses=best.all { h ->
+            hypot(h.x,h.y)/short<movementThresholdFraction && finite.indices.all { i ->
+                h.mask and (1 shl i)==0 || hypot(finite[i].dxPixels,finite[i].dyPixels)/short<movementThresholdFraction
+            }
+        }
         for(i in best.indices) for(j in i+1 until best.size) {
             val a=best[i];val b=best[j]
-            if((a.mask and b.mask).countOneBits()<minimumConsensusPatches ||
+            if(!stationaryWitnesses && (a.mask and b.mask).countOneBits()<minimumConsensusPatches ||
                 hypot(a.x-b.x,a.y-b.y)>tolerance) return null to 0
         }
         val fractions=best.map{hypot(it.x,it.y)/short}
@@ -89,8 +94,8 @@ class StaticSceneStability {
     }
     private data class TranslationHypothesis(val x:Double,val y:Double,val mask:Int)
     private fun median(values:List<Double>):Double {val sorted=values.sorted();val middle=sorted.size/2;return if(sorted.size%2==0)sorted[middle-1]/2+sorted[middle]/2 else sorted[middle]}
-    companion object {const val movementThresholdFraction=.008;const val consensusToleranceFraction=.006;const val scaleThresholdFraction=.012;const val movementDwellSeconds=.25;const val minimumConsensusPatches=2
-        const val maximumRegistrationPatches=4
+    companion object {const val policyVersion=3;const val movementThresholdFraction=.008;const val consensusToleranceFraction=.006;const val scaleThresholdFraction=.012;const val movementDwellSeconds=.25;const val minimumConsensusPatches=2
+        const val maximumRegistrationPatches=6
         // The established 0.8-second scene age permits the native 0.33-second
         // registration cadence. Body-frame continuity has its own tighter bound.
         const val maximumObservationGapSeconds=.8

@@ -11,7 +11,7 @@ class AutomaticPullUpBar {
     /** First failed production condition; image eligibility, not labelled pose accuracy. */
     enum class GripRejection:GripAssessment {
         invalidContext, noPerson, multiplePeople, leftArmUnavailable, rightArmUnavailable,
-        gripLandmarksUnavailable, handsNotAboveShoulders, handSpanTooSmall, handsNotLevel, invalidSearchRegion
+        gripLandmarksUnavailable, handsNotAboveShoulders, handSpanTooSmall, armChainsNotDistinct, handsNotLevel, invalidSearchRegion
     }
     var state=State.lookingForGrip;private set
     private var stability=AutomaticReferenceStability()
@@ -30,9 +30,11 @@ class AutomaticPullUpBar {
     }
     companion object {
         const val samplingInterval=.3
-        const val gripAssessmentVersion=1
+        // v2 uses each wrist's signed distance to the observed sloped line.
+        const val selectionPolicyVersion=2
+        const val gripAssessmentVersion=2
         private fun overheadReach(short:Double)=max(12.0,short*.12)
-        /** Search-space advice only; the crop and qualification rules are unchanged. */
+        /** Search-space advice only; never supplies a reference or earns identity. */
         internal fun overheadSearchIsClipped(pose:PoseResult,observedGrip:Grip?=grip(pose)):Boolean {
             val grip=observedGrip ?: return false
             return min(grip.left.y,grip.right.y)<overheadReach(min(pose.imageSize.width,pose.imageSize.height))
@@ -50,7 +52,8 @@ class AutomaticPullUpBar {
             if(points.size!=4) return GripRejection.gripLandmarksUnavailable
             val l=points[0];val r=points[1];val short=min(pose.imageSize.width,pose.imageSize.height)
             if(points[2].y-l.y<=short*.08 || points[3].y-r.y<=short*.08) return GripRejection.handsNotAboveShoulders
-            if(abs(l.x-r.x)<short*.12) return GripRejection.handSpanTooSmall
+            if(abs(l.x-r.x)<2*ArmMeasurement.minimumSegmentFraction*short) return GripRejection.handSpanTooSmall
+            if(!PullUpArmMeasurement.hasDistinctFrontRearArms(pose)) return GripRejection.armChainsNotDistinct
             if(abs(l.y-r.y)>short*.10) return GripRejection.handsNotLevel
             val region=BarRegion(Point2D(max(0.0,min(l.x,r.x)-short*.12),max(0.0,min(l.y,r.y)-overheadReach(short))),Point2D(min(pose.imageSize.width,max(l.x,r.x)+short*.12),min(pose.imageSize.height,max(l.y,r.y)+max(6.0,short*.04))))
             return if(region.isValid(pose.imageSize)) Grip(l,r,region) else GripRejection.invalidSearchRegion
@@ -58,7 +61,10 @@ class AutomaticPullUpBar {
         fun select(candidates:List<BarLineCandidate>,grip:Grip,size:ImageSize):BarSegment? {
             val short=min(size.width,size.height);val span=abs(grip.left.x-grip.right.x)
             val eligible=candidates.map{it.edge.ordered}.filter {e ->
-                ConfirmedBar(ConfirmedBar.Role.pullUpGrip,ConfirmedBar.Method.automaticContours,e,null,size,PresentationTime(0,1)).isValid && e.length>=span*.65 && abs(e.b.y-e.a.y)<=(e.b.x-e.a.x)*tan(15*PI/180) && listOf(grip.left,grip.right).all{e.distance(it)<=short*.085 && e.midpoint.y<=it.y+short*.015}
+                ConfirmedBar(ConfirmedBar.Role.pullUpGrip,ConfirmedBar.Method.automaticContours,e,null,size,PresentationTime(0,1)).isValid && e.length>=span*.65 && abs(e.b.y-e.a.y)<=(e.b.x-e.a.x)*tan(15*PI/180) && listOf(grip.left,grip.right).all {
+                    val signed=((e.b.x-e.a.x)*(it.y-e.a.y)-(e.b.y-e.a.y)*(it.x-e.a.x))/e.length
+                    e.distance(it)<=short*.085 && signed>=-short*.015
+                }
             }.sortedBy{it.midpoint.y}
             val upper=eligible.firstOrNull() ?: return null
             return if(eligible.all{sameLine(upper,it,short*.03)}) upper.ordered else null

@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 6,
+  "decision": "Offline only: cleaner accepted crops but complete-hand coverage regresses. No grip retraining or phone changes.",
+  "reviews": "Blinded direct agent pixel review, not independent human verification; prior human review pending",
+  "reports": {
+    "regression": {
+      "baseline": {
+        "sourceFrames": 24,
+        "expectedCompleteVisibleHands": 22,
+        "coveredCompleteHands": 16,
+        "completeHandCoverage": 0.7272727272727273,
+        "counts": {
+          "acceptedCrops": 36,
+          "notAHand": 5,
+          "correctCompleteTargetHand": 16,
+          "ambiguousOwnership": 6,
+          "wrongPerson": 2,
+          "notOverhead": 3,
+          "partialOrOccluded": 4
+        },
+        "perVideo": {
+          "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613": {
+            "acceptedCrops": 3,
+            "notAHand": 3
+          },
+          "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd": {
+            "acceptedCrops": 6,
+            "correctCompleteTargetHand": 6
+          },
+          "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe": {
+            "acceptedCrops": 6,
+            "ambiguousOwnership": 6
+          },
+          "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73": {
+            "acceptedCrops": 6,
+            "wrongPerson": 2,
+            "notOverhead": 2,
+            "partialOrOccluded": 2
+          },
+          "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d": {
+            "acceptedCrops": 6,
+            "partialOrOccluded": 2,
+            "notOverhead": 1,
+            "correctCompleteTargetHand": 3
+          },
+          "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f": {
+            "acceptedCrops": 3,
+            "notAHand": 2,
+            "correctCompleteTargetHand": 1
+          },
+          "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439": {
+            "acceptedCrops": 6,
+            "correctCompleteTargetHand": 6
+          }
+        }
+      },
+      "candidate": {
+        "sourceFrames": 24,
+        "expectedCompleteVisibleHands": 22,
+        "coveredCompleteHands": 12,
+        "completeHandCoverage": 0.5454545454545454,
+        "counts": {
+          "acceptedCrops": 13,
+          "correctCompleteTargetHand": 12,
+          "notAHand": 1
+        },
+        "perVideo": {
+          "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd": {
+            "acceptedCrops": 6,
+            "correctCompleteTargetHand": 6
+          },
+          "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439": {
+            "acceptedCrops": 6,
+            "correctCompleteTargetHand": 6
+          },
+          "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73": {
+            "acceptedCrops": 1,
+            "notAHand": 1
+          }
+        }
+      },
+      "scope": "Localization-only comparison on identical source frames. Agent pixel reviews, not independent human gold labels; no grip accuracy inference.",
+      "sourceReferencesSHA256": "574e5716e83bbcaad6c29440f8cad3a95e4dbdb305aedd0fe4542e11f2ddb663",
+      "cropIndexSHA256": "2917965f4ca00f0e5000cdb55f89481f5cebf49776231af09729fc30f4657607",
+      "cropCodesSHA256": "cf9d37c86718be39bd3f5192f53ec80866968e7b5f57aa6e3274188a4581c6e5",
+      "freezeSHA256": "056301ba6d4ac826fc3ebd1c9747d7634542e73c77f353d814a8abe2b14776fa"
+    },
+    "fresh": {
+      "baseline": {
+        "sourceFrames": 57,
+        "expectedCompleteVisibleHands": 48,
+        "coveredCompleteHands": 12,
+        "completeHandCoverage": 0.25,
+        "counts": {
+          "acceptedCrops": 30,
+          "correctCompleteTargetHand": 12,
+          "ambiguousOwnership": 18
+        },
+        "perVideo": {
+          "f003cf319ca7a9801ebc42dabe0a61cd06a751c03c5c8eecd00fff74943b6747": {
+            "acceptedCrops": 2,
+            "correctCompleteTargetHand": 2
+          },
+          "e1cf65455f7d83160ed384e2b28651b14d3c5dc76a6738d75890ec51abe6b0a2": {
+            "acceptedCrops": 18,
+            "ambiguousOwnership": 18
+          },
+          "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810": {
+            "acceptedCrops": 10,
+            "correctCompleteTargetHand": 10
+          }
+        }
+      },
+      "candidate": {
+        "sourceFrames": 57,
+        "expectedCompleteVisibleHands": 48,
+        "coveredCompleteHands": 7,
+        "completeHandCoverage": 0.14583333333333334,
+        "counts": {
+          "acceptedCrops": 7,
+          "correctCompleteTargetHand": 7
+        },
+        "perVideo": {
+          "06058422351084d7f137213a8da7ca1ad24facae66ee3b82b675d338cf874810": {
+            "acceptedCrops": 7,
+            "correctCompleteTargetHand": 7
+          }
+        }
+      },
+      "scope": "Localization-only comparison on identical source frames. Agent pixel reviews, not independent human gold labels; no grip accuracy inference.",
+      "sourceReferencesSHA256": "43214b610ac0188cfe47967b5f61cbf0eec4af9a3ee896167a13bfdd2716d3c9",
+      "cropIndexSHA256": "48266724b072339bdf13a245566c2c65685cce219fe244884581853f67b716b2",
+      "cropCodesSHA256": "c2798f33cb16c5f26ccee01ba8612b3fae243a87f3826acdb59436c5d21fde60",
+      "freezeSHA256": "056301ba6d4ac826fc3ebd1c9747d7634542e73c77f353d814a8abe2b14776fa"
+    }
+  },
+  "audit": {
+    "freezePinsVerified": {
+      "grip-surface-v2": 20,
+      "grip-quality-v3": 17,
+      "grip-contact-v4": 29,
+      "grip-temporal-v5": 21,
+      "grip-localization-v6": 17
+    },
+    "originalSourceReferenceFreezeVerified": true,
+    "reconstruction": {
+      "candidateFrames": 126,
+      "candidateCrops": 35,
+      "reviewedCrops": 86
+    },
+    "detectorBudgetVerified": true,
+    "selectedCropsExactlyRecomputed": true,
+    "qualification": "Structural landmark containment is not proof of hand correctness. Pixel review catches a remaining SDK forearm false positive. No model/classifier/app qualification."
+  },
+  "tests": {
+    "python": 462,
+    "logSHA256": "6ad704f8924f9c9fb2fc243ab98fe128e3c21c0fdfc1ca917b42316a215c4774",
+    "sharedPlannerLogSHA256": "1afafd4d2806916fe20d6e3986426835b6ac9f64528802296ede2afd80d6e1ab"
+  },
+  "storage": {
+    "removedNativePNG": 111,
+    "removedPNGBytes": 33329691,
+    "removedCompilerBytes": 222996391,
+    "removedBytes": 256326082,
+    "freeBytesNow": 212172800000
+  },
+  "report": "docs/workout/GRIP_HAND_EXTRACTION_EXPERIMENT_V6.md",
+  "examples": "build/grip-localization-v6/examples.png",
+  "newCachedVideoBytes": 3956151,
+  "newNetworkDownloadBytes": 0
+}

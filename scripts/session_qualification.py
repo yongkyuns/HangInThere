@@ -29,8 +29,10 @@ END_REASONS = {
     "phoneMoved",
     "sceneShifted",
     "sceneScaled",
+    "disengaged",
+    "trackingLost",
 }
-INTERRUPTION_END_REASONS = END_REASONS - {"offline", "manual"}
+INTERRUPTION_END_REASONS = END_REASONS - {"offline", "manual", "disengaged"}
 FORBIDDEN_KEY_FRAGMENTS = (
     "video",
     "image",
@@ -122,6 +124,25 @@ def validate(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             integer(session.get("counter_policy_version"), 1),
             f"{identifier}: invalid counter_policy_version",
         )
+        method = session.get("counter_method")
+        boundary = session.get("boundary_policy_version")
+        require(boundary is None or integer(boundary,1) and boundary in {1,2,3,4,5,6,7,8}, f"{identifier}: unsupported boundary policy")
+        if method is not None:
+            versions = {1, 2, 3, 4} if method == "overheadPullUpRelativeMotion" else ({1, 2} if method == "bilateralTorsoDipRelativeMotion" else {1})
+            require(isinstance(method,str) and session["counter_policy_version"] in versions and (
+                    session["exercise"] == "dip" and method in {"bilateralBodyDipMotion", "bilateralDipImageMotion", "bilateralDipRelativeMotion", "bilateralTorsoDipRelativeMotion"}
+                    or session["exercise"] == "pull_up" and method in {"bilateralPullUpRelativeMotion", "overheadPullUpRelativeMotion"}),
+                    f"{identifier}: unsupported counting method/version")
+        overhead_boundaries = {1: 5, 2: 6, 3: 7, 4: 8}
+        require(method != "overheadPullUpRelativeMotion" or boundary == overhead_boundaries.get(session["counter_policy_version"]),
+                f"{identifier}: overhead pull-up count and boundary policies must match")
+        require(boundary not in overhead_boundaries.values() or session["exercise"] == "pull_up" and
+                method == "overheadPullUpRelativeMotion" and boundary == overhead_boundaries.get(session["counter_policy_version"]),
+                f"{identifier}: overhead boundary requires its matching count policy")
+        require(boundary != 3 or session["exercise"] == "dip" and method in {"bilateralDipRelativeMotion", "bilateralTorsoDipRelativeMotion"},
+                f"{identifier}: boundary policy 3 requires relative dip motion")
+        require(boundary != 4 or session["exercise"] == "dip" and method == "bilateralTorsoDipRelativeMotion" and session["counter_policy_version"] == 2,
+                f"{identifier}: boundary policy 4 requires torso dip count policy 2")
         require(
             session.get("tracking_side") in TRACKING_SIDES,
             f"{identifier}: invalid tracking_side",
@@ -262,6 +283,8 @@ def summarize(sessions: Sequence[dict[str, Any]]) -> dict[str, Any]:
     return {
         "session_count": len(sessions),
         "counter_policy_version_counts": dict(policy_versions),
+        "counter_method_counts": dict(Counter(s.get("counter_method") or "legacyExerciseCounter" for s in sessions)),
+        "boundary_policy_version_counts": dict(Counter(str(s["boundary_policy_version"]) if s.get("boundary_policy_version") is not None else "unrecorded" for s in sessions)),
         "tracking_side_counts": dict(tracking_sides),
         "participant_group_count": len(participants),
         "source_group_count": len(sources),

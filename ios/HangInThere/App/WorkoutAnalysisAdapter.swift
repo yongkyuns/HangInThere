@@ -27,8 +27,15 @@ extension WorkoutSetRecord {
 /// immutable records. There is no unchecked Sendable handle or cross-actor FFI.
 @MainActor @Observable
 final class WorkoutAnalysisAdapter {
+    static var startingEvidencePolicyVersion: Int { Int(WorkoutStartEvidence.shared.policyVersion) }
     private(set) var setId = UUID().uuidString
     @ObservationIgnored private lazy var engine = makeEngine(exercise: .pullUp)
+    @ObservationIgnored private var bodyDipEngine: RelativeDipWorkoutBridge?
+    @ObservationIgnored private let localDipAthleteSelection = BodyAthleteSelection()
+    private(set) var bodyDipSnapshot: BodyDipWorkoutSnapshot?
+    @ObservationIgnored private var bodyPullUpEngine: BodyPullUpWorkoutBridge?
+    @ObservationIgnored private var overheadPullUpEngine: OverheadPullUpWorkoutBridge?
+    private(set) var bodyPullUpSnapshot: BodyPullUpWorkoutSnapshot?
     @ObservationIgnored private var jointIndices: [PoseJoint: Int32] = [:]
     @ObservationIgnored private lazy var framingBridge = WorkoutFramingBridge()
     @ObservationIgnored private lazy var setupRecovery = WorkoutSetupRecoveryBridge()
@@ -50,7 +57,7 @@ final class WorkoutAnalysisAdapter {
     init(feedbackClock: @escaping @MainActor () -> Double = { ProcessInfo.processInfo.systemUptime }) {
         self.feedbackClock = feedbackClock
     }
-    var gripLabel: String? { currentRecord?.exercise == .pullUp ? engine.gripLabel : nil }
+    var gripLabel: String? { currentRecord?.exercise == .pullUp ? (overheadPullUpEngine?.gripLabel ?? bodyPullUpEngine?.gripLabel ?? engine.gripLabel) : nil }
     @ObservationIgnored private var gripTimestamp: Double?
     var startSpokenMessage: String { WorkoutStartFeedback.companion.spokenMessage }
     func trackingSpokenCue(isRunning: Bool, issue: String?) -> String? {
@@ -89,11 +96,109 @@ final class WorkoutAnalysisAdapter {
     func start(exercise: ExerciseCounter.Exercise, recordCalendarTime: Bool = true) {
         clearStartFeedback()
         setId = UUID().uuidString
+        bodyDipEngine = nil; bodyDipSnapshot = nil
+        bodyPullUpEngine = nil; overheadPullUpEngine = nil; bodyPullUpSnapshot = nil
         engine = makeEngine(exercise: exercise, recordCalendarTime: recordCalendarTime)
         precondition(engine.policyVersion == ExerciseCounter.policyVersion, "Counting policy versions differ")
         jointIndices = makeJointIndices(engine.jointNames)
         gripTimestamp = nil
         revision = -1; reps = []; currentRecord = nil; error = nil; pendingDraft = nil
+    }
+    func resetBodyDipPreparation() {
+        bodyDipEngine = nil; bodyDipSnapshot = nil
+    }
+    func resetBodyPullUpPreparation() {
+        bodyPullUpEngine = nil; overheadPullUpEngine = nil; bodyPullUpSnapshot = nil
+    }
+    func observeBodyPullUp(_ pose: PoseResult, reference: BarSegment?, camera: String,
+                          automaticStart: Bool,
+                          recordCalendarTime: Bool = true) -> BodyPullUpWorkoutSnapshot? {
+        if bodyPullUpEngine == nil {
+            start(exercise: .pullUp, recordCalendarTime: recordCalendarTime)
+            bodyPullUpEngine = BodyPullUpWorkoutBridge(setId: setId,
+                trackedAtEpochMilliseconds: recordCalendarTime ? Int64(Date().timeIntervalSince1970 * 1000) : 0)
+        }
+        guard let bodyPullUpEngine else { return nil }
+        do {
+            let edge = try reference.map { String(decoding: try JSONEncoder().encode($0), as: UTF8.self) }
+            let raw = try bodyPullUpEngine.observePreparedJson(poseJson: String(decoding: JSONEncoder().encode(pose), as: UTF8.self),
+                referenceJson: edge, camera: camera, automaticStart: automaticStart)
+            let snapshot = try JSONDecoder().decode(BodyPullUpWorkoutSnapshot.self, from: Data(raw.utf8))
+            if bodyPullUpSnapshot?.started != snapshot.started { revision = -1 }
+            bodyPullUpSnapshot = snapshot
+            refreshRecords()
+            return snapshot
+        } catch {
+            self.error = "Pull-up analysis could not be read: \(error.localizedDescription)"
+            return nil
+        }
+    }
+    /// The live route shares the original source selection with framing and
+    /// camera setup. Retain observeBodyPullUp for older explicit bar clients.
+    func observeOverheadPullUp(_ pose: PoseResult, selection: BodyAthleteSelection? = nil,
+                              camera: String, automaticStart: Bool,
+                              recordCalendarTime: Bool = true) -> BodyPullUpWorkoutSnapshot? {
+        if overheadPullUpEngine == nil {
+            start(exercise: .pullUp, recordCalendarTime: recordCalendarTime)
+            overheadPullUpEngine = OverheadPullUpWorkoutBridge(setId: setId,
+                trackedAtEpochMilliseconds: recordCalendarTime ? Int64(Date().timeIntervalSince1970 * 1000) : 0)
+        }
+        guard let overheadPullUpEngine else { return nil }
+        do {
+            let selected = selection ?? localDipAthleteSelection
+            if selection == nil {
+                _ = try selected.observeJson(poseJson: String(decoding: JSONEncoder().encode(pose), as: UTF8.self))
+            }
+            let raw = try overheadPullUpEngine.observeSelectedJson(selection: selected,
+                sourceValue: pose.timestamp.value, sourceTimescale: Int32(pose.timestamp.timescale),
+                camera: camera, automaticFinish: true, automaticStart: automaticStart)
+            let snapshot = try JSONDecoder().decode(BodyPullUpWorkoutSnapshot.self, from: Data(raw.utf8))
+            if bodyPullUpSnapshot?.started != snapshot.started { revision = -1 }
+            bodyPullUpSnapshot = snapshot
+            refreshRecords()
+            return snapshot
+        } catch {
+            self.error = "Pull-up analysis could not be read: \(error.localizedDescription)"
+            return nil
+        }
+    }
+    func startBodyPullUpManually() -> Bool {
+        let started = overheadPullUpEngine?.startManually() ?? bodyPullUpEngine?.startManually() ?? false
+        guard started else { return false }
+        revision = -1; refreshRecords()
+        return true
+    }
+    func observeBodyDip(_ pose: PoseResult, selection: BodyAthleteSelection? = nil, camera: String, automaticStart: Bool,
+                        recordCalendarTime: Bool = true) -> BodyDipWorkoutSnapshot? {
+        if bodyDipEngine == nil {
+            start(exercise: .dip, recordCalendarTime: recordCalendarTime)
+            bodyDipEngine = RelativeDipWorkoutBridge(setId: setId,
+                trackedAtEpochMilliseconds: recordCalendarTime ? Int64(Date().timeIntervalSince1970 * 1000) : 0)
+        }
+        guard let bodyDipEngine else { return nil }
+        do {
+            let selected = selection ?? localDipAthleteSelection
+            if selection == nil {
+                _ = try selected.observeJson(poseJson: String(decoding: JSONEncoder().encode(pose), as: UTF8.self))
+            }
+            let raw = try bodyDipEngine.observeSelectedJson(selection: selected,
+                sourceValue: pose.timestamp.value, sourceTimescale: Int32(pose.timestamp.timescale),
+                camera: camera, automaticFinish: true, automaticStart: automaticStart)
+            let snapshot = try JSONDecoder().decode(BodyDipWorkoutSnapshot.self, from: Data(raw.utf8))
+            if bodyDipSnapshot?.started != snapshot.started { revision = -1 }
+            bodyDipSnapshot = snapshot
+            refreshRecords()
+            return snapshot
+        } catch {
+            self.error = "Dip analysis could not be read: \(error.localizedDescription)"
+            return nil
+        }
+    }
+    func startBodyDipManually() -> Bool {
+        guard bodyDipEngine?.startManually() == true else { return false }
+        revision = -1
+        refreshRecords()
+        return true
     }
     func shouldResume(reason: LiveSetSession.EndReason?) -> Bool { WorkoutLifecycle.shared.shouldResume(endReason: reason?.rawValue) }
     func observationOutage(elapsed: Double) -> Bool { WorkoutLifecycle.shared.observationOutage(elapsedSeconds: elapsed) }
@@ -213,18 +318,27 @@ final class WorkoutAnalysisAdapter {
     /// Full records are read once when review opens, outside the frame path.
     func reviewRecord() -> WorkoutSetRecord? {
         do {
-            var record = try JSONDecoder().decode(WorkoutSetRecord.self,from: Data(engine.reviewDeltaJson().utf8))
+            var record = try JSONDecoder().decode(WorkoutSetRecord.self,from: Data((overheadPullUpEngine?.reviewDeltaJson() ?? bodyPullUpEngine?.reviewDeltaJson() ?? bodyDipEngine?.reviewDeltaJson() ?? engine.reviewDeltaJson()).utf8))
             record.reps = reps + record.reps.filter { active in !reps.contains { $0.id == active.id } }
             return record
         }
         catch { self.error = "Workout analysis could not be read: \(error.localizedDescription)"; return nil }
     }
-    func interrupt(reason: String) { clearStartFeedback(); engine.interrupt(reason: reason); refreshRecords() }
+    func interrupt(reason: String) {
+        clearStartFeedback()
+        if let overheadPullUpEngine { overheadPullUpEngine.interrupt(reason: reason) }
+        else if let bodyPullUpEngine { bodyPullUpEngine.interrupt(reason: reason) }
+        else if let bodyDipEngine { bodyDipEngine.interrupt(reason: reason) } else { engine.interrupt(reason: reason) }
+        refreshRecords()
+    }
     func finish(reason: String) -> WorkoutSetRecord? {
         clearStartFeedback()
-        engine.finish(reason: reason); refreshRecords()
+        if let overheadPullUpEngine { overheadPullUpEngine.finish(reason: reason) }
+        else if let bodyPullUpEngine { bodyPullUpEngine.finish(reason: reason) }
+        else if let bodyDipEngine { bodyDipEngine.finish(reason: reason) } else { engine.finish(reason: reason) }
+        refreshRecords()
         do {
-            var record = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(engine.setJson().utf8))
+            var record = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data((overheadPullUpEngine?.setJson() ?? bodyPullUpEngine?.setJson() ?? bodyDipEngine?.setJson() ?? engine.setJson()).utf8))
             let end = Int64(Date().timeIntervalSince1970 * 1000)
             if let start = record.trackedAtEpochMilliseconds, end >= start { record.trackedEndedAtEpochMilliseconds = end }
             return record
@@ -232,24 +346,45 @@ final class WorkoutAnalysisAdapter {
         catch { self.error = "Workout analysis could not be read: \(error.localizedDescription)"; return nil }
     }
     private func refreshRecords() {
-        guard revision != engine.revision else { return }
+        let currentRevision = overheadPullUpEngine?.revision ?? bodyPullUpEngine?.revision ?? bodyDipEngine?.revision ?? engine.revision
+        guard revision != currentRevision else { return }
         do {
-            if Int(engine.closedRecordCount) > reps.count, let json = engine.lastClosedRecordJson() {
+            let closedCount = Int(overheadPullUpEngine?.closedRecordCount ?? bodyPullUpEngine?.closedRecordCount ?? bodyDipEngine?.closedRecordCount ?? engine.closedRecordCount)
+            let deliveredBatch = closedCount > reps.count + 1
+            if deliveredBatch, let full = overheadPullUpEngine?.setJson() ?? bodyPullUpEngine?.setJson() {
+                let observed = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(full.utf8))
+                reps = observed.reps
+            } else if closedCount > reps.count,
+               let json = overheadPullUpEngine?.lastClosedRecordJson() ?? bodyPullUpEngine?.lastClosedRecordJson() ?? bodyDipEngine?.lastClosedRecordJson() ?? engine.lastClosedRecordJson() {
                 let record = try JSONDecoder().decode(WorkoutRepRecord.self, from: Data(json.utf8))
                 if reps.last?.id != record.id { reps.append(record) }
             }
-            if let json = engine.draftDeltaJson() {
+            let draft: String?
+            if let overheadPullUpEngine { draft = overheadPullUpEngine.draftDeltaJson() }
+            else if let bodyPullUpEngine { draft = bodyPullUpEngine.draftDeltaJson() }
+            else if let bodyDipEngine { draft = bodyDipEngine.draftDeltaJson() }
+            else { draft = engine.draftDeltaJson() }
+            if let json = draft {
                 pendingDraft = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(json.utf8))
+                // A single qualification may deliver several actual returns.
+                // Persist all newly delivered records before a crash can lose
+                // earlier members of that batch; future deltas remain small.
+                if deliveredBatch, var delta = pendingDraft {
+                    delta.reps = reps + delta.reps.filter { active in !reps.contains { $0.id == active.id } }
+                    pendingDraft = delta
+                }
                 if let delta = pendingDraft {
                     let record = WorkoutSetRecord(id: delta.id, exercise: delta.exercise, startedAt: delta.startedAt,
                         endedAt: delta.endedAt, endReason: delta.endReason, reps: reps, backend: delta.backend,
                         modelRevision: delta.modelRevision, schemaVersion: delta.schemaVersion, lifecycleVersion: delta.lifecycleVersion,
                         trackingSide: delta.trackingSide, imageSize: delta.imageSize, referenceEdge: delta.referenceEdge,
-                        trackedAtEpochMilliseconds: delta.trackedAtEpochMilliseconds, activity: delta.activity, grip: delta.grip)
+                        trackedAtEpochMilliseconds: delta.trackedAtEpochMilliseconds, activity: delta.activity, grip: delta.grip,
+                        countMethod: delta.countMethod, countPolicyVersion: delta.countPolicyVersion, setGrip: delta.setGrip,
+                        boundaryPolicyVersion: delta.boundaryPolicyVersion)
                     currentRecord = record
                 }
             }
-            revision = engine.revision
+            revision = currentRevision
         } catch { self.error = "Rep analysis could not be read: \(error.localizedDescription)" }
     }
 }
@@ -609,11 +744,17 @@ actor WorkoutRecordStore {
         try libraryRestore(String(contentsOf: source, encoding: .utf8))
     }
     private var mediaDirectory: URL { libraryDirectory.appendingPathComponent("Media", isDirectory: true) }
+    private var keyframeDirectory: URL { libraryDirectory.appendingPathComponent("Keyframes", isDirectory: true) }
     private func pruneLibraryMedia(_ state: String) throws {
         let object = try JSONSerialization.jsonObject(with: Data(state.utf8)) as? [String: Any]
         let retained = Set((object?["media"] as? [[String: Any]] ?? []).compactMap { $0["id"] as? String })
         if FileManager.default.fileExists(atPath: mediaDirectory.path) {
             for file in try FileManager.default.contentsOfDirectory(at: mediaDirectory, includingPropertiesForKeys: nil) where !retained.contains(file.deletingPathExtension().lastPathComponent) {
+                try FileManager.default.removeItem(at: file)
+            }
+        }
+        if FileManager.default.fileExists(atPath: keyframeDirectory.path) {
+            for file in try FileManager.default.contentsOfDirectory(at: keyframeDirectory, includingPropertiesForKeys: nil) where !retained.contains(file.lastPathComponent) {
                 try FileManager.default.removeItem(at: file)
             }
         }
@@ -637,6 +778,50 @@ actor WorkoutRecordStore {
         catch { try? FileManager.default.removeItem(at: target); throw error }
         return id
     }
+    /// An explicit automatic-recording preference authorizes local retention.
+    /// Publish the immutable set before attaching its clip, even if its save task is still queued.
+    func saveRecordedSetVideo(source: URL, record: WorkoutSetRecord) throws -> String? {
+        guard !record.completedReps.isEmpty, try !libraryDeleted(record.id) else { return nil }
+        try save(record)
+        let state = try JSONSerialization.jsonObject(with: Data(libraryState().utf8)) as? [String: Any]
+        if var policy = state?["mediaPolicy"] as? [String: Any], policy["enabled"] as? Bool != true {
+            policy["enabled"] = true
+            _ = try libraryCommand(String(decoding: JSONSerialization.data(withJSONObject: ["action": "mediaPolicy", "mediaPolicy": policy, "atEpochMilliseconds": Int64(Date().timeIntervalSince1970 * 1000)]), as: UTF8.self))
+        }
+        let id = try attachLibraryMedia(source: source, setId: record.id)
+        if let range = CountedSetVideoRange(record: record) {
+            let folder = keyframeDirectory.appendingPathComponent(id, isDirectory: true)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try JSONEncoder().encode(WorkoutVideoOrigin(setId: record.id, clipStart: range.start))
+                .write(to: folder.appendingPathComponent("origin.json"), options: .atomic)
+            Task.detached(priority: .utility) { _ = try? await self.libraryVideoReview(id: id) }
+        }
+        return id
+    }
+
+    func libraryVideoReview(id: String) async throws -> WorkoutVideoReviewData? {
+        guard let url = try libraryMediaURL(id: id) else { return nil }
+        let state = try JSONSerialization.jsonObject(with: Data(libraryState().utf8)) as? [String: Any]
+        let media = (state?["media"] as? [[String: Any]])?.first { $0["id"] as? String == id }
+        let record = try (media?["setId"] as? String).flatMap { try libraryRecord(id: $0) }
+        let folder = keyframeDirectory.appendingPathComponent(id, isDirectory: true)
+        // Manually attached and older clips have no proven camera-clock mapping.
+        guard let record, let data = try? Data(contentsOf: folder.appendingPathComponent("origin.json")),
+              let origin = try? JSONDecoder().decode(WorkoutVideoOrigin.self, from: data), origin.setId == record.id else {
+            return WorkoutVideoReviewData(url: url, record: record, markers: [], thumbnailDirectory: nil, thumbnailError: nil)
+        }
+        let markers = WorkoutKeyframeMarker.markers(record: record, clipStart: origin.clipStart)
+        var message: String?
+        do { try await WorkoutKeyframeExtractor.extract(video: url, markers: markers, directory: folder) }
+        catch { message = "Some previews couldn't be extracted. You can still play the video and tap rep moments." }
+        // A deletion/retention change may happen while AVFoundation is extracting.
+        guard try libraryMediaURL(id: id) != nil else {
+            try? FileManager.default.removeItem(at: folder)
+            return nil
+        }
+        return WorkoutVideoReviewData(url: url, record: record, markers: markers, thumbnailDirectory: folder, thumbnailError: message)
+    }
+
     func libraryMediaURL(id: String) throws -> URL? {
         guard id.count <= 64, id.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" }) else { return nil }
         let old = try libraryState()

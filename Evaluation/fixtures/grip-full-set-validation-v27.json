@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 27,
+  "scope": "Frozen fresh public full-set validation, not phone deployment or population accuracy.",
+  "result": "notQualified",
+  "allNewSourceGroups": 12,
+  "sourceExcludedBeforeInference": 5,
+  "nativeDecodeFailures": 1,
+  "processedSources": 6,
+  "reviewedSourceSetSegments": 13,
+  "temporallyCompleteSourceSets": 11,
+  "totals": {
+    "nativeFrames": 16883,
+    "scheduledImages": 2114,
+    "patches": 3525,
+    "completedCounterReps": 34,
+    "scoredCompletedReps": 34,
+    "nativeKnownWidthReps": 19,
+    "knownWidthBands": {
+      "wide": 18,
+      "shoulderWidth": 1
+    },
+    "verifiableKnownWidthReps": 6,
+    "wrongVerifiableWidthReps": 0,
+    "offlineKnownGripReps": 21,
+    "offlineCorrectKnownGripReps": 18,
+    "offlineWrongKnownGripReps": 3,
+    "negativeFrames": 4881,
+    "negativeCompletedReps": 0,
+    "negativeNewAcceptances": 0,
+    "negativeVisibleGripFrames": 303
+  },
+  "completedRepGripMetadata": {
+    "correct": 18,
+    "wrong": 3,
+    "unknown": 13
+  },
+  "counterAndWidthPolicyUnchanged": true,
+  "widthPolicyVersion": 5,
+  "handModelsUnchanged": true,
+  "noRetraining": true,
+  "noThresholdChanges": true,
+  "noManualSetResets": true,
+  "knownOrientationInput": "Manually confirmed source front/rear; automatic live orientation not evaluated.",
+  "metadataLimitations": [
+    "Offline learned RGB grip labels are scored separately; saved native rep grip orientation remains unknown. Phone currently uses its geometric hand classifier.",
+    "Reference width uncertainty affects accuracy accounting only; it is not a classifier/readability gate.",
+    "Narrow/medium/wide categorical alternation remains unqualified; source hand placement changes are visible, but close-width reference intervals overlap category boundaries.",
+    "Source count references are provisional visible excursions; pike/lateral/assisted/mixed-grip stress cases are not strict-form rep gold."
+  ],
+  "sourceTemporalCorrection": {
+    "recordedAt": "2026-10-26T01:06:57.803944+00:00",
+    "stage": "Automatic crop source review after native pose export; before any learned predictions or shared-counter outcomes were inspected. Learned inference may already be running. Original reference and all outputs are preserved.",
+    "caseId": "c79BFTkrt9s",
+    "reason": "The last automatic RGB source sample at 38.1715 shows both hands released, correcting the sparse overview impression of a cut-off return. Source-only evidence warrants ten complete cycles and release visible; original completeSet=false/no-release note was incorrect.",
+    "evidence": "run/crop-review/c79BFTkrt9s-03.jpg",
+    "setId": "close-chinup",
+    "correctedCompleteSet": true,
+    "correctedActiveWindow": [
+      3,
+      38.0
+    ],
+    "correctedHeldWindow": [
+      2.6,
+      38.1
+    ],
+    "additionalNegativeWindow": [
+      38.25,
+      38.5
+    ],
+    "gripAndWidthReferencesChanged": false
+  },
+  "sourceSets": [
+    {
+      "caseId": "YnykpezuXWg",
+      "setId": "overhand-regular",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 5,
+      "completedCounterReps": 4,
+      "referenceGrip": "overhand",
+      "knownGripCoverage": 0.8604651162790697,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "wide",
+      "referenceWidthInterval": [
+        1.6454582693089257,
+        2.8085106382978724
+      ],
+      "widthCoverage": 0.42151162790697677,
+      "wrongKnownWidthFrames": 0
+    },
+    {
+      "caseId": "YnykpezuXWg",
+      "setId": "overhand-pike",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 5,
+      "completedCounterReps": 4,
+      "referenceGrip": "overhand",
+      "knownGripCoverage": 0.7404580152671756,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "wide",
+      "referenceWidthInterval": [
+        1.642642806604752,
+        2.838709677419355
+      ],
+      "widthCoverage": 0.6819338422391857,
+      "wrongKnownWidthFrames": 0
+    },
+    {
+      "caseId": "YnykpezuXWg",
+      "setId": "overhand-lateral",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 5,
+      "completedCounterReps": 5,
+      "referenceGrip": "overhand",
+      "knownGripCoverage": 0.8183908045977012,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        1.2575476069966498,
+        2.1454545454545455
+      ],
+      "widthCoverage": 0.8298850574712644,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "YnykpezuXWg",
+      "setId": "underhand-regular",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 5,
+      "completedCounterReps": 4,
+      "referenceGrip": "underhand",
+      "knownGripCoverage": 0.681265206812652,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        1.0854076451258121,
+        2.2948717948717947
+      ],
+      "widthCoverage": 0.051094890510948905,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "YnykpezuXWg",
+      "setId": "underhand-pike",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 5,
+      "completedCounterReps": 5,
+      "referenceGrip": "underhand",
+      "knownGripCoverage": 0.7703703703703704,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        0.9865846999287845,
+        2.3768115942028984
+      ],
+      "widthCoverage": 0.3925925925925926,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "YnykpezuXWg",
+      "setId": "underhand-lateral",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 5,
+      "completedCounterReps": 3,
+      "referenceGrip": "underhand",
+      "knownGripCoverage": 0.6142533936651584,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        1.0386363179939706,
+        2.442857142857143
+      ],
+      "widthCoverage": 0.41968325791855204,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "mdVR7PwRFBk",
+      "setId": "neutral-set",
+      "completeSourceSet": false,
+      "sourceVisibleCycles": 16,
+      "completedCounterReps": 3,
+      "referenceGrip": "neutral",
+      "knownGripCoverage": 0.19938650306748465,
+      "wrongKnownGripFrames": 195,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        0.7419305909209641,
+        1.558139534883721
+      ],
+      "widthCoverage": 0.3476482617586912,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "Z2qK4oUJsrU",
+      "setId": "mechanical-drop",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 15,
+      "completedCounterReps": 0,
+      "referenceGrip": "overhand",
+      "knownGripCoverage": 0.0,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "shoulderWidth",
+      "referenceWidthInterval": [
+        0.8558470621292156,
+        1.1711711711711712
+      ],
+      "widthCoverage": 0.0,
+      "wrongKnownWidthFrames": 0
+    },
+    {
+      "caseId": "c79BFTkrt9s",
+      "setId": "close-chinup",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 10,
+      "completedCounterReps": 0,
+      "referenceGrip": "underhand",
+      "knownGripCoverage": 0.0,
+      "wrongKnownGripFrames": 0,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        0.5133228275744647,
+        1.1964285714285714
+      ],
+      "widthCoverage": 0.09246901811248809,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "DPuP0AKtuoo",
+      "setId": "airborne-switch",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 12,
+      "completedCounterReps": 0,
+      "referenceGrip": "mixed",
+      "knownGripCoverage": 0.07383966244725738,
+      "wrongKnownGripFrames": null,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        0.8117301881592968,
+        1.6030534351145038
+      ],
+      "widthCoverage": 0.10759493670886076,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "hD0BOEH7bME",
+      "setId": "wide-overhand",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 6,
+      "completedCounterReps": 3,
+      "referenceGrip": "overhand",
+      "knownGripCoverage": 0.5921052631578947,
+      "wrongKnownGripFrames": 270,
+      "referenceWidth": "wide",
+      "referenceWidthInterval": [
+        1.3496341087733745,
+        2.2667930030695542
+      ],
+      "widthCoverage": 0.6754385964912281,
+      "wrongKnownWidthFrames": 0
+    },
+    {
+      "caseId": "hD0BOEH7bME",
+      "setId": "close-underhand",
+      "completeSourceSet": true,
+      "sourceVisibleCycles": 4,
+      "completedCounterReps": 2,
+      "referenceGrip": "underhand",
+      "knownGripCoverage": 0.49066666666666664,
+      "wrongKnownGripFrames": 184,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        0.5749368089720625,
+        1.357638477071522
+      ],
+      "widthCoverage": 0.49333333333333335,
+      "wrongKnownWidthFrames": null
+    },
+    {
+      "caseId": "hD0BOEH7bME",
+      "setId": "close-neutral",
+      "completeSourceSet": false,
+      "sourceVisibleCycles": 2,
+      "completedCounterReps": 1,
+      "referenceGrip": "neutral",
+      "knownGripCoverage": 0.5217391304347826,
+      "wrongKnownGripFrames": 144,
+      "referenceWidth": "uncertain",
+      "referenceWidthInterval": [
+        0.4161777482536484,
+        1.154167852383988
+      ],
+      "widthCoverage": 1.0,
+      "wrongKnownWidthFrames": null
+    }
+  ],
+  "nextPriorities": [
+    "Audit current hand-surface errors on visible hand patches with source-confirmed view.",
+    "Repair exercise/support continuity attribution for narrow chin-up and medium rear set without relaxing strict counter readiness.",
+    "End exercise metadata exposure during one-hand explanatory rest; preserve zero added rep counts.",
+    "Obtain independently adjudicated narrow and medium width joint-center references before asserting category accuracy."
+  ],
+  "evidence": {
+    "report": "build/grip-width-v27/run/test/report.json",
+    "attribution": "build/grip-width-v27/run/test/attribution-audit.json",
+    "timelines": "build/grip-width-v27/continuous-timelines.png",
+    "examples": "build/grip-width-v27/failure-examples.png",
+    "sourceReferences": "build/grip-width-v27/run/source-references.json",
+    "correction": "build/grip-width-v27/source-review-correction.json",
+    "accountingRepair": "build/grip-width-v27/accounting-repair.json",
+    "sharedReplay": "build/grip-width-v27/shared-replay-junit.xml",
+    "accountingTests": "build/grip-width-v27/accounting-tests.log"
+  },
+  "freshness": "All twelve groups are now exposed evaluation data. Do not reuse as an untouched holdout.",
+  "sourceGroups": [
+    {
+      "id": "YnykpezuXWg",
+      "sha256": "db9a1e8ec3e6fc455871ae66d17fe39162117606199c9e33094859940670b233"
+    },
+    {
+      "id": "mdVR7PwRFBk",
+      "sha256": "f7291e04e11bbfd844b5e71462218dfcfc01483fa24c89c492665b23776ec509"
+    },
+    {
+      "id": "Z2qK4oUJsrU",
+      "sha256": "1112bb814f308c8afb28ac8b958724816310abd8f628d5d5f2a71c4165ce2ba5"
+    },
+    {
+      "id": "c79BFTkrt9s",
+      "sha256": "8b542ab93d56fc823d13fe893598d62b2051bd1a5bab48c7ffaf9d1f93edfe92"
+    },
+    {
+      "id": "DPuP0AKtuoo",
+      "sha256": "30b0b589b140a5249c990b1450234a6ad357bfd669c79e4fdf28d1128677b0e2"
+    },
+    {
+      "id": "hD0BOEH7bME",
+      "sha256": "e04dccf3ea18d42cef99bdeea7e36a91b38971df54cf6260762d7fc3edc7115d"
+    },
+    {
+      "id": "kFBlmJsaCvk",
+      "sha256": "082ace150c1bdd757f501d39f0564633c09d0750d4a1c8e543e6c49bf7338e27"
+    },
+    {
+      "id": "NAY2kO9pf9k",
+      "sha256": "1d0b5ee1efb5860fccded1b3bbcc29973dcea6d392868d0105bc520d8886d1ce"
+    },
+    {
+      "id": "vkM7ZpLshLg",
+      "sha256": "f35a95f96a75d825ef913c25f0aaa6bd701cf59cf457f24d29dc3fab685e5124"
+    },
+    {
+      "id": "NqsngNffOP4",
+      "sha256": "5899d2ca59093207add1df317603a07e8e6e3efb073550365c9f6c93e688cc0f"
+    },
+    {
+      "id": "yxP3EkmJAdg",
+      "sha256": "22b3cf7f5b4a6a8f8d3f2ab0ffb3ac20b7bc99da77a73b22a1e8bfd38f9da1d5"
+    },
+    {
+      "id": "8rFEt8eou90",
+      "sha256": "e54d702073acf4ad1a5fc76cae0daaf4c3463f6451a3e02d93ddbbc485c5d546"
+    }
+  ]
+}

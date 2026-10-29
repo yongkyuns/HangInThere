@@ -27,20 +27,32 @@ fun WorkoutGripPanel(set:WorkoutSetRecord,allowsCorrections:Boolean=true) {
     var orientation by remember { mutableStateOf<GripOrientation?>(null) }
     var width by remember { mutableStateOf<GripWidth?>(null) }
     var saving by remember { mutableStateOf(false) }
-    LaunchedEffect(set.id,set.endReason,set.reps,revision,allowsCorrections) {
+    LaunchedEffect(set.id,set.endReason,set.reps,set.setGrip,revision,allowsCorrections) {
         runCatching { withContext(Dispatchers.IO) { store.report(set,allowsCorrections) } }
             .onSuccess { report=it;error=null }.onFailure { if(it is kotlinx.coroutines.CancellationException)throw it;error=it.message }
     }
     Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {
         Text("Grip variations",style=MaterialTheme.typography.titleMedium)
-        Text("Orientation is estimated from your hands. Width is relative to your shoulder span in this camera view.",style=MaterialTheme.typography.bodySmall)
+        Text("Grip width is hand spacing ÷ shoulder width, measured from a stable starting hang. Narrow, medium and wide are relative to your shoulders.",style=MaterialTheme.typography.bodySmall)
+        report?.setGrip?.let { metadata ->
+            Text("Set grip · ${GripEstimate.orientationTitle(metadata.orientation)}",style=MaterialTheme.typography.titleSmall)
+            Text(if(metadata.isConfirmed) "Identified during this set and applied to its reps."
+                else if(metadata.reason=="conflictingSetGripEvidence") "Grip estimates disagree within this set."
+                else "Waiting for a clear grip view during this set.",style=MaterialTheme.typography.bodySmall)
+        }
         report?.totals?.forEach { Text("${it.label} · ${it.completedReps} ${if(it.completedReps==1)"rep" else "reps"}") }
         var expanded by remember { mutableStateOf(false) }
         TextButton(onClick={expanded=!expanded}) { Text("Per attempt") }
         if(expanded)report?.reps?.forEach { rep ->
             Text("${rep.ordinal} · ${rep.label}")
-            Text(if(rep.orientationSource=="user" || rep.widthSource=="user")"Includes your correction" else "Automatic estimate",style=MaterialTheme.typography.bodySmall)
+            Text(if(rep.orientationSource=="user" || rep.widthSource=="user")"Includes your correction"
+                else if(rep.orientationSource=="setEstimated")if(report?.setGrip?.isConfirmed==true)"Grip inferred from this set" else "Set grip unknown"
+                else "Automatic estimate",style=MaterialTheme.typography.bodySmall)
             rep.measured?.orientationCoverage?.let { Text("Both hands classified for ${(it*100).toInt()}% of this attempt",style=MaterialTheme.typography.bodySmall) }
+            if(rep.widthSource!="user")rep.measured?.let { measured ->
+                measured.widthRatioLabel?.let { Text("Hand spacing · $it",style=MaterialTheme.typography.bodyMedium) }
+                measured.widthCoverage?.let { Text("Width measured for ${(it*100).toInt()}% of this attempt",style=MaterialTheme.typography.bodySmall) }
+            }
         }
         if(allowsCorrections && set.endReason!="running" && report?.reps?.isNotEmpty()==true)TextButton(onClick={target=null;orientation=null;width=null;editing=true}) { Text("Correct grip labels") }
         error?.let { Text(it,color=MaterialTheme.colorScheme.error) }

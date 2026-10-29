@@ -17,7 +17,7 @@ class WorkoutSceneBridge {
         scene.calibrate(ImageSize(width, height))
 
     fun observe(seconds: Double, translations: DoubleArray, scaleFraction: Double): String {
-        // Native registration has four peripheral patches. Malformed transport
+        // Native registration has up to six peripheral patches. Malformed transport
         // must revoke availability, rather than inventing zero camera motion.
         val patches = if (translations.size <= StaticSceneStability.maximumRegistrationPatches * 2 && translations.size % 2 == 0) {
             translations.asList().chunked(2).map { StaticSceneStability.PatchTranslation(it[0], it[1]) }

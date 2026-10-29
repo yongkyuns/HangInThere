@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 30,
+  "result": "notQualified",
+  "scope": "Agent source-only references before inference. Fresh source groups, not athlete-independent or human gold. Exact shared counter/width with source-confirmed view and wrist-seeded reference; offline RGB, not phone acquisition.",
+  "allSelectedSourceGroups": 19,
+  "acquiredSources": 18,
+  "unavailableSources": 1,
+  "sourceExcludedBeforeInference": 14,
+  "processedSources": 4,
+  "completeSourceSetRecordings": 2,
+  "partialDiagnosticRecordings": 2,
+  "nativeFrames": 4736,
+  "scheduledImages": 446,
+  "automaticCrops": 702,
+  "completeSourceSets": {
+    "sources": 2,
+    "referenceFullCycles": 8,
+    "matchedReferenceCycles": 8,
+    "completedCounterReps": 8
+  },
+  "partialDiagnostics": {
+    "sources": 2,
+    "referenceFullCycles": 5,
+    "matchedReferenceCycles": 4,
+    "completedCounterReps": 4
+  },
+  "completedRepGripMetadata": {
+    "completed": 12,
+    "correct": 8,
+    "wrong": 0,
+    "unknown": 4
+  },
+  "completeSourceSetGripMetadata": {
+    "completed": 8,
+    "correct": 6,
+    "wrong": 0,
+    "unknown": 2
+  },
+  "partialGripMetadata": {
+    "completed": 4,
+    "correct": 2,
+    "wrong": 0,
+    "unknown": 2
+  },
+  "negativeControls": {
+    "frames": 2542,
+    "newCounterMovements": 0,
+    "completedReps": 0,
+    "newAcceptances": 0,
+    "exerciseEligibleFrames": 14,
+    "visibleGripFrames": 0,
+    "newGripDecisions": 0
+  },
+  "width": {
+    "knownCompletedReps": 10,
+    "unknownCompletedReps": 2,
+    "knownBands": {
+      "wide": 10
+    },
+    "singleBandVerifiableKnownCompletedReps": 0,
+    "supplementalNominalIntervalIncompatibleCompletedReps": 1,
+    "note": "Original categorical scorer leaves uncertain references unscored. Supplemental post-inference audit finds one saved Wide incompatible with its frozen Narrow/Medium interval. Other nine known widths overlap broad source intervals; not verified successes."
+  },
+  "findings": [
+    "Two complete recordings count all eight independently frozen full hang-to-hang cycles. The first chin-up excursion starts from standing and was excluded from full-cycle truth before inference.",
+    "In partial diagnostics the counter completes four of five full cycles; first cropped-head peak briefly yields no Apple body observation.",
+    "Correct raw first-rep grip evidence can arrive before temporal confirmation. QA hand crops additionally clip fingers and mainly show wrists/forearms.",
+    "QA inferred frozen shoulder denominator 81.55 px versus current pose span 89.57 px; source regions put shoulders farther apart. Width inflation is a geometry/calibration issue."
+  ],
+  "gaps": [
+    "No qualifying real grip type/width alternation recording in this acquisition.",
+    "Narrow and Medium band accuracy remain unqualified. Three source intervals cross category boundaries.",
+    "Zero wrong known grip labels is limited-source precision with Unknowns, not overall accuracy.",
+    "Native Mac research replay does not qualify automatic phone acquisition or live phone performance."
+  ],
+  "referenceQualification": "Provisional agent source-only regions and movement references, frozen before inference. No independent human or athlete-independent claim.",
+  "modelTrained": false,
+  "thresholdsChanged": false,
+  "counterChanged": false,
+  "phoneInstalled": false,
+  "realGripChangeQualification": false,
+  "validation": {
+    "sharedReplayJUnitTests": 1,
+    "sharedReplayFailures": 0,
+    "accountingTests": 6,
+    "referenceGeometryTests": 6,
+    "intervalCompatibilityTests": 4
+  },
+  "evidence": {
+    "report": "build/grip-fullsets-v30/run/test/report-v30.json",
+    "audit": "build/grip-fullsets-v30/run/test/attribution-audit.json",
+    "sourceReferences": "build/grip-fullsets-v30/run/source-references.json",
+    "cropReview": "build/grip-fullsets-v30/crop-visual-review.json",
+    "timelines": "build/grip-fullsets-v30/complete-set-timelines.png",
+    "examples": "build/grip-fullsets-v30/first-rep-examples.png",
+    "runtimeNote": "build/grip-fullsets-v30/scoring-runtime-note.json"
+  },
+  "sha256": {
+    "build/grip-fullsets-v30/run/test/report-v30.json": "f4bf5f6bc652f91876695f43f89ce443a0587ba7f20c2e1e92c9818c090a7e1d",
+    "build/grip-fullsets-v30/run/test/attribution-audit.json": "d441fd9c47c29204358723a3b50d64377f432c7f186fc0b8ad7d492da9899942",
+    "build/grip-fullsets-v30/crop-visual-review.json": "8ddc15c665c9a067d1bb22a967ea376d5e6e29d782fc7234f8be2d25e6be53c7",
+    "build/grip-fullsets-v30/run/source-references.json": "7f98fd677054bbad1266800ece77be0c49ca073b1f7d2f21e6a7dbcdc452ac4f"
+  }
+}

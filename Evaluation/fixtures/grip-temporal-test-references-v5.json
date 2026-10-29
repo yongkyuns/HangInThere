@@ -1,0 +1,2156 @@
+{
+  "schemaVersion": 5,
+  "inputSHA256": "d7b8e886395b237e4274f21e080ade46d650edce76dd9d851d4ccbab48d884ef",
+  "intakeSHA256": "dc88879192aaf4b9db2a0d147638ca7f0c5be66701c573f1d5ff3df9775b2fd6",
+  "reviewMethod": "Source-sequence review plus two actual tight/wider crop passes, eight conflicts reopened visually before inference; agent annotations, not independent human gold labels.",
+  "humanReviewPacket": "build/grip-temporal-v5/human-review/index.html",
+  "humanReviewStatus": "Pending user response; not fabricated",
+  "videos": [
+    {
+      "reviewId": "V01",
+      "caseId": "k700val_0vMCq_b2nFo_000019_000029",
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "grip": "unknown",
+      "view": "front",
+      "reason": "Hands outside source image while hanging; preparation/edit before5s. No grip invented.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V02",
+      "caseId": "k700val__5DiYoFndoc_000015_000025",
+      "recordingId": "da3d4b66176d5d56bb9bb5034ce77157e0aa9b18cb526df3f5d366a746c61094",
+      "grip": "unknown",
+      "view": "rear",
+      "reason": "Dark doorway footage; source grip remains uncertain and no full body acquired.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V03",
+      "caseId": "k700val_dUbqRIerwMU_000012_000022",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "grip": "overhand",
+      "view": "oblique",
+      "reason": "Rear-oblique yellow-shirt athlete; visible dorsal metacarpals on pronated grips.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V04",
+      "caseId": "k700val_eRMPonbF4AE_000004_000014",
+      "recordingId": "98566b8d40658f79c5cd28bdba7423e5e9518c3736a66ae713a207e71be0af62",
+      "grip": "unknown",
+      "view": "unknown",
+      "reason": "Rotated/cluttered jungle-gym footage with no verifiable hand/torso direction.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V05",
+      "caseId": "k700val_brpaoi6BiQg_000028_000038",
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "grip": "unknown",
+      "view": "front",
+      "reason": "Edited two-athlete demonstration with touching/overlapping hands; no verified constant single-athlete grip.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V06",
+      "caseId": "k700val_7yzvcnYWHNY_000012_000022",
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "grip": "neutral",
+      "view": "oblique",
+      "reason": "Hands grasp two vertical ropes with opposed grip axes; source supports rope/neutral demonstration, model crops occluded.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V07",
+      "caseId": "k700val_VLhgkbuEO1U_000000_000010",
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "grip": "overhand",
+      "view": "front",
+      "reason": "Purple-shirt woman with coach; transverse wide grips pronated. Glove hides anatomical surface, target athlete is clear.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V08",
+      "caseId": "k700val_eP9CemlbImQ_000098_000108",
+      "recordingId": "2982df3ac05adc4845e958267c9f6d2c1c7e99446c6d07606062442aa3e1d01a",
+      "grip": "unknown",
+      "view": "unknown",
+      "reason": "Native export rejected invalidGeometry; retained with no synthetic frames or replacements.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V09",
+      "caseId": "k700val_bWcwPwQr4CU_000147_000157",
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "grip": "unknown",
+      "view": "rear",
+      "reason": "Edited recording switches athlete and neutral close handles to wide muscle-up handles; no single constant grip.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V10",
+      "caseId": "k700val_Gjw2SxfDoaM_000003_000013",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "grip": "unknown",
+      "view": "unknown",
+      "reason": "One-arm rotating athlete; grip/torso changes and gripping hand is clipped at source edge. Bystanders retained.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V11",
+      "caseId": "k700val_07xyK3Efyps_000339_000349",
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "grip": "unknown",
+      "view": "unknown",
+      "reason": "Several simultaneously active pull-up athletes then a cut; no uniquely designated main athlete.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V12",
+      "caseId": "k700val_hXImBJEvqgY_000090_000100",
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "grip": "unknown",
+      "view": "rear",
+      "reason": "Distant white-clothed muscle-up athlete; tiny/clipped hands do not independently establish grip.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V13",
+      "caseId": "k700val_b8MNl0akNk4_000002_000012",
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "grip": "unknown",
+      "view": "rear",
+      "reason": "Two simultaneous athletes with different close/wide grips; no unique designated subject.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V14",
+      "caseId": "k700val_By6Q1K6y1-4_000000_000010",
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "grip": "unknown",
+      "view": "front",
+      "reason": "Distant red-shirt athlete; full-frame action clear but hand anatomy is too small.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V15",
+      "caseId": "k700val_x0ikjxF1t58_000004_000014",
+      "recordingId": "e6ec12ba9ad5bbe28a420feb3846029b2f549bd0f395d4969b7aa943e952cea3",
+      "grip": "underhand",
+      "view": "front",
+      "reason": "Close child grip shows backs of hands/fingernails toward front camera on straight bar; body acquisition fails.",
+      "reviewer": "agent",
+      "humanVerified": false
+    },
+    {
+      "reviewId": "V16",
+      "caseId": "k700val_ENMZ3yxq1dM_000003_000013",
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "grip": "unknown",
+      "view": "front",
+      "reason": "Distant formal-shirt athlete, fingerless/black glove silhouette. Contact visible but supination uncertain.",
+      "reviewer": "agent",
+      "humanVerified": false
+    }
+  ],
+  "patches": {
+    "T0001": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "imageSHA256": "9677666d67379e06b3850fedcba40dbe3c88a746776686dcd565299311dfd65e",
+      "patchSHA256": "b05aaf24fed73944c44df9c40937d64dc21435f44c6e139cbd99ca9003d9c036",
+      "box": [
+        197,
+        102,
+        240,
+        145
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0002": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "imageSHA256": "9677666d67379e06b3850fedcba40dbe3c88a746776686dcd565299311dfd65e",
+      "patchSHA256": "1c8507c930c3f5e5e592302c44dae4aaba4cf9a62db246566c5faeed66c8766c",
+      "box": [
+        184,
+        94,
+        232,
+        142
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0003": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "e85f91abec7fef436f77ffbc8f310b3811301725bb113bf0ddde54bc0946e214",
+      "imageSHA256": "9228c9fe365e4c23bbd03a8c2035fe3209a39c35b35321a0d6c27c2734bc063b",
+      "patchSHA256": "aa202a710c560a9d7c6ebac6d3fe7cc49a0ed8b7b79bb7e70496bc0e558b2106",
+      "box": [
+        238,
+        90,
+        279,
+        131
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0004": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "6a8fcbf5b5af12a722a0b4e974cd2f50fb3fffc5c43d1c8fa686a864a57e4139",
+      "patchSHA256": "5454451b14b1e718822b6c3ecd49d6b7cdeae6ddf0ff22237c3e0ec2f1c4ea39",
+      "box": [
+        720,
+        0,
+        785,
+        65
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0005": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "1850b378820f39ead9523ad0c15a151e80bd4130e7d9a1aad8386d9693f6cb54",
+      "patchSHA256": "f543f88bd1b1bf73d8a5c3edb4bb18c986e644b9674cb2501be72169d9d68b1b",
+      "box": [
+        601,
+        19,
+        625,
+        43
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0006": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "eac5e84daee2f7c57d69ee5f8369c023d7277663d90c6784021c532851aedcf1",
+      "patchSHA256": "190dbc312a13995bb1564b2d095ec33090c0cc6cad63ce22a3643e6f60afe79a",
+      "box": [
+        606,
+        12,
+        630,
+        36
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0007": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "7578e60721ade3742b9e1780523c59451155fa6e8419b2a4a2337f78b458edaf",
+      "patchSHA256": "eb117045d97d38a435784d9d59c76a99751b1b6cb580100bd44045b11114669f",
+      "box": [
+        660,
+        85,
+        732,
+        157
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0008": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "11204d993941e5af55684d176746a6bc838a49b3b7b2df8348832f8005543613",
+      "imageSHA256": "7578e60721ade3742b9e1780523c59451155fa6e8419b2a4a2337f78b458edaf",
+      "patchSHA256": "16623148bd1280338bef600f66519917d61724c436d4cb99921d1022c5afa99b",
+      "box": [
+        603,
+        19,
+        627,
+        43
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0009": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "imageSHA256": "07d1c2c0231fca4599228022c4682d161d07e86346befd59cedc6151a0729b25",
+      "patchSHA256": "468342115aee4cbbb1c7f5c66282f056904cf05ea616a3047557432ed2d29e36",
+      "box": [
+        263,
+        52,
+        294,
+        83
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0010": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "915bb01b733a67dd980a982a20517e9a34e5c18c8b3b001c59ba07535fb08832",
+      "imageSHA256": "07d1c2c0231fca4599228022c4682d161d07e86346befd59cedc6151a0729b25",
+      "patchSHA256": "535e379b79463f60db783ff505d2fc72690412b6a7faff1f55edaa0ccfdceb0f",
+      "box": [
+        258,
+        55,
+        289,
+        86
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0011": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "865db45f1d16a33642ba8c73f31cbfec2cf9b65e3c540cdeff617773954a449c",
+      "patchSHA256": "527ae7fbe42afd37185945406e0504af0a57d348244943f38abbb8c094dfdd5e",
+      "box": [
+        107,
+        115,
+        131,
+        139
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0012": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "865db45f1d16a33642ba8c73f31cbfec2cf9b65e3c540cdeff617773954a449c",
+      "patchSHA256": "68e618ac2fdbd7df2c0e7ae56d85036b77957b6473ee5f632c8385e1652b66d3",
+      "box": [
+        61,
+        119,
+        85,
+        143
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0013": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "82f9cf1b501528533ed2d4c5595039ac42238fea183ad7f3efdb636692b93c90",
+      "patchSHA256": "62feca3d09ea87d5a858d24cbd6c4ae19af304ee69e893ed1e18e35686ddd8cf",
+      "box": [
+        100,
+        128,
+        124,
+        152
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0014": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "82f9cf1b501528533ed2d4c5595039ac42238fea183ad7f3efdb636692b93c90",
+      "patchSHA256": "02fd34dc5b87ae17e587812136b2a31fd9c3a5c4ae4c5cb45592a00538f4fdff",
+      "box": [
+        56,
+        126,
+        80,
+        150
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0015": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "dc3b5dbff168d6a1f9bf254cf0bef00f97a4e1aa7c6c3dee2d21b923234c813f",
+      "patchSHA256": "2c27af71f82149a678a4769bc8ae8fb064a1f05b10a3c204c232ab1271527c86",
+      "box": [
+        94,
+        133,
+        118,
+        157
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0016": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "dc3b5dbff168d6a1f9bf254cf0bef00f97a4e1aa7c6c3dee2d21b923234c813f",
+      "patchSHA256": "7738e3e5f3567f9a58f437ec44f67f5174c7d60ddabff0c9c8566ec3e6c0a364",
+      "box": [
+        53,
+        129,
+        77,
+        153
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0017": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "2835ad800a4b6ccdbb5bae2ed32386599b1d55fbd3ba2228b688fbd6f2e8047a",
+      "patchSHA256": "271bbd6e755c83be8d75f39d1cfe4c1680f1f4b7f43381727867c6a8d876ad3f",
+      "box": [
+        86,
+        133,
+        110,
+        157
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0018": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "2835ad800a4b6ccdbb5bae2ed32386599b1d55fbd3ba2228b688fbd6f2e8047a",
+      "patchSHA256": "a76d4e2edfe77cf34b8df93150cd5af48b76fa8ade214e70b7fa8f01200717cf",
+      "box": [
+        51,
+        124,
+        75,
+        148
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0019": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "265ddf34fb4a37b2dc49e93d8266a5024d11be61ba4460cbec869d5c7dbd23fc",
+      "patchSHA256": "392d7823cac81175bd141d40cba2f0ff156f677e75bfb39969fd1990268a4380",
+      "box": [
+        93,
+        132,
+        117,
+        156
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0020": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "265ddf34fb4a37b2dc49e93d8266a5024d11be61ba4460cbec869d5c7dbd23fc",
+      "patchSHA256": "8ccc7278bf10b6364684e6eee3e1600229294431e8d36ae30d52eefb823289f1",
+      "box": [
+        48,
+        118,
+        72,
+        142
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0021": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "3029399a9e278666392cc14710aa37b75a50da4eb2119c0817ec7721f4ba0504",
+      "patchSHA256": "513da77e9174896b6df53107948fe5046950fc94b7ee4400975d26fc1abdf02e",
+      "box": [
+        131,
+        82,
+        155,
+        106
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0022": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "2c921d7fdbc55b04dbc76c1ff9b84886401b6debf57d6f186c9f3eebda1fcd31",
+      "imageSHA256": "3029399a9e278666392cc14710aa37b75a50da4eb2119c0817ec7721f4ba0504",
+      "patchSHA256": "7fa405a4f61771fa27d28da7058c386e92b48cd2a8b2fe8804a495e1baaaa01d",
+      "box": [
+        88,
+        79,
+        112,
+        103
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0023": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "5b4d603a0b742fc8bec93524a9896b47fa244e5388a8169c50cb4b8ffbcea4dc",
+      "patchSHA256": "b646fae3e9af07149a04ba093eccb9796573cde6df1d7c7fcb66f91649bdda06",
+      "box": [
+        717,
+        269,
+        763,
+        315
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0024": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "5b4d603a0b742fc8bec93524a9896b47fa244e5388a8169c50cb4b8ffbcea4dc",
+      "patchSHA256": "65092156502fce1595cb43c0292860e053bd976deb74e739fab8de6a5394c57d",
+      "box": [
+        616,
+        268,
+        662,
+        314
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0025": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "4fc71f99ef66a71a76dba7722ac0a3f82c51c4acd82e0a929a59d256d1a9631a",
+      "patchSHA256": "bf6a684dd7ae555c6830c6ffd04cc7d860406644fc033ac6f013488a66ee7777",
+      "box": [
+        714,
+        268,
+        762,
+        316
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0026": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "4fc71f99ef66a71a76dba7722ac0a3f82c51c4acd82e0a929a59d256d1a9631a",
+      "patchSHA256": "18f0c02dda8b3228e978d75ba8bb8d05b3fcb8883b9ab1267b8396cb5a1b0e79",
+      "box": [
+        617,
+        284,
+        650,
+        317
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0027": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "5dc8805718edb402d02f8498ee82a8f60134e701cff970ce4f776afef71b759c",
+      "patchSHA256": "729165bde6c51f9b18fd16adb905a87235c05944e2a79136c4acbde0f063715a",
+      "box": [
+        714,
+        266,
+        760,
+        312
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0028": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "327ff4f2049937c09d1caa08461d0883cb1f18b8404ba9442f8e33c7441ddddd",
+      "imageSHA256": "5dc8805718edb402d02f8498ee82a8f60134e701cff970ce4f776afef71b759c",
+      "patchSHA256": "35a8c254eb5284ceeea085b3cafd8ca22002a8c8365d298967e1e7220c2c4bdd",
+      "box": [
+        617,
+        273,
+        660,
+        316
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0029": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "b7ba6a6a20cacf39a4c2a1e4e9d7509f7883f97c706d80940d0792532f1f37a2",
+      "patchSHA256": "ea8d7a1f895e919708270e2a815a3f76e6675e026b14f9dad86b1a6b03aba8ba",
+      "box": [
+        612,
+        91,
+        660,
+        139
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0030": {
+      "surface": "dorsum",
+      "contact": "open",
+      "first": "do",
+      "second": "do",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "b7ba6a6a20cacf39a4c2a1e4e9d7509f7883f97c706d80940d0792532f1f37a2",
+      "patchSHA256": "fe6f1c6c1519570d67bc8807c15b5a851da9391d61d153f629bc00ff878dda4d",
+      "box": [
+        540,
+        435,
+        607,
+        502
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0031": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "ec47bc17ec7b616d7eea66de07c33f6f4e544a773011d2b61cb9a5bc8531891b",
+      "patchSHA256": "8ea332d41513a1223fdd3ed5e87a18fc76264b4b3734251b0d39d60bf9000a51",
+      "box": [
+        623,
+        116,
+        681,
+        174
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0032": {
+      "surface": "dorsum",
+      "contact": "open",
+      "first": "do",
+      "second": "do",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "ec47bc17ec7b616d7eea66de07c33f6f4e544a773011d2b61cb9a5bc8531891b",
+      "patchSHA256": "40eb5b583d78eeb47d561b1542c7fe3d605f1ea9835d9aba2d753db7faff586c",
+      "box": [
+        543,
+        441,
+        609,
+        507
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0033": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "b39b046bbcb8eafed9db6d4b4a479926ee46e1c7a364eae6d00ae21a19ae688c",
+      "patchSHA256": "4e38b6578cf4e045da107b2ee49280511c6755159b022c5b14ab2e9bdac06e5f",
+      "box": [
+        626,
+        114,
+        691,
+        179
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0034": {
+      "surface": "dorsum",
+      "contact": "open",
+      "first": "do",
+      "second": "do",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "b39b046bbcb8eafed9db6d4b4a479926ee46e1c7a364eae6d00ae21a19ae688c",
+      "patchSHA256": "52b798d28870e1f4cfeb4e4c6866784a1b0953dbbacb0975ff69533548b79d1e",
+      "box": [
+        555,
+        464,
+        617,
+        526
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0035": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "216dc0e5004841009b27c5593e634db1f7b41e4b69faaf387360593a2f646dfb",
+      "patchSHA256": "725f7630faad21771094a6c76c5c7ecd00f7907085cb3deff5bf37fe9de3c503",
+      "box": [
+        639,
+        27,
+        738,
+        126
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0036": {
+      "surface": "dorsum",
+      "contact": "open",
+      "first": "do",
+      "second": "do",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "216dc0e5004841009b27c5593e634db1f7b41e4b69faaf387360593a2f646dfb",
+      "patchSHA256": "4e5ed4469076b8a9556fefc4ad400ed2331045bba6f6e32414e3adec379b23bc",
+      "box": [
+        537,
+        552,
+        629,
+        644
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0037": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "24899df5bc98514fa8d2e04b585b83f05395571949e448c76419adcb87d09a39",
+      "patchSHA256": "882616b54d10af8ed4af710148e537bd8d4b8d5ff46724d08d100f5a2329cb62",
+      "box": [
+        649,
+        88,
+        732,
+        171
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0038": {
+      "surface": "dorsum",
+      "contact": "open",
+      "first": "do",
+      "second": "do",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "24899df5bc98514fa8d2e04b585b83f05395571949e448c76419adcb87d09a39",
+      "patchSHA256": "03e8899a3929b90e7ac30d8b8ef6ec78648f23121a33bbb2b0b3945ee4b1d82a",
+      "box": [
+        691,
+        569,
+        781,
+        659
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0039": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "ec9783ed0bba290ab35ef704b144f554639b496762568828405441406de63887",
+      "patchSHA256": "4ca45fe5883cc54f2279237cf0546976c76669ccbb020e285f4d8c2f1c01491b",
+      "box": [
+        614,
+        109,
+        684,
+        179
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0040": {
+      "surface": "dorsum",
+      "contact": "open",
+      "first": "du",
+      "second": "do",
+      "adjudication": "Source review associates silver-bracelet arm with the green-shirt athlete; open hand in air.",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "ec9783ed0bba290ab35ef704b144f554639b496762568828405441406de63887",
+      "patchSHA256": "78ef124f67a213b913122599e6102bd8fee2d9a4d880ac66cf19e1821c2d1a32",
+      "box": [
+        764,
+        291,
+        836,
+        363
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0041": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uo",
+      "adjudication": "Wrong black-shirt bystander hand, not raised left hand of main athlete; identity/contact masked.",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "9c60783229b734ab060c67ff3c5de50370bcca0a32c4b8488d3a135e5313be1e",
+      "patchSHA256": "1152a332f82a87f4a11df508288367be7e00ca40eed08f62db96386cbaacb724",
+      "box": [
+        680,
+        459,
+        769,
+        548
+      ],
+      "side": "left",
+      "identityEligible": false
+    },
+    "T0042": {
+      "surface": "dorsum",
+      "contact": "open",
+      "first": "du",
+      "second": "do",
+      "adjudication": "Source review associates silver-bracelet arm with green-shirt athlete; open hand in air.",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "9c60783229b734ab060c67ff3c5de50370bcca0a32c4b8488d3a135e5313be1e",
+      "patchSHA256": "370cc511b19e53b307ac5fcc89671ebee9429ee1a24cf93c3937c8269c39208f",
+      "box": [
+        832,
+        309,
+        892,
+        369
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0043": {
+      "surface": "dorsum",
+      "contact": "uncertain",
+      "first": "du",
+      "second": "do",
+      "adjudication": "Pale-shirt bystander hand, main athlete is green shirt; contact identity masked.",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "1a4ba3222363499a42bfbdd50e7c811a37938f95a705cb4910ea933f1ceec974",
+      "patchSHA256": "04abbb254ac7509b238e243e1226eabd6c681be15af0b8565b2767f773272802",
+      "box": [
+        793,
+        467,
+        848,
+        522
+      ],
+      "side": "left",
+      "identityEligible": false
+    },
+    "T0044": {
+      "surface": "dorsum",
+      "contact": "uncertain",
+      "first": "du",
+      "second": "do",
+      "adjudication": "Foreground bracelet arm and background bystander hand overlap in crop; target identity ambiguous.",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "1a4ba3222363499a42bfbdd50e7c811a37938f95a705cb4910ea933f1ceec974",
+      "patchSHA256": "bb82ed94b27ce908198bd8f378d5bb44d7000ade86eacb91a4d4c89b79da365e",
+      "box": [
+        684,
+        467,
+        748,
+        531
+      ],
+      "side": "right",
+      "identityEligible": false
+    },
+    "T0045": {
+      "surface": "dorsum",
+      "contact": "uncertain",
+      "first": "du",
+      "second": "do",
+      "adjudication": "Pale-shirt bystander hand; target identity masked.",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "182be6366fccbb6ec9354000c31f9cfcdefa9c682759e15a25a4e4efe97d2f7c",
+      "patchSHA256": "07d0c910478d15e16f59185acfed5773167a4f3fe41f9332129efbd819734077",
+      "box": [
+        806,
+        446,
+        865,
+        505
+      ],
+      "side": "left",
+      "identityEligible": false
+    },
+    "T0046": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uo",
+      "adjudication": "Black-shirt bystander hand; target identity masked.",
+      "recordingId": "3b62f831d376a6575691501c1bb2daf66b65e24df4992fc87aaa74c45769ca73",
+      "imageSHA256": "182be6366fccbb6ec9354000c31f9cfcdefa9c682759e15a25a4e4efe97d2f7c",
+      "patchSHA256": "62dd006f6e99761d7dd45ac3138b941e6ee420ac570f26828979335c456b080b",
+      "box": [
+        701,
+        441,
+        756,
+        496
+      ],
+      "side": "right",
+      "identityEligible": false
+    },
+    "T0047": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "b00bba03b17f162cfe0ed5cb3d1f98a5663afffc39b89020d16ee322ad4cf921",
+      "patchSHA256": "01a4d4b9a7bdcd3a753a490d5d156207f1b113eda3b5ecdbab561478f32a1e8b",
+      "box": [
+        665,
+        0,
+        794,
+        129
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0048": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "b00bba03b17f162cfe0ed5cb3d1f98a5663afffc39b89020d16ee322ad4cf921",
+      "patchSHA256": "f98ce3dfafa54aa0187a4a0e010b7a7fbd0943cd9a2b1651a4a12c652557561c",
+      "box": [
+        175,
+        378,
+        299,
+        502
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0049": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "b66d8e572ba7ace6c93cb1eee0cf04287c3f7635f7666f722c18670d70de079e",
+      "patchSHA256": "61e6eb9af955bbf782712c882c8def3d2709701e61a76f7ba9989e19cb5372f5",
+      "box": [
+        651,
+        57,
+        777,
+        183
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0050": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "b66d8e572ba7ace6c93cb1eee0cf04287c3f7635f7666f722c18670d70de079e",
+      "patchSHA256": "245e8f3bb54ac46694ca660e08a6bbaaf86dc24b81ca6bc7b7b05ae4c2247f91",
+      "box": [
+        391,
+        155,
+        466,
+        230
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0051": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "612bb4cb3f955d6a8b7029679c6a8f2cc5fa60496378ca9ef935edaef590a090",
+      "patchSHA256": "0f4764b9e1bc0806585220b235a9a05b0c60edcff0489aa6da90cae2dfa589c8",
+      "box": [
+        662,
+        35,
+        794,
+        167
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0052": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "612bb4cb3f955d6a8b7029679c6a8f2cc5fa60496378ca9ef935edaef590a090",
+      "patchSHA256": "f5292885197750c370d68d8b8f841ccf79751ae02b388cf56182cc0de1b2b47c",
+      "box": [
+        387,
+        135,
+        475,
+        223
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0053": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "15e905d65485af32893e90ff131b07a24efac095015fcdf09a9933f7d4388c73",
+      "patchSHA256": "02e791a8dd0f86736e2ea04612d02114b19b5d604f2eee8dce0e843cee845d28",
+      "box": [
+        648,
+        69,
+        777,
+        198
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0054": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "15e905d65485af32893e90ff131b07a24efac095015fcdf09a9933f7d4388c73",
+      "patchSHA256": "de91c9cdb254de23b494385c31c7e171848eea39ccdf87e6c4e75096d9583c1d",
+      "box": [
+        378,
+        163,
+        465,
+        250
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0055": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "c15d0d96f79a6cb33581f5b09e1ed2b40b37682c6114b42d21dba21c54b16310",
+      "patchSHA256": "1c2b9cc5bd69651380fbdd201a1b918f3f6402c828e52520efc69d369c9f8336",
+      "box": [
+        650,
+        54,
+        771,
+        175
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0056": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "c15d0d96f79a6cb33581f5b09e1ed2b40b37682c6114b42d21dba21c54b16310",
+      "patchSHA256": "0ffa69246e2de7478914dfd6f419168f544e801589c8dade1ca20c799f1331d7",
+      "box": [
+        362,
+        114,
+        470,
+        222
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0057": {
+      "surface": "unclear",
+      "contact": "uncertain",
+      "first": "uu",
+      "second": "uu",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "0a87e8937c0660d6ac3775552e71b40198ac8dbb7a1aa39ae230871afdb57bbc",
+      "patchSHA256": "f38043dcc24169320a6af280122a30c4e5a6d15a01070535bbb3166cf2de4607",
+      "box": [
+        422,
+        180,
+        500,
+        258
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0058": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "d0e2751c2bb9e2218ab4ac92a9f95b7b09f47ee21107e09dfef147c968fd4e5d",
+      "imageSHA256": "0a87e8937c0660d6ac3775552e71b40198ac8dbb7a1aa39ae230871afdb57bbc",
+      "patchSHA256": "40d4e548a171c6cd88233e5b1432950504bb84706b2101caec287587c8aaaa74",
+      "box": [
+        687,
+        77,
+        794,
+        184
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0059": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "0ce02f9472adcb2d1058527b0ce02395f1ab2f78262af0db7e26bf095d2414f0",
+      "patchSHA256": "cf0350f25a9f6f996fe44f26821be1dd89b935c8005ec746a33800f734c60864",
+      "box": [
+        238,
+        17,
+        264,
+        43
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0060": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "0ce02f9472adcb2d1058527b0ce02395f1ab2f78262af0db7e26bf095d2414f0",
+      "patchSHA256": "809aa22f406562e1137a9cf806bd588deb61cd4370fdf20c2b93c0d995324c82",
+      "box": [
+        311,
+        21,
+        335,
+        45
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0061": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "fd7a6ae72811cf3f7cc4de0f69e237d03a05b263a08f0ba50ca0b62451083d04",
+      "patchSHA256": "08e5c0295b65fbe1fd24f1f2a0a90ba8d5833c2b457f56920a7b618e8f2eb2f6",
+      "box": [
+        309,
+        31,
+        333,
+        55
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0062": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "fd7a6ae72811cf3f7cc4de0f69e237d03a05b263a08f0ba50ca0b62451083d04",
+      "patchSHA256": "d70fafbd45b732de901e7ed47732fca004246299faa69249602e36d97298d361",
+      "box": [
+        237,
+        28,
+        262,
+        53
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0063": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "a4475a96ba98523347b5673385de250ac406846b3faa9f0a9e88033ae2099ed8",
+      "patchSHA256": "fc93892222c7daba8bb26fc4ca882b5032ac9a96a52d8c34b4489856cdd54b43",
+      "box": [
+        315,
+        29,
+        340,
+        54
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0064": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "a4475a96ba98523347b5673385de250ac406846b3faa9f0a9e88033ae2099ed8",
+      "patchSHA256": "5f51834fb3e90526b68ace9518f828ae9cbc7904c73a9fcbfd9fe7692551c186",
+      "box": [
+        241,
+        30,
+        265,
+        54
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0065": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "182933019cf01e5284f62a2961982a5706c02f90be9b8c1832fe3096a93ff7e1",
+      "patchSHA256": "3bfd11b9d87d98acc51959088170876e40af7ccdf977daa210d8da49b3b3d16f",
+      "box": [
+        236,
+        22,
+        263,
+        49
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0066": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "182933019cf01e5284f62a2961982a5706c02f90be9b8c1832fe3096a93ff7e1",
+      "patchSHA256": "0f52e588cac3e6bb11df6f537639cf5cd6ac42ac464dff288113ddb66dfac143",
+      "box": [
+        308,
+        24,
+        333,
+        49
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0067": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "2d768c79e6ff63d69f4fe2720092b260be15d462090ad9f98ad82fb445f2f24c",
+      "patchSHA256": "930ba9e26d5e1a71034e050ad51325e680daaa2143dfe4052d2084c4abac65e9",
+      "box": [
+        311,
+        37,
+        336,
+        62
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0068": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "2d768c79e6ff63d69f4fe2720092b260be15d462090ad9f98ad82fb445f2f24c",
+      "patchSHA256": "ef26850d08afcf04681669009aae99a6d68e4cff4c862fd217fa728d893f79d8",
+      "box": [
+        238,
+        35,
+        264,
+        61
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0069": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "b05b91e57afc02a539eb9bbef2d3a3d2451bde2c12c0e6c7897325bebe56eb1f",
+      "patchSHA256": "0f4936a033e2a147f59d9dcf8fe734c30bc2924dd518960301ad8b3f54c58628",
+      "box": [
+        317,
+        33,
+        343,
+        59
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0070": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "1d3348bb1770bc519339bd7a17bdda1c26914d74540d019bd31234e98bb5ecfe",
+      "imageSHA256": "b05b91e57afc02a539eb9bbef2d3a3d2451bde2c12c0e6c7897325bebe56eb1f",
+      "patchSHA256": "5e524e2c1c57cf8e921cc6a671c70399858cdb82e0e001eceda50022b064aa97",
+      "box": [
+        244,
+        32,
+        268,
+        56
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0071": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "6303fce8e65510b3c9f98415d57592c74fe738ce16e3f0d2be225231913cd70b",
+      "patchSHA256": "ac08e3e87a9ceaa598d4c6be04bf1393971d6af54c083719fddfb7dce1748f1e",
+      "box": [
+        257,
+        164,
+        291,
+        198
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0072": {
+      "surface": "side",
+      "contact": "closed",
+      "first": "sc",
+      "second": "sc",
+      "adjudication": null,
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "a80d6914eaff857e19936c407b298e486a3fad3cd37551c7b3a911c723ba0b41",
+      "patchSHA256": "6367602f6eab363027f89cfab1da382e855a28999da29d77296ff169d2765627",
+      "box": [
+        291,
+        37,
+        352,
+        98
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0073": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "a80d6914eaff857e19936c407b298e486a3fad3cd37551c7b3a911c723ba0b41",
+      "patchSHA256": "d6a3770af2d95ed64ec82add493b5aee2b1480e1122e39342aebcc3d69ddbb33",
+      "box": [
+        404,
+        68,
+        445,
+        109
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0074": {
+      "surface": "side",
+      "contact": "closed",
+      "first": "sc",
+      "second": "sc",
+      "adjudication": null,
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "96205edcf4e13483326c6e87f5af9fa5562db9bd7d2037980358eec0c79f421b",
+      "patchSHA256": "bbf39dce92026fe5f80762f4949d74dcfd8ea3d395fdc5e9cad8a684a6cc957c",
+      "box": [
+        187,
+        58,
+        241,
+        112
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0075": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "96205edcf4e13483326c6e87f5af9fa5562db9bd7d2037980358eec0c79f421b",
+      "patchSHA256": "e2f44aa9083f9b191711ee41aead0caa4b94705b233a9c3e42ef433b7224b757",
+      "box": [
+        263,
+        66,
+        321,
+        124
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0076": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "baa6fb77e813620a31e6bcc2262a2f0fa58971ad98f6f8908f629dbc6b1a5790",
+      "patchSHA256": "fd4934a5f7e8ee0fd2070c8e83cf00d839cdd1c42afc0b94cd66593d840d1b81",
+      "box": [
+        145,
+        114,
+        188,
+        157
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0077": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "b28993ecf8412b9f8cf7407a11830c0c0c2ac3de7c4f936274e156fb9638e42f",
+      "imageSHA256": "baa6fb77e813620a31e6bcc2262a2f0fa58971ad98f6f8908f629dbc6b1a5790",
+      "patchSHA256": "66ba2091f6ae5805d9377fc8f132dece8d3b163698e6f7f166e23a7bda9acfc6",
+      "box": [
+        456,
+        142,
+        507,
+        193
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0078": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "01531ba6dc048d70e498f108e3ed10d4ac7e742983ba0e6b966825fcc07d2789",
+      "patchSHA256": "bd0d566c5d9a038add664f60609a1c23606812d9e25b70e3600a90e8970f5f8a",
+      "box": [
+        289,
+        75,
+        350,
+        136
+      ],
+      "side": "left",
+      "identityEligible": false
+    },
+    "T0079": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "01531ba6dc048d70e498f108e3ed10d4ac7e742983ba0e6b966825fcc07d2789",
+      "patchSHA256": "a31f6e8d08e2c99fc824f1045390ac9a0a973351bc7e18009179b10f54a55551",
+      "box": [
+        275,
+        90,
+        329,
+        144
+      ],
+      "side": "right",
+      "identityEligible": false
+    },
+    "T0080": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "01b1df0d2aee8768cbfad215e6e19da6a2ba3fda3ce4d662d63de8eb3692c6e2",
+      "patchSHA256": "31a65a18988703d3bde3207a5e2c55a63804639a7906fcae58e60ede3760d3bf",
+      "box": [
+        289,
+        65,
+        356,
+        132
+      ],
+      "side": "left",
+      "identityEligible": false
+    },
+    "T0081": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "01b1df0d2aee8768cbfad215e6e19da6a2ba3fda3ce4d662d63de8eb3692c6e2",
+      "patchSHA256": "c6eb2873be1b7e3813327bffed02fce1a3739280bc5a2203445c4b75911e966a",
+      "box": [
+        275,
+        76,
+        336,
+        137
+      ],
+      "side": "right",
+      "identityEligible": false
+    },
+    "T0082": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "c07c22eac5b47fc4d7a92d59cca67077a7e578f8000c9cfaa0e4914b6f3b798c",
+      "patchSHA256": "a5eeab804518c1fe50b07d015bab04bd066bf29853f9ac0008e9c6f9f40e5201",
+      "box": [
+        260,
+        77,
+        317,
+        134
+      ],
+      "side": "left",
+      "identityEligible": false
+    },
+    "T0083": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "c07c22eac5b47fc4d7a92d59cca67077a7e578f8000c9cfaa0e4914b6f3b798c",
+      "patchSHA256": "6f83eee11a17fdcc1eeaa12ee3fb1c6849eb1ee0cc4d0aec29b26a5f44361197",
+      "box": [
+        243,
+        90,
+        300,
+        147
+      ],
+      "side": "right",
+      "identityEligible": false
+    },
+    "T0084": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "720acc5ecfa7662f963bc3587139151ef354793efd3bb866fb2ac9bdfb7fd6c0",
+      "patchSHA256": "1e7ee5220367a48b883a450ed3a4d20702ac5d790ca0ae31228c532d7eb71b55",
+      "box": [
+        260,
+        91,
+        311,
+        142
+      ],
+      "side": "left",
+      "identityEligible": false
+    },
+    "T0085": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "c033e6919cafeb4bc7fa4832ac92af932a4eeac696716e7b0c40d99c7152f1e1",
+      "imageSHA256": "720acc5ecfa7662f963bc3587139151ef354793efd3bb866fb2ac9bdfb7fd6c0",
+      "patchSHA256": "ae51388d9b80383fed3f24589db488ca803e7f5a67759412f4d11c7743dd10e4",
+      "box": [
+        248,
+        95,
+        301,
+        148
+      ],
+      "side": "right",
+      "identityEligible": false
+    },
+    "T0086": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "sc",
+      "second": "uc",
+      "adjudication": "Oblique small hand cannot reliably distinguish side from dorsal surface; retain unclear.",
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "edb6c28ef9fba06bdb48a8095dbbf57d63cc5c80e9592916ca34e5b2ee182c6b",
+      "patchSHA256": "7d2974fb7b5bcdb4bd82e5884b3946ba790711ac119d159838a4d0160ac7a280",
+      "box": [
+        97,
+        107,
+        176,
+        186
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0087": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "edb6c28ef9fba06bdb48a8095dbbf57d63cc5c80e9592916ca34e5b2ee182c6b",
+      "patchSHA256": "9d2e81bfa52cfe1284f5a1dca001ab81ac522ab24fc57129b00a334c50a6c867",
+      "box": [
+        206,
+        87,
+        271,
+        152
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0088": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "d5bc1d5369e00ce90ed82ab2dbeb69cf1e142f0d60fbb673072a0e28dce100ed",
+      "patchSHA256": "081d784696b3017f28bee3733b193e79f8adc00c0b054589c24ec0799c786019",
+      "box": [
+        111,
+        116,
+        169,
+        174
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0089": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "d5bc1d5369e00ce90ed82ab2dbeb69cf1e142f0d60fbb673072a0e28dce100ed",
+      "patchSHA256": "dd5e597cf2b606f9f469a925fd3d9be67617a0222dd304d9c16d3eee98b857ae",
+      "box": [
+        201,
+        102,
+        261,
+        162
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0090": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "3c12780568a90c34c02f5f0b5720c31b5462e8fe3c69227ec630a2a2fb6f861d",
+      "patchSHA256": "cdd7abc95da5d00f5e57974c5e46f2f2817b02d9aaef257c21533706dc7e0160",
+      "box": [
+        131,
+        118,
+        186,
+        173
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0091": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "3c12780568a90c34c02f5f0b5720c31b5462e8fe3c69227ec630a2a2fb6f861d",
+      "patchSHA256": "a2f86a9d414b49f20b84faeaa34d2956b50c21a6a259199ece9525b9f44f7842",
+      "box": [
+        215,
+        98,
+        285,
+        168
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0092": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "21967ef4578588b922396f111f87875f123f5e47f845d6da9a3f91ea45ff13ef",
+      "patchSHA256": "a5644ef89c2f66205b18a738829dad9922df32bac4b5cd6458bb6d3b5cf10bef",
+      "box": [
+        143,
+        133,
+        184,
+        174
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0093": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "21967ef4578588b922396f111f87875f123f5e47f845d6da9a3f91ea45ff13ef",
+      "patchSHA256": "01c2ed22a6ee2c470166e47e2983171fa9226ca7ddac593dfd23e72c970541f3",
+      "box": [
+        234,
+        111,
+        284,
+        161
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0094": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "d1b833d47f0fdb67292a829e4a1f8abde22bf2ceac643f908408682e0e49d275",
+      "patchSHA256": "389ff79a4da2f901842268f52f24e52c16461d0c7ab28739658125d73d2e2526",
+      "box": [
+        148,
+        110,
+        196,
+        158
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0095": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "d1b833d47f0fdb67292a829e4a1f8abde22bf2ceac643f908408682e0e49d275",
+      "patchSHA256": "53247285d6b72994ca4fdfaf267893a8173537eda7860020ad760cfd162cb615",
+      "box": [
+        233,
+        97,
+        281,
+        145
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0096": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "2af7ebd98917ce60d3d69bb31f51ed1bc849f75ddaf779c5a30b82d56841f9ff",
+      "patchSHA256": "0284b083af4b4e85d238e78c9e5f1e1e4fd800c106d393577e6f1539a329b606",
+      "box": [
+        143,
+        114,
+        191,
+        162
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0097": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "2af7ebd98917ce60d3d69bb31f51ed1bc849f75ddaf779c5a30b82d56841f9ff",
+      "patchSHA256": "98d4b8198977d65200fdd2b6305b9d5c98f5a9d7bf657d7518e0fd8578da658c",
+      "box": [
+        227,
+        100,
+        278,
+        151
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0098": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "a0edf54fd9107a953318c2e74781fbfec2a09ba135045bcc9e76bcd8726ad677",
+      "patchSHA256": "e5f49616359848e64def930d0d5583491201b32b8b405db97844b13c631f6f77",
+      "box": [
+        144,
+        113,
+        195,
+        164
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0099": {
+      "surface": "dorsum",
+      "contact": "closed",
+      "first": "dc",
+      "second": "dc",
+      "adjudication": null,
+      "recordingId": "3d78d9a396fe6a49e0af565a05b671503fc2618e8f54e1ac9f6c42896824f439",
+      "imageSHA256": "a0edf54fd9107a953318c2e74781fbfec2a09ba135045bcc9e76bcd8726ad677",
+      "patchSHA256": "c7f789baf88feb6e83845f445d54d18667f81ba8073f2fc5be239079381328bc",
+      "box": [
+        229,
+        101,
+        280,
+        152
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0100": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "50d7dde5441dc95e0c5343a0ee86b68920bbb078d5bdbf34cdd22333e9bc770e",
+      "patchSHA256": "b0941dbfa6656b66407b9c3466dcb7b9e3498360ef9637c643ac45738a37c5a8",
+      "box": [
+        180,
+        98,
+        216,
+        134
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0101": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "50d7dde5441dc95e0c5343a0ee86b68920bbb078d5bdbf34cdd22333e9bc770e",
+      "patchSHA256": "53fb96555d51794b992400f9c86883ce6ce9d73e2442d82db94fa442f6dd25c5",
+      "box": [
+        180,
+        100,
+        212,
+        132
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0102": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "f746098e892bd0506d1017cf5274549c08dafc629cd467fd62c803787eed535b",
+      "patchSHA256": "97214e6f2abd233ea88f60a62c643f969f4b338f663e8c6d0ec56bf8f36041d8",
+      "box": [
+        135,
+        131,
+        164,
+        160
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0103": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "f746098e892bd0506d1017cf5274549c08dafc629cd467fd62c803787eed535b",
+      "patchSHA256": "3444230bc17e2205da78e4fed6f4d1e55c3a5b37df49ac916b5c865be2ea8868",
+      "box": [
+        184,
+        145,
+        211,
+        172
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0104": {
+      "surface": "unclear",
+      "contact": "invalid",
+      "first": "ui",
+      "second": "ui",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "c276874cc90c65376e614e41001fcc61179fbdde5955f028d2387989979bb9c1",
+      "patchSHA256": "d53ff7c6605df4366e211184e2bacad5f39d7839030a99e5bb47ed0ceb4d9b95",
+      "box": [
+        113,
+        266,
+        141,
+        294
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0105": {
+      "surface": "unclear",
+      "contact": "open",
+      "first": "uo",
+      "second": "uo",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "c276874cc90c65376e614e41001fcc61179fbdde5955f028d2387989979bb9c1",
+      "patchSHA256": "bc7ff91a4a735364d042b808fdafb7ab3a8ba6350a85657dfe98ec9146acee8b",
+      "box": [
+        161,
+        262,
+        191,
+        292
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0106": {
+      "surface": "unclear",
+      "contact": "open",
+      "first": "uo",
+      "second": "uo",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "09161952645effc63032cc991d23ecbd28152ad3001dd0e1f8c727886da69da9",
+      "patchSHA256": "728fe9422e3261083990e08fad5e033f5bd5d1d69c6780b6d368041fa33519b0",
+      "box": [
+        160,
+        233,
+        184,
+        257
+      ],
+      "side": "right",
+      "identityEligible": true
+    },
+    "T0107": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "7cd7ec4c5b88f04740357c24cd06f7a6a539a1a764d31d43e1bb208eef167f88",
+      "patchSHA256": "26d8d941852f6b401e7c6f5544f9b7ec686cabba92c36f17558d50eda1f7aec2",
+      "box": [
+        135,
+        97,
+        161,
+        123
+      ],
+      "side": "left",
+      "identityEligible": true
+    },
+    "T0108": {
+      "surface": "unclear",
+      "contact": "closed",
+      "first": "uc",
+      "second": "uc",
+      "adjudication": null,
+      "recordingId": "228e366508de01f3d2987e32bb71910f4e4ccb1c6796e0150b6d5d118b9b03ce",
+      "imageSHA256": "7cd7ec4c5b88f04740357c24cd06f7a6a539a1a764d31d43e1bb208eef167f88",
+      "patchSHA256": "3fcf84f568fdb3bfc5519909ca58730da4eeda6a97bb91f465433b10afde2991",
+      "box": [
+        186,
+        96,
+        215,
+        125
+      ],
+      "side": "right",
+      "identityEligible": true
+    }
+  },
+  "codeSHA256": {
+    "build/grip-temporal-v5/first-codes.json": "27490cbb6c7c6004bbdb5e7fcd36dcfd6c372dd02f930262fcffa61862cb133f",
+    "build/grip-temporal-v5/second-codes.json": "d3be6f7466ff7599622a70478cdf9ad24e44ff3512782d16fa948b82af4b95de"
+  },
+  "reviewPageSHA256": {
+    "build/grip-temporal-v5/source-review/source-13.png": "c258cdc740e86d8ef4accbb1abb7289932e00bc3584d0fde2c8150423f70b2af",
+    "build/grip-temporal-v5/source-review/source-07.png": "e0fe7e3c4c85a3d108a7d1025827ce01ccdb660b60e5b9389014cbb5c33fff83",
+    "build/grip-temporal-v5/source-review/source-06.png": "5f6e4907fb5dc8294f8679ff5acc7dd40c407ed5d2e0657e0bcbf924d9ab44a4",
+    "build/grip-temporal-v5/source-review/source-12.png": "4d514063807b87a548fe08eea5a473245b465b096f2f446681b6dd3bf23a3a44",
+    "build/grip-temporal-v5/source-review/source-04.png": "edd85238d03f68761242573d846ff2efb7ed5676b9b18ad190ffef1912e0b675",
+    "build/grip-temporal-v5/source-review/source-10.png": "6be8d35dcc01a2b5b90044b59105f4b21c1020d1aa74131f5e6928808d9072e6",
+    "build/grip-temporal-v5/source-review/source-11.png": "a36f798c839491d38960a1c167211190377ad79724aafbec22622d5cf9e6a3ae",
+    "build/grip-temporal-v5/source-review/source-05.png": "4261d2c3942649a4667aa4269d57b66f92a317a71a9ea6af2aaadba12c1fdc29",
+    "build/grip-temporal-v5/source-review/source-01.png": "fbf35a69c3756678fcc185c4543d536a1b19703fe57f061e2763985cc22e24af",
+    "build/grip-temporal-v5/source-review/source-15.png": "77272586a4597fb752436b8b26ffa687feb8af0aef5a09b55210a823652a3e70",
+    "build/grip-temporal-v5/source-review/source-14.png": "d35bb8b76327ffc38031d791580c3c6ff7e064721cc08671cc10566de1057d17",
+    "build/grip-temporal-v5/source-review/source-16.png": "5b86cabaae10d1155af0dfb3a5a1d441eb371848bbe48c27e07c19cfb71a77c9",
+    "build/grip-temporal-v5/source-review/source-02.png": "5677622c7143ffff41cb2395fc4617d5d503746521cfb6a71086c0d8d5019f45",
+    "build/grip-temporal-v5/source-review/source-03.png": "c1ce9f8f023ef328bcf74cd24063ba54123486ab97de7853c959c9bb5424b152",
+    "build/grip-temporal-v5/source-review/source-08.png": "f43df43a0ec7adccff5277ed087f4b037310dcfbf5547b1bffa7edd56933e69f",
+    "build/grip-temporal-v5/source-review/source-09.png": "b8c11ed2e9cf637af35f71c3167f81988b3c07f64a3093620b230641659c0542",
+    "build/grip-temporal-v5/patch-first/review-06.png": "c8d38c21e472803e244477fd628c5670034628b24f1e415f8d73fe9b8d60485b",
+    "build/grip-temporal-v5/patch-first/review-07.png": "3696feb9a1264353272c1c5d5eb3ff044bffc238cbd1a1d6a763bb7d918e019a",
+    "build/grip-temporal-v5/patch-first/review-05.png": "0baa3c0c9b8b851ae5eb2440fea2b7e524f2475a9d1ed7c53a96ef7bf91f398d",
+    "build/grip-temporal-v5/patch-first/review-04.png": "99892f659f52757ddcacbb911a357e8daf0eddd6cc4b37d3f8650bb1471be5cb",
+    "build/grip-temporal-v5/patch-first/review-01.png": "833e8b1634b8feb67a54ec1a3528668c4a9dca96e2759695c4c2f492e6d28e6d",
+    "build/grip-temporal-v5/patch-first/review-03.png": "877b9eea09ed2b7c0895e76bef4038f5b01797b5c10b67fe24aed5e1ec9c889d",
+    "build/grip-temporal-v5/patch-first/review-02.png": "351b99bb91c7061b9254637b249cc22f5cbdb64e4a482359b904dfc09c9832cd",
+    "build/grip-temporal-v5/patch-first/review-09.png": "bb267591a3912a8cf0f3bfff2928fae1db4b206cb2d631ff8ad70519ccdd7d69",
+    "build/grip-temporal-v5/patch-first/review-08.png": "2ba5dc6ce574f068a6b83386cc861860d54e165433bf325c2dd2ae90fcf323ed",
+    "build/grip-temporal-v5/patch-second/review-06.png": "e6cf6059437bb6ddedfb2d54adcb57d24b3e99d9e20fbde62d664574716cfb91",
+    "build/grip-temporal-v5/patch-second/review-07.png": "835b02795936506c64740082628eae62df803d9cbff5b1c6f4476ad25f348d51",
+    "build/grip-temporal-v5/patch-second/review-05.png": "400a8d4da56cd9d49e23302430b5cc00bc9e6e9f15c9e7de9acecc87cb429f17",
+    "build/grip-temporal-v5/patch-second/review-04.png": "b83abb51dd4d08d44fc9b06d65fc1c180c724e83317a97a11d74143e81a218ec",
+    "build/grip-temporal-v5/patch-second/review-01.png": "d574b075a50601a4514b5708cbebd65544d07347bc56dd819e86b229c2d6f920",
+    "build/grip-temporal-v5/patch-second/review-03.png": "63ddee94e25bfab81ccd446397ee31d7340ce0ac2b6cadde3f1976408ee64473",
+    "build/grip-temporal-v5/patch-second/review-02.png": "5507faa3b6113055ee60fde0fbdad4b1ea49ab2d04c2ce20010738bb9e79a831",
+    "build/grip-temporal-v5/patch-second/review-09.png": "d3d8385d9357a4a3ea2b2337cd8776be16951c6118a3daee8e34091749add266",
+    "build/grip-temporal-v5/patch-second/review-08.png": "444d3115cddca136770c2a7c547f06de2758e2a06428f1526b714f10fc6fc1d7"
+  }
+}

@@ -37,8 +37,12 @@ import kotlin.math.sqrt
     val width: GripWidth = GripWidth.unknown, val projectedSpanRatio: Double? = null,
     val orientation: GripOrientation = combine(left,right), val reason: String? = null,
     val modelId: String? = null, val orientationCoverage: Double? = null, val widthCoverage: Double? = null,
-    val policyVersion: Int = WorkoutGripGeometry.policyVersion, val inferenceBackend: String? = null) {
-    val label get() = listOf(orientationTitle(orientation),widthTitle(width)).joinToString(" · ")
+    val policyVersion: Int = WorkoutGripGeometry.policyVersion, val inferenceBackend: String? = null,
+    val widthPolicyVersion: Int? = null, val widthReason: String? = null) {
+    val widthRatioLabel get() = projectedSpanRatio?.takeIf {
+        width in listOf(GripWidth.narrow,GripWidth.shoulderWidth,GripWidth.wide) && it.isFinite() && it in .1..4.0
+    }?.let { "${kotlin.math.round(it*10)/10.0}× shoulders" }
+    val label get() = listOfNotNull(orientationTitle(orientation),widthTitle(width),widthRatioLabel).joinToString(" · ")
     companion object {
         fun combine(left: HandGrip, right: HandGrip): GripOrientation = when {
             left==HandGrip.unknown || right==HandGrip.unknown -> GripOrientation.unknown
@@ -52,7 +56,7 @@ import kotlin.math.sqrt
         }
         fun widthTitle(value: GripWidth) = when(value) {
             GripWidth.unknown -> "Width unknown"; GripWidth.narrow -> "Narrow"
-            GripWidth.shoulderWidth -> "Shoulder-width"; GripWidth.wide -> "Wide"; GripWidth.varied -> "Width changed"
+            GripWidth.shoulderWidth -> "Medium"; GripWidth.wide -> "Wide"; GripWidth.varied -> "Width changed"
         }
     }
 }
@@ -66,7 +70,11 @@ import kotlin.math.sqrt
 /** Geometry only; stabilization, lifecycle and storage are independent consumers.
  * These are monocular estimates. No SDK landmark score is exposed as grip confidence. */
 object WorkoutGripGeometry {
-    const val policyVersion = 3
+    const val policyVersion = 4
+    // Conservative support boundary on the model-estimated torso frame. This
+    // is not measured camera yaw or a calibrated probability. Both signs admit
+    // front/rear; neither face evidence nor the predicted grip enters this gate.
+    const val minimumCameraFacingAlignment = .85
     const val maximumAgeSeconds = .5
     const val samplingIntervalSeconds = .25
     private fun score(value: Double?) = value==null || value.isFinite() && value in .5..1.0
@@ -126,6 +134,7 @@ object WorkoutGripGeometry {
     }
     fun orientation(observation: GripObservation): GripEstimate {
         val basis=bodyBasis(observation) ?: return GripEstimate(reason=observation.failure ?: "bodyFrameUnavailable",modelId=observation.modelId)
+        if(!supportsView(basis)) return GripEstimate(reason="gripViewUnsupported",modelId=observation.modelId)
         if(observation.hands.size>2) return GripEstimate(reason="handIdentityAmbiguous",modelId=observation.modelId)
         val assignments=mutableMapOf<ArmMeasurement.Side,GripHandObservation>()
         for(hand in observation.hands) {
@@ -162,8 +171,16 @@ object WorkoutGripGeometry {
         val left=classify(ArmMeasurement.Side.left);val right=classify(ArmMeasurement.Side.right)
         return GripEstimate(left,right,reason=if(left==HandGrip.unknown || right==HandGrip.unknown)"handOrientationAmbiguous" else null,modelId=observation.modelId)
     }
+    fun supportsView(basis: BodyBasis):Boolean = kotlin.math.abs(basis.facing.z)>=minimumCameraFacingAlignment
     fun projectedWidth(pose: PoseResult, bar: BarSegment?, shoulderSpan: Double): Double? {
-        if(pose.people.size!=1 || bar?.isValid!=true || !shoulderSpan.isFinite() || shoulderSpan<=0) return null
+        if(!shoulderSpan.isFinite() || shoulderSpan<=0) return null
+        val span=projectedWristSpan(pose,bar) ?: return null
+        return (span/shoulderSpan).takeIf { it.isFinite() && it in .1..4.0 }
+    }
+    /** Current supported wrist geometry, independent of the shoulder divisor.
+     * The calibrated width estimator owns that divisor and ratio validation. */
+    internal fun projectedWristSpan(pose: PoseResult, bar: BarSegment?): Double? {
+        if(pose.people.size!=1 || bar?.isValid!=true) return null
         val person=pose.people.single()
         val left=person.landmark(PoseJoint.leftWrist,.5)?.position ?: return null
         val right=person.landmark(PoseJoint.rightWrist,.5)?.position ?: return null
@@ -171,8 +188,8 @@ object WorkoutGripGeometry {
         val short=minOf(pose.imageSize.width,pose.imageSize.height)
         if(bar.distance(left)>short*.085 || bar.distance(right)>short*.085) return null
         val dx=bar.b.x-bar.a.x;val dy=bar.b.y-bar.a.y
-        val ratio=kotlin.math.abs((left.x-right.x)*dx+(left.y-right.y)*dy)/bar.length/shoulderSpan
-        return ratio.takeIf { it.isFinite() && it in .1..4.0 }
+        val span=kotlin.math.abs((left.x-right.x)*dx+(left.y-right.y)*dy)/bar.length
+        return span.takeIf { it.isFinite() && it>0.0 }
     }
     fun widthBand(ratio: Double)=when { !ratio.isFinite() || ratio !in .1..4.0 -> GripWidth.unknown;ratio<.85 -> GripWidth.narrow;ratio>1.3 -> GripWidth.wide;else -> GripWidth.shoulderWidth }
 }

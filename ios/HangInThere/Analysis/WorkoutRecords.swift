@@ -9,6 +9,7 @@ struct WorkoutMotionSample: Codable, Equatable, Sendable {
     let shoulderHeight: Double?
     let usable: Bool
     let released: Bool
+    var postureReleased: Bool? = nil
 }
 struct WorkoutAngleMetrics: Codable, Equatable, Sendable {
     let minimum: Double?
@@ -45,6 +46,7 @@ struct WorkoutRepRecord: Codable, Equatable, Identifiable, Sendable {
     let formVerification: String?
     var grip: WorkoutGripEstimate? = nil
     var countMethod: String? = nil
+    var countConfirmedAt: Double? = nil
 }
 struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     let id: String
@@ -66,6 +68,8 @@ struct WorkoutSetRecord: Codable, Equatable, Identifiable, Sendable {
     var trackedEndedAtEpochMilliseconds: Int64? = nil
     var countMethod: String? = nil
     var countPolicyVersion: Int? = nil
+    var setGrip: WorkoutSetGripMetadata? = nil
+    var boundaryPolicyVersion: Int? = nil
     var hasPractice: Bool { !reps.isEmpty || (activity?.observedSeconds ?? 0) > 0 }
     var progressInput: WorkoutSetRecord {
         var result = self

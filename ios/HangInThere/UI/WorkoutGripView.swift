@@ -3,6 +3,8 @@ import SwiftUI
 struct WorkoutGripView: View {
     let set: WorkoutSetRecord
     var allowsCorrections = true
+    var initiallyExpanded = false
+    @State private var attemptsExpanded = false
     @State private var report: WorkoutGripVariationReport?
     @State private var error: String?
     @State private var editing = false
@@ -10,24 +12,44 @@ struct WorkoutGripView: View {
     @State private var orientation = "auto"
     @State private var width = "auto"
     @State private var saving = false
-    private var reportKey: String { self.set.id + ":" + set.endReason + ":" + String(set.reps.count) }
+    private var reportKey: String {
+        self.set.id + ":" + set.endReason + ":" + String(set.reps.count) + ":" +
+            (set.setGrip?.orientation ?? "") + ":" + (set.setGrip?.reason ?? "")
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Grip variations").font(.title3.bold())
-            Text("Orientation is estimated from your hands. Width is relative to your shoulder span in this camera view.")
+            Text("Grip width is hand spacing ÷ shoulder width, measured from a stable starting hang. Narrow, medium and wide are relative to your shoulders.")
                 .font(.caption).foregroundStyle(.secondary)
             if let report {
+                if let metadata = report.setGrip {
+                    Text("Set grip · " + metadata.title).font(.headline)
+                    Text(metadata.isConfirmed ? "Identified during this set and applied to its reps."
+                         : metadata.reason == "conflictingSetGripEvidence" ? "Grip estimates disagree within this set."
+                         : "Waiting for a clear grip view during this set.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
                 ForEach(Array(report.totals.enumerated()), id: \.offset) { _, total in
                     HStack { Text(total.label); Spacer(); Text("\(total.completedReps) \(total.completedReps == 1 ? "rep" : "reps")").monospacedDigit() }
                 }
-                DisclosureGroup("Per attempt") {
+                DisclosureGroup("Per attempt", isExpanded: $attemptsExpanded) {
                     ForEach(report.reps) { rep in
                         VStack(alignment: .leading, spacing: 3) {
                             Text("\(rep.ordinal) · \(rep.label)").font(.subheadline)
-                            Text(rep.orientationSource == "user" || rep.widthSource == "user" ? "Includes your correction" : "Automatic estimate")
+                            Text(rep.orientationSource == "user" || rep.widthSource == "user" ? "Includes your correction"
+                                 : rep.orientationSource == "setEstimated" ? (report.setGrip?.isConfirmed == true ? "Grip inferred from this set" : "Set grip unknown") : "Automatic estimate")
                                 .font(.caption).foregroundStyle(.secondary)
                             if let coverage = rep.measured?.orientationCoverage {
                                 Text("Both hands classified for \(Int(coverage * 100))% of this attempt").font(.caption).foregroundStyle(.secondary)
+                            }
+                            if rep.widthSource != "user", let measured = rep.measured {
+                                if let ratio = measured.shoulderRatioLabel {
+                                    Text("Hand spacing · " + ratio).font(.subheadline.monospacedDigit())
+                                }
+                                if let coverage = measured.widthCoverage {
+                                    Text("Width measured for \(Int(coverage * 100))% of this attempt")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
                             }
                         }.padding(.vertical, 4)
                     }
@@ -38,6 +60,7 @@ struct WorkoutGripView: View {
             }
             if let error { Text(error).font(.caption).foregroundStyle(.orange) }
         }
+        .onAppear { attemptsExpanded = initiallyExpanded }
         .task(id: reportKey) { await refresh() }
         .sheet(isPresented: $editing) {
             NavigationStack {
@@ -53,7 +76,7 @@ struct WorkoutGripView: View {
                     }
                     Picker("Width", selection: $width) {
                         Text("Automatic estimate").tag("auto"); Text("Narrow").tag("narrow")
-                        Text("Shoulder-width").tag("shoulderWidth"); Text("Wide").tag("wide"); Text("Unknown").tag("unknown")
+                        Text("Medium (shoulder-width)").tag("shoulderWidth"); Text("Wide").tag("wide"); Text("Unknown").tag("unknown")
                     }
                     Text("Saving replaces labels for the selected attempts. Automatic estimate restores the original measurement. Rep counts and motion analytics are preserved.")
                         .font(.caption).foregroundStyle(.secondary)

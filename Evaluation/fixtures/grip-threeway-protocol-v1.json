@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "gripClasses": [
+    "overhand",
+    "underhand",
+    "neutral"
+  ],
+  "surfaceClasses": [
+    "palm",
+    "dorsum",
+    "side",
+    "unclear"
+  ],
+  "surfaceLabels": "Direct image review, never derived from exercise or torso orientation",
+  "comparison": [
+    "matched binary control with neutral grip loss masked",
+    "three-way image model with explicit neutral grip"
+  ],
+  "training": "Staged appearance CNN: 2 warmup + up to20 fine-tune epochs, validation surface NLL; then independently balanced contact head and paired conditional binary/ternary grip heads. All checkpoint and temperature selection uses validation only.",
+  "input": "128px hand RGB; grip conditioned on reviewed orientation for independent hand test, then frozen prior torso predictions for automatic-stage diagnostic",
+  "detector": "Previous SDK-ready inputs plus fixed observed-wrist RGB fallback; no fabricated wrist and no manually localized held-out hand",
+  "acceptance": {
+    "gripScore": 0.8,
+    "closedContactScore": 0.8
+  },
+  "testSampling": {
+    "requestedSeconds": [
+      2,
+      4,
+      6,
+      8
+    ],
+    "maxVideosPerReviewedGripClass": 8,
+    "selection": "SHA256 recording order among supported blind source references before any classifier scores; no replacement after scoring"
+  },
+  "testReserve": "Evaluation/fixtures/grip-threeway-test-reserve-v1.json",
+  "fittingReference": "Evaluation/fixtures/grip-threeway-fitting-v1.json",
+  "limitations": [
+    "Two agent visual passes are not independent human gold labels",
+    "Known source groups disjoint, public athlete identity not guaranteed disjoint",
+    "Extended development fixed times from 2/4 to 2/4/6/8 after zero neutral SDK validation coverage, before any fit or classifier predictions"
+  ],
+  "trainingRevision": "Initial joint multitask validation failed side/unclear and contact checks. Before opening new test sources, switch to direct surface-only encoder fitting, freeze features, separately fit balanced contact and two matched conditional grip heads. Original joint model/history preserved."
+}

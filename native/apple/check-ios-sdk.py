@@ -42,7 +42,8 @@ def verify(sdk_root):
     require(digest(archive) == lock["mediaPipeTasksCommonArchiveSHA256"], "Unqualified MediaPipe Common archive")
     for name, expected in lock["headers"].items():
         require(digest(VENDOR / "include" / name) == expected, f"Changed vendored OpenCV header: {name}")
-    source = PACKAGE / "Sources/CObservedRailPixels/ObservedRailPixels.cpp"
+    sources = sorted((PACKAGE / "Sources/CObservedRailPixels").glob("*.cpp"))
+    require(sources, "No native pixel adapter sources found")
     results = []
     with tarfile.open(archive, "r:gz") as bundle, tempfile.TemporaryDirectory() as temp:
         targets = [("iphoneos", "arm64", "arm64-apple-ios17.0", "ios-arm64"),
@@ -61,12 +62,16 @@ def verify(sdk_root):
             expected_binary = stream_digest(archived)
             require(digest(binary) == expected_binary, f"Changed Common binary: {slice_name}")
             sdk_path = subprocess.check_output(["xcrun", "--sdk", sdk, "--show-sdk-path"], text=True).strip()
-            obj = Path(temp) / (target + ".o")
-            subprocess.run(["xcrun", "clang++", "-std=c++17", "-target", target, "-isysroot", sdk_path,
-                "-I", str(VENDOR / "include"), "-I", str(PACKAGE / "Sources/CObservedRailPixels/include"),
-                "-c", str(source), "-o", str(obj)], check=True)
-            undefined = subprocess.check_output(["xcrun", "nm", "-u", str(obj)], text=True)
-            required = {line.split()[-1] for line in undefined.splitlines() if "2cv" in line}
+            required = set()
+            for source in sources:
+                obj = Path(temp) / (target + "-" + source.stem + ".o")
+                subprocess.run(["xcrun", "clang++", "-std=c++17", "-target", target, "-isysroot", sdk_path,
+                    "-I", str(VENDOR / "include"), "-I", str(PACKAGE / "Sources/CObservedRailPixels/include"),
+                    "-c", str(source), "-o", str(obj)], check=True)
+                undefined = subprocess.check_output(["xcrun", "nm", "-u", str(obj)], text=True)
+                references = {line.split()[-1] for line in undefined.splitlines() if "2cv" in line}
+                require(references, f"No OpenCV references found in {source.name}")
+                required.update(references)
             require(required, "No OpenCV references found in compiled pixel adapter")
             defined = subprocess.check_output(["xcrun", "nm", "-arch", architecture, "-gU", str(binary)], text=True, stderr=subprocess.DEVNULL)
             exports = {line.split()[-1] for line in defined.splitlines() if line.split()}
@@ -74,9 +79,11 @@ def verify(sdk_root):
             require(not missing, f"Missing OpenCV ABI symbols for {target}: {sorted(missing)}")
             results.append(dict(target=target, binarySHA256=expected_binary, requiredSymbols=sorted(required)))
     report = dict(qualifiedArchiveSHA256=lock["mediaPipeTasksCommonArchiveSHA256"], headerVersion=lock["headerVersion"],
-                  adapterSHA256=digest(source), targets=results, scope="Compile-time version and required-symbol checks; not runtime pixel or performance qualification")
+                  adapterSHA256=digest(PACKAGE / "Sources/CObservedRailPixels/ObservedRailPixels.cpp"),
+                  adapterSourcesSHA256={str(source.relative_to(PACKAGE)): digest(source) for source in sources},
+                  targets=results, scope="Compile-time version and required-symbol checks for all pixel adapters; not runtime pixel or performance qualification")
     (sdk_root / "rail-pixel-abi-check.json").write_text(json.dumps(report, indent=2) + "\n")
-    print(f"Pinned iOS rail-pixel ABI: {len(results)} architecture checks passed.")
+    print(f"Pinned iOS image-pixel ABI: {len(sources)} adapters, {len(results)} architecture checks passed.")
 
 
 if __name__ == "__main__":

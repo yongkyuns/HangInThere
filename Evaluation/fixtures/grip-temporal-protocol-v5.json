@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 5,
+  "scope": "Untrained temporal diagnostic using frozen RGB models; no phone or rep counter changes",
+  "freshSelection": "16 lowest member-name SHA256 uninventoried recordings from Kinetics7002020 val454; no replacements; retain native failures",
+  "sourceSamplingSeconds": [
+    0.5,
+    1.5,
+    2.5,
+    3.5,
+    4.5,
+    5.5,
+    6.5,
+    7.5,
+    8.5
+  ],
+  "tracking": "Shoulder center/span continuity over all native4Hz poses; overhead acquisition; two observation dwell; ambiguous target resets; no manual targets",
+  "evidence": "At most one observation per source second and one vote across both hands; same RGB hash deduplicated; arithmetic averaging only; minimum two bins separated1s; eight-second bank; track changes/conflicts abstain",
+  "surfaceAndQualityThresholds": {
+    "surface": 0.8,
+    "visible": 0.8,
+    "torsoOrientation": 0.8,
+    "neutralAllViews": 0.8,
+    "contactWhenUsed": 0.8
+  },
+  "gripSemantics": "Front palm/rear dorsum=>overhand; front dorsum/rear palm=>underhand. Unknown/oblique direction abstains binary. Neutral requires frozen prior grip head neutral>=.8 for all three supplied views; side surface alone never suffices. Conflicting binary/neutral signals abstain. These rules are an offline experiment, not trained/qualified fusion.",
+  "orientation": "Frozen torso-only RGB orientation; all five face cues zero; missing context uniform; causal arithmetic mean of one observation/sec",
+  "comparisons": [
+    "frame-gated: per-frame anatomy/visibility/contact and torso confidence, same semantic mapping",
+    "temporal-contact-support: stable torso + >=2 consistent bins + at least one qualifying contact",
+    "temporal-no-contact: same without contact requirement"
+  ],
+  "references": "Source video grip and torso view plus actual tight-crop surface/contact labels before inference. Agent review, human status separately recorded. No guessed labels for unreadable evidence. All unknown/native failures retained.",
+  "evaluation": "16-video correct/wrong/unknown/unverifiable final labels; per-class counts; first-decision source time only on correct final labels; crop diagnostics; privileged oracle-view ablation labelled separately; no post-test candidate selection",
+  "budget": "No fitting; reuse3 frozen models; bounded127sourceframes; prune unreferenced PNG afterfixed sampling; preserve provenance",
+  "storage": "Original videos, selected RGB, crops, model files and first scores retained. Delete only reproducible unreferenced cache."
+}

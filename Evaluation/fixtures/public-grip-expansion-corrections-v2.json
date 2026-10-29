@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "scope": "Reference correction after initial model scores; all model inputs, video splits and fitting are unchanged",
+  "corrections": [
+    {
+      "caseId": "k700train_irFDiPohB8E_000017_000027",
+      "recordingId": "3786cedb03903d5680a07cbcc182b5dbca9c52dfac672509202bbee9fa3af43c",
+      "previousLabel": "underhand",
+      "previousViewpoint": "rear",
+      "label": "overhand",
+      "viewpoint": "front",
+      "reviewFrames": [
+        {
+          "image": "frame-0007.png",
+          "imageSHA256": "4ae5087e41efe22b020ec5e984e6c4f77f251b22482b9193eec5ec3796890959",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 56056
+          }
+        },
+        {
+          "image": "frame-0018.png",
+          "imageSHA256": "44f6e8e03eddd9bd8c9751a93fa620de016a58251e49d72d1a49511ea898b62f",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 144144
+          }
+        },
+        {
+          "image": "frame-0029.png",
+          "imageSHA256": "9951a04311ffc862929f8e229a3fcf334c3371d8a5218a69cbc4c5d8cf67ef3f",
+          "timestamp": {
+            "timescale": 30000,
+            "value": 232232
+          }
+        }
+      ],
+      "reason": "Athlete torso faces the camera: visible chest logo and beard/profile. Close hand views show palm-facing-camera pronated grip. Previous rear/underhand interpretation was wrong. Body-pose nose/eyes in this clip were not evidence of hallucinated facial landmarks."
+    }
+  ]
+}

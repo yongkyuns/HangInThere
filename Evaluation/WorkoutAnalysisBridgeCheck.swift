@@ -665,10 +665,10 @@ struct WorkoutAnalysisBridgeCheck {
                     let estimateJSON = try inference.orientationJson(observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!), as: UTF8.self))
                     let estimate = try JSONDecoder().decode(WorkoutGripEstimate.self, from: Data(estimateJSON.utf8))
                     let identity = try inference.hasHandIdentityJson(observationJson: String(decoding: JSONEncoder().encode(frame.gripObservation!),as: UTF8.self),handJson: String(decoding: JSONEncoder().encode(hands[0]),as: UTF8.self),expectedSide: "left")
-                    guard inference.cropPolicyVersion == 3, inference.bodyPreflightVersion == 1,
+                    guard inference.cropPolicyVersion == 3, inference.bodyPreflightVersion == 2,
                           stage.map(\.side) == requests.map(\.side), stage.map(\.regions) == requests.map(\.regions), rejectedJSON == "[]",
                           requests.map(\.side) == ["left","right"], identity,
-                          requests.allSatisfy({ !$0.regions.isEmpty && $0.regions.count <= 2 }), estimate.policyVersion == 3,
+                          requests.allSatisfy({ !$0.regions.isEmpty && $0.regions.count <= 2 }), estimate.policyVersion == 4,
                           estimate.orientation == "underhand" else {
                         fatalError("Native crop planning or offline geometric-estimate FFI changed")
                     }
@@ -685,7 +685,8 @@ struct WorkoutAnalysisBridgeCheck {
         guard let gripSet = gripAnalysis.finish(reason: "manual"), let grip = gripSet.grip,
               grip.latest.orientation == "underhand", grip.latest.width == "shoulderWidth",
               grip.latest.inferenceBackend == "authored transport", grip.orientationSpans.count <= 128,
-              gripAnalysis.gripLabel == "Underhand · Shoulder-width", gripSet.completedCount == 0 else {
+              grip.latest.widthPolicyVersion == 5, grip.latest.projectedSpanRatio == 1.0,
+              gripAnalysis.gripLabel == "Underhand · Medium · 1.0× shoulders", gripSet.completedCount == 0 else {
             fatalError("Native Swift/shared grip transport or confirmation changed")
         }
         @MainActor func measureFraming(_ original: PoseResult, expected: String, acquisition: Bool = false) -> Double {

@@ -55,7 +55,8 @@ struct LiveDeviceQualificationRecorderTests {
             setUsableTrackingFrames: 23,
             trackingCoverage: 0.92,
             setPhase: "finished",
-            setEndReason: "manual"
+            setEndReason: "manual",
+            completedReps: 6
         )
 
         #expect(report.runtime.durationSeconds == 5)
@@ -78,6 +79,7 @@ struct LiveDeviceQualificationRecorderTests {
         #expect(report.exercise == "dip")
         #expect(report.side == "left")
         #expect(report.observedMovements == 7)
+        #expect(report.completedReps == 6)
         #expect(report.partialAttempts == 2)
         #expect(report.interruptedAttempts == 1)
         #expect(report.setAnalyzedFrames == 25)

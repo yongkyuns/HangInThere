@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "scope": "Training-only annotated hand localization to recover visible hands missed by the primary body gate. No classifier output used.",
+  "sources": [
+    {
+      "recordingId": "940ad35ae6fdd5543e124f491b55086cadd62d678eb08e3a1a41c14fdd891407",
+      "caseId": "k700train_7xb6Siy4Cns_000011_000021",
+      "trainingOnly": true,
+      "imageSize": {
+        "width": 480,
+        "height": 360
+      },
+      "start": 1.0,
+      "end": 5.5,
+      "targets": [
+        {
+          "side": "left",
+          "wrist": {
+            "x": 286,
+            "y": 68
+          },
+          "otherWrist": {
+            "x": 203,
+            "y": 68
+          },
+          "forearmToward": {
+            "x": 280,
+            "y": 140
+          },
+          "regions": [
+            {
+              "left": 255,
+              "top": 25,
+              "width": 65,
+              "height": 95
+            }
+          ]
+        },
+        {
+          "side": "right",
+          "wrist": {
+            "x": 203,
+            "y": 68
+          },
+          "otherWrist": {
+            "x": 286,
+            "y": 68
+          },
+          "forearmToward": {
+            "x": 210,
+            "y": 140
+          },
+          "regions": [
+            {
+              "left": 170,
+              "top": 25,
+              "width": 65,
+              "height": 95
+            }
+          ]
+        }
+      ],
+      "evidence": "Human-authored search regions from inspected native source frames; same hand SDK and final hand_patch rule still required; never used to change held-out inputs"
+    },
+    {
+      "recordingId": "53b3f95c093abb0d2edc3d32402107aefda791b68b9bbf945d1dd9271551c90f",
+      "caseId": "k700train_ZyBUAy8auRY_000002_000012",
+      "trainingOnly": true,
+      "imageSize": {
+        "width": 1280,
+        "height": 720
+      },
+      "start": 1.5,
+      "end": 3.3,
+      "targets": [
+        {
+          "side": "left",
+          "wrist": {
+            "x": 690,
+            "y": 220
+          },
+          "otherWrist": {
+            "x": 425,
+            "y": 220
+          },
+          "forearmToward": {
+            "x": 760,
+            "y": 410
+          },
+          "regions": [
+            {
+              "left": 565,
+              "top": 40,
+              "width": 260,
+              "height": 270
+            }
+          ]
+        },
+        {
+          "side": "right",
+          "wrist": {
+            "x": 425,
+            "y": 220
+          },
+          "otherWrist": {
+            "x": 690,
+            "y": 220
+          },
+          "forearmToward": {
+            "x": 370,
+            "y": 410
+          },
+          "regions": [
+            {
+              "left": 305,
+              "top": 50,
+              "width": 260,
+              "height": 270
+            }
+          ]
+        }
+      ],
+      "evidence": "Human-authored search regions from inspected native source frames; same hand SDK and final hand_patch rule still required; never used to change held-out inputs"
+    },
+    {
+      "recordingId": "01707ddbd670fb1dddd87c38016049826878d56df1338062fca1bb1ccb725298",
+      "caseId": "k700train__2ynLsdbiOs_000017_000027",
+      "trainingOnly": true,
+      "imageSize": {
+        "width": 1280,
+        "height": 720
+      },
+      "start": 5.0,
+      "end": 8.5,
+      "targets": [
+        {
+          "side": "left",
+          "wrist": {
+            "x": 580,
+            "y": 255
+          },
+          "otherWrist": {
+            "x": 695,
+            "y": 220
+          },
+          "forearmToward": {
+            "x": 570,
+            "y": 450
+          },
+          "regions": [
+            {
+              "left": 475,
+              "top": 105,
+              "width": 195,
+              "height": 225
+            }
+          ]
+        },
+        {
+          "side": "right",
+          "wrist": {
+            "x": 695,
+            "y": 220
+          },
+          "otherWrist": {
+            "x": 580,
+            "y": 255
+          },
+          "forearmToward": {
+            "x": 700,
+            "y": 450
+          },
+          "regions": [
+            {
+              "left": 590,
+              "top": 30,
+              "width": 220,
+              "height": 240
+            }
+          ]
+        }
+      ],
+      "evidence": "Human-authored search regions from inspected native source frames; same hand SDK and final hand_patch rule still required; never used to change held-out inputs"
+    },
+    {
+      "recordingId": "70d86c46b35d4458f342f45d1c4ea341c0afbaf55f79a97981a3e142e8f7290f",
+      "caseId": "k700train_d8RA0_YBltQ_000041_000051",
+      "trainingOnly": true,
+      "imageSize": {
+        "width": 640,
+        "height": 360
+      },
+      "start": 1.5,
+      "end": 6.0,
+      "targets": [
+        {
+          "side": "left",
+          "wrist": {
+            "x": 285,
+            "y": 85
+          },
+          "otherWrist": {
+            "x": 400,
+            "y": 85
+          },
+          "forearmToward": {
+            "x": 285,
+            "y": 155
+          },
+          "regions": [
+            {
+              "left": 245,
+              "top": 20,
+              "width": 80,
+              "height": 95
+            }
+          ]
+        },
+        {
+          "side": "right",
+          "wrist": {
+            "x": 400,
+            "y": 85
+          },
+          "otherWrist": {
+            "x": 285,
+            "y": 85
+          },
+          "forearmToward": {
+            "x": 400,
+            "y": 155
+          },
+          "regions": [
+            {
+              "left": 360,
+              "top": 20,
+              "width": 80,
+              "height": 95
+            }
+          ]
+        }
+      ],
+      "evidence": "Human-authored search regions from inspected native source frames; same hand SDK and final hand_patch rule still required; never used to change held-out inputs"
+    }
+  ]
+}

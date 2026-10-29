@@ -3,532 +3,358 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
-        D1F000000000000000000008 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipWorkout.swift; sourceTree = "<group>";};
-        D1F000000000000000000009 = {isa = PBXBuildFile; fileRef = D1F000000000000000000008;};
-        D1F00000000000000000000A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipWorkoutTests.swift; sourceTree = "<group>";};
-        D1F00000000000000000000B = {isa = PBXBuildFile; fileRef = D1F00000000000000000000A;};
-        D1F000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipObservationTests.swift; sourceTree = "<group>";};
-        D1F000000000000000000007 = {isa = PBXBuildFile; fileRef = D1F000000000000000000006;};
-        D1F000000000000000000001 = {isa = XCLocalSwiftPackageReference; relativePath = ../native/apple;};
-        D1F000000000000000000002 = {isa = XCSwiftPackageProductDependency; package = D1F000000000000000000001; productName = ObservedRailPixels;};
-        D1F000000000000000000003 = {isa = PBXBuildFile; productRef = D1F000000000000000000002;};
-        D1F000000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipObservation.swift; sourceTree = "<group>";};
-        D1F000000000000000000005 = {isa = PBXBuildFile; fileRef = D1F000000000000000000004;};
 
-		AB7100000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipArmVisibilityTests.swift; sourceTree = "<group>";};
-		AB7100000000000000000002 = {isa = PBXBuildFile; fileRef = AB7100000000000000000001;};
-		0FC2E90A76F940C19D3E26EA = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutJourneyView.swift"; sourceTree = "<group>";};
-		E10CBBD612FF4DBEB35151C9 = {isa = PBXBuildFile; fileRef = 0FC2E90A76F940C19D3E26EA;};
-		EC7D773AE44E4768B82A3082 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutJourneyRecords.swift"; sourceTree = "<group>";};
-		115FB741222F4E80B8C9AB0F = {isa = PBXBuildFile; fileRef = EC7D773AE44E4768B82A3082;};
-		ACC100000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLibraryStoreTests.swift; sourceTree = "<group>";};
-		ACC200000000000000000002 = {isa = PBXBuildFile; fileRef = ACC100000000000000000002;};
-		ACC100000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutLibraryView.swift"; sourceTree = "<group>";};
-		ACC200000000000000000001 = {isa = PBXBuildFile; fileRef = ACC100000000000000000001;};
-        ACB100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGripInferenceTests.swift; sourceTree = "<group>";};
-        ACB200000000000000000007 = {isa = PBXBuildFile; fileRef = ACB100000000000000000007;};
-		ACB100000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutGripRecords.swift"; sourceTree = "<group>";};
-		ACB200000000000000000001 = {isa = PBXBuildFile; fileRef = ACB100000000000000000001;};
-		ACB100000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/GripInferenceWorker.swift"; sourceTree = "<group>";};
-		ACB200000000000000000002 = {isa = PBXBuildFile; fileRef = ACB100000000000000000002;};
-		ACB100000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/WorkoutGripReview.swift"; sourceTree = "<group>";};
-		ACB200000000000000000003 = {isa = PBXBuildFile; fileRef = ACB100000000000000000003;};
-		ACB100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutGripView.swift"; sourceTree = "<group>";};
-		ACB200000000000000000004 = {isa = PBXBuildFile; fileRef = ACB100000000000000000004;};
-		ACB100000000000000000005 = {isa = PBXFileReference; lastKnownFileType = file; path = "../models/grip/hand_landmarker.task"; sourceTree = SOURCE_ROOT;};
-		ACB200000000000000000005 = {isa = PBXBuildFile; fileRef = ACB100000000000000000005;};
-		ACB100000000000000000006 = {isa = PBXFileReference; lastKnownFileType = file; path = "../models/grip/pose_landmarker_lite.task"; sourceTree = SOURCE_ROOT;};
-		ACB200000000000000000006 = {isa = PBXBuildFile; fileRef = ACB100000000000000000006;};
-		ACB300000000000000000001 = {
-			isa = PBXShellScriptBuildPhase;
+/* Begin PBXBuildFile section */
+		A12300000000000000000006 /* UI/WorkoutSetVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12300000000000000000005; };
+		A12300000000000000000004 /* Capture/WorkoutKeyframes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12300000000000000000003; };
+		A12300000000000000000002 /* App/WorkoutRepPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12300000000000000000001; };
+		A12200000000000000000004 /* CountedSetVideoRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12200000000000000000003; };
+		A12200000000000000000002 /* CountedSetVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12200000000000000000001; };
+		A11900000000000000000002 /* HomeScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11900000000000000000001 /* HomeScreenView.swift */; };
+		A11900000000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A11900000000000000000003 /* Assets.xcassets */; };
+		A11900000000000000000006 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A11900000000000000000005 /* LaunchScreen.storyboard */; };
+		0996E9AF653C1BA777C60ABA /* ReplayTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC7DD8ACA3C903E46747468 /* ReplayTimeline.swift */; };
+		115FB741222F4E80B8C9AB0F /* Analysis/WorkoutJourneyRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC7D773AE44E4768B82A3082 /* Analysis/WorkoutJourneyRecords.swift */; };
+		24F6944020F289B6A39DA48D /* VideoTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20E1F89E8237D1E85479D5D /* VideoTestSupport.swift */; };
+		3A7A75359E86E2A3E8712F61 /* ReplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D67D56A1AC5DE6556E876BF /* ReplayView.swift */; };
+		3AF7243FFF763D7F730B1474 /* PoseOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6758D022E8F77CCCED9D45C3 /* PoseOverlay.swift */; };
+		416A0916046EB339EA9673D8 /* ReplayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B283C779FB7E0777862B5F /* ReplayController.swift */; };
+		4FCAF8DC138451CD331D2CBA /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 508378606804E3EE893CF9D2 /* Geometry.swift */; };
+		5DD0334308E628B6C11F1A2B /* ReplayControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3A32C41ABB290B011C88C0 /* ReplayControllerTests.swift */; };
+		6701F93B4C431819319367FA /* HangInThereApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36ADCB7CD80AA7BA057BA74D /* HangInThereApp.swift */; };
+		791BB657D4527DA9E1EC61DE /* VisionBarDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62595BC2C4A9F601F3C10DC /* VisionBarDetector.swift */; };
+		7AFD4C2AA908445A9FA9C75C /* BarGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8481783EB299CE0AF72A03FC /* BarGeometry.swift */; };
+		847D247ABFFC5EE045BE1B99 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 566636E8F351B44E6192B6DF /* Fixtures */; };
+		8CB0AC26F0D1209B6683DBCF /* ArmMeasurementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E44086FBEE2C6809322FFE /* ArmMeasurementTests.swift */; };
+		9030688610660B5A650FF837 /* ArmMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E31FD41B30F85CE6B12E1E9 /* ArmMeasurement.swift */; };
+		97569001D677958331EBAE90 /* ObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D103A57978004A86CB32BB /* ObservationTests.swift */; };
+		9D3E611A749B44DBBE2C91D5 /* PoseObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43CB0B7C6E08EDC8E4AA2F66 /* PoseObservation.swift */; };
+		9F515F569E5290F4F4BB1565 /* GeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2479ED1A3F78983439EE4C41 /* GeometryTests.swift */; };
+		A1C4E501D4B748E0A35F0102 /* LiveCameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C4E501D4B748E0A35F0101 /* LiveCameraPreview.swift */; };
+		A1C4E501D4B748E0A35F0202 /* LiveSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C4E501D4B748E0A35F0201 /* LiveSetupView.swift */; };
+		A91000000000000000000002 /* PullUpProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91000000000000000000001 /* PullUpProgress.swift */; };
+		A91000000000000000000004 /* ExerciseProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91000000000000000000003 /* ExerciseProgressView.swift */; };
+		A91000000000000000000006 /* PullUpProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91000000000000000000005 /* PullUpProgressTests.swift */; };
+		A92000000000000000000002 /* LiveWorkoutOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92000000000000000000001 /* LiveWorkoutOverlay.swift */; };
+		AAA200000000000000000001 /* Analysis/WorkoutRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA100000000000000000001 /* Analysis/WorkoutRecords.swift */; };
+		AAA200000000000000000002 /* App/WorkoutAnalysisAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA100000000000000000002 /* App/WorkoutAnalysisAdapter.swift */; };
+		AAA200000000000000000003 /* UI/WorkoutReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA100000000000000000003 /* UI/WorkoutReviewView.swift */; };
+		AAA200000000000000000004 /* App/WorkoutProgression.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA100000000000000000004 /* App/WorkoutProgression.swift */; };
+		AAA200000000000000000005 /* UI/WorkoutPracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA100000000000000000005 /* UI/WorkoutPracticeView.swift */; };
+		AAB000000000000000000002 /* AutomaticPullUpBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB000000000000000000001 /* AutomaticPullUpBar.swift */; };
+		AAB000000000000000000004 /* AutomaticPullUpBarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB000000000000000000003 /* AutomaticPullUpBarTests.swift */; };
+		AAB000000000000000000006 /* AutomaticBarReplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB000000000000000000005 /* AutomaticBarReplayTests.swift */; };
+		AB7100000000000000000002 /* DipArmVisibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7100000000000000000001 /* DipArmVisibilityTests.swift */; };
+		ABA000000000000000000002 /* PullUpArmMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABA000000000000000000001 /* PullUpArmMeasurement.swift */; };
+		ACB200000000000000000001 /* Analysis/WorkoutGripRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB100000000000000000001 /* Analysis/WorkoutGripRecords.swift */; };
+		BD3400000000000000000002 /* Analysis/BodyDipRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3400000000000000000001 /* Analysis/BodyDipRecords.swift */; };
+		ACB200000000000000000002 /* App/GripInferenceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB100000000000000000002 /* App/GripInferenceWorker.swift */; };
+		ACB200000000000000000003 /* App/WorkoutGripReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB100000000000000000003 /* App/WorkoutGripReview.swift */; };
+		ACB200000000000000000004 /* UI/WorkoutGripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB100000000000000000004 /* UI/WorkoutGripView.swift */; };
+		ACB200000000000000000005 /* ../models/grip/hand_landmarker.task in Resources */ = {isa = PBXBuildFile; fileRef = ACB100000000000000000005 /* ../models/grip/hand_landmarker.task */; };
+		ACB200000000000000000006 /* ../models/grip/pose_landmarker_lite.task in Resources */ = {isa = PBXBuildFile; fileRef = ACB100000000000000000006 /* ../models/grip/pose_landmarker_lite.task */; };
+		ACB200000000000000000007 /* WorkoutGripInferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB100000000000000000007 /* WorkoutGripInferenceTests.swift */; };
+		ACBA66C5AD79A82B40C4DF2D /* ReplayTimelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F379B112854E7D1DBC649C1 /* ReplayTimelineTests.swift */; };
+		ACC200000000000000000001 /* UI/WorkoutLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC100000000000000000001 /* UI/WorkoutLibraryView.swift */; };
+		ACC200000000000000000002 /* WorkoutLibraryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC100000000000000000002 /* WorkoutLibraryStoreTests.swift */; };
+		ACF000000000000000000002 /* LiveCameraSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF000000000000000000001 /* LiveCameraSelectionTests.swift */; };
+		ACF000000000000000000004 /* WorkoutStartFeedbackTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF000000000000000000003 /* WorkoutStartFeedbackTimerTests.swift */; };
+		ACF000000000000000000006 /* BitmapFrameRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF000000000000000000005 /* BitmapFrameRenderer.swift */; };
+		ACF000000000000000000008 /* BitmapFrameRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF000000000000000000007 /* BitmapFrameRendererTests.swift */; };
+		AD8000000000000000000002 /* DipSupportMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD8000000000000000000001 /* DipSupportMeasurement.swift */; };
+		AD8000000000000000000004 /* DipSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD8000000000000000000003 /* DipSupportTests.swift */; };
+		AD9000000000000000000002 /* DipProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9000000000000000000001 /* DipProgress.swift */; };
+		AD9000000000000000000004 /* DipProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9000000000000000000003 /* DipProgressTests.swift */; };
+		ADA000000000000000000002 /* AutomaticDipRails.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA000000000000000000001 /* AutomaticDipRails.swift */; };
+		ADA000000000000000000004 /* AutomaticDipRailsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA000000000000000000003 /* AutomaticDipRailsTests.swift */; };
+		ADB000000000000000000004 /* AutomaticReferenceStabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB000000000000000000003 /* AutomaticReferenceStabilityTests.swift */; };
+		ADC000000000000000000002 /* AutomaticDipBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC000000000000000000001 /* AutomaticDipBar.swift */; };
+		AE9049A619C3D801DBA2F172 /* BarGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79196D918F8B048991F2F9AF /* BarGeometryTests.swift */; };
+		AEB000000000000000000002 /* AutomaticExerciseDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB000000000000000000001 /* AutomaticExerciseDetection.swift */; };
+		AEB000000000000000000004 /* AutomaticExerciseDetectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB000000000000000000003 /* AutomaticExerciseDetectionTests.swift */; };
+		AF5000000000000000000002 /* HandsFreeSetStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5000000000000000000001 /* HandsFreeSetStart.swift */; };
+		AF5000000000000000000004 /* HandsFreeSetStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5000000000000000000003 /* HandsFreeSetStartTests.swift */; };
+		B2D5F601A8C14F78A12E0102 /* LiveFramingAssessment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0101 /* LiveFramingAssessment.swift */; };
+		B2D5F601A8C14F78A12E0202 /* LiveFramingAssessmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0201 /* LiveFramingAssessmentTests.swift */; };
+		B2D5F601A8C14F78A12E2002 /* WorkoutGripMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E2001 /* WorkoutGripMetadataTests.swift */; };
+		BD3400000000000000000004 /* BodyDipWorkoutNativeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3400000000000000000003 /* BodyDipWorkoutNativeTests.swift */; };
+		C3E6A701B9D24A89B23F0102 /* LiveSetSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0101 /* LiveSetSession.swift */; };
+		C3E6A701B9D24A89B23F0202 /* LiveSetSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0201 /* LiveSetSessionTests.swift */; };
+		C476E88F0B62A3B7D2B8E034 /* BarSetupControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FAA384EC7A5412D562FC46C /* BarSetupControllerTests.swift */; };
+		CDD19EB39340058AFAD45F5A /* VisionPoseEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45C66EEAF842203B810112A /* VisionPoseEstimator.swift */; };
+		CFE480A6C0D45218FB415ADC /* VisionSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DCAAE36C33459EEF10F1FC1 /* VisionSmokeTests.swift */; };
+		D1F000000000000000000003 /* ObservedRailPixels in Frameworks */ = {isa = PBXBuildFile; productRef = D1F000000000000000000002 /* ObservedRailPixels */; };
+		D1F000000000000000000005 /* VisionDipObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F000000000000000000004 /* VisionDipObservation.swift */; };
+		D1F000000000000000000007 /* VisionDipObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F000000000000000000006 /* VisionDipObservationTests.swift */; };
+		D1F000000000000000000009 /* VisionDipWorkout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F000000000000000000008 /* VisionDipWorkout.swift */; };
+		D1F00000000000000000000B /* VisionDipWorkoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F00000000000000000000A /* VisionDipWorkoutTests.swift */; };
+		D471AA1A85E637305BAE6A1C /* ExerciseCounterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C5C97BB01A5DFA5E5B6704D /* ExerciseCounterTests.swift */; };
+		D4F7B801CAD35B90C3400102 /* PhoneOrientationStability.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400101 /* PhoneOrientationStability.swift */; };
+		D4F7B801CAD35B90C3400202 /* PhoneOrientationStabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400201 /* PhoneOrientationStabilityTests.swift */; };
+		D55A8140E6AF83EDF4EC42F9 /* ExerciseCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10D6300E99E681584D06FA5B /* ExerciseCounter.swift */; };
+		D8B6A101D4B748E0A35F0502 /* DebugSessionPackageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B6A101D4B748E0A35F0501 /* DebugSessionPackageTests.swift */; };
+		E10CBBD612FF4DBEB35151C9 /* UI/WorkoutJourneyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC2E90A76F940C19D3E26EA /* UI/WorkoutJourneyView.swift */; };
+		E5A8C901DBE46CA1D4510102 /* StaticSceneStability.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510101 /* StaticSceneStability.swift */; };
+		E5A8C901DBE46CA1D4510202 /* StaticSceneStabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510201 /* StaticSceneStabilityTests.swift */; };
+		E5A8C901DBE46CA1D4510302 /* VisionStaticSceneRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510301 /* VisionStaticSceneRegistration.swift */; };
+		E5A8C901DBE46CA1D4510402 /* StaticSceneRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510401 /* StaticSceneRegistrationTests.swift */; };
+		E907D117346B40511577EFAB /* BarDetectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B9FA338709B9E10B4C03079 /* BarDetectionTests.swift */; };
+		F3976C42629141D52BC55FF7 /* VideoReplayReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5B3102915A09B885C06EE4 /* VideoReplayReaderTests.swift */; };
+		F6B9DA01ECF57DB2E5620102 /* LiveDeviceQualification.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B9DA01ECF57DB2E5620101 /* LiveDeviceQualification.swift */; };
+		F6B9DA01ECF57DB2E5620202 /* LiveDeviceQualificationRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B9DA01ECF57DB2E5620201 /* LiveDeviceQualificationRecorderTests.swift */; };
+		F7CAEB01FD068EC3F6730102 /* QualificationReportDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CAEB01FD068EC3F6730101 /* QualificationReportDocument.swift */; };
+		F8DBFC01AE179FD407840102 /* RealVideoCorpusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DBFC01AE179FD407840101 /* RealVideoCorpusTests.swift */; };
+		F9B57C2A9301AC3E37D4D15E /* VideoReplayReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B798D0952C0283EE3BA0F9A9 /* VideoReplayReader.swift */; };
+		FE333C4A500F8EE29434119C /* BarSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E5AF088BD7AE9E54F6DD437 /* BarSetupView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6B4FE4C1419F272671268E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 98F54143AB4E86B28C3AFEE0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B902F7C2327297FC583709E1;
+			remoteInfo = HangInThere;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		A12300000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutSetVisuals.swift; sourceTree = "<group>"; };
+		A12300000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/WorkoutKeyframes.swift; sourceTree = "<group>"; };
+		A12300000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutRepPresentation.swift; sourceTree = "<group>"; };
+		A12200000000000000000003 /* CountedSetVideoRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountedSetVideoRecorderTests.swift; sourceTree = "<group>"; };
+		A12200000000000000000001 /* CountedSetVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/CountedSetVideoRecorder.swift; sourceTree = "<group>"; };
+		A11900000000000000000001 /* HomeScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreenView.swift; sourceTree = "<group>"; };
+		A11900000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A11900000000000000000005 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		0C5C97BB01A5DFA5E5B6704D /* ExerciseCounterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCounterTests.swift; sourceTree = "<group>"; };
+		0E5AF088BD7AE9E54F6DD437 /* BarSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupView.swift; sourceTree = "<group>"; };
+		0FC2E90A76F940C19D3E26EA /* UI/WorkoutJourneyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutJourneyView.swift; sourceTree = "<group>"; };
+		10D6300E99E681584D06FA5B /* ExerciseCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCounter.swift; sourceTree = "<group>"; };
+		20D103A57978004A86CB32BB /* ObservationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservationTests.swift; sourceTree = "<group>"; };
+		2479ED1A3F78983439EE4C41 /* GeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryTests.swift; sourceTree = "<group>"; };
+		2E31FD41B30F85CE6B12E1E9 /* ArmMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmMeasurement.swift; sourceTree = "<group>"; };
+		36ADCB7CD80AA7BA057BA74D /* HangInThereApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HangInThereApp.swift; sourceTree = "<group>"; };
+		3B9FA338709B9E10B4C03079 /* BarDetectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarDetectionTests.swift; sourceTree = "<group>"; };
+		43CB0B7C6E08EDC8E4AA2F66 /* PoseObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseObservation.swift; sourceTree = "<group>"; };
+		4D67D56A1AC5DE6556E876BF /* ReplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayView.swift; sourceTree = "<group>"; };
+		4F379B112854E7D1DBC649C1 /* ReplayTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayTimelineTests.swift; sourceTree = "<group>"; };
+		508378606804E3EE893CF9D2 /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
+		566636E8F351B44E6192B6DF /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
+		5BC7DD8ACA3C903E46747468 /* ReplayTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayTimeline.swift; sourceTree = "<group>"; };
+		6758D022E8F77CCCED9D45C3 /* PoseOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseOverlay.swift; sourceTree = "<group>"; };
+		6FAA384EC7A5412D562FC46C /* BarSetupControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupControllerTests.swift; sourceTree = "<group>"; };
+		79196D918F8B048991F2F9AF /* BarGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarGeometryTests.swift; sourceTree = "<group>"; };
+		845F65209D19F1E91A3C573D /* HangInThere.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HangInThere.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8481783EB299CE0AF72A03FC /* BarGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarGeometry.swift; sourceTree = "<group>"; };
+		9DCAAE36C33459EEF10F1FC1 /* VisionSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionSmokeTests.swift; sourceTree = "<group>"; };
+		9FEED0499F36FF4A8531E2EC /* HangInThereTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HangInThereTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1C4E501D4B748E0A35F0101 /* LiveCameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCameraPreview.swift; sourceTree = "<group>"; };
+		A1C4E501D4B748E0A35F0201 /* LiveSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetupView.swift; sourceTree = "<group>"; };
+		A20E1F89E8237D1E85479D5D /* VideoTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTestSupport.swift; sourceTree = "<group>"; };
+		A91000000000000000000001 /* PullUpProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpProgress.swift; sourceTree = "<group>"; };
+		A91000000000000000000003 /* ExerciseProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseProgressView.swift; sourceTree = "<group>"; };
+		A91000000000000000000005 /* PullUpProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpProgressTests.swift; sourceTree = "<group>"; };
+		A92000000000000000000001 /* LiveWorkoutOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutOverlay.swift; sourceTree = "<group>"; };
+		AAA100000000000000000001 /* Analysis/WorkoutRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis/WorkoutRecords.swift; sourceTree = "<group>"; };
+		AAA100000000000000000002 /* App/WorkoutAnalysisAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutAnalysisAdapter.swift; sourceTree = "<group>"; };
+		AAA100000000000000000003 /* UI/WorkoutReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutReviewView.swift; sourceTree = "<group>"; };
+		AAA100000000000000000004 /* App/WorkoutProgression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutProgression.swift; sourceTree = "<group>"; };
+		AAA100000000000000000005 /* UI/WorkoutPracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutPracticeView.swift; sourceTree = "<group>"; };
+		AAB000000000000000000001 /* AutomaticPullUpBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticPullUpBar.swift; sourceTree = "<group>"; };
+		AAB000000000000000000003 /* AutomaticPullUpBarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticPullUpBarTests.swift; sourceTree = "<group>"; };
+		AAB000000000000000000005 /* AutomaticBarReplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBarReplayTests.swift; sourceTree = "<group>"; };
+		AB7100000000000000000001 /* DipArmVisibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipArmVisibilityTests.swift; sourceTree = "<group>"; };
+		ABA000000000000000000001 /* PullUpArmMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpArmMeasurement.swift; sourceTree = "<group>"; };
+		ACB100000000000000000001 /* Analysis/WorkoutGripRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis/WorkoutGripRecords.swift; sourceTree = "<group>"; };
+		BD3400000000000000000001 /* Analysis/BodyDipRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis/BodyDipRecords.swift; sourceTree = "<group>"; };
+		ACB100000000000000000002 /* App/GripInferenceWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/GripInferenceWorker.swift; sourceTree = "<group>"; };
+		ACB100000000000000000003 /* App/WorkoutGripReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutGripReview.swift; sourceTree = "<group>"; };
+		ACB100000000000000000004 /* UI/WorkoutGripView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutGripView.swift; sourceTree = "<group>"; };
+		ACB100000000000000000005 /* ../models/grip/hand_landmarker.task */ = {isa = PBXFileReference; lastKnownFileType = file; path = ../models/grip/hand_landmarker.task; sourceTree = SOURCE_ROOT; };
+		ACB100000000000000000006 /* ../models/grip/pose_landmarker_lite.task */ = {isa = PBXFileReference; lastKnownFileType = file; path = ../models/grip/pose_landmarker_lite.task; sourceTree = SOURCE_ROOT; };
+		ACB100000000000000000007 /* WorkoutGripInferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGripInferenceTests.swift; sourceTree = "<group>"; };
+		ACC100000000000000000001 /* UI/WorkoutLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutLibraryView.swift; sourceTree = "<group>"; };
+		ACC100000000000000000002 /* WorkoutLibraryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLibraryStoreTests.swift; sourceTree = "<group>"; };
+		ACF000000000000000000001 /* LiveCameraSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCameraSelectionTests.swift; sourceTree = "<group>"; };
+		ACF000000000000000000003 /* WorkoutStartFeedbackTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutStartFeedbackTimerTests.swift; sourceTree = "<group>"; };
+		ACF000000000000000000005 /* BitmapFrameRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapFrameRenderer.swift; sourceTree = "<group>"; };
+		ACF000000000000000000007 /* BitmapFrameRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapFrameRendererTests.swift; sourceTree = "<group>"; };
+		AD8000000000000000000001 /* DipSupportMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipSupportMeasurement.swift; sourceTree = "<group>"; };
+		AD8000000000000000000003 /* DipSupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipSupportTests.swift; sourceTree = "<group>"; };
+		AD9000000000000000000001 /* DipProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgress.swift; sourceTree = "<group>"; };
+		AD9000000000000000000003 /* DipProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgressTests.swift; sourceTree = "<group>"; };
+		ADA000000000000000000001 /* AutomaticDipRails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipRails.swift; sourceTree = "<group>"; };
+		ADA000000000000000000003 /* AutomaticDipRailsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipRailsTests.swift; sourceTree = "<group>"; };
+		ADB000000000000000000003 /* AutomaticReferenceStabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticReferenceStabilityTests.swift; sourceTree = "<group>"; };
+		ADC000000000000000000001 /* AutomaticDipBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipBar.swift; sourceTree = "<group>"; };
+		AEB000000000000000000001 /* AutomaticExerciseDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetection.swift; sourceTree = "<group>"; };
+		AEB000000000000000000003 /* AutomaticExerciseDetectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetectionTests.swift; sourceTree = "<group>"; };
+		AF5000000000000000000001 /* HandsFreeSetStart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeSetStart.swift; sourceTree = "<group>"; };
+		AF5000000000000000000003 /* HandsFreeSetStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeSetStartTests.swift; sourceTree = "<group>"; };
+		B2D5F601A8C14F78A12E0101 /* LiveFramingAssessment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFramingAssessment.swift; sourceTree = "<group>"; };
+		B2D5F601A8C14F78A12E0201 /* LiveFramingAssessmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFramingAssessmentTests.swift; sourceTree = "<group>"; };
+		B2D5F601A8C14F78A12E2001 /* WorkoutGripMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGripMetadataTests.swift; sourceTree = "<group>"; };
+		BD3400000000000000000003 /* BodyDipWorkoutNativeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyDipWorkoutNativeTests.swift; sourceTree = "<group>"; };
+		B798D0952C0283EE3BA0F9A9 /* VideoReplayReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReplayReader.swift; sourceTree = "<group>"; };
+		C3E6A701B9D24A89B23F0101 /* LiveSetSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetSession.swift; sourceTree = "<group>"; };
+		C3E6A701B9D24A89B23F0201 /* LiveSetSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetSessionTests.swift; sourceTree = "<group>"; };
+		C8E44086FBEE2C6809322FFE /* ArmMeasurementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArmMeasurementTests.swift; sourceTree = "<group>"; };
+		CC5B3102915A09B885C06EE4 /* VideoReplayReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReplayReaderTests.swift; sourceTree = "<group>"; };
+		CD3A32C41ABB290B011C88C0 /* ReplayControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayControllerTests.swift; sourceTree = "<group>"; };
+		D1F000000000000000000004 /* VisionDipObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipObservation.swift; sourceTree = "<group>"; };
+		D1F000000000000000000006 /* VisionDipObservationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipObservationTests.swift; sourceTree = "<group>"; };
+		D1F000000000000000000008 /* VisionDipWorkout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipWorkout.swift; sourceTree = "<group>"; };
+		D1F00000000000000000000A /* VisionDipWorkoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDipWorkoutTests.swift; sourceTree = "<group>"; };
+		D4F7B801CAD35B90C3400101 /* PhoneOrientationStability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStability.swift; sourceTree = "<group>"; };
+		D4F7B801CAD35B90C3400201 /* PhoneOrientationStabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStabilityTests.swift; sourceTree = "<group>"; };
+		D62595BC2C4A9F601F3C10DC /* VisionBarDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionBarDetector.swift; sourceTree = "<group>"; };
+		D8B6A101D4B748E0A35F0501 /* DebugSessionPackageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSessionPackageTests.swift; sourceTree = "<group>"; };
+		E5A8C901DBE46CA1D4510101 /* StaticSceneStability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneStability.swift; sourceTree = "<group>"; };
+		E5A8C901DBE46CA1D4510201 /* StaticSceneStabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneStabilityTests.swift; sourceTree = "<group>"; };
+		E5A8C901DBE46CA1D4510301 /* VisionStaticSceneRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionStaticSceneRegistration.swift; sourceTree = "<group>"; };
+		E5A8C901DBE46CA1D4510401 /* StaticSceneRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneRegistrationTests.swift; sourceTree = "<group>"; };
+		EC7D773AE44E4768B82A3082 /* Analysis/WorkoutJourneyRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis/WorkoutJourneyRecords.swift; sourceTree = "<group>"; };
+		F45C66EEAF842203B810112A /* VisionPoseEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionPoseEstimator.swift; sourceTree = "<group>"; };
+		F6B9DA01ECF57DB2E5620101 /* LiveDeviceQualification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDeviceQualification.swift; sourceTree = "<group>"; };
+		F6B9DA01ECF57DB2E5620201 /* LiveDeviceQualificationRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDeviceQualificationRecorderTests.swift; sourceTree = "<group>"; };
+		F7CAEB01FD068EC3F6730101 /* QualificationReportDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualificationReportDocument.swift; sourceTree = "<group>"; };
+		F8DBFC01AE179FD407840101 /* RealVideoCorpusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealVideoCorpusTests.swift; sourceTree = "<group>"; };
+		F9B283C779FB7E0777862B5F /* ReplayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayController.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BF8D21E9E84F4DF4F2CFEE1E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-			files = ();
-			inputPaths = ();
-			outputPaths = (
-				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a",
-				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/MediaPipeTasksCommon.framework",
-				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/MediaPipeTasksVision.framework",
+			files = (
+				D1F000000000000000000003 /* ObservedRailPixels in Frameworks */,
 			);
-			alwaysOutOfDate = 1;
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/bash;
-			shellScript = "\"$SRCROOT/../scripts/prepare-grip-sdk.sh\"";
-			name = "Prepare pinned grip SDK";
 		};
-		AAA100000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/WorkoutProgression.swift"; sourceTree = "<group>";};
-		AAA200000000000000000004 = {isa = PBXBuildFile; fileRef = AAA100000000000000000004;};
-		AAA100000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutPracticeView.swift"; sourceTree = "<group>";};
-		AAA200000000000000000005 = {isa = PBXBuildFile; fileRef = AAA100000000000000000005;};
+		C4F12A3572FBE21543BA46A8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
-		AAA300000000000000000001 = {isa = PBXShellScriptBuildPhase; buildActionMask = 2147483647; files = (); inputPaths = (); outputPaths = (); alwaysOutOfDate = 1; runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/bash; shellScript = "\"$SRCROOT/../scripts/build-workout-core.sh\""; name = "Build shared WorkoutCore";};
-		AAA100000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UI/WorkoutReviewView.swift"; sourceTree = "<group>";};
-		AAA200000000000000000003 = {isa = PBXBuildFile; fileRef = AAA100000000000000000003;};
-		AAA100000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/WorkoutAnalysisAdapter.swift"; sourceTree = "<group>";};
-		AAA200000000000000000002 = {isa = PBXBuildFile; fileRef = AAA100000000000000000002;};
-		AAA100000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Analysis/WorkoutRecords.swift"; sourceTree = "<group>";};
-		AAA200000000000000000001 = {isa = PBXBuildFile; fileRef = AAA100000000000000000001;};
-		ADC000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipBar.swift; sourceTree = "<group>";};
-		ADC000000000000000000002 = {isa = PBXBuildFile; fileRef = ADC000000000000000000001;};
-		AEB000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetection.swift; sourceTree = "<group>";};
-		AEB000000000000000000002 = {isa = PBXBuildFile; fileRef = AEB000000000000000000001;};
-		AEB000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticExerciseDetectionTests.swift; sourceTree = "<group>";};
-		AEB000000000000000000004 = {isa = PBXBuildFile; fileRef = AEB000000000000000000003;};
-		ADA000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipRails.swift; sourceTree = "<group>";};
-		ADA000000000000000000002 = {isa = PBXBuildFile; fileRef = ADA000000000000000000001;};
-		ADA000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticDipRailsTests.swift; sourceTree = "<group>";};
-		ADA000000000000000000004 = {isa = PBXBuildFile; fileRef = ADA000000000000000000003;};
-		ADB000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticReferenceStabilityTests.swift; sourceTree = "<group>";};
-		ADB000000000000000000004 = {isa = PBXBuildFile; fileRef = ADB000000000000000000003;};
-		AD9000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgress.swift; sourceTree = "<group>";};
-		AD9000000000000000000002 = {isa = PBXBuildFile; fileRef = AD9000000000000000000001;};
-		AD9000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipProgressTests.swift; sourceTree = "<group>";};
-		AD9000000000000000000004 = {isa = PBXBuildFile; fileRef = AD9000000000000000000003;};
-		AD8000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipSupportMeasurement.swift; sourceTree = "<group>";};
-		AD8000000000000000000002 = {isa = PBXBuildFile; fileRef = AD8000000000000000000001;};
-		AD8000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DipSupportTests.swift; sourceTree = "<group>";};
-		AD8000000000000000000004 = {isa = PBXBuildFile; fileRef = AD8000000000000000000003;};
-		A92000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWorkoutOverlay.swift; sourceTree = "<group>";};
-		A92000000000000000000002 = {isa = PBXBuildFile; fileRef = A92000000000000000000001;};
-		A91000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpProgress.swift; sourceTree = "<group>";};
-		A91000000000000000000002 = {isa = PBXBuildFile; fileRef = A91000000000000000000001;};
-		A91000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseProgressView.swift; sourceTree = "<group>";};
-		A91000000000000000000004 = {isa = PBXBuildFile; fileRef = A91000000000000000000003;};
-		A91000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpProgressTests.swift; sourceTree = "<group>";};
-		A91000000000000000000006 = {isa = PBXBuildFile; fileRef = A91000000000000000000005;};
-		ABA000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullUpArmMeasurement.swift; sourceTree = "<group>";};
-		ABA000000000000000000002 = {isa = PBXBuildFile; fileRef = ABA000000000000000000001;};
-		AF5000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeSetStart.swift; sourceTree = "<group>";};
-		AF5000000000000000000002 = {isa = PBXBuildFile; fileRef = AF5000000000000000000001;};
-		AF5000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeSetStartTests.swift; sourceTree = "<group>";};
-		AF5000000000000000000004 = {isa = PBXBuildFile; fileRef = AF5000000000000000000003;};
-		AAB000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBarReplayTests.swift; sourceTree = "<group>";};
-		AAB000000000000000000006 = {isa = PBXBuildFile; fileRef = AAB000000000000000000005;};
-		AAB000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticPullUpBarTests.swift; sourceTree = "<group>";};
-		AAB000000000000000000004 = {isa = PBXBuildFile; fileRef = AAB000000000000000000003;};
-		AAB000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticPullUpBar.swift; sourceTree = "<group>";};
-		AAB000000000000000000002 = {isa = PBXBuildFile; fileRef = AAB000000000000000000001;};
-		ACF000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCameraSelectionTests.swift; sourceTree = "<group>";};
-		ACF000000000000000000002 = {isa = PBXBuildFile; fileRef = ACF000000000000000000001;};
-		ACF000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutStartFeedbackTimerTests.swift; sourceTree = "<group>";};
-		ACF000000000000000000004 = {isa = PBXBuildFile; fileRef = ACF000000000000000000003;};
-		ACF000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapFrameRenderer.swift; sourceTree = "<group>";};
-		ACF000000000000000000006 = {isa = PBXBuildFile; fileRef = ACF000000000000000000005;};
-		ACF000000000000000000007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapFrameRendererTests.swift; sourceTree = "<group>";};
-		ACF000000000000000000008 = {isa = PBXBuildFile; fileRef = ACF000000000000000000007;};
-		D8B6A101D4B748E0A35F0501 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSessionPackageTests.swift; sourceTree = "<group>";};
-		D8B6A101D4B748E0A35F0502 = {isa = PBXBuildFile; fileRef = D8B6A101D4B748E0A35F0501;};
-		6FAA384EC7A5412D562FC46C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupControllerTests.swift; sourceTree = "<group>";};
-		C476E88F0B62A3B7D2B8E034 = {isa = PBXBuildFile; fileRef = 6FAA384EC7A5412D562FC46C;};
-		E5A8C901DBE46CA1D4510401 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneRegistrationTests.swift; sourceTree = "<group>";};
-		E5A8C901DBE46CA1D4510402 = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510401;};
-		F8DBFC01AE179FD407840101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealVideoCorpusTests.swift; sourceTree = "<group>";};
-		F8DBFC01AE179FD407840102 = {isa = PBXBuildFile; fileRef = F8DBFC01AE179FD407840101;};
-		3B9FA338709B9E10B4C03079 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarDetectionTests.swift; sourceTree = "<group>";};
-		E907D117346B40511577EFAB = {isa = PBXBuildFile; fileRef = 3B9FA338709B9E10B4C03079;};
-		79196D918F8B048991F2F9AF = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarGeometryTests.swift; sourceTree = "<group>";};
-		AE9049A619C3D801DBA2F172 = {isa = PBXBuildFile; fileRef = 79196D918F8B048991F2F9AF;};
-		0E5AF088BD7AE9E54F6DD437 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarSetupView.swift; sourceTree = "<group>";};
-		FE333C4A500F8EE29434119C = {isa = PBXBuildFile; fileRef = 0E5AF088BD7AE9E54F6DD437;};
-		D62595BC2C4A9F601F3C10DC = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionBarDetector.swift; sourceTree = "<group>";};
-		791BB657D4527DA9E1EC61DE = {isa = PBXBuildFile; fileRef = D62595BC2C4A9F601F3C10DC;};
-		E5A8C901DBE46CA1D4510301 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionStaticSceneRegistration.swift; sourceTree = "<group>";};
-		E5A8C901DBE46CA1D4510302 = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510301;};
-		8481783EB299CE0AF72A03FC = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarGeometry.swift; sourceTree = "<group>";};
-		7AFD4C2AA908445A9FA9C75C = {isa = PBXBuildFile; fileRef = 8481783EB299CE0AF72A03FC;};
-		0C5C97BB01A5DFA5E5B6704D = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCounterTests.swift; sourceTree = "<group>";};
-		D471AA1A85E637305BAE6A1C = {isa = PBXBuildFile; fileRef = 0C5C97BB01A5DFA5E5B6704D;};
-		B2D5F601A8C14F78A12E0201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFramingAssessmentTests.swift; sourceTree = "<group>";};
-		B2D5F601A8C14F78A12E0202 = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0201;};
-		C3E6A701B9D24A89B23F0201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetSessionTests.swift; sourceTree = "<group>";};
-		C3E6A701B9D24A89B23F0202 = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0201;};
-		D4F7B801CAD35B90C3400201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStabilityTests.swift; sourceTree = "<group>";};
-		D4F7B801CAD35B90C3400202 = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400201;};
-		F6B9DA01ECF57DB2E5620201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDeviceQualificationRecorderTests.swift; sourceTree = "<group>";};
-		F6B9DA01ECF57DB2E5620202 = {isa = PBXBuildFile; fileRef = F6B9DA01ECF57DB2E5620201;};
-		E5A8C901DBE46CA1D4510201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneStabilityTests.swift; sourceTree = "<group>";};
-		E5A8C901DBE46CA1D4510202 = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510201;};
-		10D6300E99E681584D06FA5B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCounter.swift; sourceTree = "<group>";};
-		D55A8140E6AF83EDF4EC42F9 = {isa = PBXBuildFile; fileRef = 10D6300E99E681584D06FA5B;};
-		B2D5F601A8C14F78A12E0101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFramingAssessment.swift; sourceTree = "<group>";};
-		B2D5F601A8C14F78A12E0102 = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0101;};
-		C3E6A701B9D24A89B23F0101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetSession.swift; sourceTree = "<group>";};
-		C3E6A701B9D24A89B23F0102 = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0101;};
-		D4F7B801CAD35B90C3400101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOrientationStability.swift; sourceTree = "<group>";};
-		D4F7B801CAD35B90C3400102 = {isa = PBXBuildFile; fileRef = D4F7B801CAD35B90C3400101;};
-		F6B9DA01ECF57DB2E5620101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDeviceQualification.swift; sourceTree = "<group>";};
-		F6B9DA01ECF57DB2E5620102 = {isa = PBXBuildFile; fileRef = F6B9DA01ECF57DB2E5620101;};
-		E5A8C901DBE46CA1D4510101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticSceneStability.swift; sourceTree = "<group>";};
-		E5A8C901DBE46CA1D4510102 = {isa = PBXBuildFile; fileRef = E5A8C901DBE46CA1D4510101;};
-		C8E44086FBEE2C6809322FFE = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ArmMeasurementTests.swift;
-			sourceTree = "<group>";
-		};
-		8CB0AC26F0D1209B6683DBCF = {
-			isa = PBXBuildFile;
-			fileRef = C8E44086FBEE2C6809322FFE;
-		};
-		2E31FD41B30F85CE6B12E1E9 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ArmMeasurement.swift;
-			sourceTree = "<group>";
-		};
-		9030688610660B5A650FF837 = {
-			isa = PBXBuildFile;
-			fileRef = 2E31FD41B30F85CE6B12E1E9;
-		};
-		845F65209D19F1E91A3C573D = {
-			isa = PBXFileReference;
-			explicitFileType = wrapper.application;
-			includeInIndex = 0;
-			path = HangInThere.app;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		9FEED0499F36FF4A8531E2EC = {
-			isa = PBXFileReference;
-			explicitFileType = wrapper.cfbundle;
-			includeInIndex = 0;
-			path = HangInThereTests.xctest;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		508378606804E3EE893CF9D2 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = Geometry.swift;
-			sourceTree = "<group>";
-		};
-		4FCAF8DC138451CD331D2CBA = {
-			isa = PBXBuildFile;
-			fileRef = 508378606804E3EE893CF9D2;
-		};
-		43CB0B7C6E08EDC8E4AA2F66 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = PoseObservation.swift;
-			sourceTree = "<group>";
-		};
-		9D3E611A749B44DBBE2C91D5 = {
-			isa = PBXBuildFile;
-			fileRef = 43CB0B7C6E08EDC8E4AA2F66;
-		};
-		5BC7DD8ACA3C903E46747468 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ReplayTimeline.swift;
-			sourceTree = "<group>";
-		};
-		0996E9AF653C1BA777C60ABA = {
-			isa = PBXBuildFile;
-			fileRef = 5BC7DD8ACA3C903E46747468;
-		};
-		F299B545EFBEFE12C9D250A1 = {
+/* Begin PBXGroup section */
+		03FBF5F3317ABD701B6FBCEA /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				2E31FD41B30F85CE6B12E1E9,
-				10D6300E99E681584D06FA5B,
-				B2D5F601A8C14F78A12E0101,
-				C3E6A701B9D24A89B23F0101,
-				D4F7B801CAD35B90C3400101,
-				F6B9DA01ECF57DB2E5620101,
-				E5A8C901DBE46CA1D4510101,
-				508378606804E3EE893CF9D2,
-				43CB0B7C6E08EDC8E4AA2F66,
-				5BC7DD8ACA3C903E46747468,
-				8481783EB299CE0AF72A03FC,
-				AAB000000000000000000001,
-				AF5000000000000000000001,
-				AD8000000000000000000001,
-				ABA000000000000000000001,
-				A91000000000000000000001,
-				AD9000000000000000000001,
-				ADA000000000000000000001,
-				ADC000000000000000000001,
-				AEB000000000000000000001,
-			);
-			path = Analysis;
-			sourceTree = "<group>";
-		};
-		36ADCB7CD80AA7BA057BA74D = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = HangInThereApp.swift;
-			sourceTree = "<group>";
-		};
-		6701F93B4C431819319367FA = {
-			isa = PBXBuildFile;
-			fileRef = 36ADCB7CD80AA7BA057BA74D;
-		};
-		F9B283C779FB7E0777862B5F = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ReplayController.swift;
-			sourceTree = "<group>";
-		};
-		416A0916046EB339EA9673D8 = {
-			isa = PBXBuildFile;
-			fileRef = F9B283C779FB7E0777862B5F;
-		};
-		CCE821A490FF555C22802A44 = {
-			isa = PBXGroup;
-			children = (
-				36ADCB7CD80AA7BA057BA74D,
-				F9B283C779FB7E0777862B5F,
-			);
-			path = App;
-			sourceTree = "<group>";
-		};
-		B798D0952C0283EE3BA0F9A9 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = VideoReplayReader.swift;
-			sourceTree = "<group>";
-		};
-		F9B57C2A9301AC3E37D4D15E = {
-			isa = PBXBuildFile;
-			fileRef = B798D0952C0283EE3BA0F9A9;
-		};
-		A1C4E501D4B748E0A35F0101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCameraPreview.swift; sourceTree = "<group>";};
-		A1C4E501D4B748E0A35F0102 = {isa = PBXBuildFile; fileRef = A1C4E501D4B748E0A35F0101;};
-		18E1CB92F764A905D90209F5 = {
-			isa = PBXGroup;
-			children = (
-				B798D0952C0283EE3BA0F9A9,
-				ACF000000000000000000005,
-				A1C4E501D4B748E0A35F0101,
-			);
-			path = Capture;
-			sourceTree = "<group>";
-		};
-		F45C66EEAF842203B810112A = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = VisionPoseEstimator.swift;
-			sourceTree = "<group>";
-		};
-		CDD19EB39340058AFAD45F5A = {
-			isa = PBXBuildFile;
-			fileRef = F45C66EEAF842203B810112A;
-		};
-		6373B7DAFB361BB9B3D41449 = {
-			isa = PBXGroup;
-			children = (
-				F45C66EEAF842203B810112A,
-				D1F000000000000000000004,
-				D1F000000000000000000008,
-				D62595BC2C4A9F601F3C10DC,
-				E5A8C901DBE46CA1D4510301,
-			);
-			path = Pose;
-			sourceTree = "<group>";
-		};
-		6758D022E8F77CCCED9D45C3 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = PoseOverlay.swift;
-			sourceTree = "<group>";
-		};
-		3AF7243FFF763D7F730B1474 = {
-			isa = PBXBuildFile;
-			fileRef = 6758D022E8F77CCCED9D45C3;
-		};
-		4D67D56A1AC5DE6556E876BF = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ReplayView.swift;
-			sourceTree = "<group>";
-		};
-		3A7A75359E86E2A3E8712F61 = {
-			isa = PBXBuildFile;
-			fileRef = 4D67D56A1AC5DE6556E876BF;
-		};
-		A1C4E501D4B748E0A35F0201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetupView.swift; sourceTree = "<group>";};
-		A1C4E501D4B748E0A35F0202 = {isa = PBXBuildFile; fileRef = A1C4E501D4B748E0A35F0201;};
-		F7CAEB01FD068EC3F6730101 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualificationReportDocument.swift; sourceTree = "<group>";};
-		F7CAEB01FD068EC3F6730102 = {isa = PBXBuildFile; fileRef = F7CAEB01FD068EC3F6730101;};
-		26246615A4936E3BFAA5AF3A = {
-			isa = PBXGroup;
-			children = (
-				6758D022E8F77CCCED9D45C3,
-				4D67D56A1AC5DE6556E876BF,
-				0E5AF088BD7AE9E54F6DD437,
-				A1C4E501D4B748E0A35F0201,
-				F7CAEB01FD068EC3F6730101,
-				A91000000000000000000003,
-				A92000000000000000000001,
-			);
-			path = UI;
-			sourceTree = "<group>";
-		};
-		3AA483116254740FBE6590D1 = {
-			isa = PBXGroup;
-			children = (
-				ACB100000000000000000001,
-				ACB100000000000000000002,
-				ACB100000000000000000003,
-				ACC100000000000000000001,
-				ACB100000000000000000004,
-				AAA100000000000000000004,
-				AAA100000000000000000005,
-				EC7D773AE44E4768B82A3082,
-				0FC2E90A76F940C19D3E26EA,
-				AAA100000000000000000003,
-				AAA100000000000000000002,
-				AAA100000000000000000001,
-				F299B545EFBEFE12C9D250A1,
-				CCE821A490FF555C22802A44,
-				18E1CB92F764A905D90209F5,
-				6373B7DAFB361BB9B3D41449,
-				26246615A4936E3BFAA5AF3A,
-			);
-			path = HangInThere;
-			sourceTree = "<group>";
-		};
-		2479ED1A3F78983439EE4C41 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = GeometryTests.swift;
-			sourceTree = "<group>";
-		};
-		9F515F569E5290F4F4BB1565 = {
-			isa = PBXBuildFile;
-			fileRef = 2479ED1A3F78983439EE4C41;
-		};
-		20D103A57978004A86CB32BB = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ObservationTests.swift;
-			sourceTree = "<group>";
-		};
-		97569001D677958331EBAE90 = {
-			isa = PBXBuildFile;
-			fileRef = 20D103A57978004A86CB32BB;
-		};
-		4F379B112854E7D1DBC649C1 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ReplayTimelineTests.swift;
-			sourceTree = "<group>";
-		};
-		ACBA66C5AD79A82B40C4DF2D = {
-			isa = PBXBuildFile;
-			fileRef = 4F379B112854E7D1DBC649C1;
-		};
-		03FBF5F3317ABD701B6FBCEA = {
-			isa = PBXGroup;
-			children = (
-				C8E44086FBEE2C6809322FFE,
-				0C5C97BB01A5DFA5E5B6704D,
-				AB7100000000000000000001,
-				B2D5F601A8C14F78A12E0201,
-				C3E6A701B9D24A89B23F0201,
-				D4F7B801CAD35B90C3400201,
-				F6B9DA01ECF57DB2E5620201,
-				E5A8C901DBE46CA1D4510201,
-				2479ED1A3F78983439EE4C41,
-				20D103A57978004A86CB32BB,
-				4F379B112854E7D1DBC649C1,
-				79196D918F8B048991F2F9AF,
-				AAB000000000000000000003,
-				AF5000000000000000000003,
-				AD8000000000000000000003,
-				AD9000000000000000000003,
-				ADA000000000000000000003,
-				ADB000000000000000000003,
-				AEB000000000000000000003,
-				A91000000000000000000005,
+				C8E44086FBEE2C6809322FFE /* ArmMeasurementTests.swift */,
+				0C5C97BB01A5DFA5E5B6704D /* ExerciseCounterTests.swift */,
+				AB7100000000000000000001 /* DipArmVisibilityTests.swift */,
+				B2D5F601A8C14F78A12E0201 /* LiveFramingAssessmentTests.swift */,
+				B2D5F601A8C14F78A12E2001 /* WorkoutGripMetadataTests.swift */,
+				BD3400000000000000000003 /* BodyDipWorkoutNativeTests.swift */,
+				C3E6A701B9D24A89B23F0201 /* LiveSetSessionTests.swift */,
+				D4F7B801CAD35B90C3400201 /* PhoneOrientationStabilityTests.swift */,
+				F6B9DA01ECF57DB2E5620201 /* LiveDeviceQualificationRecorderTests.swift */,
+				E5A8C901DBE46CA1D4510201 /* StaticSceneStabilityTests.swift */,
+				2479ED1A3F78983439EE4C41 /* GeometryTests.swift */,
+				20D103A57978004A86CB32BB /* ObservationTests.swift */,
+				4F379B112854E7D1DBC649C1 /* ReplayTimelineTests.swift */,
+				79196D918F8B048991F2F9AF /* BarGeometryTests.swift */,
+				AAB000000000000000000003 /* AutomaticPullUpBarTests.swift */,
+				AF5000000000000000000003 /* HandsFreeSetStartTests.swift */,
+				AD8000000000000000000003 /* DipSupportTests.swift */,
+				AD9000000000000000000003 /* DipProgressTests.swift */,
+				ADA000000000000000000003 /* AutomaticDipRailsTests.swift */,
+				ADB000000000000000000003 /* AutomaticReferenceStabilityTests.swift */,
+				AEB000000000000000000003 /* AutomaticExerciseDetectionTests.swift */,
+				A91000000000000000000005 /* PullUpProgressTests.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
 		};
-		566636E8F351B44E6192B6DF = {
-			isa = PBXFileReference;
-			lastKnownFileType = folder;
-			path = Fixtures;
-			sourceTree = "<group>";
-		};
-		CD3A32C41ABB290B011C88C0 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = ReplayControllerTests.swift;
-			sourceTree = "<group>";
-		};
-		5DD0334308E628B6C11F1A2B = {
-			isa = PBXBuildFile;
-			fileRef = CD3A32C41ABB290B011C88C0;
-		};
-		CC5B3102915A09B885C06EE4 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = VideoReplayReaderTests.swift;
-			sourceTree = "<group>";
-		};
-		F3976C42629141D52BC55FF7 = {
-			isa = PBXBuildFile;
-			fileRef = CC5B3102915A09B885C06EE4;
-		};
-		A20E1F89E8237D1E85479D5D = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = VideoTestSupport.swift;
-			sourceTree = "<group>";
-		};
-		24F6944020F289B6A39DA48D = {
-			isa = PBXBuildFile;
-			fileRef = A20E1F89E8237D1E85479D5D;
-		};
-		9DCAAE36C33459EEF10F1FC1 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = VisionSmokeTests.swift;
-			sourceTree = "<group>";
-		};
-		CFE480A6C0D45218FB415ADC = {
-			isa = PBXBuildFile;
-			fileRef = 9DCAAE36C33459EEF10F1FC1;
-		};
-		C04727BFE9DBF2ABB295A662 = {
+		18E1CB92F764A905D90209F5 /* Capture */ = {
 			isa = PBXGroup;
 			children = (
-				CD3A32C41ABB290B011C88C0,
-				CC5B3102915A09B885C06EE4,
-				A20E1F89E8237D1E85479D5D,
-				9DCAAE36C33459EEF10F1FC1,
-				D1F000000000000000000006,
-				D1F00000000000000000000A,
-				E5A8C901DBE46CA1D4510401,
-				F8DBFC01AE179FD407840101,
-				3B9FA338709B9E10B4C03079,
-				6FAA384EC7A5412D562FC46C,
-				ACC100000000000000000002,
-				ACB100000000000000000007,
-				ACF000000000000000000001,
-				ACF000000000000000000003,
-				ACF000000000000000000007,
-				AAB000000000000000000005,
-				D8B6A101D4B748E0A35F0501,
+				B798D0952C0283EE3BA0F9A9 /* VideoReplayReader.swift */,
+				ACF000000000000000000005 /* BitmapFrameRenderer.swift */,
+				A1C4E501D4B748E0A35F0101 /* LiveCameraPreview.swift */,
 			);
-			path = Integration;
+			path = Capture;
 			sourceTree = "<group>";
 		};
-		C3297E1E92F59FA549992046 = {
+		26246615A4936E3BFAA5AF3A /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				03FBF5F3317ABD701B6FBCEA,
-				566636E8F351B44E6192B6DF,
-				C04727BFE9DBF2ABB295A662,
+				6758D022E8F77CCCED9D45C3 /* PoseOverlay.swift */,
+				4D67D56A1AC5DE6556E876BF /* ReplayView.swift */,
+				A11900000000000000000001 /* HomeScreenView.swift */,
+				0E5AF088BD7AE9E54F6DD437 /* BarSetupView.swift */,
+				A1C4E501D4B748E0A35F0201 /* LiveSetupView.swift */,
+				F7CAEB01FD068EC3F6730101 /* QualificationReportDocument.swift */,
+				A91000000000000000000003 /* ExerciseProgressView.swift */,
+				A92000000000000000000001 /* LiveWorkoutOverlay.swift */,
 			);
-			path = HangInThereTests;
+			path = UI;
 			sourceTree = "<group>";
 		};
-		692092DE1C1C8624E142B71D = {
+		3AA483116254740FBE6590D1 /* HangInThere */ = {
 			isa = PBXGroup;
 			children = (
-				845F65209D19F1E91A3C573D,
-				9FEED0499F36FF4A8531E2EC,
+				A12300000000000000000001 /* App/WorkoutRepPresentation.swift */,
+				A12300000000000000000003 /* Capture/WorkoutKeyframes.swift */,
+				A12300000000000000000005 /* UI/WorkoutSetVisuals.swift */,
+				A12200000000000000000001 /* CountedSetVideoRecorder.swift */,
+				ACB100000000000000000001 /* Analysis/WorkoutGripRecords.swift */,
+				BD3400000000000000000001 /* Analysis/BodyDipRecords.swift */,
+				ACB100000000000000000002 /* App/GripInferenceWorker.swift */,
+				ACB100000000000000000003 /* App/WorkoutGripReview.swift */,
+				ACC100000000000000000001 /* UI/WorkoutLibraryView.swift */,
+				ACB100000000000000000004 /* UI/WorkoutGripView.swift */,
+				AAA100000000000000000004 /* App/WorkoutProgression.swift */,
+				AAA100000000000000000005 /* UI/WorkoutPracticeView.swift */,
+				EC7D773AE44E4768B82A3082 /* Analysis/WorkoutJourneyRecords.swift */,
+				0FC2E90A76F940C19D3E26EA /* UI/WorkoutJourneyView.swift */,
+				AAA100000000000000000003 /* UI/WorkoutReviewView.swift */,
+				AAA100000000000000000002 /* App/WorkoutAnalysisAdapter.swift */,
+				AAA100000000000000000001 /* Analysis/WorkoutRecords.swift */,
+				F299B545EFBEFE12C9D250A1 /* Analysis */,
+				CCE821A490FF555C22802A44 /* App */,
+				18E1CB92F764A905D90209F5 /* Capture */,
+				6373B7DAFB361BB9B3D41449 /* Pose */,
+				26246615A4936E3BFAA5AF3A /* UI */,
+				A11900000000000000000003 /* Assets.xcassets */,
+				A11900000000000000000005 /* LaunchScreen.storyboard */,
+			);
+			path = HangInThere;
+			sourceTree = "<group>";
+		};
+		474CEE043088D74300665970 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				ACB100000000000000000005 /* ../models/grip/hand_landmarker.task */,
+				ACB100000000000000000006 /* ../models/grip/pose_landmarker_lite.task */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		6373B7DAFB361BB9B3D41449 /* Pose */ = {
+			isa = PBXGroup;
+			children = (
+				F45C66EEAF842203B810112A /* VisionPoseEstimator.swift */,
+				D1F000000000000000000004 /* VisionDipObservation.swift */,
+				D1F000000000000000000008 /* VisionDipWorkout.swift */,
+				D62595BC2C4A9F601F3C10DC /* VisionBarDetector.swift */,
+				E5A8C901DBE46CA1D4510301 /* VisionStaticSceneRegistration.swift */,
+			);
+			path = Pose;
+			sourceTree = "<group>";
+		};
+		692092DE1C1C8624E142B71D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				845F65209D19F1E91A3C573D /* HangInThere.app */,
+				9FEED0499F36FF4A8531E2EC /* HangInThereTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -536,379 +362,147 @@
 		AB48CFA305015276AB5620D4 = {
 			isa = PBXGroup;
 			children = (
-				3AA483116254740FBE6590D1,
-				C3297E1E92F59FA549992046,
-				692092DE1C1C8624E142B71D,
+				3AA483116254740FBE6590D1 /* HangInThere */,
+				C3297E1E92F59FA549992046 /* HangInThereTests */,
+				692092DE1C1C8624E142B71D /* Products */,
+				474CEE043088D74300665970 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
-		847D247ABFFC5EE045BE1B99 = {
-			isa = PBXBuildFile;
-			fileRef = 566636E8F351B44E6192B6DF;
-		};
-		998956B575E8FA62FC710546 = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION) $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)";
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				SDKROOT = iphoneos;
-				SWIFT_VERSION = 6.0;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_TESTABILITY = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				ONLY_ACTIVE_ARCH = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-			};
-			name = Debug;
-		};
-		9998DFE6509E420B33231035 = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION) $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)";
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				SDKROOT = iphoneos;
-				SWIFT_VERSION = 6.0;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		51C0E81AE2566243C2D71444 = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				998956B575E8FA62FC710546,
-				9998DFE6509E420B33231035,
+		C04727BFE9DBF2ABB295A662 /* Integration */ = {
+			isa = PBXGroup;
+			children = (
+				A12200000000000000000003 /* CountedSetVideoRecorderTests.swift */,
+				CD3A32C41ABB290B011C88C0 /* ReplayControllerTests.swift */,
+				CC5B3102915A09B885C06EE4 /* VideoReplayReaderTests.swift */,
+				A20E1F89E8237D1E85479D5D /* VideoTestSupport.swift */,
+				9DCAAE36C33459EEF10F1FC1 /* VisionSmokeTests.swift */,
+				D1F000000000000000000006 /* VisionDipObservationTests.swift */,
+				D1F00000000000000000000A /* VisionDipWorkoutTests.swift */,
+				E5A8C901DBE46CA1D4510401 /* StaticSceneRegistrationTests.swift */,
+				F8DBFC01AE179FD407840101 /* RealVideoCorpusTests.swift */,
+				3B9FA338709B9E10B4C03079 /* BarDetectionTests.swift */,
+				6FAA384EC7A5412D562FC46C /* BarSetupControllerTests.swift */,
+				ACC100000000000000000002 /* WorkoutLibraryStoreTests.swift */,
+				ACB100000000000000000007 /* WorkoutGripInferenceTests.swift */,
+				ACF000000000000000000001 /* LiveCameraSelectionTests.swift */,
+				ACF000000000000000000003 /* WorkoutStartFeedbackTimerTests.swift */,
+				ACF000000000000000000007 /* BitmapFrameRendererTests.swift */,
+				AAB000000000000000000005 /* AutomaticBarReplayTests.swift */,
+				D8B6A101D4B748E0A35F0501 /* DebugSessionPackageTests.swift */,
 			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			path = Integration;
+			sourceTree = "<group>";
 		};
-		9F88269D30200F75DF5FC671 = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				OTHER_LDFLAGS = "$(inherited) -framework WorkoutCore -lc++ -ObjC -framework MediaPipeTasksVision -framework MediaPipeTasksCommon -framework Accelerate -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework CoreImage -framework CoreVideo -framework QuartzCore -force_load $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				MARKETING_VERSION = 0.1.0;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = HangInThere/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThere;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Debug;
-		};
-		5269FA304F4FEBACD0ACC9DE = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				OTHER_LDFLAGS = "$(inherited) -framework WorkoutCore -lc++ -ObjC -framework MediaPipeTasksVision -framework MediaPipeTasksCommon -framework Accelerate -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework CoreImage -framework CoreVideo -framework QuartzCore -force_load $(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				MARKETING_VERSION = 0.1.0;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = HangInThere/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThere;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Release;
-		};
-		70336279113C6D09893D9716 = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9F88269D30200F75DF5FC671,
-				5269FA304F4FEBACD0ACC9DE,
+		C3297E1E92F59FA549992046 /* HangInThereTests */ = {
+			isa = PBXGroup;
+			children = (
+				03FBF5F3317ABD701B6FBCEA /* Core */,
+				566636E8F351B44E6192B6DF /* Fixtures */,
+				C04727BFE9DBF2ABB295A662 /* Integration */,
 			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			path = HangInThereTests;
+			sourceTree = "<group>";
 		};
-		19FCD8E35C8B1EBF35F40ED0 = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThereTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere";
-				TARGETED_DEVICE_FAMILY = 1;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-			};
-			name = Debug;
-		};
-		5D5DFBD70461FC7225B3CCD4 = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThereTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere";
-				TARGETED_DEVICE_FAMILY = 1;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-			};
-			name = Release;
-		};
-		490BE6FF84DB936A8164CDCB = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				19FCD8E35C8B1EBF35F40ED0,
-				5D5DFBD70461FC7225B3CCD4,
+		CCE821A490FF555C22802A44 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				36ADCB7CD80AA7BA057BA74D /* HangInThereApp.swift */,
+				F9B283C779FB7E0777862B5F /* ReplayController.swift */,
 			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			path = App;
+			sourceTree = "<group>";
 		};
-		6B4FE4C1419F272671268E97 = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 98F54143AB4E86B28C3AFEE0;
-			proxyType = 1;
-			remoteGlobalIDString = B902F7C2327297FC583709E1;
-			remoteInfo = HangInThere;
-		};
-		95AC710730130ABE5CA113A9 = {
-			isa = PBXTargetDependency;
-			target = B902F7C2327297FC583709E1;
-			targetProxy = 6B4FE4C1419F272671268E97;
-		};
-		68794D95D50DF8ED5158D413 = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				ACB200000000000000000001,
-				ACB200000000000000000002,
-				ACB200000000000000000003,
-				ACC200000000000000000001,
-				ACB200000000000000000004,
-				AAA200000000000000000004,
-				AAA200000000000000000005,
-				115FB741222F4E80B8C9AB0F,
-				E10CBBD612FF4DBEB35151C9,
-				AAA200000000000000000003,
-				AAA200000000000000000002,
-				AAA200000000000000000001,
-				FE333C4A500F8EE29434119C,
-				D1F000000000000000000005,
-				D1F000000000000000000009,
-				791BB657D4527DA9E1EC61DE,
-				7AFD4C2AA908445A9FA9C75C,
-				AAB000000000000000000002,
-				AF5000000000000000000002,
-				AD8000000000000000000002,
-				ABA000000000000000000002,
-				A91000000000000000000002,
-				AD9000000000000000000002,
-				ADA000000000000000000002,
-				ADC000000000000000000002,
-				AEB000000000000000000002,
-				4FCAF8DC138451CD331D2CBA,
-				9D3E611A749B44DBBE2C91D5,
-				0996E9AF653C1BA777C60ABA,
-				9030688610660B5A650FF837,
-				D55A8140E6AF83EDF4EC42F9,
-				B2D5F601A8C14F78A12E0102,
-				C3E6A701B9D24A89B23F0102,
-				D4F7B801CAD35B90C3400102,
-				F6B9DA01ECF57DB2E5620102,
-				E5A8C901DBE46CA1D4510102,
-				6701F93B4C431819319367FA,
-				416A0916046EB339EA9673D8,
-				F9B57C2A9301AC3E37D4D15E,
-				ACF000000000000000000006,
-				A1C4E501D4B748E0A35F0102,
-				CDD19EB39340058AFAD45F5A,
-				E5A8C901DBE46CA1D4510302,
-				3AF7243FFF763D7F730B1474,
-				3A7A75359E86E2A3E8712F61,
-				A1C4E501D4B748E0A35F0202,
-				F7CAEB01FD068EC3F6730102,
-				A91000000000000000000004,
-				A92000000000000000000002,
+		F299B545EFBEFE12C9D250A1 /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				2E31FD41B30F85CE6B12E1E9 /* ArmMeasurement.swift */,
+				10D6300E99E681584D06FA5B /* ExerciseCounter.swift */,
+				B2D5F601A8C14F78A12E0101 /* LiveFramingAssessment.swift */,
+				C3E6A701B9D24A89B23F0101 /* LiveSetSession.swift */,
+				D4F7B801CAD35B90C3400101 /* PhoneOrientationStability.swift */,
+				F6B9DA01ECF57DB2E5620101 /* LiveDeviceQualification.swift */,
+				E5A8C901DBE46CA1D4510101 /* StaticSceneStability.swift */,
+				508378606804E3EE893CF9D2 /* Geometry.swift */,
+				43CB0B7C6E08EDC8E4AA2F66 /* PoseObservation.swift */,
+				5BC7DD8ACA3C903E46747468 /* ReplayTimeline.swift */,
+				8481783EB299CE0AF72A03FC /* BarGeometry.swift */,
+				AAB000000000000000000001 /* AutomaticPullUpBar.swift */,
+				AF5000000000000000000001 /* HandsFreeSetStart.swift */,
+				AD8000000000000000000001 /* DipSupportMeasurement.swift */,
+				ABA000000000000000000001 /* PullUpArmMeasurement.swift */,
+				A91000000000000000000001 /* PullUpProgress.swift */,
+				AD9000000000000000000001 /* DipProgress.swift */,
+				ADA000000000000000000001 /* AutomaticDipRails.swift */,
+				ADC000000000000000000001 /* AutomaticDipBar.swift */,
+				AEB000000000000000000001 /* AutomaticExerciseDetection.swift */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			path = Analysis;
+			sourceTree = "<group>";
 		};
-		BF8D21E9E84F4DF4F2CFEE1E = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (D1F000000000000000000003);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		253694B87BCB5FB6ECA0DC84 = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (ACB200000000000000000005, ACB200000000000000000006);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B902F7C2327297FC583709E1 = {
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6A1E24F1D627678E5C8106C0 /* HangInThereTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 70336279113C6D09893D9716;
+			buildConfigurationList = 490BE6FF84DB936A8164CDCB /* Build configuration list for PBXNativeTarget "HangInThereTests" */;
 			buildPhases = (
-				AAA300000000000000000001,
-				ACB300000000000000000001,
-				68794D95D50DF8ED5158D413,
-				BF8D21E9E84F4DF4F2CFEE1E,
-				253694B87BCB5FB6ECA0DC84,
+				DBA958A7378A46E5249DC865 /* Sources */,
+				C4F12A3572FBE21543BA46A8 /* Frameworks */,
+				29527BA9BC9C4A2D8521E2A3 /* Resources */,
 			);
-			buildRules = ();
-			dependencies = ();
-			name = HangInThere;
-			packageProductDependencies = (D1F000000000000000000002);
-			productName = HangInThere;
-			productReference = 845F65209D19F1E91A3C573D;
-			productType = "com.apple.product-type.application";
-		};
-		DBA958A7378A46E5249DC865 = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C476E88F0B62A3B7D2B8E034,
-				ACC200000000000000000002,
-				ACB200000000000000000007,
-				ACF000000000000000000002,
-				ACF000000000000000000004,
-				ACF000000000000000000008,
-				AAB000000000000000000006,
-				E907D117346B40511577EFAB,
-				AE9049A619C3D801DBA2F172,
-				AAB000000000000000000004,
-				AF5000000000000000000004,
-				AD8000000000000000000004,
-				AD9000000000000000000004,
-				ADA000000000000000000004,
-				ADB000000000000000000004,
-				AEB000000000000000000004,
-				A91000000000000000000006,
-				9F515F569E5290F4F4BB1565,
-				97569001D677958331EBAE90,
-				ACBA66C5AD79A82B40C4DF2D,
-				8CB0AC26F0D1209B6683DBCF,
-				D471AA1A85E637305BAE6A1C,
-				AB7100000000000000000002,
-				B2D5F601A8C14F78A12E0202,
-				C3E6A701B9D24A89B23F0202,
-				D4F7B801CAD35B90C3400202,
-				F6B9DA01ECF57DB2E5620202,
-				E5A8C901DBE46CA1D4510202,
-				5DD0334308E628B6C11F1A2B,
-				F3976C42629141D52BC55FF7,
-				24F6944020F289B6A39DA48D,
-				CFE480A6C0D45218FB415ADC,
-				D1F000000000000000000007,
-				D1F00000000000000000000B,
-				E5A8C901DBE46CA1D4510402,
-				F8DBFC01AE179FD407840102,
-				D8B6A101D4B748E0A35F0502,
+			buildRules = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C4F12A3572FBE21543BA46A8 = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = ();
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		29527BA9BC9C4A2D8521E2A3 = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				847D247ABFFC5EE045BE1B99,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		6A1E24F1D627678E5C8106C0 = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 490BE6FF84DB936A8164CDCB;
-			buildPhases = (
-				DBA958A7378A46E5249DC865,
-				C4F12A3572FBE21543BA46A8,
-				29527BA9BC9C4A2D8521E2A3,
-			);
-			buildRules = ();
 			dependencies = (
-				95AC710730130ABE5CA113A9,
+				95AC710730130ABE5CA113A9 /* PBXTargetDependency */,
 			);
 			name = HangInThereTests;
 			productName = HangInThereTests;
-			productReference = 9FEED0499F36FF4A8531E2EC;
+			productReference = 9FEED0499F36FF4A8531E2EC /* HangInThereTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		98F54143AB4E86B28C3AFEE0 = {
+		B902F7C2327297FC583709E1 /* HangInThere */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 70336279113C6D09893D9716 /* Build configuration list for PBXNativeTarget "HangInThere" */;
+			buildPhases = (
+				AAA300000000000000000001 /* Build shared WorkoutCore */,
+				ACB300000000000000000001 /* Prepare pinned grip SDK */,
+				68794D95D50DF8ED5158D413 /* Sources */,
+				BF8D21E9E84F4DF4F2CFEE1E /* Frameworks */,
+				253694B87BCB5FB6ECA0DC84 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HangInThere;
+			packageProductDependencies = (
+				D1F000000000000000000002 /* ObservedRailPixels */,
+			);
+			productName = HangInThere;
+			productReference = 845F65209D19F1E91A3C573D /* HangInThere.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		98F54143AB4E86B28C3AFEE0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
-					B902F7C2327297FC583709E1 = {
-						CreatedOnToolsVersion = 16.4;
-					};
 					6A1E24F1D627678E5C8106C0 = {
 						CreatedOnToolsVersion = 16.4;
 						TestTargetID = B902F7C2327297FC583709E1;
 					};
+					B902F7C2327297FC583709E1 = {
+						CreatedOnToolsVersion = 16.4;
+					};
 				};
 			};
-			buildConfigurationList = 51C0E81AE2566243C2D71444;
+			buildConfigurationList = 51C0E81AE2566243C2D71444 /* Build configuration list for PBXProject "HangInThere" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -917,15 +511,452 @@
 				Base,
 			);
 			mainGroup = AB48CFA305015276AB5620D4;
-			productRefGroup = 692092DE1C1C8624E142B71D;
-			packageReferences = (D1F000000000000000000001);
+			packageReferences = (
+				D1F000000000000000000001 /* XCLocalSwiftPackageReference "../native/apple" */,
+			);
+			productRefGroup = 692092DE1C1C8624E142B71D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B902F7C2327297FC583709E1,
-				6A1E24F1D627678E5C8106C0,
+				B902F7C2327297FC583709E1 /* HangInThere */,
+				6A1E24F1D627678E5C8106C0 /* HangInThereTests */,
 			);
 		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		253694B87BCB5FB6ECA0DC84 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A11900000000000000000004 /* Assets.xcassets in Resources */,
+				A11900000000000000000006 /* LaunchScreen.storyboard in Resources */,
+				ACB200000000000000000005 /* ../models/grip/hand_landmarker.task in Resources */,
+				ACB200000000000000000006 /* ../models/grip/pose_landmarker_lite.task in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29527BA9BC9C4A2D8521E2A3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				847D247ABFFC5EE045BE1B99 /* Fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AAA300000000000000000001 /* Build shared WorkoutCore */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Build shared WorkoutCore";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "\"$SRCROOT/../scripts/build-workout-core.sh\"";
+		};
+		ACB300000000000000000001 /* Prepare pinned grip SDK */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Prepare pinned grip SDK";
+			outputPaths = (
+				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a",
+				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/MediaPipeTasksCommon.framework",
+				"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/MediaPipeTasksVision.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "\"$SRCROOT/../scripts/prepare-grip-sdk.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		68794D95D50DF8ED5158D413 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACB200000000000000000001 /* Analysis/WorkoutGripRecords.swift in Sources */,
+				BD3400000000000000000002 /* Analysis/BodyDipRecords.swift in Sources */,
+				ACB200000000000000000002 /* App/GripInferenceWorker.swift in Sources */,
+				ACB200000000000000000003 /* App/WorkoutGripReview.swift in Sources */,
+				ACC200000000000000000001 /* UI/WorkoutLibraryView.swift in Sources */,
+				ACB200000000000000000004 /* UI/WorkoutGripView.swift in Sources */,
+				AAA200000000000000000004 /* App/WorkoutProgression.swift in Sources */,
+				AAA200000000000000000005 /* UI/WorkoutPracticeView.swift in Sources */,
+				115FB741222F4E80B8C9AB0F /* Analysis/WorkoutJourneyRecords.swift in Sources */,
+				E10CBBD612FF4DBEB35151C9 /* UI/WorkoutJourneyView.swift in Sources */,
+				AAA200000000000000000003 /* UI/WorkoutReviewView.swift in Sources */,
+				AAA200000000000000000002 /* App/WorkoutAnalysisAdapter.swift in Sources */,
+				AAA200000000000000000001 /* Analysis/WorkoutRecords.swift in Sources */,
+				FE333C4A500F8EE29434119C /* BarSetupView.swift in Sources */,
+				D1F000000000000000000005 /* VisionDipObservation.swift in Sources */,
+				D1F000000000000000000009 /* VisionDipWorkout.swift in Sources */,
+				791BB657D4527DA9E1EC61DE /* VisionBarDetector.swift in Sources */,
+				7AFD4C2AA908445A9FA9C75C /* BarGeometry.swift in Sources */,
+				AAB000000000000000000002 /* AutomaticPullUpBar.swift in Sources */,
+				AF5000000000000000000002 /* HandsFreeSetStart.swift in Sources */,
+				AD8000000000000000000002 /* DipSupportMeasurement.swift in Sources */,
+				ABA000000000000000000002 /* PullUpArmMeasurement.swift in Sources */,
+				A91000000000000000000002 /* PullUpProgress.swift in Sources */,
+				AD9000000000000000000002 /* DipProgress.swift in Sources */,
+				ADA000000000000000000002 /* AutomaticDipRails.swift in Sources */,
+				ADC000000000000000000002 /* AutomaticDipBar.swift in Sources */,
+				AEB000000000000000000002 /* AutomaticExerciseDetection.swift in Sources */,
+				4FCAF8DC138451CD331D2CBA /* Geometry.swift in Sources */,
+				9D3E611A749B44DBBE2C91D5 /* PoseObservation.swift in Sources */,
+				0996E9AF653C1BA777C60ABA /* ReplayTimeline.swift in Sources */,
+				9030688610660B5A650FF837 /* ArmMeasurement.swift in Sources */,
+				D55A8140E6AF83EDF4EC42F9 /* ExerciseCounter.swift in Sources */,
+				B2D5F601A8C14F78A12E0102 /* LiveFramingAssessment.swift in Sources */,
+				C3E6A701B9D24A89B23F0102 /* LiveSetSession.swift in Sources */,
+				D4F7B801CAD35B90C3400102 /* PhoneOrientationStability.swift in Sources */,
+				F6B9DA01ECF57DB2E5620102 /* LiveDeviceQualification.swift in Sources */,
+				E5A8C901DBE46CA1D4510102 /* StaticSceneStability.swift in Sources */,
+				6701F93B4C431819319367FA /* HangInThereApp.swift in Sources */,
+				416A0916046EB339EA9673D8 /* ReplayController.swift in Sources */,
+				F9B57C2A9301AC3E37D4D15E /* VideoReplayReader.swift in Sources */,
+				ACF000000000000000000006 /* BitmapFrameRenderer.swift in Sources */,
+				A1C4E501D4B748E0A35F0102 /* LiveCameraPreview.swift in Sources */,
+				CDD19EB39340058AFAD45F5A /* VisionPoseEstimator.swift in Sources */,
+				E5A8C901DBE46CA1D4510302 /* VisionStaticSceneRegistration.swift in Sources */,
+				3AF7243FFF763D7F730B1474 /* PoseOverlay.swift in Sources */,
+				3A7A75359E86E2A3E8712F61 /* ReplayView.swift in Sources */,
+				A11900000000000000000002 /* HomeScreenView.swift in Sources */,
+				A12300000000000000000002 /* App/WorkoutRepPresentation.swift in Sources */,
+				A12300000000000000000004 /* Capture/WorkoutKeyframes.swift in Sources */,
+				A12300000000000000000006 /* UI/WorkoutSetVisuals.swift in Sources */,
+				A12200000000000000000002 /* CountedSetVideoRecorder.swift in Sources */,
+				A1C4E501D4B748E0A35F0202 /* LiveSetupView.swift in Sources */,
+				F7CAEB01FD068EC3F6730102 /* QualificationReportDocument.swift in Sources */,
+				A91000000000000000000004 /* ExerciseProgressView.swift in Sources */,
+				A92000000000000000000002 /* LiveWorkoutOverlay.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DBA958A7378A46E5249DC865 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C476E88F0B62A3B7D2B8E034 /* BarSetupControllerTests.swift in Sources */,
+				ACC200000000000000000002 /* WorkoutLibraryStoreTests.swift in Sources */,
+				A12200000000000000000004 /* CountedSetVideoRecorderTests.swift in Sources */,
+				ACB200000000000000000007 /* WorkoutGripInferenceTests.swift in Sources */,
+				ACF000000000000000000002 /* LiveCameraSelectionTests.swift in Sources */,
+				ACF000000000000000000004 /* WorkoutStartFeedbackTimerTests.swift in Sources */,
+				ACF000000000000000000008 /* BitmapFrameRendererTests.swift in Sources */,
+				AAB000000000000000000006 /* AutomaticBarReplayTests.swift in Sources */,
+				E907D117346B40511577EFAB /* BarDetectionTests.swift in Sources */,
+				AE9049A619C3D801DBA2F172 /* BarGeometryTests.swift in Sources */,
+				AAB000000000000000000004 /* AutomaticPullUpBarTests.swift in Sources */,
+				AF5000000000000000000004 /* HandsFreeSetStartTests.swift in Sources */,
+				AD8000000000000000000004 /* DipSupportTests.swift in Sources */,
+				AD9000000000000000000004 /* DipProgressTests.swift in Sources */,
+				ADA000000000000000000004 /* AutomaticDipRailsTests.swift in Sources */,
+				ADB000000000000000000004 /* AutomaticReferenceStabilityTests.swift in Sources */,
+				AEB000000000000000000004 /* AutomaticExerciseDetectionTests.swift in Sources */,
+				A91000000000000000000006 /* PullUpProgressTests.swift in Sources */,
+				9F515F569E5290F4F4BB1565 /* GeometryTests.swift in Sources */,
+				97569001D677958331EBAE90 /* ObservationTests.swift in Sources */,
+				ACBA66C5AD79A82B40C4DF2D /* ReplayTimelineTests.swift in Sources */,
+				8CB0AC26F0D1209B6683DBCF /* ArmMeasurementTests.swift in Sources */,
+				D471AA1A85E637305BAE6A1C /* ExerciseCounterTests.swift in Sources */,
+				AB7100000000000000000002 /* DipArmVisibilityTests.swift in Sources */,
+				B2D5F601A8C14F78A12E0202 /* LiveFramingAssessmentTests.swift in Sources */,
+				B2D5F601A8C14F78A12E2002 /* WorkoutGripMetadataTests.swift in Sources */,
+				BD3400000000000000000004 /* BodyDipWorkoutNativeTests.swift in Sources */,
+				C3E6A701B9D24A89B23F0202 /* LiveSetSessionTests.swift in Sources */,
+				D4F7B801CAD35B90C3400202 /* PhoneOrientationStabilityTests.swift in Sources */,
+				F6B9DA01ECF57DB2E5620202 /* LiveDeviceQualificationRecorderTests.swift in Sources */,
+				E5A8C901DBE46CA1D4510202 /* StaticSceneStabilityTests.swift in Sources */,
+				5DD0334308E628B6C11F1A2B /* ReplayControllerTests.swift in Sources */,
+				F3976C42629141D52BC55FF7 /* VideoReplayReaderTests.swift in Sources */,
+				24F6944020F289B6A39DA48D /* VideoTestSupport.swift in Sources */,
+				CFE480A6C0D45218FB415ADC /* VisionSmokeTests.swift in Sources */,
+				D1F000000000000000000007 /* VisionDipObservationTests.swift in Sources */,
+				D1F00000000000000000000B /* VisionDipWorkoutTests.swift in Sources */,
+				E5A8C901DBE46CA1D4510402 /* StaticSceneRegistrationTests.swift in Sources */,
+				F8DBFC01AE179FD407840102 /* RealVideoCorpusTests.swift in Sources */,
+				D8B6A101D4B748E0A35F0502 /* DebugSessionPackageTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		95AC710730130ABE5CA113A9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B902F7C2327297FC583709E1 /* HangInThere */;
+			targetProxy = 6B4FE4C1419F272671268E97 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		19FCD8E35C8B1EBF35F40ED0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThereTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere";
+			};
+			name = Debug;
+		};
+		5269FA304F4FEBACD0ACC9DE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 123;
+				GENERATE_INFOPLIST_FILE = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = HangInThere/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					WorkoutCore,
+					"-lc++",
+					"-ObjC",
+					"-framework",
+					MediaPipeTasksVision,
+					"-framework",
+					MediaPipeTasksCommon,
+					"-framework",
+					Accelerate,
+					"-framework",
+					AVFoundation,
+					"-framework",
+					CoreMedia,
+					"-framework",
+					CoreGraphics,
+					"-framework",
+					CoreImage,
+					"-framework",
+					CoreVideo,
+					"-framework",
+					QuartzCore,
+					"-force_load",
+					"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThere;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		5D5DFBD70461FC7225B3CCD4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThereTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HangInThere.app/HangInThere";
+			};
+			name = Release;
+		};
+		998956B575E8FA62FC710546 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION)",
+					"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		9998DFE6509E420B33231035 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../build/WorkoutCore/$(PLATFORM_NAME)/$(CONFIGURATION)",
+					"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9F88269D30200F75DF5FC671 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 123;
+				GENERATE_INFOPLIST_FILE = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = HangInThere/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HangInThere;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Camera access is used to set up and analyze live workouts on this device.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Motion data is used on this device to detect phone rotation after live bar calibration.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					WorkoutCore,
+					"-lc++",
+					"-ObjC",
+					"-framework",
+					MediaPipeTasksVision,
+					"-framework",
+					MediaPipeTasksCommon,
+					"-framework",
+					Accelerate,
+					"-framework",
+					AVFoundation,
+					"-framework",
+					CoreMedia,
+					"-framework",
+					CoreGraphics,
+					"-framework",
+					CoreImage,
+					"-framework",
+					CoreVideo,
+					"-framework",
+					QuartzCore,
+					"-force_load",
+					"$(SRCROOT)/../build/grip-sdk/$(PLATFORM_NAME)/graphs.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.yongkyuns.HangInThere;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		490BE6FF84DB936A8164CDCB /* Build configuration list for PBXNativeTarget "HangInThereTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				19FCD8E35C8B1EBF35F40ED0 /* Debug */,
+				5D5DFBD70461FC7225B3CCD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		51C0E81AE2566243C2D71444 /* Build configuration list for PBXProject "HangInThere" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				998956B575E8FA62FC710546 /* Debug */,
+				9998DFE6509E420B33231035 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		70336279113C6D09893D9716 /* Build configuration list for PBXNativeTarget "HangInThere" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F88269D30200F75DF5FC671 /* Debug */,
+				5269FA304F4FEBACD0ACC9DE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		D1F000000000000000000001 /* XCLocalSwiftPackageReference "../native/apple" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../native/apple;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D1F000000000000000000002 /* ObservedRailPixels */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D1F000000000000000000001 /* XCLocalSwiftPackageReference "../native/apple" */;
+			productName = ObservedRailPixels;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 98F54143AB4E86B28C3AFEE0;
+	rootObject = 98F54143AB4E86B28C3AFEE0 /* Project object */;
 }

@@ -36,7 +36,7 @@ class SetupSwiftParityTest {
         val snapshots=input.steps.map {step ->
             val pose=step.pose;val seconds=pose.timestamp.seconds
             val previous=identity.exercise;val previousApparatus=identity.apparatusCandidate
-            identity.observe(pose)
+            identity.observe(pose,bar?.referenceEdge)
             if(previousApparatus!=identity.apparatusCandidate || (previous!=null && identity.exercise==null)) {
                 apparatus.reset();countdown.reset();phone.reset();scene.reset();bar=null
             }
@@ -87,6 +87,8 @@ class SetupSwiftParityTest {
         val cases=oracle.getValue("cases").jsonArray
         assertTrue(cases.size>=72,"Setup parity cases reduced")
         val ids=cases.map { it.jsonObject.getValue("input").jsonObject.getValue("id").jsonPrimitive.content }
+        for(id in listOf("pullUp-confirmed-flexed-identity-only","pullUp-flexed-no-reference-no-identity","pullUp-confirmed-flexed-identity-then-start"))
+            assertTrue(id in ids,"Missing independent confirmed-support identity regression")
         for(side in ArmMeasurement.Side.entries) for(kind in listOf("observed", "flexed", "flexed-then-top",
             "alternating-lengths", "lost-pair", "ambiguous-pair", "no-edges", "unpaired", "ambiguous", "above",
             "phone", "scene", "wrong-side", "overhead-partial"))
