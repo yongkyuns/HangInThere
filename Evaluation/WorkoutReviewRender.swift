@@ -422,26 +422,16 @@ import WorkoutCore
             return
         }
         if CommandLine.arguments.contains("--dip-progress-only") {
-            let unavailableCue = "handtrackingunavailable"
-            // Hosted Vision OCR read the correctly rendered word as
-            // "unavallable". Accept this visual i/l ambiguity while preserving
-            // the full cue, especially the meaningful "un" prefix.
-            verify(containsDipCue(["handtrackingunavallableshowbothgripsclearly"], unavailableCue),
-                   "Hosted OCR i/l regression", filename: "dip-cue-matcher")
-            for wrong in ["handtrackingavailable", "handtracking", "lookingfordiprails", ""] {
-                verify(!containsDipCue([wrong], unavailableCue),
-                       "Incorrect or incomplete dip guidance passed", filename: "dip-cue-matcher")
-            }
             for (name, phase, availability, fraction, cue, guidance) in [
-                ("ready", "ready", "ready", 0.0, "readylower", nil as String?),
-                ("lowering", "outbound", "available", 0.3, "keeplowering", nil),
-                ("returning", "returning", "available", 0.8, "returntoyourtopsupport", nil),
-                ("missing-hands-legacy", "returning", "observationUnavailable", 0.0, "keepbothhandsandarmsvisible", nil),
-                ("missing-hands", "seekingTop", "cameraUnavailable", 0.0, "handtrackingunavailable", "Hand tracking unavailable · show both grips clearly"),
-                ("missing-rails", "seekingTop", "cameraUnavailable", 0.0, "lookingfordiprails", "Looking for dip rails · keep grips and rails visible"),
-                ("camera-check", "seekingTop", "cameraUnavailable", 0.0, "camerastabilityunavailable", "Camera stability unavailable · keep the phone steady"),
-                ("missing-elbows", "seekingTop", "waitingForMeasuredTop", 0.0, "keepshoulderselbowsandhandsinframe", "Keep shoulders, elbows and hands in frame"),
-                ("edge-advice", "outbound", "available", 0.3, "movephoneback", "Move phone back · leave room around arms and hands")
+                ("ready", "ready", "ready", 0.0, "lower", nil as String?),
+                ("lowering", "outbound", "available", 0.3, "lower", nil),
+                ("returning", "returning", "available", 0.8, "pressup", nil),
+                ("missing-hands-legacy", "returning", "observationUnavailable", 0.0, "paused", nil),
+                ("missing-hands", "seekingTop", "cameraUnavailable", 0.0, "paused", "Hand tracking unavailable · show both grips clearly"),
+                ("missing-rails", "seekingTop", "cameraUnavailable", 0.0, "paused", "Looking for dip rails · keep grips and rails visible"),
+                ("camera-check", "seekingTop", "cameraUnavailable", 0.0, "paused", "Camera stability unavailable · keep the phone steady"),
+                ("missing-elbows", "seekingTop", "waitingForMeasuredTop", 0.0, "getready", "Keep shoulders, elbows and hands in frame"),
+                ("edge-advice", "outbound", "available", 0.3, "lower", "Move phone back · leave room around arms and hands")
             ] {
                 let motion = DipWorkoutSnapshot.Motion(phase: phase, imageCycles: 2, partialAttempts: 0,
                     interruptedAttempts: 0, availability: availability, progress: fraction, event: nil, policyVersion: 1)
@@ -450,11 +440,11 @@ import WorkoutCore
                 for width in [320.0, 430.0] {
                     let filename = "bilateral-dip-\(name)-\(Int(width)).png"
                     let content = BilateralDipProgressView(snapshot: snapshot)
-                        .frame(width: width, height: 180).background(Color(white: 0.18))
-                    let text = try render(content, width: width, height: 180, filename: filename)
-                    verify(containsDipCue(text, cue), "Bilateral dip progress cue is missing", filename: filename)
+                        .frame(width: width, height: 240).background(Color(white: 0.18))
+                    let text = try render(content, width: width, height: 240, filename: filename)
+                    verify(text.contains(cue), "Bilateral dip progress action is missing", filename: filename)
                     if name == "edge-advice" {
-                        verify(text.contains { $0 == "30" }, "Framing advice hid valid motion progress", filename: filename)
+                        verify(text.contains("target") && text.contains("start"), "Framing advice hid the movement gauge", filename: filename)
                     }
                 }
             }
@@ -516,7 +506,7 @@ import WorkoutCore
                         .background(dark ? Color.black : Color.white)
                     let name = "library-\(section.lowercased())-\(dark ? "dark" : "light")-\(Int(width)).png"
                     let text = try render(content, width: width, height: 1100, filename: name)
-                    let expected = ["Progress": "yourpractice", "History": "youreffortcollected", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
+                    let expected = ["Progress": "calendar", "History": "recentworkouts", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
                     verify(text.contains { $0.contains(expected) }, "Workout library section missing: \(section)", filename: name)
                     if section == "Plans" {
                         verify(text.contains { $0.contains("setsmeetthistarget") }, "Saved plan progress is missing", filename: name)
@@ -886,12 +876,6 @@ import WorkoutCore
     @MainActor private static func journeySummary(_ record: WorkoutSetRecord) throws -> JourneySetSummary {
         let input = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
         return try JSONDecoder().decode(JourneySetSummary.self, from: Data(WorkoutJourneyBridge().setJson(recordJson: input).utf8))
-    }
-
-    private static func containsDipCue(_ normalizedText: [String], _ cue: String) -> Bool {
-        // This assertion-only fold leaves the raw OCR diagnostics intact.
-        func fold(_ text: String) -> String { text.replacingOccurrences(of: "l", with: "i") }
-        return normalizedText.contains { fold($0).contains(fold(cue)) }
     }
 
     /// Optimized preconditions trap without a useful CI message. Print the

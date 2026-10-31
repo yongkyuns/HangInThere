@@ -349,8 +349,8 @@ struct WorkoutAnalysisBridgeCheck {
             completed.append(set)
             let rep = set.reps[0]
             guard rep.left.mean != nil, rep.right.mean != nil,
-                  rep.durationCoverage == 1, rep.countPolicyVersion == 8, rep.metricVersion == 2,
-                  set.activity?.metricVersion == 3 else { fatalError("Bridge lost metric validity or phase version") }
+                  rep.durationCoverage == 1, rep.countPolicyVersion == ExerciseCounter.policyVersion, rep.metricVersion == 2,
+                  set.activity?.metricVersion == 3 else { fatalError("Bridge lost metric validity or phase version: \(rep.left.mean as Any), \(rep.right.mean as Any), coverage=\(rep.durationCoverage as Any), count=\(rep.countPolicyVersion), metric=\(rep.metricVersion), phase=\(set.activity?.metricVersion as Any)") }
             guard set.completedCount == 1, set.completedReps == [rep], rep.isCompleteForAnalytics else {
                 fatalError("Shipping Apple analytics omitted a completed rep")
             }

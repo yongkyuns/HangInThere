@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# Replay saved SOURCE-PTS observations through the exact app counter on Linux/Mac.
+# Replay saved SOURCE-PTS observations through the exact app counter on macOS.
 set -euo pipefail
 [[ $# == 4 || $# == 8 ]] || {
   echo 'Usage: count-replay.sh observations.jsonl pullUp|dip left|right output.json [barX1 barY1 barX2 barY2]' >&2
   exit 2
 }
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PLATFORM_NAME=macosx ARCHS="$(uname -m)" CONFIGURATION=Debug "$ROOT/scripts/build-workout-core.sh"
+FRAMEWORK="$ROOT/build/WorkoutCore/macosx/Debug"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
-swiftc -O -o "$WORK/count-replay" "$ROOT"/ios/HangInThere/Analysis/*.swift "$ROOT/Evaluation/CountReplay.swift"
+swiftc -O -F "$FRAMEWORK" -framework WorkoutCore -lc++ -o "$WORK/count-replay" "$ROOT"/ios/HangInThere/Analysis/*.swift "$ROOT/Evaluation/CountReplay.swift"
 python3 - "$ROOT" "$WORK/count-replay" "$@" <<'PY'
 import hashlib, json, pathlib, subprocess, sys
 root = pathlib.Path(sys.argv[1]); executable = pathlib.Path(sys.argv[2])
