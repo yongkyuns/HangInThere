@@ -50,7 +50,7 @@ import WorkoutCore
             let traceRoot = ProcessInfo.processInfo.environment["PUSHUP_COVERAGE_TRACE"].map { URL(fileURLWithPath: $0) }
             var trace: FileHandle?
             if let traceRoot {
-                guard spec.id.range(of: "^[a-zA-Z0-9-]+$", options: .regularExpression) != nil else { throw Failure.usage }
+                guard spec.id.range(of: "^[a-zA-Z0-9_-]+$", options: .regularExpression) != nil else { throw Failure.usage }
                 try FileManager.default.createDirectory(at: traceRoot, withIntermediateDirectories: true)
                 let url = traceRoot.appendingPathComponent(spec.id + ".jsonl")
                 guard !FileManager.default.fileExists(atPath: url.path) else { throw Failure.existingOutput }
@@ -59,10 +59,20 @@ import WorkoutCore
             }
             defer { try? trace?.close() }
             let reader = VideoReplayReader(estimator: Estimator(crop: spec.crop))
-            _ = try await reader.open(url)
+            let counter = SideViewPushUpWorkoutBridge(sessionId: spec.id, trackedAtEpochMilliseconds: 0)
+            var events: [[String: Any]] = [], cues: [String: Int] = [:], views: [String: Int] = [:], frames = 0
+            var records: [String: [String: Any]] = [:], firstReady: Double?, firstSet: Double?
+            var usableFrames = 0, processing: [Double] = [], failure: String?
+            func drainWrites() throws {
+                while let json = counter.nextWriteJson() {
+                    let write = try JSONSerialization.jsonObject(with: Data(json.utf8)) as! [String: Any]
+                    let record = write["record"] as! [String: Any]
+                    records[record["id"] as! String] = record
+                    counter.acknowledgeWrite()
+                }
+            }
             do {
-                let counter = SideViewPushUpMotionBridge(allowFrontView: true)
-                var events: [[String: Any]] = [], cues: [String: Int] = [:], frames = 0
+                _ = try await reader.open(url)
                 while let frame = try await reader.nextFrame() {
                     let json = String(decoding: try JSONEncoder().encode(frame.pose), as: UTF8.self)
                     if let trace { try trace.write(contentsOf: Data((json + "\n").utf8)) }
@@ -70,19 +80,34 @@ import WorkoutCore
                     let row = try JSONSerialization.jsonObject(with: Data(state.utf8)) as! [String: Any]
                     if let rep = row["rep"] as? [String: Any] { events.append(rep) }
                     cues[row["cue"] as? String ?? "unknown", default: 0] += 1
+                    if let view = row["view"] as? String { views[view, default: 0] += 1 }
+                    if row["observationUsable"] as? Bool == true { usableFrames += 1 }
+                    if firstReady == nil && row["phase"] as? String == "ready" { firstReady = frame.pose.timestamp.seconds }
+                    if firstSet == nil && row["setStarted"] as? Bool == true { firstSet = frame.pose.timestamp.seconds }
+                    processing.append(frame.processingMilliseconds)
+                    try drainWrites()
                     frames += 1
                 }
-                await reader.close()
-                reports.append(["id": spec.id, "frames": frames, "events": events, "cues": cues,
-                                "countPolicies": ["side": Int(SideViewPushUpMotion.companion.policyVersion),
-                                                  "front": Int(SideViewPushUpMotion.companion.frontPolicyVersion)],
-                                "sourceSHA256": spec.sha256])
-                try FileHandle.standardOutput.write(contentsOf: Data("\(spec.id): \(events.count) cycles / \(frames) source frames\n".utf8))
             } catch {
-                await reader.close()
-                throw error
+                failure = String(describing: error)
             }
+            await reader.close()
+            counter.finish(reason: failure == nil ? "endOfInput" : "inferenceFailure")
+            try drainWrites()
+            processing.sort()
+            reports.append(["id": spec.id, "frames": frames, "events": events, "cues": cues, "views": views,
+                            "status": failure == nil ? "completed" : "failed", "error": failure as Any? ?? NSNull(),
+                            "sets": records.values.sorted { ($0["startedAt"] as? Double ?? 0) < ($1["startedAt"] as? Double ?? 0) },
+                            "firstReadyAt": firstReady as Any? ?? NSNull(), "firstSetAt": firstSet as Any? ?? NSNull(),
+                            "usableFrames": usableFrames,
+                            "poseProcessingP95Milliseconds": processing.isEmpty ? NSNull() : processing[min(processing.count-1, Int(Double(processing.count)*0.95))] as Any,
+                            "countPolicies": ["side": Int(SideViewPushUpMotion.companion.policyVersion),
+                                              "front": Int(SideViewPushUpMotion.companion.frontPolicyVersion)],
+                            "sourceSHA256": spec.sha256])
+            // Checkpoint every completed/failed source; one decoder failure must
+            // not erase earlier results or disappear from the denominator.
+            try JSONSerialization.data(withJSONObject: reports, options: [.prettyPrinted, .sortedKeys]).write(to: target, options: .atomic)
+            try FileHandle.standardOutput.write(contentsOf: Data("\(spec.id): \(events.count) cycles / \(frames) source frames\(failure == nil ? "" : " FAILED")\n".utf8))
         }
-        try JSONSerialization.data(withJSONObject: reports, options: [.prettyPrinted, .sortedKeys]).write(to: target)
     }
 }

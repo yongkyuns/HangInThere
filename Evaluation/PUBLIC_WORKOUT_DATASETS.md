@@ -298,3 +298,14 @@ footage. None entered fitting. This cohort does not establish Narrow/Medium widt
 accuracy or real grip-change qualification. Results and post-inference crop/width
 attribution are in `Evaluation/fixtures/grip-visible-arms-validation-v30.json` and
 the v30 section of `docs/grip-variations.md`.
+
+### Public push-up baseline
+
+The [frozen push-up benchmark](../docs/workout/PUBLIC_PUSHUP_BASELINE.md) retains
+31 ordinary-view originals from 132 source-screened candidates, with eight
+source-family-grouped development and 23 test videos. Current full-source native
+replay produces 87 returns against 400 published repetitions; 16 clips never
+reach Ready. These count-agreement failures remain explicit. Published phases,
+initial holds, strict form, uncut set boundaries and physical-device behavior
+are not qualified. The scoped preparation/scoring tool is
+`scripts/public_pushup_benchmark.py`; raw media and poses remain outside Git.

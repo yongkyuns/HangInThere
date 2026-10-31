@@ -1,0 +1,4316 @@
+{
+  "schema_version": 1,
+  "scope": "public_pushup_benchmark_v1",
+  "frozen_at_utc": "2026-10-31T16:22:34.864879+00:00",
+  "runtime_commit": "44a6ada1501922a2e49fa57d5fc1a58e80b60f35",
+  "count_policies": {
+    "side": 2,
+    "front": 1
+  },
+  "selection": "30 available preview push-ups, then all 67 remaining hash-ranked mirror-train candidates with published counts 2..30 and media <=25MB; 35 Countix-labelled videos in the official push-up validation archive. All screened before detector inference.",
+  "working_conditions": "One clear exercising subject, ordinary floor push-ups (small fixed handles allowed), front/side or modest oblique view; visible arms and hip, knee/ankle in side view; no exercise-time cuts/composites, steep overhead views, severe crops, or compound/assisted variants. Small foot/head crops, backgrounds and clothing vary.",
+  "grouping": "Source/publisher-family grouping where suspected overlap; athlete identities and hidden duplicates are unverified. No athlete-independent qualification claim.",
+  "review": "Five fixed original-image samples per source; continuity between samples is not proven. Screening never reads model outputs. Intro/outro cuts permitted; no uncut-session claim.",
+  "sources": [
+    {
+      "bytes": 331991,
+      "id": "repcount_train",
+      "sha256": "55771108cfd18a4090c67da81841aa7a49b5f65fc7d8207e68073b958524b488",
+      "url": "https://raw.githubusercontent.com/SvipRepetitionCounting/TransRAC/68bdd4daa60ed7c3174a7f6bf86f6537b6fa0979/open_set/new_train.csv"
+    },
+    {
+      "bytes": 160752,
+      "id": "countix_metadata",
+      "sha256": "c68a98f9bbedc6a5ebf7d7e4b1eb70ba026154081b0f398c5f0287a43e61e2cb",
+      "url": "https://s3.amazonaws.com/kinetics/700_2020/annotations/countix.tar.gz"
+    }
+  ],
+  "repcount_mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+  "countix_archive": {
+    "url": "https://s3.amazonaws.com/kinetics/700_2020/val/k700_val_461.tar.gz",
+    "bytes": 62718593,
+    "sha256": "95d5cb1a3853911d77679321e1739fd909f148c266334000d800a3a5d87d925a"
+  },
+  "scoring": "Published repetition-count agreement in each dataset labelled interval. Per-cycle boundary alignment is diagnostic only; published phases are not adjudicated to our completed-return convention. Missing/failed runs stay in the denominator.",
+  "cases": [
+    {
+      "id": "stu1-47",
+      "source_name": "stu1_47.mp4",
+      "sha256": "f4194a8c006591a5b7720be26d64bc2fa990172dd87f001302b4c99c3687cd45",
+      "bytes": 6154052,
+      "count": 6,
+      "dataset": "repcount_a",
+      "view": "side-oblique",
+      "source_group": "bright-apartment-waterfront-series",
+      "subject_identity": "unverified",
+      "expected_frames": 599,
+      "duration_seconds": 20.019686353019686,
+      "cycle_frames": [
+        [
+          63,
+          138
+        ],
+        [
+          138,
+          216
+        ],
+        [
+          216,
+          300
+        ],
+        [
+          300,
+          404
+        ],
+        [
+          404,
+          497
+        ],
+        [
+          497,
+          579
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "validation",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu5-45",
+      "source_name": "stu5_45.mp4",
+      "sha256": "b7af5dfe6cded872fa56dc803017b117d8793454120b1f192c818854d30fab0d",
+      "bytes": 10617089,
+      "count": 7,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu5-45",
+      "subject_identity": "unverified",
+      "expected_frames": 1500,
+      "duration_seconds": 50.0,
+      "cycle_frames": [
+        [
+          69,
+          234
+        ],
+        [
+          234,
+          375
+        ],
+        [
+          375,
+          532
+        ],
+        [
+          532,
+          972
+        ],
+        [
+          972,
+          1120
+        ],
+        [
+          1120,
+          1273
+        ],
+        [
+          1273,
+          1426
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "validation",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu3-50",
+      "source_name": "stu3_50.mp4",
+      "sha256": "d288a34418d59366987fd5c4a5e948d9c3981cf6ef46c9f1b92cfef5085e553f",
+      "bytes": 11874869,
+      "count": 28,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu3-50",
+      "subject_identity": "unverified",
+      "expected_frames": 1250,
+      "duration_seconds": 50.0,
+      "cycle_frames": [
+        [
+          21,
+          49
+        ],
+        [
+          49,
+          89
+        ],
+        [
+          89,
+          123
+        ],
+        [
+          123,
+          155
+        ],
+        [
+          155,
+          192
+        ],
+        [
+          192,
+          226
+        ],
+        [
+          226,
+          264
+        ],
+        [
+          264,
+          309
+        ],
+        [
+          309,
+          347
+        ],
+        [
+          347,
+          387
+        ],
+        [
+          387,
+          435
+        ],
+        [
+          435,
+          481
+        ],
+        [
+          481,
+          532
+        ],
+        [
+          532,
+          569
+        ],
+        [
+          569,
+          614
+        ],
+        [
+          614,
+          661
+        ],
+        [
+          661,
+          704
+        ],
+        [
+          704,
+          756
+        ],
+        [
+          756,
+          803
+        ],
+        [
+          803,
+          852
+        ],
+        [
+          852,
+          892
+        ],
+        [
+          892,
+          941
+        ],
+        [
+          941,
+          982
+        ],
+        [
+          982,
+          1028
+        ],
+        [
+          1028,
+          1076
+        ],
+        [
+          1076,
+          1134
+        ],
+        [
+          1134,
+          1178
+        ],
+        [
+          1178,
+          1230
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "validation",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu8-43",
+      "source_name": "stu8_43.mp4",
+      "sha256": "f5f776e16a3b4e404584927fd39287a0ac07198ca509930ea88ce5626c49b32b",
+      "bytes": 6632581,
+      "count": 25,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu8-43",
+      "subject_identity": "unverified",
+      "expected_frames": 1079,
+      "duration_seconds": 36.002633333333335,
+      "cycle_frames": [
+        [
+          185,
+          216
+        ],
+        [
+          216,
+          244
+        ],
+        [
+          244,
+          269
+        ],
+        [
+          269,
+          296
+        ],
+        [
+          296,
+          324
+        ],
+        [
+          324,
+          350
+        ],
+        [
+          350,
+          376
+        ],
+        [
+          376,
+          403
+        ],
+        [
+          403,
+          434
+        ],
+        [
+          434,
+          460
+        ],
+        [
+          460,
+          486
+        ],
+        [
+          486,
+          519
+        ],
+        [
+          519,
+          549
+        ],
+        [
+          549,
+          575
+        ],
+        [
+          575,
+          608
+        ],
+        [
+          608,
+          641
+        ],
+        [
+          641,
+          673
+        ],
+        [
+          673,
+          706
+        ],
+        [
+          706,
+          740
+        ],
+        [
+          740,
+          781
+        ],
+        [
+          825,
+          863
+        ],
+        [
+          863,
+          896
+        ],
+        [
+          896,
+          937
+        ],
+        [
+          937,
+          998
+        ],
+        [
+          998,
+          1045
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "validation",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu10-48",
+      "source_name": "stu10_48.mp4",
+      "sha256": "99f8f71776c585840b6820d4892b9055c683c7959cfac9960eef43cfb932fb4a",
+      "bytes": 6281417,
+      "count": 5,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu10-48",
+      "subject_identity": "unverified",
+      "expected_frames": 899,
+      "duration_seconds": 30.029633333333333,
+      "cycle_frames": [
+        [
+          244,
+          322
+        ],
+        [
+          322,
+          368
+        ],
+        [
+          368,
+          422
+        ],
+        [
+          738,
+          798
+        ],
+        [
+          798,
+          853
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "test",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "stu4-46",
+      "source_name": "stu4_46.mp4",
+      "sha256": "5144422dbf271181405017b70e7fee2070c8723e2078134c5521b871321091ee",
+      "bytes": 16259532,
+      "count": 45,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu4-46",
+      "subject_identity": "unverified",
+      "expected_frames": 1800,
+      "duration_seconds": 60.0,
+      "cycle_frames": [
+        [
+          127,
+          144
+        ],
+        [
+          144,
+          163
+        ],
+        [
+          163,
+          185
+        ],
+        [
+          185,
+          209
+        ],
+        [
+          209,
+          233
+        ],
+        [
+          233,
+          253
+        ],
+        [
+          253,
+          273
+        ],
+        [
+          273,
+          290
+        ],
+        [
+          291,
+          314
+        ],
+        [
+          315,
+          333
+        ],
+        [
+          334,
+          356
+        ],
+        [
+          356,
+          379
+        ],
+        [
+          380,
+          398
+        ],
+        [
+          398,
+          420
+        ],
+        [
+          422,
+          443
+        ],
+        [
+          604,
+          629
+        ],
+        [
+          630,
+          652
+        ],
+        [
+          654,
+          672
+        ],
+        [
+          673,
+          692
+        ],
+        [
+          694,
+          714
+        ],
+        [
+          716,
+          732
+        ],
+        [
+          734,
+          751
+        ],
+        [
+          754,
+          774
+        ],
+        [
+          775,
+          793
+        ],
+        [
+          795,
+          813
+        ],
+        [
+          814,
+          835
+        ],
+        [
+          836,
+          857
+        ],
+        [
+          858,
+          879
+        ],
+        [
+          879,
+          899
+        ],
+        [
+          900,
+          927
+        ],
+        [
+          1096,
+          1123
+        ],
+        [
+          1125,
+          1145
+        ],
+        [
+          1146,
+          1168
+        ],
+        [
+          1169,
+          1185
+        ],
+        [
+          1186,
+          1204
+        ],
+        [
+          1206,
+          1226
+        ],
+        [
+          1227,
+          1245
+        ],
+        [
+          1246,
+          1265
+        ],
+        [
+          1266,
+          1290
+        ],
+        [
+          1291,
+          1307
+        ],
+        [
+          1307,
+          1325
+        ],
+        [
+          1326,
+          1345
+        ],
+        [
+          1346,
+          1370
+        ],
+        [
+          1370,
+          1391
+        ],
+        [
+          1392,
+          1411
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "test",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu9-47",
+      "source_name": "stu9_47.mp4",
+      "sha256": "986bb4f78c0f611974f2b1d7e3b993d050cc49ed9cdf8664e729c3282aef147a",
+      "bytes": 9348842,
+      "count": 2,
+      "dataset": "repcount_a",
+      "view": "side-oblique",
+      "source_group": "repcount_a:stu9-47",
+      "subject_identity": "unverified",
+      "expected_frames": 800,
+      "duration_seconds": 32.0,
+      "cycle_frames": [
+        [
+          475,
+          549
+        ],
+        [
+          587,
+          644
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "test",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu10-43",
+      "source_name": "stu10_43.mp4",
+      "sha256": "1f4c496d39673d5d0c51005a6a9369ba58397caad2e2029bafb755b4be8ad6b7",
+      "bytes": 13801024,
+      "count": 17,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "bright-apartment-waterfront-series",
+      "subject_identity": "unverified",
+      "expected_frames": 1799,
+      "duration_seconds": 60.02669336002669,
+      "cycle_frames": [
+        [
+          4,
+          106
+        ],
+        [
+          106,
+          200
+        ],
+        [
+          200,
+          287
+        ],
+        [
+          288,
+          376
+        ],
+        [
+          376,
+          471
+        ],
+        [
+          471,
+          567
+        ],
+        [
+          567,
+          664
+        ],
+        [
+          798,
+          916
+        ],
+        [
+          916,
+          1015
+        ],
+        [
+          1015,
+          1106
+        ],
+        [
+          1106,
+          1211
+        ],
+        [
+          1211,
+          1304
+        ],
+        [
+          1304,
+          1397
+        ],
+        [
+          1398,
+          1482
+        ],
+        [
+          1482,
+          1576
+        ],
+        [
+          1576,
+          1668
+        ],
+        [
+          1668,
+          1757
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "test",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu6-42",
+      "source_name": "stu6_42.mp4",
+      "sha256": "f475548d98bf1df4304e752ccee9043d8fe4d5d3b18bb2b496b9afbb70075e80",
+      "bytes": 14439536,
+      "count": 8,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu6-42",
+      "subject_identity": "unverified",
+      "expected_frames": 1710,
+      "duration_seconds": 57.0,
+      "cycle_frames": [
+        [
+          29,
+          187
+        ],
+        [
+          187,
+          367
+        ],
+        [
+          372,
+          556
+        ],
+        [
+          556,
+          730
+        ],
+        [
+          730,
+          904
+        ],
+        [
+          904,
+          1089
+        ],
+        [
+          1089,
+          1258
+        ],
+        [
+          1261,
+          1624
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "test",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "train2649",
+      "source_name": "train2649.mp4",
+      "sha256": "6d9deb1b04fee7f5b3821b41d19314a194aeb0f09cd3dddc7cb77976e3e662b7",
+      "bytes": 756193,
+      "count": 4,
+      "dataset": "repcount_a",
+      "view": "side-oblique",
+      "source_group": "repcount_a:train2649",
+      "subject_identity": "unverified",
+      "expected_frames": 300,
+      "duration_seconds": 10.0,
+      "cycle_frames": [
+        [
+          12,
+          74
+        ],
+        [
+          77,
+          143
+        ],
+        [
+          149,
+          201
+        ],
+        [
+          209,
+          273
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu2-47",
+      "source_name": "stu2_47.mp4",
+      "sha256": "7f34a43b38bc279e56df4d92af0d6d37273cda1e1d371618173d90f12d687167",
+      "bytes": 12593310,
+      "count": 20,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu2-47",
+      "subject_identity": "unverified",
+      "expected_frames": 1799,
+      "duration_seconds": 60.026633333333336,
+      "cycle_frames": [
+        [
+          0,
+          67
+        ],
+        [
+          67,
+          129
+        ],
+        [
+          129,
+          201
+        ],
+        [
+          201,
+          263
+        ],
+        [
+          263,
+          339
+        ],
+        [
+          339,
+          419
+        ],
+        [
+          419,
+          487
+        ],
+        [
+          488,
+          561
+        ],
+        [
+          563,
+          640
+        ],
+        [
+          641,
+          718
+        ],
+        [
+          718,
+          804
+        ],
+        [
+          804,
+          903
+        ],
+        [
+          903,
+          981
+        ],
+        [
+          981,
+          1071
+        ],
+        [
+          1072,
+          1144
+        ],
+        [
+          1144,
+          1235
+        ],
+        [
+          1237,
+          1321
+        ],
+        [
+          1321,
+          1408
+        ],
+        [
+          1409,
+          1526
+        ],
+        [
+          1526,
+          1618
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "stu10-53",
+      "source_name": "stu10_53.mp4",
+      "sha256": "19bfa3d5e693af5bc53e802fb53792e68f69eb1e25304c1a34e908610a09746a",
+      "bytes": 7018614,
+      "count": 23,
+      "dataset": "repcount_a",
+      "view": "front",
+      "source_group": "repcount_a:stu10-53",
+      "subject_identity": "unverified",
+      "expected_frames": 690,
+      "duration_seconds": 23.023,
+      "cycle_frames": [
+        [
+          71,
+          98
+        ],
+        [
+          98,
+          124
+        ],
+        [
+          124,
+          149
+        ],
+        [
+          150,
+          174
+        ],
+        [
+          174,
+          197
+        ],
+        [
+          198,
+          222
+        ],
+        [
+          222,
+          247
+        ],
+        [
+          247,
+          272
+        ],
+        [
+          272,
+          299
+        ],
+        [
+          299,
+          325
+        ],
+        [
+          325,
+          348
+        ],
+        [
+          349,
+          375
+        ],
+        [
+          375,
+          401
+        ],
+        [
+          401,
+          425
+        ],
+        [
+          425,
+          453
+        ],
+        [
+          453,
+          479
+        ],
+        [
+          479,
+          505
+        ],
+        [
+          505,
+          529
+        ],
+        [
+          529,
+          555
+        ],
+        [
+          555,
+          582
+        ],
+        [
+          582,
+          606
+        ],
+        [
+          606,
+          632
+        ],
+        [
+          632,
+          671
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu6-38",
+      "source_name": "stu6_38.mp4",
+      "sha256": "7c8a23b62b829fc6f29f617ad2a427b91a5276e62420c0a965cc08f425149c1a",
+      "bytes": 7262294,
+      "count": 16,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "bright-apartment-waterfront-series",
+      "subject_identity": "unverified",
+      "expected_frames": 1007,
+      "duration_seconds": 42.00029166666667,
+      "cycle_frames": [
+        [
+          93,
+          138
+        ],
+        [
+          138,
+          170
+        ],
+        [
+          170,
+          194
+        ],
+        [
+          196,
+          223
+        ],
+        [
+          225,
+          258
+        ],
+        [
+          259,
+          288
+        ],
+        [
+          292,
+          319
+        ],
+        [
+          321,
+          351
+        ],
+        [
+          354,
+          386
+        ],
+        [
+          388,
+          422
+        ],
+        [
+          528,
+          580
+        ],
+        [
+          581,
+          644
+        ],
+        [
+          646,
+          701
+        ],
+        [
+          795,
+          849
+        ],
+        [
+          855,
+          901
+        ],
+        [
+          905,
+          962
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu9-49",
+      "source_name": "stu9_49.mp4",
+      "sha256": "1788247876a152bcb20236eb7a1089b9bf8a1f588d5e787eff53ee050dd02a1e",
+      "bytes": 12341928,
+      "count": 5,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu9-49",
+      "subject_identity": "unverified",
+      "expected_frames": 900,
+      "duration_seconds": 30.0,
+      "cycle_frames": [
+        [
+          342,
+          417
+        ],
+        [
+          496,
+          559
+        ],
+        [
+          610,
+          666
+        ],
+        [
+          696,
+          750
+        ],
+        [
+          773,
+          834
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "stu2-50",
+      "source_name": "stu2_50.mp4",
+      "sha256": "37e91d8ec11e6caa872b8ab0d2e469c34fe0b3040b1c577892bcd65dc208bfea",
+      "bytes": 13747476,
+      "count": 25,
+      "dataset": "repcount_a",
+      "view": "side-oblique",
+      "source_group": "repcount_a:stu2-50",
+      "subject_identity": "unverified",
+      "expected_frames": 1525,
+      "duration_seconds": 61.0,
+      "cycle_frames": [
+        [
+          197,
+          427
+        ],
+        [
+          427,
+          465
+        ],
+        [
+          465,
+          514
+        ],
+        [
+          514,
+          565
+        ],
+        [
+          565,
+          613
+        ],
+        [
+          613,
+          666
+        ],
+        [
+          667,
+          719
+        ],
+        [
+          719,
+          774
+        ],
+        [
+          774,
+          823
+        ],
+        [
+          824,
+          873
+        ],
+        [
+          873,
+          921
+        ],
+        [
+          921,
+          966
+        ],
+        [
+          966,
+          1028
+        ],
+        [
+          1028,
+          1077
+        ],
+        [
+          1097,
+          1135
+        ],
+        [
+          1136,
+          1155
+        ],
+        [
+          1156,
+          1172
+        ],
+        [
+          1172,
+          1181
+        ],
+        [
+          1181,
+          1209
+        ],
+        [
+          1209,
+          1262
+        ],
+        [
+          1263,
+          1311
+        ],
+        [
+          1311,
+          1363
+        ],
+        [
+          1363,
+          1416
+        ],
+        [
+          1416,
+          1468
+        ],
+        [
+          1468,
+          1515
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu1-43",
+      "source_name": "stu1_43.mp4",
+      "sha256": "dea96ea376d7a6ee91508d8daf74aec0c53ec04a1ed8634aed7d4f324521bc7d",
+      "bytes": 20959315,
+      "count": 9,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu1-43",
+      "subject_identity": "unverified",
+      "expected_frames": 1439,
+      "duration_seconds": 60.01829166666667,
+      "cycle_frames": [
+        [
+          12,
+          141
+        ],
+        [
+          141,
+          286
+        ],
+        [
+          286,
+          424
+        ],
+        [
+          424,
+          560
+        ],
+        [
+          560,
+          699
+        ],
+        [
+          699,
+          848
+        ],
+        [
+          848,
+          987
+        ],
+        [
+          987,
+          1280
+        ],
+        [
+          1280,
+          1438
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu10-49",
+      "source_name": "stu10_49.mp4",
+      "sha256": "e316d61ff0e26c90cbdb672769199b41632976ac61a8b29c58454e7650b9f6c4",
+      "bytes": 12523818,
+      "count": 21,
+      "dataset": "repcount_a",
+      "view": "front",
+      "source_group": "repcount_a:stu10-49",
+      "subject_identity": "unverified",
+      "expected_frames": 1440,
+      "duration_seconds": 60.0,
+      "cycle_frames": [
+        [
+          20,
+          45
+        ],
+        [
+          45,
+          72
+        ],
+        [
+          72,
+          108
+        ],
+        [
+          177,
+          207
+        ],
+        [
+          207,
+          236
+        ],
+        [
+          236,
+          281
+        ],
+        [
+          370,
+          404
+        ],
+        [
+          404,
+          437
+        ],
+        [
+          437,
+          485
+        ],
+        [
+          579,
+          620
+        ],
+        [
+          621,
+          666
+        ],
+        [
+          666,
+          708
+        ],
+        [
+          788,
+          815
+        ],
+        [
+          815,
+          854
+        ],
+        [
+          854,
+          904
+        ],
+        [
+          983,
+          1033
+        ],
+        [
+          1033,
+          1085
+        ],
+        [
+          1085,
+          1135
+        ],
+        [
+          1217,
+          1257
+        ],
+        [
+          1257,
+          1303
+        ],
+        [
+          1303,
+          1351
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu6-45",
+      "source_name": "stu6_45.mp4",
+      "sha256": "9098ceb5ee0e74794365e5770cc4fec1796ae13dfdb0262d47d71c8168ad3b53",
+      "bytes": 13418260,
+      "count": 10,
+      "dataset": "repcount_a",
+      "view": "side-oblique",
+      "source_group": "repcount_a:stu6-45",
+      "subject_identity": "unverified",
+      "expected_frames": 960,
+      "duration_seconds": 32.0,
+      "cycle_frames": [
+        [
+          75,
+          155
+        ],
+        [
+          156,
+          258
+        ],
+        [
+          259,
+          339
+        ],
+        [
+          339,
+          408
+        ],
+        [
+          408,
+          489
+        ],
+        [
+          489,
+          552
+        ],
+        [
+          552,
+          630
+        ],
+        [
+          630,
+          711
+        ],
+        [
+          711,
+          790
+        ],
+        [
+          795,
+          866
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "stu8-44",
+      "source_name": "stu8_44.mp4",
+      "sha256": "897b3c925b397af33b16be80996642e296633cc5751ae1bd1d67d73594a5dfc1",
+      "bytes": 15459975,
+      "count": 22,
+      "dataset": "repcount_a",
+      "view": "front",
+      "source_group": "frontal-timer-series",
+      "subject_identity": "unverified",
+      "expected_frames": 1800,
+      "duration_seconds": 60.0,
+      "cycle_frames": [
+        [
+          805,
+          849
+        ],
+        [
+          849,
+          882
+        ],
+        [
+          882,
+          920
+        ],
+        [
+          920,
+          953
+        ],
+        [
+          953,
+          987
+        ],
+        [
+          987,
+          1019
+        ],
+        [
+          1019,
+          1059
+        ],
+        [
+          1059,
+          1093
+        ],
+        [
+          1093,
+          1130
+        ],
+        [
+          1130,
+          1161
+        ],
+        [
+          1161,
+          1199
+        ],
+        [
+          1199,
+          1235
+        ],
+        [
+          1235,
+          1269
+        ],
+        [
+          1269,
+          1301
+        ],
+        [
+          1301,
+          1335
+        ],
+        [
+          1335,
+          1369
+        ],
+        [
+          1369,
+          1398
+        ],
+        [
+          1398,
+          1433
+        ],
+        [
+          1433,
+          1468
+        ],
+        [
+          1468,
+          1502
+        ],
+        [
+          1566,
+          1689
+        ],
+        [
+          1689,
+          1799
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu3-44",
+      "source_name": "stu3_44.mp4",
+      "sha256": "d82ce509931a31f63d66b7ee4ff9ffff0d96f025b5c7909c484805f93e83e520",
+      "bytes": 13624154,
+      "count": 11,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu3-44",
+      "subject_identity": "unverified",
+      "expected_frames": 750,
+      "duration_seconds": 30.0,
+      "cycle_frames": [
+        [
+          19,
+          61
+        ],
+        [
+          156,
+          193
+        ],
+        [
+          193,
+          230
+        ],
+        [
+          230,
+          269
+        ],
+        [
+          269,
+          306
+        ],
+        [
+          306,
+          339
+        ],
+        [
+          339,
+          387
+        ],
+        [
+          387,
+          428
+        ],
+        [
+          429,
+          471
+        ],
+        [
+          471,
+          512
+        ],
+        [
+          512,
+          548
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "stu4-44",
+      "source_name": "stu4_44.mp4",
+      "sha256": "18d5ab04c476247eaf197fed945c690bbd30e514e60a16735f35d63b186fd7dd",
+      "bytes": 6271716,
+      "count": 9,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu4-44",
+      "subject_identity": "unverified",
+      "expected_frames": 959,
+      "duration_seconds": 40.039291666666664,
+      "cycle_frames": [
+        [
+          210,
+          271
+        ],
+        [
+          272,
+          330
+        ],
+        [
+          406,
+          463
+        ],
+        [
+          466,
+          524
+        ],
+        [
+          532,
+          591
+        ],
+        [
+          601,
+          661
+        ],
+        [
+          663,
+          720
+        ],
+        [
+          722,
+          781
+        ],
+        [
+          782,
+          840
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "stu1-45",
+      "source_name": "stu1_45.mp4",
+      "sha256": "4d2b35938e956311f7421ab836023cadbe37f29855705690e2af1ae726094576",
+      "bytes": 15247531,
+      "count": 6,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu1-45",
+      "subject_identity": "unverified",
+      "expected_frames": 825,
+      "duration_seconds": 33.0,
+      "cycle_frames": [
+        [
+          127,
+          177
+        ],
+        [
+          177,
+          228
+        ],
+        [
+          228,
+          285
+        ],
+        [
+          285,
+          327
+        ],
+        [
+          596,
+          645
+        ],
+        [
+          645,
+          687
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu6-43",
+      "source_name": "stu6_43.mp4",
+      "sha256": "481bc732a17c2d9a1d395a0bec47b0d67effc1395eba3d4989d5ffbb44962698",
+      "bytes": 4025642,
+      "count": 19,
+      "dataset": "repcount_a",
+      "view": "front-oblique",
+      "source_group": "repcount_a:stu6-43",
+      "subject_identity": "unverified",
+      "expected_frames": 660,
+      "duration_seconds": 22.0,
+      "cycle_frames": [
+        [
+          27,
+          57
+        ],
+        [
+          57,
+          86
+        ],
+        [
+          86,
+          117
+        ],
+        [
+          118,
+          148
+        ],
+        [
+          149,
+          177
+        ],
+        [
+          179,
+          212
+        ],
+        [
+          212,
+          244
+        ],
+        [
+          245,
+          278
+        ],
+        [
+          278,
+          304
+        ],
+        [
+          304,
+          342
+        ],
+        [
+          343,
+          379
+        ],
+        [
+          379,
+          410
+        ],
+        [
+          411,
+          444
+        ],
+        [
+          445,
+          474
+        ],
+        [
+          474,
+          512
+        ],
+        [
+          512,
+          541
+        ],
+        [
+          542,
+          576
+        ],
+        [
+          577,
+          616
+        ],
+        [
+          616,
+          651
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "train2712",
+      "source_name": "train2712.mp4",
+      "sha256": "0aa3412f182cae44170c19d414ab052fbb12538ea6ddd46557bc66eeebdac6f6",
+      "bytes": 481317,
+      "count": 6,
+      "dataset": "repcount_a",
+      "view": "side-oblique",
+      "source_group": "repcount_a:train2712",
+      "subject_identity": "unverified",
+      "expected_frames": 300,
+      "duration_seconds": 10.0,
+      "cycle_frames": [
+        [
+          1,
+          41
+        ],
+        [
+          41,
+          89
+        ],
+        [
+          89,
+          146
+        ],
+        [
+          146,
+          196
+        ],
+        [
+          197,
+          242
+        ],
+        [
+          243,
+          290
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development"
+    },
+    {
+      "id": "stu6-40",
+      "source_name": "stu6_40.mp4",
+      "sha256": "bdf2ef13cf65923550ad7d65b981477c3a24be2173677a53431b36e781f31466",
+      "bytes": 16595749,
+      "count": 8,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu6-40",
+      "subject_identity": "unverified",
+      "expected_frames": 1325,
+      "duration_seconds": 53.0,
+      "cycle_frames": [
+        [
+          59,
+          151
+        ],
+        [
+          155,
+          262
+        ],
+        [
+          265,
+          364
+        ],
+        [
+          364,
+          463
+        ],
+        [
+          891,
+          978
+        ],
+        [
+          981,
+          1085
+        ],
+        [
+          1092,
+          1187
+        ],
+        [
+          1196,
+          1300
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu3-46",
+      "source_name": "stu3_46.mp4",
+      "sha256": "82ee9e7dcf298791e32275c3e548e6bec18ea37812e0dd0b9ff4c48c73967bb6",
+      "bytes": 3779324,
+      "count": 9,
+      "dataset": "repcount_a",
+      "view": "side",
+      "source_group": "repcount_a:stu3-46",
+      "subject_identity": "unverified",
+      "expected_frames": 599,
+      "duration_seconds": 20.019633333333335,
+      "cycle_frames": [
+        [
+          76,
+          122
+        ],
+        [
+          122,
+          162
+        ],
+        [
+          163,
+          203
+        ],
+        [
+          203,
+          240
+        ],
+        [
+          240,
+          275
+        ],
+        [
+          275,
+          313
+        ],
+        [
+          313,
+          350
+        ],
+        [
+          350,
+          388
+        ],
+        [
+          388,
+          426
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "stu8-41",
+      "source_name": "stu8_41.mp4",
+      "sha256": "77e296f665284a72f6803c18c5f314cd4df09fdb7add2c0a1fe872eeb7c3642d",
+      "bytes": 8658291,
+      "count": 22,
+      "dataset": "repcount_a",
+      "view": "front",
+      "source_group": "frontal-timer-series",
+      "subject_identity": "unverified",
+      "expected_frames": 1110,
+      "duration_seconds": 37.0,
+      "cycle_frames": [
+        [
+          49,
+          92
+        ],
+        [
+          92,
+          128
+        ],
+        [
+          128,
+          163
+        ],
+        [
+          163,
+          192
+        ],
+        [
+          192,
+          220
+        ],
+        [
+          220,
+          249
+        ],
+        [
+          249,
+          283
+        ],
+        [
+          283,
+          313
+        ],
+        [
+          313,
+          345
+        ],
+        [
+          345,
+          375
+        ],
+        [
+          376,
+          404
+        ],
+        [
+          404,
+          433
+        ],
+        [
+          433,
+          463
+        ],
+        [
+          463,
+          492
+        ],
+        [
+          492,
+          517
+        ],
+        [
+          517,
+          547
+        ],
+        [
+          547,
+          574
+        ],
+        [
+          574,
+          602
+        ],
+        [
+          602,
+          629
+        ],
+        [
+          629,
+          660
+        ],
+        [
+          808,
+          911
+        ],
+        [
+          911,
+          1091
+        ]
+      ],
+      "published_author_split": "train",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test"
+    },
+    {
+      "id": "countix-EpTeVtoil5M",
+      "source_name": "countix_EpTeVtoil5M_000014_000024.mp4",
+      "sha256": "0ad34892f292e851f6b98f27373d831e38cbe43c0827a03fe437155b23d74487",
+      "bytes": 2320535,
+      "count": 2,
+      "dataset": "countix",
+      "view": "side",
+      "source_group": "countix:countix-EpTeVtoil5M",
+      "subject_identity": "unverified",
+      "expected_frames": 224,
+      "duration_seconds": 8.96,
+      "video_id": "EpTeVtoil5M",
+      "kinetics_seconds": [
+        14.0,
+        24.0
+      ],
+      "repetition_seconds": [
+        14.0,
+        17.88
+      ],
+      "published_author_split": "validation",
+      "archive_member": "push up/EpTeVtoil5M_000014_000024.mp4",
+      "role": "test"
+    },
+    {
+      "id": "countix-F8RYNgIN_sE",
+      "source_name": "countix_F8RYNgIN_sE_000031_000041.mp4",
+      "sha256": "9d1280e3e6c3c75e462bfbbeee9c63fd64da3ddfed0840205e02aed7dbebd786",
+      "bytes": 634377,
+      "count": 3,
+      "dataset": "countix",
+      "view": "side-oblique",
+      "source_group": "countix:countix-F8RYNgIN_sE",
+      "subject_identity": "unverified",
+      "expected_frames": 292,
+      "duration_seconds": 9.733333333333333,
+      "video_id": "F8RYNgIN_sE",
+      "kinetics_seconds": [
+        31.0,
+        41.0
+      ],
+      "repetition_seconds": [
+        31.0,
+        34.6
+      ],
+      "published_author_split": "validation",
+      "archive_member": "push up/F8RYNgIN_sE_000031_000041.mp4",
+      "role": "test"
+    },
+    {
+      "id": "countix-CnJ34LAjYjw",
+      "source_name": "countix_CnJ34LAjYjw_000001_000011.mp4",
+      "sha256": "159e2e891177312f4c95783e6861b0185fca688e94eee88fd3777e5142f6993f",
+      "bytes": 544539,
+      "count": 5,
+      "dataset": "countix",
+      "view": "front-oblique",
+      "source_group": "countix:countix-CnJ34LAjYjw",
+      "subject_identity": "unverified",
+      "expected_frames": 292,
+      "duration_seconds": 9.733333333333333,
+      "video_id": "CnJ34LAjYjw",
+      "kinetics_seconds": [
+        1.0,
+        11.0
+      ],
+      "repetition_seconds": [
+        1.0,
+        10.7
+      ],
+      "published_author_split": "validation",
+      "archive_member": "push up/CnJ34LAjYjw_000001_000011.mp4",
+      "role": "test"
+    },
+    {
+      "id": "countix-D27cOfFQr8U",
+      "source_name": "countix_D27cOfFQr8U_000018_000028.mp4",
+      "sha256": "080dcaa5a5d5abaa0a193e08b551f2f611546955ffd7c3b7a0348c60b578b15c",
+      "bytes": 1223737,
+      "count": 2,
+      "dataset": "countix",
+      "view": "side-oblique",
+      "source_group": "countix:countix-D27cOfFQr8U",
+      "subject_identity": "unverified",
+      "expected_frames": 250,
+      "duration_seconds": 10.0,
+      "video_id": "D27cOfFQr8U",
+      "kinetics_seconds": [
+        18.0,
+        28.0
+      ],
+      "repetition_seconds": [
+        18.0,
+        20.24
+      ],
+      "published_author_split": "validation",
+      "archive_member": "push up/D27cOfFQr8U_000018_000028.mp4",
+      "role": "test"
+    }
+  ],
+  "screening": [
+    {
+      "id": "train2720",
+      "dataset": "repcount_a",
+      "source_name": "train2720.mp4",
+      "sha256": "93500b1a97ddbf6d3090a7ce8c80ae650ed79dc0959d200ba73e1fa0d2b8d935",
+      "included": false,
+      "reason": "close crop and elevated view",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.4337666666666667,
+        5.372033333333333,
+        9.4094,
+        9.876633333333334
+      ]
+    },
+    {
+      "id": "stu1-47",
+      "dataset": "repcount_a",
+      "source_name": "stu1_47.mp4",
+      "sha256": "f4194a8c006591a5b7720be26d64bc2fa990172dd87f001302b4c99c3687cd45",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.03303303303303303,
+        3.369703036369703,
+        11.778111444778112,
+        17.984317650984316,
+        19.88631965298632
+      ]
+    },
+    {
+      "id": "stu10-44",
+      "dataset": "repcount_a",
+      "source_name": "stu10_44.mp4",
+      "sha256": "64212db7caba24e588695ad30f5a075d47181421b9fabc4b692875f236942f3e",
+      "included": false,
+      "reason": "edited exercise takes",
+      "view": null,
+      "review_sample_times": [
+        0.03303303303303303,
+        0.43343343343343343,
+        25.792125458792125,
+        48.04771438104771,
+        49.88298298298298
+      ]
+    },
+    {
+      "id": "stu10-47",
+      "dataset": "repcount_a",
+      "source_name": "stu10_47.mp4",
+      "sha256": "85196c88cac7554e320011c6282e133148b4c55cb741cbf0e9da4d2523d59aa9",
+      "included": false,
+      "reason": "locomotion/mixed push-up variants",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        5.733333333333333,
+        31.0,
+        58.03333333333333,
+        59.86666666666667
+      ]
+    },
+    {
+      "id": "stu9-55",
+      "dataset": "repcount_a",
+      "source_name": "stu9_55.mp4",
+      "sha256": "283cf02a830206780d2ea68bace8b71b099f0597cc1a510abebf1873eeac558d",
+      "included": false,
+      "reason": "edited people and severe crops",
+      "view": null,
+      "review_sample_times": [
+        0.033007997831096654,
+        3.2863630201979124,
+        21.586485021011253,
+        37.44659075504948,
+        39.88827436627355
+      ]
+    },
+    {
+      "id": "stu5-45",
+      "dataset": "repcount_a",
+      "source_name": "stu5_45.mp4",
+      "sha256": "b7af5dfe6cded872fa56dc803017b117d8793454120b1f192c818854d30fab0d",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        5.033333333333333,
+        25.066666666666666,
+        44.96666666666667,
+        49.86666666666667
+      ]
+    },
+    {
+      "id": "train2748",
+      "dataset": "repcount_a",
+      "source_name": "train2748.mp4",
+      "sha256": "6a17b4c9769851ef83f7d62d9bcc04305c571a5edd91d931d593450b29ac36ef",
+      "included": false,
+      "reason": "steep elevated view",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.0333333333333334,
+        4.633333333333334,
+        8.033333333333333,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "val901",
+      "dataset": "repcount_a",
+      "source_name": "val901.mp4",
+      "sha256": "a722b6772d06f66bb2e3ad28fe72728e733da6ef4f7fbe03e853d0c7d40fcc3d",
+      "included": false,
+      "reason": "bench obscures arms",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.84,
+        4.96,
+        8.84,
+        9.860000000000001
+      ]
+    },
+    {
+      "id": "stu3-50",
+      "dataset": "repcount_a",
+      "source_name": "stu3_50.mp4",
+      "sha256": "d288a34418d59366987fd5c4a5e948d9c3981cf6ef46c9f1b92cfef5085e553f",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        1.4,
+        23.64,
+        48.16,
+        49.86
+      ]
+    },
+    {
+      "id": "stu8-47",
+      "dataset": "repcount_a",
+      "source_name": "stu8_47.mp4",
+      "sha256": "acf568fa1a0977ca5497b75c5a1f7732500f65aad0b724985c2c2f4bcb56328b",
+      "included": false,
+      "reason": "composited simultaneous views",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        3.3363,
+        32.3653,
+        57.323566666666665,
+        60.893899999999995
+      ]
+    },
+    {
+      "id": "stu10-42",
+      "dataset": "repcount_a",
+      "source_name": "stu10_42.mp4",
+      "sha256": "0145178a53451a288604908984f246e43d346b4c4f5253f2c8f3b9d12d31594c",
+      "included": false,
+      "reason": "view changes during exercise",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.7007,
+        12.779433333333333,
+        17.984633333333335,
+        29.89663333333333
+      ]
+    },
+    {
+      "id": "test1595",
+      "dataset": "repcount_a",
+      "source_name": "test1595.mp4",
+      "sha256": "2e9cdaa5e4331f08f8241e5f4010784cd208e097790709aab872b9427e2a4871",
+      "included": false,
+      "reason": "dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.1333333333333333,
+        5.866666666666666,
+        8.866666666666667,
+        9.833333333333334
+      ]
+    },
+    {
+      "id": "stu8-43",
+      "dataset": "repcount_a",
+      "source_name": "stu8_43.mp4",
+      "sha256": "f5f776e16a3b4e404584927fd39287a0ac07198ca509930ea88ce5626c49b32b",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        6.673333333333333,
+        17.8178,
+        34.067366666666665,
+        35.86926666666667
+      ]
+    },
+    {
+      "id": "stu4-40",
+      "dataset": "repcount_a",
+      "source_name": "stu4_40.mp4",
+      "sha256": "3be3bb90f916d5ecfe4a8accbdb1b40e99860872cbce98743c29f80404343e8f",
+      "included": false,
+      "reason": "edited view changes",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.64,
+        19.4,
+        29.84,
+        39.86
+      ]
+    },
+    {
+      "id": "train2711",
+      "dataset": "repcount_a",
+      "source_name": "train2711.mp4",
+      "sha256": "c18580d0d7ca4c61a4bf4781c36039249546c0b566f6c396f6ba0f3219a888a3",
+      "included": false,
+      "reason": "moving overhead camera",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.4333333333333333,
+        5.333333333333333,
+        8.933333333333334,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu4-45",
+      "dataset": "repcount_a",
+      "source_name": "stu4_45.mp4",
+      "sha256": "cddcb644dde2d4f88eb8138fb9c35f008d38866432ead72ce0672862edd6e54c",
+      "included": false,
+      "reason": "multiple edited takes/views",
+      "view": null,
+      "review_sample_times": [
+        0.041,
+        0.666625,
+        40.206125,
+        52.84375,
+        53.869875
+      ]
+    },
+    {
+      "id": "stu8-42",
+      "dataset": "repcount_a",
+      "source_name": "stu8_42.mp4",
+      "sha256": "e9f08e87b820187219b1ae57ebd074855e98a70e4fc83fee59d5ea524f5cda85",
+      "included": false,
+      "reason": "portrait inset and cropped body",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.7,
+        5.666666666666667,
+        9.5,
+        14.866666666666667
+      ]
+    },
+    {
+      "id": "train2737",
+      "dataset": "repcount_a",
+      "source_name": "train2737.mp4",
+      "sha256": "5802365f7b922bc7c5586e246f759bcfade690bc9bfe17b849e2c990987816df",
+      "included": false,
+      "reason": "dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.435766666666667,
+        6.6066,
+        9.242566666666667,
+        9.876633333333334
+      ]
+    },
+    {
+      "id": "stu7-45",
+      "dataset": "repcount_a",
+      "source_name": "stu7_45.mp4",
+      "sha256": "c38549c2d67dc02f4b2d9c0d995a8f33d5f539f80e2d6da2121bba3d290f33ee",
+      "included": false,
+      "reason": "knee push-ups and coach occlusion",
+      "view": null,
+      "review_sample_times": [
+        0.03900454654223499,
+        3.7480258435032305,
+        7.815984685331419,
+        23.13065326633166,
+        29.890348568238014
+      ]
+    },
+    {
+      "id": "stu9-52",
+      "dataset": "repcount_a",
+      "source_name": "stu9_52.mp4",
+      "sha256": "a1e123a64f0dff82e6f93d1e73c9f3466f19d24e982a996b02b9d14dbb25af3d",
+      "included": false,
+      "reason": "severe body crop",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        0.46676666666666666,
+        16.783066666666667,
+        36.002266666666664,
+        36.8699
+      ]
+    },
+    {
+      "id": "stu9-48",
+      "dataset": "repcount_a",
+      "source_name": "stu9_48.mp4",
+      "sha256": "1db1b090bfec7b0582872078c574038465f15bca66ef16af3aee730f18fd8300",
+      "included": false,
+      "reason": "unresolved multiple takes/count resets",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.4666666666666666,
+        22.533333333333335,
+        56.13333333333333,
+        58.86666666666667
+      ]
+    },
+    {
+      "id": "stu10-48",
+      "dataset": "repcount_a",
+      "source_name": "stu10_48.mp4",
+      "sha256": "99f8f71776c585840b6820d4892b9055c683c7959cfac9960eef43cfb932fb4a",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.033,
+        9.475766666666667,
+        13.212833333333334,
+        27.5605,
+        29.896266666666666
+      ]
+    },
+    {
+      "id": "stu5-47",
+      "dataset": "repcount_a",
+      "source_name": "stu5_47.mp4",
+      "sha256": "a34f45be61aea8eae96a669461b921c32d728ac43226db68d3d9be93f8192b80",
+      "included": false,
+      "reason": "edited close-up views",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.8675333333333334,
+        28.7287,
+        59.09236666666666,
+        59.89326666666666
+      ]
+    },
+    {
+      "id": "stu4-46",
+      "dataset": "repcount_a",
+      "source_name": "stu4_46.mp4",
+      "sha256": "5144422dbf271181405017b70e7fee2070c8723e2078134c5521b871321091ee",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        4.5,
+        25.466666666666665,
+        46.7,
+        59.86666666666667
+      ]
+    },
+    {
+      "id": "stu8-45",
+      "dataset": "repcount_a",
+      "source_name": "stu8_45.mp4",
+      "sha256": "259b3fb9d229cbe48945d60353f9434c41e7e0c88054c2b09e733b020a79bc1c",
+      "included": false,
+      "reason": "edited view changes",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.5833333333333333,
+        10.083333333333334,
+        22.208333333333332,
+        29.85833333333333
+      ]
+    },
+    {
+      "id": "stu9-47",
+      "dataset": "repcount_a",
+      "source_name": "stu9_47.mp4",
+      "sha256": "986bb4f78c0f611974f2b1d7e3b993d050cc49ed9cdf8664e729c3282aef147a",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.0,
+        20.48,
+        24.6,
+        24.6,
+        31.86
+      ]
+    },
+    {
+      "id": "stu10-43",
+      "dataset": "repcount_a",
+      "source_name": "stu10_43.mp4",
+      "sha256": "1f4c496d39673d5d0c51005a6a9369ba58397caad2e2029bafb755b4be8ad6b7",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        1.8351685018351684,
+        32.198865532198866,
+        57.12379045712379,
+        59.89332665999333
+      ]
+    },
+    {
+      "id": "stu6-42",
+      "dataset": "repcount_a",
+      "source_name": "stu6_42.mp4",
+      "sha256": "f475548d98bf1df4304e752ccee9043d8fe4d5d3b18bb2b496b9afbb70075e80",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        3.6,
+        27.233333333333334,
+        48.06666666666667,
+        56.86666666666667
+      ]
+    },
+    {
+      "id": "stu6-39",
+      "dataset": "repcount_a",
+      "source_name": "stu6_39.mp4",
+      "sha256": "c5b557d12ade17f4efea4237668f9a67669fdead76002e83a73d3f8cbd9affe6",
+      "included": false,
+      "reason": "steep elevated front view",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        22.2,
+        35.63333333333333,
+        47.86666666666667,
+        48.86666666666667
+      ]
+    },
+    {
+      "id": "train2659",
+      "dataset": "repcount_a",
+      "source_name": "train2659.mp4",
+      "sha256": "73896b2493a0dc78d2d375b6ea0f62f2ce875c78de8017038887fc6e46d0fc42",
+      "included": false,
+      "reason": "rotated severe body crop",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.0,
+        6.166666666666667,
+        8.5,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu1-50",
+      "dataset": "repcount_a",
+      "source_name": "stu1_50.mp4",
+      "sha256": "8915a016080d325210284f2c8f2df358ba535cbad7a5c0e98635f7a5f3a0cf18",
+      "included": false,
+      "reason": "incline/decline montage",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        17.466666666666665,
+        28.0,
+        39.733333333333334,
+        41.86666666666667
+      ]
+    },
+    {
+      "id": "train2645",
+      "dataset": "repcount_a",
+      "source_name": "train2645.mp4",
+      "sha256": "840b50081cb31b494f441c281b3f1e19f10b9c0e19a80383e11c8c90c3126eb2",
+      "included": false,
+      "reason": "dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8,
+        5.633333333333334,
+        8.8,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu5-43",
+      "dataset": "repcount_a",
+      "source_name": "stu5_43.mp4",
+      "sha256": "f300442f5e275d3ac038c372e55cfcf9d527853ccd163d95e947bcfbc28992a6",
+      "included": false,
+      "reason": "edited view changes",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.8695333333333335,
+        17.584233333333334,
+        32.866166666666665,
+        33.867266666666666
+      ]
+    },
+    {
+      "id": "train2649",
+      "dataset": "repcount_a",
+      "source_name": "train2649.mp4",
+      "sha256": "6d9deb1b04fee7f5b3821b41d19314a194aeb0f09cd3dddc7cb77976e3e662b7",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.0,
+        1.4333333333333333,
+        5.833333333333333,
+        8.033333333333333,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu4-43",
+      "dataset": "repcount_a",
+      "source_name": "stu4_43.mp4",
+      "sha256": "b13e106193d3b3f70a9c183821e93b70da9d81bd290822bd33dc276d2769850a",
+      "included": false,
+      "reason": "edited view changes",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        2.1017333333333332,
+        16.049,
+        29.32893333333333,
+        30.897266666666667
+      ]
+    },
+    {
+      "id": "stu2-47",
+      "dataset": "repcount_a",
+      "source_name": "stu2_47.mp4",
+      "sha256": "7f34a43b38bc279e56df4d92af0d6d37273cda1e1d371618173d90f12d687167",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        1.1011,
+        25.392033333333334,
+        52.4524,
+        59.89326666666666
+      ]
+    },
+    {
+      "id": "stu6-37",
+      "dataset": "repcount_a",
+      "source_name": "stu6_37.mp4",
+      "sha256": "21ab28548b6aacbfbf9ca8715d23a273360cc797e370efb9d379eda31776593c",
+      "included": false,
+      "reason": "edited front/side view changes",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        11.077366666666666,
+        16.783066666666667,
+        27.627233333333333,
+        31.898266666666665
+      ]
+    },
+    {
+      "id": "stu9-54",
+      "dataset": "repcount_a",
+      "source_name": "stu9_54.mp4",
+      "sha256": "9011f9c8678b71e3e7c09da619aff56d25283ebba00c3aead3db36ad785025a9",
+      "included": false,
+      "reason": "mixed advanced push-up variants",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        5.872533333333333,
+        30.363666666666667,
+        57.3573,
+        59.89326666666666
+      ]
+    },
+    {
+      "id": "stu7-46",
+      "dataset": "repcount_a",
+      "source_name": "stu7_46.mp4",
+      "sha256": "95d694dbe5fd1ed59e2265fce0b263fa23e0eee4545cde2524916db3b38d0448",
+      "included": false,
+      "reason": "edited multiple performers",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.8333333333333334,
+        23.566666666666666,
+        32.9,
+        34.86666666666667
+      ]
+    },
+    {
+      "id": "stu2-49",
+      "dataset": "repcount_a",
+      "source_name": "stu2_49.mp4",
+      "sha256": "8037d40737b419ec4bdf0214623abd9295ac14495f0356e759fbf7ba41b68d6d",
+      "included": false,
+      "reason": "cropped leg endpoints and posture tutorial",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        4.203833333333334,
+        23.4564,
+        44.74433333333333,
+        45.8789
+      ]
+    },
+    {
+      "id": "val890",
+      "dataset": "repcount_a",
+      "source_name": "val890.mp4",
+      "sha256": "d7b73b82ccd0fa8114b937fad99a93cd05e7fa94a038aa2d769bed8d0acddc4c",
+      "included": false,
+      "reason": "one-arm wall-assisted variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.0666666666666667,
+        5.066666666666666,
+        8.8,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu10-41",
+      "dataset": "repcount_a",
+      "source_name": "stu10_41.mp4",
+      "sha256": "0dadf59226cac33d3e877e0d0b7cf243295099c4784c628ba5441150cec569e7",
+      "included": false,
+      "reason": "elevated rail support and view changes",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        1.4010333333333334,
+        16.1491,
+        27.026633333333333,
+        29.896266666666666
+      ]
+    },
+    {
+      "id": "stu5-44",
+      "dataset": "repcount_a",
+      "source_name": "stu5_44.mp4",
+      "sha256": "69beaa155a37cf57bb3b0c7c1e29b9ae9d5510f1016b8db7c9e77b45ce57ac1a",
+      "included": false,
+      "reason": "composite and edited views",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        5.872533333333333,
+        31.4314,
+        45.9459,
+        49.883266666666664
+      ]
+    },
+    {
+      "id": "stu2-52",
+      "dataset": "repcount_a",
+      "source_name": "stu2_52.mp4",
+      "sha256": "b6cc67109a8cfab4a58bbf6a0f16518933db5cec0e20700274a232669b52cd15",
+      "included": false,
+      "reason": "handstand push-ups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        22.066666666666666,
+        28.533333333333335,
+        31.966666666666665,
+        39.86666666666667
+      ]
+    },
+    {
+      "id": "val892",
+      "dataset": "repcount_a",
+      "source_name": "val892.mp4",
+      "sha256": "78ac55ea47c26ec769c646c8ab92c159605338607709d242d872ac35bb15db72",
+      "included": false,
+      "reason": "suspension push-ups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.0,
+        5.866666666666666,
+        5.866666666666666,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "train2739",
+      "dataset": "repcount_a",
+      "source_name": "train2739.mp4",
+      "sha256": "41266ed898317ecb4e109e6246c2a875383306715b6fc412707155dea2be847f",
+      "included": false,
+      "reason": "severe arm/hip crop and foreground occlusion",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.5,
+        5.3,
+        9.6,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu8-40",
+      "dataset": "repcount_a",
+      "source_name": "stu8_40.mp4",
+      "sha256": "2d7b883ac1862268e5e7d62d232d7cd0dde9885393c6dddb7c49d24aa9ecab8b",
+      "included": false,
+      "reason": "hip/leg crop and edited closeups",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        9.776066666666667,
+        18.4514,
+        21.320933333333333,
+        59.8929
+      ]
+    },
+    {
+      "id": "stu5-48",
+      "dataset": "repcount_a",
+      "source_name": "stu5_48.mp4",
+      "sha256": "f5fa92256d3c7900c412373c4b80a22330d8ae1269348e7719e222c2fe72dd9c",
+      "included": false,
+      "reason": "edited severe closeups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        4.879875,
+        28.403375,
+        49.132416666666664,
+        58.87558333333333
+      ]
+    },
+    {
+      "id": "stu1-52",
+      "dataset": "repcount_a",
+      "source_name": "stu1_52.mp4",
+      "sha256": "7b1febf60954069071ac9bad3ddbd6e1f1dd68c4c4cd391b14a23865a0102409",
+      "included": false,
+      "reason": "edited multiple performers",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        0.7337,
+        29.7627,
+        56.65623333333333,
+        59.8929
+      ]
+    },
+    {
+      "id": "stu2-48",
+      "dataset": "repcount_a",
+      "source_name": "stu2_48.mp4",
+      "sha256": "5e895a106bea088efe78ab76c7d70da34fbb5ec55f110ba6bf1fc705dd29465b",
+      "included": false,
+      "reason": "bench and side-plank variants",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        4.871533333333334,
+        16.249566666666666,
+        25.959266666666668,
+        29.89663333333333
+      ]
+    },
+    {
+      "id": "stu10-53",
+      "dataset": "repcount_a",
+      "source_name": "stu10_53.mp4",
+      "sha256": "19bfa3d5e693af5bc53e802fb53792e68f69eb1e25304c1a34e908610a09746a",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "front",
+      "review_sample_times": [
+        0.0,
+        2.8028,
+        12.078733333333334,
+        21.7217,
+        22.889633333333332
+      ]
+    },
+    {
+      "id": "stu5-46",
+      "dataset": "repcount_a",
+      "source_name": "stu5_46.mp4",
+      "sha256": "80b29bd92a28d4a0e767b6f271652750cf3529618f081692aff8a3af2de44418",
+      "included": false,
+      "reason": "overhead forearm/push-up tutorial",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        8.8418,
+        12.478766666666667,
+        16.3493,
+        36.8699
+      ]
+    },
+    {
+      "id": "stu1-49",
+      "dataset": "repcount_a",
+      "source_name": "stu1_49.mp4",
+      "sha256": "a61fb9f70510e66254753eb8d8e98616b43c5c550dd9ff4b3674dbfb417ea551",
+      "included": false,
+      "reason": "portrait inset and edited closeups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.1333333333333333,
+        20.033333333333335,
+        35.53333333333333,
+        38.86666666666667
+      ]
+    },
+    {
+      "id": "stu6-38",
+      "dataset": "repcount_a",
+      "source_name": "stu6_38.mp4",
+      "sha256": "7c8a23b62b829fc6f29f617ad2a427b91a5276e62420c0a965cc08f425149c1a",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        4.796458333333334,
+        15.432083333333333,
+        38.913875,
+        41.85858333333333
+      ]
+    },
+    {
+      "id": "stu9-49",
+      "dataset": "repcount_a",
+      "source_name": "stu9_49.mp4",
+      "sha256": "1788247876a152bcb20236eb7a1089b9bf8a1f588d5e787eff53ee050dd02a1e",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        12.633333333333333,
+        21.266666666666666,
+        26.766666666666666,
+        29.866666666666664
+      ]
+    },
+    {
+      "id": "stu2-50",
+      "dataset": "repcount_a",
+      "source_name": "stu2_50.mp4",
+      "sha256": "37e91d8ec11e6caa872b8ab0d2e469c34fe0b3040b1c577892bcd65dc208bfea",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.0,
+        12.48,
+        39.88,
+        59.64,
+        60.86
+      ]
+    },
+    {
+      "id": "stu9-46",
+      "dataset": "repcount_a",
+      "source_name": "stu9_46.mp4",
+      "sha256": "8dbda37ed18a790bd254909f1208e0dbf0ab9ac4004af7d8e59457d03ade124e",
+      "included": false,
+      "reason": "band/archer variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.876875,
+        11.803458333333333,
+        23.314958333333333,
+        29.888291666666664
+      ]
+    },
+    {
+      "id": "stu1-43",
+      "dataset": "repcount_a",
+      "source_name": "stu1_43.mp4",
+      "sha256": "dea96ea376d7a6ee91508d8daf74aec0c53ec04a1ed8634aed7d4f324521bc7d",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        3.1698333333333335,
+        26.234541666666665,
+        56.681625,
+        59.87658333333333
+      ]
+    },
+    {
+      "id": "stu7-47",
+      "dataset": "repcount_a",
+      "source_name": "stu7_47.mp4",
+      "sha256": "8c071f3dd1c62db692ed74c4840c3b98c099079976b5e7f6eddf332385e6ed26",
+      "included": false,
+      "reason": "small portrait inset",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.8666666666666667,
+        16.1,
+        31.9,
+        32.86666666666667
+      ]
+    },
+    {
+      "id": "stu10-45",
+      "dataset": "repcount_a",
+      "source_name": "stu10_45.mp4",
+      "sha256": "6b192c80b19a4d6367c4c3a589a095cad7677d9176c8624237e8f8e5e604bfa5",
+      "included": false,
+      "reason": "edited view changes",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9019,
+        24.657966666666667,
+        43.376666666666665,
+        52.886266666666664
+      ]
+    },
+    {
+      "id": "stu2-54",
+      "dataset": "repcount_a",
+      "source_name": "stu2_54.mp4",
+      "sha256": "f8b52d16be2a9901f3a03ccd6cd8f85b302a0cbe6527900864a7836ac4537843",
+      "included": false,
+      "reason": "dog occludes arms",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.1021,
+        10.276933333333334,
+        18.952266666666667,
+        20.887633333333333
+      ]
+    },
+    {
+      "id": "test1624",
+      "dataset": "repcount_a",
+      "source_name": "test1624.mp4",
+      "sha256": "1639c9c21e568137d86b51de076476d524a8eee6d5b4e1b2dd305f24754eb853",
+      "included": false,
+      "reason": "pike/dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.5333333333333334,
+        4.666666666666667,
+        7.733333333333333,
+        9.833333333333334
+      ]
+    },
+    {
+      "id": "stu10-49",
+      "dataset": "repcount_a",
+      "source_name": "stu10_49.mp4",
+      "sha256": "e316d61ff0e26c90cbdb672769199b41632976ac61a8b29c58454e7650b9f6c4",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "front",
+      "review_sample_times": [
+        0.0,
+        1.3333333333333333,
+        26.791666666666668,
+        55.291666666666664,
+        59.858333333333334
+      ]
+    },
+    {
+      "id": "train2719",
+      "dataset": "repcount_a",
+      "source_name": "train2719.mp4",
+      "sha256": "a772507dd4948cf613752c7d0a8cf048565086b8199b653086b53aafdb784f28",
+      "included": false,
+      "reason": "portrait and moving camera",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.5,
+        4.433333333333334,
+        7.366666666666666,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu2-45",
+      "dataset": "repcount_a",
+      "source_name": "stu2_45.mp4",
+      "sha256": "daf66d53046e95a5b0c90984bb105b22386beaa15ea07c5358b72c24983ff752",
+      "included": false,
+      "reason": "knee push-ups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.1333333333333333,
+        5.833333333333333,
+        8.3,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu3-47",
+      "dataset": "repcount_a",
+      "source_name": "stu3_47.mp4",
+      "sha256": "ac817f92c054d074ccdf7621704c92f69faaca96d9bf627add6dd8a91c20d0a1",
+      "included": false,
+      "reason": "steep elevated view",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        37.9379,
+        49.516133333333336,
+        58.324933333333334,
+        59.89326666666666
+      ]
+    },
+    {
+      "id": "stu6-45",
+      "dataset": "repcount_a",
+      "source_name": "stu6_45.mp4",
+      "sha256": "9098ceb5ee0e74794365e5770cc4fec1796ae13dfdb0262d47d71c8168ad3b53",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.0,
+        3.8333333333333335,
+        17.333333333333332,
+        27.666666666666668,
+        31.866666666666664
+      ]
+    },
+    {
+      "id": "train2676",
+      "dataset": "repcount_a",
+      "source_name": "train2676.mp4",
+      "sha256": "e27004355c2f46182c4bc1fbd579c7ccd0fb077c27855487adf46777dc3fb87f",
+      "included": false,
+      "reason": "knee-tuck compound variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.32,
+        6.28,
+        9.04,
+        9.860000000000001
+      ]
+    },
+    {
+      "id": "stu8-44",
+      "dataset": "repcount_a",
+      "source_name": "stu8_44.mp4",
+      "sha256": "897b3c925b397af33b16be80996642e296633cc5751ae1bd1d67d73594a5dfc1",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "front",
+      "review_sample_times": [
+        0.0,
+        27.566666666666666,
+        40.56666666666667,
+        58.13333333333333,
+        59.86666666666667
+      ]
+    },
+    {
+      "id": "stu3-51",
+      "dataset": "repcount_a",
+      "source_name": "stu3_51.mp4",
+      "sha256": "e3894a65cacdd35f701ca75bfc61b37873906d765e40d00ca93fe2d102362127",
+      "included": false,
+      "reason": "severe upper-body crop",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.7794496407753829,
+        24.603497356649044,
+        46.360309068727126,
+        46.8703131354209
+      ]
+    },
+    {
+      "id": "stu3-44",
+      "dataset": "repcount_a",
+      "source_name": "stu3_44.mp4",
+      "sha256": "d82ce509931a31f63d66b7ee4ff9ffff0d96f025b5c7909c484805f93e83e520",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        1.6,
+        12.88,
+        21.2,
+        29.86
+      ]
+    },
+    {
+      "id": "val914",
+      "dataset": "repcount_a",
+      "source_name": "val914.mp4",
+      "sha256": "a6992930165932ded70d9be19f8cbd84fa9af288b3a59c3340caeb9e3f0d7045",
+      "included": false,
+      "reason": "knee-tuck explosive variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8333333333333333,
+        5.666666666666667,
+        5.666666666666667,
+        9.733333333333334
+      ]
+    },
+    {
+      "id": "train2685",
+      "dataset": "repcount_a",
+      "source_name": "train2685.mp4",
+      "sha256": "88ed3cb44a53f724ce4f61690d59fc8ed21278bf112cb16e09909ab58a791e6c",
+      "included": false,
+      "reason": "dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.5,
+        7.466666666666667,
+        7.466666666666667,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu3-45",
+      "dataset": "repcount_a",
+      "source_name": "stu3_45.mp4",
+      "sha256": "b97b650f06408103ec6a45162428ed6abf7e5de3bed3e5e772e6327fb3693026",
+      "included": false,
+      "reason": "exercise-time zoom/crops",
+      "view": null,
+      "review_sample_times": [
+        0.033,
+        1.4677666666666667,
+        33.53313333333333,
+        58.32456666666667,
+        59.8929
+      ]
+    },
+    {
+      "id": "stu4-44",
+      "dataset": "repcount_a",
+      "source_name": "stu4_44.mp4",
+      "sha256": "18d5ab04c476247eaf197fed945c690bbd30e514e60a16735f35d63b186fd7dd",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.041,
+        10.051,
+        23.439375,
+        33.866458333333334,
+        39.89758333333333
+      ]
+    },
+    {
+      "id": "stu1-45",
+      "dataset": "repcount_a",
+      "source_name": "stu1_45.mp4",
+      "sha256": "4d2b35938e956311f7421ab836023cadbe37f29855705690e2af1ae726094576",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        6.08,
+        12.24,
+        26.64,
+        32.86
+      ]
+    },
+    {
+      "id": "stu4-49",
+      "dataset": "repcount_a",
+      "source_name": "stu4_49.mp4",
+      "sha256": "b08b2532540f32fd32263d850f7adf5d9e1b51f04a16d7a7ca9eb6be7947239a",
+      "included": false,
+      "reason": "dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        8.7,
+        19.333333333333332,
+        28.133333333333333,
+        31.866666666666664
+      ]
+    },
+    {
+      "id": "stu6-43",
+      "dataset": "repcount_a",
+      "source_name": "stu6_43.mp4",
+      "sha256": "481bc732a17c2d9a1d395a0bec47b0d67effc1395eba3d4989d5ffbb44962698",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "front-oblique",
+      "review_sample_times": [
+        0.0,
+        1.4,
+        10.766666666666667,
+        21.1,
+        21.866666666666664
+      ]
+    },
+    {
+      "id": "train2692",
+      "dataset": "repcount_a",
+      "source_name": "train2692.mp4",
+      "sha256": "d02019022b18def60499669908cf05d6ae59421adb19c0db03d2e88289b5e53e",
+      "included": false,
+      "reason": "knee/dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.2333333333333334,
+        6.933333333333334,
+        6.933333333333334,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "train2712",
+      "dataset": "repcount_a",
+      "source_name": "train2712.mp4",
+      "sha256": "0aa3412f182cae44170c19d414ab052fbb12538ea6ddd46557bc66eeebdac6f6",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.0,
+        0.7,
+        5.7,
+        8.866666666666667,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "train2734",
+      "dataset": "repcount_a",
+      "source_name": "train2734.mp4",
+      "sha256": "10713d7adac18a49cfda7ffe26dfd2c593637771986e5f831ed5fc74cda4c340",
+      "included": false,
+      "reason": "explosive turning variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.2,
+        6.633333333333334,
+        6.633333333333334,
+        9.866666666666667
+      ]
+    },
+    {
+      "id": "stu8-48",
+      "dataset": "repcount_a",
+      "source_name": "stu8_48.mp4",
+      "sha256": "621e66e791f2d040edeb0d3cc7c52f1852b8f2ed928ec1c924fd558a23fc4cce",
+      "included": false,
+      "reason": "push-up/jump compound",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        6.541666666666667,
+        23.416666666666668,
+        50.041666666666664,
+        59.858333333333334
+      ]
+    },
+    {
+      "id": "stu6-40",
+      "dataset": "repcount_a",
+      "source_name": "stu6_40.mp4",
+      "sha256": "bdf2ef13cf65923550ad7d65b981477c3a24be2173677a53431b36e781f31466",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        4.2,
+        37.36,
+        49.92,
+        52.86
+      ]
+    },
+    {
+      "id": "stu10-46",
+      "dataset": "repcount_a",
+      "source_name": "stu10_46.mp4",
+      "sha256": "9293650f39f89b90b59ba31ab164edd3fd4e90fb31851960345595e2de0c0753",
+      "included": false,
+      "reason": "mixed exercise montage",
+      "view": null,
+      "review_sample_times": [
+        0.041,
+        1.29225,
+        9.30025,
+        15.765041666666667,
+        29.887583333333332
+      ]
+    },
+    {
+      "id": "stu3-46",
+      "dataset": "repcount_a",
+      "source_name": "stu3_46.mp4",
+      "sha256": "82ee9e7dcf298791e32275c3e548e6bec18ea37812e0dd0b9ff4c48c73967bb6",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.033,
+        3.3363,
+        8.608233333333333,
+        13.613233333333334,
+        19.886266666666664
+      ]
+    },
+    {
+      "id": "stu8-41",
+      "dataset": "repcount_a",
+      "source_name": "stu8_41.mp4",
+      "sha256": "77e296f665284a72f6803c18c5f314cd4df09fdb7add2c0a1fe872eeb7c3642d",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "front",
+      "review_sample_times": [
+        0.0,
+        2.3333333333333335,
+        13.933333333333334,
+        33.36666666666667,
+        36.86666666666667
+      ]
+    },
+    {
+      "id": "stu3-42",
+      "dataset": "repcount_a",
+      "source_name": "stu3_42.mp4",
+      "sha256": "dd58b78b151e54605601c2c2682c814299070448bf795a7b5ebcdb5cb5cdc9e2",
+      "included": false,
+      "reason": "exercise-time close-up edits",
+      "view": null,
+      "review_sample_times": [
+        0.041,
+        1.417375,
+        14.764041666666667,
+        29.403666666666666,
+        33.89158333333333
+      ]
+    },
+    {
+      "id": "stu10-54",
+      "dataset": "repcount_a",
+      "source_name": "stu10_54.mp4",
+      "sha256": "b4e53ad821358206d23a858679980228a07d97b25c50d88b9d3c1f2792a28750",
+      "included": false,
+      "reason": "edited view changes",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        3.1666666666666665,
+        17.133333333333333,
+        35.8,
+        38.86666666666667
+      ]
+    },
+    {
+      "id": "stu4-48",
+      "dataset": "repcount_a",
+      "source_name": "stu4_48.mp4",
+      "sha256": "9d99473ef38ed4899b4df06c4274acc24e65c30ed0daf46e5124e998b07c51dd",
+      "included": false,
+      "reason": "animated knee push-ups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        4.237566666666667,
+        15.5155,
+        23.490133333333333,
+        29.89663333333333
+      ]
+    },
+    {
+      "id": "stu2-51",
+      "dataset": "repcount_a",
+      "source_name": "stu2_51.mp4",
+      "sha256": "b0b907ab07b7efba35bdf605f06b20dda48d13c863ab7f38e030b601ad363db9",
+      "included": false,
+      "reason": "mixed advanced push-up progression",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        8.241566666666667,
+        18.3183,
+        36.6366,
+        40.874266666666664
+      ]
+    },
+    {
+      "id": "train2745",
+      "dataset": "repcount_a",
+      "source_name": "train2745.mp4",
+      "sha256": "743ceddc4a62320cadcec25f01eea663b9a1d91ae6c92b0a7ef61dd3e0bb2543",
+      "included": false,
+      "reason": "pike/dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        2.0687333333333333,
+        5.9726333333333335,
+        5.9726333333333335,
+        9.876633333333334
+      ]
+    },
+    {
+      "id": "stu2-46",
+      "dataset": "repcount_a",
+      "source_name": "stu2_46.mp4",
+      "sha256": "489ffd6c0be134660c43fdeaeba967476927825d0ccf2450a4931a1c8c1d5651",
+      "included": false,
+      "reason": "edited view changes",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.33366666666666667,
+        15.849166666666667,
+        40.974266666666665,
+        41.87526666666667
+      ]
+    },
+    {
+      "id": "train2666",
+      "dataset": "repcount_a",
+      "source_name": "train2666.mp4",
+      "sha256": "fe6dac4ecba1210c6404bb8b0c9e81e23eba1339a9ead7a9dbb5fa5c7e47d942",
+      "included": false,
+      "reason": "rotating side-plank variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.5015,
+        5.296958333333333,
+        8.883875,
+        9.868291666666668
+      ]
+    },
+    {
+      "id": "stu5-42",
+      "dataset": "repcount_a",
+      "source_name": "stu5_42.mp4",
+      "sha256": "ea15c9fa3618818f35a44ab785f047a773a923158ecaffbbb1bd623192d01d49",
+      "included": false,
+      "reason": "portrait and edited performers",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.3013,
+        30.463766666666668,
+        57.023633333333336,
+        58.892266666666664
+      ]
+    },
+    {
+      "id": "stu1-44",
+      "dataset": "repcount_a",
+      "source_name": "stu1_44.mp4",
+      "sha256": "4feedce21b36d2a7984e37f29249fb70206c1c621c7ccfb09f21a4b97760b7e2",
+      "included": false,
+      "reason": "edited exercise takes",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        8.16,
+        17.48,
+        23.88,
+        29.86
+      ]
+    },
+    {
+      "id": "val886",
+      "dataset": "repcount_a",
+      "source_name": "val886.mp4",
+      "sha256": "b7b67d5d9faa414edc2446b91d04897450b27dfff135cd8bd30b9a2c1da25f11",
+      "included": false,
+      "reason": "rotated content and body crop",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        0.7340666666666666,
+        4.471133333333333,
+        8.775433333333334,
+        9.876633333333334
+      ]
+    },
+    {
+      "id": "stu1-46",
+      "dataset": "repcount_a",
+      "source_name": "stu1_46.mp4",
+      "sha256": "61e2939379243fc751d6ed0473d9567185492896ce66354efd45ebd4ee1d7ed0",
+      "included": false,
+      "reason": "exercise-time crop/view change",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        16.375,
+        23.833333333333332,
+        32.708333333333336,
+        39.858333333333334
+      ]
+    },
+    {
+      "id": "countix-bpreIIDbeHA",
+      "dataset": "countix",
+      "source_name": "countix_bpreIIDbeHA_000174_000184.mp4",
+      "sha256": "eb8f804f62126b7a5d4e75b0199e7a2be1abaffa739ee87e1fd87eaa9512069e",
+      "included": false,
+      "reason": "severe leg-endpoint crop",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.971633333333333,
+        7.974633333333333,
+        9.776433333333333
+      ]
+    },
+    {
+      "id": "countix-DbnXRR9n6UU",
+      "dataset": "countix",
+      "source_name": "countix_DbnXRR9n6UU_000011_000021.mp4",
+      "sha256": "7998637804b651df7aedadf9747e7b8098546d4b24c8bc34c32733721b9e6452",
+      "included": false,
+      "reason": "athlete rotates view during reps",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.896551724137931,
+        4.758620689655173,
+        7.586206896551724,
+        9.310344827586206
+      ]
+    },
+    {
+      "id": "countix-EpTeVtoil5M",
+      "dataset": "countix",
+      "source_name": "countix_EpTeVtoil5M_000014_000024.mp4",
+      "sha256": "0ad34892f292e851f6b98f27373d831e38cbe43c0827a03fe437155b23d74487",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side",
+      "review_sample_times": [
+        0.0,
+        1.76,
+        4.44,
+        7.12,
+        8.72
+      ]
+    },
+    {
+      "id": "countix-B60mGAKnQ_8",
+      "dataset": "countix",
+      "source_name": "countix_B60mGAKnQ_8_000032_000042.mp4",
+      "sha256": "73eae73a56305c73446795bd5a364ccc5e9c9a7cc7c38575895a48f7cbf4995d",
+      "included": false,
+      "reason": "wall push-ups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.971633333333333,
+        7.974633333333333,
+        9.776433333333333
+      ]
+    },
+    {
+      "id": "countix-Ap9XKPK3x_g",
+      "dataset": "countix",
+      "source_name": "countix_Ap9XKPK3x_g_000006_000016.mp4",
+      "sha256": "9d45e2e75f38efe194b1ace813a19d94ddfdac0bd4f6e2f82e740bfd21b081a6",
+      "included": false,
+      "reason": "knee-tuck compound variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8,
+        4.5,
+        7.2,
+        8.833333333333334
+      ]
+    },
+    {
+      "id": "countix-BCSNAZIHiGg",
+      "dataset": "countix",
+      "source_name": "countix_BCSNAZIHiGg_000005_000015.mp4",
+      "sha256": "a25561fdf87cabeaf2ff735abc281fad3eb94abf342e135273afeaf42bf608e2",
+      "included": false,
+      "reason": "explosive tucked-leg variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8351666666666666,
+        4.6046,
+        7.3406666666666665,
+        9.009
+      ]
+    },
+    {
+      "id": "countix-CElE2vVloh0",
+      "dataset": "countix",
+      "source_name": "countix_CElE2vVloh0_000003_000013.mp4",
+      "sha256": "0def6326c3335ec59b60f214af9444a2261b953706a41fd60e71f7f9e1cf77f3",
+      "included": false,
+      "reason": "one-arm wall-assisted variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9666666666666666,
+        4.966666666666667,
+        7.966666666666667,
+        9.766666666666667
+      ]
+    },
+    {
+      "id": "countix-bix6buMse7c",
+      "dataset": "countix",
+      "source_name": "countix_bix6buMse7c_000024_000034.mp4",
+      "sha256": "29094abdf2834df2a61679214bcf1c05db8aa283497aecb8512031a305dac25d",
+      "included": false,
+      "reason": "portrait inset and pike variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8,
+        4.5,
+        7.2,
+        8.833333333333334
+      ]
+    },
+    {
+      "id": "countix-cfprLqZ3CL8",
+      "dataset": "countix",
+      "source_name": "countix_cfprLqZ3CL8_000008_000018.mp4",
+      "sha256": "0dcbda6994d47a1aa320898f22fd00fa20a94517e3558cf604607cfed5631eee",
+      "included": false,
+      "reason": "moving portrait camera",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8351666666666666,
+        4.571233333333334,
+        7.3406666666666665,
+        8.975633333333333
+      ]
+    },
+    {
+      "id": "countix-DBXE6k9PP-g",
+      "dataset": "countix",
+      "source_name": "countix_DBXE6k9PP-g_000024_000034.mp4",
+      "sha256": "155ebc743d6cc32688825704899a275c91893f4455a755c667f909bffba26b1c",
+      "included": false,
+      "reason": "forearm/sphinx variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.971633333333333,
+        7.974633333333333,
+        9.776433333333333
+      ]
+    },
+    {
+      "id": "countix-F8RYNgIN_sE",
+      "dataset": "countix",
+      "source_name": "countix_F8RYNgIN_sE_000031_000041.mp4",
+      "sha256": "9d1280e3e6c3c75e462bfbbeee9c63fd64da3ddfed0840205e02aed7dbebd786",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.0,
+        1.9333333333333333,
+        4.833333333333333,
+        7.733333333333333,
+        9.5
+      ]
+    },
+    {
+      "id": "countix-CnJ34LAjYjw",
+      "dataset": "countix",
+      "source_name": "countix_CnJ34LAjYjw_000001_000011.mp4",
+      "sha256": "159e2e891177312f4c95783e6861b0185fca688e94eee88fd3777e5142f6993f",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "front-oblique",
+      "review_sample_times": [
+        0.0,
+        1.9333333333333333,
+        4.833333333333333,
+        7.733333333333333,
+        9.5
+      ]
+    },
+    {
+      "id": "countix-DSlmPd3L_i8",
+      "dataset": "countix",
+      "source_name": "countix_DSlmPd3L_i8_000024_000034.mp4",
+      "sha256": "5b2410a63e1ae0486d831da91408865e17419d5769bac212ad8d3b42db1dc649",
+      "included": false,
+      "reason": "knee push-ups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9583333333333333,
+        4.958333333333333,
+        7.958333333333333,
+        9.75
+      ]
+    },
+    {
+      "id": "countix-c-8TM6c6svY",
+      "dataset": "countix",
+      "source_name": "countix_c-8TM6c6svY_000037_000047.mp4",
+      "sha256": "2d2dddfd844ba1a81205c66466dd5cd704c76b6075e0b5dc78fb45f1138f89a0",
+      "included": false,
+      "reason": "dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.96,
+        4.96,
+        7.96,
+        9.76
+      ]
+    },
+    {
+      "id": "countix-agsG7CFDxe4",
+      "dataset": "countix",
+      "source_name": "countix_agsG7CFDxe4_000000_000010.mp4",
+      "sha256": "a779f1240a4c7c286a7927e1b11adb4c0647db1ed188e3a49422d677296a905e",
+      "included": false,
+      "reason": "one-arm/forearm compound variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.971633333333333,
+        7.974633333333333,
+        9.776433333333333
+      ]
+    },
+    {
+      "id": "countix-D27cOfFQr8U",
+      "dataset": "countix",
+      "source_name": "countix_D27cOfFQr8U_000018_000028.mp4",
+      "sha256": "080dcaa5a5d5abaa0a193e08b551f2f611546955ffd7c3b7a0348c60b578b15c",
+      "included": true,
+      "reason": "ordinary push-up, visible required body, stable exercise view at source review samples",
+      "view": "side-oblique",
+      "review_sample_times": [
+        0.0,
+        1.96,
+        4.96,
+        7.96,
+        9.76
+      ]
+    },
+    {
+      "id": "countix-BgTUTLwyA-Q",
+      "dataset": "countix",
+      "source_name": "countix_BgTUTLwyA-Q_000000_000010.mp4",
+      "sha256": "be5760b090e2c0aefdb65154f561e3c579f810056ee7c204599b9c2fe428aee9",
+      "included": false,
+      "reason": "rotated content and body crop",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.971633333333333,
+        7.974633333333333,
+        9.776433333333333
+      ]
+    },
+    {
+      "id": "countix-e-Hia1hhUaE",
+      "dataset": "countix",
+      "source_name": "countix_e-Hia1hhUaE_000033_000043.mp4",
+      "sha256": "2d12fe4f470f39437288ca6834e2bf0cec0a14ee3ef939d37a100e2f32914a83",
+      "included": false,
+      "reason": "overhead moving camera",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.7666666666666666,
+        4.433333333333334,
+        7.066666666666666,
+        8.666666666666666
+      ]
+    },
+    {
+      "id": "countix-E8r3skKpkMc",
+      "dataset": "countix",
+      "source_name": "countix_E8r3skKpkMc_000056_000066.mp4",
+      "sha256": "813d9d215f923b44305f6c6cb1a169601078f4113b1758feec9dd6262a4d2abe",
+      "included": false,
+      "reason": "cropped leg endpoints",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8644067796610169,
+        4.677966101694915,
+        7.491525423728813,
+        9.186440677966102
+      ]
+    },
+    {
+      "id": "countix-DA6N2ebQ8WA",
+      "dataset": "countix",
+      "source_name": "countix_DA6N2ebQ8WA_000013_000023.mp4",
+      "sha256": "eee45ad1d1e2315979897461bbbf0a4ebc5caea3b872162540296d44e3a42dd0",
+      "included": false,
+      "reason": "steep overhead view",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8018,
+        4.537866666666667,
+        7.240566666666667,
+        8.875533333333333
+      ]
+    },
+    {
+      "id": "countix-b27ZGq3Wxo4",
+      "dataset": "countix",
+      "source_name": "countix_b27ZGq3Wxo4_000017_000027.mp4",
+      "sha256": "e92f3a72836921a534c14efe9c345eefcbae20b81b8c15e2ae3475ec71152552",
+      "included": false,
+      "reason": "rotating side-plank variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.938266666666666,
+        7.9079,
+        9.7097
+      ]
+    },
+    {
+      "id": "countix-B-dU6Iyomjc",
+      "dataset": "countix",
+      "source_name": "countix_B-dU6Iyomjc_000142_000152.mp4",
+      "sha256": "fc295ee915c63377991dfc3c9a17eb9b04f86b8415e660bf095992ce1ef3fafb",
+      "included": false,
+      "reason": "severe body crop",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.971633333333333,
+        7.974633333333333,
+        9.776433333333333
+      ]
+    },
+    {
+      "id": "countix-d4G4-HxLnXY",
+      "dataset": "countix",
+      "source_name": "countix_d4G4-HxLnXY_000003_000013.mp4",
+      "sha256": "21668cde874b84d78799f2689a4d590cea38e17bfc702b1a111d19f2182125f8",
+      "included": false,
+      "reason": "dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9352666666666667,
+        4.871533333333334,
+        7.7744333333333335,
+        9.542866666666667
+      ]
+    },
+    {
+      "id": "countix-CeYfTmdqPqo",
+      "dataset": "countix",
+      "source_name": "countix_CeYfTmdqPqo_000046_000056.mp4",
+      "sha256": "9b167a3bf299199adc8dcc785bdb840fcf5a81626fd7cebf7be387d9b1a7e5ae",
+      "included": false,
+      "reason": "rotated portrait content",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.971633333333333,
+        7.974633333333333,
+        9.776433333333333
+      ]
+    },
+    {
+      "id": "countix-b0YR134L938",
+      "dataset": "countix",
+      "source_name": "countix_b0YR134L938_000000_000010.mp4",
+      "sha256": "a0c04a96e011aa3fd99ed084e3af63fde24852bc80c71671281b1a25d6871b63",
+      "included": false,
+      "reason": "portrait incline/knee-tuck variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.1,
+        2.7666666666666666,
+        4.433333333333334,
+        5.433333333333334
+      ]
+    },
+    {
+      "id": "countix-Bjv2FKx880U",
+      "dataset": "countix",
+      "source_name": "countix_Bjv2FKx880U_000006_000016.mp4",
+      "sha256": "10e467187f48f4500a1a035dc3008391e2d00d3438a3b15c4291c0f13c84d0db",
+      "included": false,
+      "reason": "edited repeated takes and raised-hand variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9686333333333332,
+        4.9049,
+        7.874533333333333,
+        9.642966666666666
+      ]
+    },
+    {
+      "id": "countix-F1ul5E2S9pc",
+      "dataset": "countix",
+      "source_name": "countix_F1ul5E2S9pc_000009_000019.mp4",
+      "sha256": "7b85452711e3776f47e712ea5efe1048bf6a7806f06be2524ee23e9d8969617c",
+      "included": false,
+      "reason": "forearm/sphinx variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.88,
+        4.68,
+        7.52,
+        9.2
+      ]
+    },
+    {
+      "id": "countix-e6x3OqtXt90",
+      "dataset": "countix",
+      "source_name": "countix_e6x3OqtXt90_000016_000026.mp4",
+      "sha256": "8cb540bafac66d3dc49f16715cf899a670b9a5f5393bda76d458ebd687ae225d",
+      "included": false,
+      "reason": "rotating side-plank variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9666666666666666,
+        4.966666666666667,
+        7.966666666666667,
+        9.766666666666667
+      ]
+    },
+    {
+      "id": "countix-bgNO7y7rO9w",
+      "dataset": "countix",
+      "source_name": "countix_bgNO7y7rO9w_000001_000011.mp4",
+      "sha256": "3d0f5e7417b1f527117b53e1d518b2ec8ef2ea812d6c395d10d55d2e58394e76",
+      "included": false,
+      "reason": "severe hip/leg-endpoint crop",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9028542814221332,
+        4.907361041562344,
+        7.911867801702554,
+        9.71457185778668
+      ]
+    },
+    {
+      "id": "countix-d4X9N44vrg4",
+      "dataset": "countix",
+      "source_name": "countix_d4X9N44vrg4_000044_000054.mp4",
+      "sha256": "540ddb8f0f22327dc05745c547df8bb8114ddc2c705376ef6aca3b9d4b3ae209",
+      "included": false,
+      "reason": "knee-tuck explosive variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8333333333333333,
+        4.833333333333333,
+        7.833333333333333,
+        9.5
+      ]
+    },
+    {
+      "id": "countix-AFF5uioXScE",
+      "dataset": "countix",
+      "source_name": "countix_AFF5uioXScE_000003_000013.mp4",
+      "sha256": "ea99855fda1d6a3c197a0fec92907d5bffa6697af598a138973ccf4b0be69591",
+      "included": false,
+      "reason": "person standing on athlete",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9666666666666666,
+        4.966666666666667,
+        7.966666666666667,
+        9.766666666666667
+      ]
+    },
+    {
+      "id": "countix-DdXdcUETX1w",
+      "dataset": "countix",
+      "source_name": "countix_DdXdcUETX1w_000016_000026.mp4",
+      "sha256": "48630b7e07aaaf05cfe45c004a6e2e962605c36bfe62a72bf498657ce01827ac",
+      "included": false,
+      "reason": "unstable balls support",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9666666666666666,
+        4.966666666666667,
+        7.966666666666667,
+        9.766666666666667
+      ]
+    },
+    {
+      "id": "countix-CjwFF3dJCJ4",
+      "dataset": "countix",
+      "source_name": "countix_CjwFF3dJCJ4_000017_000027.mp4",
+      "sha256": "57c049350b1769f078ae888b2b19d41b183b24fb9497c0a5d5e81815099ce210",
+      "included": false,
+      "reason": "suspension push-ups",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.9666666666666666,
+        4.966666666666667,
+        7.966666666666667,
+        9.766666666666667
+      ]
+    },
+    {
+      "id": "countix-E0p8QDRa0Fg",
+      "dataset": "countix",
+      "source_name": "countix_E0p8QDRa0Fg_000063_000073.mp4",
+      "sha256": "16ae038d0c6b41b564bfe793d012b3b30674ccb75846ddde1cdf97166eb1b688",
+      "included": false,
+      "reason": "bench obscures arms",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.96,
+        4.96,
+        7.96,
+        9.76
+      ]
+    },
+    {
+      "id": "countix-ASX1WTKJ2GA",
+      "dataset": "countix",
+      "source_name": "countix_ASX1WTKJ2GA_000000_000010.mp4",
+      "sha256": "c2455a62d04042328d6f53affdf7e972b9806faf976a0e832163674383a3f2d2",
+      "included": false,
+      "reason": "pike/dive-bomber variant",
+      "view": null,
+      "review_sample_times": [
+        0.0,
+        1.8685333333333334,
+        4.7047,
+        7.540866666666667,
+        9.242566666666667
+      ]
+    }
+  ]
+}
