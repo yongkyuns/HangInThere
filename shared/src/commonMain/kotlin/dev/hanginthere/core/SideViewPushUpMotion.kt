@@ -5,7 +5,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlin.math.*
 
-/** Experimental standard floor push-ups. Owns source-bound side-view association;
+/** Side-view push-up cycles with observed arm, torso and one leg endpoint.
+ * Missing leg joints do not establish straight-leg form. Owns source-bound association;
  * the caller supplies independent native camera evidence, never a pose-derived flag.
  * Not connected to automatic exercise selection until separate-video qualification.
  */
@@ -14,8 +15,8 @@ class SideViewPushUpMotion {
     @Serializable enum class Phase { seekingPlank, ready, lowering, lowered }
     @Serializable enum class Cue(val title: String) {
         placePhone("Keep the phone still"), landscape("Turn your phone sideways"),
-        wholeBody("Show your whole body"), closer("Move a little closer"),
-        sidePlank("Show a side-on plank"), straightLegs("Straighten your legs"),
+        wholeBody("Show your hip and a knee or ankle"), closer("Move a little closer"),
+        sidePlank("Show a side-on plank"), straightLegs("Hold a straight plank"),
         acquiring("Hold for a moment"), ready("Ready — lower your chest"),
         push("Push back up"), armHidden("Keep your arm in view"),
         athleteUnclear("Keep the athlete clearly in view"), complete("Set complete")
@@ -32,8 +33,8 @@ class SideViewPushUpMotion {
         val setupHint: String = SideViewPushUpMotion.setupHint)
 
     companion object {
-        const val policyVersion = 1
-        const val setupHint = "Side view · Low, stable phone · Head to feet visible"
+        const val policyVersion = 2
+        const val setupHint = "Side view · Steady phone · Arm, hip and knee or ankle visible"
         private val zero = SourceTimeLimit(0, 1)
         private val frameGap = SourceTimeLimit(7, 20)
         private val bodyGap = SourceTimeLimit(1, 1)
@@ -160,7 +161,7 @@ class SideViewPushUpMotion {
             for (s in ArmMeasurement.Side.entries) {
                 val value = observed.getValue(s)
                 if (value.degrees == null || value.degrees < 150 || !value.plank(width) ||
-                    value.kneeDegrees == null || value.kneeDegrees < 150) {
+                    value.kneeDegrees?.let { it < 150 } == true) {
                     candidates.remove(s); continue
                 }
                 val calibration = candidates.getOrPut(s) { Calibration(time, mutableListOf()) }
@@ -242,11 +243,14 @@ class SideViewPushUpMotion {
             return PoseGeometry.elbowAngle(a, b, c)
         }
         val arm = ArmMeasurement(pose, side).estimate
-        val body = angle(shoulder, hip, ankle)
+        // Prefer the full observed line. A missing ankle can use the knee,
+        // without synthesizing a foot or certifying the unseen lower leg.
+        val bodyEnd = ankle ?: knee
+        val body = angle(shoulder, hip, bodyEnd)
         return Measurement(side, arm?.elbowDegrees, shoulder, wrist,
             arm?.let { it.upperArmPixels+it.forearmPixels }, body,
-            body?.let { atan2(abs(ankle!!.y-shoulder!!.y), abs(ankle.x-shoulder.x))*180/PI },
-            angle(hip, knee, ankle), body?.let { abs(ankle!!.x-shoulder!!.x) })
+            body?.let { atan2(abs(bodyEnd!!.y-shoulder!!.y), abs(bodyEnd.x-shoulder.x))*180/PI },
+            angle(hip, knee, ankle), body?.let { abs(bodyEnd!!.x-shoulder!!.x) })
     }
 }
 

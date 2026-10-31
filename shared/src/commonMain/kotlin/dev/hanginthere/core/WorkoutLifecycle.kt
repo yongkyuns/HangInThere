@@ -22,7 +22,7 @@ object WorkoutLifecycle {
         version == 8 && exercise == ExerciseCounter.Exercise.pullUp &&
             method == OverheadPullUpMotion.countMethod && countVersion == 4 ||
         version == SideViewPushUpWorkout.boundaryPolicyVersion && exercise == ExerciseCounter.Exercise.pushUp &&
-            method == SideViewPushUpWorkout.countMethod && countVersion == SideViewPushUpMotion.policyVersion
+            method == SideViewPushUpWorkout.countMethod && countVersion != null && countVersion in 1..SideViewPushUpMotion.policyVersion
     fun shouldResume(endReason: String?) = endReason == "disengaged" || endReason == "trackingLost"
     fun observationOutage(elapsedSeconds: Double) = elapsedSeconds.isFinite() && elapsedSeconds > AutomaticSetBoundary.outageSeconds
 }

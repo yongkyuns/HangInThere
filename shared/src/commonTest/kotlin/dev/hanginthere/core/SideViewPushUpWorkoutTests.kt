@@ -58,6 +58,21 @@ class SideViewPushUpWorkoutTests {
         assertEquals(r.returnSeconds, WorkoutSetPresentation.tempo(record).reps.single().lifting)
         assertEquals(listOf("Start", "Bottom", "Return"), WorkoutSetPresentation.keyframes(record, 0.0).map { it.phase })
     }
+    @Test fun originalPolicyRecordsRemainReadableAndComparisonsKeepVersionsSeparate() {
+        feed(100); rep(); val current = finish()
+        val original = current.copy(id = "original", countPolicyVersion = 1,
+            reps = current.reps.map { it.copy(id = "original-rep", setId = "original", countPolicyVersion = 1) })
+        val library = WorkoutLibrary.register(WorkoutLibraryState(), listOf(original, current))
+        WorkoutLibrary.validate(library)
+        assertEquals(listOf(1, 1), library.entries.map { it.measured.completedCount })
+        assertTrue(library.entries.all { it.measured.reps.all { r -> r.formVerification == "unverified" } })
+        val context = WorkoutContext(assistance = WorkoutAssistance.none, addedLoadKg = 0.0,
+            equipment = "floor", cameraView = "side")
+        assertNotEquals(context.comparisonKey(current.exercise, 1, 1, current.countMethod),
+            context.comparisonKey(current.exercise, 1, SideViewPushUpMotion.policyVersion, current.countMethod))
+        assertFalse(WorkoutCountingMethod.isSupported(current.exercise, current.countMethod, 0))
+        assertFalse(WorkoutCountingMethod.isSupported(current.exercise, current.countMethod, SideViewPushUpMotion.policyVersion+1))
+    }
     @Test fun interruptedDescentCannotBecomeACompletedRepAndTheNextSetHasANewIdentity() {
         feed(100); rep(); feed(20, lowered = true)
         val first = finish("sourceEnded")

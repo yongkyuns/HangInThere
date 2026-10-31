@@ -9,7 +9,7 @@ internal object WorkoutCountingMethod {
             OverheadPullUpMotion.countMethod -> version != null && version in 1..OverheadPullUpMotion.policyVersion
             else -> false
         }
-        else if (exercise == ExerciseCounter.Exercise.pushUp) method == SideViewPushUpWorkout.countMethod && version == SideViewPushUpMotion.policyVersion
+        else if (exercise == ExerciseCounter.Exercise.pushUp) method == SideViewPushUpWorkout.countMethod && version != null && version in 1..SideViewPushUpMotion.policyVersion
         else isSupportedDip(method, version)
     fun isSupportedDip(method: String?, version: Int?): Boolean = when(method) {
         BilateralDipWorkout.countMethod -> version == BilateralDipMotion.policyVersion

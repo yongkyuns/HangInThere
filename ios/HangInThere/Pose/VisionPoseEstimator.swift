@@ -1,4 +1,5 @@
 import CoreGraphics
+import CoreImage
 import ImageIO
 import Vision
 
@@ -60,26 +61,78 @@ struct VisionPoseEstimator: PoseEstimator {
 /// Select one complete SDK observation, never combine joints across passes.
 /// All passes use the same source frame and the existing visibility threshold.
 struct SideViewVisionPoseEstimator: PoseEstimator {
+    private let context = CIContext(options: [.cacheIntermediates: false])
+    private static let sides: [[PoseJoint]] = [
+        [.leftShoulder, .leftElbow, .leftWrist, .leftHip, .leftKnee, .leftAnkle],
+        [.rightShoulder, .rightElbow, .rightWrist, .rightHip, .rightKnee, .rightAnkle]
+    ]
+
     func estimate(image: CGImage, timestamp: PresentationTime) throws -> PoseResult {
+        let direct = try strongestObservation(image: image, timestamp: timestamp)
+        let completeBody = direct.people.contains { person in Self.sides.contains { joints in
+            joints.allSatisfy { person.landmark($0) != nil }
+        } }
+        guard !completeBody else { return direct }
+        // Give a truncated body room in the model's input. Padding contains no
+        // body pixels, and every point outside the original image is discarded.
+        let padding = Point2D(x: floor(Double(image.width) * 0.3), y: floor(Double(image.height) * 0.3))
+        let canvas = CGRect(x: 0, y: 0, width: Double(image.width) + 2 * padding.x,
+                            height: Double(image.height) + 2 * padding.y)
+        let background = CIImage(color: CIColor(red: 0.18, green: 0.18, blue: 0.18)).cropped(to: canvas)
+        let foreground = CIImage(cgImage: image).transformed(by: .init(translationX: padding.x, y: padding.y))
+        guard let padded = context.createCGImage(foreground.composited(over: background), from: canvas) else { return direct }
+        let candidate = try strongestObservation(image: padded, timestamp: timestamp,
+            restoringTo: .init(width: Double(image.width), height: Double(image.height)), padding: padding)
+        return Self.isBetter(candidate, than: direct) ? candidate : direct
+    }
+
+    private func strongestObservation(image: CGImage, timestamp: PresentationTime,
+                                      restoringTo size: ImageSize? = nil,
+                                      padding: Point2D = .init(x: 0, y: 0)) throws -> PoseResult {
         let estimator = VisionPoseEstimator()
-        var best = try estimator.estimate(image: image, timestamp: timestamp)
+        func restore(_ pose: PoseResult) -> PoseResult {
+            size.map { Self.removingPadding(pose, imageSize: $0, padding: padding) } ?? pose
+        }
+        var best = restore(try estimator.estimate(image: image, timestamp: timestamp))
         for orientation in [CGImagePropertyOrientation.right, .left] {
-            let candidate = try estimator.estimate(image: image, timestamp: timestamp, orientation: orientation)
-            if Self.visibilityScore(candidate) > Self.visibilityScore(best) { best = candidate }
+            // Select using only evidence inside the camera image; a pose must
+            // never win because the model placed extra joints in the padding.
+            let candidate = restore(try estimator.estimate(image: image, timestamp: timestamp, orientation: orientation))
+            if Self.isBetter(candidate, than: best) { best = candidate }
         }
         return best
     }
 
+    static func removingPadding(_ pose: PoseResult, imageSize: ImageSize, padding: Point2D) -> PoseResult {
+        let people = pose.people.compactMap { person -> PoseObservation? in
+            let landmarks = person.landmarks.compactMap { landmark -> Landmark? in
+                let point = Point2D(x: landmark.position.x - padding.x, y: landmark.position.y - padding.y)
+                guard point.x >= 0, point.x <= imageSize.width, point.y >= 0, point.y <= imageSize.height else { return nil }
+                return Landmark(joint: landmark.joint, position: point, confidence: landmark.confidence)
+            }
+            return landmarks.isEmpty ? nil : PoseObservation(landmarks: landmarks)
+        }
+        return PoseResult(timestamp: pose.timestamp, imageSize: imageSize, people: people,
+                          backend: pose.backend, requestRevision: pose.requestRevision)
+    }
+
+    private static func hasCountingLandmarks(_ pose: PoseResult) -> Bool {
+        pose.people.contains { person in sides.contains { joints in
+            joints.prefix(4).allSatisfy { person.landmark($0) != nil } &&
+                joints.suffix(2).contains { person.landmark($0) != nil }
+        } }
+    }
+
+    private static func isBetter(_ candidate: PoseResult, than current: PoseResult) -> Bool {
+        let candidateUsable = hasCountingLandmarks(candidate), currentUsable = hasCountingLandmarks(current)
+        if candidateUsable != currentUsable { return candidateUsable }
+        return visibilityScore(candidate) > visibilityScore(current)
+    }
+
     static func visibilityScore(_ pose: PoseResult) -> Double {
-        pose.people.map { person in
-            let sides: [[PoseJoint]] = [
-                [.leftShoulder, .leftElbow, .leftWrist, .leftHip, .leftKnee, .leftAnkle],
-                [.rightShoulder, .rightElbow, .rightWrist, .rightHip, .rightKnee, .rightAnkle]
-            ]
-            return sides.map { joints in
-                let visible = joints.compactMap { person.landmark($0) }
-                return Double(visible.count) + visible.map(\.confidence).reduce(0, +) / 10
-            }.max() ?? 0
-        }.max() ?? 0
+        pose.people.map { person in sides.map { joints in
+            let visible = joints.compactMap { person.landmark($0) }
+            return Double(visible.count) + visible.map(\.confidence).reduce(0, +) / 10
+        }.max() ?? 0 }.max() ?? 0
     }
 }

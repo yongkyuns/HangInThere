@@ -68,17 +68,37 @@ class SideViewPushUpMotionTests {
         feed(800) { pose(kneeling = true) }
         assertEquals(0, completed.values.sumOf { it.reps.size })
     }
-    @Test fun shortAnkleLossPreservesOnlyPhaseAndLongLossCancelsTheAttempt() {
+    @Test fun shortLossOfBothLegEndpointsPreservesOnlyPhaseAndLongLossCancelsTheAttempt() {
         top(); lower()
-        val unknown = feed(200) { pose(missing = setOf(PoseJoint.leftAnkle)) }
+        val unknown = feed(200) { pose(missing = setOf(PoseJoint.leftKnee, PoseJoint.leftAnkle)) }
         assertNull(unknown.progress); assertFalse(unknown.observationUsable)
         assertEquals(0, unknown.cycles)
         assertEquals(1, feed().cycles)
         lower()
-        feed(1200) { pose(missing = setOf(PoseJoint.leftAnkle)) }
+        feed(1200) { pose(missing = setOf(PoseJoint.leftKnee, PoseJoint.leftAnkle)) }
         assertEquals(1, top().cycles)
         assertEquals(1, completed.values.single().reps.size)
         assertEquals("bodyTrackingLost", completed.values.single().endReason)
+    }
+    @Test fun eitherLegEndpointCanBeMissingWithoutBlockingAnObservedCycle() {
+        for (missing in listOf(setOf(PoseJoint.leftAnkle), setOf(PoseJoint.leftKnee))) {
+            val f = SideViewPushUpMotionTests()
+            val prepared = f.feed(2400) { f.pose(missing = missing) }
+            assertEquals(SideViewPushUpMotion.Phase.ready, prepared.phase)
+            assertFalse(prepared.setStarted)
+            f.feed { f.pose(lowered = true, missing = missing) }
+            assertEquals(1, f.feed { f.pose(missing = missing) }.cycles)
+        }
+    }
+    @Test fun bothLegEndpointsMissingCannotAcquireAndObservedKneelingStillReleases() {
+        val missing = setOf(PoseJoint.leftKnee, PoseJoint.leftAnkle)
+        assertEquals(SideViewPushUpMotion.Cue.wholeBody, feed(2400) { pose(missing = missing) }.cue)
+        assertNull(motion.currentSet)
+        feed(2400) { pose(missing = setOf(PoseJoint.leftAnkle)) }
+        feed { pose(lowered = true, missing = setOf(PoseJoint.leftAnkle)) }
+        feed(800) { pose(kneeling = true, missing = setOf(PoseJoint.leftAnkle)) }
+        assertEquals(0, completed.values.sumOf { it.reps.size })
+        assertEquals("postureReleased", completed.values.single().endReason)
     }
     @Test fun losingTheNearArmCannotBorrowAnOppositeArmReturn() {
         top(); lower()

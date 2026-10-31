@@ -81,7 +81,7 @@ struct PushUpPracticeView: View {
                     .frame(maxWidth: .infinity).accessibilityHidden(true)
                 Text("A little space.\nA clear side view.").font(.largeTitle.bold())
                 Label("Low, steady phone · landscape", systemImage: "rectangle.landscape.rotate")
-                Label("Side-on · head to feet in frame", systemImage: "viewfinder")
+                Label("Side-on · arm, hip and knee or ankle visible", systemImage: "viewfinder")
                 Label("Hold a straight plank until Ready", systemImage: "checkmark.circle")
             }.font(.headline).padding(24).frame(maxWidth: 560).frame(maxWidth: .infinity)
         }
@@ -218,7 +218,7 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var apparatusText: String {
         switch exercise {
-        case .pushUp: "Side view · low, steady phone · head to feet visible"
+        case .pushUp: "Side view · steady phone · arm, hip and knee or ankle visible"
         case .pullUp:
             "Face the camera or turn your back to it. Keep both hands visible; bar detection is not required."
         case .dip:
@@ -228,7 +228,7 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var bodyText: String {
         switch exercise {
-        case .pushUp: "Side view · low, steady phone · head to feet visible"
+        case .pushUp: "Side view · steady phone · arm, hip and knee or ankle visible"
         case .pullUp:
             "Keep both arms, torso, hips, and as much of the legs as practical in frame."
         case .dip:

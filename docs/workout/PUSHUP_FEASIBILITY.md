@@ -1,100 +1,64 @@
-# Push-up feasibility
+# Push-up tracking
 
-2026-10-30: Two owner recordings, five push-ups each. These are exposed
-development clips. iOS now exposes a separate live practice preview from Home.
+The iOS preview currently supports side-view push-up cycles. Front-view counting
+remains a separate implementation and validation task.
 
-| Complete video | Apple Vision 1 | MediaPipe Heavy | Setup/release false counts |
-|---|---:|---:|---:|
-| Side, 27.97 s / 839 frames | 5/5 | 5/5 | 0 with both |
-| Front, 29.70 s / 891 frames | Not admitted | Not admitted | 0 with both |
+## Working conditions
 
-The side-view probe acquired a straight-leg plank at 7.37 s (Vision) and
-6.97 s (MediaPipe), then released on kneeling at 23.60/23.54 s. Each return
-matched one manually marked window. Front view never acquired readiness;
-its zero counts are a deliberate unsupported-view rejection, not a counting pass.
+- A low, level, steady phone in landscape, reasonably close to the athlete.
+- One clear shoulder–elbow–wrist chain, a hip, and a knee or ankle on that side.
+- A held starting plank, followed by observed lowering and return.
 
-On the side clip, usable near-arm geometry covered 99.3%/100% of exercise
-frames; shoulder–hip–ankle geometry covered 93.3%/96.4%. The far arm was
-mostly unavailable. Front-view arms were often usable, but complete body
-geometry appeared in only 3–15% of exercise frames across sides/estimators.
-Those percentages describe joint availability, not landmark accuracy.
+Policy 2 accepts a shoulder–hip–knee line when the ankle is cropped, or a
+shoulder–hip–ankle line when the knee is missing. The face and far arm are not
+required. Missing lower-leg geometry cannot establish straight-leg form: these
+remain observed image cycles, with form and load unverified. Brief tracking gaps
+can preserve cycle state, but missing required endpoints cannot complete a rep.
+Camera movement, ambiguous athletes and long tracking/source gaps still interrupt.
 
-The initial fixed 150° return rule with a 0.35 s lower-body timeout produced
-0/5 Vision and 5/5 MediaPipe. Vision's projected elbow angle fluctuates near
-extension, and an ankle disappears briefly near the third bottom. The revised
-probe calibrates extension from the starting plank, corroborates the return
-with shoulder recovery, and preserves cycle state across lower-body gaps up
-to one second. It still requires current arm and body evidence at both
-endpoints; missing measurements cannot complete a rep. These changes were
-developed on these recordings and require separate videos before qualification.
+Common Kotlin owns association, counting, set boundaries and durable rep timing.
+iOS supplies independent camera/motion evidence. Vision tries quarter-turn
+inference orientations and, when body coverage is incomplete, neutral image
+padding. All results map back into original camera coordinates. Points in the
+padding are discarded **before** selecting an observation; confidence scores
+are unchanged and joints are never combined across inference passes. Preview
+and saved video retain their original pixels.
 
-`Evaluation/pushup_feasibility.py` contains the evaluation-only counter and
-its thresholds. It processes full-source timestamps without label/count inputs.
-Five concise synthetic tests cover setup, partial motion, release, missing
-joints, arm switching, source gaps and invalid measurements.
+Old policy-1 records remain readable. Policy-1 and policy-2 comparison identities
+stay distinct. Completed-rep video, keyframes, compact encoding and retention use
+the same recording preference and library path as pull-ups and dips.
 
-Recommended first app profile: standard floor push-ups from the side, a stable
-low phone in landscape, whole body visible, one clear shoulder/elbow/wrist
-chain, and straight-leg plank calibration. Use an exercise-specific athlete
-association profile: the existing paired-shoulder/upright assumptions suit
-pull-ups/dips and should not be relaxed globally. Native phone replay on
-separate complete videos remains the next qualification step.
-Strict depth/form grading, knee push-ups and front-view counting remain outside
-this initial scope. The shared controller below implements the initial profile.
+## Validation
 
-## Shared implementation
+Two owner recordings contain five reps each. They are exposed development
+recordings, not independent test videos. Cropped variants are regressions from
+the same source; they do not add independent subjects or sessions.
 
-`SideViewPushUpMotion` now owns side-view athlete association, plank calibration,
-observed down/up cycles, set release and concise capture cues in common Kotlin.
-iOS Home includes an illustrated Push-ups shortcut with a Preview label. It
-opens side-view setup and live practice with large rep/readiness feedback and
-normalized depth progress. Native capture supplies independent camera readiness,
-with matched landscape preview/inference rotation. Three focused integration
-cases verify camera gating, rotation isolation and that practice never creates
-legacy pull-up/dip records. The preview now saves source-timed sets and rep curves
-through the existing recoverable history outbox. Review shows lowering/pressing
-tempo and measurements from the same visible arm; setup remains private and
-interrupted returns cannot count. The side-view method has its own comparison
-identity and boundary version. No hold, fatigue or muscle-load estimate is inferred.
-Android entry remains pending. iOS saves only completed-rep video segments,
-using the existing recording preference, compact encoding, keyframe review and
-retention policy. Setup, release and zero-rep attempts do not publish a clip.
+| Complete source / pixel crop | Policy 1 | Policy 2 + padding |
+|---|---:|---:|
+| Side, original | 5/5 | 5/5 |
+| Side, feet cropped | 0/5 | 5/5 |
+| Side, tighter head-and-feet crop | 0/5 | 5/5 |
+| Working arm cropped away | 0 | 0 |
+| Both leg endpoints cropped away | 0 | 0 |
+| Front view, unsupported | 0 | 0 |
 
-The shared replay retains 5/5 with each estimator, zero setup/release counts,
-and front-view rejection. Repeating the original recording with shifted clocks
-produces two separate 5-rep sets; that is a regression, not independent evidence.
-The initial integration lost Vision's third rep when the hip briefly vanished.
-The isolated side-view association profile now permits up to one second of
-same-arm spatial continuity after torso acquisition. It cannot acquire from an
-arm alone, switch sides, synthesize a hip or complete a missing-body endpoint.
-The default upright profile and existing Apple constructors are preserved.
+Every accepted return must match its frozen manual window; setup and release
+windows must contain zero counts. A zero on an unsupported view is a rejection,
+not evidence that exercise counting succeeded.
 
-Nine common regression checks cover these boundaries. Apple native/JVM replay
-matches on all 3,460 frame snapshots and final set records. This qualifies common
-rule transport on the two exposed clips, not capture/model accuracy on devices.
-Separate complete positive sets are still needed before production rollout;
-the additional public candidates reviewed did not provide a suitable such set.
-Evidence: `build/pushup-shared-v141/`.
+`Evaluation/PushUpCoverageReplay.swift` runs source-hash-verified complete videos
+through the production decoder, cropped-pixel pose inference and common counter.
+Its manifest supplies `id`, `path`, `sha256`, and optional fractional top-left
+`crop: [x, y, width, height]`. Camera readiness is assumed to isolate image/rule
+behavior. Optional `PUSHUP_COVERAGE_TRACE` exports private pose observations for
+diagnosis. Local reports and manifests are under `build/pushup-coverage-v158/`.
+Common and native integration tests cover partial visibility, setup/release,
+tracking gaps, old-history compatibility and video/keyframe retention.
 
-Local evidence (ignored, includes private frames):
-`build/pushup-feasibility-v140/`, containing frozen pre-inference manual labels,
-source/model hashes, pose streams, cycle results, charts and tracking examples.
-Both estimators consumed the same production-decoded opaque sRGB pixels.
-Vision ran on macOS; MediaPipe 0.10.32 CPU VIDEO used Android's pinned Heavy
-weights. This does not qualify native Android execution, phone throughput,
-camera registration or production athlete association.
-
-Replay probe: `python3 Evaluation/pushup_feasibility.py build/pushup-feasibility-v140`
-
-Checks: `python3 -m unittest discover -s Evaluation/tests -p test_pushup_feasibility.py`
-
-Live push-up capture now also runs the body estimator with quarter-turn input
-orientations, then maps the selected complete observation back to the original
-camera pixels. Selection uses same-side landmark visibility; it never combines
-joints across passes or relaxes the shared counting rules. This addresses weak
-hip/knee detections on horizontal bodies. Setup shows partial detected joints
-and distinguishes missing pose, tilt, sensors and background calibration.
-The original and horizontally mirrored side recording each retain 5/5, with
-all returns inside the frozen manual windows and zero setup/release counts;
-the front recording remains unadmitted. These are development regressions,
-not new independent qualification evidence.
+The original full side recording previously produced 5/5 with both Vision and
+MediaPipe Heavy through the common engine. The new pixel-crop study uses Apple
+Vision on macOS; it does not qualify Android-native inference, iPhone throughput
+or production accuracy. Separate full sets with partial framing and a dedicated
+front-view profile are still needed. Strict depth grading, knee-push-up variant
+classification and physiological effort estimates are outside this preview.
