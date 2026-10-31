@@ -3,19 +3,23 @@ import XCTest
 @testable import HangInThere
 
 final class CountedSetVideoRecorderTests: XCTestCase {
-    private func record(_ id: String, start: Double = 102, end: Double = 105, completed: Bool = true) -> WorkoutSetRecord {
+    private func record(_ id: String, start: Double = 102, end: Double = 105, completed: Bool = true, exercise: ExerciseCounter.Exercise = .pullUp) -> WorkoutSetRecord {
         let angle = WorkoutAngleMetrics(minimum: 80, maximum: 170, mean: 120, observedSeconds: end - start, coverage: 1)
-        let rep = WorkoutRepRecord(id: id + "-rep", setId: id, ordinal: 1, exercise: .pullUp,
-            startedAt: start, extremeAt: start + 1, acceptedAt: start + 1, returnedAt: completed ? end : nil,
+        let rep = WorkoutRepRecord(id: id + "-rep", setId: id, ordinal: 1, exercise: exercise,
+            startedAt: start, extremeAt: start + 1, acceptedAt: exercise == .pushUp ? end : start + 1, returnedAt: completed ? end : nil,
             closedAt: end, closeReason: completed ? "returned" : "disengaged", outcome: "accepted",
             outboundSeconds: 1, returnSeconds: completed ? end - start - 1 : nil, left: angle, right: angle,
             shoulderExcursion: 0.1, bilateralExtremeOffsetSeconds: 0, usableDurationSeconds: end - start,
-            durationCoverage: 1, samples: [], curveTruncated: false, countPolicyVersion: 8, metricVersion: 1,
-            acceptanceReason: nil, formVerification: nil)
-        return WorkoutSetRecord(id: id, exercise: .pullUp, startedAt: start - 1, endedAt: end + 2,
+            durationCoverage: 1, samples: [], curveTruncated: false, countPolicyVersion: exercise == .pushUp ? 1 : 8, metricVersion: 1,
+            acceptanceReason: exercise == .pushUp ? "sideViewCycle" : nil, formVerification: nil,
+            countMethod: exercise == .pushUp ? "sideViewPushUp" : nil)
+        return WorkoutSetRecord(id: id, exercise: exercise, startedAt: start - 1, endedAt: end + 2,
             endReason: "disengaged", reps: [rep], backend: "authored video mechanics", modelRevision: 1,
-            schemaVersion: 1, lifecycleVersion: 1, trackingSide: .left, imageSize: nil, referenceEdge: nil,
-            trackedAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
+            schemaVersion: exercise == .pushUp ? 2 : 1, lifecycleVersion: 1, trackingSide: .left, imageSize: nil, referenceEdge: nil,
+            trackedAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000),
+            countMethod: exercise == .pushUp ? "sideViewPushUp" : nil,
+            countPolicyVersion: exercise == .pushUp ? 1 : nil,
+            boundaryPolicyVersion: exercise == .pushUp ? 9 : nil)
     }
     private func frame(_ time: Double, green: Bool, size: (Int, Int) = (64, 96)) throws -> CMSampleBuffer {
         var pixel: CVPixelBuffer?
@@ -56,16 +60,16 @@ final class CountedSetVideoRecorderTests: XCTestCase {
         XCTAssertEqual(CountedSetVideoRange(record: set)?.end, 105)
         XCTAssertNil(CountedSetVideoRange(record: record("practice", completed: false)))
     }
-    func testRealEncoderTrimsNonzeroCameraClockAcrossChunksAndKeepsConsecutiveSetsSeparate() async throws {
+    func testPushUpVideoTrimsSetupReleaseAndKeepsConsecutiveSetsAndKeyframesSeparate() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let recorder = CountedSetVideoRecorder(directory: directory)
         recorder.setEnabled(true)
         // The owner confirms after the first cycle. Pre-roll must recover its start.
-        try await feed(recorder, from: 1000, to: 1060, green: 1020..<1050)
+        try await feed(recorder, from: 1000, to: 1060, green: 1020..<1050, size: (96, 64))
         recorder.begin(setId: "first", startedAt: 101)
-        try await feed(recorder, from: 1060, to: 1080, green: 1020..<1050)
-        let firstResult = try await finish(recorder, record("first"))
+        try await feed(recorder, from: 1060, to: 1080, green: 1020..<1050, size: (96, 64))
+        let firstResult = try await finish(recorder, record("first", exercise: .pushUp))
         let first = try XCTUnwrap(firstResult)
         let asset = AVURLAsset(url: first)
         let duration = try await asset.load(.duration).seconds
@@ -77,20 +81,21 @@ final class CountedSetVideoRecorderTests: XCTestCase {
             XCTAssertGreaterThan(rgb[1], 200, "Setup/release blue frames leaked into the retained clip")
             XCTAssertLessThan(rgb[2], 30)
         }
-        try await feed(recorder, from: 1080, to: 1140, green: 1090..<1120)
+        try await feed(recorder, from: 1080, to: 1140, green: 1090..<1120, size: (96, 64))
         recorder.begin(setId: "second", startedAt: 108)
-        let secondResult = try await finish(recorder, record("second", start: 109, end: 112))
+        let secondResult = try await finish(recorder, record("second", start: 109, end: 112, exercise: .pushUp))
         let second = try XCTUnwrap(secondResult)
         XCTAssertNotEqual(first, second)
         let secondDuration = try await AVURLAsset(url: second).load(.duration).seconds
         XCTAssertEqual(secondDuration, 3, accuracy: 0.11)
         let store = WorkoutRecordStore(directory: directory.appendingPathComponent("store"))
-        let savedId = try await store.saveRecordedSetVideo(source: first, record: record("first"))
+        let savedId = try await store.saveRecordedSetVideo(source: first, record: record("first", exercise: .pushUp))
         let id = try XCTUnwrap(savedId)
         let media = try await store.libraryMediaURL(id: id)
         XCTAssertNotNil(media)
         let reviewResult = try await store.libraryVideoReview(id: id)
         let review = try XCTUnwrap(reviewResult)
+        XCTAssertEqual(review.record?.exercise, .pushUp)
         XCTAssertEqual(review.markers.map(\.clipSeconds), [0, 1, 3])
         let folder = try XCTUnwrap(review.thumbnailDirectory)
         XCTAssertNil(review.thumbnailError)
@@ -98,10 +103,10 @@ final class CountedSetVideoRecorderTests: XCTestCase {
             XCTAssertTrue(FileManager.default.fileExists(atPath: folder.appendingPathComponent(marker.filename).path))
         }
         _ = try await store.libraryCommand("{\"action\":\"delete\",\"setId\":\"first\",\"atEpochMilliseconds\":\(Int64(Date().timeIntervalSince1970 * 1000))}")
-        let resurrected = try await store.saveRecordedSetVideo(source: first, record: record("first"))
+        let resurrected = try await store.saveRecordedSetVideo(source: first, record: record("first", exercise: .pushUp))
         XCTAssertNil(resurrected)
         XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path))
-        try await store.save(record("second", start: 109, end: 112))
+        try await store.save(record("second", start: 109, end: 112, exercise: .pushUp))
         let attached = try await store.attachLibraryMedia(source: second, setId: "second")
         let manualReview = try await store.libraryVideoReview(id: attached)
         XCTAssertTrue(manualReview?.markers.isEmpty == true, "Never guess a manually attached video's clock")

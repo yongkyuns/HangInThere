@@ -56,7 +56,9 @@ through the existing recoverable history outbox. Review shows lowering/pressing
 tempo and measurements from the same visible arm; setup remains private and
 interrupted returns cannot count. The side-view method has its own comparison
 identity and boundary version. No hold, fatigue or muscle-load estimate is inferred.
-Android entry and set-video recording remain pending; this preview saves no video.
+Android entry remains pending. iOS saves only completed-rep video segments,
+using the existing recording preference, compact encoding, keyframe review and
+retention policy. Setup, release and zero-rep attempts do not publish a clip.
 
 The shared replay retains 5/5 with each estimator, zero setup/release counts,
 and front-view rejection. Repeating the original recording with shifted clocks

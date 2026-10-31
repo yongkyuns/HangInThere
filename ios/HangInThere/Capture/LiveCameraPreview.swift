@@ -454,6 +454,9 @@ final class LiveCameraPreviewController: NSObject {
         finishPushUpPractice(reason: "orientationChanged")
         clearBar()
         pushUpVideoRotationAngle = angle
+        // A new orientation starts a fresh encoder window. An already completed
+        // clip owns its detached pieces and can finish exporting independently.
+        analysisQueue.async { [setVideoRecorder] in setVideoRecorder.reset() }
         for output in [videoOutput?.connection(with: .video), movieOutput?.connection(with: .video)].compactMap({ $0 }) {
             try? LiveCameraConnectionConfiguration.apply(to: output, rotationAngle: angle)
         }
@@ -476,11 +479,11 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     #if DEBUG
-    /// One overwritten, local cache file, at most once per second. No images,
-    /// audio, growing log or workout records; lets device testing inspect the
-    /// actual Vision landmarks and native gate that blocked this preview.
-    private func recordPushUpDiagnostic(_ pose: PoseResult) {
-        guard !evaluationInput else { return }
+    /// One overwritten local metadata file, at most once per second. Debug
+    /// builds only; no images, audio, growing log or workout record.
+    private func recordPushUpDiagnostic(_ frame: ProcessedFrame) {
+        let pose = frame.pose
+        guard !evaluationInput, pose.imageSize.width > pose.imageSize.height else { return }
         let now = ProcessInfo.processInfo.systemUptime
         guard lastPushUpDiagnosticUptime.map({ now - $0 >= 1 }) ?? true else { return }
         lastPushUpDiagnosticUptime = now
@@ -493,6 +496,9 @@ final class LiveCameraPreviewController: NSObject {
             let motionAvailable: Bool
             let tiltDegrees: Double?
             let association: String?
+            let associationReason: String?
+            let countCue: String?
+            let processingMilliseconds: Double
             let calibrated: Bool
             let phoneState: String
             let sceneReady: Bool
@@ -501,13 +507,19 @@ final class LiveCameraPreviewController: NSObject {
         let snapshot = Snapshot(recordedAt: Date(), pose: pose, title: pushUpReadinessTitle,
             rotation: pushUpVideoRotationAngle, camera: cameraPosition.rawValue,
             motionAvailable: motionSampleAvailable, tiltDegrees: cameraPlacement.tiltDegrees,
-            association: dipAthleteDecision?.status, calibrated: hasBodyCameraCalibration,
+            association: dipAthleteDecision?.status, associationReason: dipAthleteDecision?.reason,
+            countCue: pushUpSnapshot?.title, processingMilliseconds: frame.processingMilliseconds,
+            calibrated: hasBodyCameraCalibration,
             phoneState: phoneOrientation.state.rawValue, sceneReady: sceneIsReady,
             sceneFailures: sceneRegistrationFailures)
         guard let data = try? JSONEncoder().encode(snapshot),
               let directory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return }
         let url = directory.appendingPathComponent("pushup-latest-diagnostic.json")
-        pushUpDiagnosticQueue.async { try? data.write(to: url, options: .atomic) }
+        pushUpDiagnosticQueue.async {
+            // Remove the temporary still used to diagnose the physical-phone test.
+            try? FileManager.default.removeItem(at: directory.appendingPathComponent("pushup-latest-diagnostic.jpg"))
+            try? data.write(to: url, options: .atomic)
+        }
     }
     #endif
 
@@ -540,6 +552,7 @@ final class LiveCameraPreviewController: NSObject {
             do {
                 let write = try JSONDecoder().decode(Write.self, from: Data(json.utf8))
                 if write.finalized {
+                    finishSetVideo(write.record)
                     pushUpVoiceSetId = nil
                     let previous = workoutHistory.first { $0.id != write.record.id && $0.exercise == .pushUp && $0.completedCount > 0 }?.completedCount
                     if write.record.completedCount > 0 { WorkoutVoiceCoach.shared.completed(count: write.record.completedCount, previous: previous, saved: false) }
@@ -1640,17 +1653,18 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     func setRecordsSetVideos(_ enabled: Bool) {
-        guard liveSet.phase != .running else { return }
+        guard liveSet.phase != .running, pushUpSnapshot?.setStarted != true else { return }
         recordsSetVideos = enabled
         UserDefaults.standard.set(enabled, forKey: "recordCountedSets")
         setVideoRecorder.setEnabled(enabled)
     }
 
-    private func beginSetVideoIfNeeded() {
+    private func beginSetVideoIfNeeded(_ suppliedRecord: WorkoutSetRecord? = nil) {
         #if DEBUG
         guard !evaluationInput else { return }
         #endif
-        guard liveSet.phase == .running, let record = workoutAnalysis.currentRecord,
+        let setIsRunning = isPushUpPractice ? pushUpSnapshot?.setStarted == true : liveSet.phase == .running
+        guard setIsRunning, let record = suppliedRecord ?? workoutAnalysis.currentRecord,
               recordingVideoSetId == nil else { return }
         recordsSetVideos = UserDefaults.standard.object(forKey: "recordCountedSets") == nil || UserDefaults.standard.bool(forKey: "recordCountedSets")
         setVideoRecorder.setEnabled(recordsSetVideos)
@@ -1677,7 +1691,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func persistWorkout(_ record: WorkoutSetRecord, finalized: Bool) {
-        if !finalized { beginSetVideoIfNeeded() }
+        if !finalized { beginSetVideoIfNeeded(record) }
         #if DEBUG
         guard !evaluationInput else { return }
         #endif
@@ -2005,7 +2019,7 @@ final class LiveCameraPreviewController: NSObject {
         let eventStream = AsyncStream<LiveAnalyzerEvent>(
             bufferingPolicy: .bufferingNewest(1)
         ) { continuation in
-            setVideoRecorder.setEnabled(!isPushUpPractice && recordsSetVideos)
+            setVideoRecorder.setEnabled(recordsSetVideos)
             let estimator: any PoseEstimator = isPushUpPractice ? SideViewVisionPoseEstimator() : VisionPoseEstimator()
             let analyzer = LiveFrameAnalyzer(estimator: estimator, gripEnabled: !isPushUpPractice && resolvedExercise != .dip, setVideoRecorder: setVideoRecorder) { event in
                 continuation.yield(event)
@@ -2436,7 +2450,7 @@ final class LiveCameraPreviewController: NSObject {
                 maybeCheckSceneTranslation(frame)
                 consumePushUpPractice(rawFrame.pose)
                 #if DEBUG
-                recordPushUpDiagnostic(rawFrame.pose)
+                recordPushUpDiagnostic(rawFrame)
                 #endif
                 return
             }

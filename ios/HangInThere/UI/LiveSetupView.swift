@@ -42,7 +42,14 @@ struct PushUpPracticeView: View {
                     NavigationStack {
                         WorkoutReviewView(sets: camera.workoutHistory, currentReps: [],
                             storageError: camera.workoutStorageError, goalsEnabled: false)
-                            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showsReview = false } } }
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) { Button("Done") { showsReview = false } }
+                                ToolbarItem(placement: .topBarLeading) {
+                                    NavigationLink { WorkoutLibraryView(section: "Recordings") } label: {
+                                        Label("Recordings", systemImage: "play.rectangle")
+                                    }
+                                }
+                            }
                     }.hangTheme()
                 }
                 .task(id: hasSeenGuide) {
@@ -80,7 +87,7 @@ struct PushUpPracticeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 10) {
-                Text("Sets and tempo saved · no video").font(.caption).foregroundStyle(palette.secondary)
+                Text(camera.recordsSetVideos ? "Counted video · key moments · tempo" : "Sets and tempo saved").font(.caption).foregroundStyle(palette.secondary)
                 Button { hasSeenGuide = true } label: {
                     Label("Open camera", systemImage: "camera.fill").font(.headline)
                         .frame(maxWidth: .infinity).padding(17).foregroundStyle(HangBrand.ink)
@@ -146,7 +153,14 @@ struct PushUpPracticeView: View {
                         if let error = camera.workoutStorageError {
                             Label("Save retrying", systemImage: "exclamationmark.icloud").font(.caption)
                                 .foregroundStyle(.orange).accessibilityLabel(error)
-                        } else if !compact { Text("Sets & tempo · no video").font(.caption) }
+                        } else if let error = camera.workoutVideoError {
+                            Label("Video unavailable", systemImage: "exclamationmark.triangle").font(.caption)
+                                .foregroundStyle(.orange).accessibilityLabel(error)
+                        } else if camera.recordingVideoSetId != nil {
+                            Label("Recording", systemImage: "record.circle.fill").font(.caption).foregroundStyle(.red)
+                        } else if !compact {
+                            Text(camera.recordsSetVideos ? "Video · key moments · tempo" : "Sets & tempo · video off").font(.caption)
+                        }
                         Spacer()
                         if snapshot?.setStarted == true { Button("Finish set") { camera.finishPushUpPractice() }.font(.headline) }
                         if camera.latestCompletedWorkout != nil {
