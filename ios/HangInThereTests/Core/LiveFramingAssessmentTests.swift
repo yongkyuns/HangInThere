@@ -4,6 +4,34 @@ import class WorkoutCore.WorkoutGripCaptureBridge
 @testable import HangInThere
 
 struct LiveFramingAssessmentTests {
+    @Test func preparedGaugeStartsAtReadinessAndSurvivesTheFirstDepartureOnlyWhileOtherGatesPass() {
+        func checklist(pose: Bool = true, blocked: String = "") -> LiveReadinessChecklist {
+            LiveReadinessChecklist(cameraReady: blocked != "camera", frameFresh: blocked != "stale",
+                framing: .init(state: blocked == "arms" ? .selectedArmHidden : .ready),
+                exerciseTitle: blocked == "exercise" ? nil : "Pull-up", armDescription: "Both measurable",
+                barConfirmed: false, acquisition: .lookingForGrip,
+                motionAvailable: blocked != "motion", phoneStable: blocked != "phone", sceneStable: blocked != "scene",
+                startingPose: pose, paused: blocked == "settings", handsFree: true, setupBusy: blocked == "setup",
+                bodyCameraCalibrated: blocked != "calibration", placement: .init(tiltDegrees: blocked == "placement" ? 45 : 0), pullUpMotion: true)
+        }
+        let ready = checklist()
+        #expect(ready.allPassed)
+        #expect(ready.showsPreparedMovement(phase: "ready", usable: true, sourceAccepted: true))
+        let departed = checklist(pose: false)
+        #expect(!departed.allPassed)
+        #expect(!departed.showsPreparedMovement(phase: "ready", usable: true, sourceAccepted: true))
+        for phase in ["outbound", "returning"] {
+            #expect(departed.showsPreparedMovement(phase: phase, usable: true, sourceAccepted: true))
+        }
+        for block in ["camera", "stale", "arms", "exercise", "motion", "phone", "scene", "settings", "setup", "calibration", "placement"] {
+            #expect(!checklist(pose: false, blocked: block).showsPreparedMovement(phase: "outbound", usable: true, sourceAccepted: true))
+        }
+        #expect(!ready.showsPreparedMovement(phase: "idle", usable: true, sourceAccepted: true))
+        #expect(!ready.showsPreparedMovement(phase: "seekingTop", usable: true, sourceAccepted: true))
+        #expect(!ready.showsPreparedMovement(phase: "ready", usable: false, sourceAccepted: true))
+        #expect(!ready.showsPreparedMovement(phase: "ready", usable: true, sourceAccepted: false))
+    }
+
     @Test func absoluteCameraTiltHandlesBothCamerasAndRejectsMissingInvalidGravity() {
         for level in [SIMD3<Double>(0,-1,0), .init(1,0,0), .init(0,1,0)] {
             #expect(LiveCameraPlacement(gravity:level).isUsable)

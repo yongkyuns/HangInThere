@@ -45,12 +45,19 @@ struct JourneyWorkoutSummary: Codable, Equatable, Identifiable, Sendable {
     let exercises: [ExerciseCounter.Exercise]
     let quality: JourneyQuality
     let sets: [JourneySetSummary]
+    var workoutLog: LoggedWorkout? = nil
+    var totalReps: Int { completedReps + (workoutLog?.reps ?? 0) }
+    var exerciseNames: [String] {
+        (exercises.map(\.title) + (workoutLog?.exercises ?? [])).reduce(into: []) { if !$0.contains($1) { $0.append($1) } }
+    }
 }
 struct JourneyPracticeDay: Codable, Equatable, Identifiable, Sendable {
     let day: Int64
     let workoutIds: [String]
     let completedReps: Int
     let quality: JourneyQuality?
+    var loggedReps: Int? = nil
+    var totalReps: Int { completedReps + (loggedReps ?? 0) }
     var id: Int64 { day }
 }
 struct JourneyOverview: Codable, Equatable, Sendable {
@@ -62,6 +69,8 @@ struct JourneyOverview: Codable, Equatable, Sendable {
     let coaching: JourneyCoaching
     let policyVersion: Int
     let nextCursor: JourneyCursor?
+    var loggedReps: Int? = nil
+    var totalReps: Int { completedReps + (loggedReps ?? 0) }
 }
 struct JourneyCursor: Codable, Equatable, Sendable {
     let afterId: String

@@ -16,52 +16,89 @@ struct HangPalette {
     var secondary: Color { isDark ? Color(red: 0.68, green: 0.75, blue: 0.69) : Color(red: 0.35, green: 0.41, blue: 0.37) }
     var surface: Color { isDark ? Color(red: 0.145, green: 0.20, blue: 0.17) : .white }
     var garden: Color { isDark ? Color(red: 0.17, green: 0.235, blue: 0.19) : Color(red: 0.89, green: 0.93, blue: 0.865) }
+    var accent: Color { isDark ? HangBrand.lime : HangBrand.ink }
+    var border: Color { foreground.opacity(isDark ? 0.12 : 0.08) }
 }
 
-/// A soft H / pull-up rig, shared by the icon and the home wordmark.
-struct HangBrandMark: Shape {
-    func path(in rect: CGRect) -> Path {
-        let scale = min(rect.width, rect.height) / 100
-        let x = rect.midX - 50 * scale, y = rect.midY - 50 * scale
-        var path = Path()
-        for bar in [CGRect(x: 10, y: 18, width: 80, height: 13),
-                    CGRect(x: 24, y: 18, width: 14, height: 65),
-                    CGRect(x: 62, y: 18, width: 14, height: 65),
-                    CGRect(x: 25, y: 48, width: 50, height: 14)] {
-            path.addRoundedRect(in: CGRect(x: x + bar.minX * scale, y: y + bar.minY * scale,
-                width: bar.width * scale, height: bar.height * scale), cornerSize: CGSize(width: 6.5 * scale, height: 6.5 * scale))
-        }
-        return path
+/// Shared styling for app screens and sheets; appearance follows the system.
+private struct HangScreenTheme: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    func body(content: Content) -> some View {
+        let palette = HangPalette(scheme)
+        content
+            .scrollContentBackground(.hidden)
+            .background(palette.background)
+            .foregroundStyle(palette.foreground)
+            .tint(palette.accent)
+            .fontDesign(.rounded)
+            #if os(iOS)
+            .toolbarBackground(palette.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(scheme, for: .navigationBar)
+            #endif
     }
 }
+private struct HangInputTheme: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    func body(content: Content) -> some View {
+        let palette = HangPalette(scheme)
+        content.textFieldStyle(.plain).padding(12)
+            .background(palette.background, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(palette.border, lineWidth: 1))
+    }
+}
+extension View {
+    func hangTheme() -> some View { modifier(HangScreenTheme()) }
+    func hangInput() -> some View { modifier(HangInputTheme()) }
+}
 
-/// Shared, background-free exercise artwork. These are decorative, not tracking feedback.
+/// Shared artwork: launch decoration, or exercise shortcuts when actions are supplied.
 struct HangIllustrations: View {
     var pullUp = Image("PullUpIllustration")
     var dip = Image("DipIllustration")
     var showsLabels = false
+    var onPullUp: (() -> Void)? = nil
+    var onDip: (() -> Void)? = nil
     var body: some View {
         HStack(alignment: .bottom, spacing: 20) {
-            exercise(pullUp, title: "Pull-ups")
-            exercise(dip, title: "Dips")
+            exercise(pullUp, title: "Pull-ups", identifier: "startPullUpWorkout", action: onPullUp)
+            exercise(dip, title: "Dips", identifier: "startDipWorkout", action: onDip)
         }
-        .accessibilityHidden(true)
     }
-    private func exercise(_ image: Image, title: String) -> some View {
+    @ViewBuilder private func exercise(_ image: Image, title: String, identifier: String, action: (() -> Void)?) -> some View {
+        if let action {
+            Button(action: action) { artwork(image, title: title, interactive: true).contentShape(Rectangle()) }
+                .buttonStyle(.plain).accessibilityLabel("Start \(title.lowercased()) workout")
+                .accessibilityIdentifier(identifier)
+        } else {
+            artwork(image, title: title, interactive: false).accessibilityHidden(true)
+        }
+    }
+    private func artwork(_ image: Image, title: String, interactive: Bool) -> some View {
         VStack(spacing: 8) {
             image.resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            if showsLabels { Text(title).font(.subheadline.weight(.semibold)) }
-        }
-        .frame(maxWidth: .infinity)
+            if showsLabels {
+                HStack(spacing: 5) {
+                    if interactive { Image(systemName: "play.fill").font(.caption2).accessibilityHidden(true) }
+                    Text(title).font(.subheadline.weight(.semibold))
+                }
+            }
+        }.frame(maxWidth: .infinity)
     }
 }
 
 struct HomeScreenView: View {
     var onLiveWorkout: () -> Void
-    var onImportVideo: () -> Void
+    var onStartExercise: (ExerciseCounter.Exercise) -> Void
+    var onReviewVideo: () -> Void
     var onHistory: () -> Void
+    var onCoach: (() -> Void)? = nil
+    var onLogWorkout: (() -> Void)? = nil
+    var onStartPushUp: (() -> Void)? = nil
     var pullUpArtwork = Image("PullUpIllustration")
     var dipArtwork = Image("DipIllustration")
+    var pushUpArtwork = Image("PushUpIllustration")
+    var brandArtwork = Image("BrandIcon")
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -80,12 +117,6 @@ struct HomeScreenView: View {
                 if !dynamicTypeSize.isAccessibilitySize { hero }
                 actions
             }
-            placementGuide
-            Label("Just you, your camera & your reps. Stays on device.", systemImage: "lock")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(palette.secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 8)
         }
         .padding(.horizontal, 20)
         .padding(.top, 18)
@@ -99,12 +130,28 @@ struct HomeScreenView: View {
 
     private var actions: some View {
         VStack(spacing: 12) {
+            if dynamicTypeSize.isAccessibilitySize {
+                secondaryAction("Start pull-ups", symbol: "play.fill", action: { onStartExercise(.pullUp) })
+                    .accessibilityIdentifier("startPullUpWorkout")
+                secondaryAction("Start dips", symbol: "play.fill", action: { onStartExercise(.dip) })
+                    .accessibilityIdentifier("startDipWorkout")
+                if let onStartPushUp {
+                    secondaryAction("Start push-ups", symbol: "play.fill", action: onStartPushUp)
+                        .accessibilityIdentifier("startPushUpWorkout")
+                        .accessibilityHint("Side-view preview. Sets and rep timing are saved to History.")
+                }
+            }
             liveButton
+            if let onLogWorkout {
+                secondaryAction("Log a workout", symbol: "square.and.pencil", action: onLogWorkout)
+                    .accessibilityIdentifier("openWorkoutLog")
+            }
+            if let onCoach { WorkoutCoachHomeCard(onOpen: onCoach) }
             let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 12)) : AnyLayout(HStackLayout(spacing: 12))
             layout {
-                secondaryAction("Review video", detail: "A fresh look at your reps", symbol: "play.rectangle", action: onImportVideo)
-                    .accessibilityIdentifier("importVideo")
-                secondaryAction("Your workouts", detail: "See how far you've come", symbol: "square.stack.3d.up", action: onHistory)
+                secondaryAction("Recordings", symbol: "play.rectangle", action: onReviewVideo)
+                    .accessibilityIdentifier("reviewRecordings")
+                secondaryAction("Your workouts", symbol: "square.stack.3d.up", action: onHistory)
                     .accessibilityIdentifier("workoutHistory")
             }
         }
@@ -112,13 +159,9 @@ struct HomeScreenView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            ZStack {
-                HangBrandMark().fill(HangBrand.ink)
-                Circle().fill(HangBrand.coral).frame(width: 5.4, height: 5.4).offset(y: -5)
-            }
-                .frame(width: 35, height: 35)
-                .padding(6)
-                .background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 16))
+            brandArtwork.resizable().scaledToFit()
+                .frame(width: 47, height: 47)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
                 .accessibilityHidden(true)
             Text("Hang in there.")
                 .font(.system(size: 23, weight: .heavy, design: .rounded))
@@ -135,12 +178,32 @@ struct HomeScreenView: View {
                 .font(.system(size: wideLayout ? 26 : 30, weight: .heavy, design: .rounded))
                 .tracking(-1)
                 .lineLimit(2)
-            HangIllustrations(pullUp: pullUpArtwork, dip: dipArtwork, showsLabels: true)
+            HangIllustrations(pullUp: pullUpArtwork, dip: dipArtwork, showsLabels: true,
+                onPullUp: { onStartExercise(.pullUp) }, onDip: { onStartExercise(.dip) })
                 .frame(height: wideLayout ? 190 : 215)
+            if let onStartPushUp {
+                Button(action: onStartPushUp) {
+                    HStack(spacing: 16) {
+                        pushUpArtwork.resizable().scaledToFit().frame(width: 140, height: 68)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Push-ups").font(.headline)
+                            Text("Preview").font(.caption.weight(.semibold)).foregroundStyle(palette.secondary)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "play.fill").font(.subheadline).accessibilityHidden(true)
+                    }
+                    .padding(14).frame(maxWidth: .infinity)
+                    .background(palette.garden, in: RoundedRectangle(cornerRadius: 20))
+                    .contentShape(RoundedRectangle(cornerRadius: 20))
+                }.buttonStyle(.plain)
+                    .accessibilityLabel("Start push-ups workout")
+                    .accessibilityHint("Side-view preview. Sets and rep timing are saved to History.")
+                    .accessibilityIdentifier("startPushUpWorkout")
+            }
         }
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("One rep at a time. Pull-ups and dips.")
+        .accessibilityElement(children: .contain)
     }
 
     private var liveButton: some View {
@@ -150,13 +213,7 @@ struct HomeScreenView: View {
                     .font(.system(size: 23, weight: .medium))
                     .frame(width: 48, height: 48)
                     .background(HangBrand.ink.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Let's get moving").font(.title3.bold())
-                    if !dynamicTypeSize.isAccessibilitySize {
-                        Text("Start a live workout")
-                            .font(.caption.weight(.medium))
-                    }
-                }
+                Text("Start workout").font(.title3.bold())
                 Spacer(minLength: 2)
                 Image(systemName: "arrow.right")
                     .font(.system(size: 18, weight: .semibold))
@@ -172,7 +229,7 @@ struct HomeScreenView: View {
         .accessibilityLabel("Start live workout")
     }
 
-    private func secondaryAction(_ title: String, detail: String, symbol: String, action: @escaping () -> Void) -> some View {
+    private func secondaryAction(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 13) {
                 HStack {
@@ -184,14 +241,9 @@ struct HomeScreenView: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(palette.secondary)
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.subheadline.bold())
-                    if !dynamicTypeSize.isAccessibilitySize {
-                        Text(detail).font(.caption.weight(.medium)).foregroundStyle(palette.secondary)
-                    }
-                }
+                Text(title).font(.subheadline.bold())
             }
-            .frame(maxWidth: .infinity, minHeight: 90, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 68, alignment: .topLeading)
             .padding(16)
             .background(palette.surface, in: RoundedRectangle(cornerRadius: 23))
             .contentShape(RoundedRectangle(cornerRadius: 23))
@@ -199,27 +251,44 @@ struct HomeScreenView: View {
         .buttonStyle(.plain)
     }
 
-    private var placementGuide: some View {
-        VStack(alignment: .leading, spacing: 13) {
-            Text("Give your camera a good view")
-                .font(.subheadline.bold())
-                .foregroundStyle(palette.secondary)
-            let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
-            layout {
-                placementItem("iphone", title: "Chest-height\nphone")
-                placementItem("person.fill.viewfinder", title: "Front or\nrear view")
-                placementItem("figure.arms.open", title: "Both arms\nin frame")
-            }
-        }
-    }
 
-    private func placementItem(_ symbol: String, title: String) -> some View {
-        HStack(alignment: .top, spacing: 7) {
-            Image(systemName: symbol).font(.system(size: 19, weight: .regular)).frame(width: 23)
-            Text(title).font(.caption.weight(.medium)).lineSpacing(2)
+}
+
+struct WorkoutCameraGuideView: View {
+    var onContinue: () -> Void
+    var onCancel: () -> Void
+    @Environment(\.colorScheme) private var scheme
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Image(systemName: "person.fill.viewfinder").font(.system(size: 56)).foregroundStyle(.teal)
+                    .accessibilityHidden(true)
+                Text("A clear view. A good start.").font(.largeTitle.bold())
+                instruction("iphone", "Phone at chest height", "Keep it level and steady.")
+                instruction("person.fill.turn.right", "Face the camera, or face away", "Use a front or rear view.")
+                instruction("figure.arms.open", "Both arms in frame", "Keep shoulders, elbows and hands visible.")
+            }.padding(24).frame(maxWidth: 540, alignment: .leading).frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        .safeAreaInset(edge: .bottom) {
+            Button(action: onContinue) {
+                Label("Open camera", systemImage: "camera.fill").font(.headline)
+                    .frame(maxWidth: .infinity).padding(17).foregroundStyle(HangBrand.ink)
+                    .background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 18))
+            }.buttonStyle(.plain).padding(20).background(.regularMaterial)
+                .accessibilityIdentifier("completeCameraGuide")
+        }
+        .background(HangPalette(scheme).background).fontDesign(.rounded)
+        .navigationTitle("Before your first workout")
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Back", action: onCancel) } }
+    }
+    private func instruction(_ symbol: String, _ title: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            Image(systemName: symbol).font(.title).frame(width: 42).foregroundStyle(.teal).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(.headline)
+                Text(detail).font(.subheadline).foregroundStyle(.secondary)
+            }
+        }.accessibilityElement(children: .combine)
     }
 }
 

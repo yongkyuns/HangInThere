@@ -5,7 +5,8 @@ import kotlin.math.tan
 import kotlin.test.*
 
 class ObservedReturnProgressTests {
-    private data class State(val progress: Double, val cycles: Int, val counted: Boolean, val phase: String)
+    private data class State(val progress: Double, val cycles: Int, val counted: Boolean, val phase: String,
+        val target: Double?, val targetReached: Boolean)
 
     @Test fun displayFollowsObservedReturnBeforeCountingReversalDwellFinishes() {
         for (dip in listOf(false, true)) {
@@ -42,6 +43,30 @@ class ObservedReturnProgressTests {
         }
     }
 
+    @Test fun movementTargetFillsThenFallsWithThePoseWithoutPredictingACount() {
+        for (dip in listOf(false, true)) {
+            val states = replay(dip, 140.0)
+            assertEquals(0.0, states.getValue(1000).target)
+            assertTrue(checkNotNull(states.getValue(1280).target) > 0.0)
+            assertEquals(1.0, states.getValue(1800).target)
+            assertTrue(states.getValue(1800).targetReached)
+            assertEquals(0, states.getValue(1800).cycles)
+            assertTrue(checkNotNull(states.getValue(3200).target) < checkNotNull(states.getValue(2800).target))
+            assertTrue(checkNotNull(states.getValue(3480).target) < checkNotNull(states.getValue(3200).target))
+            assertEquals(1, states.values.last().cycles)
+            assertEquals(0.0, states.values.last().target)
+        }
+    }
+
+    @Test fun unavailableBodyOrCameraNeverShowsATargetReached() {
+        for (dip in listOf(false, true)) for (fault in listOf("body", "camera")) {
+            val paused = replay(dip, 140.0, fault).getValue(2800)
+            assertNull(paused.target)
+            assertFalse(paused.targetReached)
+            assertEquals(0, paused.cycles)
+        }
+    }
+
     private fun replay(dip: Boolean, depth: Double, fault: String? = null): Map<Long, State> {
         val selection = BodyAthleteSelection()
         val pull = OverheadPullUpMotion()
@@ -58,10 +83,10 @@ class ObservedReturnProgressTests {
             selection.observe(if (invalid && fault == "body") pose.copy(people = emptyList()) else pose)
             if (dip) {
                 val state = dips.observe(selection, !(invalid && fault == "camera"))
-                State(state.progress, state.cycles, state.event?.outcome == "imageCycle", state.phase.name)
+                State(state.progress, state.cycles, state.event?.outcome == "imageCycle", state.phase.name, state.targetProgress, state.targetReached)
             } else {
                 val state = pull.observe(selection, "progress", !(invalid && fault == "camera"))
-                State(state.progress, state.cycles, state.event?.outcome == "imageCycle", state.phase.name)
+                State(state.progress, state.cycles, state.event?.outcome == "imageCycle", state.phase.name, state.targetProgress, state.targetReached)
             }
         }
     }

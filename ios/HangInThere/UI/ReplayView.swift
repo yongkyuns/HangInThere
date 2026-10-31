@@ -10,8 +10,22 @@ struct ReplayView: View {
     @State private var model = ReplayController()
     #endif
     @State private var importing = false
-    @State private var showingLiveWorkout = false
-    @State private var showingWorkoutHistory = false
+    private struct LiveWorkoutDestination: Identifiable {
+        let id = UUID()
+        var exercise: ExerciseCounter.Exercise? = nil
+        var plan: WorkoutCoachRecommendation? = nil
+    }
+    @State private var liveWorkout: LiveWorkoutDestination?
+    @State private var showingPushUps = false
+    private enum LibraryDestination: String, Identifiable {
+        case history = "History", recordings = "Recordings"
+        var id: String { rawValue }
+    }
+    @State private var libraryDestination: LibraryDestination?
+    @State private var importAfterLibrary = false
+    @State private var showingCoach = false
+    @State private var showingWorkoutLog = false
+    @State private var coachedWorkout: WorkoutCoachRecommendation?
     @State private var barSetup: BarSetupFrame?
     @State private var showPoseOverlay = false
     @Environment(\.scenePhase) private var scenePhase
@@ -60,15 +74,39 @@ struct ReplayView: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showingLiveWorkout) {
-                LiveSetupView()
+            .fullScreenCover(item: $liveWorkout) { destination in
+                LiveSetupView(initialExercise: destination.exercise, coachingPlan: destination.plan)
             }
-            .sheet(isPresented: $showingWorkoutHistory) {
+            #if os(iOS)
+            .fullScreenCover(isPresented: $showingPushUps) { PushUpPracticeView() }
+            #endif
+            .sheet(isPresented: $showingWorkoutLog) { NavigationStack { WorkoutLogView() } }
+            .sheet(isPresented: $showingCoach, onDismiss: {
+                if let recommendation = coachedWorkout {
+                    coachedWorkout = nil
+                    liveWorkout = LiveWorkoutDestination(plan: recommendation)
+                }
+            }) {
                 NavigationStack {
-                    WorkoutLibraryView(section: "History")
+                    WorkoutCoachView { recommendation in
+                        coachedWorkout = recommendation; showingCoach = false
+                    }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { showingCoach = false } } }
+                }
+            }
+            .sheet(item: $libraryDestination, onDismiss: {
+                if importAfterLibrary { importAfterLibrary = false; importing = true }
+            }) { destination in
+                NavigationStack {
+                    WorkoutLibraryView(section: destination.rawValue)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("Done") { showingWorkoutHistory = false }
+                                Button("Done") { libraryDestination = nil }
+                            }
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Import video", systemImage: "square.and.arrow.down") {
+                                    importAfterLibrary = true; libraryDestination = nil
+                                }.accessibilityIdentifier("importPhoneVideo")
                             }
                         }
                 }
@@ -103,9 +141,11 @@ struct ReplayView: View {
     }
 
     private var emptyState: some View {
-        HomeScreenView(onLiveWorkout: { showingLiveWorkout = true },
-            onImportVideo: { importing = true },
-            onHistory: { showingWorkoutHistory = true })
+        HomeScreenView(onLiveWorkout: { liveWorkout = LiveWorkoutDestination() },
+            onStartExercise: { liveWorkout = LiveWorkoutDestination(exercise: $0) },
+            onReviewVideo: { libraryDestination = .recordings },
+            onHistory: { libraryDestination = .history }, onCoach: { showingCoach = true },
+            onLogWorkout: { showingWorkoutLog = true }, onStartPushUp: { showingPushUps = true })
     }
 
     private var sessionHeader: some View {
@@ -141,7 +181,8 @@ struct ReplayView: View {
 
                 if showPoseOverlay {
                     PoseOverlay(result: frame.pose, selectedSide: model.counter.side,
-                                usesBothArms: true)
+                                usesBothArms: true, progress: poseOverlayProgress(counter: model.counter, bilateralDip: model.dipSnapshot),
+                                completedReps: model.repAnalysis.filter(\.isCompleteForAnalytics).count)
                 }
 
                 if showPoseOverlay { BarOverlay(imageSize: frame.pose.imageSize, bar: model.currentBar) }
@@ -155,7 +196,7 @@ struct ReplayView: View {
                             .background(.ultraThinMaterial, in: Capsule())
 
                         Spacer()
-
+                        PoseOverlayVisibilityButton(isVisible: $showPoseOverlay)
                         VStack(alignment: .trailing, spacing: 0) {
                             Text("\(model.observedMovements)")
                                 .font(.system(size: 42, weight: .bold, design: .rounded))
@@ -213,7 +254,7 @@ struct ReplayView: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(.white.opacity(0.08), lineWidth: 1)
         }
-        .accessibilityLabel("Workout video with body joint and bar overlays")
+        .accessibilityLabel("Workout video")
         .accessibilityIdentifier("posePreview")
     }
 
@@ -294,7 +335,7 @@ struct ReplayView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Text("Observed movement cycles. Chin clearance, strict dip depth, and form quality are not verified.")
+            Text("Counts movement · form not assessed")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -479,7 +520,7 @@ struct ReplayView: View {
                     .foregroundStyle(.orange)
             }
 
-            Text("Form scoring is not enabled yet. Chin clearance and strict dip depth are not verified.")
+            Text("Counts movement · form not assessed")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -493,7 +534,7 @@ struct ReplayView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Workout setup")
                         .font(.headline)
-                    Text("Choose the exercise. Keep both hands and arms visible.")
+                    Text("Keep both hands and arms in frame.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -511,7 +552,7 @@ struct ReplayView: View {
                     set: { model.configureCounting(exercise: $0, side: model.counter.side) }
                 )
             ) {
-                ForEach(ExerciseCounter.Exercise.allCases, id: \.rawValue) { exercise in
+                ForEach(ExerciseCounter.Exercise.barExercises, id: \.rawValue) { exercise in
                     Text(exercise.title).tag(exercise)
                 }
             }

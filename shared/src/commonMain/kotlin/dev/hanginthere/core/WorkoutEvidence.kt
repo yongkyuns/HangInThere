@@ -34,6 +34,7 @@ object WorkoutEvidence {
         } } == true
 
     fun assess(rep: RepRecord, setEndReason: String? = null): WorkoutAttemptAssessment {
+        val pushUp = rep.exercise == ExerciseCounter.Exercise.pushUp && rep.countMethod == SideViewPushUpWorkout.countMethod
         val endedActiveAttempt = rep.closeReason == "inProgress" && setEndReason != null && setEndReason != "running"
         val status = when {
             rep.isCompleteForAnalytics -> WorkoutAttemptStatus.completed
@@ -53,7 +54,9 @@ object WorkoutEvidence {
             WorkoutAttemptStatus.ended -> "Attempt ended"
         }
         val explanation = when (status) {
-            WorkoutAttemptStatus.completed -> if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
+            WorkoutAttemptStatus.completed -> if (pushUp)
+                "A side-view lowering and return were recorded. Exercise form and load are unverified."
+                else if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 "Both-arm image travel and return were recorded. Anatomical depth, form and load are unverified."
                 else "The movement and return were recorded. This cycle is included in completed-rep statistics."
             WorkoutAttemptStatus.inProgress -> "This attempt is still being tracked. It is excluded from completed-rep statistics until a completed cycle is recorded."
@@ -66,12 +69,13 @@ object WorkoutEvidence {
         val left = coverage(rep.left.coverage)
         val right = coverage(rep.right.coverage)
         val notes = buildList {
-            if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
+            if (pushUp) add("Side-view preview: measurements use the same visible arm throughout the attempt.")
+            else if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 add("Bilateral image-motion cycle. Anatomical depth, form and load are unverified.")
             if (duration == null) add("Observed-time coverage is unavailable.")
             else if (duration < 1 - 1e-9) add("Some source time was not observed; gaps do not add hold time.")
-            if (left == null) add("Left-arm time coverage is unavailable.")
-            if (right == null) add("Right-arm time coverage is unavailable.")
+            if (left == null && !pushUp) add("Left-arm time coverage is unavailable.")
+            if (right == null && !pushUp) add("Right-arm time coverage is unavailable.")
             if (left != null && left < minimumAngleComparisonCoverage || right != null && right < minimumAngleComparisonCoverage)
                 add("Limited arm observations: inspect the available measurements before comparing range.")
             add("Coverage describes recorded time. Camera angles do not verify exercise form.")
@@ -80,8 +84,10 @@ object WorkoutEvidence {
         // must not make the observed prefix comparable to a whole attempt.
         val nonInterruptedEnding = rep.closeReason in listOf("returned", "partial", "manual", "disengaged", "endOfInput")
         val comparable = nonInterruptedEnding && status !in listOf(WorkoutAttemptStatus.inProgress, WorkoutAttemptStatus.interrupted) &&
-            left != null && right != null && left >= minimumAngleComparisonCoverage && right >= minimumAngleComparisonCoverage &&
-            validRange(rep.left) && validRange(rep.right)
+            (if (pushUp) listOf(rep.left, rep.right).count {
+                (coverage(it.coverage) ?: -1.0) >= minimumAngleComparisonCoverage && validRange(it)
+            } == 1 else left != null && right != null && left >= minimumAngleComparisonCoverage && right >= minimumAngleComparisonCoverage &&
+                validRange(rep.left) && validRange(rep.right))
         val endingReason = if (endedActiveAttempt) {
             if (setEndReason == "recoveredInterruption") "Interrupted recording recovered" else "Set ended before this attempt was finalized"
         } else reason(rep.closeReason)
@@ -106,7 +112,8 @@ object WorkoutEvidence {
     }
 
     fun comparableElbowExcursion(rep: RepRecord): Double? = if (assess(rep).angleComparisonEligible)
-        ((rep.left.maximum!! - rep.left.minimum!!) + (rep.right.maximum!! - rep.right.minimum!!)) * .5 else null
+        listOf(rep.left, rep.right).filter { (it.coverage ?: 0.0) >= minimumAngleComparisonCoverage && validRange(it) }
+            .map { it.maximum!!-it.minimum!! }.average() else null
 }
 
 /** Review-only Apple ABI. Summaries suffice; curves never need to cross this boundary. */

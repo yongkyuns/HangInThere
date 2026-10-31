@@ -90,6 +90,7 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
                         if(attempts.isNotEmpty())JourneyDisclosure("Other attempts · ${attempts.size}") {
                             attempts.forEach { rep -> key(rep.id) { JourneyRepRow(rep,maximum) { selectedRep=rep.id } } }
                         }
+                        if(record!=null && showsSourcePhases)SharedSetAnalysis(record)
                         if(record?.activity!=null && showsSourcePhases)JourneyDisclosure("Phase breakdown") { WorkoutPracticePanel(record) }
                         if(record?.exercise==ExerciseCounter.Exercise.pullUp && showsSourcePhases)JourneyDisclosure("Grip and variation") { WorkoutGripPanel(record,goalsEnabled) }
                     } else Text("Your next workout starts here",style=MaterialTheme.typography.headlineSmall)
@@ -145,3 +146,37 @@ private fun AnglePlot(rep: RepRecord) {
 private fun seconds(value: Double?): String = value?.let { String.format(Locale.ROOT, "%.2f s", it) } ?: "Unavailable"
 private fun angles(value: AngleMetrics): String = if (value.mean != null && value.minimum != null && value.maximum != null)
     String.format(Locale.ROOT, "%.0f° / %.0f–%.0f°", value.mean, value.minimum, value.maximum) else "Unavailable"
+
+/** Common formulas; native rendering only. Disconnected segments preserve observation gaps. */
+@Composable private fun SharedSetAnalysis(record: WorkoutSetRecord) {
+    val demand = remember(record) { WorkoutSetPresentation.demand(record.activity) }
+    val tempo = remember(record) { WorkoutSetPresentation.tempo(record) }
+    if (demand.points.isNotEmpty()) {
+        val color = MaterialTheme.colorScheme.primary
+        Text("Relative effort", style=MaterialTheme.typography.titleLarge)
+        Text("%.1f phase-time units".format(Locale.ROOT,demand.units), style=MaterialTheme.typography.headlineSmall)
+        Canvas(Modifier.fillMaxWidth().height(120.dp).semantics { contentDescription="Relative observed effort over the set; tracking gaps are not connected" }) {
+            val end = demand.points.maxOf { it.seconds }.coerceAtLeast(.001)
+            val peak = demand.units.coerceAtLeast(.001)
+            fun point(p: WorkoutSetPresentation.Point) = Offset((p.seconds/end*size.width).toFloat(),((1-p.units/peak)*size.height).toFloat())
+            demand.points.zipWithNext().filter { it.first.segment==it.second.segment }.forEach { (a,b) ->
+                drawLine(color,point(a),point(b),3.dp.toPx(),StrokeCap.Round)
+            }
+        }
+        Text("Based on observed phase time, not measured fatigue or calories.", style=MaterialTheme.typography.bodySmall)
+        if(demand.hasGaps || demand.isPartial)Text("Partial tracking · missing time is excluded",style=MaterialTheme.typography.bodySmall)
+    }
+    if (tempo.reps.isNotEmpty()) {
+        Text("Lifting tempo",style=MaterialTheme.typography.titleLarge)
+        val max = tempo.reps.maxOf { it.lifting }.coerceAtLeast(.001)
+        tempo.reps.forEach { rep ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                Text("${rep.ordinal}")
+                LinearProgressIndicator(progress={ (rep.lifting/max).toFloat() },modifier=Modifier.weight(1f))
+                Text("%.1f s".format(Locale.ROOT,rep.lifting))
+            }
+        }
+        tempo.change?.let { Text("Last rep: %+.0f%% lifting time".format(Locale.ROOT,it*100),style=MaterialTheme.typography.titleMedium) }
+        Text(tempo.comparisonNote,style=MaterialTheme.typography.bodySmall)
+    }
+}

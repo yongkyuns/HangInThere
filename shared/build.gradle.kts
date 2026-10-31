@@ -15,7 +15,10 @@ kotlin {
     macosArm64 { binaries.framework { baseName = "WorkoutCore"; isStatic = true } }
     macosX64 { binaries.framework { baseName = "WorkoutCore"; isStatic = true } }
     sourceSets {
-        commonMain.dependencies { implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0") }
+        commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
+        }
         commonTest.dependencies { implementation(kotlin("test")) }
         // Evaluation contracts compile into tests only, never the shipping framework.
         getByName("jvmTest").kotlin.srcDirs("../Evaluation/android", "../Evaluation/androidTests")
@@ -71,6 +74,23 @@ tasks.named<org.gradle.api.tasks.testing.Test>("jvmTest") {
     val overheadOwnerOutput = providers.environmentVariable("OVERHEAD_OWNER_OUTPUT")
     inputs.property("OVERHEAD_OWNER_OUTPUT", overheadOwnerOutput.orElse(""))
     overheadOwnerOutput.orNull?.let { outputs.dir(it).withPropertyName("OVERHEAD_OWNER_OUTPUT") }
+    // Opt-in full-source native parity evidence, never a shipping resource.
+    val motionManifest = providers.environmentVariable("MOTION_PARITY_MANIFEST")
+    inputs.property("MOTION_PARITY_MANIFEST", motionManifest.orElse(""))
+    motionManifest.orNull?.let { inputs.file(it).withPropertyName("MOTION_PARITY_MANIFEST") }
+    val motionOutput = providers.environmentVariable("MOTION_PARITY_OUTPUT")
+    inputs.property("MOTION_PARITY_OUTPUT", motionOutput.orElse(""))
+    motionOutput.orNull?.let { outputs.dir(it).withPropertyName("MOTION_PARITY_OUTPUT") }
+
+    val pushUpManifest = providers.environmentVariable("PUSHUP_REPLAY_MANIFEST")
+    inputs.property("PUSHUP_REPLAY_MANIFEST", pushUpManifest.orElse(""))
+    pushUpManifest.orNull?.let { inputs.file(it).withPropertyName("PUSHUP_REPLAY_MANIFEST") }
+    val pushUpOutput = providers.environmentVariable("PUSHUP_REPLAY_OUTPUT")
+    inputs.property("PUSHUP_REPLAY_OUTPUT", pushUpOutput.orElse(""))
+    pushUpOutput.orNull?.let { outputs.dir(it).withPropertyName("PUSHUP_REPLAY_OUTPUT") }
+    // The opt-in replay verifies hashes of external traces; never cache that verification.
+    outputs.upToDateWhen { pushUpManifest.orNull == null }
+
 }
 if (!appleOnly) extensions.configure<com.android.build.gradle.LibraryExtension> {
     namespace = "dev.hanginthere.core"

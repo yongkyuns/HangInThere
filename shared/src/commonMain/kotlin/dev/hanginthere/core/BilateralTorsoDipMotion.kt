@@ -19,7 +19,8 @@ class BilateralTorsoDipMotion {
         val partialAttempts: Int = 0, val interruptedAttempts: Int = 0,
         val progress: Double = 0.0,
         val countMethod: String = BilateralTorsoDipMotion.countMethod,
-        val policyVersion: Int = BilateralTorsoDipMotion.policyVersion)
+        val policyVersion: Int = BilateralTorsoDipMotion.policyVersion,
+        val targetProgress: Double? = null, val targetReached: Boolean = false)
     internal data class Arm(val wrist: Point2D, val degrees: Double, val length: Double)
     internal data class Sample(val time: PresentationTime, val size: ImageSize, val backend: String,
         val revision: Int, val shoulders: List<Point2D>, val wrists: List<Point2D?>,
@@ -87,9 +88,9 @@ class BilateralTorsoDipMotion {
         var event: Event? = null
         fun result(reason: String, world: List<Double> = emptyList(), relative: List<Double?> = emptyList()): Snapshot {
             currentSample = current
-            return Snapshot(time.seconds.takeIf { it.isFinite() }, phase, cycles, reason,
-                current?.complete?.isNotEmpty() == true && cameraReady && reason !in listOf(
-                    "sourceRegression", "contextChanged", "horizontalTorso", "overheadPosture", "positiveBilateralRelease", "supportWitnessDeparture"),
+            val usable = current?.complete?.isNotEmpty() == true && cameraReady && reason !in listOf(
+                "sourceRegression", "contextChanged", "horizontalTorso", "overheadPosture", "positiveBilateralRelease", "supportWitnessDeparture")
+            return Snapshot(time.seconds.takeIf { it.isFinite() }, phase, cycles, reason, usable,
                 reason != "sourceRegression", current?.complete ?: emptyList(), world, relative, event,
                 elbowDegrees = current?.arms?.map { it?.degrees } ?: emptyList(),
                 wristDriftArmFractions = current?.wrists?.mapIndexed { i, wrist ->
@@ -106,7 +107,7 @@ class BilateralTorsoDipMotion {
                         .45 * world.minOf { (it / .18).coerceIn(0.0, 1.0) }, returnProgress(world))
                     phase == Phase.returning -> returnProgress(world)
                     else -> 0.0
-                })
+                }, targetProgress = if (usable) targetProgress(current) else null, targetReached = usable && peak != null)
         }
         val previous = highWater
         if (!time.seconds.isFinite() || time.seconds < 0 || previous?.let { compare(time, it, zero) != 1 } == true) {
@@ -313,6 +314,25 @@ class BilateralTorsoDipMotion {
     }
 
     // Presentation only; count thresholds and endpoint evidence stay independent.
+    // Display only: both shoulders and a currently measured, stable arm must
+    // reach the same displacement/bend gates used by displaced() and bendPair().
+    private fun targetProgress(current: Sample?): Double? {
+        val now = current ?: return null
+        val base = baseline ?: return null
+        val fixed = support ?: return null
+        val required = fixed.arms.map { max(.18 * it!!.length, .02 * min(now.size.width, now.size.height)) }
+        val world = now.shoulders.indices.minOf { (now.shoulders[it].y - base.shoulders[it].y) / required[it] }
+        val arms = now.complete.filter { i -> base.arms[i] != null && i !in revokedArmSlots &&
+            distance(now.arms[i]!!.wrist, fixed.arms[i]!!.wrist) <= .12 * fixed.arms[i]!!.length }
+        if (arms.isEmpty()) return null
+        val corroboration = arms.maxOf { i ->
+            val bend = min(30.0, base.arms[i]!!.degrees - 100).coerceAtLeast(1.0)
+            min((base.height(i) - now.height(i)) / required[i],
+                (base.arms[i]!!.degrees - now.arms[i]!!.degrees) / bend)
+        }
+        return min(world, corroboration).coerceIn(0.0, 1.0)
+    }
+
     private fun returnProgress(world: List<Double>): Double {
         val base = baseline ?: return 0.0
         val low = peak ?: return 0.0

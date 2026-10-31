@@ -28,7 +28,7 @@ android {
     sourceSets["main"].assets.srcDir("../../models/grip")
     sourceSets["androidTest"].java.srcDirs("../../Evaluation/android", "../../Evaluation/androidTests")
     sourceSets["androidTest"].resources.srcDir(rootProject.tasks.named("prepareEvaluationTestResources"))
-    buildFeatures { compose = true; buildConfig = true }
+    buildFeatures { compose = true; buildConfig = true; prefab = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     packaging {
         resources.excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1")
@@ -67,6 +67,7 @@ dependencies {
     implementation("org.opencv:opencv:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation(kotlin("test-junit"))
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test:rules:1.7.0")
@@ -92,3 +93,12 @@ val verifyPoseRuntimeArtifact by tasks.registering {
     }
 }
 tasks.named("preBuild").configure { dependsOn(verifyPoseRuntimeArtifact) }
+
+// The evaluation sources also run as shared JVM tests and inspect core internals.
+// Grant that access only to instrumentation compilation; keep production APIs private.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    if (name.endsWith("AndroidTestKotlin")) compilerOptions.freeCompilerArgs.add(provider {
+        val sharedBuild = project(":shared").layout.buildDirectory.get().asFile.toPath()
+        "-Xfriend-paths=" + libraries.files.filter { it.toPath().startsWith(sharedBuild) }.joinToString(",") { it.absolutePath }
+    })
+}

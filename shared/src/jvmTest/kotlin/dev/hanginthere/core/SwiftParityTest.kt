@@ -81,7 +81,7 @@ class SwiftParityTest {
             for (prefix in listOf("dip-new-arm-dwell", "dip-anchored-arm-brief-outage", "dip-new-arm-current-return-dwell", "dip-new-arm-initial-bent"))
                 assertTrue("$prefix-$side" in ids, "Missing dip visibility dwell regression")
         }
-        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) {
+        for (exercise in ExerciseCounter.barExercises) for (side in ArmMeasurement.Side.entries) {
             for (origin in listOf("ordinary", "large")) for (kind in listOf("exact", "short"))
                 assertTrue("source-clock-$exercise-$side-$origin-$kind" in ids, "Missing exact source dwell regression")
             for (kind in listOf("gap", "gap-over"))

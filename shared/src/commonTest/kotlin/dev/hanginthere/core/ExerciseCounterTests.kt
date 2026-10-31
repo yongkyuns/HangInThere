@@ -108,7 +108,7 @@ class ExerciseCounterTests {
         .copy(timestamp = PresentationTime(ticks, timescale))
 
     @Test fun endpointDwellUsesSourceTicksAtEveryOrigin() {
-        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries)
+        for (exercise in ExerciseCounter.barExercises) for (side in ArmMeasurement.Side.entries)
             for (origin in listOf(0L, 1_100_000L, 9_007_199_254_740_992L)) {
                 val c = ExerciseCounter(exercise, side)
                 for ((offset, degrees) in listOf(0L to 170.0,120_000L to 170.0,240_000L to 80.0,
@@ -123,7 +123,7 @@ class ExerciseCounterTests {
     }
 
     @Test fun endpointDwellNeverRoundsUpAOneTickShortHold() {
-        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries)
+        for (exercise in ExerciseCounter.barExercises) for (side in ArmMeasurement.Side.entries)
             for (origin in listOf(1_100_000L, 9_007_199_254_740_992L)) {
                 val c = ExerciseCounter(exercise, side)
                 fun frame(offset: Long, degrees: Double) = clockPose(origin + offset, degrees, exercise, side)
@@ -141,7 +141,7 @@ class ExerciseCounterTests {
     }
 
     @Test fun sourceGapUsesExactAllowedBoundaryWithoutExtraTolerance() {
-        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) for (excess in listOf(0L,1L)) {
+        for (exercise in ExerciseCounter.barExercises) for (side in ArmMeasurement.Side.entries) for (excess in listOf(0L,1L)) {
             val c = ExerciseCounter(exercise, side)
             for ((offset, degrees) in listOf(0L to 170.0,150_000L to 170.0,300_000L to 80.0,(650_000L + excess) to 80.0))
                 c.consume(clockPose(offset, degrees, exercise, side), CounterFixtures.edge)
@@ -159,7 +159,7 @@ class ExerciseCounterTests {
         val faults = listOf(Fault(0,240_000,1_000_000,"nonIncreasingTimestamp"),
             Fault(0,239_999,1_000_000,"nonIncreasingTimestamp"),Fault(0,400_000,0,"invalidTimestamp"),
             Fault(Long.MIN_VALUE,Long.MAX_VALUE,1_000_000,"invalidTimestamp"))
-        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) for (fault in faults) {
+        for (exercise in ExerciseCounter.barExercises) for (side in ArmMeasurement.Side.entries) for (fault in faults) {
             val c = ExerciseCounter(exercise, side)
             for ((offset, degrees) in listOf(0L to 170.0,120_000L to 170.0,240_000L to 80.0))
                 c.consume(clockPose(fault.origin + offset, degrees, exercise, side), CounterFixtures.edge)
@@ -174,7 +174,7 @@ class ExerciseCounterTests {
     }
 
     @Test fun mixedTimescalesRetainNonBoundaryCounterCycles() {
-        for (exercise in ExerciseCounter.Exercise.entries) for (side in ArmMeasurement.Side.entries) {
+        for (exercise in ExerciseCounter.barExercises) for (side in ArmMeasurement.Side.entries) {
             val c = ExerciseCounter(exercise, side)
             val frames = listOf(Triple(1_100L,1_000,170.0),Triple(1_250_000L,1_000_000,170.0),
                 Triple(1_400L,1_000,80.0),Triple(1_550_000L,1_000_000,80.0),
@@ -538,7 +538,7 @@ class ExerciseCounterTests {
         assertEquals(0, c.observedMovements); assertEquals(1, c.interruptedAttempts)
     }
     @Test fun bentHoldsCannotAcquireStartingPosition() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val c = ExerciseCounter(exercise)
             CounterFixtures.feed(c, 0.0 to 70.0, 0.15 to 70.0, 0.3 to 75.0, 0.45 to 70.0)
             assertEquals(ExerciseCounter.Phase.seekingStart, c.phase); assertEquals(0, c.observedMovements)

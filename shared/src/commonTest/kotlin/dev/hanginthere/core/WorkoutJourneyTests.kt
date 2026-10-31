@@ -21,6 +21,24 @@ class WorkoutJourneyTests {
                 0.0, 2.0, (start+2)*it, start+2, false, 2) })
     }
     private fun library(vararg records: WorkoutSetRecord) = WorkoutLibrary.register(WorkoutLibraryState(), records.toList())
+    @Test fun cameraAndLoggedSetsShareOneSessionWithoutDoubleCounting() {
+        var state = library(record())
+        state = WorkoutLibrary.apply(state, WorkoutLibraryCommand("review", setId = "set",
+            correction = WorkoutReviewCorrection(workoutId = "mixed"), atEpochMilliseconds = now))
+        val log = WorkoutLog("mixed", now, listOf(WorkoutLoggedSet("curl", "EZ curls", 7, 75.9)), now)
+        state = WorkoutLibrary.apply(state, WorkoutLibraryCommand("saveWorkoutLog", atEpochMilliseconds = now, workoutLog = log))
+        val report = WorkoutJourney.report(state, now, 0)
+        assertEquals(1, report.workoutCount); assertEquals(3, report.completedReps); assertEquals(7, report.loggedReps)
+        assertEquals(2, report.workouts.single().setCount)
+        assertEquals(1, report.workouts.single().sets.size)
+        assertEquals("mixed", report.days.last().workoutIds.single())
+        assertEquals(report.workouts, WorkoutJourney.page(state, now, 0).workouts)
+        val range = WorkoutCalendarDayRange(now / 86400000, now, now + 86400000)
+        val calendar = WorkoutJourney.calendarDays(state, listOf(range), now).single()
+        assertEquals(listOf("mixed"), calendar.workoutIds)
+        assertEquals(3, calendar.completedReps); assertEquals(7, calendar.loggedReps)
+        assertEquals(report.workouts, WorkoutJourney.page(state, now, 0, day = range.day, range = range).workouts)
+    }
     @Test fun steadySetGetsOneAutomaticNextStepWithoutContextInput() {
         val original=record();val digest=WorkoutJourney.set(original)
         assertEquals("steady",digest.quality.level);assertEquals(3,digest.completedReps)

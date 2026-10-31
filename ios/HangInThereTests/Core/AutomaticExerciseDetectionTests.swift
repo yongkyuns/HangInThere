@@ -249,7 +249,7 @@ import Testing
     }
 
     @Test func identitySourceDwellIsExactButCannotRoundUpOrUseThreeSamples() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for origin: Int64 in [0, 1_100_000, 60_100_000, 9_007_199_254_740_990] {
                 var policy = AutomaticExerciseDetection()
                 for delta: Int64 in [0, 200_000, 400_000, 599_999] {
@@ -272,7 +272,7 @@ import Testing
     }
 
     @Test func identitySourceGapAcceptsExactLimitAndRejectsOneTickMore() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for extra: Int64 in [0, 1] {
                 var policy = AutomaticExerciseDetection()
                 for t: Int64 in [1_000_000, 1_200_000, 1_550_000 + extra] {
@@ -285,7 +285,7 @@ import Testing
     }
 
     @Test func identitySourceClockFaultsClearDwellAndMixedScalesRemainSupported() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for fault in [PresentationTime(value: 1_500_000, timescale: 1_000_000),
                           .init(value: 1_499_999, timescale: 1_000_000), .init(value: 0, timescale: 0),
                           .init(value: 1, timescale: .min), .init(value: .max, timescale: 1_000_000)] {
@@ -309,7 +309,7 @@ import Testing
     }
 
     @Test func distinguishesStableStartingPosesBeforeApparatusAcquisition() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             var detection = AutomaticExerciseDetection()
             for t in [0.0, 0.2, 0.4] { #expect(detection.observe(pose(exercise, t)) == nil) }
             #expect(detection.observe(pose(exercise, 0.7)) == exercise)

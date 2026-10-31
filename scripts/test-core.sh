@@ -11,7 +11,7 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/Sources/HangInThere" "$WORK/Tests/HangInThereTests"
 cp "$ROOT"/ios/HangInThere/Analysis/*.swift "$WORK/Sources/HangInThere/"
-cp "$ROOT"/ios/HangInThere/App/{WorkoutAnalysisAdapter,WorkoutProgression,WorkoutGripReview,WorkoutRepPresentation}.swift "$WORK/Sources/HangInThere/"
+cp "$ROOT"/ios/HangInThere/App/{WorkoutAnalysisAdapter,WorkoutProgression,WorkoutGripReview,WorkoutRepPresentation,WorkoutCoaching,WorkoutReminders,WorkoutLogging}.swift "$WORK/Sources/HangInThere/"
 cp "$ROOT"/ios/HangInThere/Capture/{CountedSetVideoRecorder,WorkoutKeyframes}.swift "$WORK/Sources/HangInThere/"
 cp "$ROOT"/ios/HangInThereTests/Core/*.swift "$WORK/Tests/HangInThereTests/"
 cat > "$WORK/Package.swift" <<'SWIFT'

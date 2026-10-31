@@ -122,7 +122,7 @@ class StaticSceneEvidenceTests {
     }
 
     @Test fun cachedRegistrationSupportsFasterPoseFramesAndBothStartModes() {
-        for (exercise in ExerciseCounter.Exercise.entries) for (automatic in listOf(false, true)) {
+        for (exercise in ExerciseCounter.barExercises) for (automatic in listOf(false, true)) {
             val runtime = runtime(exercise, automatic)
             val countdown = mutableSetOf<Int>()
             for (i in 0..60) {
@@ -228,7 +228,7 @@ class StaticSceneEvidenceTests {
     }
 
     @Test fun neitherExerciseCanBorrowCachedReferenceForAnUnavailableEndpoint() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             for (lost in listOf(false, true)) {
                 val session=LiveSetSession()
                 session.start(exercise, ArmMeasurement.Side.left)

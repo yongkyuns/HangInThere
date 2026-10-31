@@ -4,18 +4,6 @@ import WorkoutCore
 import UniformTypeIdentifiers
 import AVKit
 
-struct LibraryContext: Codable, Equatable, Sendable {
-    var intent = "ordinary"
-    var assistance = "unknown"
-    var assistanceLabel = ""
-    var addedLoadKg: Double?
-    var equipment = ""
-    var cameraView = ""
-    var variation = ""
-    var effort: Int?
-    var readiness = "unrecorded"
-    var recoveryNote = ""
-}
 struct LibraryAttemptEdit: Codable, Sendable { var repId: String; var classification: String }
 struct LibraryPartition: Codable, Sendable { let id: String; let repIds: [String]; let ownsHold: Bool }
 struct LibraryCorrection: Codable, Sendable {
@@ -74,10 +62,12 @@ struct WorkoutLibraryDocument: FileDocument {
 
 /// Review/application actions never reconfigure or pause an active camera.
 struct WorkoutLibraryView: View {
-    private enum Tab: String, CaseIterable { case progress = "Progress", history = "History", plans = "Plans", storage = "Storage", trends = "Trends" }
+    private enum Tab: String, CaseIterable { case progress = "Progress", history = "History", measuredSets = "Measured sets", recordings = "Recordings", plans = "Plans", storage = "Storage", trends = "Trends" }
     @State private var tab = Tab.progress
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("recordCountedSets") private var recordsSetVideos = true
+    @State private var showingWorkoutLog = false
     @State private var historyFilter = "all"
     @State private var organizingHistory = false
     @State private var dashboard: LibraryDashboard?
@@ -117,8 +107,15 @@ struct WorkoutLibraryView: View {
     }
     var body: some View {
         VStack(spacing: 0) {
-            if tab != .progress && tab != .history {
+            if tab != .progress && tab != .history && tab != .recordings {
                 HStack { Button("Back to progress", systemImage: "chevron.left") { tab = .progress }; Spacer() }.padding()
+            }
+            if tab == .progress || tab == .history {
+                Picker("Workout layout", selection: $tab) {
+                    Text("Calendar").tag(Tab.progress)
+                    Text("List").tag(Tab.history)
+                }.pickerStyle(.segmented).labelsHidden().padding(.horizontal).padding(.vertical, 8)
+                    .accessibilityIdentifier("workoutLibraryLayout")
             }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
@@ -126,9 +123,12 @@ struct WorkoutLibraryView: View {
                     if let dashboard {
                         switch tab {
                         case .progress:
-                            if let overview = dashboard.insights.overview { WorkoutJourneyView(overview: overview) }
+                            if let overview = dashboard.insights.overview { WorkoutJourneyView(overview: overview, revision: dashboard.revision, calendarPreview: previewMode ? overview.days : nil) }
                             else { ContentUnavailableView("Record your first workout", systemImage: "chart.bar") }
-                        case .history: historyList(dashboard)
+                        case .history:
+                            if let overview = dashboard.insights.overview { WorkoutJourneyView(overview: overview, showsOverview: false, revision: dashboard.revision, calendarPreview: previewMode ? overview.days : nil) }
+                        case .measuredSets: historyList(dashboard)
+                        case .recordings: recordings(dashboard)
                         case .plans: plans(dashboard.insights)
                         case .storage: storage(dashboard)
                         case .trends: progress(dashboard.insights)
@@ -136,22 +136,32 @@ struct WorkoutLibraryView: View {
                     } else { ProgressView("Loading workout library…") }
                 }.padding()
             }
-        }.background(HangPalette(colorScheme).background)
-        .navigationTitle(tab == .progress ? "Your progress" : tab == .history ? "Your workouts" : tab.rawValue)
+        }.hangTheme()
+        .navigationTitle(tab == .progress || tab == .history ? "Your workouts" : tab.rawValue)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
-                        Button("Your progress") { tab = .progress }
+                        Button("Calendar") { tab = .progress }
                         Button("Goals and trends") { tab = .trends }
-                        Button("Manage recordings") { tab = .history }
+                        Button("Workout list") { tab = .history }
+                        Button("Log workout", systemImage: "square.and.pencil") { showingWorkoutLog = true }
+                        Button("Measured sets") { tab = .measuredSets }
+                        Button("Recordings") { tab = .recordings }
                         Button("Training plans") { tab = .plans }
                         Button("Storage and export") { tab = .storage }
                     } label: { Image(systemName: "ellipsis.circle") }
                 }
             }
             .task { if !previewMode { await load() } }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active && !previewMode { Task { await load() } }
+            }
             .refreshable { if !previewMode { await load() } }
             .onReceive(NotificationCenter.default.publisher(for: .workoutVideoSaved).receive(on: RunLoop.main)) { _ in
+                if !previewMode { Task { await load() } }
+            }
+            .sheet(isPresented: $showingWorkoutLog) { NavigationStack { WorkoutLogView() } }
+            .onReceive(NotificationCenter.default.publisher(for: .workoutLogChanged).receive(on: RunLoop.main)) { _ in
                 if !previewMode { Task { await load() } }
             }
             .sheet(item: $editing) { record in
@@ -222,11 +232,11 @@ struct WorkoutLibraryView: View {
                 }.chartYScale(domain: .automatic(includesZero: true)).frame(minHeight: 160, maxHeight: 240)
                 trendPlot("Comparable elbow excursion", unit: "degrees", points: report.trend, metric: \.elbowExcursionDegrees)
                 trendPlot("Mean measured return time", unit: "seconds", points: report.trend, metric: \.meanReturnSeconds)
-                Text("Gaps indicate unavailable measurements. Angles describe the camera view; they do not verify exercise form.").font(.caption)
+                Text("Gaps = no measurement · angles don’t assess form").font(.caption)
             }
             if let key = report.selectedComparisonKey {
                 Button("Use this context for future live sets") { Task { await command(["action": "defaultContext", "id": key]) } }
-                Text("Assistance, load, equipment and camera setup will carry forward. Review context when these change; effort and readiness remain per set.").font(.caption)
+                Text("Saves assistance, load, equipment and camera setup.").font(.caption)
                 Button("Clear future workout context") { Task { await command(["action": "clearDefaultContexts"]) } }
                 Text("Your chosen goal").font(.headline)
                 if let goal = report.goal { Text("\(goal.target.formatted()) \(goal.metric == "holdSeconds" ? "seconds" : "completed cycles") · \(report.goalAchieved ? "Reached" : "In progress")") }
@@ -245,7 +255,7 @@ struct WorkoutLibraryView: View {
                 } }.disabled(Double(goalTarget) == nil || comparison != report.selectedComparisonKey)
             }
             Text("\(report.consistencyDaysLast28) practice days in the last 28 days").font(.headline)
-            Text("Holds and attempts count as practice. Repeated sets on one day earn one practice day.").font(.caption)
+            Text("Holds and attempts count too.").font(.caption)
             Chart(report.weekly) { week in
                 BarMark(x: .value("Week", Date(timeIntervalSince1970: Double(week.firstDay) * 86400)), y: .value("Practice days", week.days))
                     .accessibilityValue("\(week.days) practice days, \(week.workouts) workouts")
@@ -271,10 +281,7 @@ struct WorkoutLibraryView: View {
     }
     private func historyList(_ dashboard: LibraryDashboard) -> some View {
         VStack(alignment: .leading, spacing: 22) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Your effort, collected.").font(.system(.title2, design: .rounded, weight: .bold))
-                Text("A look back at your recent sets.").font(.subheadline).foregroundStyle(historyPalette.secondary)
-            }
+            Text("Your effort, collected.").font(.system(.title2, design: .rounded, weight: .bold))
             HStack(spacing: 0) {
                 historyStat(filteredHistory.count, title: "Sets", symbol: "square.stack")
                 historyStat(filteredHistory.reduce(0) { $0 + $1.measuredCompletedReps }, title: "Reps", symbol: "arrow.up.arrow.down")
@@ -295,7 +302,7 @@ struct WorkoutLibraryView: View {
             }.buttonStyle(.plain)
             if history.isEmpty {
                 ContentUnavailableView("Your first set belongs here", systemImage: "figure.strengthtraining.traditional",
-                    description: Text("Start a live workout. Counted sets and their videos will appear here."))
+                    description: Text("Record a workout to save your sets here."))
             } else if filteredHistory.isEmpty {
                 ContentUnavailableView("No sets for this exercise yet", systemImage: "figure.arms.open")
             }
@@ -320,7 +327,7 @@ struct WorkoutLibraryView: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 Toggle("Record counted sets", isOn: $recordsSetVideos).font(.subheadline.weight(.semibold))
-                Text("Silent, on-device clips. Setup and rest aren't kept.")
+                Text("Silent video · counted sets only")
                     .font(.caption).foregroundStyle(historyPalette.secondary)
             }
             .padding(16).background(historyPalette.surface, in: RoundedRectangle(cornerRadius: 22))
@@ -328,6 +335,43 @@ struct WorkoutLibraryView: View {
         .foregroundStyle(historyPalette.foreground)
         .fontDesign(.rounded)
     }
+    private func recordings(_ dashboard: LibraryDashboard) -> some View {
+        LazyVStack(alignment: .leading, spacing: 20) {
+            Text("Older videos clear automatically. Your workout history stays.")
+                .font(.caption).foregroundStyle(historyPalette.secondary)
+            if dashboard.media.isEmpty {
+                ContentUnavailableView("No recordings yet", systemImage: "video",
+                    description: Text("Your counted-set videos will appear here."))
+            }
+            ForEach(dashboard.media.sorted { $0.attachedAtEpochMilliseconds > $1.attachedAtEpochMilliseconds }) { media in
+                VStack(alignment: .leading, spacing: 12) {
+                    Button { playMedia(media) } label: {
+                        WorkoutRecordingPoster(mediaId: media.id, loadsPreview: !previewMode)
+                            .frame(height: 210).clipped().clipShape(RoundedRectangle(cornerRadius: 18))
+                            .overlay { Image(systemName: "play.circle.fill").font(.system(size: 48))
+                                .symbolRenderingMode(.palette).foregroundStyle(.white, .black.opacity(0.55)) }
+                    }.buttonStyle(.plain).accessibilityLabel("Play workout recording")
+                        .accessibilityIdentifier("playRecording-\(media.id)")
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Workout recording").font(.headline)
+                            Text(Date(timeIntervalSince1970: Double(media.attachedAtEpochMilliseconds) / 1000), format: .dateTime.month(.abbreviated).day().hour().minute())
+                                .font(.caption).foregroundStyle(historyPalette.secondary)
+                        }
+                        Spacer()
+                        Menu {
+                            Button("Delete recording", systemImage: "trash", role: .destructive) {
+                                Task { await command(["action": "deleteMedia", "id": media.id]) }
+                            }
+                        } label: { Image(systemName: "ellipsis").frame(width: 44, height: 44) }
+                            .accessibilityLabel("Recording options")
+                    }
+                }.padding(12).background(historyPalette.surface, in: RoundedRectangle(cornerRadius: 24))
+            }
+            Toggle("Record counted sets", isOn: $recordsSetVideos).font(.subheadline)
+        }.fontDesign(.rounded).foregroundStyle(historyPalette.foreground)
+    }
+
     private func historyStat(_ value: Int, title: String, symbol: String) -> some View {
         VStack(spacing: 5) {
             Image(systemName: symbol).font(.subheadline).foregroundStyle(historyPalette.secondary)
@@ -366,13 +410,18 @@ struct WorkoutLibraryView: View {
                     .font(.caption).foregroundStyle(historyPalette.secondary)
             }
             HStack {
+                Button {
+                    Task {
+                        do { evidenceRecord = try await WorkoutRecordStore.shared.libraryRecord(id: set.sourceSetId) }
+                        catch { self.error = error.localizedDescription }
+                    }
+                } label: {
+                    Label("View set", systemImage: "chart.bar.xaxis").font(.subheadline.bold())
+                }.accessibilityIdentifier("reviewHistorySet-\(set.id)")
                 if let clip = clips.first {
                     Button { playMedia(clip) } label: {
-                        Label(clips.count > 1 ? "Review sets (\(clips.count))" : "Review set", systemImage: "play.circle.fill")
-                            .font(.subheadline.bold())
-                    }.accessibilityIdentifier("playSetVideo-\(set.id)")
-                } else {
-                    Label("No video", systemImage: "video.slash").font(.caption).foregroundStyle(historyPalette.secondary)
+                        Image(systemName: "play.circle").font(.title2)
+                    }.accessibilityLabel("Play set recording").accessibilityIdentifier("playSetVideo-\(set.id)")
                 }
                 Spacer()
                 Menu { historyActions(set, dashboard: dashboard) } label: {
@@ -431,14 +480,16 @@ struct WorkoutLibraryView: View {
     private func plans(_ report: LibraryInsights) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Plan your practice").font(.title2.bold())
-            Text("Plans use your chosen targets. Link an observed workout to mark a plan completed; app suggestions are not training prescriptions.").font(.caption)
+            Text("Link a recorded workout to complete a plan.").font(.caption)
             ForEach(report.plans) { plan in
                 Text("\(plan.title) · \(planStatusTitle(plan.status))").font(.headline)
                 if let day = plan.scheduledDay { Text("Planned for \(plannedDayTitle(day))").font(.subheadline) }
                 ForEach(Array(plan.items.enumerated()), id: \.element.id) { index, item in
                     Text("\(item.exercise.title): \(item.sets) sets of \(item.target.formatted()) \(item.metric == "holdSeconds" ? "hold seconds" : "completed cycles") per set")
                     Text("\(Int(plan.measuredValues.indices.contains(index) ? plan.measuredValues[index] : 0))/\(item.sets) sets meet this target\(plan.workoutId == nil ? " · preview; link to confirm" : "")").font(.caption)
-                    Text("\(item.context.assistance) \(item.context.assistanceLabel) · \(item.context.addedLoadKg.map { "\($0.formatted()) kg" } ?? "load unrecorded") · \(item.context.equipment) · \(item.context.cameraView) · \(item.context.intent) \(item.context.variation)").font(.caption)
+                    DisclosureGroup("Setup details") {
+                        Text("\(item.context.assistance) \(item.context.assistanceLabel) · \(item.context.addedLoadKg.map { "\($0.formatted()) kg" } ?? "load unrecorded") · \(item.context.equipment) · \(item.context.cameraView) · \(item.context.intent) \(item.context.variation)").font(.caption)
+                    }.font(.caption)
                 }
                 if !plan.candidateWorkoutIds.isEmpty {
                     Menu(plan.workoutId == nil ? "Link recorded workout" : "Change linked workout") {
@@ -446,13 +497,13 @@ struct WorkoutLibraryView: View {
                             Button(workoutTitle(id, sessions: report.sessions)) { Task { await linkPlan(plan.planId, workoutId: id) } }
                         }
                     }
-                } else { Text("No comparable recording on the planned day with sufficient tracking coverage.").font(.caption) }
+                } else { Text("No matching recording for this day.").font(.caption) }
                 if plan.workoutId != nil { Button("Unlink workout") { Task { await linkPlan(plan.planId, workoutId: nil) } } }
                 Button("Delete plan", role: .destructive) { Task { await command(["action": "deletePlan", "id": plan.planId]) } }
             }
             DatePicker("Practice date", selection: $planDate, displayedComponents: .date)
-            Text("Create a single-exercise plan. Declare assistance, load, equipment and camera view to match recordings.").font(.caption)
-            Picker("Exercise", selection: $planExercise) { ForEach(ExerciseCounter.Exercise.allCases, id: \.self) { Text($0.title).tag($0) } }
+            Text("Match your setup to compare recordings.").font(.caption)
+            Picker("Exercise", selection: $planExercise) { ForEach(ExerciseCounter.Exercise.barExercises, id: \.self) { Text($0.title).tag($0) } }
             Picker("Metric", selection: $planMetric) { Text("Hold seconds").tag("holdSeconds"); Text("Completed cycles").tag("completedReps") }
             TextField("Target per set", text: $planTarget).textFieldStyle(.roundedBorder)
             Stepper("\(planSets) sets", value: $planSets, in: 1...20)

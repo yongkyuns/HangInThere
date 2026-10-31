@@ -94,7 +94,7 @@ class WorkoutReadinessClockTests {
         assertFalse(observe(policy, 0)); assertTrue(observe(policy, 120_000))
     }
     @Test fun nativeBridgeUsesTheSameMixedClockAndFaultPolicyForBothWorkouts() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val bridge = WorkoutAnalysisBridge("exact-readiness", exercise.name, 0)
             val start = 9_007_199_254_740_992L
             assertFalse(bridge.readyAt(start, 1_000_000, true))
@@ -144,7 +144,7 @@ class WorkoutReadinessClockTests {
     }
     @Test fun runtimeUsesSourceTicksForBothWorkoutsAfterActualSetupGates() {
         val attitude=PhoneOrientationStability.Quaternion.create(0.0,0.0,0.0,1.0)!!
-        for(exercise in ExerciseCounter.Exercise.entries) {
+        for(exercise in ExerciseCounter.barExercises) {
             val selection=if(exercise==ExerciseCounter.Exercise.pullUp) WorkoutExerciseSelection.pullUp else WorkoutExerciseSelection.dip
             val role=if(exercise==ExerciseCounter.Exercise.pullUp) ConfirmedBar.Role.pullUpGrip else ConfirmedBar.Role.leftDipRail
             val runtime=WorkoutRuntime(selection,automaticWorkouts=true)

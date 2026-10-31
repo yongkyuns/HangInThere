@@ -57,6 +57,12 @@ object WorkoutLibraryBackup {
             require(values.distinct().size == 1) { "Application records conflict; choose which version to retain" }; values.first()
         }
         val next = existing.copy(entries = entries, reviews = ledger, deletions = deleted,
+            workoutLogDeletions = (existing.workoutLogDeletions + incoming.workoutLogDeletions).groupBy { it.id }.map { (_, rows) -> rows.maxBy { it.deletedAtEpochMilliseconds } },
+            workoutLogs = (existing.workoutLogs + incoming.workoutLogs).groupBy { it.id }.map { (_, rows) ->
+                val newest = rows.maxOf { it.updatedAtEpochMilliseconds }
+                val latest = rows.filter { it.updatedAtEpochMilliseconds == newest }.distinct()
+                require(latest.size == 1) { "Workout log edits conflict" }; latest.single()
+            }.filter { log -> (existing.workoutLogDeletions + incoming.workoutLogDeletions).none { it.id == log.id } },
             goals = union(existing.goals, incoming.goals) { it.comparisonKey }, plans = union(existing.plans, incoming.plans) { it.id },
             defaultContexts = union(existing.defaultContexts, incoming.defaultContexts) { it.exercise },
             merges = union(existing.merges, incoming.merges) { it.id }.filter { group ->

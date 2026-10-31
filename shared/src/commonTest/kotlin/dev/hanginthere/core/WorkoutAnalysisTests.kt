@@ -172,7 +172,7 @@ class WorkoutAnalysisTests {
         assertEquals(.75,s.record.reps.single().returnedAt)
     }
     @Test fun analyticsExcludeUnfinishedLastRepForBothExercisesAndAllSetEndings() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             for (ending in listOf(LiveSetSession.EndReason.manual, LiveSetSession.EndReason.disengaged, LiveSetSession.EndReason.trackingLost)) {
                 val session = LiveSetSession()
                 session.start(exercise, ArmMeasurement.Side.left)
@@ -197,7 +197,7 @@ class WorkoutAnalysisTests {
         }
     }
     @Test fun incompleteOnlySetHasNoAnalyticsEvenIfPullUpMilestoneWasAccepted() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val session = LiveSetSession()
             session.start(exercise, ArmMeasurement.Side.left)
             for ((time, angle) in listOf(0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0)) {
@@ -218,7 +218,7 @@ class WorkoutAnalysisTests {
         assertFalse(WorkoutAnalytics.isCompletedRep(true, false, "returned"))
     }
     @Test fun rejectedFramesCannotMoveSetBoundsBehindRetainedRepEvidence() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val session = LiveSetSession()
             session.start(exercise, ArmMeasurement.Side.left)
             for ((time, angle) in listOf(0.0 to 170.0, .15 to 170.0, .3 to 80.0,
@@ -316,7 +316,7 @@ class AutomaticWorkoutIntegrationTests {
         return r
     }
     @Test fun automaticStartCountReleaseAndNextSetWorkForBothExercises() {
-        for(exercise in ExerciseCounter.Exercise.entries) {
+        for(exercise in ExerciseCounter.barExercises) {
             val r=ready(exercise)
             val activeId = r.snapshot.activeSetId
             assertEquals(r.session.setId, activeId)
@@ -336,7 +336,7 @@ class AutomaticWorkoutIntegrationTests {
         }
     }
     @Test fun runningSnapshotExposesCounterInterruptionEvenWhenSetupRemainsValid() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val runtime = ready(exercise)
             runtime.session.interrupt("sourceTimeGap")
             assertEquals(LiveSetSession.Phase.running,runtime.snapshot.phase)

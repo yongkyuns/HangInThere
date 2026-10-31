@@ -53,7 +53,7 @@ class WorkoutLibraryUiTest {
             repeat(3) { index ->
                 compose.runOnUiThread { visible.value = true }
                 compose.waitUntil(10_000) { events.count { it.stage == "published.ready" } == index + 1 }
-                compose.onNodeWithText("Your practice").assertIsDisplayed()
+                compose.onNodeWithTag("workout-layout-calendar").assertIsDisplayed()
                 compose.runOnUiThread { visible.value = false }
                 compose.waitUntil(10_000) { events.count { it.stage == "disposed" } == index + 1 }
             }
@@ -97,13 +97,13 @@ class WorkoutLibraryUiTest {
             assertEquals(1, events.count { it.stage == "load.enter" })
             assertTrue(events.none { it.stage == "ready.assigned" })
             release.countDown(); owner.join(3_000)
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(10_000) { compose.onAllNodesWithTag("workout-layout-calendar").fetchSemanticsNodes().isNotEmpty() }
             compose.waitUntil(10_000) { events.any { it.stage == "published.ready" } }
             compose.runOnUiThread { visible.value = false }
             compose.waitUntil(10_000) { events.any { it.stage == "disposed" } }
             compose.runOnUiThread { visible.value = true }
             compose.waitUntil(10_000) { events.count { it.stage == "published.ready" } == 2 }
-            compose.onNodeWithText("Your practice").assertIsDisplayed()
+            compose.onNodeWithTag("workout-layout-calendar").assertIsDisplayed()
             val requests = events.filter { it.stage == "load.enter" }
             assertEquals(2, requests.size)
             assertEquals(2, requests.map { it.composition }.distinct().size)
@@ -136,7 +136,7 @@ class WorkoutLibraryUiTest {
             release.complete(Unit)
             compose.waitForIdle()
             assertTrue(events.none { it.stage == "ready.assigned" || it.stage == "published.ready" })
-            compose.onNodeWithText("Your practice").assertDoesNotExist()
+            compose.onNodeWithTag("workout-layout-calendar").assertDoesNotExist()
         } finally {
             release.cancel()
             compose.runOnUiThread { compose.activity.setContent {} }
@@ -156,10 +156,10 @@ class WorkoutLibraryUiTest {
                 WorkoutLibraryDialog(recordStore = store, dashboardLoader = loader) {}
             } } }
             compose.onNodeWithTag("workout-library-loading").assertIsDisplayed()
-            compose.onNodeWithText("Your practice").assertDoesNotExist()
+            compose.onNodeWithTag("workout-layout-calendar").assertDoesNotExist()
             compose.onNodeWithText("Retry").assertDoesNotExist()
             release.complete(Unit)
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(10_000) { compose.onAllNodesWithTag("workout-layout-calendar").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithTag("workout-library-loading").assertDoesNotExist()
             compose.onNodeWithTag("workout-library-load-error").assertDoesNotExist()
         } finally { release.cancel(); root.deleteRecursively() }
@@ -179,9 +179,9 @@ class WorkoutLibraryUiTest {
             compose.waitUntil(10_000) { compose.onAllNodesWithTag("workout-library-load-error").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Couldn't load your workout history. Try again.").assertIsDisplayed()
             compose.onNodeWithTag("workout-library-loading").assertDoesNotExist()
-            compose.onNodeWithText("Your practice").assertDoesNotExist()
+            compose.onNodeWithTag("workout-layout-calendar").assertDoesNotExist()
             compose.onNodeWithText("Retry").performClick()
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(10_000) { compose.onAllNodesWithTag("workout-layout-calendar").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithTag("workout-library-load-error").assertDoesNotExist()
             assertEquals(2, attempts.get())
         } finally { root.deleteRecursively() }
@@ -234,7 +234,7 @@ class WorkoutLibraryUiTest {
         compose.onNodeWithText("Set summary").assertIsDisplayed()
         compose.onNodeWithText("completed reps").assertIsDisplayed()
         compose.onNodeWithText("History").assertIsDisplayed().performClick()
-        compose.waitUntil(10_000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTag("workout-layout-calendar").fetchSemanticsNodes().isNotEmpty() }
         compose.onAllNodesWithText("Done").onLast().performClick()
         compose.onNodeWithText("Elbow angle",substring=true).assertDoesNotExist()
         compose.onNodeWithText("Rep 3").assertDoesNotExist()
@@ -263,7 +263,7 @@ class WorkoutLibraryUiTest {
             assertEquals("Build a repeatable baseline", WorkoutInsights.report(store.libraryState(), null,
                 System.currentTimeMillis(), TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 60000).focus.title)
             compose.runOnUiThread { compose.activity.setContent { MaterialTheme { WorkoutLibraryDialog(recordStore = store) {} } } }
-            try { compose.waitUntil(10000) { compose.onAllNodesWithText("Your practice").fetchSemanticsNodes().isNotEmpty() } }
+            try { compose.waitUntil(10000) { compose.onAllNodesWithTag("workout-layout-calendar").fetchSemanticsNodes().isNotEmpty() } }
             catch (failure: Throwable) {
                 var remaining = 128
                 fun dump(node: SemanticsNode) {
@@ -283,7 +283,8 @@ class WorkoutLibraryUiTest {
                     }
                 throw failure
             }
-            compose.onNodeWithText("Your practice").assertIsDisplayed()
+            compose.onNodeWithTag("workout-layout-calendar").assertIsDisplayed()
+            compose.onNodeWithTag("workout-history-list").performScrollToNode(hasText("Build on your 8s hang"))
             compose.onNodeWithText("Build on your 8s hang").assertIsDisplayed()
             compose.onNodeWithText("Target").assertDoesNotExist()
             compose.onNodeWithTag("workout-history-list").performScrollToNode(hasText("0 reps · 1 set"))

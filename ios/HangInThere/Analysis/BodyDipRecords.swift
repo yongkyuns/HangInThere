@@ -40,6 +40,8 @@ struct BodyDipWorkoutSnapshot: Codable, Equatable, Sendable {
         let countMethod: String?
         let event: Event?
         let policyVersion: Int
+        var targetProgress: Double? = nil
+        var targetReached: Bool? = nil
     }
     let motion: Motion
     let started: Bool
@@ -77,6 +79,8 @@ struct BodyPullUpWorkoutSnapshot: Codable, Equatable, Sendable {
         let interruptedAttempts: Int
         let progress: Double
         let policyVersion: Int
+        var targetProgress: Double? = nil
+        var targetReached: Bool? = nil
         var countMethod: String? = nil
         var events: [Event]? = nil
     }

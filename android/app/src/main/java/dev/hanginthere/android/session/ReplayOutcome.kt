@@ -30,7 +30,7 @@ data class ReplayOutcome(val kind: Kind, val message: String? = null) {
                     "sceneStabilityNeeded", "sceneUnavailable" -> "stable background could not be confirmed"
                     "phoneStabilityNeeded" -> "camera stability could not be confirmed"
                     else -> setupIssue?.let(WorkoutSetupGuidance::message)?.replaceFirstChar { it.lowercase() }
-                        ?: if (acquired) "counting could not start from this camera view" else "visible apparatus and starting support could not be confirmed"
+                        ?: if (acquired) "counting could not start from this camera view" else "starting support and exercise motion could not be confirmed"
                 }
                 return ReplayOutcome(Kind.setupUnavailable, "Video not evaluated · $reason")
             }

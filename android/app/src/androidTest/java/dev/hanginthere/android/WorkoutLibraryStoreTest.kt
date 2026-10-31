@@ -15,6 +15,25 @@ import java.util.UUID
     private fun record(id: String = UUID.randomUUID().toString()) = WorkoutSetRecord(id, ExerciseCounter.Exercise.pullUp,
         0.0, 8.0, "manual", emptyList(), "authored", 1, trackedAtEpochMilliseconds = 100000,
         activity = WorkoutActivity(emptyList(), listOf(WorkoutPhaseTotal(WorkoutMotionPhase.hang, 8.0)), 8.0, 0.0, 8.0, 8.0, false, 2))
+    @Test fun cameraAndEnteredSetsShareOneWorkoutWithoutDuplicatingMeasurements() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val root = File(context.cacheDir, "mixed-log-${UUID.randomUUID()}")
+        try {
+            val store = WorkoutRecordStore(context, root); val original = record(); store.save(original)
+            val contextValue = WorkoutContext(equipment = "gym", effort = 6)
+            store.libraryCommand(WorkoutLibraryCommand("review", setId = original.id,
+                correction = WorkoutReviewCorrection(context = contextValue), atEpochMilliseconds = 200000))
+            val log = WorkoutLog("mixed", 100000, listOf(WorkoutLoggedSet("curl", "EZ curls", 7, 75.9)), 100000)
+            store.linkCameraSet(original, log, 10.0, "lb")
+            val reloaded = WorkoutRecordStore(context, root).libraryState()
+            val correction = WorkoutCorrections.current(reloaded.reviews, original.id)
+            assertEquals("mixed", correction.workoutId); assertEquals(6, correction.context.effort)
+            assertEquals("gym", correction.context.equipment); assertEquals(4.5359237, correction.context.addedLoadKg!!, .0000001)
+            val workout = WorkoutJourney.workout(reloaded, "mixed", System.currentTimeMillis())!!
+            assertEquals(2, workout.setCount); assertEquals(7, workout.totalReps); assertEquals(0, workout.completedReps)
+            assertEquals(1, workout.sets.size); assertEquals(8.0, workout.sets.single().holdSeconds!!, 0.0)
+        } finally { root.deleteRecursively() }
+    }
     @Test fun batchDeletionErasesEverySourceAndSurvivesReloadAndRestore() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val root = File(context.cacheDir, "library-test-${UUID.randomUUID()}")

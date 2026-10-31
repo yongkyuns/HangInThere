@@ -14,6 +14,19 @@ import class WorkoutCore.BodyAthleteAssociation
 import class WorkoutCore.OverheadPullUpMotion
 import class WorkoutCore.OverheadPullUpWorkout
 import class WorkoutCore.WorkoutLifecycle
+import class WorkoutCore.SideViewPushUpWorkoutBridge
+
+struct PushUpPracticeSnapshot: Decodable, Sendable {
+    struct Rep: Decodable, Sendable { let returnedAt: Double }
+    struct SetSummary: Decodable, Sendable { let reps: [Rep] }
+    let title: String
+    let setCycles: Int
+    let setStarted: Bool
+    let progress: Double?
+    let targetReached: Bool
+    let observationUsable: Bool
+    let endedSet: SetSummary?
+}
 
 enum LiveDebugCaptureState: Equatable, Sendable {
     case unavailable
@@ -43,11 +56,11 @@ enum LiveCameraPosition: String, CaseIterable, Sendable {
 // Keep preview, Vision pixels, frozen bar setup and debug movies in the same
 // portrait, unmirrored coordinate system, including on the front camera.
 enum LiveCameraConnectionConfiguration {
-    static func apply(to connection: AVCaptureConnection) throws {
-        guard connection.isVideoRotationAngleSupported(90) else {
+    static func apply(to connection: AVCaptureConnection, rotationAngle: Double = 90) throws {
+        guard connection.isVideoRotationAngleSupported(rotationAngle) else {
             throw LiveCameraSetupError.unsupportedPortraitRotation
         }
-        connection.videoRotationAngle = 90
+        connection.videoRotationAngle = rotationAngle
         connection.automaticallyAdjustsVideoMirroring = false
         if connection.isVideoMirroringSupported {
             connection.isVideoMirrored = false
@@ -118,7 +131,7 @@ private enum LiveCameraSetupError: LocalizedError {
         case .cannotAddVideoOutput:
             "Live camera frames could not be connected for analysis."
         case .unsupportedPortraitRotation:
-            "This camera cannot provide the portrait frame orientation required by live setup."
+            "This camera cannot provide the frame orientation required by live setup."
         }
     }
 }
@@ -247,11 +260,17 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var handsFreeStart = HandsFreeSetStart()
     private(set) var liveSet = LiveSetSession()
     private let workoutAnalysis = WorkoutAnalysisAdapter()
-    @ObservationIgnored private let dipAthleteSelection = BodyAthleteSelection()
+    @ObservationIgnored private let dipAthleteSelection: BodyAthleteSelection
+    let isPushUpPractice: Bool
+    @ObservationIgnored private var pushUpBridge: SideViewPushUpWorkoutBridge?
+    private(set) var pushUpSnapshot: PushUpPracticeSnapshot?
+    private(set) var lastPushUpSetCount = 0
+    private(set) var pushUpVideoRotationAngle: Double = 90
+    private var bodyCameraIdle: Bool { isPushUpPractice ? pushUpSnapshot?.setStarted != true : liveSet.phase == .idle }
     private(set) var dipAthleteDecision: BodyAthleteSelectionDecision?
     var usesBodyDipTracking: Bool { exercise == .dip }
-    var usesBodyPullUpTracking: Bool { exercise == .pullUp }
-    var usesBodyMotionTracking: Bool { usesBodyDipTracking || usesBodyPullUpTracking }
+    var usesBodyPullUpTracking: Bool { !isPushUpPractice && exercise == .pullUp }
+    var usesBodyMotionTracking: Bool { isPushUpPractice || usesBodyDipTracking || usesBodyPullUpTracking }
     var bodyDipPreparation: BodyDipWorkoutSnapshot? { workoutAnalysis.bodyDipSnapshot }
     var bodyPullUpPreparation: BodyPullUpWorkoutSnapshot? { workoutAnalysis.bodyPullUpSnapshot }
     private struct BodyCameraCalibration {
@@ -373,10 +392,80 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var discardDebugCaptureWhenFinished = false
 
     init(sceneRegistrationWorker: any StaticSceneRegistering = VisionStaticSceneRegistrationWorker(),
-         phoneMotionProvider: (@MainActor () -> PhoneMotionSample?)? = nil) {
+         phoneMotionProvider: (@MainActor () -> PhoneMotionSample?)? = nil,
+         pushUpPractice: Bool = false) {
         self.sceneRegistrationWorker = sceneRegistrationWorker
         self.phoneMotionProvider = phoneMotionProvider
+        self.isPushUpPractice = pushUpPractice
+        self.pushUpBridge = nil
+        self.dipAthleteSelection = BodyAthleteSelection(profile: pushUpPractice ? .sideview : .upright)
         super.init()
+    }
+
+    func finishPushUpPractice(reason: String = "manual") {
+        guard let pushUpBridge else { return }
+        pushUpBridge.finish(reason: reason)
+        collectPushUpWrites()
+        pushUpSnapshot = nil
+    }
+
+    func setPushUpOrientation(_ orientation: UIInterfaceOrientation) {
+        guard isPushUpPractice else { return }
+        let angle: Double = switch orientation {
+        case .landscapeRight: 0
+        case .landscapeLeft: 180
+        case .portraitUpsideDown: 270
+        default: 90
+        }
+        guard angle != pushUpVideoRotationAngle else { return }
+        finishPushUpPractice(reason: "orientationChanged")
+        clearBar()
+        pushUpVideoRotationAngle = angle
+        for output in [videoOutput?.connection(with: .video), movieOutput?.connection(with: .video)].compactMap({ $0 }) {
+            try? LiveCameraConnectionConfiguration.apply(to: output, rotationAngle: angle)
+        }
+    }
+
+    private func consumePushUpPractice(_ pose: PoseResult) {
+        if pushUpBridge == nil {
+            pushUpBridge = SideViewPushUpWorkoutBridge(sessionId: UUID().uuidString,
+                trackedAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
+        }
+        guard let pushUpBridge else { return }
+        let qualified = cameraPlacement.isUsable && hasBodyCameraCalibration && currentPhoneMotionSample() != nil &&
+            phoneOrientation.state.allowsLiveSet && sceneIsReady
+        let moved = phoneOrientation.state == .moved || sceneTranslation.state == .moved
+        do {
+            let json = try pushUpBridge.observeJson(poseJson: String(decoding: JSONEncoder().encode(pose), as: UTF8.self),
+                camera: moved ? "moved" : qualified ? "ready" : "unavailable")
+            let snapshot = try JSONDecoder().decode(PushUpPracticeSnapshot.self, from: Data(json.utf8))
+            pushUpSnapshot = snapshot
+            if let ended = snapshot.endedSet { lastPushUpSetCount = ended.reps.count }
+            collectPushUpWrites()
+        } catch {
+            finishPushUpPractice(reason: "analysisFailure")
+        }
+    }
+
+    private func collectPushUpWrites() {
+        struct Write: Decodable { let record: WorkoutSetRecord; let finalized: Bool }
+        guard let pushUpBridge else { return }
+        while let json = pushUpBridge.nextWriteJson() {
+            do {
+                let write = try JSONDecoder().decode(Write.self, from: Data(json.utf8))
+                if write.finalized {
+                    lastPushUpSetCount = write.record.completedCount
+                    latestCompletedWorkout = write.record
+                    workoutHistory.insert(write.record, at: 0)
+                    workoutHistory = Array(workoutHistory.prefix(50))
+                }
+                persistWorkout(write.record, finalized: write.finalized)
+                pushUpBridge.acknowledgeWrite()
+            } catch {
+                workoutStorageError = "Push-up summary unavailable: \(error.localizedDescription)"
+                break // Keep the pending write; never silently discard evidence.
+            }
+        }
     }
 
     #if DEBUG
@@ -472,6 +561,7 @@ final class LiveCameraPreviewController: NSObject {
     var isSuspended: Bool { suspended }
     var canSwitchCamera: Bool {
         liveSet.phase == .idle && !debugCaptureState.isActive
+            && pushUpSnapshot?.setStarted != true
             && !isSwitchingCamera && !suspended
             && state != .starting && state != .requestingPermission
     }
@@ -480,6 +570,7 @@ final class LiveCameraPreviewController: NSObject {
     func selectCamera(_ position: LiveCameraPosition) async -> Bool {
         guard position != cameraPosition else { return true }
         guard canSwitchCamera else { return false }
+        finishPushUpPractice(reason: "cameraChanged")
         dipAthleteSelection.reset()
         dipAthleteDecision = nil
         cameraPosition = position
@@ -1215,6 +1306,7 @@ final class LiveCameraPreviewController: NSObject {
 
     func clearBar() {
         guard liveSet.phase != .running else { return }
+        finishPushUpPractice(reason: "cameraSetupReset")
         resetFramingFeedback()
         resetAutomaticBarSetup()
         setupGeneration &+= 1
@@ -1354,9 +1446,9 @@ final class LiveCameraPreviewController: NSObject {
             dipAthleteDecision?.status == "associated" && pose.people.count == 1 && motion != nil
         let replacing = hasBodyCameraCalibration && bodyCameraEvidence.shouldReacquire(
             sourceValue:pose.timestamp.value,sourceTimescale:pose.timestamp.timescale,
-            sceneReady:sceneTranslation.isReady(at:pose.timestamp.seconds),idle:liveSet.phase == .idle,
+            sceneReady:sceneTranslation.isReady(at:pose.timestamp.seconds),idle:bodyCameraIdle,
             eligible:eligible && phoneOrientation.state.allowsLiveSet)
-        guard liveSet.phase == .idle, (!hasBodyCameraCalibration || replacing), eligible,
+        guard bodyCameraIdle, (!hasBodyCameraCalibration || replacing), eligible,
               let motion,
               let reference = VisionStaticSceneRegistrationWorker.makeReference(image: frame.image),
               reference.imageSize == pose.imageSize,
@@ -1680,6 +1772,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     func stop() {
+        finishPushUpPractice(reason: "sourceEnded")
         dipAthleteSelection.reset()
         dipAthleteDecision = nil
         if liveSet.phase == .running {
@@ -1765,7 +1858,7 @@ final class LiveCameraPreviewController: NSObject {
         if session.canAddOutput(movieOutput) {
             session.addOutput(movieOutput)
             if let movieConnection = movieOutput.connection(with: .video),
-               (try? LiveCameraConnectionConfiguration.apply(to: movieConnection)) != nil {
+               (try? LiveCameraConnectionConfiguration.apply(to: movieConnection, rotationAngle: pushUpVideoRotationAngle)) != nil {
                 self.movieOutput = movieOutput
                 if debugCaptureState != .ready { debugCaptureState = .idle }
             } else {
@@ -1779,7 +1872,7 @@ final class LiveCameraPreviewController: NSObject {
         guard let connection = output.connection(with: .video) else {
             throw LiveCameraSetupError.cannotAddVideoOutput
         }
-        try LiveCameraConnectionConfiguration.apply(to: connection)
+        try LiveCameraConnectionConfiguration.apply(to: connection, rotationAngle: pushUpVideoRotationAngle)
         videoOutput = output
         configured = true
         startAnalysisStream(output: output)
@@ -1815,8 +1908,8 @@ final class LiveCameraPreviewController: NSObject {
         let eventStream = AsyncStream<LiveAnalyzerEvent>(
             bufferingPolicy: .bufferingNewest(1)
         ) { continuation in
-            setVideoRecorder.setEnabled(recordsSetVideos)
-            let analyzer = LiveFrameAnalyzer(gripEnabled: resolvedExercise != .dip, setVideoRecorder: setVideoRecorder) { event in
+            setVideoRecorder.setEnabled(!isPushUpPractice && recordsSetVideos)
+            let analyzer = LiveFrameAnalyzer(gripEnabled: !isPushUpPractice && resolvedExercise != .dip, setVideoRecorder: setVideoRecorder) { event in
                 continuation.yield(event)
             }
             self.analyzer = analyzer
@@ -1855,6 +1948,7 @@ final class LiveCameraPreviewController: NSObject {
         stopCapture: Bool
     ) {
         guard startRequested, !suspended else { return }
+        finishPushUpPractice(reason: counterReason)
         dipAthleteSelection.reset()
         dipAthleteDecision = nil
 
@@ -1959,6 +2053,7 @@ final class LiveCameraPreviewController: NSObject {
 
     private func invalidateForPhoneMovement() {
         guard hasCameraCalibration else { return }
+        finishPushUpPractice(reason: "phoneMoved")
 
         if liveSet.phase == .running {
             liveSet.interruptAndFinish(
@@ -1982,6 +2077,7 @@ final class LiveCameraPreviewController: NSObject {
 
     private func invalidateForPhoneOrientationLoss() {
         guard hasCameraCalibration else { return }
+        finishPushUpPractice(reason: "phoneOrientationUnavailable")
 
         if liveSet.phase == .running {
             liveSet.interruptAndFinish(
@@ -2081,6 +2177,7 @@ final class LiveCameraPreviewController: NSObject {
 
     private func invalidateForSceneMovement() {
         guard hasCameraCalibration else { return }
+        finishPushUpPractice(reason: "sceneMoved")
 
         let kind = sceneTranslation.movementKind
         if liveSet.phase == .running {
@@ -2150,7 +2247,10 @@ final class LiveCameraPreviewController: NSObject {
                 let fresh = self.lastAnalyzedFrameUptime.map {
                     ProcessInfo.processInfo.systemUptime - $0 <= ExerciseCounter.maximumGapSeconds
                 } ?? false
-                if self.readinessFrameFresh != fresh { self.readinessFrameFresh = fresh }
+                if self.readinessFrameFresh != fresh {
+                    self.readinessFrameFresh = fresh
+                    if !fresh { self.finishPushUpPractice(reason: "sourceFramesUnavailable") }
+                }
                 if self.liveSet.phase == .running, let last = self.lastAnalyzedFrameUptime,
                    self.workoutAnalysis.observationOutage(elapsed: ProcessInfo.processInfo.systemUptime - last) {
                     self.liveSet.interruptAndFinish(reason: "sourceFramesUnavailable", endReason: .trackingLost)
@@ -2187,7 +2287,7 @@ final class LiveCameraPreviewController: NSObject {
     }
 
     private func accept(_ event: LiveAnalyzerEvent) {
-        analyzer?.setGripEnabled(resolvedExercise != .dip)
+        analyzer?.setGripEnabled(!isPushUpPractice && resolvedExercise != .dip)
         guard startRequested, !suspended, state == .ready else { return }
 
         switch event {
@@ -2232,6 +2332,12 @@ final class LiveCameraPreviewController: NSObject {
             analyzedFrames += 1
             if let cue = workoutAnalysis.trackingSpokenCue(isRunning: liveSet.phase == .running, issue: liveSet.trackingIssue) { speakWorkoutCue(cue) }
             lastProcessingMilliseconds = frame.processingMilliseconds
+            if isPushUpPractice {
+                maybeCalibrateBodyCamera(frame)
+                maybeCheckSceneTranslation(frame)
+                consumePushUpPractice(rawFrame.pose)
+                return
+            }
             observeExerciseSelection(frame.pose)
             updateFraming(frame.pose)
             maybeCalibrateBodyCamera(frame)
@@ -2289,6 +2395,7 @@ final class LiveCameraPreviewController: NSObject {
             droppedFrames += 1
 
         case .failed:
+            finishPushUpPractice(reason: "inferenceFailure")
             readinessFrameFresh = false
             resetHandsFreeStart()
             if exerciseSelection == .automatic, liveSet.phase == .idle {
@@ -2407,15 +2514,18 @@ extension LiveCameraPreviewController: AVCaptureFileOutputRecordingDelegate {
 
 struct LiveCameraPreviewSurface: UIViewRepresentable {
     let session: AVCaptureSession
+    var rotationAngle: Double = 90
 
     func makeUIView(context: Context) -> CameraPreviewView {
         let view = CameraPreviewView()
+        view.rotationAngle = rotationAngle
         view.previewLayer.videoGravity = .resizeAspect
         view.previewLayer.session = session
         return view
     }
 
     func updateUIView(_ view: CameraPreviewView, context: Context) {
+        view.rotationAngle = rotationAngle
         if view.previewLayer.session !== session {
             view.previewLayer.session = session
         }
@@ -2424,6 +2534,7 @@ struct LiveCameraPreviewSurface: UIViewRepresentable {
 }
 
 final class CameraPreviewView: UIView {
+    var rotationAngle: Double = 90
     override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
 
     var previewLayer: AVCaptureVideoPreviewLayer {
@@ -2437,7 +2548,7 @@ final class CameraPreviewView: UIView {
 
     func updateRotation() {
         guard let connection = previewLayer.connection else { return }
-        try? LiveCameraConnectionConfiguration.apply(to: connection)
+        try? LiveCameraConnectionConfiguration.apply(to: connection, rotationAngle: rotationAngle)
     }
 }
 #endif

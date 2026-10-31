@@ -51,8 +51,12 @@ struct WorkoutReviewView: View {
                     headline(summary)
                     JourneyCoachingCard(coaching: summary.coaching)
                     if let record, showsSourcePhases {
+                        if goalsEnabled, record.exercise != .pushUp, WorkoutCoachPreferences.shared.profile != nil, record.endReason != "running" {
+                            WorkoutCoachFeedbackView(record: record)
+                        }
+                        if record.exercise != .pushUp { WorkoutDemandCard(record: record) }
                         WorkoutTempoCard(record: record)
-                        WorkoutMuscleCard(exercise: record.exercise)
+                        if record.exercise != .pushUp { WorkoutMuscleCard(exercise: record.exercise) }
                     }
                     if !completed.isEmpty {
                         VStack(alignment: .leading, spacing: 14) {
@@ -113,7 +117,7 @@ struct WorkoutReviewView: View {
     private func headline(_ set: JourneySetSummary) -> some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(alignment: .top) {
-                Text(set.exercise.title).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                Text(set.exercise.title + (set.exercise == .pushUp ? " · Preview" : "")).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 Spacer(minLength: 8)
                 Button { showsRating = true } label: { JourneyQualityBadge(quality: set.quality) }.buttonStyle(.plain)
                     .popover(isPresented: $showsRating) { Text(set.quality.explanation).font(.subheadline).padding().frame(idealWidth: 280) }

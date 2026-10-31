@@ -10,6 +10,7 @@ object WorkoutStartEvidence {
         val edge = reference ?: return false
         if (!edge.isValid) return false
         return when (exercise) {
+            ExerciseCounter.Exercise.pushUp -> false // Owned by the side-view preview, without apparatus.
             // The owner has already qualified exercise identity, the observed
             // reference and camera. Do not discover the exercise again here.
             // Automatic starts still need BOTH current measurable chains,

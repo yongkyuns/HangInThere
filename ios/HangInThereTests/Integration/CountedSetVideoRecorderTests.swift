@@ -17,14 +17,14 @@ final class CountedSetVideoRecorderTests: XCTestCase {
             schemaVersion: 1, lifecycleVersion: 1, trackingSide: .left, imageSize: nil, referenceEdge: nil,
             trackedAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
     }
-    private func frame(_ time: Double, green: Bool) throws -> CMSampleBuffer {
+    private func frame(_ time: Double, green: Bool, size: (Int, Int) = (64, 96)) throws -> CMSampleBuffer {
         var pixel: CVPixelBuffer?
-        XCTAssertEqual(CVPixelBufferCreate(nil, 64, 96, kCVPixelFormatType_32BGRA, nil, &pixel), kCVReturnSuccess)
+        XCTAssertEqual(CVPixelBufferCreate(nil, size.0, size.1, kCVPixelFormatType_32BGRA, nil, &pixel), kCVReturnSuccess)
         let buffer = try XCTUnwrap(pixel)
         CVPixelBufferLockBaseAddress(buffer, [])
         let bytes = try XCTUnwrap(CVPixelBufferGetBaseAddress(buffer)).assumingMemoryBound(to: UInt8.self)
         let stride = CVPixelBufferGetBytesPerRow(buffer)
-        for y in 0..<96 { for x in 0..<64 {
+        for y in 0..<size.1 { for x in 0..<size.0 {
             let i = y * stride + x * 4
             bytes[i] = green ? 0 : 255; bytes[i + 1] = green ? 255 : 0; bytes[i + 2] = 0; bytes[i + 3] = 255
         } }
@@ -36,9 +36,9 @@ final class CountedSetVideoRecorderTests: XCTestCase {
         XCTAssertEqual(CMSampleBufferCreateReadyWithImageBuffer(allocator: nil, imageBuffer: buffer, formatDescription: try XCTUnwrap(format), sampleTiming: &timing, sampleBufferOut: &sample), noErr)
         return try XCTUnwrap(sample)
     }
-    private func feed(_ recorder: CountedSetVideoRecorder, from: Int, to: Int, green: Range<Int>) async throws {
+    private func feed(_ recorder: CountedSetVideoRecorder, from: Int, to: Int, green: Range<Int>, size: (Int, Int) = (64, 96)) async throws {
         for tenth in from..<to {
-            recorder.append(try frame(Double(tenth) / 10, green: green.contains(tenth)))
+            recorder.append(try frame(Double(tenth) / 10, green: green.contains(tenth), size: size))
             await recorder.drain()
             try await Task.sleep(for: .milliseconds(5)) // Let the real encoder consume its bounded input.
         }
@@ -117,6 +117,32 @@ final class CountedSetVideoRecorderTests: XCTestCase {
             _ = try await finish(recorder, record("late"))
             XCTFail("A clip missing the counted start must not be published")
         } catch { XCTAssertEqual(error as? CountedSetVideoError, .unavailable) }
+    }
+    func testSavedVideoDownscalesBothOrientationsWithoutUpscalingSmallSources() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for (source, expected) in [((720, 1280), (480, 854)), ((1280, 720), (854, 480)), ((64, 96), (64, 96))] {
+            let recorder = CountedSetVideoRecorder(directory: directory)
+            recorder.setEnabled(true); recorder.begin(setId: "scaled", startedAt: 101)
+            try await feed(recorder, from: 1000, to: 1060, green: 1020..<1050, size: source)
+            let result = try await finish(recorder, record("scaled"))
+            let asset = AVURLAsset(url: try XCTUnwrap(result))
+            let tracks = try await asset.loadTracks(withMediaType: .video)
+            let track = try XCTUnwrap(tracks.first)
+            let size = try await track.load(.naturalSize)
+            XCTAssertEqual(size.width, Double(expected.0)); XCTAssertEqual(size.height, Double(expected.1))
+            let duration = try await asset.load(.duration).seconds
+            XCTAssertEqual(duration, 3, accuracy: 0.11)
+            let audio = try await asset.loadTracks(withMediaType: .audio)
+            XCTAssertTrue(audio.isEmpty)
+            let generator = AVAssetImageGenerator(asset: asset)
+            for seconds in [0.2, 2.8] {
+                let image = try await generator.image(at: CMTime(seconds: seconds, preferredTimescale: 1000)).image
+                let rgb = VideoTestSupport.rgb(image, normalizedTopLeft: Point2D(x: 0.5, y: 0.5))
+                XCTAssertGreaterThan(rgb[1], 200, "Scaling must preserve the counted frames")
+                XCTAssertLessThan(rgb[2], 30, "Setup/release frames must still be excluded")
+            }
+        }
     }
     func testZeroRepAndDisabledRecordingPublishNoClip() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

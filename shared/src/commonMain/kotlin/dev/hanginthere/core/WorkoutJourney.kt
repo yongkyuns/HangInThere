@@ -20,15 +20,19 @@ import kotlinx.serialization.encodeToString
     val reps: List<WorkoutRepDigest> = emptyList())
 @Serializable data class WorkoutSessionDigest(val id: String, val epochMilliseconds: Long?,
     val completedReps: Int, val setCount: Int, val exercises: List<ExerciseCounter.Exercise>,
-    val quality: WorkoutQuality, val sets: List<WorkoutSetDigest>)
+    val quality: WorkoutQuality, val sets: List<WorkoutSetDigest>, val workoutLog: WorkoutLog? = null)
 @Serializable data class WorkoutPracticeDay(val day: Long, val workoutIds: List<String>,
-    val completedReps: Int, val quality: WorkoutQuality?)
+    val completedReps: Int, val quality: WorkoutQuality?, val loggedReps: Int = 0)
 @Serializable data class WorkoutJourneyCursor(val afterId: String, val revision: Long, val day: Long?)
+@Serializable data class WorkoutCalendarDayRange(val day: Long, val startEpochMilliseconds: Long, val endEpochMilliseconds: Long)
 @Serializable data class WorkoutJourneyPage(val workouts: List<WorkoutSessionDigest>, val nextCursor: WorkoutJourneyCursor?)
 @Serializable data class WorkoutJourneyReport(val workouts: List<WorkoutSessionDigest>,
     val days: List<WorkoutPracticeDay>, val practiceDays: Int, val completedReps: Int,
     val workoutCount: Int, val coaching: WorkoutCoaching, val policyVersion: Int = 1,
-    val nextCursor: WorkoutJourneyCursor? = null)
+    val nextCursor: WorkoutJourneyCursor? = null, val loggedReps: Int = 0)
+
+val WorkoutSessionDigest.totalReps: Int get() = completedReps + (workoutLog?.sets?.sumOf { it.reps } ?: 0)
+val WorkoutSessionDigest.exerciseNames: List<String> get() = (exercises.map { it.title } + workoutLog?.sets.orEmpty().map { it.exercise }).distinct()
 
 object WorkoutJourney {
     const val minimumCoverage = .8
@@ -40,7 +44,8 @@ object WorkoutJourney {
         "limited" -> WorkoutQuality(level, "Limited view", "Too little observed time to assess consistency. This is a recording issue, not a poor workout rating.")
         "practice" -> WorkoutQuality(level, "Practice", "Holds and incomplete attempts are progress to track. They are not completed reps.")
         "tracking" -> WorkoutQuality(level, "In progress", "The set is still being recorded. Its rating is not final.")
-        else -> WorkoutQuality("recorded", "Recorded", "At least two completed reps with sufficient bilateral coverage and timing are needed to assess consistency. Exercise form is not graded.")
+        "logged" -> WorkoutQuality(level, "Logged", "Reps entered by the athlete using quick entry or the tap counter.")
+        else -> WorkoutQuality("recorded", "Recorded", "At least two completed reps with sufficient observed arm coverage and timing are needed to assess consistency. Exercise form is not graded.")
     }
     private fun finite(value: Double?) = value?.takeIf { it.isFinite() && it >= 0 }
     private fun coverage(value: Double?) = value?.takeIf { it.isFinite() && it in 0.0..1.0 }
@@ -67,13 +72,15 @@ object WorkoutJourney {
         val holdName = if (exercise == ExerciseCounter.Exercise.pullUp) "hang" else "support hold"
         return when (rating.level) {
             "tracking" -> WorkoutCoaching("Keep going", "Your summary will update when this set ends.")
-            "limited" -> WorkoutCoaching("Keep both arms in view", "Include your hands and equipment so the next recording can show your whole movement.")
+            "limited" -> if (exercise == ExerciseCounter.Exercise.pushUp) WorkoutCoaching("Keep your side in view", "Include your shoulder, elbow, wrist and feet throughout each rep.")
+            else WorkoutCoaching("Keep both arms in view", "Include your hands and equipment so the next recording can show your whole movement.")
             "pace" -> WorkoutCoaching("Find a repeatable rhythm", "Use your first completed rep's pace as a reference. Tap a rep to compare its phases.")
             "range" -> WorkoutCoaching("Match your first rep's range", "Your recorded range changed across the set. Compare the rep curves before adjusting your movement.")
             else -> if (count > 0) WorkoutCoaching("Next time: match $count ${if (count == 1) "rep" else "reps"}",
                 "Repeat your recorded result with a complete return. Build repeatability before increasing your target.")
             else if (hold != null && hold > 0) WorkoutCoaching(if (hold >= 1) "Build on your ${hold.toInt()}s $holdName" else "Build on your $holdName",
                 "Try matching this observed hold next time. A full rep can come later.")
+            else if (exercise == ExerciseCounter.Exercise.pushUp) WorkoutCoaching("Start with a straight plank", "Keep your side in view and complete the lowering and return.")
             else WorkoutCoaching("Start with a $holdName", "Point the camera at the equipment. Holds and attempts are tracked automatically.")
         }
     }
@@ -134,12 +141,14 @@ object WorkoutJourney {
         val reviewed = WorkoutLibrary.sourceSets(state).filter { it.trackedAtEpochMilliseconds?.let { at -> at <= now } != false }
         val sessions = WorkoutInsights.sessions(reviewed)
         val digests = reviewed.associate { it.id to reviewedDigest(it, records, false) }
-        val workouts = sessions.take(maximumWorkouts).map { session ->
+        val cameraWorkouts = sessions.map { session ->
             val sets = session.setIds.mapNotNull { digests[it] }
             sessionDigest(session, sets)
         }
+        val allWorkouts = withLogs(state, cameraWorkouts, now)
+        val workouts = allWorkouts.take(maximumWorkouts)
         val sessionBySet = buildMap { sessions.forEach { session -> session.setIds.forEach { put(it, session.id) } } }
-        val sessionOrder = sessions.mapIndexed { index, session -> session.id to index }.toMap()
+        val sessionOrder = allWorkouts.mapIndexed { index, session -> session.id to index }.toMap()
         val setsByDay = reviewed.filter { it.trackedAtEpochMilliseconds != null }.groupBy {
             WorkoutInsights.localDay(it.trackedAtEpochMilliseconds!!, utcOffsetMinutes)
         }
@@ -147,36 +156,92 @@ object WorkoutJourney {
             val rows = setsByDay[day].orEmpty().filter {
                 it.measuredCompletedReps > 0 || it.practiceAttempts > 0 || (it.totalHoldSeconds ?: 0.0) > 0
             }
-            WorkoutPracticeDay(day, rows.map { sessionBySet.getValue(it.id) }.distinct().sortedBy { sessionOrder.getValue(it) }, rows.sumOf { it.measuredCompletedReps },
-                rows.takeIf { it.isNotEmpty() }?.let { aggregate(it.map { row -> digests.getValue(row.id).quality }) })
+            val logs = state.workoutLogs.filter { it.epochMilliseconds <= now && it.sets.isNotEmpty() && WorkoutInsights.localDay(it.epochMilliseconds, utcOffsetMinutes) == day }
+            val ids = (rows.map { sessionBySet.getValue(it.id) } + logs.map { it.id }).distinct().sortedBy { sessionOrder.getValue(it) }
+            WorkoutPracticeDay(day, ids, rows.sumOf { it.measuredCompletedReps },
+                if (rows.isNotEmpty()) aggregate(rows.map { row -> digests.getValue(row.id).quality }) else if (logs.isNotEmpty()) quality("logged") else null,
+                logs.sumOf { log -> log.sets.sumOf { it.reps } })
         }
         val latest = workouts.firstOrNull()?.sets?.lastOrNull()
         return WorkoutJourneyReport(workouts, days, days.count { it.workoutIds.isNotEmpty() },
             days.sumOf { it.completedReps }, days.flatMap { it.workoutIds }.distinct().size,
-            latest?.coaching ?: WorkoutCoaching("Your progress starts here", "Point the camera and start moving. Your sets, holds and completed reps appear here automatically."),
-            nextCursor = workouts.lastOrNull()?.takeIf { sessions.size > maximumWorkouts }?.let { WorkoutJourneyCursor(it.id, state.revision, null) })
+            latest?.coaching ?: if (workouts.any { it.workoutLog?.sets?.isNotEmpty() == true })
+                WorkoutCoaching("Build on your last workout", "Your logged sets are saved. Repeat the same load and exercise setup to compare your next workout.")
+            else WorkoutCoaching("Your progress starts here", "Log a set or use the camera. Your workouts appear here automatically."),
+            nextCursor = workouts.lastOrNull()?.takeIf { allWorkouts.size > maximumWorkouts }?.let { WorkoutJourneyCursor(it.id, state.revision, null) },
+            loggedReps = days.sumOf { it.loggedReps })
     }
     /** Independent day filtering and revision-bound cursors keep every colored
      * calendar day navigable, even beyond the initial overview window. */
     fun page(state: WorkoutLibraryState, now: Long, utcOffsetMinutes: Int, day: Long? = null,
-        cursor: WorkoutJourneyCursor? = null, limit: Int = 25): WorkoutJourneyPage {
+        cursor: WorkoutJourneyCursor? = null, limit: Int = 25, range: WorkoutCalendarDayRange? = null): WorkoutJourneyPage {
         WorkoutLibrary.validate(state)
         WorkoutInsights.localDay(now, utcOffsetMinutes)
         require(limit in 1..100)
+        if (range != null) { validateCalendarRange(range); require(day == range.day) }
         require(cursor == null || cursor.revision == state.revision && cursor.day == day) { "History changed; refresh your progress" }
         val views = WorkoutLibrary.sourceSets(state).filter { it.trackedAtEpochMilliseconds?.let { at -> at <= now } != false }
         val byId = views.associateBy { it.id }
-        val sessions = WorkoutInsights.sessions(views).filter { session -> day == null || session.setIds.any { id ->
-            byId.getValue(id).trackedAtEpochMilliseconds?.let { WorkoutInsights.localDay(it, utcOffsetMinutes) == day } == true
-        } }
+        val records = state.entries.associate { it.measured.id to it.measured }
+        val camera = WorkoutInsights.sessions(views).map { session ->
+            sessionDigest(session, session.setIds.map { reviewedDigest(byId.getValue(it), records, false) })
+        }
+        fun matches(at: Long): Boolean = if (range != null) at >= range.startEpochMilliseconds && at < range.endEpochMilliseconds
+            else WorkoutInsights.localDay(at, utcOffsetMinutes) == day
+        val sessions = withLogs(state, camera, now).filter { session -> day == null ||
+            session.sets.any { it.epochMilliseconds?.let(::matches) == true } ||
+            session.workoutLog?.let { it.sets.isNotEmpty() && matches(it.epochMilliseconds) } == true
+        }
         val after = cursor?.let { value -> sessions.indexOfFirst { it.id == value.afterId }.also { require(it >= 0) { "History changed; refresh your progress" } } } ?: -1
         val selected = sessions.drop(after + 1).take(limit + 1)
-        val records = state.entries.associate { it.measured.id to it.measured }
-        val rows = selected.take(limit).map { session ->
-            val sets = session.setIds.map { reviewedDigest(byId.getValue(it), records, false) }
-            sessionDigest(session, sets)
-        }
+        val rows = selected.take(limit)
         return WorkoutJourneyPage(rows, rows.lastOrNull()?.takeIf { selected.size > limit }?.let { WorkoutJourneyCursor(it.id, state.revision, day) })
+    }
+    private fun validateCalendarRange(range: WorkoutCalendarDayRange) {
+        require(range.endEpochMilliseconds > range.startEpochMilliseconds &&
+            range.endEpochMilliseconds - range.startEpochMilliseconds <= 2 * 86400000L)
+    }
+    /** Native civil-day boundaries preserve historical timezone and DST transitions. */
+    fun calendarDays(state: WorkoutLibraryState, ranges: List<WorkoutCalendarDayRange>, now: Long): List<WorkoutPracticeDay> {
+        WorkoutLibrary.validate(state); require(now > 0 && ranges.size in 1..42)
+        ranges.forEach(::validateCalendarRange)
+        require(ranges.zipWithNext().all { (a, b) -> a.day + 1 == b.day && a.endEpochMilliseconds == b.startEpochMilliseconds })
+        val views = WorkoutLibrary.sourceSets(state).filter { it.trackedAtEpochMilliseconds?.let { at -> at <= now } == true }
+        val sessions = WorkoutInsights.sessions(views)
+        val sessionBySet = buildMap { sessions.forEach { session -> session.setIds.forEach { put(it, session.id) } } }
+        val records = state.entries.associate { it.measured.id to it.measured }
+        return ranges.map { range ->
+            val rows = views.filter { it.trackedAtEpochMilliseconds!! >= range.startEpochMilliseconds &&
+                it.trackedAtEpochMilliseconds < range.endEpochMilliseconds &&
+                (it.measuredCompletedReps > 0 || it.practiceAttempts > 0 || (it.totalHoldSeconds ?: 0.0) > 0) }
+            val logs = state.workoutLogs.filter { it.sets.isNotEmpty() && it.epochMilliseconds <= now &&
+                it.epochMilliseconds >= range.startEpochMilliseconds && it.epochMilliseconds < range.endEpochMilliseconds }
+            val ids = (rows.map { sessionBySet.getValue(it.id) } + logs.map { it.id }).distinct()
+            WorkoutPracticeDay(range.day, ids, rows.sumOf { it.measuredCompletedReps },
+                if (rows.isNotEmpty()) aggregate(rows.map { reviewedDigest(it, records, false).quality })
+                else if (logs.isNotEmpty()) quality("logged") else null, logs.sumOf { log -> log.sets.sumOf { it.reps } })
+        }
+    }
+    private fun withLogs(state: WorkoutLibraryState, camera: List<WorkoutSessionDigest>, now: Long): List<WorkoutSessionDigest> {
+        val logs = state.workoutLogs.filter { it.epochMilliseconds <= now }.associateBy { it.id }
+        val combined = camera.map { session ->
+            val log = logs[session.id]
+            session.copy(setCount = session.setCount + (log?.sets?.size ?: 0), workoutLog = log)
+        }
+        val cameraIds = camera.map { it.id }.toSet()
+        return (combined + logs.values.filter { it.id !in cameraIds && it.sets.isNotEmpty() }.map { log ->
+            WorkoutSessionDigest(log.id, log.epochMilliseconds, 0, log.sets.size, emptyList(), quality("logged"), emptyList(), log)
+        }).sortedWith(compareByDescending<WorkoutSessionDigest> { it.epochMilliseconds ?: Long.MIN_VALUE }.thenBy { it.id })
+    }
+    fun workout(state: WorkoutLibraryState, id: String, now: Long): WorkoutSessionDigest? {
+        WorkoutLibrary.validate(state)
+        val views = WorkoutLibrary.sourceSets(state).filter { it.trackedAtEpochMilliseconds?.let { at -> at <= now } != false }
+        val byId = views.associateBy { it.id }
+        val records = state.entries.associate { it.measured.id to it.measured }
+        val camera = WorkoutInsights.sessions(views).map { session ->
+            sessionDigest(session, session.setIds.map { reviewedDigest(byId.getValue(it), records, false) })
+        }
+        return withLogs(state, camera, now).firstOrNull { it.id == id }
     }
     private fun sessionDigest(session: WorkoutSessionSummary, sets: List<WorkoutSetDigest>) =
         WorkoutSessionDigest(session.id, session.startedAtEpochMilliseconds, session.measuredCompletedReps,
@@ -197,6 +262,18 @@ object WorkoutJourney {
 
 /** Summaries cross the Apple ABI only when review is opened, never per frame. */
 class WorkoutJourneyBridge {
+    @Throws(IllegalArgumentException::class)
+    fun calendarDaysJson(stateJson: String, rangesJson: String, nowEpochMilliseconds: Long): String = WorkoutRecordCodec.json.encodeToString(
+        WorkoutJourney.calendarDays(WorkoutRecordCodec.json.decodeFromString(stateJson), WorkoutRecordCodec.json.decodeFromString(rangesJson), nowEpochMilliseconds))
+    @Throws(IllegalArgumentException::class)
+    fun pageInRangeJson(stateJson: String, rangeJson: String, nowEpochMilliseconds: Long, cursorJson: String?): String {
+        val range = WorkoutRecordCodec.json.decodeFromString<WorkoutCalendarDayRange>(rangeJson)
+        return WorkoutRecordCodec.json.encodeToString(WorkoutJourney.page(WorkoutRecordCodec.json.decodeFromString(stateJson),
+            nowEpochMilliseconds, 0, range.day, cursorJson?.let { WorkoutRecordCodec.json.decodeFromString(it) }, range = range))
+    }
+    @Throws(IllegalArgumentException::class)
+    fun workoutJson(stateJson: String, workoutId: String, nowEpochMilliseconds: Long): String = WorkoutRecordCodec.json.encodeToString(
+        WorkoutJourney.workout(WorkoutRecordCodec.json.decodeFromString(stateJson), workoutId, nowEpochMilliseconds))
     @Throws(IllegalArgumentException::class)
     fun setJson(recordJson: String): String = WorkoutRecordCodec.json.encodeToString(
         WorkoutJourney.set(WorkoutRecordCodec.json.decodeFromString<WorkoutSetRecord>(recordJson)))

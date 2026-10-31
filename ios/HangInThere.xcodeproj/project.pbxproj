@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A13700000000000000000002 /* Analysis/WorkoutCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13700000000000000000001; };
+		A13700000000000000000004 /* WorkoutCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13700000000000000000003; };
+		A13500000000000000000006 /* WorkoutLoggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13500000000000000000005; };
+		A13500000000000000000004 /* UI/WorkoutLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13500000000000000000003; };
+		A13500000000000000000002 /* App/WorkoutLogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13500000000000000000001; };
+		A13200000000000000000002 /* App/WorkoutReminders.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13200000000000000000001; };
+		A13200000000000000000004 /* WorkoutReminderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13200000000000000000003; };
+		A12500000000000000000006 /* WorkoutCoachingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12500000000000000000005; };
+		A12500000000000000000004 /* UI/WorkoutCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12500000000000000000003; };
+		A12500000000000000000002 /* App/WorkoutCoaching.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12500000000000000000001; };
 		A12300000000000000000006 /* UI/WorkoutSetVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12300000000000000000005; };
 		A12300000000000000000004 /* Capture/WorkoutKeyframes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12300000000000000000003; };
 		A12300000000000000000002 /* App/WorkoutRepPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12300000000000000000001; };
@@ -79,6 +89,7 @@
 		B2D5F601A8C14F78A12E0102 /* LiveFramingAssessment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0101 /* LiveFramingAssessment.swift */; };
 		B2D5F601A8C14F78A12E0202 /* LiveFramingAssessmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E0201 /* LiveFramingAssessmentTests.swift */; };
 		B2D5F601A8C14F78A12E2002 /* WorkoutGripMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D5F601A8C14F78A12E2001 /* WorkoutGripMetadataTests.swift */; };
+		A12400000000000000000002 /* WorkoutDemandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12400000000000000000001 /* WorkoutDemandTests.swift */; };
 		BD3400000000000000000004 /* BodyDipWorkoutNativeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3400000000000000000003 /* BodyDipWorkoutNativeTests.swift */; };
 		C3E6A701B9D24A89B23F0102 /* LiveSetSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0101 /* LiveSetSession.swift */; };
 		C3E6A701B9D24A89B23F0202 /* LiveSetSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E6A701B9D24A89B23F0201 /* LiveSetSessionTests.swift */; };
@@ -121,6 +132,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A13700000000000000000001 /* Analysis/WorkoutCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis/WorkoutCalendar.swift; sourceTree = "<group>"; };
+		A13700000000000000000003 /* WorkoutCalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCalendarTests.swift; sourceTree = "<group>"; };
+		A13500000000000000000005 /* WorkoutLoggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLoggingTests.swift; sourceTree = "<group>"; };
+		A13500000000000000000003 /* UI/WorkoutLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutLogView.swift; sourceTree = "<group>"; };
+		A13500000000000000000001 /* App/WorkoutLogging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutLogging.swift; sourceTree = "<group>"; };
+		A13200000000000000000001 /* App/WorkoutReminders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutReminders.swift; sourceTree = "<group>"; };
+		A13200000000000000000003 /* WorkoutReminderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutReminderTests.swift; sourceTree = "<group>"; };
+		A12500000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCoachingTests.swift; sourceTree = "<group>"; };
+		A12500000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutCoachView.swift; sourceTree = "<group>"; };
+		A12500000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutCoaching.swift; sourceTree = "<group>"; };
 		A12300000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutSetVisuals.swift; sourceTree = "<group>"; };
 		A12300000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Capture/WorkoutKeyframes.swift; sourceTree = "<group>"; };
 		A12300000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutRepPresentation.swift; sourceTree = "<group>"; };
@@ -197,6 +218,7 @@
 		B2D5F601A8C14F78A12E0101 /* LiveFramingAssessment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFramingAssessment.swift; sourceTree = "<group>"; };
 		B2D5F601A8C14F78A12E0201 /* LiveFramingAssessmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFramingAssessmentTests.swift; sourceTree = "<group>"; };
 		B2D5F601A8C14F78A12E2001 /* WorkoutGripMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutGripMetadataTests.swift; sourceTree = "<group>"; };
+		A12400000000000000000001 /* WorkoutDemandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDemandTests.swift; sourceTree = "<group>"; };
 		BD3400000000000000000003 /* BodyDipWorkoutNativeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyDipWorkoutNativeTests.swift; sourceTree = "<group>"; };
 		B798D0952C0283EE3BA0F9A9 /* VideoReplayReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoReplayReader.swift; sourceTree = "<group>"; };
 		C3E6A701B9D24A89B23F0101 /* LiveSetSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSetSession.swift; sourceTree = "<group>"; };
@@ -252,6 +274,11 @@
 				AB7100000000000000000001 /* DipArmVisibilityTests.swift */,
 				B2D5F601A8C14F78A12E0201 /* LiveFramingAssessmentTests.swift */,
 				B2D5F601A8C14F78A12E2001 /* WorkoutGripMetadataTests.swift */,
+				A12400000000000000000001 /* WorkoutDemandTests.swift */,
+				A12500000000000000000005 /* WorkoutCoachingTests.swift */,
+				A13200000000000000000003 /* WorkoutReminderTests.swift */,
+				A13700000000000000000003 /* WorkoutCalendarTests.swift */,
+				A13500000000000000000005 /* WorkoutLoggingTests.swift */,
 				BD3400000000000000000003 /* BodyDipWorkoutNativeTests.swift */,
 				C3E6A701B9D24A89B23F0201 /* LiveSetSessionTests.swift */,
 				D4F7B801CAD35B90C3400201 /* PhoneOrientationStabilityTests.swift */,
@@ -302,8 +329,14 @@
 			isa = PBXGroup;
 			children = (
 				A12300000000000000000001 /* App/WorkoutRepPresentation.swift */,
+				A12500000000000000000001 /* App/WorkoutCoaching.swift */,
+				A13200000000000000000001 /* App/WorkoutReminders.swift */,
+				A13500000000000000000003 /* UI/WorkoutLogView.swift */,
+				A13700000000000000000001 /* Analysis/WorkoutCalendar.swift */,
+				A13500000000000000000001 /* App/WorkoutLogging.swift */,
 				A12300000000000000000003 /* Capture/WorkoutKeyframes.swift */,
 				A12300000000000000000005 /* UI/WorkoutSetVisuals.swift */,
+				A12500000000000000000003 /* UI/WorkoutCoachView.swift */,
 				A12200000000000000000001 /* CountedSetVideoRecorder.swift */,
 				ACB100000000000000000001 /* Analysis/WorkoutGripRecords.swift */,
 				BD3400000000000000000001 /* Analysis/BodyDipRecords.swift */,
@@ -635,8 +668,14 @@
 				3A7A75359E86E2A3E8712F61 /* ReplayView.swift in Sources */,
 				A11900000000000000000002 /* HomeScreenView.swift in Sources */,
 				A12300000000000000000002 /* App/WorkoutRepPresentation.swift in Sources */,
+				A12500000000000000000002 /* App/WorkoutCoaching.swift in Sources */,
+				A13200000000000000000002 /* App/WorkoutReminders.swift in Sources */,
+				A13500000000000000000004 /* UI/WorkoutLogView.swift in Sources */,
+				A13700000000000000000002 /* Analysis/WorkoutCalendar.swift in Sources */,
+				A13500000000000000000002 /* App/WorkoutLogging.swift in Sources */,
 				A12300000000000000000004 /* Capture/WorkoutKeyframes.swift in Sources */,
 				A12300000000000000000006 /* UI/WorkoutSetVisuals.swift in Sources */,
+				A12500000000000000000004 /* UI/WorkoutCoachView.swift in Sources */,
 				A12200000000000000000002 /* CountedSetVideoRecorder.swift in Sources */,
 				A1C4E501D4B748E0A35F0202 /* LiveSetupView.swift in Sources */,
 				F7CAEB01FD068EC3F6730102 /* QualificationReportDocument.swift in Sources */,
@@ -675,6 +714,11 @@
 				AB7100000000000000000002 /* DipArmVisibilityTests.swift in Sources */,
 				B2D5F601A8C14F78A12E0202 /* LiveFramingAssessmentTests.swift in Sources */,
 				B2D5F601A8C14F78A12E2002 /* WorkoutGripMetadataTests.swift in Sources */,
+				A12400000000000000000002 /* WorkoutDemandTests.swift in Sources */,
+				A12500000000000000000006 /* WorkoutCoachingTests.swift in Sources */,
+				A13200000000000000000004 /* WorkoutReminderTests.swift in Sources */,
+				A13700000000000000000004 /* WorkoutCalendarTests.swift in Sources */,
+				A13500000000000000000006 /* WorkoutLoggingTests.swift in Sources */,
 				BD3400000000000000000004 /* BodyDipWorkoutNativeTests.swift in Sources */,
 				C3E6A701B9D24A89B23F0202 /* LiveSetSessionTests.swift in Sources */,
 				D4F7B801CAD35B90C3400202 /* PhoneOrientationStabilityTests.swift in Sources */,

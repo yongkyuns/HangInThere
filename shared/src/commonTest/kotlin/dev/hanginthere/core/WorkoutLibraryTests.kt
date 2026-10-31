@@ -212,8 +212,12 @@ class WorkoutLibraryTests {
         assertTrue(WorkoutLibrary.retainedMedia(library.mediaPolicy, library.media, 100002 + 86400000).isEmpty())
     }
     @Test fun profilesPreserveCountAndPhaseVersions() {
-        assertEquals(2, WorkoutExerciseProfiles.all.size)
-        assertTrue(WorkoutExerciseProfiles.all.all { it.countPolicyVersion == ExerciseCounter.policyVersion && it.phaseMetricVersion == 3 })
+        assertEquals(3, WorkoutExerciseProfiles.all.size)
+        assertTrue(WorkoutExerciseProfiles.all.filter { it.id in ExerciseCounter.barExercises }
+            .all { it.countPolicyVersion == ExerciseCounter.policyVersion && it.phaseMetricVersion == 3 })
+        val pushUp = WorkoutExerciseProfiles.profile(ExerciseCounter.Exercise.pushUp)
+        assertEquals(SideViewPushUpMotion.policyVersion, pushUp.countPolicyVersion)
+        assertEquals(listOf(WorkoutGoalMetric.completedReps), pushUp.supportedMetrics)
     }
     @Test fun liveRecordsCannotBeReviewedAndInvalidInputsFailClosed() {
         assertFailsWith<IllegalArgumentException> { WorkoutCorrections.project(record("a").copy(endReason = "running")) }

@@ -73,7 +73,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         if (terminalReplayGeneration.get() == command.token) return
         command.action(active)
         val current = state.value
-        val snapshot = active.runtime.snapshot
+        val snapshot = active.snapshot
         publish(command.token, current.copy(result = current.result?.let { active.refreshRecords(it) },
             finished = current.replay && (current.finished || snapshot.phase == LiveSetSession.Phase.finished)))
     }
@@ -103,30 +103,16 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
             } finally { tickScheduled.set(false) }
         }
     }
-    fun finishSet() { control { it.runtime.stop() } }
+    fun finishSet() { control { it.stop() } }
     fun nextSet() {
         val current = state.value
         if (current.replay) replayUri?.let { replay(it, current.selection, current.side) }
-        else control { it.runtime.nextSet() }
+        else control { it.nextSet() }
     }
     fun changeReplaySelection(selection: WorkoutExerciseSelection, side: ArmMeasurement.Side) {
         replayUri?.takeIf { state.value.replay }?.let { replay(it, selection, side) }
     }
-    fun confirmManual(a: Point2D, b: Point2D) {
-        val token = generation.get(); val current = state.value; val pose = current.result?.pose ?: return
-        if (current.replay && current.finished) return
-        control { active ->
-            if (generation.get() != token) return@control
-            val role = if (current.result?.snapshot?.exercise == ExerciseCounter.Exercise.dip || current.selection == WorkoutExerciseSelection.dip) {
-                if (current.side == ArmMeasurement.Side.left) ConfirmedBar.Role.leftDipRail else ConfirmedBar.Role.rightDipRail
-            } else {
-                ConfirmedBar.Role.pullUpGrip
-            }
-            val bar = ConfirmedBar(role, ConfirmedBar.Method.manualEdge, BarSegment(a, b), imageSize = pose.imageSize, sourceTime = pose.timestamp)
-            val sample = if (current.replay) PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), pose.timestamp.seconds) else attitude.latest
-            if (bar.isValid && sample != null) active.runtime.confirmManualBar(bar, sample.quaternion, sample.seconds)
-        }
-    }
+    fun startManually() { control { it.startManually() } }
     fun startLive(selection: WorkoutExerciseSelection = state.value.selection, side: ArmMeasurement.Side = state.value.side): Long {
         val token = generation.incrementAndGet()
         synchronized(controlLock) { replayRunning = false; controls.clear() }
@@ -168,36 +154,31 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
             if (token != generation.get()) return@execute
             var latest = State(replay = true, selection = selection, side = side)
             try {
-                pipeline = AnalysisPipeline(getApplication(), selection, side, persistWorkouts = false)
+                pipeline = AnalysisPipeline(getApplication(), selection, side, persistWorkouts = false, replay = true)
                 val active = requireNotNull(pipeline)
-                var acquired = false
-                fun runPass(acquireOnly: Boolean): Boolean {
-                    VideoFrames(getApplication(), uri, cancelled = { generation.get() != token }).use { reader ->
-                        while (generation.get() == token) {
-                            drainControls(token, active)
-                            while (paused && generation.get() == token) { drainControls(token, active); Thread.sleep(50) }
-                            if (!acquireOnly && active.runtime.snapshot.phase == LiveSetSession.Phase.finished) break
-                            val frame = reader.next { generation.get() != token } ?: return generation.get() == token
-                            frame.use {
-                                val time = it.presentationTimeUs / 1e6
-                                val virtualAttitude = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
-                                val result = active.process(it.bitmap, it.presentationTimeUs, virtualAttitude)
-                                latest = latest.copy(bitmap = it.bitmap.copy(Bitmap.Config.ARGB_8888, false), result = result)
-                                publish(token, latest)
-                                acquired = result.snapshot.referenceEdge != null
-                            }
-                            // Apparatus can lock before Auto's exercise dwell has completed.
-                            if (acquireOnly && active.runtime.isReplayAcquisitionReady) break
+                // One uncut source pass includes setup, every set, rest and release.
+                var sourceEnded = false
+                VideoFrames(getApplication(), uri, cancelled = { generation.get() != token }).use { reader ->
+                    while (generation.get() == token) {
+                        drainControls(token, active)
+                        while (paused && generation.get() == token) { drainControls(token, active); Thread.sleep(50) }
+                        val frame = reader.next { generation.get() != token }
+                        if (frame == null) { sourceEnded = generation.get() == token; break }
+                        frame.use {
+                            val time = it.presentationTimeUs / 1e6
+                            // Recorded video has an explicit fixed-camera assumption. Actual
+                            // image registration must still independently qualify every frame.
+                            val fixed = PhoneAttitude.Sample(requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), time)
+                            val result = active.process(it.bitmap, it.presentationTimeUs, fixed)
+                            latest = latest.copy(bitmap = it.bitmap.copy(Bitmap.Config.ARGB_8888, false), result = result)
+                            publish(token, latest)
                         }
                     }
-                    return false
                 }
-                runPass(true)
-                val countingSourceEnded = if (generation.get() == token && active.runtime.isReplayAcquisitionReady && active.rewindReplay()) runPass(false) else true
                 if (generation.get() == token) {
-                    val outcome = ReplayOutcome.atEnd(active.runtime.session.analyzedFrames, acquired, countingSourceEnded,
-                        active.runtime.snapshot.setupIssue, active.runtime.session.endReason)
-                    active.runtime.stop()
+                    val outcome = ReplayOutcome.atEnd(active.totalAnalyzedFrames, active.hasQualifiedCamera, sourceEnded,
+                        active.snapshot.setupIssue, active.endReason)
+                    active.stop("endOfInput")
                     markReplayTerminal(token)
                     latest = latest.copy(result = latest.result?.let { active.refreshRecords(it) }, finished = true,
                         error = outcome.message, interrupted = outcome.kind == ReplayOutcome.Kind.interrupted, replayOutcome = outcome.kind)
@@ -205,9 +186,10 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
                 }
             } catch (error: Throwable) {
                 val active = pipeline
-                val outcome = ReplayOutcome.analysisFailure(active?.runtime, error.message)
+                active?.interrupt(LiveSetSession.EndReason.cameraFailure)
+                val outcome = ReplayOutcome(ReplayOutcome.Kind.analysisFailed, error.message ?: "Video analysis failed")
                 markReplayTerminal(token)
-                publish(token, latest.copy(result = latest.result?.let { result -> active?.runtime?.snapshot?.let { result.copy(snapshot = it) } ?: result },
+                publish(token, latest.copy(result = latest.result?.let { active?.refreshRecords(it) ?: it },
                     error = outcome.message, replay = true, finished = true, interrupted = true, replayOutcome = outcome.kind))
             }
             finally {
@@ -218,7 +200,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     }
     fun cameraFailure(error: Throwable) {
         mutableState.value = state.value.copy(error = error.message ?: "Camera unavailable")
-        control { active -> active.runtime.interrupt(LiveSetSession.EndReason.cameraFailure) }
+        control { active -> active.interrupt(LiveSetSession.EndReason.cameraFailure) }
     }
     fun pause(value: Boolean) { paused = value }
     fun suspendForBackground() {
@@ -229,7 +211,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         inferenceExecutor.execute {
             val active = pipeline
             if (active != null) {
-                active.runtime.interrupt(LiveSetSession.EndReason.appInactive)
+                active.interrupt(LiveSetSession.EndReason.appInactive)
                 publish(token, last.copy(result = last.result?.let { active.refreshRecords(it) }, interrupted = true, finished = true,
                     error = if (last.replay) "Video evaluation interrupted · open the video again" else null))
                 active.close(); pipeline = null

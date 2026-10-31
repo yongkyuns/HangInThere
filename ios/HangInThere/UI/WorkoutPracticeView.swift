@@ -168,7 +168,6 @@ struct WorkoutGoalEditor: View {
     var body: some View {
         NavigationStack {
             Form {
-                Text("Choose a target for future \(exercise.title.lowercased()) sets. You can adjust it whenever you need.")
                 Picker("Measure", selection: $metric) {
                     Text("\(holdTitle) seconds").tag("holdSeconds")
                     Text("Completed reps").tag("completedReps")
