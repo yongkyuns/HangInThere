@@ -41,6 +41,7 @@ struct WorkoutLogView: View {
     @State private var saving = false
     @State private var error: String?
     @State private var choosingExercise = false
+    @State private var editingWeight = false
     @State private var editingSet: LoggedWorkoutSet?
     @State private var counter: LoggedWorkoutSet?
     @State private var showingCamera = false
@@ -55,6 +56,9 @@ struct WorkoutLogView: View {
     }
     private var palette: HangPalette { HangPalette(scheme) }
     private var parsedLoad: Double? { Double(load.replacingOccurrences(of: Locale.current.decimalSeparator ?? ".", with: ".")) }
+    private var validForCounting: Bool {
+        (load.isEmpty || parsedLoad != nil) && LoggedWorkout.validSet(exercise: exercise, reps: 0, load: parsedLoad, unit: unit)
+    }
     private var valid: Bool {
         (load.isEmpty || parsedLoad != nil) && LoggedWorkout.validSet(exercise: exercise, reps: Int(reps), load: parsedLoad, unit: unit)
     }
@@ -93,41 +97,50 @@ struct WorkoutLogView: View {
                             Image(systemName: "chevron.up.chevron.down").font(.subheadline)
                         }.contentShape(Rectangle())
                     }.buttonStyle(.plain).accessibilityIdentifier("chooseLogExercise")
-                    let fields = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 14)) : AnyLayout(HStackLayout(alignment: .top, spacing: 14))
-                    fields {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Weight").font(.caption).foregroundStyle(palette.secondary)
-                            TextField("Optional", text: $load).workoutNumberKeyboard(decimal: true)
-                                .hangInput().accessibilityIdentifier("logWeight")
-                        }
-                        Picker("Weight unit", selection: Binding(get: { unit }, set: { next in
-                            if let value = parsedLoad, value.isFinite, value >= 0, next != unit {
-                                load = LoggedWorkout.convertLoad(value, from: unit, to: next)
-                                    .formatted(.number.grouping(.never).precision(.fractionLength(0...2)))
+                    DisclosureGroup(isExpanded: $editingWeight) {
+                        let fields = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 14)) : AnyLayout(HStackLayout(alignment: .top, spacing: 14))
+                        fields {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Weight (optional)").font(.caption).foregroundStyle(palette.secondary)
+                                TextField("Optional", text: $load).workoutNumberKeyboard(decimal: true)
+                                    .hangInput().accessibilityIdentifier("logWeight")
                             }
-                            unit = next
-                        })) { Text("lb").tag("lb"); Text("kg").tag("kg") }
-                            .pickerStyle(.menu).labelsHidden().frame(width: typeSize.isAccessibilitySize ? 120 : 58)
-                            .padding(.top, typeSize.isAccessibilitySize ? 0 : 20)
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Reps").font(.caption).foregroundStyle(palette.secondary)
-                            TextField("5", text: $reps).workoutNumberKeyboard()
-                                .hangInput().accessibilityIdentifier("logReps")
-                        }.frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : 90)
+                            Picker("Weight unit", selection: Binding(get: { unit }, set: { next in
+                                if let value = parsedLoad, value.isFinite, value >= 0, next != unit {
+                                    load = LoggedWorkout.convertLoad(value, from: unit, to: next)
+                                        .formatted(.number.grouping(.never).precision(.fractionLength(0...2)))
+                                }
+                                unit = next
+                            })) { Text("lb").tag("lb"); Text("kg").tag("kg") }
+                                .pickerStyle(.menu).labelsHidden().frame(width: typeSize.isAccessibilitySize ? 120 : 58)
+                                .padding(.top, typeSize.isAccessibilitySize ? 0 : 20)
+                        }
+                    } label: {
+                        Label(load.isEmpty ? "Add weight (optional)" : "\(load) \(unit)", systemImage: "scalemass")
+                            .font(.subheadline.weight(.semibold))
                     }
-                    let actions = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 12)) : AnyLayout(HStackLayout(spacing: 12))
-                    actions {
-                        Button { Task { await add(entry()) } } label: {
-                            Label("Log set", systemImage: "checkmark").font(.headline)
-                                .frame(maxWidth: .infinity, minHeight: 50)
-                                .foregroundStyle(HangBrand.ink).background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 14))
-                        }.buttonStyle(.plain).accessibilityIdentifier("saveLoggedSet")
-                        Button { var set = entry(); set.reps = 0; set.method = "tap"; counter = set } label: {
-                            Label("Count reps", systemImage: "plus.circle").font(.headline)
-                                .frame(maxWidth: .infinity, minHeight: 50)
-                                .background(palette.garden, in: RoundedRectangle(cornerRadius: 14))
-                        }.buttonStyle(.plain).accessibilityIdentifier("openTapCounter")
-                    }.disabled(!valid || saving)
+                    Button {
+                        counter = .init(exercise: exercise.trimmingCharacters(in: .whitespacesAndNewlines),
+                            reps: 0, load: parsedLoad, unit: unit, method: "tap")
+                    } label: {
+                        Label("Count reps", systemImage: "plus.circle").font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 50)
+                            .foregroundStyle(HangBrand.ink).background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 14))
+                    }.buttonStyle(.plain).accessibilityIdentifier("openTapCounter")
+                        .disabled(!validForCounting || saving)
+                    Divider()
+                    Text("Log a finished set").font(.subheadline.weight(.semibold))
+                    HStack {
+                        Text("Reps").font(.subheadline)
+                        Spacer()
+                        TextField("5", text: $reps).workoutNumberKeyboard().hangInput()
+                            .frame(maxWidth: 100).accessibilityIdentifier("logReps")
+                    }
+                    Button { Task { await add(entry()) } } label: {
+                        Label("Log set", systemImage: "checkmark").font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 50)
+                            .background(palette.garden, in: RoundedRectangle(cornerRadius: 14))
+                    }.buttonStyle(.plain).accessibilityIdentifier("saveLoggedSet").disabled(!valid || saving)
                     #if os(iOS)
                     if LoggedWorkout.cameraExercise(exercise) != nil && Calendar.current.isDateInToday(log.date) {
                         Button { showingCamera = true } label: { Label("Count with camera", systemImage: "camera") }
@@ -188,6 +201,7 @@ struct WorkoutLogView: View {
     }
     private func entry() -> LoggedWorkoutSet { .init(exercise: exercise.trimmingCharacters(in: .whitespacesAndNewlines), reps: Int(reps) ?? 0, load: parsedLoad, unit: unit) }
     private func select(_ name: String) {
+        editingWeight = false
         exercise = (log.exercises + history.flatMap(\.exercises)).first { LoggedWorkout.exerciseKey($0) == LoggedWorkout.exerciseKey(name) } ?? name
         prefill()
     }
@@ -292,10 +306,7 @@ struct WorkoutTapCounter: View {
         VStack(spacing: 24) {
             HStack(spacing: 16) {
                 WorkoutExerciseIcon(exercise: set.exercise, size: 80)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(set.exercise).font(.title2.bold())
-                    Text(set.loadLabel).font(.title3).foregroundStyle(.secondary)
-                }
+                Text(set.exercise).font(.title2.bold())
                 Spacer(minLength: 0)
             }.accessibilityElement(children: .combine)
             Spacer()

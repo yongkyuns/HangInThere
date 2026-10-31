@@ -27,6 +27,8 @@ import WorkoutCore
         }
         for dark in [false, true] {
             let scheme: ColorScheme = dark ? .dark : .light
+            let empty = NavigationStack { WorkoutLogView(preview: true) }.environment(\.colorScheme, scheme)
+            _ = try render(empty, width: 393, height: 852, filename: "workout-log-no-weight-\(dark ? "dark" : "light").png")
             let picker = NavigationStack { WorkoutExercisePicker(names: ["Bench press", "EZ curls"]) { _ in } }.environment(\.colorScheme, scheme)
             _ = try render(picker, width: 393, height: 852, filename: "workout-log-picker-\(dark ? "dark" : "light").png")
             let editor = NavigationStack { WorkoutLoggedSetEditor(set: log.sets[0], onSave: { _ in }, onDelete: {}) }

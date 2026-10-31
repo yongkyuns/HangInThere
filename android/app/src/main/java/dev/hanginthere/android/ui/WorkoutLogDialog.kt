@@ -75,6 +75,7 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     var load by rememberSaveable { mutableStateOf("") }
     var unit by rememberSaveable { mutableStateOf("lb") }
     var choosing by remember { mutableStateOf(false) }
+    var editingWeight by remember { mutableStateOf(false) }
     var unitMenu by remember { mutableStateOf(false) }
     var datePicker by remember { mutableStateOf(false) }
     var counter by rememberSaveable { mutableStateOf(false) }
@@ -84,6 +85,7 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val parsedLoad = loadNumber(load)
+    val validForCounting = (load.isBlank() || parsedLoad != null) && WorkoutLogPolicy.validSet(exercise, 0, parsedLoad, unit)
     val valid = (load.isBlank() || parsedLoad != null) && WorkoutLogPolicy.validSet(exercise, reps.toIntOrNull(), parsedLoad, unit)
     fun prefill(name: String, current: WorkoutLog = log, past: List<WorkoutLog> = history) {
         exercise = (current.sets + past.flatMap { it.sets }).firstOrNull { WorkoutLogPolicy.exerciseKey(it.exercise) == WorkoutLogPolicy.exerciseKey(name) }?.exercise ?: name
@@ -129,27 +131,34 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
                         Spacer(Modifier.width(12.dp))
                         Text(exercise, style = MaterialTheme.typography.titleLarge); Text(" ▾")
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(load, { load = it }, label = { Text("Weight") }, placeholder = { Text("Optional") },
-                            modifier = Modifier.weight(1f).testTag("logWeight"), singleLine = true, enabled = !saving,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
-                        Box {
-                            TextButton(onClick = { unitMenu = true }, enabled = !saving) { Text("$unit ▾") }
-                            DropdownMenu(unitMenu, { unitMenu = false }) {
-                                listOf("lb", "kg").forEach { next -> DropdownMenuItem(text = { Text(next) }, onClick = {
-                                    if (next != unit && parsedLoad != null && parsedLoad.isFinite() && parsedLoad >= 0)
-                                        load = formatLoad(WorkoutLogPolicy.convertLoad(parsedLoad, unit, next))
-                                    unit = next; unitMenu = false
-                                }) }
+                    TextButton(onClick = { editingWeight = !editingWeight }, enabled = !saving) {
+                        Text(if (load.isBlank()) "Add weight (optional)" else "$load $unit")
+                    }
+                    if (editingWeight) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(load, { load = it }, label = { Text("Weight (optional)") }, placeholder = { Text("Optional") },
+                                modifier = Modifier.weight(1f).testTag("logWeight"), singleLine = true, enabled = !saving,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+                            Box {
+                                TextButton(onClick = { unitMenu = true }, enabled = !saving) { Text("$unit ▾") }
+                                DropdownMenu(unitMenu, { unitMenu = false }) {
+                                    listOf("lb", "kg").forEach { next -> DropdownMenuItem(text = { Text(next) }, onClick = {
+                                        if (next != unit && parsedLoad != null && parsedLoad.isFinite() && parsedLoad >= 0)
+                                            load = formatLoad(WorkoutLogPolicy.convertLoad(parsedLoad, unit, next))
+                                        unit = next; unitMenu = false
+                                    }) }
+                                }
                             }
                         }
-                        OutlinedTextField(reps, { reps = it }, label = { Text("Reps") }, modifier = Modifier.width(86.dp).testTag("logReps"),
-                            enabled = !saving, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done))
                     }
+                    Button(onClick = { counter = true }, enabled = !saving && validForCounting,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp).testTag("openTapCounter")) { Text("Count reps") }
+                    HorizontalDivider()
+                    Text("Log a finished set", style = MaterialTheme.typography.titleSmall)
+                    OutlinedTextField(reps, { reps = it }, label = { Text("Reps") }, modifier = Modifier.fillMaxWidth().testTag("logReps"),
+                        enabled = !saving, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done))
                     Button(onClick = { save(log.copy(sets = log.sets + entry())) }, enabled = valid && !saving,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp).testTag("saveLoggedSet")) { Text("Log set") }
-                    FilledTonalButton(onClick = { counter = true }, enabled = valid && !saving,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp).testTag("openTapCounter")) { Text("Count reps") }
                     val cameraExercise = WorkoutLogPolicy.cameraExercise(exercise)
                     val zone = java.time.ZoneId.systemDefault().id
                     if (onCamera != null && cameraExercise != null && WorkoutCalendarPolicy.day(log.epochMilliseconds, zone).day == WorkoutCalendarPolicy.day(System.currentTimeMillis(), zone).day) {
@@ -167,8 +176,8 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
             } } }
         }
     }
-    if (choosing) WorkoutExercisePicker((log.sets + history.flatMap { it.sets }).map { it.exercise }, onClose = { choosing = false }) { prefill(it); choosing = false }
-    if (counter) WorkoutTapCounter(entry(0).copy(method = "tap"), onClose = { counter = false }) { set ->
+    if (choosing) WorkoutExercisePicker((log.sets + history.flatMap { it.sets }).map { it.exercise }, onClose = { choosing = false }) { prefill(it); choosing = false; editingWeight = false }
+    if (counter) WorkoutTapCounter(WorkoutLoggedSet(UUID.randomUUID().toString(), exercise.trim(), 0, parsedLoad, unit, method = "tap"), onClose = { counter = false }) { set ->
         persist(log.copy(sets = log.sets + set)); reps = set.reps.toString(); counter = false
     }
     editing?.let { set -> WorkoutLoggedSetEditor(set, onClose = { editing = null }, onSave = { result ->
@@ -249,10 +258,7 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 WorkoutExerciseIcon(set.exercise, 80.dp)
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(set.exercise, style = MaterialTheme.typography.titleLarge)
-                    Text(set.loadLabel(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(set.exercise, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
             }
             Spacer(Modifier.weight(1f))
             Button(onClick = { if (count < 1000) count++ }, enabled = !saving,
