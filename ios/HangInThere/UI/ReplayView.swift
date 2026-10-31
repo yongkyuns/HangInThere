@@ -181,7 +181,8 @@ struct ReplayView: View {
 
                 if showPoseOverlay {
                     PoseOverlay(result: frame.pose, selectedSide: model.counter.side,
-                                usesBothArms: true, effort: PoseOverlayEffort.rate(activity: model.analysisRecord?.activity, at: frame.pose.timestamp.seconds),
+                                usesBothArms: true, effort: PoseOverlayEffort.rate(activity: model.analysisRecord?.activity, at: frame.pose.timestamp.seconds,
+                                    observedAt: model.analysisRecord?.activity?.phases.last?.endedAt),
                                 completedReps: model.repAnalysis.filter(\.isCompleteForAnalytics).count)
                 }
 

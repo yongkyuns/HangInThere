@@ -20,13 +20,20 @@ struct PoseOverlayPresentationTests {
                 totals: [.init(phase: phase, observedSeconds: 1)], longestHangSeconds: 0, longestSupportSeconds: 0,
                 observedSeconds: 1, elapsedSeconds: 1, timelineTruncated: false, metricVersion: 3)
         }
-        #expect(PoseOverlayEffort.rate(activity: activity("hang"), at: 2) == 0.25)
-        #expect(PoseOverlayEffort.rate(activity: activity("pulling"), at: 2) == 1)
-        #expect(PoseOverlayEffort.rate(activity: activity("lowering"), at: 2) == 0.5)
-        #expect(PoseOverlayEffort.rate(activity: activity("rising"), at: 2) == 1)
-        #expect(PoseOverlayEffort.rate(activity: activity("pulling"), at: 2.36) == nil)
-        #expect(PoseOverlayEffort.rate(activity: activity("pulling"), at: 1.9) == nil)
-        #expect(PoseOverlayEffort.rate(activity: activity("unobserved"), at: 2) == nil)
+        #expect(PoseOverlayEffort.rate(activity: activity("hang"), at: 2, observedAt: 2) == 0.25)
+        #expect(PoseOverlayEffort.rate(activity: activity("pulling"), at: 2, observedAt: 2) == 1)
+        #expect(PoseOverlayEffort.rate(activity: activity("lowering"), at: 2, observedAt: 2) == 0.5)
+        #expect(PoseOverlayEffort.rate(activity: activity("rising"), at: 2, observedAt: 2) == 1)
+        #expect(PoseOverlayEffort.rate(activity: activity("pulling"), at: 2.36, observedAt: 2) == nil)
+        #expect(PoseOverlayEffort.rate(activity: activity("pulling"), at: 1.9, observedAt: 2) == nil)
+        #expect(PoseOverlayEffort.rate(activity: activity("unobserved"), at: 2, observedAt: 2) == nil)
+        for frame in 0...60 {
+            let now = 2 + Double(frame) / 30
+            #expect(PoseOverlayEffort.rate(activity: activity("effortHold"), at: now, observedAt: now) == 1)
+        }
+        #expect(PoseOverlayEffort.rate(activity: activity("effortHold"), at: 3, observedAt: nil) == nil)
+        #expect(PoseOverlayEffort.rate(activity: activity("effortHold"), at: 3, observedAt: .nan) == nil)
+        #expect(PoseOverlayEffort.rate(activity: activity("effortHold"), at: 3, observedAt: 3.1) == nil)
         #expect(PoseOverlayEffort.pushUpRate(phase: "ready", setStarted: true, usable: true) == 0.25)
         #expect(PoseOverlayEffort.pushUpRate(phase: "lowering", setStarted: true, usable: true) == 0.5)
         #expect(PoseOverlayEffort.pushUpRate(phase: "lowered", setStarted: true, usable: true) == 1)

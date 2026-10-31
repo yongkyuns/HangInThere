@@ -313,6 +313,32 @@ final class BodyDipWorkoutNativeTests: XCTestCase {
         }
         XCTAssertNil(standing.draftDeltaJson())
     }
+    @MainActor func testHeldDipColorUsesFreshFramesBetweenRecordCheckpoints() throws {
+        let adapter = WorkoutAnalysisAdapter()
+        var heldFrames = 0, framesBeyondOldTimeout = 0
+        for ms in stride(from: Int64(0), through: 4000, by: 40) {
+            let p = pose(ms, lowered: ms >= 1080)
+            let state = try XCTUnwrap(adapter.observeBodyDip(p, camera: "ready", automaticStart: true, recordCalendarTime: false))
+            guard state.started, let activity = adapter.currentRecord?.activity,
+                  activity.phases.last?.phase == "effortHold" else { continue }
+            heldFrames += 1
+            if p.timestamp.seconds - (activity.phases.last?.endedAt ?? 0) > 0.35 { framesBeyondOldTimeout += 1 }
+            XCTAssertEqual(adapter.effortObservationSeconds, p.timestamp.seconds)
+            XCTAssertEqual(PoseOverlayEffort.rate(activity: activity, at: p.timestamp.seconds,
+                observedAt: adapter.effortObservationSeconds), 1)
+        }
+        XCTAssertGreaterThan(heldFrames, 20)
+        XCTAssertGreaterThan(framesBeyondOldTimeout, 10, "Exercise the gap between summary checkpoints")
+        _ = adapter.observeBodyDip(pose(4040, lowered: true), camera: "unavailable", automaticStart: true, recordCalendarTime: false)
+        XCTAssertNil(adapter.effortObservationSeconds)
+        XCTAssertNil(PoseOverlayEffort.rate(activity: adapter.currentRecord?.activity, at: 4.04,
+            observedAt: adapter.effortObservationSeconds))
+        _ = adapter.observeBodyDip(pose(4080, lowered: true), camera: "ready", automaticStart: true, recordCalendarTime: false)
+        adapter.interrupt(reason: "test")
+        XCTAssertNil(adapter.effortObservationSeconds)
+        adapter.start(exercise: .dip, recordCalendarTime: false)
+        XCTAssertNil(adapter.effortObservationSeconds)
+    }
     @MainActor func testAnalysisAdapterAndLivePresentationUseSharedBodyCountsAndMethod() async throws {
         let adapter = WorkoutAnalysisAdapter()
         var session = LiveSetSession()

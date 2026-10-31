@@ -43,6 +43,8 @@ final class WorkoutAnalysisAdapter {
     @ObservationIgnored private var revision: Int32 = -1
     private(set) var reps: [WorkoutRepRecord] = []
     private(set) var currentRecord: WorkoutSetRecord?
+    // Fresh source evidence is independent of the once-per-second record checkpoint.
+    private(set) var effortObservationSeconds: Double?
     private(set) var error: String?
     @ObservationIgnored private var pendingDraft: WorkoutSetRecord?
     @ObservationIgnored private let startFeedback = WorkoutStartFeedback()
@@ -103,11 +105,14 @@ final class WorkoutAnalysisAdapter {
         jointIndices = makeJointIndices(engine.jointNames)
         gripTimestamp = nil
         revision = -1; reps = []; currentRecord = nil; error = nil; pendingDraft = nil
+        effortObservationSeconds = nil
     }
     func resetBodyDipPreparation() {
+        effortObservationSeconds = nil
         bodyDipEngine = nil; bodyDipSnapshot = nil
     }
     func resetBodyPullUpPreparation() {
+        effortObservationSeconds = nil
         bodyPullUpEngine = nil; overheadPullUpEngine = nil; bodyPullUpSnapshot = nil
     }
     func observeBodyPullUp(_ pose: PoseResult, reference: BarSegment?, camera: String,
@@ -126,9 +131,12 @@ final class WorkoutAnalysisAdapter {
             let snapshot = try JSONDecoder().decode(BodyPullUpWorkoutSnapshot.self, from: Data(raw.utf8))
             if bodyPullUpSnapshot?.started != snapshot.started { revision = -1 }
             bodyPullUpSnapshot = snapshot
+            effortObservationSeconds = snapshot.started && snapshot.endReason == nil &&
+                snapshot.motion.sourceAccepted && snapshot.motion.observationUsable ? snapshot.motion.seconds : nil
             refreshRecords()
             return snapshot
         } catch {
+            effortObservationSeconds = nil
             self.error = "Pull-up analysis could not be read: \(error.localizedDescription)"
             return nil
         }
@@ -155,9 +163,12 @@ final class WorkoutAnalysisAdapter {
             let snapshot = try JSONDecoder().decode(BodyPullUpWorkoutSnapshot.self, from: Data(raw.utf8))
             if bodyPullUpSnapshot?.started != snapshot.started { revision = -1 }
             bodyPullUpSnapshot = snapshot
+            effortObservationSeconds = snapshot.started && snapshot.endReason == nil &&
+                snapshot.motion.sourceAccepted && snapshot.motion.observationUsable ? snapshot.motion.seconds : nil
             refreshRecords()
             return snapshot
         } catch {
+            effortObservationSeconds = nil
             self.error = "Pull-up analysis could not be read: \(error.localizedDescription)"
             return nil
         }
@@ -187,9 +198,12 @@ final class WorkoutAnalysisAdapter {
             let snapshot = try JSONDecoder().decode(BodyDipWorkoutSnapshot.self, from: Data(raw.utf8))
             if bodyDipSnapshot?.started != snapshot.started { revision = -1 }
             bodyDipSnapshot = snapshot
+            effortObservationSeconds = snapshot.started && snapshot.endReason == nil &&
+                snapshot.motion.sourceAccepted && snapshot.motion.observationUsable ? snapshot.motion.seconds : nil
             refreshRecords()
             return snapshot
         } catch {
+            effortObservationSeconds = nil
             self.error = "Dip analysis could not be read: \(error.localizedDescription)"
             return nil
         }
@@ -312,6 +326,7 @@ final class WorkoutAnalysisAdapter {
             eventTime: event?.sourceSeconds ?? 0, eventReason: event?.reason,
             hasActivity: counter.observedMovements + counter.partialAttempts + counter.interruptedAttempts > 0,
             automaticFinish: automaticFinish)
+        effortObservationSeconds = end == nil && reference != nil && counter.trackingIssue == nil ? pose.timestamp.seconds : nil
         refreshRecords()
         return end.flatMap(LiveSetSession.EndReason.init(rawValue:))
     }
@@ -325,6 +340,7 @@ final class WorkoutAnalysisAdapter {
         catch { self.error = "Workout analysis could not be read: \(error.localizedDescription)"; return nil }
     }
     func interrupt(reason: String) {
+        effortObservationSeconds = nil
         clearStartFeedback()
         if let overheadPullUpEngine { overheadPullUpEngine.interrupt(reason: reason) }
         else if let bodyPullUpEngine { bodyPullUpEngine.interrupt(reason: reason) }
@@ -332,6 +348,7 @@ final class WorkoutAnalysisAdapter {
         refreshRecords()
     }
     func finish(reason: String) -> WorkoutSetRecord? {
+        effortObservationSeconds = nil
         clearStartFeedback()
         if let overheadPullUpEngine { overheadPullUpEngine.finish(reason: reason) }
         else if let bodyPullUpEngine { bodyPullUpEngine.finish(reason: reason) }
@@ -385,7 +402,7 @@ final class WorkoutAnalysisAdapter {
                 }
             }
             revision = currentRevision
-        } catch { self.error = "Rep analysis could not be read: \(error.localizedDescription)" }
+        } catch { effortObservationSeconds = nil; self.error = "Rep analysis could not be read: \(error.localizedDescription)" }
     }
 }
 

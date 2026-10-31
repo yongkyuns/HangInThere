@@ -448,7 +448,8 @@ struct LiveSetupView: View {
                 LiveCameraPreviewSurface(session: camera.session)
                 if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.latestPose {
                     PoseOverlay(result: pose, selectedSide: side, usesBothArms: true,
-                        effort: PoseOverlayEffort.rate(activity: camera.activeWorkoutRecord?.activity, at: pose.timestamp.seconds),
+                        effort: PoseOverlayEffort.rate(activity: camera.activeWorkoutRecord?.activity, at: pose.timestamp.seconds,
+                            observedAt: camera.effortObservationSeconds),
                         completedReps: camera.completedRepCount)
                     BarOverlay(imageSize: pose.imageSize, bar: camera.currentBar)
                 }

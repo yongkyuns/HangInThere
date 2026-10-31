@@ -309,6 +309,7 @@ final class LiveCameraPreviewController: NSObject {
         guard readinessFrameFresh else { return WorkoutGripCaptureFeedback(state: "checking") }
         return latestGripCaptureFeedback
     }
+    var effortObservationSeconds: Double? { liveSet.phase == .running ? workoutAnalysis.effortObservationSeconds : nil }
     var activeWorkoutRecord: WorkoutSetRecord? { liveSet.phase == .running ? workoutAnalysis.currentRecord : nil }
     // The legacy counter records acceptance at the top. Live rep totals use
     // the same completed-return eligibility as saved history and results.

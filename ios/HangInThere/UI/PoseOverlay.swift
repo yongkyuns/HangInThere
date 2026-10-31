@@ -176,11 +176,11 @@ struct PoseOverlay: View {
 /// Relative phase-load display only; never measured force or personal fatigue.
 /// Unknown or stale evidence stays neutral instead of borrowing a previous hue.
 enum PoseOverlayEffort {
-    static func rate(activity: WorkoutActivity?, at seconds: Double) -> Double? {
-        guard seconds.isFinite, let current = activity?.phases.last,
+    static func rate(activity: WorkoutActivity?, at seconds: Double, observedAt: Double?) -> Double? {
+        guard seconds.isFinite, let observedAt, observedAt.isFinite,
+              seconds >= observedAt, seconds - observedAt <= 0.35, let current = activity?.phases.last,
               current.observedSeconds.isFinite, current.observedSeconds > 0,
-              current.endedAt.isFinite, seconds >= current.endedAt,
-              seconds - current.endedAt <= 0.35 else { return nil }
+              current.endedAt.isFinite, observedAt >= current.endedAt else { return nil }
         return WorkoutSetPresentationBridge().weight(phase: current.phase)?.doubleValue
     }
     static func pushUpRate(phase: String?, setStarted: Bool, usable: Bool) -> Double? {
