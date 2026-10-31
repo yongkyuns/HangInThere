@@ -276,6 +276,7 @@ struct JourneyWorkoutRow: View {
 }
 struct JourneyWorkoutView: View {
     let workout: JourneyWorkoutSummary
+    var refreshesFromStore = true
     @State private var refreshed: JourneyWorkoutSummary?
     @State private var unavailable = false
     @State private var editing = false
@@ -320,6 +321,7 @@ struct JourneyWorkoutView: View {
             }
     }
     private func refresh() async {
+        guard refreshesFromStore else { return }
         do {
             refreshed = try await WorkoutRecordStore.shared.workoutSummary(id: workout.id)
             unavailable = refreshed == nil

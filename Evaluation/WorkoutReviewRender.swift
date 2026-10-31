@@ -521,17 +521,17 @@ import WorkoutCore
                     let setSummary = try journeySummary(example)
                     let setContent = NavigationStack { WorkoutReviewView(sets: [example], currentReps: example.reps, storageError: nil,
                         goalsEnabled: false, summary: setSummary) }
-                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1000)
+                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 2000)
                         .background(dark ? Color.black : Color.white)
                     let filename = "journey-set-\(dark ? "dark" : "light")-\(Int(width)).png"
-                    let text = try render(setContent, width: width, height: 1000, filename: filename)
+                    let text = try render(setContent, width: width, height: 2000, filename: filename)
                     verify(text.contains { $0.contains("consistent") }, "Set quality must be glanceable", filename: filename)
                     verify(text.contains { $0.contains("yourreps") }, "Rep drill-down must be visible", filename: filename)
                     verify(!text.contains { $0.contains("leftarmtime") || $0.contains("leftmeanrange") }, "Recording diagnostics must not crowd the set summary", filename: filename)
-                    let workoutContent = NavigationStack { JourneyWorkoutView(workout: workout) }.environment(\.colorScheme, dark ? .dark : .light)
-                        .frame(width: width, height: 1000).background(dark ? Color.black : Color.white)
+                    let workoutContent = NavigationStack { JourneyWorkoutView(workout: workout, refreshesFromStore: false) }.environment(\.colorScheme, dark ? .dark : .light)
+                        .frame(width: width, height: 2000).background(dark ? Color.black : Color.white)
                     let workoutName = "journey-workout-\(dark ? "dark" : "light")-\(Int(width)).png"
-                    let workoutText = try render(workoutContent, width: width, height: 1000, filename: workoutName)
+                    let workoutText = try render(workoutContent, width: width, height: 2000, filename: workoutName)
                     verify(workoutText.contains { $0.contains("set1") }, "Workout must lead to its sets", filename: workoutName)
                 }
             }
@@ -596,9 +596,9 @@ import WorkoutCore
                         selectedRepId: prefix == "history-" ? set.completedReps.first?.id : nil, goalsEnabled: false,
                         summary: try journeySummary(records.first!))
                         .environment(\.colorScheme, dark ? .dark : .light)
-                        .frame(width: width, height: 1000)
+                        .frame(width: width, height: 2000)
                         .background(dark ? Color.black : Color.white)
-                    let text = try render(content, width: width, height: 1000,
+                    let text = try render(content, width: width, height: 2000,
                         filename: "\(prefix)\(dark ? "dark" : "light")-\(Int(width)).png")
                     precondition(!text.contains { $0.contains("rep2") || $0.contains("rep3") }, "Unfinished reps appeared in analytics")
                     if prefix == "history-" {
@@ -641,8 +641,8 @@ import WorkoutCore
                         let content = WorkoutReviewView(sets: live ? [set] : [practiceSet],currentReps: [],storageError: nil,
                             currentSet: live ? practiceSet : nil,goalsEnabled: false, summary: try journeySummary(practiceSet))
                             .environment(\.colorScheme,dark ? .dark : .light)
-                            .frame(width: width,height: 1100).background(dark ? Color.black : Color.white)
-                        let text = try render(content,width: width,height: 1100,
+                            .frame(width: width,height: 2000).background(dark ? Color.black : Color.white)
+                        let text = try render(content,width: width,height: 2000,
                             filename: "practice-\(exercise.rawValue)-\(live ? "active" : "saved")-\(dark ? "dark" : "light")-\(Int(width)).png")
                         precondition(text.contains { $0.contains("phasebreakdown") },"Phase drill-down is missing")
                         verify(text.contains { $0.contains(exercise == .pullUp ? "longesthang" : "supporthold") },
@@ -906,6 +906,7 @@ import WorkoutCore
             return []
         }
         let request = VNRecognizeTextRequest()
+        request.minimumTextHeight = 0.003
         request.recognitionLevel = .accurate; request.recognitionLanguages = ["en-US"]
         try VNImageRequestHandler(cgImage: image).perform([request])
         let recognized = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
