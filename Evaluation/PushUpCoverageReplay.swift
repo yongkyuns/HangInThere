@@ -61,7 +61,7 @@ import WorkoutCore
             let reader = VideoReplayReader(estimator: Estimator(crop: spec.crop))
             _ = try await reader.open(url)
             do {
-                let counter = SideViewPushUpMotionBridge()
+                let counter = SideViewPushUpMotionBridge(allowFrontView: true)
                 var events: [[String: Any]] = [], cues: [String: Int] = [:], frames = 0
                 while let frame = try await reader.nextFrame() {
                     let json = String(decoding: try JSONEncoder().encode(frame.pose), as: UTF8.self)
@@ -74,7 +74,8 @@ import WorkoutCore
                 }
                 await reader.close()
                 reports.append(["id": spec.id, "frames": frames, "events": events, "cues": cues,
-                                "policyVersion": Int(SideViewPushUpMotion.companion.policyVersion),
+                                "countPolicies": ["side": Int(SideViewPushUpMotion.companion.policyVersion),
+                                                  "front": Int(SideViewPushUpMotion.companion.frontPolicyVersion)],
                                 "sourceSHA256": spec.sha256])
                 try FileHandle.standardOutput.write(contentsOf: Data("\(spec.id): \(events.count) cycles / \(frames) source frames\n".utf8))
             } catch {

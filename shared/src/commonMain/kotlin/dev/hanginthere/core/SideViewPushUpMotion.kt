@@ -5,12 +5,14 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlin.math.*
 
-/** Side-view push-up cycles with observed arm, torso and one leg endpoint.
+/** Source-owned push-up cycles. The default preserves the side-only evaluation
+ * contract; the app also enables a distinct bilateral front-view profile.
  * Missing leg joints do not establish straight-leg form. Owns source-bound association;
  * the caller supplies independent native camera evidence, never a pose-derived flag.
  * Not connected to automatic exercise selection until separate-video qualification.
  */
-class SideViewPushUpMotion {
+class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
+    @Serializable enum class View { side, front }
     @Serializable enum class Camera { ready, unavailable, moved }
     @Serializable enum class Phase { seekingPlank, ready, lowering, lowered }
     @Serializable enum class Cue(val title: String) {
@@ -19,7 +21,9 @@ class SideViewPushUpMotion {
         sidePlank("Show a side-on plank"), straightLegs("Hold a straight plank"),
         acquiring("Hold for a moment"), ready("Ready — lower your chest"),
         push("Push back up"), armHidden("Keep your arm in view"),
-        athleteUnclear("Keep the athlete clearly in view"), complete("Set complete")
+        athleteUnclear("Keep the athlete clearly in view"), complete("Set complete"),
+        frontPlank("Face the camera · hold a plank"), bothArms("Show both shoulders, elbows and hands"),
+        upperBody("Show your arms and upper body"), frontHips("Show your hips to start")
     }
     @Serializable data class Rep(val startedAt: Double, val deepestAt: Double, val returnedAt: Double)
     @Serializable data class SetSummary(val index: Int, val startedAt: Double,
@@ -30,10 +34,12 @@ class SideViewPushUpMotion {
         val progress: Double?, val targetReached: Boolean, val observationUsable: Boolean,
         val rep: Rep? = null, val endedSet: SetSummary? = null,
         val association: BodyAthleteAssociation.Decision? = null,
-        val setupHint: String = SideViewPushUpMotion.setupHint)
+        val setupHint: String = SideViewPushUpMotion.setupHint, val view: View? = null)
 
     companion object {
         const val policyVersion = 2
+        const val frontPolicyVersion = 1
+        const val frontCountMethod = "frontViewPushUp"
         const val setupHint = "Side view · Steady phone · Arm, hip and knee or ankle visible"
         private val zero = SourceTimeLimit(0, 1)
         private val frameGap = SourceTimeLimit(7, 20)
@@ -51,8 +57,11 @@ class SideViewPushUpMotion {
             bodyAxis != null && bodyAxis <= 30 && bodySpan != null && bodySpan >= .4*width
     }
     private data class Calibration(val since: PresentationTime, val samples: MutableList<Measurement>)
-    private data class Anchor(val degrees: Double, val shoulderY: Double, val wrist: Point2D, val armLength: Double)
-    private val source = BodyAthleteSelection(BodyAthleteAssociation.Profile.sideView)
+    private data class Anchor(val degrees: Double, val shoulderY: Double, val wrist: Point2D, val armLength: Double,
+        val otherWrist: Point2D? = null)
+    private val source = BodyAthleteSelection(if (allowFrontView) BodyAthleteAssociation.Profile.pushUp else BodyAthleteAssociation.Profile.sideView)
+    private var view: View? = null
+    private var frontCalibration: Calibration? = null
     private var highWater: PresentationTime? = null
     private var generation: Long? = null
     private var phase = Phase.seekingPlank
@@ -76,6 +85,7 @@ class SideViewPushUpMotion {
 
     private fun clearAttempt() {
         phase = Phase.seekingPlank; side = null; anchor = null; candidates.clear()
+        view = null; frontCalibration = null
         endpointSince = null; lastArm = null; lastBody = null; departure = null
         deepest = null; deepestDrop = 0.0
     }
@@ -98,7 +108,12 @@ class SideViewPushUpMotion {
         var decision: BodyAthleteAssociation.Decision? = null
         fun result(cue: Cue, usable: Boolean = false, progress: Double? = null) = Snapshot(
             phase, cue, cue.title, cycles, active?.reps?.size ?: 0, active != null, side,
-            progress, usable && phase == Phase.lowered, usable, rep, ended, decision)
+            progress, usable && phase == Phase.lowered, usable, rep, ended, decision,
+            when {
+                view == View.front -> "Front view · Steady phone · Both arms visible"
+                allowFrontView && view == null -> "Front or side · Steady phone · Arms and hips visible"
+                else -> setupHint
+            }, view)
         if (!time.seconds.isFinite() || time.seconds < 0 ||
             highWater?.let { elapsed(time, it, zero) != 1 } == true) {
             highWater?.let { ended = close(it, "invalidSourceClock") }
@@ -120,27 +135,27 @@ class SideViewPushUpMotion {
             return result(Cue.landscape)
         }
         if (decision.status != BodyAthleteAssociation.Status.associated) {
-            endpointSince = null; releaseSince = null; candidates.clear()
+            endpointSince = null; releaseSince = null; candidates.clear(); frontCalibration = null
             if (decision.status == BodyAthleteAssociation.Status.lost ||
                 lastArm?.let { elapsed(time, it, frameGap) == 1 } == true)
                 ended = close(time, "athleteAssociationLost") ?: ended
-            return result(if (pose.people.size > 1) Cue.athleteUnclear else Cue.wholeBody)
+            return result(if (pose.people.size > 1) Cue.athleteUnclear else if (allowFrontView) Cue.upperBody else Cue.wholeBody)
         }
         val selected = checkNotNull(source.selectedPose)
         val width = selected.imageSize.width
         val observed = ArmMeasurement.Side.entries.associateWith { measure(selected, it) }
-        val current = side?.let { observed.getValue(it) }
+        val front = if (allowFrontView) measureFront(selected, observed) else null
         // Expire old evidence BEFORE accepting a newly returned measurement.
-        if (current != null && (lastArm?.let { elapsed(time, it, frameGap) == 1 } == true ||
+        if (side != null && (lastArm?.let { elapsed(time, it, frameGap) == 1 } == true ||
             lastBody?.let { elapsed(time, it, bodyGap) == 1 } == true)) {
             ended = close(time, "bodyTrackingLost") ?: ended
         }
-        val m = side?.let { observed.getValue(it) }
+        val m = if (view == View.front) front else side?.let { observed.getValue(it) }
         if (m != null) {
             if (m.degrees != null) lastArm = time
-            if (m.plank(width)) lastBody = time
-            val released = m.kneeDegrees?.let { it < 140 } == true ||
-                (m.bodyDegrees != null && !m.plank(width))
+            if (if (view == View.front) frontSupported(selected, m) else m.plank(width)) lastBody = time
+            val released = view != View.front && (m.kneeDegrees?.let { it < 140 } == true ||
+                (m.bodyDegrees != null && !m.plank(width)))
             if (released) {
                 // Positive current posture earns release dwell, never missing joints.
                 endpointSince = null; candidates.clear(); departure = null; deepest = null
@@ -158,6 +173,19 @@ class SideViewPushUpMotion {
             }
         }
         if (phase == Phase.seekingPlank) {
+            if (front != null && front.degrees!! >= 155 && frontPlank(selected, front)) {
+                val calibration = frontCalibration ?: Calibration(time, mutableListOf()).also { frontCalibration = it }
+                calibration.samples += front
+                if (elapsed(time, calibration.since, calibrationDwell)?.let { it >= 0 } == true) {
+                    val samples = calibration.samples
+                    side = ArmMeasurement.Side.left; view = View.front
+                    anchor = Anchor(samples.map { it.degrees!! }.average(), samples.map { it.shoulder!!.y }.average(),
+                        front.wrist!!, samples.map { it.armLength!! }.average(),
+                        selected.people.single().landmark(PoseJoint.rightWrist)!!.position)
+                    lastArm = time; lastBody = time; phase = Phase.ready; candidates.clear(); frontCalibration = null
+                    return result(Cue.ready, true, 0.0)
+                }
+            } else frontCalibration = null
             for (s in ArmMeasurement.Side.entries) {
                 val value = observed.getValue(s)
                 if (value.degrees == null || value.degrees < 150 || !value.plank(width) ||
@@ -168,7 +196,7 @@ class SideViewPushUpMotion {
                 calibration.samples += value
                 if (elapsed(time, calibration.since, calibrationDwell)?.let { it >= 0 } == true) {
                     val samples = calibration.samples
-                    side = s
+                    side = s; view = View.side
                     anchor = Anchor(samples.map { it.degrees!! }.average(), samples.map { it.shoulder!!.y }.average(),
                         Point2D(samples.map { it.wrist!!.x }.average(), samples.map { it.wrist!!.y }.average()),
                         samples.map { it.armLength!! }.average())
@@ -176,7 +204,16 @@ class SideViewPushUpMotion {
                     return result(Cue.ready, true, 0.0)
                 }
             }
-            if (candidates.isNotEmpty()) return result(Cue.acquiring)
+            if (candidates.isNotEmpty() || frontCalibration != null) return result(Cue.acquiring)
+            if (allowFrontView && source.selectedPose?.people?.singleOrNull()?.let { person ->
+                val a = person.landmark(PoseJoint.leftShoulder)?.position
+                val b = person.landmark(PoseJoint.rightShoulder)?.position
+                a != null && b != null && abs(a.x-b.x) >= .12*width
+            } == true) return result(when {
+                front == null -> Cue.bothArms
+                selected.people.single().let { it.landmark(PoseJoint.leftHip) == null && it.landmark(PoseJoint.rightHip) == null } -> Cue.frontHips
+                else -> Cue.frontPlank
+            })
             val visible = observed.values.firstOrNull { it.degrees != null } ?: return result(Cue.armHidden)
             return result(when {
                 visible.bodyDegrees == null -> Cue.wholeBody
@@ -185,19 +222,26 @@ class SideViewPushUpMotion {
                 else -> Cue.straightLegs
             })
         }
-        val value = observed.getValue(checkNotNull(side))
+        val value = (if (view == View.front) front else observed.getValue(checkNotNull(side)))
+            ?: run { endpointSince = null; return result(Cue.bothArms) }
         val fixed = checkNotNull(anchor)
-        if (value.degrees == null || !value.plank(width)) {
+        if (value.degrees == null || !(if (view == View.front) frontSupported(selected, value) else value.plank(width))) {
             endpointSince = null
-            return result(if (value.degrees == null) Cue.armHidden else Cue.wholeBody)
+            return result(if (view == View.front) Cue.frontPlank else if (value.degrees == null) Cue.armHidden else Cue.wholeBody)
         }
         val drift = hypot(value.wrist!!.x-fixed.wrist.x, value.wrist.y-fixed.wrist.y)/fixed.armLength
-        if (drift > .3) {
+        val otherDrift = fixed.otherWrist?.let { prior ->
+            selected.people.single().landmark(PoseJoint.rightWrist)?.position?.let {
+                hypot(it.x-prior.x, it.y-prior.y)/fixed.armLength
+            }
+        } ?: 0.0
+        if (max(drift, otherDrift) > .3) {
             ended = close(time, "handSupportMoved") ?: ended
             return result(Cue.acquiring)
         }
         val drop = (value.shoulder!!.y-fixed.shoulderY)/fixed.armLength
-        val progress = min((fixed.degrees-value.degrees)/(fixed.degrees-110), drop/.2).coerceIn(0.0, 1.0)
+        val bottomAngle = if (view == View.front) 120.0 else 110.0
+        val progress = min((fixed.degrees-value.degrees)/(fixed.degrees-bottomAngle), drop/.2).coerceIn(0.0, 1.0)
         if (phase == Phase.ready && drop >= .05 && value.degrees <= fixed.degrees-10) {
             departure = time; phase = Phase.lowering
         }
@@ -205,8 +249,11 @@ class SideViewPushUpMotion {
             phase = Phase.ready; departure = null; endpointSince = null
         }
         if (phase == Phase.lowered && drop > deepestDrop) { deepestDrop = drop; deepest = time }
-        val endpoint = if (phase != Phase.lowered) value.degrees <= 110 && drop >= .2 else
-            value.degrees >= fixed.degrees-15 && drop <= .15
+        val bothReturned = view != View.front || ArmMeasurement.Side.entries.all {
+            ArmMeasurement(selected, it).estimate?.elbowDegrees?.let { d -> d >= fixed.degrees-15 } == true
+        }
+        val endpoint = if (phase != Phase.lowered) value.degrees <= bottomAngle && drop >= .2 else
+            value.degrees >= fixed.degrees-15 && drop <= .15 && bothReturned
         if (!endpoint) endpointSince = null else {
             if (endpointSince == null) endpointSince = time
             if (elapsed(time, endpointSince!!, endpointDwell)?.let { it >= 0 } == true) {
@@ -214,7 +261,8 @@ class SideViewPushUpMotion {
                 if (phase != Phase.lowered) {
                     phase = Phase.lowered; deepestDrop = drop; deepest = time
                     if (departure == null) departure = time
-                    if (active == null) active = SetSummary(serial++, departure!!.seconds)
+                    if (active == null) active = SetSummary(serial++, departure!!.seconds,
+                        policyVersion = if (view == View.front) frontPolicyVersion else policyVersion)
                 } else {
                     rep = Rep(checkNotNull(departure).seconds, checkNotNull(deepest).seconds, time.seconds)
                     active = checkNotNull(active).copy(reps = active!!.reps + rep)
@@ -223,6 +271,38 @@ class SideViewPushUpMotion {
             }
         }
         return result(if (phase == Phase.lowered) Cue.push else Cue.ready, true, progress)
+    }
+
+    // Front measurements require BOTH current arms. Hips establish the initial
+    // receding plank, but never fill hidden arm endpoints during a repetition.
+    private fun measureFront(pose: PoseResult, arms: Map<ArmMeasurement.Side, Measurement>): Measurement? {
+        val l = arms.getValue(ArmMeasurement.Side.left); val r = arms.getValue(ArmMeasurement.Side.right)
+        if (l.degrees == null || r.degrees == null || abs(l.degrees-r.degrees) > 35) return null
+        val scale = (l.armLength!!+r.armLength!!)/2
+        val span = abs(l.shoulder!!.x-r.shoulder!!.x)
+        if (span < max(.12*pose.imageSize.width, .4*scale) || abs(l.shoulder.y-r.shoulder.y) > .3*span) return null
+        // The larger angle means both elbows must reach the bottom; the smaller
+        // angle on return is checked independently at the return endpoint.
+        return Measurement(ArmMeasurement.Side.left, max(l.degrees, r.degrees),
+            Point2D((l.shoulder.x+r.shoulder.x)/2, (l.shoulder.y+r.shoulder.y)/2),
+            l.wrist, scale, null, null, null, null)
+    }
+    private fun frontSupported(pose: PoseResult, m: Measurement): Boolean {
+        val p = pose.people.single()
+        val wrists = listOf(PoseJoint.leftWrist, PoseJoint.rightWrist).map { p.landmark(it)?.position ?: return false }
+        val shoulders = listOf(PoseJoint.leftShoulder, PoseJoint.rightShoulder).map { p.landmark(it)?.position ?: return false }
+        return wrists.zip(shoulders).all { (w, s) -> w.y-s.y >= .15*m.armLength!! } &&
+            abs(wrists[0].x-wrists[1].x) >= .5*abs(shoulders[0].x-shoulders[1].x)
+    }
+    private fun frontPlank(pose: PoseResult, m: Measurement): Boolean {
+        if (!frontSupported(pose, m)) return false
+        val p = pose.people.single()
+        val hips = listOf(PoseJoint.leftHip, PoseJoint.rightHip).mapNotNull { p.landmark(it)?.position }
+        if (hips.isEmpty()) return false
+        val y = hips.map { it.y }.average(); val x = hips.map { it.x }.average()
+        return y >= m.shoulder!!.y+.1*m.armLength!! && y <= m.wrist!!.y-.12*m.armLength &&
+            abs(x-m.shoulder.x) <= .6*abs(p.landmark(PoseJoint.leftShoulder)!!.position.x-p.landmark(PoseJoint.rightShoulder)!!.position.x) &&
+            ArmMeasurement.Side.entries.all { ArmMeasurement(pose, it).estimate!!.elbowDegrees >= 155 }
     }
 
     private fun measure(pose: PoseResult, side: ArmMeasurement.Side): Measurement {
@@ -255,8 +335,8 @@ class SideViewPushUpMotion {
 }
 
 /** Apple uses the identical source owner and counter through this small JSON ABI. */
-class SideViewPushUpMotionBridge {
-    private val motion = SideViewPushUpMotion()
+class SideViewPushUpMotionBridge(allowFrontView: Boolean = false) {
+    private val motion = SideViewPushUpMotion(allowFrontView)
     @Throws(IllegalArgumentException::class, IllegalStateException::class)
     fun observeJson(poseJson: String, camera: String): String = WorkoutRecordCodec.json.encodeToString(
         motion.observe(WorkoutRecordCodec.json.decodeFromString<PoseResult>(poseJson), SideViewPushUpMotion.Camera.valueOf(camera)))

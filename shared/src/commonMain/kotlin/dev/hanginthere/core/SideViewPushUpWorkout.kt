@@ -4,15 +4,18 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 
-/** Durable preview records from the side-view counter's actual endpoints. No
- * bilateral, hold-time, muscle-load or form evidence is inferred from one arm. */
-class SideViewPushUpWorkout(private val sessionId: String, private val trackedAtEpochMilliseconds: Long? = null) {
+/** Durable preview records from observed front/side endpoints. Angle metrics
+ * retain one actual arm; front cycle validation separately requires both arms.
+ * No physiological load or form verification is inferred. */
+class SideViewPushUpWorkout(private val sessionId: String, private val trackedAtEpochMilliseconds: Long? = null,
+    allowFrontView: Boolean = false) {
     companion object {
         const val countMethod = "sideViewPushUp"
         const val boundaryPolicyVersion = 9
     }
     @Serializable data class Write(val record: WorkoutSetRecord, val finalized: Boolean)
-    private val motion = SideViewPushUpMotion()
+    private val motion = SideViewPushUpMotion(allowFrontView)
+    private var frontView = false
     private val writes = ArrayDeque<Write>()
     private var sourceOrigin: Double? = null
     private var setSerial = 0
@@ -24,7 +27,8 @@ class SideViewPushUpWorkout(private val sessionId: String, private val trackedAt
     private val closed = mutableListOf<RepRecord>()
     private var attempt: Attempt? = null
 
-    private class Attempt(val startedAt: Double, val ordinal: Int, val side: ArmMeasurement.Side) {
+    private class Attempt(val startedAt: Double, val ordinal: Int, val side: ArmMeasurement.Side,
+        val front: Boolean) {
         private val angles = AngleAccumulator()
         private var previous: MotionSample? = null
         private var observed = 0.0
@@ -56,8 +60,9 @@ class SideViewPushUpWorkout(private val sessionId: String, private val trackedAt
                 if (side == ArmMeasurement.Side.left) metric else absent,
                 if (side == ArmMeasurement.Side.right) metric else absent,
                 null, null, observed, if (duration > 0) (observed/duration).coerceIn(0.0, 1.0) else null,
-                samples.toList(), truncated, SideViewPushUpMotion.policyVersion, WorkoutAnalysis.metricVersion,
-                acceptanceReason = if (rep != null) "sideViewCycle" else null, countMethod = countMethod)
+                samples.toList(), truncated, if (front) SideViewPushUpMotion.frontPolicyVersion else SideViewPushUpMotion.policyVersion, WorkoutAnalysis.metricVersion,
+                acceptanceReason = if (rep != null) if (front) "frontViewCycle" else "sideViewCycle" else null,
+                countMethod = if (front) SideViewPushUpMotion.frontCountMethod else countMethod)
         }
     }
     fun observe(pose: PoseResult, camera: SideViewPushUpMotion.Camera): SideViewPushUpMotion.Snapshot {
@@ -71,8 +76,9 @@ class SideViewPushUpWorkout(private val sessionId: String, private val trackedAt
             if (setId == null) {
                 setId = "$sessionId-pushup-${setSerial++}"; firstPose = pose
                 trackingSide = checkNotNull(state.side); setStart = start
+                frontView = state.view == SideViewPushUpMotion.View.front
             }
-            attempt = Attempt(start, closed.size+1, checkNotNull(trackingSide))
+            attempt = Attempt(start, closed.size+1, checkNotNull(trackingSide), frontView)
         }
         attempt?.let { pending ->
             val selected = motion.selectedPose?.takeIf { it.timestamp == pose.timestamp && state.observationUsable }
@@ -121,12 +127,14 @@ class SideViewPushUpWorkout(private val sessionId: String, private val trackedAt
             closed + listOfNotNull(attempt?.record(checkNotNull(setId), end, "inProgress")),
             pose.backend, pose.requestRevision, schemaVersion = 2, trackingSide = trackingSide,
             imageSize = pose.imageSize, trackedAtEpochMilliseconds = epoch,
-            countMethod = countMethod, countPolicyVersion = SideViewPushUpMotion.policyVersion,
+            countMethod = if (frontView) SideViewPushUpMotion.frontCountMethod else countMethod,
+            countPolicyVersion = if (frontView) SideViewPushUpMotion.frontPolicyVersion else SideViewPushUpMotion.policyVersion,
             boundaryPolicyVersion = boundaryPolicyVersion)
     }
     private fun resetSet() {
         setId = null; firstPose = null; trackingSide = null; setStart = null
         lastCheckpoint = null; closed.clear(); attempt = null
+        frontView = false
     }
     fun nextWrite(): Write? = writes.firstOrNull()
     fun acknowledgeWrite() { writes.removeFirst() }
@@ -134,7 +142,7 @@ class SideViewPushUpWorkout(private val sessionId: String, private val trackedAt
 
 /** Native owners forward writes to their existing serial durable outbox. */
 class SideViewPushUpWorkoutBridge(sessionId: String, trackedAtEpochMilliseconds: Long = 0) {
-    private val workout = SideViewPushUpWorkout(sessionId, trackedAtEpochMilliseconds.takeIf { it > 0 })
+    private val workout = SideViewPushUpWorkout(sessionId, trackedAtEpochMilliseconds.takeIf { it > 0 }, allowFrontView = true)
     @Throws(IllegalArgumentException::class, IllegalStateException::class)
     fun observeJson(poseJson: String, camera: String): String = WorkoutRecordCodec.json.encodeToString(
         workout.observe(WorkoutRecordCodec.json.decodeFromString<PoseResult>(poseJson), SideViewPushUpMotion.Camera.valueOf(camera)))

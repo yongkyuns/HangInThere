@@ -34,7 +34,7 @@ object WorkoutEvidence {
         } } == true
 
     fun assess(rep: RepRecord, setEndReason: String? = null): WorkoutAttemptAssessment {
-        val pushUp = rep.exercise == ExerciseCounter.Exercise.pushUp && rep.countMethod == SideViewPushUpWorkout.countMethod
+        val pushUp = rep.exercise == ExerciseCounter.Exercise.pushUp && rep.countMethod in listOf(SideViewPushUpWorkout.countMethod, SideViewPushUpMotion.frontCountMethod)
         val endedActiveAttempt = rep.closeReason == "inProgress" && setEndReason != null && setEndReason != "running"
         val status = when {
             rep.isCompleteForAnalytics -> WorkoutAttemptStatus.completed
@@ -55,7 +55,7 @@ object WorkoutEvidence {
         }
         val explanation = when (status) {
             WorkoutAttemptStatus.completed -> if (pushUp)
-                "A side-view lowering and return were recorded. Exercise form and load are unverified."
+                "A ${if (rep.countMethod == SideViewPushUpMotion.frontCountMethod) "front" else "side"}-view lowering and return were recorded. Exercise form and load are unverified."
                 else if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 "Both-arm image travel and return were recorded. Anatomical depth, form and load are unverified."
                 else "The movement and return were recorded. This cycle is included in completed-rep statistics."
@@ -69,7 +69,7 @@ object WorkoutEvidence {
         val left = coverage(rep.left.coverage)
         val right = coverage(rep.right.coverage)
         val notes = buildList {
-            if (pushUp) add("Side-view preview: measurements use the same visible arm throughout the attempt.")
+            if (pushUp) add("${if (rep.countMethod == SideViewPushUpMotion.frontCountMethod) "Front" else "Side"}-view preview: angle measurements use the same visible arm throughout the attempt.")
             else if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 add("Bilateral image-motion cycle. Anatomical depth, form and load are unverified.")
             if (duration == null) add("Observed-time coverage is unavailable.")

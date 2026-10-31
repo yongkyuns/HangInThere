@@ -79,9 +79,9 @@ struct PushUpPracticeView: View {
             VStack(alignment: .leading, spacing: 24) {
                 Image("PushUpIllustration").resizable().scaledToFit().frame(height: 135)
                     .frame(maxWidth: .infinity).accessibilityHidden(true)
-                Text("A little space.\nA clear side view.").font(.largeTitle.bold())
+                Text("A little space.\nA clear view.").font(.largeTitle.bold())
                 Label("Low, steady phone · landscape", systemImage: "rectangle.landscape.rotate")
-                Label("Side-on · arm, hip and knee or ankle visible", systemImage: "viewfinder")
+                Label("Front or side · keep your arms visible", systemImage: "viewfinder")
                 Label("Hold a straight plank until Ready", systemImage: "checkmark.circle")
             }.font(.headline).padding(24).frame(maxWidth: 560).frame(maxWidth: .infinity)
         }
@@ -181,7 +181,7 @@ struct PushUpPracticeView: View {
                     case "finish":
                         guard snapshot?.setStarted == true else { return "No set is running." }
                         camera.finishPushUpPractice(); return nil
-                    case "start", "next": return "Hold a clear side-on plank. Counting starts automatically."
+                    case "start", "next": return "Hold a clear plank, facing the camera or sideways. Counting starts automatically."
                     case "add", "undo": return "Camera counting is automatic. Review corrections after the set."
                     default: return "Set weight in exercise setup before camera counting."
                     }
@@ -218,7 +218,7 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var apparatusText: String {
         switch exercise {
-        case .pushUp: "Side view · steady phone · arm, hip and knee or ankle visible"
+        case .pushUp: "Front or side · steady phone · arms and hips visible"
         case .pullUp:
             "Face the camera or turn your back to it. Keep both hands visible; bar detection is not required."
         case .dip:
@@ -228,7 +228,7 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var bodyText: String {
         switch exercise {
-        case .pushUp: "Side view · steady phone · arm, hip and knee or ankle visible"
+        case .pushUp: "Front or side · steady phone · arms and hips visible"
         case .pullUp:
             "Keep both arms, torso, hips, and as much of the legs as practical in frame."
         case .dip:

@@ -18,7 +18,7 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source,
     constructor(source: ForegroundAssociation.Source): this(source, Profile.upright)
     /** Side-view capture uses one shoulder–hip segment as a spatial anchor.
      * It does not use exercise posture or borrow the opposite side on loss. */
-    enum class Profile { upright, sideView }
+    enum class Profile { upright, sideView, pushUp }
     @Serializable enum class Status { acquiring, associated, ambiguous, lost }
     @Serializable data class Decision(val status: Status, val reason: String,
         val candidateIndex: Int? = null, val seconds: Double? = null,
@@ -135,7 +135,25 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source,
         val points = person.landmarks.filter { it.confidence >= ArmMeasurement.confidenceThreshold }.map { it.position }
         if (points.isEmpty()) return null
         val region = Region(points.minOf { it.x }, points.minOf { it.y }, points.maxOf { it.x }, points.maxOf { it.y })
-        if (profile == Profile.sideView) {
+        // Head-on push-ups retain the paired-shoulder anchor despite foreshortened
+        // or hidden hips. A narrow side projection keeps the existing torso anchor.
+        // The chosen anchor kind remains bound for this association epoch.
+        val useSide = when (profile) {
+            Profile.upright -> false
+            Profile.sideView -> true
+            Profile.pushUp -> anchor?.let { it.side != null } ?: run {
+                val shoulders = listOf(PoseJoint.leftShoulder, PoseJoint.rightShoulder)
+                    .mapNotNull { person.landmark(it)?.position }
+                val span = if (shoulders.size == 2)
+                    hypot(shoulders[0].x-shoulders[1].x, shoulders[0].y-shoulders[1].y) else 0.0
+                val arms = ArmMeasurement.Side.entries.mapNotNull {
+                    ArmMeasurement.observedPerson(person, source.imageSize, it).estimate
+                        ?.let { arm -> arm.upperArmPixels+arm.forearmPixels }
+                }
+                shoulders.size != 2 || arms.isNotEmpty() && span < .4*arms.average()
+            }
+        }
+        if (useSide) {
             val floor = ArmMeasurement.minimumSegmentFraction*min(source.imageSize.width, source.imageSize.height)
             val sides = anchor?.side?.let { listOf(it) } ?: ArmMeasurement.Side.entries
             val body = sides.firstNotNullOfOrNull { side ->

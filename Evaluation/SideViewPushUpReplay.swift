@@ -20,7 +20,7 @@ import WorkoutCore
             guard SHA256.hash(data: bytes).map({ String(format: "%02x", $0) }).joined() == hash else { throw Failure.hash }
             let lines = String(decoding: bytes, as: UTF8.self).split(separator: "\n")
             for engine in ["visionPose", "mediaPipePose"] {
-                let motion = SideViewPushUpMotionBridge()
+                let motion = SideViewPushUpMotionBridge(allowFrontView: false)
                 let target = output.appendingPathComponent("\(id)-\(engine)-frames.jsonl")
                 guard !FileManager.default.fileExists(atPath: target.path) else { throw Failure.outputExists }
                 FileManager.default.createFile(atPath: target.path, contents: nil)

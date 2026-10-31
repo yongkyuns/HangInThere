@@ -463,19 +463,25 @@ struct LivePushUpPracticeTests {
             c.acceptEvaluationFrame(.init(image: image, pose: pose, processingMilliseconds: 1))
         }
         deliver([], tick: 0)
-        #expect(c.pushUpReadinessTitle == "No body detected · show a side view")
+        #expect(c.pushUpReadinessTitle == "Show your body · front or side view")
         let partial = PoseObservation(landmarks: [.init(joint: .leftElbow, position: .init(x: 200, y: 300), confidence: 0.9)])
         deliver([partial], tick: 40)
         #expect(c.pushUpDetectedPose?.people == [partial])
         #expect(c.latestPose?.people.isEmpty == true)
-        #expect(c.pushUpReadinessTitle == "Show your shoulder, hip and arm")
+        #expect(c.pushUpReadinessTitle == "Show your arms and upper body")
         #expect(!c.hasBodyCameraCalibration && c.pushUpSnapshot?.setStarted == false)
     }
 
     /// Authored body/phone/registration observations verify routing and gates,
     /// not native estimator accuracy or physical phone performance.
-    @Test(arguments: [true, false], [nil, PoseJoint.leftAnkle, PoseJoint.leftKnee])
-    func practiceUsesTheSharedCounterAndSavesOnlyCameraQualifiedPushUps(cameraAvailable: Bool, missingJoint: PoseJoint?) async throws {
+    enum PushUpFraming: CaseIterable {
+        case side, sideWithoutAnkle, sideWithoutKnee, front
+        var missingJoint: PoseJoint? {
+            switch self { case .sideWithoutAnkle: .leftAnkle; case .sideWithoutKnee: .leftKnee; default: nil }
+        }
+    }
+    @Test(arguments: [true, false], PushUpFraming.allCases)
+    func practiceUsesTheSharedCounterAndSavesOnlyCameraQualifiedPushUps(cameraAvailable: Bool, framing: PushUpFraming) async throws {
         let clock = BodyDipCameraClock()
         clock.available = cameraAvailable
         clock.gravity = .init(-1, 0, 0) // A level landscape phone, rather than portrait-only evidence.
@@ -490,14 +496,21 @@ struct LivePushUpPracticeTests {
         var ticks: Int64 = 0
         func deliver(_ fraction: Double) async {
             clock.seconds = Double(ticks)/1000
-            let points: [(PoseJoint, Point2D)] = [
+            let points: [(PoseJoint, Point2D)] = framing == .front ? [
+                (.leftShoulder, .init(x: 540+10*fraction, y: 160+160*fraction)),
+                (.rightShoulder, .init(x: 340-40*fraction, y: 160+160*fraction)),
+                (.leftElbow, .init(x: 610+80*fraction, y: 305-25*fraction)),
+                (.rightElbow, .init(x: 280-70*fraction, y: 305-25*fraction)),
+                (.leftWrist, .init(x: 680, y: 450)), (.rightWrist, .init(x: 220, y: 450)),
+                (.leftHip, .init(x: 520, y: 300)), (.rightHip, .init(x: 420, y: 300))
+            ] : [
                 (.leftShoulder, .init(x: 160, y: 180+120*fraction)),
                 (.leftElbow, .init(x: 160+100*fraction, y: 300+40*fraction)),
                 (.leftWrist, .init(x: 150, y: 420)), (.leftHip, .init(x: 420, y: 220+60*fraction)),
                 (.leftKnee, .init(x: 620, y: 240+30*fraction)), (.leftAnkle, .init(x: 820, y: 260))]
             let pose = PoseResult(timestamp: .init(value: ticks, timescale: 1000), imageSize: .init(width: 1000, height: 600),
-                people: [.init(landmarks: points.filter { $0.0 != missingJoint }.map { .init(joint: $0.0, position: $0.1, confidence: 0.95) })],
-                backend: "authored-side-view", requestRevision: 1)
+                people: [.init(landmarks: points.filter { $0.0 != framing.missingJoint }.map { .init(joint: $0.0, position: $0.1, confidence: 0.95) })],
+                backend: "authored-push-up-view", requestRevision: 1)
             c.acceptEvaluationFrame(.init(image: pixels, pose: pose, processingMilliseconds: 1))
             await c.settleEvaluationInput()
             ticks += 40
@@ -521,7 +534,8 @@ struct LivePushUpPracticeTests {
         if cameraAvailable {
             let record = try #require(c.latestCompletedWorkout)
             #expect(record.exercise == .pushUp && record.completedCount == 1)
-            #expect(record.countMethod == "sideViewPushUp" && record.countPolicyVersion == 2 && record.boundaryPolicyVersion == 9)
+            #expect(record.countMethod == (framing == .front ? "frontViewPushUp" : "sideViewPushUp"))
+            #expect(record.countPolicyVersion == (framing == .front ? 1 : 2) && record.boundaryPolicyVersion == 9)
             #expect(record.trackedAtEpochMilliseconds != nil && record.activity == nil)
             #expect(record.reps.first?.right.maximum == nil)
             #expect(WorkoutTempo(record: record).reps.count == 1)

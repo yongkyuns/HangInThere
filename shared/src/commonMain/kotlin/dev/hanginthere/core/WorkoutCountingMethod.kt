@@ -9,7 +9,11 @@ internal object WorkoutCountingMethod {
             OverheadPullUpMotion.countMethod -> version != null && version in 1..OverheadPullUpMotion.policyVersion
             else -> false
         }
-        else if (exercise == ExerciseCounter.Exercise.pushUp) method == SideViewPushUpWorkout.countMethod && version != null && version in 1..SideViewPushUpMotion.policyVersion
+        else if (exercise == ExerciseCounter.Exercise.pushUp) when (method) {
+            SideViewPushUpWorkout.countMethod -> version != null && version in 1..SideViewPushUpMotion.policyVersion
+            SideViewPushUpMotion.frontCountMethod -> version == SideViewPushUpMotion.frontPolicyVersion
+            else -> false
+        }
         else isSupportedDip(method, version)
     fun isSupportedDip(method: String?, version: Int?): Boolean = when(method) {
         BilateralDipWorkout.countMethod -> version == BilateralDipMotion.policyVersion
@@ -18,7 +22,7 @@ internal object WorkoutCountingMethod {
         BilateralTorsoDipMotion.countMethod -> version != null && version in 1..BilateralTorsoDipMotion.policyVersion
         else -> false
     }
-    fun isImageMotion(method: String?): Boolean = method in listOf(SideViewPushUpWorkout.countMethod, BilateralDipWorkout.countMethod, BodyDipMotion.countMethod, DipCycleMotion.countMethod, BilateralTorsoDipMotion.countMethod, PullUpCycleMotion.countMethod,OverheadPullUpMotion.countMethod)
+    fun isImageMotion(method: String?): Boolean = method in listOf(SideViewPushUpMotion.frontCountMethod, SideViewPushUpWorkout.countMethod, BilateralDipWorkout.countMethod, BodyDipMotion.countMethod, DipCycleMotion.countMethod, BilateralTorsoDipMotion.countMethod, PullUpCycleMotion.countMethod,OverheadPullUpMotion.countMethod)
     fun validCountConfirmation(rep: RepRecord,sourceEnd: Double?): Boolean {
         if(rep.countMethod!=OverheadPullUpMotion.countMethod)return rep.countConfirmedAt==null
         if(!rep.isCompleteForAnalytics)return rep.countConfirmedAt==null

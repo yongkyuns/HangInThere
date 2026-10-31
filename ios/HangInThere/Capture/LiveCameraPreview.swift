@@ -18,6 +18,7 @@ import class WorkoutCore.SideViewPushUpWorkoutBridge
 
 struct PushUpPracticeSnapshot: Decodable, Sendable {
     let phase: String?
+    let view: String?
     struct Rep: Decodable, Sendable { let returnedAt: Double }
     struct SetSummary: Decodable, Sendable { let reps: [Rep] }
     let title: String
@@ -433,7 +434,7 @@ final class LiveCameraPreviewController: NSObject {
         self.phoneMotionProvider = phoneMotionProvider
         self.isPushUpPractice = pushUpPractice
         self.pushUpBridge = nil
-        self.dipAthleteSelection = BodyAthleteSelection(profile: pushUpPractice ? .sideview : .upright)
+        self.dipAthleteSelection = BodyAthleteSelection(profile: pushUpPractice ? .pushup : .upright)
         super.init()
     }
 
@@ -467,15 +468,15 @@ final class LiveCameraPreviewController: NSObject {
     var pushUpReadinessTitle: String {
         if !isCameraReady { return state.title }
         if !readinessFrameFresh { return "Waiting for body detection" }
-        guard let pose = pushUpDetectedPose, !pose.people.isEmpty else { return "No body detected · show a side view" }
+        guard let pose = pushUpDetectedPose, !pose.people.isEmpty else { return "Show your body · front or side view" }
         if pose.imageSize.width <= pose.imageSize.height { return "Turn your phone sideways" }
         if !motionSampleAvailable { return "Phone motion sensor unavailable" }
         if !cameraPlacement.isUsable { return "Aim the camera level" }
-        if dipAthleteDecision?.status != "associated" { return "Show your shoulder, hip and arm" }
+        if dipAthleteDecision?.status != "associated" { return "Show your arms and upper body" }
         if !hasBodyCameraCalibration { return "Hold still · setting up camera" }
         if !phoneOrientation.state.allowsLiveSet { return "Keep the phone still" }
         if !sceneIsReady { return "Checking background · keep phone still" }
-        return pushUpSnapshot?.title ?? "Hold a side-on plank"
+        return pushUpSnapshot?.title ?? "Hold a plank · front or side view"
     }
 
     #if DEBUG
@@ -498,6 +499,7 @@ final class LiveCameraPreviewController: NSObject {
             let association: String?
             let associationReason: String?
             let countCue: String?
+            let countingView: String?
             let processingMilliseconds: Double
             let calibrated: Bool
             let phoneState: String
@@ -508,7 +510,8 @@ final class LiveCameraPreviewController: NSObject {
             rotation: pushUpVideoRotationAngle, camera: cameraPosition.rawValue,
             motionAvailable: motionSampleAvailable, tiltDegrees: cameraPlacement.tiltDegrees,
             association: dipAthleteDecision?.status, associationReason: dipAthleteDecision?.reason,
-            countCue: pushUpSnapshot?.title, processingMilliseconds: frame.processingMilliseconds,
+            countCue: pushUpSnapshot?.title, countingView: pushUpSnapshot?.view,
+            processingMilliseconds: frame.processingMilliseconds,
             calibrated: hasBodyCameraCalibration,
             phoneState: phoneOrientation.state.rawValue, sceneReady: sceneIsReady,
             sceneFailures: sceneRegistrationFailures)
