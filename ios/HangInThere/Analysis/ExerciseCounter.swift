@@ -6,8 +6,9 @@ import Foundation
 // grip-to-shoulder axis, independent of the rail silhouette direction.
 struct ExerciseCounter: Sendable {
     enum Exercise: String, CaseIterable, Codable, Sendable {
-        case pullUp, dip
-        var title: String { self == .pullUp ? "Pull-up" : "Parallel-bar dip" }
+        case pullUp, dip, pushUp
+        static let barExercises: [Self] = [.pullUp, .dip]
+        var title: String { switch self { case .pullUp: "Pull-up"; case .dip: "Parallel-bar dip"; case .pushUp: "Push-up" } }
     }
     enum Phase: String, Codable, Sendable {
         case seekingStart, ready, outbound, returning, finished
@@ -309,6 +310,7 @@ struct ExerciseCounter: Sendable {
 
     @discardableResult
     mutating func consume(_ pose: PoseResult, referenceEdge: BarSegment?) -> Event? {
+        guard exercise != .pushUp else { interrupt(reason: "unsupportedExercise"); return nil }
         guard phase != .finished else { return nil }
         let time = pose.timestamp
         guard time.seconds.isFinite else { return interrupt(reason: "invalidTimestamp") }

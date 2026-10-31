@@ -33,6 +33,8 @@ import kotlinx.serialization.encodeToString
     val defaultContexts: List<WorkoutDefaultContext> = emptyList(),
     val revision: Long = 0,
     val schemaVersion: Int = 1,
+    val workoutLogs: List<WorkoutLog> = emptyList(),
+    val workoutLogDeletions: List<WorkoutLogDeletion> = emptyList(),
 )
 @Serializable data class WorkoutHistoryCursor(val epochMilliseconds: Long?, val id: String, val revision: Long)
 @Serializable data class WorkoutHistoryPage(val sets: List<WorkoutReviewedSet>, val nextCursor: WorkoutHistoryCursor?, val revision: Long)
@@ -41,7 +43,7 @@ import kotlinx.serialization.encodeToString
     val plan: WorkoutPlan? = null, val id: String? = null, val media: WorkoutLocalMedia? = null,
     val mediaPolicy: WorkoutMediaPolicy? = null, val consent: Boolean? = null,
     val setIds: List<String> = emptyList(),
-    val atEpochMilliseconds: Long)
+    val atEpochMilliseconds: Long, val workoutLog: WorkoutLog? = null)
 
 /** Shared application state changes are explicit commands outside the frame path. */
 object WorkoutLibrary {
@@ -51,6 +53,13 @@ object WorkoutLibrary {
         activity = record.activity?.copy(phases = emptyList()), grip = null)
     fun validate(state: WorkoutLibraryState) {
         require(state.schemaVersion == 1 && state.revision >= 0)
+        require(state.workoutLogs.size <= maximumEntries && state.workoutLogs.map { it.id }.distinct().size == state.workoutLogs.size)
+        require(state.workoutLogDeletions.size <= maximumEntries && state.workoutLogDeletions.map { it.id }.distinct().size == state.workoutLogDeletions.size)
+        state.workoutLogDeletions.forEach { require(WorkoutCorrections.safeId(it.id) && it.deletedAtEpochMilliseconds > 0) }
+        state.workoutLogs.forEach { log ->
+            WorkoutLogValidation.validate(log)
+            require(state.workoutLogDeletions.none { it.id == log.id })
+        }
         require(state.entries.size <= maximumEntries && state.deletions.size <= maximumEntries)
         require(state.entries.map { it.measured.id }.distinct().size == state.entries.size)
         require(state.deletions.map { it.setId }.distinct().size == state.deletions.size)
@@ -227,6 +236,17 @@ object WorkoutLibrary {
         validate(state); require(command.atEpochMilliseconds > 0)
         val record = command.setId?.let { id -> state.entries.singleOrNull { it.measured.id == id }?.measured }
         val next = when (command.action) {
+            "saveWorkoutLog" -> {
+                val log = requireNotNull(command.workoutLog)
+                require(state.workoutLogDeletions.none { it.id == log.id }) { "Workout was deleted" }
+                require(state.workoutLogs.firstOrNull { it.id == log.id }?.updatedAtEpochMilliseconds?.let { it <= log.updatedAtEpochMilliseconds } != false)
+                state.copy(workoutLogs = state.workoutLogs.filter { it.id != log.id } + log)
+            }
+            "deleteWorkoutLog" -> {
+                val id = requireNotNull(command.id); require(WorkoutCorrections.safeId(id))
+                state.copy(workoutLogs = state.workoutLogs.filter { it.id != id }, workoutLogDeletions =
+                    state.workoutLogDeletions.filter { it.id != id } + WorkoutLogDeletion(id, command.atEpochMilliseconds))
+            }
             "review" -> state.copy(reviews = WorkoutCorrections.append(requireNotNull(record), state.reviews, requireNotNull(command.correction), command.atEpochMilliseconds))
             "undo" -> state.copy(reviews = WorkoutCorrections.undo(requireNotNull(record), state.reviews, command.atEpochMilliseconds))
             "delete" -> deleteSources(state, listOf(requireNotNull(command.setId)), command.atEpochMilliseconds)

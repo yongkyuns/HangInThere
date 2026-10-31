@@ -74,8 +74,13 @@ object WorkoutExerciseProfiles {
         WorkoutExerciseProfile(it, it.title,
             if (it == ExerciseCounter.Exercise.pullUp) WorkoutMotionPhase.hang else WorkoutMotionPhase.support,
             if (it == ExerciseCounter.Exercise.pullUp) "Hang" else "Top support",
-            WorkoutGoalMetric.entries, ExerciseCounter.policyVersion, WorkoutPhaseAnalysis.metricVersion,
-            if (it == ExerciseCounter.Exercise.pullUp) listOf("chin clearance", "anatomical form") else listOf("dip depth", "lockout", "anatomical form"))
+            if (it == ExerciseCounter.Exercise.pushUp) listOf(WorkoutGoalMetric.completedReps) else WorkoutGoalMetric.entries,
+            if (it == ExerciseCounter.Exercise.pushUp) SideViewPushUpMotion.policyVersion else ExerciseCounter.policyVersion, WorkoutPhaseAnalysis.metricVersion,
+            when (it) {
+                ExerciseCounter.Exercise.pullUp -> listOf("chin clearance", "anatomical form")
+                ExerciseCounter.Exercise.dip -> listOf("dip depth", "lockout", "anatomical form")
+                ExerciseCounter.Exercise.pushUp -> listOf("anatomical depth", "form", "load", "fatigue")
+            })
     }
     fun profile(exercise: ExerciseCounter.Exercise) = all.single { it.id == exercise }
 }

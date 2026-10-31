@@ -8,10 +8,17 @@ import kotlin.math.*
  * spatial-association contract. Skeletal point bounds are not native full-person
  * rectangles: acquisition requires measurable torso geometry instead of applying
  * the latter's absolute 8% image-area rule to a different measurement. Identity
- * uses the current shoulder pair; moving arms/ankles cannot resize its anchor.
+ * uses the current shoulder pair in the default upright profile. Side view
+ * uses its same-side torso and bounded measured-arm fallback. Neither profile
+ * lets moving arms/ankles grow the fixed reference scale.
  * No exercise, arm angle, grip, reference event or count enters selection.
  */
-class BodyAthleteAssociation(private val source: ForegroundAssociation.Source) {
+class BodyAthleteAssociation(private val source: ForegroundAssociation.Source,
+    private val profile: Profile) {
+    constructor(source: ForegroundAssociation.Source): this(source, Profile.upright)
+    /** Side-view capture uses one shoulder–hip segment as a spatial anchor.
+     * It does not use exercise posture or borrow the opposite side on loss. */
+    enum class Profile { upright, sideView }
     @Serializable enum class Status { acquiring, associated, ambiguous, lost }
     @Serializable data class Decision(val status: Status, val reason: String,
         val candidateIndex: Int? = null, val seconds: Double? = null,
@@ -24,10 +31,12 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source) {
         val y get() = (top+bottom)/2
         fun contains(p: Point2D) = p.x in left..right && p.y in top..bottom
     }
-    private data class BodyAnchor(val x: Double,val y: Double,val span: Double,val torso: Double?)
+    private data class BodyAnchor(val x: Double,val y: Double,val span: Double,val torso: Double?,
+        val side: ArmMeasurement.Side? = null, val armLength: Double? = null, val partial: Boolean = false)
     private data class Candidate(val region: Region, val body: BodyAnchor?, val points: List<Point2D>)
     private var highWater: PresentationTime? = null
     private var matchedAt: PresentationTime? = null
+    private var matchedTorsoAt: PresentationTime? = null
     private var anchor: BodyAnchor? = null
     private var origin: BodyAnchor? = null
     private var first: BodyAnchor? = null
@@ -94,7 +103,12 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source) {
         val body=candidates[selected].body!!
         if (acquired) {
             anchor = body; matchedAt = time
-            return decision(Status.associated, "matched", selected)
+            if (!body.partial) matchedTorsoAt = time
+            // Acquisition may precede a visible elbow. Bind the optional arm
+            // reference once, from actual full geometry, without resizing the torso anchor.
+            if (origin?.side != null && origin?.armLength == null && !body.partial && body.armLength != null)
+                origin = origin!!.copy(armLength = body.armLength)
+            return decision(Status.associated, if (body.partial) "matchedVisibleArm" else "matched", selected)
         }
         val dt = previous?.let { time.elapsedSeconds(since = it) } ?: 0.0
         if (anchor == null || !compatible(anchor!!, body, first!!, dt) || !withinOrigin(first!!, body)) {
@@ -102,7 +116,7 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source) {
         }
         anchor = body; observations++
         if (observations >= 4 && compare(time, firstTime!!, acquisition)?.let { it >= 0 } == true) {
-            acquired = true; origin = first; matchedAt = time; clearAcquisition()
+            acquired = true; origin = first; matchedAt = time; matchedTorsoAt = time; clearAcquisition()
             return decision(Status.associated, "matched", selected)
         }
         return decision(Status.acquiring, "acquiring")
@@ -121,6 +135,30 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source) {
         val points = person.landmarks.filter { it.confidence >= ArmMeasurement.confidenceThreshold }.map { it.position }
         if (points.isEmpty()) return null
         val region = Region(points.minOf { it.x }, points.minOf { it.y }, points.maxOf { it.x }, points.maxOf { it.y })
+        if (profile == Profile.sideView) {
+            val floor = ArmMeasurement.minimumSegmentFraction*min(source.imageSize.width, source.imageSize.height)
+            val sides = anchor?.side?.let { listOf(it) } ?: ArmMeasurement.Side.entries
+            val body = sides.firstNotNullOfOrNull { side ->
+                val shoulder = person.landmark(side.joints.first())?.position ?: return@firstNotNullOfOrNull null
+                val hip = person.landmark(if (side == ArmMeasurement.Side.left) PoseJoint.leftHip else PoseJoint.rightHip)
+                    ?.position
+                val arm = ArmMeasurement.observedPerson(person, source.imageSize, side).estimate
+                    ?.let { it.upperArmPixels+it.forearmPixels }
+                val length = hip?.let { hypot(shoulder.x-it.x, shoulder.y-it.y) }
+                when {
+                    length != null && length >= 2*floor -> BodyAnchor(shoulder.x, shoulder.y, length, null, side, arm)
+                    // Association only: retain an already acquired spatial match
+                    // through <=1 s of hip loss using its SAME observed arm.
+                    // No hip/torso point is filled in, and partial geometry cannot acquire.
+                    hip == null && acquired && arm != null && matchedTorsoAt?.let { since ->
+                        highWater?.let { compare(it, since, SourceTimeLimit(1,1))?.let { gap -> gap <= 0 } }
+                    } == true ->
+                        BodyAnchor(shoulder.x, shoulder.y, arm, null, side, arm, partial = true)
+                    else -> null
+                }
+            }
+            return Candidate(region, body, points)
+        }
         val shoulders = listOf(PoseJoint.leftShoulder, PoseJoint.rightShoulder)
             .mapNotNull { person.landmark(it)?.position }
         val floor = ArmMeasurement.minimumSegmentFraction*min(source.imageSize.width, source.imageSize.height)
@@ -145,10 +183,12 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source) {
         // is association plausibility, never exercise/rep evidence. Reference
         // scale stays fixed for the epoch; repeated jitter cannot grow it.
         val movement = reference.span*(.5+4*elapsed.coerceIn(0.0,gap.seconds))
-        return sameScale(reference,b) && hypot(a.x-b.x,a.y-b.y)<=movement
+        return a.side == b.side && sameScale(reference,b) && hypot(a.x-b.x,a.y-b.y)<=movement
     }
     private fun sameScale(reference: BodyAnchor,current: BodyAnchor): Boolean =
-        ratio(reference.span,current.span)<=2 ||
+        if (current.partial) reference.side == current.side && reference.armLength != null &&
+            current.armLength != null && ratio(reference.armLength, current.armLength) <= 2
+        else ratio(reference.span,current.span)<=2 ||
             // Shoulder projection changes with yaw during approach/release.
             // Optional actual upright paired-hip geometry can corroborate the
             // SAME scale limit; absent/weak/collapsed hips never supply it.

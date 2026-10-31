@@ -56,7 +56,7 @@ private sealed interface LibraryLoadStatus {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun WorkoutLibraryDialog(recordStore: WorkoutRecordStore? = null,
     dashboardLoader: LibraryDashboardLoader = ::loadLibraryDashboard,
-    loadObserver: ((LibraryLoadEvent) -> Unit)? = null, onClose: () -> Unit) {
+    loadObserver: ((LibraryLoadEvent) -> Unit)? = null, onCamera: ((WorkoutLogCameraRequest) -> Unit)? = null, onClose: () -> Unit) {
     val context = LocalContext.current
     val store = recordStore ?: remember(context) { WorkoutRecordStore.live(context.applicationContext) }
     val observer by rememberUpdatedState(loadObserver)
@@ -78,6 +78,7 @@ private sealed interface LibraryLoadStatus {
     var evidenceRecord by remember { mutableStateOf<WorkoutSetRecord?>(null) }
     var editCorrection by remember { mutableStateOf(WorkoutReviewCorrection()) }
     var deleting by remember { mutableStateOf<WorkoutReviewedSet?>(null) }
+    var editingLog by remember { mutableStateOf<WorkoutLog?>(null) }
     var playing by remember { mutableStateOf<java.io.File?>(null) }
     var attachingSet by remember { mutableStateOf<String?>(null) }
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
@@ -127,6 +128,12 @@ private sealed interface LibraryLoadStatus {
     suspend fun journeyPage(day:Long?,cursor:WorkoutJourneyCursor?)=withContext(Dispatchers.IO) {
         WorkoutJourney.page(store.libraryForReview(),System.currentTimeMillis(),TimeZone.getDefault().getOffset(System.currentTimeMillis())/60000,day,cursor)
     }
+    suspend fun journeyRange(range: WorkoutCalendarDayRange?, cursor: WorkoutJourneyCursor?) = withContext(Dispatchers.IO) {
+        WorkoutJourney.page(store.libraryForReview(), System.currentTimeMillis(), 0, day = range?.day, cursor = cursor, range = range)
+    }
+    suspend fun calendarDays(ranges: List<WorkoutCalendarDayRange>) = withContext(Dispatchers.IO) {
+        WorkoutJourney.calendarDays(store.libraryForReview(), ranges, System.currentTimeMillis())
+    }
     val backupExport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) scope.launch {
             try { val text = requireNotNull(exportText); withContext(Dispatchers.IO) { requireNotNull(context.contentResolver.openOutputStream(uri)).use { it.write(text.toByteArray()) } }; exportText = null }
@@ -156,14 +163,20 @@ private sealed interface LibraryLoadStatus {
         try { load() } finally { emit("effect.finish") }
     }
     DisposableEffect(store) { onDispose { emit("disposed") } }
+    editingLog?.let { log -> WorkoutLogDialog(recordStore = store, initial = log, onCamera = onCamera,
+        onClose = { editingLog = null; scope.launch { load() } }) }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize()) {
             Column {
-                TopAppBar(title = { Text(when(tab){1 -> "Recordings";2 -> "Plans";3 -> "Storage";4 -> "Trends";else -> "Your progress"}) },
+                TopAppBar(title = { Text(when(tab){1 -> "Recordings";2 -> "Plans";3 -> "Storage";4 -> "Trends";else -> "Your workouts"}) },
                     navigationIcon = { if(tab!=0)TextButton(onClick={tab=0}) { Text("Back") } }, actions = {
                         Box {
                             TextButton(onClick={options=true}) { Text("More") }
                             DropdownMenu(expanded=options,onDismissRequest={options=false}) {
+                                DropdownMenuItem(text = { Text("Log workout") }, onClick = {
+                                    val now = System.currentTimeMillis()
+                                    editingLog = WorkoutLog(UUID.randomUUID().toString(), now, updatedAtEpochMilliseconds = now); options = false
+                                })
                                 listOf("Goals and trends" to 4,"Manage recordings" to 1,"Training plans" to 2,"Storage and export" to 3).forEach { (title,index) ->
                                     DropdownMenuItem(text={Text(title)},onClick={tab=index;options=false})
                                 }
@@ -191,7 +204,9 @@ private sealed interface LibraryLoadStatus {
                 }
                 if(tab==0 && dashboard!=null) {
                     dashboard?.insights?.overview?.let { overview ->
-                        WorkoutJourneyPanel(overview,loadPage=::journeyPage,modifier=Modifier.weight(1f),onOpenSet=::openJourneySet)
+                        WorkoutJourneyPanel(overview, loadPage = ::journeyPage, modifier = Modifier.weight(1f), onOpenSet = ::openJourneySet,
+                            revision = dashboard!!.state.revision, loadCalendar = ::calendarDays, loadRange = ::journeyRange,
+                            onEditWorkout = { editingLog = it.workoutLog })
                     }
                 } else Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     val current = dashboard
@@ -448,7 +463,7 @@ private fun comparisonTitle(value: String): String = runCatching {
         TextButton(onClick = { apply(WorkoutLibraryCommand("deletePlan", id = report.planId, atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Delete plan") }
     }
     Text("Create a single-exercise plan. Declare assistance, load, equipment and camera view to match recordings.", style = MaterialTheme.typography.bodySmall)
-    LibraryChoice("Exercise", exercise.name, ExerciseCounter.Exercise.entries.map { it.name }) { exercise = ExerciseCounter.Exercise.valueOf(it) }
+    LibraryChoice("Exercise", exercise.name, ExerciseCounter.barExercises.map { it.name }) { exercise = ExerciseCounter.Exercise.valueOf(it) }
     LibraryChoice("Metric", metric.name, WorkoutGoalMetric.entries.map { it.name }) { metric = WorkoutGoalMetric.valueOf(it) }
     OutlinedTextField(target, { target = it }, label = { Text("Target per set") })
     OutlinedTextField(count, { count = it }, label = { Text("Number of sets") })

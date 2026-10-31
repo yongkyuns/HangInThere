@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -59,10 +61,41 @@ private fun journeyQualityColor(level: String): Color = when(level) {
     report: WorkoutJourneyReport,
     loadPage: suspend (Long?, WorkoutJourneyCursor?) -> WorkoutJourneyPage,
     modifier: Modifier = Modifier,
-    onOpenSet: (WorkoutSetDigest) -> Unit
+    onOpenSet: (WorkoutSetDigest) -> Unit,
+    revision: Long = 0,
+    initialAnchor: Long = System.currentTimeMillis(),
+    loadCalendar: (suspend (List<WorkoutCalendarDayRange>) -> List<WorkoutPracticeDay>)? = null,
+    loadRange: (suspend (WorkoutCalendarDayRange?, WorkoutJourneyCursor?) -> WorkoutJourneyPage)? = null,
+    onEditWorkout: (WorkoutSessionDigest) -> Unit = {},
 ) {
     var selectedWorkoutId by remember { mutableStateOf<String?>(null) }
-    var selectedDay by remember { mutableStateOf<Long?>(null) }
+    var selectedRange by remember { mutableStateOf<WorkoutCalendarDayRange?>(null) }
+    val selectedDay = selectedRange?.day
+    var anchor by remember { mutableLongStateOf(initialAnchor) }
+    var mode by remember { mutableStateOf(WorkoutCalendarMode.month) }
+    var showCalendar by remember { mutableStateOf(true) }
+    var zone by remember { mutableStateOf(java.time.ZoneId.systemDefault().id) }
+    val context = LocalContext.current
+    DisposableEffect(context) {
+        val receiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: android.content.Context, intent: android.content.Intent) {
+                zone = java.time.ZoneId.systemDefault().id; anchor = System.currentTimeMillis(); selectedRange = null
+            }
+        }
+        val filter = android.content.IntentFilter(android.content.Intent.ACTION_TIMEZONE_CHANGED).apply { addAction(android.content.Intent.ACTION_DATE_CHANGED) }
+        ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        onDispose { context.unregisterReceiver(receiver) }
+    }
+    val days = WorkoutCalendarPolicy.days(anchor, zone, mode, java.util.Calendar.getInstance().firstDayOfWeek)
+    var activity by remember { mutableStateOf<List<WorkoutPracticeDay>?>(null) }
+    var calendarFailure by remember { mutableStateOf(false) }
+    LaunchedEffect(days, report, revision) {
+        if (loadCalendar != null) {
+            activity = null; calendarFailure = false
+            try { activity = loadCalendar(days) }
+            catch (error: Throwable) { if (error is kotlinx.coroutines.CancellationException) throw error; calendarFailure = true }
+        }
+    }
     var loadedWorkouts by remember { mutableStateOf<List<WorkoutSessionDigest>?>(null) }
     var nextCursor by remember { mutableStateOf<WorkoutJourneyCursor?>(null) }
     var loading by remember { mutableStateOf(false) }
@@ -79,7 +112,7 @@ private fun journeyQualityColor(level: String): Color = when(level) {
         loading = true
         try {
             val cursor = if (!more) null else if (loadedWorkouts == null && selectedDay == null) report.nextCursor else nextCursor
-            val page = loadPage(selectedDay, cursor)
+            val page = if (loadRange != null) loadRange(selectedRange, cursor) else loadPage(selectedDay, cursor)
             if (request != requestVersion) return
             loadedWorkouts = if (more) (loadedWorkouts ?: report.workouts) + page.workouts else page.workouts
             nextCursor = page.nextCursor
@@ -91,7 +124,7 @@ private fun journeyQualityColor(level: String): Color = when(level) {
             if (request == requestVersion) loading = false
         }
     }
-    LaunchedEffect(selectedDay, report) {
+    LaunchedEffect(selectedRange, report, revision) {
         if (selectedDay == null) {
             requestVersion++
             loading = false
@@ -114,11 +147,15 @@ private fun journeyQualityColor(level: String): Color = when(level) {
                     Text(workout.epochMilliseconds?.let { DateFormat.getDateInstance().format(Date(it)) } ?: "Undated workout",
                         style = MaterialTheme.typography.headlineSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        JourneyMetric("${workout.completedReps}", "Completed reps", Modifier.weight(1f))
+                        JourneyMetric("${workout.totalReps}", "Reps", Modifier.weight(1f))
                         JourneyMetric("${workout.setCount}", "Sets", Modifier.weight(1f))
                     }
                     JourneyQualityBadge(workout.quality)
-                    Text("Sets", style = MaterialTheme.typography.titleLarge)
+                    workout.workoutLog?.let { log ->
+                        WorkoutLogTable(log) { onEditWorkout(workout) }
+                        TextButton(onClick = { onEditWorkout(workout) }) { Text("Continue / edit workout") }
+                    }
+                    if (workout.sets.isNotEmpty()) Text("Camera sets", style = MaterialTheme.typography.titleLarge)
                 }
             }
             itemsIndexed(workout.sets, key = { _, set -> set.id }) { index, set ->
@@ -137,71 +174,44 @@ private fun journeyQualityColor(level: String): Color = when(level) {
         return
     }
     val ids = report.days.firstOrNull { it.day == selectedDay }?.workoutIds
-    val visible = loadedWorkouts ?: report.workouts.filter { ids == null || it.id in ids }
-    LazyColumn(modifier.testTag("workout-history-list"), state = historyScroll,
-        contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Last 28 days", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    JourneyMetric("${report.completedReps}", "Completed reps", Modifier.weight(1f))
-                    JourneyMetric("${report.workoutCount}", "Workouts", Modifier.weight(1f))
-                    JourneyMetric("${report.practiceDays}", "Practice days", Modifier.weight(1f))
-                }
-                JourneyCoachingCard(report.coaching)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Your practice", style = MaterialTheme.typography.titleMedium)
-                    if (selectedDay != null) TextButton(onClick = { selectedDay = null }) { Text("Show all") }
-                }
-                JourneyCalendar(report.days, selectedDay) { selectedDay = if (selectedDay == it) null else it }
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        JourneyLegend("Consistent", "steady"); JourneyLegend("Varied", "pace"); JourneyLegend("Recorded", "recorded")
+    val visible = loadedWorkouts ?: if (selectedDay == null) report.workouts else report.workouts.filter { ids != null && it.id in ids }
+    Column(modifier) {
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+            SegmentedButton(selected = showCalendar, onClick = { showCalendar = true }, shape = SegmentedButtonDefaults.itemShape(0, 2),
+                modifier = Modifier.testTag("workout-layout-calendar")) { Text("Calendar") }
+            SegmentedButton(selected = !showCalendar, onClick = { showCalendar = false; selectedRange = null }, shape = SegmentedButtonDefaults.itemShape(1, 2),
+                modifier = Modifier.testTag("workout-layout-list")) { Text("List") }
+        }
+        LazyColumn(Modifier.weight(1f).testTag("workout-history-list"), state = historyScroll,
+            contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (showCalendar) item {
+                WorkoutCalendarPanel(anchor, mode, zone, selectedRange, activity ?: report.days, loadCalendar != null && activity == null && !calendarFailure,
+                    onAnchor = { anchor = it }, onMode = { mode = it }, onSelect = { selectedRange = it }, onShowAll = { selectedRange = null })
+                if (calendarFailure) Text("Calendar couldn't load. Close and reopen to retry.", color = MaterialTheme.colorScheme.error)
+            }
+            if (showCalendar && selectedDay == null) item {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text("Last 28 days", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        JourneyMetric("${report.completedReps + report.loggedReps}", "Reps", Modifier.weight(1f))
+                        JourneyMetric("${report.workoutCount}", "Workouts", Modifier.weight(1f))
+                        JourneyMetric("${report.practiceDays}", "Practice days", Modifier.weight(1f))
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        JourneyLegend("Practice", "practice"); JourneyLegend("Limited view", "limited")
-                    }
+                    JourneyCoachingCard(report.coaching)
                 }
-                Text(selectedDay?.let { dayLabel(it, "MMMM d") } ?: "Recent workouts", style = MaterialTheme.typography.titleLarge)
-                if (visible.isEmpty()) Text(if (selectedDay == null) "Your first workout starts here" else "No recent workout on this day",
+            }
+            item {
+                Text(selectedDay?.let { dayLabel(it, "EEEE, MMMM d, yyyy") } ?: "Recent workouts", style = MaterialTheme.typography.titleLarge)
+                if (visible.isEmpty() && !loading) Text(if (selectedDay == null) "Your first workout starts here" else "No workouts on this day",
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        }
-        items(visible, key = { it.id }) { session ->
-            JourneyWorkoutCard(session) { selectedWorkoutId = session.id }
-        }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                failure?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                if (loading) CircularProgressIndicator()
-                val cursor = if (loadedWorkouts == null && selectedDay == null) report.nextCursor else nextCursor
-                if (cursor != null) TextButton(onClick = { scope.launch { load(true) } }, enabled = !loading) { Text("Earlier workouts") }
-            }
-        }
-    }
-}
-
-@Composable private fun JourneyLegend(title: String, level: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        Box(Modifier.size(5.dp).background(journeyQualityColor(level), androidx.compose.foundation.shape.CircleShape))
-        Text(title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable private fun JourneyCalendar(days: List<WorkoutPracticeDay>, selectedDay: Long?, onSelect: (Long) -> Unit) {
-    days.chunked(7).forEach { week ->
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            week.forEach { day ->
-                val color = day.quality?.color() ?: MaterialTheme.colorScheme.onSurfaceVariant
-                Surface(onClick = { onSelect(day.day) }, modifier = Modifier.weight(1f).height(48.dp).semantics {
-                    contentDescription = "${dayLabel(day.day, "EEEE, MMMM d")}, ${day.quality?.title ?: "Rest day"}, ${day.completedReps} completed reps"
-                }, shape = RoundedCornerShape(9.dp), color = color.copy(alpha = if (day.quality == null) .04f else .12f),
-                    border = if (selectedDay == day.day) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface) else null) {
-                    Column(Modifier.padding(vertical = 5.dp), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
-                        Text(dayLabel(day.day, "d"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
-                        Text(if (day.quality == null) "−" else if (day.quality?.level == "steady") "✓" else "•",
-                            style = MaterialTheme.typography.labelSmall, color = color)
-                    }
+            items(visible, key = { it.id }) { session -> JourneyWorkoutCard(session) { selectedWorkoutId = session.id } }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    failure?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    if (loading) CircularProgressIndicator()
+                    val cursor = if (loadedWorkouts == null && selectedDay == null) report.nextCursor else nextCursor
+                    if (cursor != null) TextButton(onClick = { scope.launch { load(true) } }, enabled = !loading) { Text("Earlier workouts") }
                 }
             }
         }
@@ -213,10 +223,10 @@ private fun journeyQualityColor(level: String): Color = when(level) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(session.epochMilliseconds?.let { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(it)) }
                 ?: "Undated workout", style = MaterialTheme.typography.titleMedium)
-            Text(session.exercises.joinToString(" · ") { it.title }, style = MaterialTheme.typography.labelMedium,
+            Text(session.exerciseNames.joinToString(" · "), style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("${session.completedReps} reps · ${session.setCount} ${if (session.setCount == 1) "set" else "sets"}")
+                Text("${session.totalReps} reps · ${session.setCount} ${if (session.setCount == 1) "set" else "sets"}")
                 JourneyQualityBadge(session.quality)
             }
         }

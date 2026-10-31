@@ -17,7 +17,7 @@ row = json.loads(args.session.read_text())
 records = json.loads(args.session.with_name('native-authored-records.json').read_text())
 versions = {(rep['countPolicyVersion'], record['activity']['metricVersion'], rep['metricVersion'])
             for record in records for rep in record['reps']}
-assert versions == {(8, 3, 2)}, 'Native metric versions must match the evaluated engine'
+assert versions == {(9, 3, 2)}, 'Native metric versions must match the evaluated engine'
 counter_version, activity_version, rep_version = next(iter(versions))
 assert row['id'] == 'native_authored' and row['capture_sha256'] == 'a' * 64
 assert row['span_seconds'] == [0, 4] and row['status'] == 'processed'

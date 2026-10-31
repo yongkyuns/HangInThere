@@ -169,6 +169,7 @@ class AutomaticExerciseDetection {
         fun candidate(pose:PoseResult):ExerciseCounter.Exercise? {
             val candidate=apparatusCandidate(pose) ?: return null
             val starting=when(candidate) {
+                ExerciseCounter.Exercise.pushUp -> false
                 ExerciseCounter.Exercise.pullUp -> PullUpArmMeasurement(pose).isExtended
                 ExerciseCounter.Exercise.dip -> AutomaticDipRails.isStartingPosition(pose) || AutomaticSingleDipRail.contact(pose)?.isStartingPosition==true
             }

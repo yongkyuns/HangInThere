@@ -1,6 +1,159 @@
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
+import UIKit
+
+/// Side-view preview saves observed timing; independent video qualification is pending.
+@MainActor
+struct PushUpPracticeView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.colorScheme) private var scheme
+    @AppStorage("hasSeenPushUpCameraGuide") private var hasSeenGuide = false
+    @State private var camera = LiveCameraPreviewController(pushUpPractice: true)
+    @State private var showsReview = false
+    @State private var showDiagnosticPose = false
+    private var palette: HangPalette { HangPalette(scheme) }
+    private var snapshot: PushUpPracticeSnapshot? { camera.pushUpSnapshot }
+    private var count: Int { snapshot?.setStarted == true ? snapshot!.setCycles : camera.lastPushUpSetCount }
+    private var status: String {
+        if !camera.isCameraReady { return camera.state.title }
+        if !camera.readinessFrameFresh { return "Keep your body in view" }
+        return snapshot?.title ?? "Hold a side-on plank"
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group { if hasSeenGuide { liveCamera } else { guide } }
+                .navigationTitle("Push-ups · Preview").navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Back") { dismiss() } }
+                    if hasSeenGuide {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Setup", systemImage: "info.circle") {
+                                camera.suspendForSceneLoss(); hasSeenGuide = false
+                            }
+                        }
+                    }
+                }
+                .hangTheme()
+                .sheet(isPresented: $showsReview, onDismiss: {
+                    if hasSeenGuide && scenePhase == .active { Task { await camera.resumeAfterInterruption() } }
+                }) {
+                    NavigationStack {
+                        WorkoutReviewView(sets: camera.workoutHistory, currentReps: [],
+                            storageError: camera.workoutStorageError, goalsEnabled: false)
+                            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showsReview = false } } }
+                    }.hangTheme()
+                }
+                .task(id: hasSeenGuide) {
+                    guard hasSeenGuide else { return }
+                    updateOrientation()
+                    if camera.isSuspended { await camera.resumeAfterInterruption() }
+                    else { await camera.start() }
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase != .active { camera.suspendForSceneLoss() }
+                    else if hasSeenGuide && !showsReview && camera.isSuspended { Task { await camera.resumeAfterInterruption() } }
+                }
+                .onDisappear { camera.stop() }
+        }
+    }
+
+    private var guide: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Image("PushUpIllustration").resizable().scaledToFit().frame(height: 135)
+                    .frame(maxWidth: .infinity).accessibilityHidden(true)
+                Text("A little space.\nA clear side view.").font(.largeTitle.bold())
+                Label("Low, steady phone · landscape", systemImage: "rectangle.landscape.rotate")
+                Label("Side-on · head to feet in frame", systemImage: "viewfinder")
+                Label("Hold a straight plank until Ready", systemImage: "checkmark.circle")
+            }.font(.headline).padding(24).frame(maxWidth: 560).frame(maxWidth: .infinity)
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 10) {
+                Text("Sets and tempo saved · no video").font(.caption).foregroundStyle(palette.secondary)
+                Button { hasSeenGuide = true } label: {
+                    Label("Open camera", systemImage: "camera.fill").font(.headline)
+                        .frame(maxWidth: .infinity).padding(17).foregroundStyle(HangBrand.ink)
+                        .background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 18))
+                }.buttonStyle(.plain).accessibilityIdentifier("openPushUpCamera")
+            }.padding(20).background(palette.background)
+        }
+        .accessibilityIdentifier("pushUpSetupGuide")
+    }
+
+    private var liveCamera: some View {
+        GeometryReader { geometry in
+            let compact = geometry.size.height < 400
+            ZStack {
+                Color.black
+                LiveCameraPreviewSurface(session: camera.session, rotationAngle: camera.pushUpVideoRotationAngle)
+                if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.latestPose {
+                    PoseOverlay(result: pose, usesBothArms: true,
+                        progress: snapshot?.observationUsable == true ? snapshot?.progress : nil, completedReps: count)
+                }
+                VStack {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("\(count)").font(.system(size: compact ? 56 : 76, weight: .bold, design: .rounded)).monospacedDigit()
+                            Text(snapshot?.setStarted == true ? "This set" : "Last set").font(.headline)
+                            if compact { Text("Preview").font(.caption) }
+                        }.padding(compact ? 12 : 16).background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 20))
+                            .accessibilityElement(children: .ignore).accessibilityLabel("\(count) push-ups")
+                        Spacer()
+                        VStack(spacing: 12) {
+                            PoseOverlayVisibilityButton(isVisible: $showDiagnosticPose)
+                            Button { Task { await camera.selectCamera(camera.cameraPosition == .rear ? .front : .rear) } }
+                                label: { Image(systemName: "arrow.triangle.2.circlepath.camera").font(.title2).padding(12) }
+                                .disabled(!camera.canSwitchCamera).accessibilityLabel("Switch camera")
+                            GeometryReader { bar in
+                                Capsule().fill(.white.opacity(0.2))
+                                Capsule().fill(snapshot?.targetReached == true ? Color.green : HangBrand.lime)
+                                    .frame(height: bar.size.height * CGFloat(camera.readinessFrameFresh ? snapshot?.progress ?? 0 : 0))
+                                    .frame(maxHeight: .infinity, alignment: .bottom)
+                            }.frame(width: 18, height: min(140, geometry.size.height * (compact ? 0.24 : 0.35)))
+                                .accessibilityLabel("Push-up depth progress")
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    HStack(spacing: 12) {
+                        Image(systemName: snapshot?.observationUsable == true && camera.readinessFrameFresh ? "checkmark.circle.fill" : "viewfinder")
+                            .foregroundStyle(snapshot?.observationUsable == true && camera.readinessFrameFresh ? Color.green : Color.orange)
+                        Text(status).font(.title3.bold()).minimumScaleFactor(0.8).lineLimit(2)
+                        if camera.state == .denied { Button("Settings") { camera.openSettings() } }
+                    }.padding(compact ? 12 : 16).frame(maxWidth: 480, minHeight: compact ? 54 : 70)
+                        .background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 20))
+                        .accessibilityIdentifier("pushUpReadiness")
+                    HStack {
+                        if let error = camera.workoutStorageError {
+                            Label("Save retrying", systemImage: "exclamationmark.icloud").font(.caption)
+                                .foregroundStyle(.orange).accessibilityLabel(error)
+                        } else if !compact { Text("Sets & tempo · no video").font(.caption) }
+                        Spacer()
+                        if snapshot?.setStarted == true { Button("Finish set") { camera.finishPushUpPractice() }.font(.headline) }
+                        if camera.latestCompletedWorkout != nil {
+                            Button("Review", systemImage: "chart.bar.xaxis") {
+                                camera.finishPushUpPractice()
+                                camera.suspendForSceneLoss(); showsReview = true
+                            }.font(.headline).accessibilityIdentifier("reviewPushUpSet")
+                        }
+                        if camera.isSuspended && !showsReview {
+                            Button("Resume camera") { Task { await camera.resumeAfterInterruption() } }.font(.headline)
+                        }
+                    }
+                }.foregroundStyle(.white).padding(compact ? 12 : 16)
+            }.onChange(of: geometry.size, initial: true) { _, _ in updateOrientation() }
+        }
+    }
+
+    private func updateOrientation() {
+        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else { return }
+        camera.setPushUpOrientation(scene.interfaceOrientation)
+    }
+}
 
 struct LiveSetupGuide: Equatable, Sendable {
     let exercise: ExerciseCounter.Exercise
@@ -13,6 +166,7 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var apparatusText: String {
         switch exercise {
+        case .pushUp: "Side view · low, steady phone · head to feet visible"
         case .pullUp:
             "Face the camera or turn your back to it. Keep both hands visible; bar detection is not required."
         case .dip:
@@ -22,6 +176,7 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var bodyText: String {
         switch exercise {
+        case .pushUp: "Side view · low, steady phone · head to feet visible"
         case .pullUp:
             "Keep both arms, torso, hips, and as much of the legs as practical in frame."
         case .dip:
@@ -32,15 +187,25 @@ struct LiveSetupGuide: Equatable, Sendable {
 
 @MainActor
 struct LiveSetupView: View {
+    let coachingPlan: WorkoutCoachRecommendation?
+    var onCompletedSet: ((WorkoutSetRecord) -> Void)?
+    init(initialExercise: ExerciseCounter.Exercise? = nil, coachingPlan: WorkoutCoachRecommendation? = nil,
+         onCompletedSet: ((WorkoutSetRecord) -> Void)? = nil) {
+        self.coachingPlan = coachingPlan
+        self.onCompletedSet = onCompletedSet
+        _exerciseSelection = State(initialValue: (coachingPlan?.exercise ?? initialExercise).map { WorkoutExerciseSelection(exercise: $0) } ?? .automatic)
+    }
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     private enum DetailsTab: String, CaseIterable {
         case workout = "Workout"
         case diagnostics = "Diagnostics"
     }
+    @AppStorage("hasSeenFirstWorkoutCameraGuide") private var hasSeenCameraGuide = false
     @State private var showingAnalysis = false
     @State private var showDiagnosticPose = false
     @State private var reviewRecord: WorkoutSetRecord?
+    @State private var coachFeedbackRecord: WorkoutSetRecord?
     @State private var showingDetails = false
     @State private var detailsTab: DetailsTab = .workout
     @State private var camera = LiveCameraPreviewController()
@@ -60,6 +225,7 @@ struct LiveSetupView: View {
     @State private var preparingDebugSessionExport = false
 
     private var exercise: ExerciseCounter.Exercise { camera.liveSet.exercise }
+    private var activeCoachingPlan: WorkoutCoachRecommendation? { coachingPlan?.exercise == exercise ? coachingPlan : nil }
     private var isDetectingExercise: Bool {
         exerciseSelection == .automatic && camera.resolvedExercise == nil
     }
@@ -79,6 +245,18 @@ struct LiveSetupView: View {
     }
 
     var body: some View {
+        Group {
+            if hasSeenCameraGuide {
+                liveCamera
+            } else {
+                NavigationStack {
+                    WorkoutCameraGuideView(onContinue: { hasSeenCameraGuide = true }, onCancel: { dismiss() })
+                }
+            }
+        }
+    }
+
+    private var liveCamera: some View {
         NavigationStack {
             ZStack {
                 cameraSurface.ignoresSafeArea()
@@ -88,6 +266,8 @@ struct LiveSetupView: View {
                     latestCompletedSet: camera.latestCompletedWorkout,
                     afterSetReport: camera.latestAfterSetReport,
                     showsSetStarted: camera.showsSetStarted,
+                    preparedPullUp: preparedPullUp,
+                    preparedDip: preparedDip,
                     activity: camera.activeWorkoutRecord?.activity,
                     exerciseTitle: camera.workoutTitle,
                     gripLabel: camera.gripLabel,
@@ -95,7 +275,12 @@ struct LiveSetupView: View {
                     gripCaptureFeedback: camera.gripCaptureFeedback,
                     readiness: camera.readinessChecklist,
                     cameraPlacement: camera.cameraPlacement,
+                    coachTarget: activeCoachingPlan.map { "Plan · \($0.sets) sets" + ($0.reps.map { " × \($0) reps" } ?? " · comfortable practice") },
+                    onCoachFeedback: WorkoutCoachPreferences.shared.profile == nil ? nil : {
+                        coachFeedbackRecord = camera.latestCompletedWorkout
+                    },
                     onReadinessDetails: { openDetails(tab: .diagnostics) },
+                    poseOverlayVisibility: $showDiagnosticPose,
                     cameraReady: camera.isCameraReady,
                     status: overlayStatus,
                     statusSymbol: overlayStatusSymbol,
@@ -135,6 +320,13 @@ struct LiveSetupView: View {
                         .toolbar { Button("Done") { showingAnalysis = false } }
                 }
             }
+            .sheet(item: $coachFeedbackRecord, onDismiss: { Task { await camera.loadWorkoutHistory() } }) { record in
+                NavigationStack {
+                    ScrollView { WorkoutCoachFeedbackView(record: record, planned: coachingPlan?.exercise == record.exercise ? coachingPlan : nil).padding() }
+                        .navigationTitle("Your next set")
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { coachFeedbackRecord = nil } } }
+                }.presentationDetents([.medium, .large])
+            }
             .onChange(of: showingAnalysis) { _, visible in
                 if visible { reviewRecord = camera.workoutRecordForReview() }
                 else { Task { await camera.loadWorkoutHistory() } }
@@ -169,11 +361,25 @@ struct LiveSetupView: View {
             .onChange(of: camera.liveSet.phase) { _, phase in
                 if phase == .running { showingDetails = false }
             }
+            .onChange(of: camera.latestCompletedWorkout?.id) { _, _ in
+                if let record = camera.latestCompletedWorkout { onCompletedSet?(record) }
+            }
             .onDisappear {
                 camera.setWorkoutDetailsPresented(false)
                 camera.stop()
             }
         }
+    }
+
+    private var preparedPullUp: BodyPullUpWorkoutSnapshot? {
+        guard camera.usesBodyPullUpTracking, let state = camera.bodyPullUpPreparation,
+              state.motion.seconds == camera.latestPose?.timestamp.seconds else { return nil }
+        return state
+    }
+    private var preparedDip: BodyDipWorkoutSnapshot? {
+        guard camera.usesBodyDipTracking, let state = camera.bodyDipPreparation,
+              state.motion.seconds == camera.latestPose?.timestamp.seconds else { return nil }
+        return state
     }
 
     private func openDetails(tab: DetailsTab? = nil) {
@@ -240,8 +446,12 @@ struct LiveSetupView: View {
                 // Keep the feed and all geometry aspect-fitted to the same full
                 // viewport; filling/cropping the camera would misalign the bar.
                 LiveCameraPreviewSurface(session: camera.session)
-                if showDiagnosticPose, let pose = camera.latestPose {
-                    PoseOverlay(result: pose, selectedSide: side, usesBothArms: true)
+                if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.latestPose {
+                    PoseOverlay(result: pose, selectedSide: side, usesBothArms: true,
+                        progress: poseOverlayProgress(counter: camera.liveSet.counter,
+                            bodyDip: camera.liveSet.bodyDipSnapshot ?? camera.bodyDipPreparation,
+                            bodyPullUp: camera.liveSet.bodyPullUpSnapshot ?? camera.bodyPullUpPreparation),
+                        completedReps: camera.completedRepCount)
                     BarOverlay(imageSize: pose.imageSize, bar: camera.currentBar)
                 }
             } else {
@@ -417,19 +627,19 @@ struct LiveSetupView: View {
 
             Toggle("Record counted sets", isOn: Binding(get: { camera.recordsSetVideos }, set: { camera.setRecordsSetVideos($0) }))
                 .disabled(camera.liveSet.phase == .running)
-            Text("Silent clips save only the counted part of each set. Setup and rest aren't kept.")
+            Text("Silent video · counted sets only")
                 .font(.caption).foregroundStyle(.secondary)
 
             if exerciseSelection == .automatic {
                 Text(camera.resolvedExercise == nil
-                     ? "Hold a hang or top support with both hands visible. Tracking starts once your starting posture and camera are ready."
-                     : "\(camera.workoutTitle). The exercise stays fixed throughout the set.")
+                     ? "Hang or hold top support with both arms visible."
+                     : "\(camera.workoutTitle) · locked for this set")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             if exerciseSelection != .pullUp {
-                Text("Dips use both arms. Keep both shoulders, elbows and wrists visible.")
+                Text("Keep both shoulders, elbows and wrists in frame.")
                     .font(.caption).foregroundStyle(.secondary)
             }
 
@@ -501,7 +711,7 @@ struct LiveSetupView: View {
             }
 
             if camera.usesBodyMotionTracking {
-                Text("Calibration is automatic. Keep the phone fixed and show both arms; no bar or rail selection is required. Leg crossing is optional.")
+                Text("Keep the phone still and both arms visible.")
                     .font(.callout)
                 if camera.hasBodyCameraCalibration {
                     Button("Recalibrate camera") { camera.clearBar() }
@@ -577,7 +787,7 @@ struct LiveSetupView: View {
                 .accessibilityIdentifier("handsFreeLiveStart")
                 Text(camera.handsFreeStartEnabled
                      ? (isDetectingExercise
-                        ? "Hold a hang or top support with both hands visible. Tracking starts once your starting posture and camera are ready."
+                        ? "Hang or hold top support with both arms visible."
                         : exercise == .pullUp
                         ? "Hold a clear hang with steady hands. Tracking begins automatically."
                         : "Hold extended top support with steady hands, then lower to begin your set. Keep both arms visible. Crossed legs are optional.")
@@ -707,7 +917,7 @@ struct LiveSetupView: View {
                 }
             }
 
-            Text("Chin clearance, strict dip depth, and form quality are not verified.")
+            Text("Counts movement · form not assessed")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

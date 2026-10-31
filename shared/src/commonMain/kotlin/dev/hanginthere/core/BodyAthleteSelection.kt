@@ -6,7 +6,9 @@ import kotlinx.serialization.encodeToString
 /** Serial source owner. Every decision refers to an original person index in
  * the same immutable raw pose. Native setup and counting share this instance;
  * a caller cannot author a continuity flag for the movement owner. */
-class BodyAthleteSelection {
+class BodyAthleteSelection(val profile: BodyAthleteAssociation.Profile) {
+    // Keep the existing no-argument Apple ABI as well as Kotlin call sites.
+    constructor(): this(BodyAthleteAssociation.Profile.upright)
     internal data class Frame(val raw: PoseResult, val pose: PoseResult,
         val decision: BodyAthleteAssociation.Decision)
     private var generation = 0L
@@ -15,6 +17,8 @@ class BodyAthleteSelection {
     private var highWater: PresentationTime? = null
     private var resetNext = false
     internal var frame: Frame? = null; private set
+
+    val selectedPose: PoseResult? get() = frame?.pose
 
     /** Explicit capture/source disposal, never a per-set or per-frame reset. */
     fun reset() {
@@ -34,7 +38,7 @@ class BodyAthleteSelection {
         if (source == null || resetNext || source!!.imageSize != pose.imageSize ||
             source!!.backend != pose.backend || source!!.revision != pose.requestRevision) {
             source = ForegroundAssociation.Source(generation++, pose.imageSize, pose.backend, pose.requestRevision)
-            association = BodyAthleteAssociation(source!!); resetNext = false
+            association = BodyAthleteAssociation(source!!, profile); resetNext = false
         }
         val decision = association!!.observe(source!!, time, pose.people)
         if (decision.status == BodyAthleteAssociation.Status.lost) resetNext = true

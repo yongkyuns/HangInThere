@@ -192,6 +192,16 @@ class WorkoutRecordStore(private val context: Context, private val directory: Fi
         pruneLibraryMedia(next)
         return next
     }
+    @Synchronized fun saveWorkoutLog(log: WorkoutLog): WorkoutLog {
+        val command = WorkoutLogPolicy.saveCommand(log, System.currentTimeMillis())
+        libraryCommand(command)
+        return requireNotNull(command.workoutLog)
+    }
+    @Synchronized fun linkCameraSet(record: WorkoutSetRecord, log: WorkoutLog, load: Double?, unit: String) {
+        save(record)
+        if (libraryState().workoutLogs.none { it.id == log.id }) saveWorkoutLog(log)
+        libraryCommand(WorkoutLogPolicy.cameraLinkCommand(libraryState(), record.id, log.id, load, unit, System.currentTimeMillis()))
+    }
     @Synchronized fun libraryRecord(id: String): WorkoutSetRecord? {
         require(WorkoutCorrections.safeId(id))
         if (deleted(id)) return null

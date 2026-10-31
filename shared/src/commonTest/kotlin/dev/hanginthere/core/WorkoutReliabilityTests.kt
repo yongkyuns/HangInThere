@@ -63,7 +63,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun briefOneArmLossKeepsObservedSetupButCannotStartOrEarnReadiness() {
-        for (exercise in ExerciseCounter.Exercise.entries) for (missing in ArmMeasurement.Side.entries) {
+        for (exercise in ExerciseCounter.barExercises) for (missing in ArmMeasurement.Side.entries) {
             val runtime = acquired(exercise)
             val original = runtime.confirmedBar
             val paused = runtime.observe(input(pose(1_000_000, exercise, missing), exercise))
@@ -81,7 +81,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun recoveryExpiresFromLastBilateralEvidenceAndCannotRenewItself() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val runtime = acquired(exercise)
             for (ticks in listOf(1_000_000L, 1_100_000, 1_250_000)) {
                 runtime.observe(input(pose(ticks, exercise, ArmMeasurement.Side.right), exercise))
@@ -95,7 +95,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun unqualifiedIdentityCannotEarnDwellThroughAnOccludedFrame() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val runtime = WorkoutRuntime(automaticWorkouts = true)
             for (ticks in listOf(0L, 200_000, 400_000)) runtime.observe(input(pose(ticks, exercise), exercise))
             runtime.observe(input(pose(500_000, exercise, ArmMeasurement.Side.right), exercise))
@@ -107,7 +107,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun qualifiedRecoveryPreservesApparatusProgressWithoutAddingAnObservation() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val runtime = WorkoutRuntime(automaticWorkouts = true)
             for (ticks in listOf(0L, 200_000, 400_000, 600_000)) runtime.observe(input(pose(ticks, exercise), exercise))
             assertEquals(exercise, runtime.resolvedExercise)
@@ -124,7 +124,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun recoveryCannotBridgeCrowdsEmptyScenesMovedGripOrSourceFaults() {
-        for (exercise in ExerciseCounter.Exercise.entries) for (fault in 0..6) {
+        for (exercise in ExerciseCounter.barExercises) for (fault in 0..6) {
             val runtime = acquired(exercise)
             val oneArm = pose(1_000_000, exercise, ArmMeasurement.Side.right)
             val invalid = when (fault) {
@@ -182,7 +182,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun missingPeakArmCannotTurnLaterReturnIntoPreciseWholeRepTiming() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val analysis = WorkoutAnalysis("occluded-peak", exercise)
             analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready, null)
             analysis.observe(sample(.1, 130.0), ExerciseCounter.Phase.outbound, null)
@@ -205,7 +205,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun highAverageCoverageCannotInventBilateralPeakOffsetAcrossABriefOcclusion() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val analysis = WorkoutAnalysis("brief-peak-gap", exercise)
             analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready, null)
             for (i in 1..1000) {
@@ -225,7 +225,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun losingAnArmMidReturnCannotRelabelMidrangeAsEndpointHold() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val analysis = WorkoutPhaseAnalysis("mid-return", exercise)
             analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready)
             analysis.observe(sample(.1, 130.0), ExerciseCounter.Phase.outbound)
@@ -245,7 +245,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun unseenEndpointCannotBeEstablishedByReappearingArmsMidReturn() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val analysis = WorkoutPhaseAnalysis("unseen-peak", exercise)
             analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready)
             analysis.observe(sample(.1, 130.0), ExerciseCounter.Phase.outbound)
@@ -256,7 +256,7 @@ class WorkoutReliabilityTests {
     }
 
     @Test fun endpointDwellCannotForgetTheDeeperObservedOutboundExtreme() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val analysis = WorkoutPhaseAnalysis("outbound-peak", exercise)
             analysis.observe(sample(0.0, 170.0), ExerciseCounter.Phase.ready)
             analysis.observe(sample(.1, 130.0), ExerciseCounter.Phase.outbound)
@@ -268,7 +268,7 @@ class WorkoutReliabilityTests {
 
     @Test fun retainedSetupCannotOverrideIndependentPhoneMovementEvidence() {
         val moved = PhoneOrientationStability.Quaternion.create(.1, 0.0, 0.0, 1.0)!!
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val runtime = acquired(exercise)
             for (ticks in listOf(1_000_000L, 1_250_000)) runtime.observe(
                 input(pose(ticks, exercise, ArmMeasurement.Side.right), exercise).copy(attitude = moved))

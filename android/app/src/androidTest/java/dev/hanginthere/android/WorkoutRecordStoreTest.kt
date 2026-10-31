@@ -160,26 +160,30 @@ class WorkoutRecordStoreTest {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val directory=File(context.cacheDir,"watchdog-test-${UUID.randomUUID()}")
         val store=WorkoutRecordStore(context,directory)
-        val edge=BarSegment(Point2D(100.0,500.0),Point2D(900.0,500.0))
-        val attitude=PhoneOrientationStability.Quaternion.create(0.0,0.0,0.0,1.0)!!
-        fun input(time:Double,angle:Double):WorkoutRuntime.FrameInput {
-            val half=angle*Math.PI/360
-            val y=120*kotlin.math.sin(half)
-            val landmarks=listOf(300.0 to listOf(PoseJoint.leftShoulder,PoseJoint.leftElbow,PoseJoint.leftWrist),700.0 to listOf(PoseJoint.rightShoulder,PoseJoint.rightElbow,PoseJoint.rightWrist)).flatMap { (x,joints) ->
-                joints.zip(listOf(Point2D(x,500+2*y),Point2D(x+120*kotlin.math.cos(half),500+y),Point2D(x,500.0))).map{(joint,point)->Landmark(joint,point,1.0)}
+        fun pose(ms:Long,drop:Double=0.0,degrees:Double=170.0):PoseResult {
+            val points=ArmMeasurement.Side.entries.flatMapIndexed { i,side ->
+                val x=if(i==0)250.0 else 650.0
+                val height=320.0-drop;val offset=height/(2*kotlin.math.tan(degrees*Math.PI/360))
+                side.joints.zip(listOf(Point2D(x,280+drop),Point2D(x+if(i==0)-offset else offset,600-height/2),Point2D(x,600.0)))
+                    .map { (joint,point) -> Landmark(joint,point,.9) }
             }
-            val pose=PoseResult(PresentationTime((time*1000).toLong(),1000),ImageSize(1000.0,1000.0),listOf(PoseObservation(landmarks)),"authored watchdog test",0)
-            return WorkoutRuntime.FrameInput(pose,attitude=attitude,motionTimestamp=time,translations=List(3){StaticSceneStability.PatchTranslation(0.0,0.0)},globalScaleFraction=0.0,sceneTimestamp=time)
+            return PoseResult(PresentationTime(ms,1000),ImageSize(900.0,1400.0),listOf(PoseObservation(points)),"authored watchdog test",1)
         }
+        val source=BodyAthleteSelection()
+        val frames=(0L..1040L step 40).map { pose(it) }+(1080L..1320L step 40).map { pose(it,100.0,110.0) }+
+            (1360L..1640L step 40).map { pose(it) }
         try {
-            AnalysisPipeline(context,WorkoutExerciseSelection.pullUp,ArmMeasurement.Side.left,recordStoreOverride=store).use { pipeline ->
-                assertTrue(pipeline.runtime.confirmManualBar(ConfirmedBar(ConfirmedBar.Role.pullUpGrip,ConfirmedBar.Method.manualEdge,edge,imageSize=ImageSize(1000.0,1000.0),sourceTime=PresentationTime(0,1000)),attitude,0.0))
-                for((time,angle) in listOf(0.0 to 170.0,.15 to 170.0,.3 to 80.0,.45 to 80.0)) pipeline.runtime.observe(input(time,angle))
-                val result=AnalysisPipeline.Result(input(.45,80.0).pose,pipeline.runtime.snapshot,0.0,"",0.0)
+            AnalysisPipeline(context,WorkoutExerciseSelection.dip,ArmMeasurement.Side.left,recordStoreOverride=store).use { pipeline ->
+                // Authored camera verdict isolates watchdog/storage from native camera qualification.
+                frames.forEach { source.observe(it);pipeline.runtime.observe(source,OverheadPullUpMotion.Camera.ready) }
+                assertEquals(1,pipeline.runtime.currentSet!!.completedCount)
+                val result=AnalysisPipeline.Result(frames.last(),pipeline.snapshot,0.0,"",0.0)
                 val ended=pipeline.tick(4.0,result)
                 assertEquals(LiveSetSession.Phase.finished,ended.snapshot.phase)
-                assertEquals(1,ended.history.single().acceptedCount)
-                assertEquals("trackingLost",WorkoutRecordStore(context,directory).recent().single().endReason)
+                assertEquals(1,ended.history.single().completedCount)
+                val saved=WorkoutRecordStore(context,directory).recent().single()
+                assertEquals("trackingLost",saved.endReason)
+                assertEquals(BilateralTorsoDipMotion.countMethod,saved.countMethod)
             }
         } finally { directory.deleteRecursively() }
     }

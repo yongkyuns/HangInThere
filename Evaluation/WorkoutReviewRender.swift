@@ -6,13 +6,156 @@ import WorkoutCore
 
 /// Render the shipping SwiftUI/Charts view; no screenshot of the user's desktop.
 @main struct WorkoutReviewRender {
+    @MainActor static func renderWorkoutLog() throws {
+        var log = LoggedWorkout()
+        let base = Int64(Date().addingTimeInterval(-3600).timeIntervalSince1970 * 1000)
+        log.epochMilliseconds = base
+        let bench = [4, 5, 5, 5, 4, 5], curls = [6, 7, 7, 7, 6, 7]
+        for index in 0..<6 {
+            for (name, reps, load) in [("Bench press", bench[index], 165.0), ("EZ curls", curls[index], 75.9)] {
+                let start = base + Int64(log.sets.count) * 270_000
+                log.sets.append(.init(exercise: name, reps: reps, load: load, method: "tap",
+                    startedAtEpochMilliseconds: start, endedAtEpochMilliseconds: start + 30_000))
+            }
+        }
+        for dark in [false, true] {
+            for width in [320.0, 393.0] {
+                let view = NavigationStack { WorkoutLogView(initial: log, preview: true) }
+                    .environment(\.colorScheme, dark ? .dark : .light)
+                _ = try render(view, width: width, height: 852, filename: "workout-log-\(dark ? "dark" : "light")-\(Int(width)).png")
+            }
+        }
+        for dark in [false, true] {
+            let scheme: ColorScheme = dark ? .dark : .light
+            let picker = NavigationStack { WorkoutExercisePicker(names: ["Bench press", "EZ curls"]) { _ in } }.environment(\.colorScheme, scheme)
+            _ = try render(picker, width: 393, height: 852, filename: "workout-log-picker-\(dark ? "dark" : "light").png")
+            let editor = NavigationStack { WorkoutLoggedSetEditor(set: log.sets[0], onSave: { _ in }, onDelete: {}) }
+                .frame(width: 393, height: 852).background(HangPalette(scheme).background).environment(\.colorScheme, scheme)
+            _ = try render(editor, width: 393, height: 852, filename: "workout-log-editor-\(dark ? "dark" : "light").png")
+            let counter = NavigationStack { WorkoutTapCounter(set: log.sets[0], onFinish: { _ in }) }.environment(\.colorScheme, scheme)
+            _ = try render(counter, width: 393, height: 852, filename: "workout-tap-counter-\(dark ? "dark" : "light").png")
+        }
+        let accessible = NavigationStack { WorkoutLogView(initial: log, preview: true) }
+            .environment(\.colorScheme, .light).environment(\.dynamicTypeSize, .accessibility3)
+        _ = try render(accessible, width: 393, height: 1100, filename: "workout-log-large-text.png")
+        let table = ScrollView { VStack { WorkoutLogTable(log: log) { _ in } }.padding(20) }
+            .background(HangPalette(.light).background).environment(\.colorScheme, .light)
+        _ = try render(table, width: 393, height: 1000, filename: "workout-log-table.png")
+        let counter = NavigationStack { WorkoutTapCounter(set: log.sets[0], onFinish: { _ in }) }.environment(\.colorScheme, .light)
+        _ = try render(counter, width: 393, height: 852, filename: "workout-tap-counter.png")
+        var older = log; older.id = "older"; older.epochMilliseconds -= 7 * 86400000
+        let progress = NavigationStack { WorkoutLogProgressView(history: [log, older]) }.environment(\.colorScheme, .light)
+        _ = try render(progress, width: 393, height: 852, filename: "workout-log-progress.png")
+        var state = try JSONSerialization.jsonObject(with: Data(WorkoutLibraryBridge().emptyJson().utf8)) as! [String: Any]
+        state["workoutLogs"] = try JSONSerialization.jsonObject(with: JSONEncoder().encode([log, older]))
+        let stateJSON = String(decoding: try JSONSerialization.data(withJSONObject: state), as: UTF8.self)
+        let summaryJSON = try WorkoutLibraryBridge().insightsJson(stateJson: stateJSON, comparisonKey: nil,
+            nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000), utcOffsetMinutes: Int32(TimeZone.current.secondsFromGMT() / 60))
+        let overview = try JSONDecoder().decode(LibraryInsights.self, from: Data(summaryJSON.utf8)).overview!
+        let calendar = NavigationStack { ScrollView { WorkoutJourneyView(overview: overview, calendarPreview: overview.days).padding(20) } }
+            .background(HangPalette(.light).background).environment(\.colorScheme, .light)
+        _ = try render(calendar, width: 393, height: 1000, filename: "workout-log-calendar.png")
+    }
+    @MainActor static func renderCalendar() throws {
+        let date = Calendar.current.date(from: DateComponents(year: 2024, month: 2, day: 29))!
+        for mode in WorkoutCalendar.Mode.allCases {
+            let days = WorkoutCalendar.days(containing: date, mode: mode)
+            let activity = days.enumerated().map { index, day in
+                JourneyPracticeDay(day: day.day, workoutIds: index % 3 == 0 ? ["fixture-\(index)"] : [],
+                    completedReps: index % 3 == 0 ? 10 : 0, quality: nil, loggedReps: 0)
+            }
+            for dark in [false, true] {
+                for width in [320.0, 393.0] {
+                    let scheme: ColorScheme = dark ? .dark : .light
+                    let view = ScrollView {
+                        WorkoutCalendarView(date: .constant(date), mode: .constant(mode),
+                            selected: WorkoutCalendar.day(containing: date), activity: activity,
+                            onSelect: { _ in }, onShowAll: {}).padding(20)
+                    }.frame(width: width, height: 650).background(HangPalette(scheme).background)
+                        .foregroundStyle(HangPalette(scheme).foreground).environment(\.colorScheme, scheme)
+                    _ = try render(view, width: width, height: 650,
+                        filename: "calendar-\(mode.rawValue.lowercased())-\(dark ? "dark" : "light")-\(Int(width)).png")
+                }
+            }
+        }
+        let bridge = WorkoutLibraryBridge()
+        let now = Int64(Date().timeIntervalSince1970 * 1000)
+        var state = try JSONSerialization.jsonObject(with: Data(bridge.emptyJson().utf8)) as! [String: Any]
+        let log = LoggedWorkout(epochMilliseconds: now - 3_600_000,
+            sets: [.init(exercise: "Bench press", reps: 5, load: 165), .init(exercise: "EZ curls", reps: 7, load: 75.9)])
+        state["workoutLogs"] = try JSONSerialization.jsonObject(with: JSONEncoder().encode([log]))
+        let stateJSON = String(decoding: try JSONSerialization.data(withJSONObject: state), as: UTF8.self)
+        let insights = try bridge.insightsJson(stateJson: stateJSON, comparisonKey: nil,
+            nowEpochMilliseconds: now, utcOffsetMinutes: Int32(TimeZone.current.secondsFromGMT() / 60))
+        let envelope: [String: Any] = ["page": ["sets": [], "revision": 0],
+            "insights": try JSONSerialization.jsonObject(with: Data(insights.utf8)),
+            "revision": 0, "media": [], "diagnosticsConsent": false,
+            "mediaPolicy": ["enabled": true, "maximumClips": 20, "maximumBytes": 209715200, "maximumAgeDays": 30]]
+        let dashboard = try JSONDecoder().decode(LibraryDashboard.self, from: JSONSerialization.data(withJSONObject: envelope))
+        for dark in [false, true] {
+            for section in ["Progress", "History"] {
+                let scheme: ColorScheme = dark ? .dark : .light
+                let view = NavigationStack { WorkoutLibraryView(preview: dashboard, section: section) }
+                    .frame(width: 393, height: 1000).background(HangPalette(scheme).background).environment(\.colorScheme, scheme)
+                _ = try render(view, width: 393, height: 1000,
+                    filename: "calendar-route-\(section.lowercased())-\(dark ? "dark" : "light").png")
+            }
+        }
+    }
     @MainActor static func main() throws {
         let input = """
         {"id":"preview","exercise":"pullUp","startedAt":0,"endedAt":3,"endReason":"disengaged","backend":"synthetic render data","modelRevision":0,"schemaVersion":1,"lifecycleVersion":1,"reps":[{"id":"preview:rep:1","setId":"preview","ordinal":1,"exercise":"pullUp","startedAt":0,"extremeAt":1,"acceptedAt":1,"returnedAt":3,"closedAt":3,"closeReason":"returned","outcome":"accepted","outboundSeconds":1,"returnSeconds":2,"left":{"minimum":75,"maximum":170,"mean":125,"observedSeconds":3,"coverage":1},"right":{"minimum":80,"maximum":168,"mean":126,"observedSeconds":3,"coverage":1},"shoulderExcursion":0.15,"bilateralExtremeOffsetSeconds":0.1,"usableDurationSeconds":3,"durationCoverage":1,"samples":[{"seconds":0,"leftDegrees":170,"rightDegrees":168,"shoulderHeight":0.3,"usable":true,"released":false},{"seconds":0.3,"leftDegrees":140,"rightDegrees":142,"shoulderHeight":0.25,"usable":true,"released":false},{"seconds":0.6,"leftDegrees":110,"rightDegrees":115,"shoulderHeight":0.2,"usable":true,"released":false},{"seconds":0.9,"leftDegrees":75,"rightDegrees":80,"shoulderHeight":0.15,"usable":true,"released":false},{"seconds":1.2,"leftDegrees":90,"rightDegrees":95,"shoulderHeight":0.17,"usable":true,"released":false},{"seconds":1.5,"leftDegrees":105,"rightDegrees":110,"shoulderHeight":0.2,"usable":true,"released":false},{"seconds":1.8,"leftDegrees":120,"rightDegrees":125,"shoulderHeight":0.23,"usable":true,"released":false},{"seconds":2.1,"leftDegrees":140,"rightDegrees":145,"shoulderHeight":0.25,"usable":true,"released":false},{"seconds":2.4,"leftDegrees":150,"rightDegrees":152,"shoulderHeight":0.27,"usable":true,"released":false},{"seconds":2.7,"leftDegrees":160,"rightDegrees":162,"shoulderHeight":0.29,"usable":true,"released":false},{"seconds":3,"leftDegrees":170,"rightDegrees":168,"shoulderHeight":0.3,"usable":true,"released":false}],"curveTruncated":false,"countPolicyVersion":8,"metricVersion":1}]}
         """
         NSApplication.shared.setActivationPolicy(.prohibited)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
+        if let flag = CommandLine.arguments.firstIndex(of: "--pose-bands"), CommandLine.arguments.count > flag+1 {
+            struct Preview: Decodable { let id: String; let title: String; let imagePath: String; let pose: PoseResult; let progress: Double }
+            let previews = try JSONDecoder().decode([Preview].self,
+                from: Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[flag+1])))
+            for preview in previews {
+                let image = NSImage(contentsOfFile: preview.imagePath)!
+                let view = ZStack(alignment: .topLeading) {
+                    Color.black
+                    Image(nsImage: image).resizable().scaledToFit()
+                    PoseOverlay(result: preview.pose, usesBothArms: true, progress: preview.progress)
+                    Text(preview.title + " · Overlay preview").font(.headline).foregroundStyle(.white)
+                        .padding(12).background(.black.opacity(0.6), in: Capsule()).padding(16)
+                }.frame(width: preview.pose.imageSize.width > preview.pose.imageSize.height ? 760 : 393,
+                        height: preview.pose.imageSize.width > preview.pose.imageSize.height ? 430 : 760)
+                _ = try render(view, width: preview.pose.imageSize.width > preview.pose.imageSize.height ? 760 : 393,
+                    height: preview.pose.imageSize.width > preview.pose.imageSize.height ? 430 : 760,
+                    filename: "pose-bands-\(preview.id).png")
+            }
+            return
+        }
+        if let flag = CommandLine.arguments.firstIndex(of: "--pushup-record"), CommandLine.arguments.count > flag+1 {
+            let records = try JSONDecoder().decode([WorkoutSetRecord].self,
+                from: Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[flag+1])))
+            let record = records.first { $0.exercise == .pushUp && $0.completedCount > 0 }!
+            let json = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
+            let summary = try JSONDecoder().decode(JourneySetSummary.self,
+                from: Data(WorkoutJourneyBridge().setJson(recordJson: json).utf8))
+            for dark in [false, true] {
+                let scheme: ColorScheme = dark ? .dark : .light
+                let view = NavigationStack {
+                    WorkoutReviewView(sets: [record], currentReps: [], storageError: nil,
+                        goalsEnabled: false, showsLibraryLink: false, summary: summary)
+                }.frame(width: 393, height: 1000).background(HangPalette(scheme).background)
+                    .environment(\.colorScheme, scheme)
+                let name = "pushup-review-\(dark ? "dark" : "light").png"
+                let text = try render(view, width: 393, height: 1000, filename: name).joined()
+                verify(text.contains("pushup") && text.contains("preview") && text.contains("reprhythm"),
+                    "Push-up timing review missing", filename: name)
+                verify(!text.contains("effortestimate") && !text.contains("muscle"),
+                    "Unvalidated push-up effort shown", filename: name)
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--calendar-only") { try renderCalendar(); return }
+        if CommandLine.arguments.contains("--workout-log-only") { try renderWorkoutLog(); return }
         if CommandLine.arguments.contains("--set-visuals-only") { try renderSetVisuals(input); return }
+        if CommandLine.arguments.contains("--coach-only") { try renderCoach(); return }
+        if CommandLine.arguments.contains("--target-meter-only") { try renderTargetMeters(); return }
         if CommandLine.arguments.contains("--history-refresh-only") { try renderHistory(); return }
         if CommandLine.arguments.contains("--compact-live-only") {
             let preview = ProcessInfo.processInfo.environment["COMPACT_CAMERA_PREVIEW"].flatMap { NSImage(contentsOfFile: $0) }
@@ -31,6 +174,7 @@ import WorkoutCore
                         showsSetStarted: state == "started", needsArmRepositioning: state == "arms",
                         gripCaptureFeedback: .init(state: "showHands", shoulderFraction: 0.24, torsoFraction: 0.38),
                         readiness: checklist, cameraPlacement: placement,
+                        poseOverlayVisibility: .constant(state == "started"),
                         cameraReady: true, status: "Ready", statusSymbol: "viewfinder", needsAttention: false,
                         showsManualStart: false, canStart: true, canSwitchCamera: !running, nextCameraName: "front",
                         isRecording: false, countdown: nil, canClose: true,
@@ -106,10 +250,10 @@ import WorkoutCore
             let set = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: fixture))
             for width in [320.0, 430.0] {
                 let content = WorkoutGripView(set: set, allowsCorrections: false, initiallyExpanded: true)
-                    .padding(16).frame(width: width, height: 900, alignment: .topLeading).background(Color.white)
+                    .padding(16).frame(width: width, height: 1450, alignment: .topLeading).background(Color.white)
                     .environment(\.colorScheme, .light)
                 let name = "set-grip-v31-\(Int(width)).png"
-                let text = try render(content, width: width, height: 900, filename: name).joined()
+                let text = try render(content, width: width, height: 1450, filename: name).joined()
                 verify(text.contains("setgrip") && text.contains("underhand"), "Set-level grip missing", filename: name)
                 verify(text.contains("gripinferredfromthisset"), "Inherited label provenance missing", filename: name)
                 verify(text.contains("classifiedfor0ofthisattempt"), "Original missing-hand coverage must stay visible", filename: name)
@@ -278,26 +422,16 @@ import WorkoutCore
             return
         }
         if CommandLine.arguments.contains("--dip-progress-only") {
-            let unavailableCue = "handtrackingunavailable"
-            // Hosted Vision OCR read the correctly rendered word as
-            // "unavallable". Accept this visual i/l ambiguity while preserving
-            // the full cue, especially the meaningful "un" prefix.
-            verify(containsDipCue(["handtrackingunavallableshowbothgripsclearly"], unavailableCue),
-                   "Hosted OCR i/l regression", filename: "dip-cue-matcher")
-            for wrong in ["handtrackingavailable", "handtracking", "lookingfordiprails", ""] {
-                verify(!containsDipCue([wrong], unavailableCue),
-                       "Incorrect or incomplete dip guidance passed", filename: "dip-cue-matcher")
-            }
             for (name, phase, availability, fraction, cue, guidance) in [
-                ("ready", "ready", "ready", 0.0, "readylower", nil as String?),
-                ("lowering", "outbound", "available", 0.3, "keeplowering", nil),
-                ("returning", "returning", "available", 0.8, "returntoyourtopsupport", nil),
-                ("missing-hands-legacy", "returning", "observationUnavailable", 0.0, "keepbothhandsandarmsvisible", nil),
-                ("missing-hands", "seekingTop", "cameraUnavailable", 0.0, "handtrackingunavailable", "Hand tracking unavailable · show both grips clearly"),
-                ("missing-rails", "seekingTop", "cameraUnavailable", 0.0, "lookingfordiprails", "Looking for dip rails · keep grips and rails visible"),
-                ("camera-check", "seekingTop", "cameraUnavailable", 0.0, "camerastabilityunavailable", "Camera stability unavailable · keep the phone steady"),
-                ("missing-elbows", "seekingTop", "waitingForMeasuredTop", 0.0, "keepshoulderselbowsandhandsinframe", "Keep shoulders, elbows and hands in frame"),
-                ("edge-advice", "outbound", "available", 0.3, "movephoneback", "Move phone back · leave room around arms and hands")
+                ("ready", "ready", "ready", 0.0, "lower", nil as String?),
+                ("lowering", "outbound", "available", 0.3, "lower", nil),
+                ("returning", "returning", "available", 0.8, "pressup", nil),
+                ("missing-hands-legacy", "returning", "observationUnavailable", 0.0, "paused", nil),
+                ("missing-hands", "seekingTop", "cameraUnavailable", 0.0, "paused", "Hand tracking unavailable · show both grips clearly"),
+                ("missing-rails", "seekingTop", "cameraUnavailable", 0.0, "paused", "Looking for dip rails · keep grips and rails visible"),
+                ("camera-check", "seekingTop", "cameraUnavailable", 0.0, "paused", "Camera stability unavailable · keep the phone steady"),
+                ("missing-elbows", "seekingTop", "waitingForMeasuredTop", 0.0, "getready", "Keep shoulders, elbows and hands in frame"),
+                ("edge-advice", "outbound", "available", 0.3, "lower", "Move phone back · leave room around arms and hands")
             ] {
                 let motion = DipWorkoutSnapshot.Motion(phase: phase, imageCycles: 2, partialAttempts: 0,
                     interruptedAttempts: 0, availability: availability, progress: fraction, event: nil, policyVersion: 1)
@@ -306,11 +440,11 @@ import WorkoutCore
                 for width in [320.0, 430.0] {
                     let filename = "bilateral-dip-\(name)-\(Int(width)).png"
                     let content = BilateralDipProgressView(snapshot: snapshot)
-                        .frame(width: width, height: 180).background(Color(white: 0.18))
-                    let text = try render(content, width: width, height: 180, filename: filename)
-                    verify(containsDipCue(text, cue), "Bilateral dip progress cue is missing", filename: filename)
+                        .frame(width: width, height: 240).background(Color(white: 0.18))
+                    let text = try render(content, width: width, height: 240, filename: filename)
+                    verify(text.contains(cue), "Bilateral dip progress action is missing", filename: filename)
                     if name == "edge-advice" {
-                        verify(text.contains { $0 == "30" }, "Framing advice hid valid motion progress", filename: filename)
+                        verify(text.contains("target") && text.contains("start"), "Framing advice hid the movement gauge", filename: filename)
                     }
                 }
             }
@@ -372,7 +506,7 @@ import WorkoutCore
                         .background(dark ? Color.black : Color.white)
                     let name = "library-\(section.lowercased())-\(dark ? "dark" : "light")-\(Int(width)).png"
                     let text = try render(content, width: width, height: 1100, filename: name)
-                    let expected = ["Progress": "yourpractice", "History": "youreffortcollected", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
+                    let expected = ["Progress": "calendar", "History": "recentworkouts", "Plans": "planyourpractice", "Storage": "yourlocaldata"][section]!
                     verify(text.contains { $0.contains(expected) }, "Workout library section missing: \(section)", filename: name)
                     if section == "Plans" {
                         verify(text.contains { $0.contains("setsmeetthistarget") }, "Saved plan progress is missing", filename: name)
@@ -387,17 +521,17 @@ import WorkoutCore
                     let setSummary = try journeySummary(example)
                     let setContent = NavigationStack { WorkoutReviewView(sets: [example], currentReps: example.reps, storageError: nil,
                         goalsEnabled: false, summary: setSummary) }
-                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1000)
+                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 2000)
                         .background(dark ? Color.black : Color.white)
                     let filename = "journey-set-\(dark ? "dark" : "light")-\(Int(width)).png"
-                    let text = try render(setContent, width: width, height: 1000, filename: filename)
+                    let text = try render(setContent, width: width, height: 2000, filename: filename)
                     verify(text.contains { $0.contains("consistent") }, "Set quality must be glanceable", filename: filename)
                     verify(text.contains { $0.contains("yourreps") }, "Rep drill-down must be visible", filename: filename)
                     verify(!text.contains { $0.contains("leftarmtime") || $0.contains("leftmeanrange") }, "Recording diagnostics must not crowd the set summary", filename: filename)
-                    let workoutContent = NavigationStack { JourneyWorkoutView(workout: workout) }.environment(\.colorScheme, dark ? .dark : .light)
-                        .frame(width: width, height: 1000).background(dark ? Color.black : Color.white)
+                    let workoutContent = NavigationStack { JourneyWorkoutView(workout: workout, refreshesFromStore: false) }.environment(\.colorScheme, dark ? .dark : .light)
+                        .frame(width: width, height: 2000).background(dark ? Color.black : Color.white)
                     let workoutName = "journey-workout-\(dark ? "dark" : "light")-\(Int(width)).png"
-                    let workoutText = try render(workoutContent, width: width, height: 1000, filename: workoutName)
+                    let workoutText = try render(workoutContent, width: width, height: 2000, filename: workoutName)
                     verify(workoutText.contains { $0.contains("set1") }, "Workout must lead to its sets", filename: workoutName)
                 }
             }
@@ -462,9 +596,9 @@ import WorkoutCore
                         selectedRepId: prefix == "history-" ? set.completedReps.first?.id : nil, goalsEnabled: false,
                         summary: try journeySummary(records.first!))
                         .environment(\.colorScheme, dark ? .dark : .light)
-                        .frame(width: width, height: 1000)
+                        .frame(width: width, height: 2000)
                         .background(dark ? Color.black : Color.white)
-                    let text = try render(content, width: width, height: 1000,
+                    let text = try render(content, width: width, height: 2000,
                         filename: "\(prefix)\(dark ? "dark" : "light")-\(Int(width)).png")
                     precondition(!text.contains { $0.contains("rep2") || $0.contains("rep3") }, "Unfinished reps appeared in analytics")
                     if prefix == "history-" {
@@ -489,7 +623,7 @@ import WorkoutCore
             }
         }
         // Beginner analytics must remain useful with zero completed reps.
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             let phase = exercise == .pullUp ? "hang" : "support"
             var practiceFixture = fixture
             practiceFixture["exercise"] = exercise.rawValue
@@ -507,14 +641,14 @@ import WorkoutCore
                         let content = WorkoutReviewView(sets: live ? [set] : [practiceSet],currentReps: [],storageError: nil,
                             currentSet: live ? practiceSet : nil,goalsEnabled: false, summary: try journeySummary(practiceSet))
                             .environment(\.colorScheme,dark ? .dark : .light)
-                            .frame(width: width,height: 1100).background(dark ? Color.black : Color.white)
-                        let text = try render(content,width: width,height: 1100,
+                            .frame(width: width,height: 2000).background(dark ? Color.black : Color.white)
+                        let text = try render(content,width: width,height: 2000,
                             filename: "practice-\(exercise.rawValue)-\(live ? "active" : "saved")-\(dark ? "dark" : "light")-\(Int(width)).png")
                         precondition(text.contains { $0.contains("phasebreakdown") },"Phase drill-down is missing")
                         verify(text.contains { $0.contains(exercise == .pullUp ? "longesthang" : "supporthold") },
                             "Hold-only practice must lead with its observed time", filename: "practice-\(exercise.rawValue)")
                         precondition(!text.contains { $0.contains("yourreps") || $0.contains("completedrep") },"Hang-only current set borrowed saved rep timing")
-                        verify(text.contains { $0 == "80s" || $0 == "805" }, "Observed hold time missing", filename: "practice-\(exercise.rawValue)")
+                        verify(text.contains { $0 == "80s" || $0 == "8os" || $0 == "805" }, "Observed hold time missing", filename: "practice-\(exercise.rawValue)")
                     }
                 }
             }
@@ -543,7 +677,7 @@ import WorkoutCore
                 verify(text.contains { $0.contains(token) }, "Actionable framing advice is missing", filename: filename)
             }
         }
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             var running = LiveSetSession(); running.start(exercise: exercise, side: .left)
             var ended = running; ended.finish()
             var reacquiring = running; reacquiring.interrupt(reason: "sourceTimeGap")
@@ -568,9 +702,105 @@ import WorkoutCore
         }
     }
 
+    @MainActor private static func renderTargetMeters() throws {
+        for dip in [false, true] {
+            let phases: [(String, Double, Bool, Bool)] = [("Start", 0, false, true), ("Moving", 0.55, false, true),
+                ("Target met", 1, true, true), ("Returning", 0.35, true, true), ("Tracking lost", 0, false, false)]
+            var panels: [AnyView] = []
+            for (label, value, reached, usable) in phases {
+                var motion: [String: Any] = ["seconds": 2.0, "phase": label == "Start" ? "ready" : reached ? "returning" : "outbound", "cycles": 0,
+                    "reason": "authored-preview", "observationUsable": usable, "sourceAccepted": true,
+                    "progress": 0.3, "partialAttempts": 0, "interruptedAttempts": 0, "policyVersion": 1,
+                    "targetProgress": value, "targetReached": reached]
+                if dip { motion.merge(["elbowDegrees": [110,110], "travelArmFractions": [0.1,0.1], "wristDriftArmFractions": [0,0]]) { _,new in new } }
+                else { motion.merge(["degrees": [110,110], "travel": [0.1,0.1], "drift": [0,0]]) { _,new in new } }
+                let bytes = try JSONSerialization.data(withJSONObject: ["motion": motion, "started": false,
+                    "analysisRevision": 1, "analyzedFrames": 30, "usableFrames": 30])
+                let preparedDip = dip ? try JSONDecoder().decode(BodyDipWorkoutSnapshot.self, from: bytes) : nil
+                let preparedPull = dip ? nil : try JSONDecoder().decode(BodyPullUpWorkoutSnapshot.self, from: bytes)
+                let gauge: AnyView
+                if let preparedDip { gauge = AnyView(BodyDipProgressView(snapshot: preparedDip)) }
+                else { gauge = AnyView(BodyPullUpProgressView(snapshot: preparedPull!)) }
+                if label == "Start" || label == "Moving" {
+                    for (width,height) in [(320.0,640.0),(844.0,390.0)] {
+                        let checklist = LiveReadinessChecklist(cameraReady: true, frameFresh: true,
+                            framing: .init(state: .ready, usesBothArms: true), exerciseTitle: dip ? "Dips" : "Pull-ups",
+                            armDescription: "Both measurable", barConfirmed: false, acquisition: .lookingForGrip,
+                            motionAvailable: true, phoneStable: true, sceneStable: true, startingPose: label == "Start",
+                            paused: false, handsFree: true, setupBusy: false, bodyCameraCalibrated: true,
+                            placement: .init(tiltDegrees: 0), pullUpMotion: !dip)
+                        let overlay = LiveWorkoutOverlay(session: LiveSetSession(), liveCompletedReps: 0,
+                            preparedPullUp: preparedPull, preparedDip: preparedDip, exerciseTitle: dip ? "Dips" : "Pull-ups",
+                            readiness: checklist, cameraReady: true, status: "Ready", statusSymbol: "viewfinder",
+                            needsAttention: false, showsManualStart: false, canStart: label == "Start", canSwitchCamera: true,
+                            nextCameraName: "front", isRecording: false, countdown: nil, canClose: true,
+                            onClose: {}, onOptions: {}, onSwitchCamera: {}, onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                            .frame(width: width,height: height).background(Color(white: 0.18))
+                        _ = try render(overlay,width: width,height: height,
+                            filename: "first-rep-\(dip ? "dip" : "pull-up")-\(label.lowercased())-\(Int(width)).png")
+                    }
+                }
+                panels.append(AnyView(VStack { Text(label).font(.caption.bold()).foregroundStyle(.white); gauge }.frame(width: 136)))
+            }
+            let view = HStack(alignment: .top, spacing: 12) { ForEach(panels.indices, id: \.self) { panels[$0] } }
+                .padding(20).background(Color(white: 0.17))
+            _ = try render(view, width: 780, height: 285, filename: "target-meter-\(dip ? "dip" : "pull-up").png")
+        }
+    }
+
+    @MainActor private static func renderCoach() throws {
+        let name = "coaching-render-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        let preferences = WorkoutCoachPreferences(defaults: defaults)
+        var profile = WorkoutCoachProfile(); profile.goal = .moreReps
+        try preferences.save(profile)
+        let history = [1, 2].flatMap { day in (0..<2).map { ordinal in
+            var context = LibraryContext(); context.effort = 3
+            return WorkoutCoachSet(id: "preview-\(day)-\(ordinal)", sourceSetId: "preview-\(day)-\(ordinal)", exercise: .pullUp,
+                measuredCompletedReps: 5, trackedAtEpochMilliseconds: Int64(Date().addingTimeInterval(Double(-day * 86400 + ordinal)).timeIntervalSince1970 * 1000),
+                comparisonKey: "preview-same-setup", context: context, trackingCoverage: 1, endReason: "manual", elbowExcursionDegrees: 80,
+                meanReturnSeconds: 1, exerciseCorrected: false, isMerged: false, countMethod: "overheadPullUpRelativeMotion", countPolicyVersion: 4, gripIdentity: "overhand:wide")
+        } }
+        for dark in [false, true] {
+            for width in [320.0, 430.0] {
+                let setup = NavigationStack { WorkoutCoachSetupView(profile: profile, onSave: { _ in }, onSkip: {}) }
+                    .environment(\.colorScheme, dark ? .dark : .light)
+                _ = try render(setup, width: width, height: 900, filename: "coach-setup-\(dark ? "dark" : "light")-\(Int(width)).png")
+                let today = NavigationStack { WorkoutCoachView(preferences: preferences, previewHistory: history, onStart: { _ in }) }
+                    .environment(\.colorScheme, dark ? .dark : .light)
+                _ = try render(today, width: width, height: 900, filename: "coach-today-\(dark ? "dark" : "light")-\(Int(width)).png")
+            }
+        }
+        let large = WorkoutCoachSetupView(profile: profile, onSave: { _ in }, onSkip: {})
+            .environment(\.dynamicTypeSize, .accessibility3)
+        _ = try render(large, width: 390, height: 900, filename: "coach-setup-large-text.png")
+        let assets = "ios/HangInThere/Assets.xcassets"
+        let brand = Image(nsImage: NSImage(contentsOfFile: "\(assets)/BrandIcon.imageset/forest-glow.png")!)
+        let pullUp = Image(nsImage: NSImage(contentsOfFile: "\(assets)/PullUpIllustration.imageset/illustration.png")!)
+        let dip = Image(nsImage: NSImage(contentsOfFile: "\(assets)/DipIllustration.imageset/illustration.png")!)
+        for dark in [false, true] {
+            for (width, accessible) in [(320.0, false), (430.0, false), (393.0, true)] {
+                let home = ScrollView {
+                    HomeScreenView(onLiveWorkout: {}, onStartExercise: { _ in }, onReviewVideo: {}, onHistory: {},
+                        onCoach: {}, onLogWorkout: {}, pullUpArtwork: pullUp, dipArtwork: dip, brandArtwork: brand)
+                }.environment(\.colorScheme, dark ? .dark : .light)
+                    .environment(\.dynamicTypeSize, accessible ? .accessibility3 : .large)
+                _ = try render(home, width: width, height: 852,
+                    filename: "home-exercise-shortcuts-\(dark ? "dark" : "light")-\(Int(width))\(accessible ? "-large-text" : "").png")
+            }
+            for width in [320.0, 430.0] {
+                let guide = NavigationStack { WorkoutCameraGuideView(onContinue: {}, onCancel: {}) }
+                    .environment(\.colorScheme, dark ? .dark : .light)
+                _ = try render(guide, width: width, height: 780,
+                    filename: "camera-first-workout-\(dark ? "dark" : "light")-\(Int(width)).png")
+            }
+        }
+    }
+
     @MainActor private static func renderSetVisuals(_ input: String) throws {
         let original = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             var object = original; object["exercise"] = exercise.rawValue
             let source = (original["reps"] as! [[String: Any]])[0]
             object["reps"] = (0..<5).map { index -> [String: Any] in
@@ -584,18 +814,27 @@ import WorkoutCore
                 rep["returnedAt"] = turn + (exercise == .pullUp ? 1.3 : lifting)
                 return rep
             }
-            let record = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: object))
+            var record = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: object))
+            let phases: [WorkoutPhaseSpan] = (0..<5).flatMap { index in
+                let start = Double(index * 5)
+                return [WorkoutPhaseSpan(id: "hold-\(index)", phase: exercise == .pullUp ? "hang" : "support", startedAt: start, endedAt: start + 1, observedSeconds: 1),
+                        WorkoutPhaseSpan(id: "lift-\(index)", phase: exercise == .pullUp ? "pulling" : "lowering", startedAt: start + 1, endedAt: start + 3, observedSeconds: 2),
+                        WorkoutPhaseSpan(id: "return-\(index)", phase: exercise == .pullUp ? "lowering" : "rising", startedAt: start + 3, endedAt: start + 5, observedSeconds: index == 2 ? 0 : 2)]
+            }
+            record.activity = WorkoutActivity(phases: phases, totals: [], longestHangSeconds: 1, longestSupportSeconds: 1,
+                                              observedSeconds: 23, elapsedSeconds: 25, timelineTruncated: false, metricVersion: 1)
             for dark in [false, true] {
                 for width in [320.0, 430.0] {
                     let view = VStack(alignment: .leading, spacing: 20) {
                         Text("Set review").font(.largeTitle.bold())
                         Text("\(exercise.title) · 5 reps").font(.headline)
+                        WorkoutDemandCard(record: record)
                         WorkoutTempoCard(record: record)
                         WorkoutMuscleCard(exercise: exercise)
-                    }.padding().frame(width: width, height: 900, alignment: .top)
+                    }.padding().frame(width: width, height: 1450, alignment: .top)
                         .background(HangPalette(dark ? .dark : .light).background)
                         .environment(\.colorScheme, dark ? .dark : .light)
-                    _ = try render(view, width: width, height: 900,
+                    _ = try render(view, width: width, height: 1450,
                         filename: "set-visuals-\(exercise.rawValue)-\(dark ? "dark" : "light")-\(Int(width)).png")
                 }
             }
@@ -623,10 +862,12 @@ import WorkoutCore
                 insights: insights, mediaPolicy: policy, media: empty ? [] : media, diagnosticsConsent: false, revision: 1)
             for dark in [false, true] {
                 for width in empty ? [320.0] : [320.0, 430.0] {
-                    let view = NavigationStack { WorkoutLibraryView(preview: dashboard, section: "History") }
-                        .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1100)
-                    _ = try render(view, width: width, height: 1100,
-                        filename: "library-history-\(empty ? "empty-" : "")\(dark ? "dark" : "light")-\(Int(width)).png")
+                    for section in ["History", "Recordings"] {
+                        let view = NavigationStack { WorkoutLibraryView(preview: dashboard, section: section) }
+                            .environment(\.colorScheme, dark ? .dark : .light).frame(width: width, height: 1100)
+                        _ = try render(view, width: width, height: 1100,
+                            filename: "library-\(section.lowercased())-\(empty ? "empty-" : "")\(dark ? "dark" : "light")-\(Int(width)).png")
+                    }
                 }
             }
         }
@@ -635,12 +876,6 @@ import WorkoutCore
     @MainActor private static func journeySummary(_ record: WorkoutSetRecord) throws -> JourneySetSummary {
         let input = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
         return try JSONDecoder().decode(JourneySetSummary.self, from: Data(WorkoutJourneyBridge().setJson(recordJson: input).utf8))
-    }
-
-    private static func containsDipCue(_ normalizedText: [String], _ cue: String) -> Bool {
-        // This assertion-only fold leaves the raw OCR diagnostics intact.
-        func fold(_ text: String) -> String { text.replacingOccurrences(of: "l", with: "i") }
-        return normalizedText.contains { fold($0).contains(fold(cue)) }
     }
 
     /// Optimized preconditions trap without a useful CI message. Print the
@@ -664,13 +899,14 @@ import WorkoutCore
         host.cacheDisplay(in: host.bounds, to: bitmap)
         guard let image = bitmap.cgImage, let data = bitmap.representation(using: .png, properties: [:]) else { fatalError("View pixels unavailable") }
         try data.write(to: URL(fileURLWithPath: "build/workout-analysis/render/\(filename)"))
-        if CommandLine.arguments.contains("--history-refresh-only") || CommandLine.arguments.contains("--set-visuals-only") {
+        if CommandLine.arguments.contains("--calendar-only") || CommandLine.arguments.contains("--workout-log-only") || CommandLine.arguments.contains("--history-refresh-only") || CommandLine.arguments.contains("--set-visuals-only") || CommandLine.arguments.contains("--coach-only") || CommandLine.arguments.contains("--target-meter-only") {
             let path = "build/workout-analysis/render/\(filename)"
             try? FileManager.default.removeItem(atPath: path + ".ocr.json")
             try JSONSerialization.data(withJSONObject: ["file": filename, "review": "Native view pixels for manual visual review; OCR intentionally not run."]).write(to: URL(fileURLWithPath: path + ".visual.json"))
             return []
         }
         let request = VNRecognizeTextRequest()
+        request.minimumTextHeight = 0.003
         request.recognitionLevel = .accurate; request.recognitionLanguages = ["en-US"]
         try VNImageRequestHandler(cgImage: image).perform([request])
         let recognized = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }

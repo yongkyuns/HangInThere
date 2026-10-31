@@ -674,16 +674,33 @@ actor WorkoutRecordStore {
     func libraryJourneySet(id: String) throws -> String {
         try WorkoutJourneyBridge().reviewedSetJson(stateJson: libraryState(), setId: id)
     }
-    func libraryJourneyPage(day: Int64?, cursor: String?) throws -> String {
-        try WorkoutJourneyBridge().pageJson(stateJson: libraryState(), nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000),
+    func libraryJourneyPage(day: Int64?, cursor: String?, range: WorkoutCalendarDay? = nil) throws -> String {
+        if let range {
+            return try WorkoutJourneyBridge().pageInRangeJson(stateJson: libraryState(),
+                rangeJson: String(decoding: JSONEncoder().encode(range), as: UTF8.self),
+                nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000), cursorJson: cursor)
+        }
+        return try WorkoutJourneyBridge().pageJson(stateJson: libraryState(), nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000),
             utcOffsetMinutes: Int32(TimeZone.current.secondsFromGMT() / 60), day: day.map { KotlinLong(longLong: $0) }, cursorJson: cursor)
     }
-    func libraryDashboard(key: String?, cursor: String?, now: Int64, offset: Int32) throws -> String {
+    func libraryCalendarDays(_ ranges: [WorkoutCalendarDay]) throws -> [JourneyPracticeDay] {
+        let json = try WorkoutJourneyBridge().calendarDaysJson(stateJson: libraryState(),
+            rangesJson: String(decoding: JSONEncoder().encode(ranges), as: UTF8.self),
+            nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
+        return try JSONDecoder().decode([JourneyPracticeDay].self, from: Data(json.utf8))
+    }
+    /// Also runs on foreground entry, so an in-memory library does not retain expired video.
+    @discardableResult
+    func maintainLibraryMedia(now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)) throws -> String {
         let prior = try libraryState()
-        let bridge = WorkoutLibraryBridge()
-        let state = try bridge.maintainJson(stateJson: prior, nowEpochMilliseconds: now)
+        let state = try WorkoutLibraryBridge().maintainJson(stateJson: prior, nowEpochMilliseconds: now)
         if state != prior { try publishLibrary(state) }
         try pruneLibraryMedia(state)
+        return state
+    }
+    func libraryDashboard(key: String?, cursor: String?, now: Int64, offset: Int32) throws -> String {
+        let state = try maintainLibraryMedia(now: now)
+        let bridge = WorkoutLibraryBridge()
         let object = try JSONSerialization.jsonObject(with: Data(state.utf8)) as? [String: Any] ?? [:]
         let dashboard: [String: Any] = [
             "page": try JSONSerialization.jsonObject(with: Data(bridge.pageJson(stateJson: state, cursorJson: cursor, limit: 25).utf8)),
@@ -697,6 +714,19 @@ actor WorkoutRecordStore {
         let events = (object?["reviews"] as? [String: Any])?["events"] as? [[String: Any]] ?? []
         guard let correction = events.last(where: { $0["setId"] as? String == id })?["correction"] else { return nil }
         return String(decoding: try JSONSerialization.data(withJSONObject: correction), as: UTF8.self)
+    }
+    func coachingGripIdentity(_ record: WorkoutSetRecord) throws -> String? {
+        let input = String(decoding: try JSONEncoder().encode(record.progressInput), as: UTF8.self)
+        let json = try WorkoutGripReviewBridge().reportJson(recordJson: input,
+            ledgerJson: WorkoutGripCorrectionStore.archiveLedger(directory: gripDirectory, id: record.id))
+        let report = try JSONDecoder().decode(WorkoutGripVariationReport.self, from: Data(json.utf8))
+        let complete = Set(record.completedReps.map(\.id))
+        let reps = report.reps.filter { complete.contains($0.repId) }
+        let orientations = Set(reps.map(\.orientation).filter { $0 != "unknown" })
+        let widths = Set(reps.map(\.width).filter { $0 != "unknown" })
+        guard orientations.count == 1, widths.count == 1, let orientation = orientations.first, let width = widths.first,
+              ["overhand", "underhand", "neutral"].contains(orientation), ["narrow", "shoulderWidth", "wide"].contains(width) else { return nil }
+        return orientation + ":" + width
     }
     func libraryRestore(_ backup: String) throws {
         let wasRestoring = restoringLibrary
@@ -824,10 +854,7 @@ actor WorkoutRecordStore {
 
     func libraryMediaURL(id: String) throws -> URL? {
         guard id.count <= 64, id.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" }) else { return nil }
-        let old = try libraryState()
-        let state = try WorkoutLibraryBridge().maintainJson(stateJson: old, nowEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
-        if state != old { try publishLibrary(state) }
-        try pruneLibraryMedia(state)
+        let state = try maintainLibraryMedia()
         let object = try JSONSerialization.jsonObject(with: Data(state.utf8)) as? [String: Any]
         guard (object?["media"] as? [[String: Any]])?.contains(where: { $0["id"] as? String == id }) == true else { return nil }
         let url = mediaDirectory.appendingPathComponent(id + ".mov")

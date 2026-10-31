@@ -59,7 +59,7 @@ struct WorkoutAnalysisBridgeCheck {
               readiness.reps.isEmpty, readiness.currentRecord == nil, !readiness.showsSetStarted else {
             fatalError("Shipping Apple readiness reused missing/duplicate/ineligible time or invented a workout")
         }
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             readiness.start(exercise: exercise, recordCalendarTime: false)
             for origin: Int64 in [9_007_199_254_740_992, -9_007_199_254_740_992] {
                 readiness.resetReadiness()
@@ -285,7 +285,7 @@ struct WorkoutAnalysisBridgeCheck {
         }
         // Current scene qualification passes through the shipping adapter as
         // an unavailable reference, without inventing missing body landmarks.
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             var scene = StaticSceneStability()
             _ = scene.calibrate(imageSize: clearFraming.imageSize)
             let patches = Array(repeating: StaticSceneStability.PatchTranslation(dxPixels: 0, dyPixels: 0), count: 3)
@@ -331,7 +331,7 @@ struct WorkoutAnalysisBridgeCheck {
         }
         guard qualifiedHangSeconds > 0, let holdSet = holdAnalysis.finish(reason: "manual"),
               holdSet.completedCount == 0 else { fatalError("Scene qualification lost valid zero-rep hang practice") }
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             let analysis = WorkoutAnalysisAdapter(); analysis.start(exercise: exercise)
             var counter = ExerciseCounter(exercise: exercise, side: .left)
             for (time, angle) in [(0.0, 170.0), (0.15, 170.0), (0.30, 80.0), (0.45, 80.0), (0.60, 170.0), (0.75, 170.0)] {
@@ -349,8 +349,8 @@ struct WorkoutAnalysisBridgeCheck {
             completed.append(set)
             let rep = set.reps[0]
             guard rep.left.mean != nil, rep.right.mean != nil,
-                  rep.durationCoverage == 1, rep.countPolicyVersion == 8, rep.metricVersion == 2,
-                  set.activity?.metricVersion == 3 else { fatalError("Bridge lost metric validity or phase version") }
+                  rep.durationCoverage == 1, rep.countPolicyVersion == ExerciseCounter.policyVersion, rep.metricVersion == 2,
+                  set.activity?.metricVersion == 3 else { fatalError("Bridge lost metric validity or phase version: \(rep.left.mean as Any), \(rep.right.mean as Any), coverage=\(rep.durationCoverage as Any), count=\(rep.countPolicyVersion), metric=\(rep.metricVersion), phase=\(set.activity?.metricVersion as Any)") }
             guard set.completedCount == 1, set.completedReps == [rep], rep.isCompleteForAnalytics else {
                 fatalError("Shipping Apple analytics omitted a completed rep")
             }
@@ -506,7 +506,7 @@ struct WorkoutAnalysisBridgeCheck {
         guard let activeSet = engine.finish(reason: "manual"), activeSet.acceptedCount == counter.observedMovements,
               activeSet.acceptedCount > 200 else { fatalError("Active rep bridge lost or duplicated records") }
         // A zero-rep hold has durable source-time evidence on the real FFI.
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             let holdAnalysis = WorkoutAnalysisAdapter(); holdAnalysis.start(exercise: exercise)
             guard holdAnalysis.drainDraft() == nil else { fatalError("Pre-frame journal emitted") }
             var holdCounter = ExerciseCounter(exercise: exercise, side: .left)

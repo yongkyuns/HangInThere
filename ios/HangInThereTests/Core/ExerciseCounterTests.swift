@@ -45,7 +45,7 @@ struct ExerciseCounterTests {
     }
 
     @Test func endpointDwellUsesSourceTicksAtEveryOrigin() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for side in ArmMeasurement.Side.allCases {
                 for origin in [Int64(0), 1_100_000, 9_007_199_254_740_992] {
                     var c = ExerciseCounter(exercise: exercise, side: side)
@@ -68,7 +68,7 @@ struct ExerciseCounterTests {
     }
 
     @Test func endpointDwellNeverRoundsUpAOneTickShortHold() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for side in ArmMeasurement.Side.allCases {
                 for origin in [Int64(1_100_000), 9_007_199_254_740_992] {
                     var c = ExerciseCounter(exercise: exercise, side: side)
@@ -99,7 +99,7 @@ struct ExerciseCounterTests {
     }
 
     @Test func sourceGapUsesExactAllowedBoundaryWithoutExtraTolerance() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for side in ArmMeasurement.Side.allCases {
                 for excess in [Int64(0), 1] {
                     var c = ExerciseCounter(exercise: exercise, side: side)
@@ -129,7 +129,7 @@ struct ExerciseCounterTests {
             (0,400_000,0,"invalidTimestamp"),
             (.min,.max,1_000_000,"invalidTimestamp")
         ]
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for side in ArmMeasurement.Side.allCases {
                 for (origin, badTicks, scale, reason) in faults {
                     var c = ExerciseCounter(exercise: exercise, side: side)
@@ -156,7 +156,7 @@ struct ExerciseCounterTests {
     }
 
     @Test func mixedTimescalesRetainNonBoundaryCounterCycles() {
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             for side in ArmMeasurement.Side.allCases {
                 var c = ExerciseCounter(exercise: exercise, side: side)
                 let frames: [(Int64, Int32, Double)] = [(1_100,1_000,170),(1_250_000,1_000_000,170),

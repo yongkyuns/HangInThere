@@ -22,8 +22,11 @@ struct BodyPullUpProgressView: View {
     let snapshot: BodyPullUpWorkoutSnapshot
     private var motion: BodyPullUpWorkoutSnapshot.Motion { snapshot.motion }
     private var counted: Bool { motion.event?.outcome == "imageCycle" }
+    private var paused: Bool {
+        !motion.observationUsable || (motion.phase != "idle" && motion.targetReached != nil && motion.targetProgress == nil)
+    }
     private var cue: String {
-        if !motion.observationUsable {
+        if paused {
             return motion.reason == "cameraUnavailable" ? "Keep phone still · checking camera" : "Show both arms and hands clearly"
         }
         switch motion.phase {
@@ -35,9 +38,9 @@ struct BodyPullUpProgressView: View {
     }
     var body: some View {
         RepProgressView(title: "Pull-up \(motion.cycles + (counted ? 0 : 1))", cue: counted ? "Rep counted" : cue,
-            fraction: motion.progress, resetFraction: nil, isStarting: motion.phase == "idle", isCounted: counted,
-            isPaused: !motion.observationUsable, isFinished: snapshot.endReason != nil,
-            trackedArmCount: motion.degrees.count, showsMidpoint: true, identifier: "bodyPullUpProgress")
+            fraction: motion.targetProgress ?? (motion.targetReached == nil ? targetFraction(motion.progress) : 0), isStarting: motion.phase == "idle", isCounted: counted,
+            isPaused: paused,
+            isFinished: snapshot.endReason != nil, trackedArmCount: motion.degrees.count, targetReached: motion.targetReached ?? (motion.phase == "returning"), identifier: "bodyPullUpProgress")
     }
 }
 
@@ -46,8 +49,11 @@ struct BodyDipProgressView: View {
     private var motion: BodyDipWorkoutSnapshot.Motion { snapshot.motion }
     private var starting: Bool { motion.phase == "seekingTop" }
     private var counted: Bool { motion.event?.outcome == "imageCycle" }
+    private var paused: Bool {
+        !motion.observationUsable || (!starting && motion.targetReached != nil && motion.targetProgress == nil)
+    }
     private var cue: String {
-        if !motion.observationUsable {
+        if paused {
             return motion.reason == "cameraUnavailable" ? "Keep phone still · checking camera" : "Show both arms and hands clearly"
         }
         switch motion.phase {
@@ -59,10 +65,12 @@ struct BodyDipProgressView: View {
     }
     var body: some View {
         RepProgressView(title: starting ? "Find your top support" : "Dip \(motion.cycles + (counted ? 0 : 1))",
-            cue: counted ? "Dip counted" : cue, fraction: motion.progress, resetFraction: nil,
-            isStarting: starting, isCounted: counted, isPaused: !motion.observationUsable,
+            cue: counted ? "Dip counted" : cue, fraction: motion.targetProgress ?? (motion.targetReached == nil ? targetFraction(motion.progress) : 0),
+            isStarting: starting, isCounted: counted,
+            isPaused: paused,
             isFinished: snapshot.endReason != nil, trackedArmCount: motion.elbowDegrees.compactMap { $0 }.count,
-            showsMidpoint: true, identifier: "bodyDipProgress")
+            targetReached: motion.targetReached ?? (motion.phase == "returning"),
+            outwardCue: "Lower", returnCue: "Press up", identifier: "bodyDipProgress")
     }
 }
 
@@ -80,10 +88,11 @@ struct BilateralDipProgressView: View {
     }
     var body: some View {
         RepProgressView(title: starting ? "Find your top support" : "Dip \(motion.imageCycles + (motion.event?.outcome == "imageCycle" ? 0 : 1))",
-            cue: cue, fraction: motion.progress, resetFraction: nil,
+            cue: cue, fraction: targetFraction(motion.progress),
             isStarting: starting, isCounted: motion.event?.outcome == "imageCycle",
             isPaused: paused, isFinished: snapshot.endReason != nil,
-            trackedArmCount: 2, showsMidpoint: true, identifier: "dipProgress")
+            trackedArmCount: 2, targetReached: motion.phase == "returning",
+            outwardCue: "Lower", returnCue: "Press up", identifier: "dipProgress")
     }
 }
 
@@ -117,12 +126,11 @@ struct PullUpProgressView: View {
 
     var body: some View {
         RepProgressView(title: title, cue: cue,
-            fraction: isStarting ? progress.resetFraction : progress.fraction,
-            resetFraction: isCounted ? progress.resetFraction : nil,
+            fraction: isStarting ? 0 : isCounted ? 1 - progress.resetFraction : normalizedProgress(progress.fraction / 0.9),
             isStarting: isStarting, isCounted: isCounted,
             isPaused: progress.stage == .paused, isFinished: progress.stage == .finished,
-            trackedArmCount: progress.trackedArmCount, showsMidpoint: false,
-            identifier: "pullUpProgress")
+            trackedArmCount: progress.trackedArmCount,
+            targetReached: isCounted, identifier: "pullUpProgress")
     }
 }
 
@@ -154,92 +162,106 @@ struct DipProgressView: View {
         }
     }
     var body: some View {
-        RepProgressView(title: title, cue: cue, fraction: progress.fraction, resetFraction: nil,
+        RepProgressView(title: title, cue: cue, fraction: targetFraction(progress.fraction),
             isStarting: progress.stage == .startingSupport, isCounted: progress.stage == .counted,
             isPaused: progress.stage == .paused, isFinished: progress.stage == .finished,
-            trackedArmCount: progress.trackedArmCount, showsMidpoint: true, identifier: "dipProgress")
+            trackedArmCount: progress.trackedArmCount, targetReached: [.rising, .holdingTop, .counted].contains(progress.stage),
+            outwardCue: "Lower", returnCue: "Press up", identifier: "dipProgress")
     }
 }
 
-// Kept at the video edge so the athlete and joint overlay remain visible.
+// Compatibility for older snapshots that exposed cycle progress only. Live body
+// owners now supply targetProgress directly from their current measured geometry.
+private func targetFraction(_ cycle: Double) -> Double {
+    guard cycle.isFinite else { return 0 }
+    return normalizedProgress(cycle < 0.5 ? cycle / 0.45 : (0.95 - cycle) / 0.45)
+}
+
+// A compact position gauge at the video edge, independent of completed-rep count.
 private struct RepProgressView: View {
     let title: String
     let cue: String
     let fraction: Double
-    let resetFraction: Double?
     let isStarting: Bool
     let isCounted: Bool
     let isPaused: Bool
     let isFinished: Bool
     let trackedArmCount: Int
-    let showsMidpoint: Bool
+    var targetReached = false
+    var outwardCue = "Pull up"
+    var returnCue = "Lower"
     let identifier: String
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    private var color: Color { isPaused ? .orange : (isCounted ? .green : .cyan) }
+    private var value: Double { isStarting || isPaused || isFinished ? 0 : normalizedProgress(fraction) }
+    private var reached: Bool { targetReached && !isPaused && !isStarting && !isFinished }
+    private var color: Color { isPaused ? .orange : reached || isCounted ? .mint : .cyan }
+    private var prompt: String {
+        if isPaused { return "Paused" }
+        if isStarting { return "Get ready" }
+        if isCounted { return "Counted" }
+        if isFinished { return "Finished" }
+        if reached { return returnCue }
+        return value >= 0.999 ? "Hold" : outwardCue
+    }
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                Spacer(minLength: 8)
-                if isCounted {
-                    Label("Counted", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                } else if !isStarting, !isPaused, !isFinished {
-                    Text("\(Int(fraction * 100))%")
-                        .monospacedDigit()
-                        .foregroundStyle(color)
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            Text(prompt).font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(color).fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 9) {
+                GeometryReader { geometry in
+                    ZStack(alignment: .bottom) {
+                        Capsule().fill(.white.opacity(0.16))
+                        Capsule().fill(color).frame(height: geometry.size.height * value)
+                    }
+                    .overlay(alignment: .top) {
+                        RoundedRectangle(cornerRadius: 2).fill(reached ? Color.mint : Color.white)
+                            .frame(width: 30, height: 3).offset(y: -1)
+                    }
+                }.frame(width: 20, height: 136)
+                    .animation(reduceMotion || isPaused ? nil : .linear(duration: 0.08), value: value)
+                VStack(alignment: .leading) {
+                    if reached {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.mint).font(.title3)
+                    } else { Text("Target").font(.caption.weight(.semibold)) }
+                    Spacer()
+                    Text("Start").font(.caption).foregroundStyle(.white.opacity(0.7))
+                }.frame(height: 136)
             }
-            .font(.caption.weight(.semibold))
-
-            meter(value: fraction, tint: color, height: 8, midpoint: showsMidpoint)
-
-            HStack {
-                Text(cue)
-                Spacer(minLength: 8)
-                if trackedArmCount == 1 {
-                    Text("1 arm visible")
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-            }
-            .font(.caption.weight(.medium))
-
-            if let resetFraction {
-                meter(value: resetFraction, tint: .white.opacity(0.8), height: 3)
-                    .accessibilityHidden(true)
-            }
+            if isPaused { Image(systemName: "pause.fill").foregroundStyle(.orange) }
         }
-        .foregroundStyle(.white)
-        .padding(12)
-        .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 14))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(color.opacity(0.4), lineWidth: 1)
-        }
+        .foregroundStyle(.white).padding(12).frame(width: 112, alignment: .leading)
+        .background(.black.opacity(0.66), in: RoundedRectangle(cornerRadius: 16))
         .allowsHitTesting(false)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(title)
-        .accessibilityValue(isCounted ? "Counted. \(cue)"
-            : (isStarting || isPaused ? cue : "\(cue). \(Int(fraction * 100)) percent"))
+        .accessibilityValue(isPaused || isStarting ? cue :
+            isCounted ? "Rep counted" : "\(Int(value * 100)) percent of movement target. \(reached ? returnCue : cue)\(trackedArmCount == 1 ? ". One arm visible" : "")")
         .accessibilityIdentifier(identifier)
     }
+}
 
-    private func meter(value: Double, tint: Color, height: CGFloat, midpoint: Bool = false) -> some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                Capsule().fill(.white.opacity(0.18))
-                Capsule().fill(tint)
-                    .frame(width: geometry.size.width * normalizedProgress(value))
-                if midpoint {
-                    Rectangle().fill(.black.opacity(0.7))
-                        .frame(width: 2)
-                        .offset(x: geometry.size.width / 2 - 1)
-                }
-            }
-        }
-        .frame(height: height)
-        .animation(reduceMotion ? nil : .linear(duration: 0.08), value: value)
+/// Reuses the same measured endpoint progress as the vertical rep indicator.
+/// Unknown/currently unusable geometry has no color progression.
+func poseOverlayProgress(counter: ExerciseCounter, bodyDip: BodyDipWorkoutSnapshot? = nil,
+                         bodyPullUp: BodyPullUpWorkoutSnapshot? = nil, bilateralDip: DipWorkoutSnapshot? = nil) -> Double? {
+    if let motion = bodyPullUp?.motion {
+        guard motion.observationUsable, motion.sourceAccepted else { return nil }
+        return motion.targetProgress ?? (motion.targetReached == nil ? targetFraction(motion.progress) : nil)
     }
+    if let motion = bodyDip?.motion {
+        guard motion.observationUsable, motion.sourceAccepted else { return nil }
+        return motion.targetProgress ?? (motion.targetReached == nil ? targetFraction(motion.progress) : nil)
+    }
+    if let motion = bilateralDip?.motion {
+        return motion.hasCurrentObservation ? targetFraction(motion.progress) : nil
+    }
+    if let progress = counter.pullUpProgress {
+        guard ![PullUpProgress.Stage.startingHang, .paused, .finished].contains(progress.stage) else { return nil }
+        return progress.stage == .counted ? 1 - progress.resetFraction : normalizedProgress(progress.fraction / 0.9)
+    }
+    if let progress = counter.dipProgress {
+        guard ![DipProgress.Stage.startingSupport, .paused, .finished].contains(progress.stage) else { return nil }
+        return targetFraction(progress.fraction)
+    }
+    return nil
 }

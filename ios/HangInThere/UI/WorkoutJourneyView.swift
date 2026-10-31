@@ -8,6 +8,7 @@ extension JourneyQuality {
         case "practice": .indigo
         case "limited": .secondary
         case "tracking": .cyan
+        case "logged": .blue
         default: .blue
         }
     }
@@ -19,6 +20,7 @@ extension JourneyQuality {
         case "practice": "sparkles"
         case "limited": "eye.slash"
         case "tracking": "record.circle"
+        case "logged": "square.and.pencil"
         default: "checkmark.circle"
         }
     }
@@ -47,32 +49,45 @@ struct JourneyMetric: View {
 }
 struct JourneyCoachingCard: View {
     let coaching: JourneyCoaching
+    @Environment(\.colorScheme) private var scheme
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "sparkle").font(.title3).foregroundStyle(.teal).padding(.top, 2)
-            VStack(alignment: .leading, spacing: 5) {
+            Image(systemName: "sparkle").font(.title3).foregroundStyle(HangPalette(scheme).accent).padding(.top, 2)
+            DisclosureGroup {
+                Text(coaching.message).font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
+            } label: {
                 Text(coaching.title).font(.headline)
-                Text(coaching.message).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
         }.journeyCard()
     }
 }
 private struct JourneyCard: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
     func body(content: Content) -> some View {
         content.padding(18).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.primary.opacity(0.06), lineWidth: 1))
+            .foregroundStyle(HangPalette(scheme).foreground)
+            .background(HangPalette(scheme).surface, in: RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).stroke(HangPalette(scheme).border, lineWidth: 1))
     }
 }
 extension View {
     func journeyCard() -> some View { modifier(JourneyCard()) }
 }
 
-/// A month of practice is the overview; workout, set and rep routes reveal detail.
+/// Browse workout days, then drill into individual sets and reps.
 struct WorkoutJourneyView: View {
-    private struct Query: Equatable { let day: Int64?; let overview: JourneyOverview }
+    private struct Query: Equatable { let day: WorkoutCalendarDay?; let overview: JourneyOverview; let revision: Int64? }
+    private struct CalendarQuery: Equatable { let days: [WorkoutCalendarDay]; let overview: JourneyOverview; let revision: Int64? }
     let overview: JourneyOverview
-    @State private var selectedDay: Int64?
+    var showsOverview = true
+    var revision: Int64? = nil
+    var calendarPreview: [JourneyPracticeDay]? = nil
+    @State private var selectedDay: WorkoutCalendarDay?
+    @State private var calendarDate = Date()
+    @State private var calendarMode = WorkoutCalendar.Mode.month
+    @State private var calendarActivity: [JourneyPracticeDay]?
+    @State private var calendarFailure: String?
     @State private var loadedWorkouts: [JourneyWorkoutSummary]?
     @State private var nextCursor: JourneyCursor?
     @State private var loading = false
@@ -80,48 +95,34 @@ struct WorkoutJourneyView: View {
     @State private var requestID = UUID()
     private var visibleWorkouts: [JourneyWorkoutSummary] {
         if let loadedWorkouts { return loadedWorkouts }
-        guard let selectedDay, let day = overview.days.first(where: { $0.day == selectedDay }) else { return overview.workouts }
+        guard let selectedDay else { return overview.workouts }
+        guard let day = overview.days.first(where: { $0.day == selectedDay.day }) else { return [] }
         return overview.workouts.filter { day.workoutIds.contains($0.id) }
     }
     var body: some View {
         LazyVStack(alignment: .leading, spacing: 24) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Last 28 days").font(.subheadline).foregroundStyle(.secondary)
-                HStack(alignment: .top) {
-                    JourneyMetric(value: "\(overview.completedReps)", label: "Completed reps")
-                    JourneyMetric(value: "\(overview.workoutCount)", label: "Workouts")
-                    JourneyMetric(value: "\(overview.practiceDays)", label: "Practice days")
-                }
-            }
-            JourneyCoachingCard(coaching: overview.coaching)
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("Your practice").font(.headline)
-                    Spacer()
-                    if selectedDay != nil { Button("Show all") { selectedDay = nil }.font(.caption) }
-                }
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
-                    ForEach(overview.days) { day in
-                        Button { selectedDay = selectedDay == day.day ? nil : day.day } label: {
-                            VStack(spacing: 4) {
-                                Text(dayLabel(day.day, format: "d")).font(.caption.monospacedDigit()).foregroundStyle(.primary)
-                                Image(systemName: day.quality?.symbol ?? "minus").font(.caption2)
-                            }.frame(maxWidth: .infinity, minHeight: 44)
-                                .foregroundStyle(day.quality?.color ?? .secondary.opacity(0.5))
-                                .background((day.quality?.color ?? Color.secondary).opacity(day.quality == nil ? 0.04 : 0.12), in: RoundedRectangle(cornerRadius: 9))
-                                .overlay(RoundedRectangle(cornerRadius: 9).stroke(selectedDay == day.day ? Color.primary : Color.clear, lineWidth: 1.5))
-                        }.buttonStyle(.plain)
-                            .accessibilityLabel("\(dayLabel(day.day, format: "EEEE, MMMM d")), \(day.quality?.title ?? "Rest day"), \(day.completedReps) completed reps")
+            if showsOverview {
+                WorkoutCalendarView(date: $calendarDate, mode: $calendarMode, selected: selectedDay,
+                    activity: calendarPreview ?? calendarActivity ?? overview.days,
+                    loading: calendarPreview == nil && calendarActivity == nil && calendarFailure == nil,
+                    onSelect: { day in selectedDay = day },
+                    onShowAll: { selectedDay = nil })
+                if let calendarFailure { Text(calendarFailure).font(.caption).foregroundStyle(.secondary) }
+                if selectedDay == nil {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Last 28 days").font(.subheadline).foregroundStyle(.secondary)
+                        HStack(alignment: .top) {
+                            JourneyMetric(value: "\(overview.totalReps)", label: "Reps")
+                            JourneyMetric(value: "\(overview.workoutCount)", label: "Workouts")
+                            JourneyMetric(value: "\(overview.practiceDays)", label: "Practice days")
+                        }
                     }
-                }
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 14) { legend("Consistent", .teal); legend("Varied", .orange); legend("Recorded", .blue) }
-                    HStack(spacing: 14) { legend("Practice", .indigo); legend("Limited view", .secondary) }
+                    JourneyCoachingCard(coaching: overview.coaching)
                 }
             }
-            Text(selectedDay.map { dayLabel($0, format: "MMMM d") } ?? "Recent workouts").font(.title3.bold())
-            if visibleWorkouts.isEmpty {
-                ContentUnavailableView(selectedDay == nil ? "Your first workout starts here" : "No recent workout on this day",
+            Text(selectedDay.map { $0.date.formatted(.dateTime.weekday(.wide).month(.wide).day().year()) } ?? "Recent workouts").font(.title3.bold())
+            if visibleWorkouts.isEmpty && !loading {
+                ContentUnavailableView(selectedDay == nil ? "Your first workout starts here" : "No workouts on this day",
                     systemImage: "figure.strengthtraining.traditional")
             }
             ForEach(visibleWorkouts) { workout in
@@ -134,11 +135,24 @@ struct WorkoutJourneyView: View {
             if (loadedWorkouts == nil && selectedDay == nil ? overview.nextCursor : nextCursor) != nil {
                 Button("Earlier workouts") { Task { await load(more: true) } }.disabled(loading)
             }
-        }.task(id: Query(day: selectedDay, overview: overview)) {
+        }.task(id: Query(day: selectedDay, overview: overview, revision: revision)) {
             if selectedDay == nil { requestID = UUID(); loading = false; loadedWorkouts = nil; nextCursor = overview.nextCursor; failure = nil }
             else { await load(more: false) }
         }
+        .task(id: CalendarQuery(days: calendarDays, overview: overview, revision: revision)) {
+            guard showsOverview, calendarPreview == nil else { return }
+            calendarActivity = nil; calendarFailure = nil
+            do {
+                let activity = try await WorkoutRecordStore.shared.libraryCalendarDays(calendarDays)
+                try Task.checkCancellation()
+                calendarActivity = activity
+            } catch is CancellationError { } catch { calendarFailure = "Calendar couldn't load. Pull to refresh." }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
+            calendarDate = Date(); selectedDay = nil
+        }
     }
+    private var calendarDays: [WorkoutCalendarDay] { WorkoutCalendar.days(containing: calendarDate, mode: calendarMode) }
     private func load(more: Bool) async {
         let request = UUID(); requestID = request
         if !more { loadedWorkouts = nil; nextCursor = nil; failure = nil }
@@ -147,7 +161,7 @@ struct WorkoutJourneyView: View {
         do {
             let cursor = more ? (loadedWorkouts == nil && selectedDay == nil ? overview.nextCursor : nextCursor) : nil
             let input = try cursor.map { String(decoding: try JSONEncoder().encode($0), as: UTF8.self) }
-            let json = try await WorkoutRecordStore.shared.libraryJourneyPage(day: selectedDay, cursor: input)
+            let json = try await WorkoutRecordStore.shared.libraryJourneyPage(day: selectedDay?.day, cursor: input, range: selectedDay)
             try Task.checkCancellation()
             guard requestID == request else { return }
             let page = try JSONDecoder().decode(JourneyPage.self, from: Data(json.utf8))
@@ -155,14 +169,89 @@ struct WorkoutJourneyView: View {
             nextCursor = page.nextCursor; failure = nil
         } catch is CancellationError { } catch { if requestID == request { failure = error.localizedDescription } }
     }
-    private func legend(_ title: String, _ color: Color) -> some View {
-        HStack(spacing: 4) { Circle().fill(color).frame(width: 5, height: 5); Text(title).font(.caption2).foregroundStyle(.secondary) }
+}
+struct WorkoutCalendarView: View {
+    @Binding var date: Date
+    @Binding var mode: WorkoutCalendar.Mode
+    let selected: WorkoutCalendarDay?
+    let activity: [JourneyPracticeDay]
+    var loading = false
+    var onSelect: (WorkoutCalendarDay) -> Void
+    var onShowAll: () -> Void
+    @Environment(\.colorScheme) private var scheme
+    private var calendar: Calendar { .current }
+    private var days: [WorkoutCalendarDay] { WorkoutCalendar.days(containing: date, mode: mode, calendar: calendar) }
+    private var palette: HangPalette { HangPalette(scheme) }
+    private var title: String {
+        if mode == .month { return date.formatted(.dateTime.month(.wide).year()) }
+        let formatter = DateIntervalFormatter(); formatter.dateStyle = .medium; formatter.timeStyle = .none
+        return formatter.string(from: days.first!.date, to: days.last!.date)
     }
-    private func dayLabel(_ day: Int64, format: String) -> String {
-        let formatter = DateFormatter(); formatter.timeZone = TimeZone(secondsFromGMT: 0); formatter.dateFormat = format
-        return formatter.string(from: Date(timeIntervalSince1970: Double(day) * 86400))
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Calendar").font(.headline)
+                Spacer()
+                Button("Today") { date = Date(); onSelect(WorkoutCalendar.day(containing: date)) }
+                    .font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+            }
+            Picker("Calendar view", selection: $mode) {
+                ForEach(WorkoutCalendar.Mode.allCases, id: \.rawValue) { Text($0.rawValue).tag($0) }
+            }.pickerStyle(.segmented).labelsHidden().accessibilityIdentifier("workoutCalendarMode")
+            HStack(spacing: 8) {
+                Button { move(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
+                    .accessibilityLabel("Previous \(mode.rawValue.lowercased())")
+                Text(title).font(.subheadline.bold()).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                Button { move(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
+                    .accessibilityLabel("Next \(mode.rawValue.lowercased())")
+            }.buttonStyle(.plain)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(Array(WorkoutCalendar.weekdays(calendar: calendar).enumerated()), id: \.offset) { _, name in
+                    Text(name).font(.caption.weight(.semibold)).foregroundStyle(palette.secondary)
+                        .lineLimit(1).minimumScaleFactor(0.6).frame(maxWidth: .infinity).accessibilityHidden(true)
+                }
+                ForEach(days) { day in
+                    let item = activity.first { $0.day == day.day }
+                    let hasWorkout = item?.workoutIds.isEmpty == false
+                    let isSelected = selected?.day == day.day
+                    let isToday = calendar.isDateInToday(day.date)
+                    let inMonth = mode == .week || calendar.isDate(day.date, equalTo: date, toGranularity: .month)
+                    Button {
+                        date = day.date
+                        onSelect(day)
+                    } label: {
+                        VStack(spacing: 5) {
+                            Text(day.date.formatted(.dateTime.day())).font(.callout.weight(isToday || isSelected ? .bold : .regular))
+                            Circle().fill(hasWorkout ? palette.accent : .clear).frame(width: 5, height: 5)
+                        }.frame(maxWidth: .infinity, minHeight: 46)
+                            .foregroundStyle(isToday ? palette.accent : palette.foreground)
+                            .opacity(inMonth ? 1 : 0.4)
+                            .background(isSelected ? palette.garden : palette.surface, in: RoundedRectangle(cornerRadius: 11))
+                            .overlay(RoundedRectangle(cornerRadius: 11).stroke(isSelected || isToday ? palette.accent : .clear,
+                                lineWidth: isSelected ? 2 : 1))
+                    }.buttonStyle(.plain)
+                        .accessibilityLabel(day.date.formatted(date: .complete, time: .omitted))
+                        .accessibilityValue(hasWorkout ? "\(item!.workoutIds.count) workouts, \(item!.totalReps) reps" : loading ? "Loading activity" : "No workouts")
+                        .accessibilityAddTraits(isSelected ? .isSelected : [])
+                        .accessibilityIdentifier("workoutCalendarDay-\(day.day)")
+                }
+            }.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            HStack {
+                Label { Text("Workout") } icon: { Circle().fill(palette.accent).frame(width: 5, height: 5) }
+                    .font(.caption).foregroundStyle(palette.secondary)
+                if loading { ProgressView().controlSize(.mini) }
+                Spacer()
+                if selected != nil { Button("All workouts", action: onShowAll).font(.caption.weight(.semibold)).frame(minHeight: 44) }
+            }
+        }.buttonStyle(.plain).tint(palette.accent)
+    }
+    private func move(_ amount: Int) {
+        date = WorkoutCalendar.move(date, by: amount, mode: mode, calendar: calendar)
+        onSelect(WorkoutCalendar.day(containing: date, calendar: calendar))
     }
 }
+
 struct JourneyWorkoutRow: View {
     let workout: JourneyWorkoutSummary
     var showsDisclosure = true
@@ -172,13 +261,13 @@ struct JourneyWorkoutRow: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(workout.epochMilliseconds.map { Date(timeIntervalSince1970: Double($0)/1000).formatted(date: .abbreviated, time: .shortened) } ?? "Undated workout")
                         .font(.headline)
-                    Text(workout.exercises.map(\.title).joined(separator: " · ")).font(.caption).foregroundStyle(.secondary)
+                    Text(workout.exerciseNames.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 4)
                 if showsDisclosure { Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary) }
             }
             HStack {
-                Text("\(workout.completedReps) reps · \(workout.setCount) \(workout.setCount == 1 ? "set" : "sets")").font(.subheadline.weight(.medium))
+                Text("\(workout.totalReps) reps · \(workout.setCount) \(workout.setCount == 1 ? "set" : "sets")").font(.subheadline.weight(.medium))
                 Spacer(minLength: 4)
                 JourneyQualityBadge(quality: workout.quality)
             }
@@ -187,12 +276,24 @@ struct JourneyWorkoutRow: View {
 }
 struct JourneyWorkoutView: View {
     let workout: JourneyWorkoutSummary
+    var refreshesFromStore = true
+    @State private var refreshed: JourneyWorkoutSummary?
+    @State private var unavailable = false
+    @State private var editing = false
+    private var current: JourneyWorkoutSummary { refreshed ?? workout }
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 22) {
-                JourneyWorkoutRow(workout: workout, showsDisclosure: false)
-                Text("Sets").font(.title2.bold())
-                ForEach(Array(workout.sets.enumerated()), id: \.element.id) { index, set in
+                if unavailable {
+                    ContentUnavailableView("No sets left in this workout", systemImage: "square.and.pencil")
+                } else {
+                JourneyWorkoutRow(workout: current, showsDisclosure: false)
+                if let log = current.workoutLog {
+                    WorkoutLogTable(log: log) { _ in editing = true }
+                    Button("Continue / edit workout", systemImage: "square.and.pencil") { editing = true }
+                }
+                if !current.sets.isEmpty { Text("Camera sets").font(.title2.bold()) }
+                ForEach(Array(current.sets.enumerated()), id: \.element.id) { index, set in
                     NavigationLink { JourneySetDestination(summary: set) } label: {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
@@ -208,8 +309,23 @@ struct JourneyWorkoutView: View {
                         }.journeyCard()
                     }.buttonStyle(.plain)
                 }
+                }
             }.padding()
-        }.navigationTitle("Workout")
+        }.hangTheme().navigationTitle("Workout")
+            .sheet(isPresented: $editing) {
+                if let log = current.workoutLog { NavigationStack { WorkoutLogView(initial: log, cameraSets: current.sets) } }
+            }
+            .task { await refresh() }
+            .onReceive(NotificationCenter.default.publisher(for: .workoutLogChanged).receive(on: RunLoop.main)) { _ in
+                Task { await refresh() }
+            }
+    }
+    private func refresh() async {
+        guard refreshesFromStore else { return }
+        do {
+            refreshed = try await WorkoutRecordStore.shared.workoutSummary(id: workout.id)
+            unavailable = refreshed == nil
+        } catch { } // Preserve the displayed workout on a transient read failure.
     }
 }
 private struct JourneySetDestination: View {

@@ -7,7 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.hanginthere.android.camera.PhoneAttitude
 import dev.hanginthere.android.replay.VideoFrames
-import dev.hanginthere.android.session.AnalysisPipeline
+import dev.hanginthere.android.session.ReferenceAnalysisPipeline
 import dev.hanginthere.android.vision.PoseEstimator
 import dev.hanginthere.core.*
 import kotlinx.serialization.json.*
@@ -64,7 +64,7 @@ class NativeSetupEvaluationTest {
                 check(sourceHash == fixture.getValue("sha256").jsonPrimitive.content) { "Authored fixture checksum changed" }
                 File(output, "$id-setup-observations.jsonl").bufferedWriter().use { poses ->
                     File(output, "$id-setup-timeline.jsonl").bufferedWriter().use { timeline ->
-                        AnalysisPipeline(app, WorkoutExerciseSelection.automatic, ArmMeasurement.Side.left).use { pipeline ->
+                        ReferenceAnalysisPipeline(app, WorkoutExerciseSelection.automatic, ArmMeasurement.Side.left).use { pipeline ->
                             VideoFrames(app, Uri.fromFile(file)).use { reader ->
                                 while (true) {
                                     val frame = reader.next() ?: break
@@ -98,7 +98,7 @@ class NativeSetupEvaluationTest {
                                         timeline.write(buildJsonObject {
                                             put("sourceSeconds", time); put("snapshot", json.encodeToJsonElement(WorkoutRuntime.Snapshot.serializer(), snapshot))
                                             put("apparatus", result.apparatus?.let { observation ->
-                                                json.encodeToJsonElement(AnalysisPipeline.ApparatusObservation.serializer(), observation)
+                                                json.encodeToJsonElement(ReferenceAnalysisPipeline.ApparatusObservation.serializer(), observation)
                                             } ?: JsonNull)
                                         }.toString()); timeline.newLine()
                                         lastSnapshot = snapshot; lastTime = time; frames++

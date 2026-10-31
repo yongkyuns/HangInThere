@@ -20,3 +20,11 @@ target_compile_options(hanginthere_hdr PRIVATE -Wall -Wextra -Werror)
 target_compile_definitions(hanginthere_hdr PRIVATE _FILE_OFFSET_BITS=64)
 target_link_libraries(hanginthere_hdr PRIVATE avformat avcodec avfilter avutil swscale)
 target_link_options(hanginthere_hdr PRIVATE "-Wl,-z,max-page-size=16384")
+
+# Pixel matching shares the exact Apple sampler/geometry; only bitmap ingress differs.
+find_package(OpenCV REQUIRED CONFIG)
+add_library(hanginthere_camera SHARED BackgroundCameraJni.cpp)
+target_include_directories(hanginthere_camera PRIVATE "${REPO_ROOT}/native/apple/Sources/CObservedRailPixels")
+target_link_libraries(hanginthere_camera PRIVATE OpenCV::opencv_java4)
+target_compile_options(hanginthere_camera PRIVATE -Wall -Wextra -Werror)
+target_link_options(hanginthere_camera PRIVATE "-Wl,-z,max-page-size=16384")

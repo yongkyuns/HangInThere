@@ -1,5 +1,24 @@
 import SwiftUI
 
+/// Presentation only: toggling overlays never changes tracking or recording.
+struct PoseOverlayVisibilityButton: View {
+    @Binding var isVisible: Bool
+
+    var body: some View {
+        Button { isVisible.toggle() } label: {
+            Image(systemName: isVisible ? "eye" : "eye.slash")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(isVisible ? Color.mint : Color.white)
+                .frame(width: 44, height: 44)
+                .background(.black.opacity(0.65), in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isVisible ? "Hide detection overlays" : "Show detection overlays")
+        .accessibilityValue(isVisible ? "Shown" : "Hidden")
+        .accessibilityIdentifier("toggleDetectionOverlays")
+    }
+}
+
 struct LiveReadinessChecklistView: View {
     let checklist: LiveReadinessChecklist
     let showsDetails: Bool
@@ -217,6 +236,8 @@ struct LiveWorkoutOverlay: View {
     var latestCompletedSet: WorkoutSetRecord? = nil
     var afterSetReport: WorkoutAfterSetReport? = nil
     var showsSetStarted = false
+    var preparedPullUp: BodyPullUpWorkoutSnapshot? = nil
+    var preparedDip: BodyDipWorkoutSnapshot? = nil
     var activity: WorkoutActivity? = nil
     var exerciseTitle: String? = nil
     var gripLabel: String? = nil
@@ -225,7 +246,10 @@ struct LiveWorkoutOverlay: View {
     var gripCaptureFeedback: WorkoutGripCaptureFeedback? = nil
     var readiness: LiveReadinessChecklist? = nil
     var cameraPlacement: LiveCameraPlacement? = nil
+    var coachTarget: String? = nil
+    var onCoachFeedback: (() -> Void)? = nil
     var onReadinessDetails: (() -> Void)? = nil
+    var poseOverlayVisibility: Binding<Bool>? = nil
     let cameraReady: Bool
     let status: String
     let statusSymbol: String
@@ -254,6 +278,20 @@ struct LiveWorkoutOverlay: View {
 
     private var needsCameraRepositioning: Bool { cameraPlacement?.isUsable == false }
 
+    private var showsPreparedMovement: Bool {
+        guard session.phase == .idle, let readiness else { return false }
+        if let motion = preparedPullUp?.motion {
+            return readiness.showsPreparedMovement(phase: motion.phase, usable: motion.observationUsable, sourceAccepted: motion.sourceAccepted)
+        }
+        if let motion = preparedDip?.motion {
+            return readiness.showsPreparedMovement(phase: motion.phase, usable: motion.observationUsable, sourceAccepted: motion.sourceAccepted)
+        }
+        return false
+    }
+    private var trackingFirstMovement: Bool {
+        showsPreparedMovement && (preparedPullUp?.motion.phase ?? preparedDip?.motion.phase) != "ready"
+    }
+
     var body: some View {
         GeometryReader { available in
             let landscape = available.size.width > available.size.height
@@ -262,6 +300,18 @@ struct LiveWorkoutOverlay: View {
                 Spacer(minLength: 12)
                 footer.frame(maxWidth: landscape ? 260 : 360)
                     .frame(maxWidth: .infinity, alignment: landscape ? .trailing : .center)
+            }
+            .overlay(alignment: .topTrailing) {
+                if let poseOverlayVisibility {
+                    PoseOverlayVisibilityButton(isVisible: poseOverlayVisibility).padding(.top, 76)
+                }
+            }
+            .overlay(alignment: .leading) {
+                if session.phase == .running || showsPreparedMovement, !needsArmRepositioning, !needsCameraRepositioning {
+                    ExerciseProgressView(counter: session.counter,
+                        bodyDipSnapshot: session.phase == .running ? session.bodyDipSnapshot : preparedDip,
+                        bodyPullUpSnapshot: session.phase == .running ? session.bodyPullUpSnapshot : preparedPullUp)
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -285,7 +335,7 @@ struct LiveWorkoutOverlay: View {
                     Text("SET STARTED").font(.system(size: 20, weight: .heavy, design: .rounded))
                 }
                 .foregroundStyle(.green)
-                .frame(width: 210, height: 48)
+                .frame(width: 200, height: 48)
                 .background(.black.opacity(0.8), in: Capsule())
                 .padding(.top, 84)
                 .allowsHitTesting(false)
@@ -298,7 +348,7 @@ struct LiveWorkoutOverlay: View {
                     Text("Starting in \(countdown)").font(.system(size: 22, weight: .bold, design: .rounded)).monospacedDigit()
                 }
                 .foregroundStyle(.white)
-                .frame(width: 210, height: 48)
+                .frame(width: 200, height: 48)
                 .background(.black.opacity(0.8), in: Capsule())
                 .padding(.top, 84)
                 .allowsHitTesting(false)
@@ -354,7 +404,12 @@ struct LiveWorkoutOverlay: View {
     @ViewBuilder
     private var footer: some View {
         VStack(spacing: 12) {
-            if session.phase == .idle, let readiness {
+            if trackingFirstMovement {
+                Label("First rep · tracking", systemImage: "figure.strengthtraining.functional")
+                    .font(.headline).foregroundStyle(.mint)
+                    .padding(14).background(.black.opacity(0.72), in: Capsule())
+                    .accessibilityIdentifier("trackingFirstMovement")
+            } else if session.phase == .idle, let readiness {
                 LiveReadinessChecklistView(checklist: readiness, onDetails: onReadinessDetails ?? onOptions)
             } else if needsCameraRepositioning, let cameraPlacement, session.phase != .finished {
                 LiveCameraPlacementCard(placement: cameraPlacement)
@@ -378,6 +433,7 @@ struct LiveWorkoutOverlay: View {
             }
             switch session.phase {
             case .idle:
+                if let coachTarget { Text(coachTarget).font(.subheadline.bold()).foregroundStyle(.mint).multilineTextAlignment(.center) }
                 if cameraReady, showsManualStart, readiness == nil { statusChip }
                 HStack {
                     if cameraReady {
@@ -413,8 +469,16 @@ struct LiveWorkoutOverlay: View {
                         .accessibilityIdentifier("liveHoldTime")
                 }
                 if !needsArmRepositioning && !needsCameraRepositioning {
-                    ExerciseProgressView(counter: session.counter, bodyDipSnapshot: session.bodyDipSnapshot,
-                        bodyPullUpSnapshot: session.bodyPullUpSnapshot)
+                    if let activity, activity.observedSeconds > 0 {
+                        let demand = WorkoutDemand(activity: activity)
+                        Label("\(demand.isPartial ? "Partial demand" : "Demand") · \(String(format: "%.1f", demand.units)) u\(WorkoutDemand.weight(for: activity.phases.last?.phase ?? "") == nil ? " · paused" : "")", systemImage: "bolt.heart")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded).monospacedDigit())
+                            .foregroundStyle(.mint)
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(.black.opacity(0.7), in: Capsule())
+                            .accessibilityLabel("Estimated demand \(String(format: "%.1f", demand.units)) relative units. Not measured muscle fatigue.")
+                            .accessibilityIdentifier("liveDemandEstimate")
+                    }
                 }
                 if gripLabel == nil, session.exercise == .pullUp, !needsArmRepositioning, !needsCameraRepositioning,
                    gripCaptureFeedback != nil || gripViewPrompt != nil {
@@ -443,10 +507,23 @@ struct LiveWorkoutOverlay: View {
 
     private func afterSetSummary(_ report: WorkoutAfterSetReport) -> some View {
         VStack(spacing: 6) {
-            Text("\(report.measuredCompletedReps) completed cycles · \(report.practiceAttempts) practice attempts").font(.headline).foregroundStyle(.white)
-            Text(report.observation).font(.caption).foregroundStyle(.white).multilineTextAlignment(.center)
+            Text("\(report.measuredCompletedReps) reps").font(.headline).foregroundStyle(.white)
+            if report.practiceAttempts > 0 {
+                Text("\(report.practiceAttempts) incomplete \(report.practiceAttempts == 1 ? "attempt" : "attempts")").font(.caption).foregroundStyle(.white)
+            }
+            if let onCoachFeedback {
+                if WorkoutCoachPreferences.shared.restingSetId == latestCompletedSet?.id, let until = WorkoutCoachPreferences.shared.restUntil {
+                    TimelineView(.periodic(from: .now, by: 1)) { clock in
+                        let remaining = max(0, Int(ceil(until.timeIntervalSince(clock.date))))
+                        Text(remaining > 0 ? String(format: "Rest · %d:%02d", remaining / 60, remaining % 60) : "Rest done · ready when you are")
+                            .font(.headline.monospacedDigit()).foregroundStyle(.mint)
+                    }
+                }
+                Button(action: onCoachFeedback) { Label("How did it feel?", systemImage: "sparkles").font(.subheadline.bold()).foregroundStyle(.mint) }
+                    .padding(.vertical, 6).accessibilityIdentifier("rateCompletedSet")
+            }
             if let target = report.goalTarget, let value = report.goalValue {
-                ProgressView(value: min(1, value / target)) { Text("Chosen goal: \(value.formatted()) / \(target.formatted()) \(report.goalMetric == "holdSeconds" ? "s" : "cycles")").font(.caption) }.tint(.mint)
+                ProgressView(value: min(1, value / target)) { Text("Goal: \(value.formatted()) / \(target.formatted()) \(report.goalMetric == "holdSeconds" ? "s" : "cycles")").font(.caption) }.tint(.mint)
             }
         }.padding(10).background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
     }

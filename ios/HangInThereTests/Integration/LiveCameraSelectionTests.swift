@@ -5,6 +5,40 @@ import ObservedRailPixels
 import Testing
 @testable import HangInThere
 
+@MainActor
+struct PoseOverlayPresentationTests {
+    private func pose(_ tick: Int64, x: Double = 100, missing: Bool = false,
+                      backend: String = "display-test", people: Int = 1) -> PoseResult {
+        let person = PoseObservation(landmarks: missing ? [] : [Landmark(joint: .leftElbow,
+            position: Point2D(x: x, y: 200), confidence: 0.9)])
+        return PoseResult(timestamp: .init(value: tick, timescale: 1000), imageSize: .init(width: 1000, height: 600),
+            people: Array(repeating: person, count: people), backend: backend, requestRevision: 1)
+    }
+    @Test func smoothingIsDisplayOnlyAndMissingJointsCannotBorrowOldCoordinates() throws {
+        var display = PoseOverlaySmoothing()
+        display.observe(pose(0)); let raw = pose(40, x: 120); display.observe(raw)
+        let eased = try #require(display.pose?.people.first?.landmark(.leftElbow)?.position.x)
+        #expect(eased > 100 && eased < 120)
+        #expect(raw.people.first?.landmark(.leftElbow)?.position.x == 120)
+        display.observe(pose(80, missing: true))
+        #expect(display.pose?.people.first?.landmark(.leftElbow) == nil)
+        display.observe(pose(120, x: 130))
+        #expect(display.pose?.people.first?.landmark(.leftElbow)?.position.x == 130)
+    }
+    @Test func gapsSeeksSourceChangesCrowdsAndLargeJumpsResetEasing() {
+        let resets = [pose(500, x: 120), pose(0, x: 120), pose(40, x: 120, backend: "new-source"),
+                      pose(40, x: 120, people: 2), pose(40, x: 300)]
+        for next in resets {
+            var display = PoseOverlaySmoothing(); display.observe(pose(0)); display.observe(next)
+            #expect(display.pose?.people.first?.landmark(.leftElbow)?.position == next.people.first?.landmark(.leftElbow)?.position)
+        }
+    }
+    @Test func reducedMotionUsesUnsmoothedObservations() {
+        var display = PoseOverlaySmoothing(); display.observe(pose(0)); display.observe(pose(40, x: 120), enabled: false)
+        #expect(display.pose?.people.first?.landmark(.leftElbow)?.position.x == 120)
+    }
+}
+
 @MainActor @Suite(.serialized)
 struct LiveCameraSelectionTests {
     @Test func qualifiedHangDoesNotResetLiveSetupDuringHighPullBeforeBarLock() {
@@ -314,6 +348,89 @@ struct LiveCameraSelectionTests {
         }
     }
 }
+@MainActor @Suite(.serialized)
+struct LivePushUpPracticeTests {
+    @Test func landscapeIsIsolatedFromTheExistingPortraitWorkouts() {
+        let normal = LiveCameraPreviewController(), preview = LiveCameraPreviewController(pushUpPractice: true)
+        #expect(normal.usesBodyPullUpTracking)
+        #expect(!preview.usesBodyPullUpTracking && preview.usesBodyMotionTracking)
+        preview.setPushUpOrientation(.landscapeRight)
+        #expect(preview.pushUpVideoRotationAngle == 0)
+        preview.setPushUpOrientation(.landscapeLeft)
+        #expect(preview.pushUpVideoRotationAngle == 180)
+        normal.setPushUpOrientation(.landscapeLeft)
+        #expect(normal.pushUpVideoRotationAngle == 90)
+        preview.setPushUpOrientation(.portrait)
+        #expect(preview.pushUpVideoRotationAngle == 90)
+        #expect(preview.session.inputs.isEmpty && preview.workoutHistory.isEmpty)
+    }
+
+    /// Authored body/phone/registration observations verify routing and gates,
+    /// not native estimator accuracy or physical phone performance.
+    @Test(arguments: [true, false]) func practiceUsesTheSharedCounterAndSavesOnlyCameraQualifiedPushUps(cameraAvailable: Bool) async throws {
+        let clock = BodyDipCameraClock()
+        clock.available = cameraAvailable
+        let c = LiveCameraPreviewController(sceneRegistrationWorker: BodyDipCameraRegistration(),
+            phoneMotionProvider: { clock.sample }, pushUpPractice: true)
+        let context = try #require(CGContext(data: nil, width: 1000, height: 600, bitsPerComponent: 8,
+            bytesPerRow: 4000, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.setFillColor(CGColor(gray: 0.4, alpha: 1)); context.fill(CGRect(x: 0, y: 0, width: 1000, height: 600))
+        let pixels = try #require(context.makeImage())
+        c.setPushUpOrientation(.landscapeRight)
+        c.beginEvaluationInput(); defer { c.endEvaluationInput() }
+        var ticks: Int64 = 0
+        func deliver(_ fraction: Double) async {
+            clock.seconds = Double(ticks)/1000
+            let points: [(PoseJoint, Point2D)] = [
+                (.leftShoulder, .init(x: 160, y: 180+120*fraction)),
+                (.leftElbow, .init(x: 160+100*fraction, y: 300+40*fraction)),
+                (.leftWrist, .init(x: 150, y: 420)), (.leftHip, .init(x: 420, y: 220+60*fraction)),
+                (.leftKnee, .init(x: 620, y: 240+30*fraction)), (.leftAnkle, .init(x: 820, y: 260))]
+            let pose = PoseResult(timestamp: .init(value: ticks, timescale: 1000), imageSize: .init(width: 1000, height: 600),
+                people: [.init(landmarks: points.map { .init(joint: $0.0, position: $0.1, confidence: 0.95) })],
+                backend: "authored-side-view", requestRevision: 1)
+            c.acceptEvaluationFrame(.init(image: pixels, pose: pose, processingMilliseconds: 1))
+            await c.settleEvaluationInput()
+            ticks += 40
+        }
+        for _ in 0..<100 { await deliver(0) }
+        #expect(c.dipAthleteDecision?.status == "associated")
+        #expect(c.hasBodyCameraCalibration == cameraAvailable)
+        #expect(c.pushUpSnapshot?.setStarted == false)
+        for i in 1...10 { await deliver(Double(i)/10) }
+        for _ in 0..<10 { await deliver(1) }
+        for i in (0..<10).reversed() { await deliver(Double(i)/10) }
+        for _ in 0..<10 { await deliver(0) }
+        #expect(c.pushUpSnapshot?.setCycles == (cameraAvailable ? 1 : 0))
+        #expect(c.liveSet.phase == .idle && c.completedRepCount == 0)
+        #expect(c.latestCompletedWorkout == nil && c.workoutHistory.isEmpty && c.recordingVideoSetId == nil)
+        c.finishPushUpPractice()
+        #expect(c.lastPushUpSetCount == (cameraAvailable ? 1 : 0))
+        #expect(c.pushUpSnapshot == nil)
+        #expect(c.workoutHistory.count == (cameraAvailable ? 1 : 0))
+        if cameraAvailable {
+            let record = try #require(c.latestCompletedWorkout)
+            #expect(record.exercise == .pushUp && record.completedCount == 1)
+            #expect(record.countMethod == "sideViewPushUp" && record.boundaryPolicyVersion == 9)
+            #expect(record.trackedAtEpochMilliseconds != nil && record.activity == nil)
+            #expect(record.reps.first?.right.maximum == nil)
+            #expect(WorkoutTempo(record: record).reps.count == 1)
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent("pushup-history-" + UUID().uuidString)
+            defer { try? FileManager.default.removeItem(at: root) }
+            let store = WorkoutRecordStore(directory: root)
+            try await store.enqueue(record, finalized: true)
+            try await store.flushPending()
+            let reloaded = try await WorkoutRecordStore(directory: root).recent()
+            #expect(reloaded.count == 1 && reloaded.first?.exercise == .pushUp)
+            #expect(reloaded.first?.completedCount == 1)
+            let summaryJSON = try await store.libraryJourneySet(id: record.id)
+            let summary = try JSONDecoder().decode(JourneySetSummary.self, from: Data(summaryJSON.utf8))
+            #expect(summary.exercise == .pushUp && summary.completedReps == 1)
+            #expect(summary.outwardSeconds != nil && summary.returnSeconds != nil)
+        }
+    }
+}
+
 private actor BodyDipCameraRegistration: StaticSceneRegistering {
     let available: Bool
     init(available: Bool = true) { self.available = available }

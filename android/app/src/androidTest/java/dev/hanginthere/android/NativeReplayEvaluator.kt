@@ -9,7 +9,7 @@ import dev.hanginthere.android.camera.PhoneAttitude
 import dev.hanginthere.android.replay.VideoFrames
 import dev.hanginthere.android.replay.VideoDecoderDiagnostics
 import dev.hanginthere.android.replay.HdrVideoImportException
-import dev.hanginthere.android.session.AnalysisPipeline
+import dev.hanginthere.android.session.ReferenceAnalysisPipeline
 import dev.hanginthere.android.session.ReplayOutcome
 import dev.hanginthere.android.vision.PoseEstimator
 import dev.hanginthere.core.*
@@ -17,7 +17,7 @@ import dev.hanginthere.evaluation.PublicReplayProgress
 import kotlinx.serialization.json.*
 import java.io.File
 
-/** Actual production replay evaluation; callers own provenance, output privacy and grading. */
+/** Historical apparatus-based replay diagnostic; callers own provenance, output privacy and grading. */
 internal class NativeReplayEvaluator(private val app: Context) {
     /** Frozen, source-reviewed edge diagnostic: measures poses/counter separately from Auto setup. */
     fun evaluateFixedReference(id: String, output: File, file: File, exercise: ExerciseCounter.Exercise,
@@ -102,7 +102,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         val referenceStabilitySamples = linkedMapOf<String, Int>()
         val pullUpGripFrames = linkedMapOf<String, Int>()
         fun acquisitionEvidence() = buildJsonObject {
-            put("scope", "first acquisition pass; actual production observations, not labelled pose accuracy")
+            put("scope", "first acquisition pass; historical apparatus-controller observations, not labelled pose accuracy")
             put("frames", acquisitionFrames); put("bothArmFrames", acquisitionBothArmFrames)
             put("referenceFrames", acquisitionReferenceFrames)
             put("contourSampleFrames", contourSampleFrames); put("contourEvidenceFrames", contourEvidenceFrames)
@@ -119,7 +119,7 @@ internal class NativeReplayEvaluator(private val app: Context) {
         val decoderDiagnostics = linkedSetOf<VideoDecoderDiagnostics>()
         val elapsedStart = System.nanoTime()
         try {
-            AnalysisPipeline(app, WorkoutExerciseSelection.automatic, side).use { pipeline ->
+            ReferenceAnalysisPipeline(app, WorkoutExerciseSelection.automatic, side).use { pipeline ->
                 progress.captureOnExit(pipeline.runtime, { countingPassStarted }) {
                     fun pass(acquire: Boolean): Boolean {
                         progress.beginPass()

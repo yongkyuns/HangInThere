@@ -1,4 +1,5 @@
 import Foundation
+import WorkoutCore
 
 // Display guidance only. Never supplies joints, pauses the counter or changes
 // rep validity. Use source time so repeated frames cannot earn a warning.
@@ -156,17 +157,11 @@ struct LiveCameraPlacement: Equatable, Sendable {
     }
 
     init(gravity: SIMD3<Double>?) {
-        guard let gravity, gravity.x.isFinite, gravity.y.isFinite, gravity.z.isFinite else {
-            self.init(); return
-        }
-        let magnitude = sqrt(gravity.x * gravity.x + gravity.y * gravity.y + gravity.z * gravity.z)
-        guard (0.8...1.2).contains(magnitude) else { self.init(); return }
-        // Both camera optical axes are parallel to device Z; magnitude handles
-        // front/rear cameras and portrait/landscape without an attitude baseline.
-        self.init(tiltDegrees: asin(min(1, abs(gravity.z) / magnitude)) * 180 / .pi)
+        guard let gravity else { self.init(tiltDegrees: nil); return }
+        self.init(tiltDegrees: WorkoutCameraPlacementBridge().tiltDegrees(x: gravity.x, y: gravity.y, z: gravity.z)?.doubleValue)
     }
 
-    var isUsable: Bool { tiltDegrees.map { $0 <= Self.maximumTiltDegrees } ?? false }
+    var isUsable: Bool { tiltDegrees.map { WorkoutCameraPlacementBridge().isUsable(tiltDegrees: $0) } ?? false }
     var title: String { tiltDegrees == nil ? "CHECK PHONE ANGLE" : isUsable ? "PHONE PLACEMENT" : "LEVEL YOUR PHONE" }
     var instruction: String { "Place at chest / shoulder height. Aim level from the front or rear." }
     var diagnostic: String {
@@ -242,6 +237,11 @@ struct LiveReadinessChecklist: Equatable, Sendable {
     let checks: [Check]
     let summary: String
     let allPassed: Bool
+    let movementEnvironmentReady: Bool
+    func showsPreparedMovement(phase: String, usable: Bool, sourceAccepted: Bool) -> Bool {
+        movementEnvironmentReady && usable && sourceAccepted &&
+            (phase == "ready" ? allPassed : ["outbound", "returning"].contains(phase))
+    }
     let actionTitle: String
     let actionDetail: String
 
@@ -312,6 +312,9 @@ struct LiveReadinessChecklist: Equatable, Sendable {
         } ?? []
         checks = [feed] + placementChecks + [arms, identity, rails, phone, background, posture]
         allPassed = checks.allSatisfy { $0.status == .passed } && !paused && !setupBusy
+        // Once the source has witnessed a starting posture, its first excursion
+        // must remain visible while it leaves that posture. Every other gate stays.
+        movementEnvironmentReady = checks.filter { $0.id != "pose" }.allSatisfy { $0.status == .passed } && !paused && !setupBusy
         if !current { summary = feed.detail }
         else if paused { summary = "Automatic start paused while workout settings are open." }
         else if setupBusy { summary = "Automatic start is waiting for setup or recording preparation to finish." }

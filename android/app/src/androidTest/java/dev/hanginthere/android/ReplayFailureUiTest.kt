@@ -1,6 +1,9 @@
 package dev.hanginthere.android
 
 import android.net.Uri
+import androidx.activity.compose.setContent
+import dev.hanginthere.android.ui.HangTheme
+import dev.hanginthere.android.ui.WorkoutScreen
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -30,6 +33,7 @@ class ReplayFailureUiTest {
         val video = File(app.cacheDir, "no-person-ui.mp4")
         instrumentation.context.assets.open("generated/no-person.mp4").use { input -> video.outputStream().use { input.copyTo(it) } }
         val model = ViewModelProvider(compose.activity)[WorkoutViewModel::class.java]
+        compose.runOnUiThread { compose.activity.setContent { HangTheme { WorkoutScreen(model,allowCamera=false) } } }
         try {
             compose.runOnUiThread { model.replay(Uri.fromFile(video)) }
             compose.waitUntil(120_000) { model.state.value.finished }
@@ -52,32 +56,43 @@ class ReplayFailureUiTest {
         } finally { video.delete() }
     }
 
+    @Test fun homeLiveEntryDiscardsInterruptedReplayAndStaleResults() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val model = ViewModelProvider(compose.activity)[WorkoutViewModel::class.java]
+        compose.runOnUiThread {
+            model.replay(Uri.EMPTY)
+            model.suspendForBackground()
+            assertTrue(model.state.value.replay)
+            assertTrue(model.state.value.interrupted)
+            model.prepareLive(WorkoutExerciseSelection.dip)
+        }
+        model.inferenceExecutor.submit {}.get(30, TimeUnit.SECONDS)
+        instrumentation.waitForIdleSync()
+        val ready = model.state.value
+        assertFalse(ready.replay)
+        assertFalse(ready.interrupted)
+        assertFalse(ready.finished)
+        assertEquals(WorkoutExerciseSelection.dip, ready.selection)
+        assertNull(ready.result)
+    }
+
     @Test fun terminalReplayIgnoresManualSetupWithoutLosingRetry() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val app = instrumentation.targetContext
         val video = File(app.cacheDir, "terminal-manual-ui.mp4")
         instrumentation.context.assets.open("generated/no-person.mp4").use { input -> video.outputStream().use { input.copyTo(it) } }
         val model = ViewModelProvider(compose.activity)[WorkoutViewModel::class.java]
+        compose.runOnUiThread { compose.activity.setContent { HangTheme { WorkoutScreen(model,allowCamera=false) } } }
         try {
-            // Auto has no resolved exercise and would reject this edge; explicit
-            // pull-up permits manual confirmation. Neither may restart a finished
-            // replay implicitly or mutate its terminal result.
+            // Neither exercise selection may restart a terminal replay from a stale tap.
             for (selection in listOf(WorkoutExerciseSelection.automatic, WorkoutExerciseSelection.pullUp)) {
                 compose.runOnUiThread { model.replay(Uri.fromFile(video), selection) }
                 compose.waitUntil(120_000) { model.state.value.finished }
                 val ended = model.state.value
                 assertEquals(ReplayOutcome.Kind.setupUnavailable, ended.replayOutcome)
                 val result = requireNotNull(ended.result)
-                val pose = result.pose
                 assertNull(result.snapshot.referenceEdge)
-                val a = Point2D(pose.imageSize.width * .2, pose.imageSize.height * .2)
-                val b = Point2D(pose.imageSize.width * .8, pose.imageSize.height * .2)
-                val bar = ConfirmedBar(ConfirmedBar.Role.pullUpGrip, ConfirmedBar.Method.manualEdge,
-                    BarSegment(a, b), imageSize = pose.imageSize, sourceTime = pose.timestamp)
-                val policy = WorkoutRuntime(selection)
-                assertEquals(selection == WorkoutExerciseSelection.pullUp,
-                    policy.confirmManualBar(bar, requireNotNull(PhoneOrientationStability.Quaternion.create(0.0, 0.0, 0.0, 1.0)), pose.timestamp.seconds))
-                compose.runOnUiThread { model.confirmManual(a, b) }
+                compose.runOnUiThread { model.startManually() }
                 model.inferenceExecutor.submit {}.get(30, TimeUnit.SECONDS)
                 instrumentation.waitForIdleSync()
                 assertEquals(ended, model.state.value)

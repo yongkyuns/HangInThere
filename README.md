@@ -43,15 +43,33 @@ full-set accuracy and sustained physical-device qualification remain open; see
 - Shows a compact count/progress overlay. Skeleton and reference geometry are
   off by default and available through Diagnostics.
 - Saves silent local video from the first completed rep to the last return,
-  excluding setup/release/rest outside the set. New clips retain aligned,
-  tappable start/turnaround/return keyframes. Clips and thumbnails share bounded
-  local retention; recording failures never block counting.
+  excluding setup/release/rest outside the set. Saved video fits within
+  480 × 854 (either orientation), without reducing detection input resolution.
+  New clips retain aligned, tappable start/turnaround/return keyframes.
+  By default, the newest 20 clips share a 200 MB budget and expire after 30 days.
+  Foreground/library access removes expired clips and thumbnails while keeping
+  workout history; recording failures never block counting.
 - Groups history by date and exercise, with rep phase-time bars, comparable-rep
   tempo changes, optional grip/width metadata and original measurement review.
   Muscle illustrations describe the exercise; they do not measure activation.
   Tempo change is not a physiological fatigue or calorie measurement.
+- Logs any named exercise with editable reps and lb/kg loads, recent-value
+  prefill and a large tap counter. Logged and camera sets share workout history
+  and the calendar while retaining their source. Timed tap sets record rest;
+  typed results leave it unknown. Logged results are included in local backups.
+- Estimates relative demand live and plots it in set analysis using observed
+  phase time: pull/press/bent-arm hold ×1, lowering ×0.5, hang/support ×0.25.
+  Each set starts at zero; tracking gaps receive no load or recovery credit.
+  A dashed 30-second rest preview uses `D(t) = D(0) × exp(-t / 60)`.
+  Weights and recovery are prototype assumptions, not personalized muscle
+  capacity, fatigue resistance or calorie measurements. Partial/old phase
+  histories are marked or left without an estimate. No model training is used.
 - Follows the system light/dark appearance with background-free exercise artwork.
   Imported-video review remains local and retains the pixels used for analysis.
+- Offers optional, one-screen coaching setup, an editable Today workout and
+  movable practice days. Recent comparable sets and one-tap effort feedback
+  shape suggestions; a local rest timer continues after closing feedback.
+  See [coaching rules and limits](docs/workout/COACHING.md).
 
 Only observed completed returns enter completed-rep analytics. User-reported
 corrections and practice attempts remain separate. Counting does not establish

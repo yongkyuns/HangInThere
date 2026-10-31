@@ -1,4 +1,19 @@
 import Foundation
+import WorkoutCore
+
+// Athlete-provided setup, shared by review and coaching. Never inferred from demand.
+struct LibraryContext: Codable, Equatable, Sendable {
+    var intent = "ordinary"
+    var assistance = "unknown"
+    var assistanceLabel = ""
+    var addedLoadKg: Double?
+    var equipment = ""
+    var cameraView = ""
+    var variation = ""
+    var effort: Int?
+    var readiness = "unrecorded"
+    var recoveryNote = ""
+}
 
 // DTOs mirror the versioned shared contract. Measurements and decisions are
 // computed by WorkoutCore, never by these native presentation/storage models.
@@ -157,4 +172,64 @@ struct DipWorkoutSnapshot: Codable, Equatable, Sendable {
     let endReason: String?
     // Optional for cached snapshots from before shared observation guidance.
     var observationGuidance: String? = nil
+}
+
+// Athlete-entered results; these never stand in for camera measurements.
+struct LoggedWorkoutSet: Codable, Equatable, Identifiable, Sendable {
+    var id = UUID().uuidString
+    var exercise: String
+    var reps: Int
+    var load: Double?
+    var unit = "lb"
+    var method = "entry"
+    var startedAtEpochMilliseconds: Int64?
+    var endedAtEpochMilliseconds: Int64?
+    var loadLabel: String { load.map { "\($0.formatted(.number.precision(.fractionLength(0...2)))) \(unit)" } ?? "—" }
+}
+struct LoggedWorkout: Codable, Equatable, Identifiable, Sendable {
+    var id = UUID().uuidString
+    var epochMilliseconds = Int64(Date().timeIntervalSince1970 * 1000)
+    var sets: [LoggedWorkoutSet] = []
+    var updatedAtEpochMilliseconds = Int64(Date().timeIntervalSince1970 * 1000)
+    var date: Date { Date(timeIntervalSince1970: Double(epochMilliseconds) / 1000) }
+    var reps: Int { sets.reduce(0) { $0 + $1.reps } }
+    var exercises: [String] { sets.reduce(into: []) { if !$0.contains($1.exercise) { $0.append($1.exercise) } } }
+    static func exerciseKey(_ name: String) -> String { WorkoutLogBridge().exerciseKey(name: name) }
+    static func cameraExercise(_ name: String) -> ExerciseCounter.Exercise? {
+        WorkoutLogBridge().cameraExercise(name: name).flatMap(ExerciseCounter.Exercise.init(rawValue:))
+    }
+    static func lastSet(for exercise: String, history: [LoggedWorkout]) -> LoggedWorkoutSet? {
+        let result = try! WorkoutLogBridge().lastSetJson(exercise: exercise, historyJson: json(history))
+        return result.map { try! JSONDecoder().decode(LoggedWorkoutSet.self, from: Data($0.utf8)) }
+    }
+    func prefill(for exercise: String, history: [LoggedWorkout]) -> LoggedWorkoutSet? {
+        let result = try! WorkoutLogBridge().prefillJson(exercise: exercise, currentJson: Self.json(self), historyJson: Self.json(history))
+        return result.map { try! JSONDecoder().decode(LoggedWorkoutSet.self, from: Data($0.utf8)) }
+    }
+    func restBefore(_ set: LoggedWorkoutSet) -> Double? {
+        try! WorkoutLogBridge().restBefore(logJson: Self.json(self), setId: set.id)?.doubleValue
+    }
+    static func validSet(exercise: String, reps: Int?, load: Double?, unit: String) -> Bool {
+        WorkoutLogBridge().validSet(exercise: exercise, reps: reps.flatMap(Int32.init(exactly:)).map { KotlinInt(int: $0) },
+            load: load.map { KotlinDouble(double: $0) }, unit: unit)
+    }
+    static func convertLoad(_ value: Double, from: String, to: String) -> Double {
+        try! WorkoutLogBridge().convertLoad(value: value, from: from, to: to)
+    }
+    static var suggestedExercises: [String] { WorkoutLogBridge().suggestedExercises() }
+    static func progress(history: [LoggedWorkout], exercise: String) -> LoggedWorkoutProgress {
+        let result = try! WorkoutLogBridge().progressJson(historyJson: json(history), exercise: exercise)
+        return try! JSONDecoder().decode(LoggedWorkoutProgress.self, from: Data(result.utf8))
+    }
+    private static func json<T: Encodable>(_ value: T) -> String { String(decoding: try! JSONEncoder().encode(value), as: UTF8.self) }
+}
+struct LoggedWorkoutProgress: Decodable, Sendable {
+    struct Point: Decodable, Identifiable, Sendable { let id: String; let epochMilliseconds: Int64; let reps: Int
+        var date: Date { Date(timeIntervalSince1970: Double(epochMilliseconds) / 1000) }
+    }
+    let setCount: Int
+    let reps: Int
+    let bestReps: Int
+    let workouts: [Point]
+    let recentSets: [LoggedWorkoutSet]
 }

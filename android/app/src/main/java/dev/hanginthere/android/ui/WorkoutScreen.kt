@@ -18,7 +18,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,7 +27,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -43,18 +41,19 @@ import dev.hanginthere.core.*
 
 @androidx.annotation.OptIn(markerClass = [ExperimentalCamera2Interop::class])
 @Composable
-fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
+fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true,
+    initialSelection: WorkoutExerciseSelection = WorkoutExerciseSelection.automatic,
+    onBack: (() -> Unit)? = null,
+) {
     val state by model.state.collectAsStateWithLifecycle()
     val context = LocalContext.current; val owner = LocalLifecycleOwner.current
     var front by remember { mutableStateOf(false) }
     var settings by remember { mutableStateOf(false) }
     var analysis by remember { mutableStateOf(false) }
     var licenses by remember { mutableStateOf(false) }
-    var selection by remember { mutableStateOf(WorkoutExerciseSelection.automatic) }
+    var selection by remember { mutableStateOf(initialSelection) }
     var side by remember { mutableStateOf(ArmMeasurement.Side.left) }
     var resumed by remember { mutableStateOf(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
-    var manual by remember { mutableStateOf(false) }
-    var firstTap by remember { mutableStateOf<Point2D?>(null) }
     val completedSet = state.result?.snapshot?.latestCompletedSet
     var afterSetReport by remember(completedSet?.id) { mutableStateOf(completedSet?.let { WorkoutFeedback.summary(it) }) }
     var completedDeleted by remember(completedSet?.id) { mutableStateOf(false) }
@@ -108,24 +107,15 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
     LaunchedEffect(state.replay, resumed) {
         while (!state.replay && resumed) { delay(100); model.tick(SystemClock.elapsedRealtimeNanos() / 1e9) }
     }
-    LaunchedEffect(settings, manual, licenses) { model.pause(settings || manual || licenses) }
+    LaunchedEffect(settings, licenses) { model.pause(settings || licenses) }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         state.bitmap?.let { Image(it.asImageBitmap(), contentDescription = "Workout video", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
         val pose = state.result?.pose
-        Canvas(Modifier.fillMaxSize().pointerInput(manual, pose?.imageSize) {
-            if (manual && pose != null) detectTapGestures { offset ->
-                val transform = VideoTransform(pose.imageSize.width, pose.imageSize.height, size.width.toDouble(), size.height.toDouble())
-                val point = transform.image(Point2D(offset.x.toDouble(), offset.y.toDouble()))
-                if (point.x in 0.0..pose.imageSize.width && point.y in 0.0..pose.imageSize.height) {
-                    val first = firstTap
-                    if (first == null) firstTap = point else { model.confirmManual(first, point); firstTap = null; manual = false }
-                }
-            }
-        }) {
+        Canvas(Modifier.fillMaxSize()) {
             if (pose != null) {
                 val transform = VideoTransform(pose.imageSize.width, pose.imageSize.height, size.width.toDouble(), size.height.toDouble())
                 fun screen(point: Point2D): Offset { val p = transform.display(point); return Offset(p.x.toFloat(), p.y.toFloat()) }
-                if (pose.people.size == 1) {
+                if (settings && pose.people.size == 1) {
                     val person = pose.people.single()
                     val limbs = listOf(PoseJoint.leftShoulder to PoseJoint.leftElbow, PoseJoint.leftElbow to PoseJoint.leftWrist,
                         PoseJoint.rightShoulder to PoseJoint.rightElbow, PoseJoint.rightElbow to PoseJoint.rightWrist,
@@ -139,8 +129,6 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                     }
                     person.landmarks.filter { it.isVisible() }.forEach { drawCircle(Color.White, 2.dp.toPx(), screen(it.position)) }
                 }
-                state.result?.snapshot?.referenceEdge?.let { drawLine(Color(0xFFFFD54F), screen(it.a), screen(it.b), 3.dp.toPx(), StrokeCap.Round) }
-                firstTap?.let { drawCircle(Color.Yellow, 5.dp.toPx(), screen(it)) }
             }
         }
         Column(Modifier.align(Alignment.TopStart).statusBarsPadding().padding(16.dp).background(Color.Black.copy(alpha = 0.5f))) {
@@ -154,6 +142,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             if (!completedDeleted && completedSet != null && state.result?.snapshot?.phase in listOf(LiveSetSession.Phase.idle, LiveSetSession.Phase.finished)) Text("Completed cycles", Modifier.padding(horizontal = 12.dp), color = Color.White)
         }
         Column(Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(12.dp)) {
+            if (onBack != null) FilledTonalButton(onClick = onBack) { Text("Back") }
             FilledTonalButton(onClick = { analysis = true }) { Text("Analysis") }
             FilledTonalButton(onClick = { settings = true }) { Text("Settings") }
             if (allowCamera && !state.replay) FilledTonalButton(onClick = { front = !front }, enabled = state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text("Flip") }
@@ -167,10 +156,13 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
             val running = snapshot?.phase == LiveSetSession.Phase.running
             val message = when {
                 state.error != null -> state.error!!
-                manual -> if (firstTap == null) "Tap one end of the visible edge" else "Tap the other end"
-                state.finished -> "Video evaluated · ${snapshot?.observedMovements ?: 0} movements"
+                state.finished -> "Video evaluated · ${state.result?.history?.sumOf { it.completedCount } ?: 0} reps"
                 running -> state.result?.cue.orEmpty()
-                snapshot?.setupIssue != null -> snapshot.framingHint ?: setupText(snapshot.setupIssue!!)
+                snapshot?.setupIssue != null -> when (snapshot.setupIssue) {
+                    "cameraPlacementNeeded" -> "Phone at chest height · aim level"
+                    "sceneStabilityNeeded", "phoneStabilityNeeded" -> "Keep the phone still"
+                    else -> state.result?.cue ?: "Show shoulders, elbows and wrists"
+                }
                 else -> "Hold a hang or top support · show both hands"
             }
             if(running && !state.interrupted) state.result?.currentSet?.grip?.latest?.let { grip ->
@@ -188,7 +180,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
                 Text(String.format(java.util.Locale.ROOT,"%s · %.1f s",span.phase.title,span.observedSeconds),
                     Modifier.background(Color.Black.copy(alpha=.7f)).padding(8.dp),color=Color(0xFF80CBC4))
             }
-            Text(message, Modifier.background(Color.Black.copy(alpha = 0.6f)).padding(10.dp), color = Color.White)
+            Text(message, Modifier.background(Color.Black.copy(alpha = 0.7f)).padding(10.dp), color = if (snapshot?.setupIssue != null) Color(0xFFFFD180) else Color.White, style = MaterialTheme.typography.titleLarge)
             WorkoutActions(state, onFinish = model::finishSet, onNext = model::nextSet,
                 onRestart = { model.startLive(selection, side) })
             if (!running && !completedDeleted) afterSetReport?.let { report ->
@@ -206,11 +198,7 @@ fun WorkoutScreen(model: WorkoutViewModel, allowCamera: Boolean = true) {
         Column {
             Text("Exercise")
             Row { listOf(WorkoutExerciseSelection.automatic to "Auto", WorkoutExerciseSelection.pullUp to "Pull-up", WorkoutExerciseSelection.dip to "Dip").forEach { (choice, title) -> TextButton(onClick = { selection = choice; if (state.replay) model.changeReplaySelection(choice, side) }, enabled = state.replay || state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text(if (selection == choice) "✓ $title" else title) } } }
-            Text("Reference grip")
-            Row { ArmMeasurement.Side.entries.forEach { choice -> TextButton(onClick = { side = choice; if (state.replay) model.changeReplaySelection(selection, choice) }, enabled = state.replay || state.result?.snapshot?.phase != LiveSetSession.Phase.running) { Text(if (side == choice) "✓ ${choice.name}" else choice.name) } } }
-            TextButton(onClick = { settings = false; firstTap = null; manual = true },
-                enabled = !state.replay || !state.finished) { Text("Set visible reference edge") }
-            if (state.replay && state.finished) Text("Evaluate again to set a reference during playback.")
+            Text("Phone at chest/shoulder height, aimed level. Face the camera or turn your back; keep both arms visible.")
             TextButton(onClick = { settings = false; videoPicker.launch(arrayOf("video/*")) }) { Text("Evaluate a video") }
             if (state.replay) TextButton(onClick = { settings = false; model.startLive(selection, side) }) { Text("Return to live camera") }
             Text("Counts are observed movements. Depth and lockout form are not yet verified.")

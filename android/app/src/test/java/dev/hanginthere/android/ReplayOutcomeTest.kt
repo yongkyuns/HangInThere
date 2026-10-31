@@ -58,7 +58,7 @@ class ReplayOutcomeTest {
     @Test fun unresolvedIdentityExplainsStartingPoseWithoutGuessingCameraMovement() {
         val result = ReplayOutcome.atEnd(0, false, true, "exerciseIdentityNeeded", null)
         assertEquals(ReplayOutcome.Kind.setupUnavailable, result.kind)
-        assertEquals("Video not evaluated · hold a clear hang or top support with both arms and hands visible", result.message)
+        assertEquals("Video not evaluated · keep both arms visible and your hands steady at the support", result.message)
         assertFalse(result.message!!.contains("camera view changed"))
     }
     @Test fun sceneInterruptionIsNotFullSourceSuccess() {

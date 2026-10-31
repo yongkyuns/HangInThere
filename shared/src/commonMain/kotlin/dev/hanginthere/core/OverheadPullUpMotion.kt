@@ -24,7 +24,8 @@ class OverheadPullUpMotion {
         val progress: Double = 0.0, val countMethod: String = OverheadPullUpMotion.countMethod, val policyVersion: Int = OverheadPullUpMotion.policyVersion,
         val supportWitnessSlots: List<Int> = emptyList(), val peakWitnessSlots: List<Int> = emptyList(),
         val revokedArmSlots: List<Int> = emptyList(), val verticalSupportDrift: List<Double> = emptyList(),
-        val events: List<Event> = emptyList())
+        val events: List<Event> = emptyList(),
+        val targetProgress: Double? = null, val targetReached: Boolean = false)
     internal data class Arm(val shoulder: Point2D, val wrist: Point2D, val degrees: Double, val length: Double) {
         val height get() = shoulder.y - wrist.y
     }
@@ -65,6 +66,22 @@ class OverheadPullUpMotion {
     private var turnSince: PresentationTime? = null
     private var lastMeasured: Sample? = null
     val hasObservedExcursion get() = peak != null || phase == Phase.returning || cycles > 0
+
+    // Current movement toward raised()'s gates, independent of cycle progress.
+    // Reversing the actual pose lowers this value even before reversal dwell.
+    private fun targetProgress(current: Sample?): Double? {
+        val now = current ?: return null
+        val base = lower ?: return null
+        val fixed = support ?: return null
+        if (now.arms.indices.none { i -> i !in revokedArmSlots &&
+                abs(now.arms[i].wrist.y - fixed.arms[i].wrist.y) <= .12 * fixed.arms[i].length }) return null
+        return now.arms.indices.minOf { i ->
+            val required = max(.18 * fixed.arms[i].length, .02 * min(now.size.width, now.size.height))
+            minOf((base.arms[i].height - now.arms[i].height) / required,
+                (base.arms[i].shoulder.y - now.arms[i].shoulder.y) / required,
+                (base.arms[i].degrees - now.arms[i].degrees) / 15)
+        }.coerceIn(0.0, 1.0)
+    }
 
     private fun clear() {
         lowerRecovery = null
@@ -126,7 +143,8 @@ class OverheadPullUpMotion {
                 peakWitnessSlots=peakWitnesses.sorted(), revokedArmSlots=revokedArmSlots.sorted(),
                 verticalSupportDrift=support?.let { fixed -> sample?.arms?.mapIndexed { i,a ->
                     abs(a.wrist.y-fixed.arms[i].wrist.y)/fixed.arms[i].length
-                } } ?: emptyList(),events=confirmedEvents.ifEmpty { listOfNotNull(event) })
+                } } ?: emptyList(),events=confirmedEvents.ifEmpty { listOfNotNull(event) },
+                targetProgress = if (usable) targetProgress(sample) else null, targetReached = usable && peak != null)
         }
         if (!time.seconds.isFinite() || time.seconds < 0 ||
             previous?.let { compare(time, it, zero) != 1 } == true) {

@@ -150,7 +150,7 @@ class WorkoutPhaseDirectionTests {
     }
 
     @Test fun phaseStabilizationCannotChangeRawRepMeasurementsOrEligibility() {
-        for (exercise in ExerciseCounter.Exercise.entries) {
+        for (exercise in ExerciseCounter.barExercises) {
             val session = LiveSetSession(); session.start(exercise, ArmMeasurement.Side.left)
             for ((time, angle) in listOf(0.0 to 170.0, .15 to 170.0, .3 to 80.0, .45 to 80.0, .6 to 170.0, .75 to 170.0))
                 session.consume(CounterFixtures.bilateral(time, angle, angle, exercise = exercise), CounterFixtures.edge)

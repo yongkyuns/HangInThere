@@ -132,11 +132,17 @@ final class CountedSetVideoRecorder: @unchecked Sendable {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             let url = directory.appendingPathComponent(UUID().uuidString).appendingPathExtension("mov")
             let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
-            let dimensions = CMVideoFormatDescriptionGetDimensions(format)
+            // Scale only the saved movie; pose/grip inference keeps its camera input.
+            let source = CMVideoFormatDescriptionGetDimensions(format)
+            let scale = min(1, 480 / Double(min(source.width, source.height)),
+                            854 / Double(max(source.width, source.height)))
+            let width = max(2, Int((Double(source.width) * scale / 2).rounded()) * 2)
+            let height = max(2, Int((Double(source.height) * scale / 2).rounded()) * 2)
             let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
                 AVVideoCodecKey: AVVideoCodecType.h264,
-                AVVideoWidthKey: Int(dimensions.width), AVVideoHeightKey: Int(dimensions.height),
-                AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 1_400_000, AVVideoMaxKeyFrameIntervalKey: 30]
+                AVVideoWidthKey: width, AVVideoHeightKey: height,
+                AVVideoScalingModeKey: AVVideoScalingModeResizeAspect,
+                AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 600_000, AVVideoMaxKeyFrameIntervalKey: 30]
             ])
             input.expectsMediaDataInRealTime = true
             guard writer.canAdd(input) else { throw CountedSetVideoError.writingFailed }

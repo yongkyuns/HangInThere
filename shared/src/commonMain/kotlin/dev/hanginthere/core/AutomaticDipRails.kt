@@ -301,6 +301,7 @@ class AutomaticApparatusReference {
     }
     companion object {
         fun search(pose:PoseResult,exercise:ExerciseCounter.Exercise):Search?=when(exercise){
+            ExerciseCounter.Exercise.pushUp -> null
             ExerciseCounter.Exercise.pullUp -> AutomaticPullUpBar.grip(pose)?.let{Search(listOf(it.left,it.right),listOf(it.region),gripSides=ArmMeasurement.Side.entries)}
             ExerciseCounter.Exercise.dip -> AutomaticDipRails.apparatusGrip(pose)?.let{
                 Search(it.hands,it.regions+listOfNotNull(AutomaticDipBar.region(it,pose.imageSize)),AutomaticDipRails.minimumPairLength(pose.imageSize),ArmMeasurement.Side.entries)

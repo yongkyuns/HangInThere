@@ -10,8 +10,8 @@ final class WorkoutLibraryStoreTests: XCTestCase {
             activity: WorkoutActivity(phases: [], totals: [WorkoutPhaseTotal(phase: "hang", observedSeconds: 8)],
                 longestHangSeconds: 8, longestSupportSeconds: 0, observedSeconds: 8, elapsedSeconds: 8, timelineTruncated: false, metricVersion: 2))
     }
-    private func command(_ values: [String: Any]) throws -> String {
-        var values = values; values["atEpochMilliseconds"] = 200_000
+    private func command(_ values: [String: Any], at: Int64 = 200_000) throws -> String {
+        var values = values; values["atEpochMilliseconds"] = at
         return String(decoding: try JSONSerialization.data(withJSONObject: values), as: UTF8.self)
     }
     func testJourneyDrillUsesSharedCorrectionsAndNullableDayBridge() async throws {
@@ -199,6 +199,59 @@ final class WorkoutLibraryStoreTests: XCTestCase {
         XCTAssertEqual(recoveredDraft?.endReason, "recoveredInterruption")
         XCTAssertEqual(recoveredDraft?.activity?.longestHangSeconds, 8)
         XCTAssertFalse(FileManager.default.fileExists(atPath: media.appendingPathComponent("clip.mov").path))
+    }
+    func testCameraSetJoinsLoggedWorkoutAndRetainsLoadAndExistingCorrections() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = WorkoutRecordStore(directory: root); let original = record()
+        try await store.save(original)
+        _ = try await store.libraryCommand(command(["action": "review", "setId": original.id,
+            "correction": ["context": ["equipment": "straight bar", "variation": "chin-up"]]]))
+        let log = LoggedWorkout(sets: [.init(exercise: "EZ curls", reps: 7, load: 75.9)])
+        try await store.linkCameraSet(original, to: log, load: 10, unit: "lb")
+        let result = try await store.workoutSummary(id: log.id)
+        let summary = try XCTUnwrap(result)
+        XCTAssertEqual(summary.setCount, 2); XCTAssertEqual(summary.totalReps, 7)
+        XCTAssertEqual(summary.sets.count, 1)
+        let text = try await store.libraryCorrection(id: original.id)
+        let correction = try JSONSerialization.jsonObject(with: Data(try XCTUnwrap(text).utf8)) as! [String: Any]
+        let context = correction["context"] as! [String: Any]
+        XCTAssertEqual(correction["workoutId"] as? String, log.id)
+        XCTAssertEqual(context["equipment"] as? String, "straight bar")
+        XCTAssertEqual(context["variation"] as? String, "chin-up")
+        XCTAssertEqual(try XCTUnwrap(context["addedLoadKg"] as? Double), 4.5359237, accuracy: 0.000001)
+    }
+    func testForegroundMaintenanceExpiresCachedVideoAndThumbnailsButKeepsHistoryAndPolicy() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = WorkoutRecordStore(directory: root); let original = record()
+        try await store.save(original)
+        let now = Int64(Date().timeIntervalSince1970 * 1000)
+        let policy: [String: Any] = ["enabled": true, "maximumAgeDays": 1, "maximumClips": 2, "maximumBytes": 1000]
+        _ = try await store.libraryCommand(command(["action": "mediaPolicy", "mediaPolicy": policy], at: now))
+        let media = root.appendingPathComponent("Library/Media")
+        try FileManager.default.createDirectory(at: media, withIntermediateDirectories: true)
+        for (id, timestamp) in [("old", now - 60_000), ("recent", now)] {
+            _ = try await store.libraryCommand(command(["action": "attachMedia", "media": [
+                "id": id, "setId": original.id, "bytes": 3, "attachedAtEpochMilliseconds": timestamp]], at: now))
+            try Data([1, 2, 3]).write(to: media.appendingPathComponent(id + ".mov"))
+            let keyframes = root.appendingPathComponent("Library/Keyframes/" + id)
+            try FileManager.default.createDirectory(at: keyframes, withIntermediateDirectories: true)
+            try Data([1, 2, 3]).write(to: keyframes.appendingPathComponent("rep.jpg"))
+        }
+        // Reuse the same store/cache, as when the app returns from the background.
+        let state = try await store.maintainLibraryMedia(now: now + 86_400_000)
+        let object = try JSONSerialization.jsonObject(with: Data(state.utf8)) as! [String: Any]
+        XCTAssertEqual((object["media"] as? [[String: Any]])?.compactMap { $0["id"] as? String }, ["recent"])
+        XCTAssertEqual(object["mediaPolicy"] as? NSDictionary, policy as NSDictionary)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: media.appendingPathComponent("old.mov").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Library/Keyframes/old").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: media.appendingPathComponent("recent.mov").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("Library/Keyframes/recent/rep.jpg").path))
+        let saved = try await store.libraryRecord(id: original.id)
+        XCTAssertEqual(saved, original)
+        let repeated = try await store.maintainLibraryMedia(now: now + 86_400_000)
+        XCTAssertEqual(repeated, state)
     }
     func testCrashAfterTombstonePublicationRetriesPhysicalDeletion() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("library-test-" + UUID().uuidString)

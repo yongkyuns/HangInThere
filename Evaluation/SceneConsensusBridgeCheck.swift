@@ -18,7 +18,7 @@ enum SceneConsensusBridgeCheck {
             ("moving-majority", [(12, 0), (12, 1), (13, 0), (0, 0)], "moved"),
             ("moving-pair", [(12, 0), (13, 1), (-60, 50), (0, 0)], "moved"),
             ("single-patch", [(0, 0)], "calibrating"),
-            ("over-budget", Array(repeating: (0, 0), count: 5), "calibrating"),
+            ("over-budget", Array(repeating: (0, 0), count: StaticSceneStability.maximumRegistrationPatches + 1), "calibrating"),
             ("nonfinite-not-votes", [(0, 0), (1, 0), (.nan, 0), (0, .infinity)], "stable"),
             ("large-finite-median", [(.greatestFiniteMagnitude, 0), (.greatestFiniteMagnitude, 0)], "moved")
         ]
