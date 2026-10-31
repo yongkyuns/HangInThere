@@ -182,7 +182,8 @@ struct ReplayView: View {
                 if showPoseOverlay {
                     PoseOverlay(result: frame.pose, selectedSide: model.counter.side,
                                 usesBothArms: true, progress: poseOverlayProgress(counter: model.counter, bilateralDip: model.dipSnapshot),
-                                completedReps: model.repAnalysis.filter(\.isCompleteForAnalytics).count)
+                                completedReps: model.repAnalysis.filter(\.isCompleteForAnalytics).count,
+                                muscleExercise: model.counter.exercise, muscleActivity: model.analysisRecord?.activity)
                 }
 
                 if showPoseOverlay { BarOverlay(imageSize: frame.pose.imageSize, bar: model.currentBar) }

@@ -64,6 +64,11 @@ full-set accuracy and sustained physical-device qualification remain open; see
   Weights and recovery are prototype assumptions, not personalized muscle
   capacity, fatigue resistance or calorie measurements. Partial/old phase
   histories are marked or left without an estimate. No model training is used.
+- Experimental muscle overlay: the body icon beside the eye switches between
+  movement bands and schematic shoulder/arm muscles. Colors reuse observed
+  phase weights; stale/unknown phases stay neutral. The small body map labels
+  chest/back context without inferring a camera-facing surface. Push-ups show
+  a guide only until phase-load history is available. Off by default; iOS only.
 - Follows the system light/dark appearance with background-free exercise artwork.
   Imported-video review remains local and retains the pixels used for analysis.
 - Offers optional, one-screen coaching setup, an editable Today workout and

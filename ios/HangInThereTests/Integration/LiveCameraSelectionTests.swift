@@ -14,6 +14,21 @@ struct PoseOverlayPresentationTests {
         return PoseResult(timestamp: .init(value: tick, timescale: 1000), imageSize: .init(width: 1000, height: 600),
             people: Array(repeating: person, count: people), backend: backend, requestRevision: 1)
     }
+    @Test func muscleLoadUsesObservedSharedPhaseAndNeverKeepsStaleHeat() {
+        func activity(_ phase: String) -> WorkoutActivity {
+            WorkoutActivity(phases: [.init(id: "phase", phase: phase, startedAt: 1, endedAt: 2, observedSeconds: 1)],
+                totals: [.init(phase: phase, observedSeconds: 1)], longestHangSeconds: 0, longestSupportSeconds: 0,
+                observedSeconds: 1, elapsedSeconds: 1, timelineTruncated: false, metricVersion: 3)
+        }
+        #expect(MuscleLoadVisual(exercise: .pullUp, activity: activity("hang"), at: 2).rate == 0.25)
+        #expect(MuscleLoadVisual(exercise: .pullUp, activity: activity("pulling"), at: 2).rate == 1)
+        #expect(MuscleLoadVisual(exercise: .dip, activity: activity("lowering"), at: 2).rate == 0.5)
+        #expect(MuscleLoadVisual(exercise: .dip, activity: activity("rising"), at: 2).rate == 1)
+        #expect(MuscleLoadVisual(exercise: .pullUp, activity: activity("pulling"), at: 2.36).rate == nil)
+        #expect(MuscleLoadVisual(exercise: .pullUp, activity: activity("pulling"), at: 1.9).rate == nil)
+        #expect(MuscleLoadVisual(exercise: .pullUp, activity: activity("unobserved"), at: 2).rate == nil)
+        #expect(MuscleLoadVisual(exercise: .pushUp, activity: activity("rising"), at: 2).rate == nil)
+    }
     @Test func smoothingIsDisplayOnlyAndMissingJointsCannotBorrowOldCoordinates() throws {
         var display = PoseOverlaySmoothing()
         display.observe(pose(0)); let raw = pose(40, x: 120); display.observe(raw)

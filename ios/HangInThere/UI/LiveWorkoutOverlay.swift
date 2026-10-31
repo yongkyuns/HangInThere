@@ -3,19 +3,33 @@ import SwiftUI
 /// Presentation only: toggling overlays never changes tracking or recording.
 struct PoseOverlayVisibilityButton: View {
     @Binding var isVisible: Bool
+    @AppStorage("muscleOverlayPreview") private var showsMuscles = false
 
     var body: some View {
-        Button { isVisible.toggle() } label: {
-            Image(systemName: isVisible ? "eye" : "eye.slash")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(isVisible ? Color.mint : Color.white)
-                .frame(width: 44, height: 44)
-                .background(.black.opacity(0.65), in: Circle())
+        HStack(spacing: 6) {
+            Button { isVisible.toggle() } label: {
+                Image(systemName: isVisible ? "eye" : "eye.slash")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(isVisible ? Color.mint : Color.white)
+                    .frame(width: 44, height: 44)
+                    .background(.black.opacity(0.65), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isVisible ? "Hide detection overlays" : "Show detection overlays")
+            .accessibilityValue(isVisible ? "Shown" : "Hidden")
+            .accessibilityIdentifier("toggleDetectionOverlays")
+            Button { showsMuscles.toggle(); isVisible = true } label: {
+                Image(systemName: "figure.arms.open")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(showsMuscles ? Color.mint : Color.white)
+                    .frame(width: 44, height: 44)
+                    .background(.black.opacity(0.65), in: Circle())
+            }.buttonStyle(.plain)
+                .accessibilityLabel("Muscle overlay preview")
+                .accessibilityValue(showsMuscles ? "Muscles" : "Movement bands")
+                .accessibilityHint("Switch between muscle shapes and movement bands")
+                .accessibilityIdentifier("toggleMusclePreview")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(isVisible ? "Hide detection overlays" : "Show detection overlays")
-        .accessibilityValue(isVisible ? "Shown" : "Hidden")
-        .accessibilityIdentifier("toggleDetectionOverlays")
     }
 }
 
