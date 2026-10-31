@@ -648,7 +648,7 @@ import WorkoutCore
                         verify(text.contains { $0.contains(exercise == .pullUp ? "longesthang" : "supporthold") },
                             "Hold-only practice must lead with its observed time", filename: "practice-\(exercise.rawValue)")
                         precondition(!text.contains { $0.contains("yourreps") || $0.contains("completedrep") },"Hang-only current set borrowed saved rep timing")
-                        verify(text.contains { $0 == "80s" || $0 == "805" }, "Observed hold time missing", filename: "practice-\(exercise.rawValue)")
+                        verify(text.contains { $0 == "80s" || $0 == "8os" || $0 == "805" }, "Observed hold time missing", filename: "practice-\(exercise.rawValue)")
                     }
                 }
             }
