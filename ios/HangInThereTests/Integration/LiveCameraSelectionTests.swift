@@ -248,7 +248,7 @@ struct LiveCameraSelectionTests {
         #expect(controller.liveSet.exercise == .pullUp)
         #expect(controller.barRole == .pullUpGrip)
         #expect(!controller.session.isRunning)
-        #expect(await controller.selectCamera(.front))
+        #expect(await controller.selectCamera(.rear))
         #expect(controller.resolvedExercise == nil)
         #expect(controller.exerciseSelection == .automatic)
     }
@@ -278,7 +278,7 @@ struct LiveCameraSelectionTests {
         #expect(controller.workoutDetailsPresented)
         #expect(controller.handsFreeStartEnabled)
         controller.setHandsFreeStartEnabled(false)
-        #expect(await controller.selectCamera(.front))
+        #expect(await controller.selectCamera(.rear))
         controller.configureWorkout(exercise: .dip, side: .right)
         controller.configureWorkout(exercise: .pullUp, side: .left)
         controller.endBarSetup()
@@ -297,7 +297,7 @@ struct LiveCameraSelectionTests {
         #expect(!controller.startSet(), "Hands-free mode still requires valid camera/bar setup.")
         #expect(!controller.showsSetStarted)
         controller.setHandsFreeStartEnabled(false)
-        #expect(await controller.selectCamera(.front))
+        #expect(await controller.selectCamera(.rear))
         #expect(!controller.handsFreeStartEnabled)
         controller.configureWorkout(exercise: .dip, side: .right)
         controller.configureWorkout(exercise: .pullUp, side: .left)
@@ -311,12 +311,12 @@ struct LiveCameraSelectionTests {
         #expect(!controller.session.isRunning)
     }
 
-    @Test func selectingFrontBeforeStartDoesNotStartOrAuthorizeCapture() async {
-        let controller = LiveCameraPreviewController()
+    @Test(arguments: [false, true]) func frontIsDefaultAndSelectingRearBeforeStartDoesNotStartOrAuthorizeCapture(pushUp: Bool) async {
+        let controller = LiveCameraPreviewController(pushUpPractice: pushUp)
         let authorization = AVCaptureDevice.authorizationStatus(for: .video)
-        #expect(controller.cameraPosition == .rear)
-        #expect(await controller.selectCamera(.front))
-        #expect(controller.cameraPosition.capturePosition == .front)
+        #expect(controller.cameraPosition == .front)
+        #expect(await controller.selectCamera(.rear))
+        #expect(controller.cameraPosition.capturePosition == .back)
         #expect(controller.state == .idle)
         #expect(!controller.session.isRunning)
         #expect(controller.session.inputs.isEmpty)
@@ -330,9 +330,9 @@ struct LiveCameraSelectionTests {
     @Test func cameraSelectionRoundTripRetainsWorkoutConfiguration() async {
         let controller = LiveCameraPreviewController()
         controller.configureWorkout(exercise: .dip, side: .right)
-        #expect(await controller.selectCamera(.front))
         #expect(await controller.selectCamera(.rear))
-        #expect(controller.cameraPosition.capturePosition == .back)
+        #expect(await controller.selectCamera(.front))
+        #expect(controller.cameraPosition.capturePosition == .front)
         #expect(controller.liveSet.exercise == .dip)
         #expect(controller.liveSet.side == .right)
         #expect(controller.liveSet.phase == .idle)
@@ -347,10 +347,10 @@ struct LiveCameraSelectionTests {
         let output = AVCaptureVideoDataOutput()
         // An unchanged selection must not tear down a session.
         controller.session.addOutput(output)
-        #expect(await controller.selectCamera(.rear))
+        #expect(await controller.selectCamera(.front))
         #expect(controller.session.outputs.contains { $0 === output })
         // A changed selection removes stale outputs before a later start.
-        #expect(await controller.selectCamera(.front))
+        #expect(await controller.selectCamera(.rear))
         #expect(controller.session.outputs.isEmpty)
         #expect(controller.state == .idle)
     }

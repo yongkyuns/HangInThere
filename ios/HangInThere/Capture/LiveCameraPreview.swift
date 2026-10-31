@@ -229,7 +229,7 @@ private final class LiveFrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleB
 @Observable
 final class LiveCameraPreviewController: NSObject {
     private(set) var state: LiveCameraState = .idle
-    private(set) var cameraPosition: LiveCameraPosition = .rear
+    private(set) var cameraPosition: LiveCameraPosition = .front
     private(set) var isSwitchingCamera = false
     private(set) var framing = LiveFramingAssessment()
     private(set) var cameraPlacement = LiveCameraPlacement()

@@ -404,6 +404,16 @@ struct LiveWorkoutOverlay: View {
     @ViewBuilder
     private var footer: some View {
         VStack(spacing: 12) {
+            if session.phase == .idle {
+                HStack {
+                    Spacer()
+                    iconButton("arrow.triangle.2.circlepath.camera", label: "Switch to \(nextCameraName) camera", action: onSwitchCamera)
+                        .disabled(!canSwitchCamera)
+                        .opacity(canSwitchCamera ? 1 : 0.4)
+                        .accessibilityHint("Changing cameras clears bar setup.")
+                        .accessibilityIdentifier("liveCameraSelection")
+                }
+            }
             if trackingFirstMovement {
                 Label("First rep · tracking", systemImage: "figure.strengthtraining.functional")
                     .font(.headline).foregroundStyle(.mint)
@@ -435,23 +445,16 @@ struct LiveWorkoutOverlay: View {
             case .idle:
                 if let coachTarget { Text(coachTarget).font(.subheadline.bold()).foregroundStyle(.mint).multilineTextAlignment(.center) }
                 if cameraReady, showsManualStart, readiness == nil { statusChip }
-                HStack {
-                    if cameraReady {
+                if cameraReady && (showsManualStart || readiness == nil) {
+                    HStack {
                         if showsManualStart {
                             actionButton("Start set", symbol: "play.fill", primary: true, action: onStart)
                                 .disabled(!canStart)
                                 .opacity(canStart ? 1 : 0.45)
                                 .accessibilityIdentifier("startLiveSet")
-                        } else if readiness == nil {
-                            statusChip
-                        }
+                        } else { statusChip }
+                        Spacer()
                     }
-                    Spacer()
-                    iconButton("arrow.triangle.2.circlepath.camera", label: "Switch to \(nextCameraName) camera", action: onSwitchCamera)
-                        .disabled(!canSwitchCamera)
-                        .opacity(canSwitchCamera ? 1 : 0.4)
-                        .accessibilityHint("Changing cameras clears bar setup.")
-                        .accessibilityIdentifier("liveCameraSelection")
                 }
                 if latestCompletedSet != nil, let afterSetReport { afterSetSummary(afterSetReport) }
             case .running:

@@ -106,9 +106,6 @@ struct PushUpPracticeView: View {
                         Spacer()
                         VStack(spacing: 12) {
                             PoseOverlayVisibilityButton(isVisible: $showDiagnosticPose)
-                            Button { Task { await camera.selectCamera(camera.cameraPosition == .rear ? .front : .rear) } }
-                                label: { Image(systemName: "arrow.triangle.2.circlepath.camera").font(.title2).padding(12) }
-                                .disabled(!camera.canSwitchCamera).accessibilityLabel("Switch camera")
                             GeometryReader { bar in
                                 Capsule().fill(.white.opacity(0.2))
                                 Capsule().fill(snapshot?.targetReached == true ? Color.green : HangBrand.lime)
@@ -119,6 +116,16 @@ struct PushUpPracticeView: View {
                         }
                     }
                     Spacer(minLength: 8)
+                    HStack {
+                        Spacer()
+                        Button { Task { await camera.selectCamera(camera.cameraPosition == .rear ? .front : .rear) } } label: {
+                            Image(systemName: "arrow.triangle.2.circlepath.camera").font(.system(size: 18, weight: .semibold))
+                                .frame(width: 44, height: 44).background(.black.opacity(0.65), in: Circle())
+                        }.buttonStyle(.plain).disabled(!camera.canSwitchCamera)
+                            .opacity(camera.canSwitchCamera ? 1 : 0.4)
+                            .accessibilityLabel("Switch to \(camera.cameraPosition == .front ? "rear" : "front") camera")
+                            .accessibilityIdentifier("pushUpCameraSelection")
+                    }.frame(maxWidth: 480)
                     HStack(spacing: 12) {
                         Image(systemName: snapshot?.observationUsable == true && camera.readinessFrameFresh ? "checkmark.circle.fill" : "viewfinder")
                             .foregroundStyle(snapshot?.observationUsable == true && camera.readinessFrameFresh ? Color.green : Color.orange)
