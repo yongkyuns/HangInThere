@@ -128,6 +128,34 @@ import WorkoutCore
             }
             return
         }
+        if CommandLine.arguments.contains("--after-set-only") {
+            let record = try JSONDecoder().decode(WorkoutSetRecord.self, from: Data(input.utf8))
+            let report = try JSONDecoder().decode(WorkoutAfterSetReport.self,
+                from: Data(try WorkoutFeedbackBridge().summaryJson(recordJson: input).utf8))
+            let readiness = LiveReadinessChecklist(cameraReady: true, frameFresh: true,
+                framing: .init(state: .ready, usesBothArms: true), exerciseTitle: "Pull-ups", armDescription: "Both measurable",
+                barConfirmed: true, acquisition: .locked, motionAvailable: true, phoneStable: true, sceneStable: true,
+                startingPose: true, paused: false, handsFree: true, setupBusy: false)
+            for finished in [false, true] {
+                var session = LiveSetSession()
+                if finished { session.start(exercise: .pullUp, side: .left); session.finish() }
+                for width in [320.0, 393.0] {
+                    let view = LiveWorkoutOverlay(session: session, liveCompletedReps: 0, latestCompletedSet: record, afterSetReport: report,
+                        readiness: readiness, onCoachEffortSaved: {}, cameraReady: true, status: "Ready", statusSymbol: "checkmark",
+                        needsAttention: false, showsManualStart: false, canStart: true, canSwitchCamera: !finished, nextCameraName: "rear",
+                        isRecording: false, countdown: nil, canClose: true, onClose: {}, onOptions: {}, onSwitchCamera: {},
+                        onStart: {}, onFinish: {}, onNextSet: {}, onResults: {})
+                        .environment(\.colorScheme, .dark).frame(width: width, height: 760).background(Color(white: 0.18))
+                    let name = "after-set-\(finished ? "finished" : "ready")-\(Int(width)).png"
+                    let text = try render(view, width: width, height: 760, filename: name).joined()
+                    verify(text.contains("1rep") && !text.contains("completedcycles"), "Compact rep label missing", filename: name)
+                    for choice in ["howdiditfeel", "easy", "aboutright", "toohard"] {
+                        verify(text.contains(choice), "Direct effort choice missing: \(choice)", filename: name)
+                    }
+                }
+            }
+            return
+        }
         if let flag = CommandLine.arguments.firstIndex(of: "--pushup-record"), CommandLine.arguments.count > flag+1 {
             let records = try JSONDecoder().decode([WorkoutSetRecord].self,
                 from: Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[flag+1])))

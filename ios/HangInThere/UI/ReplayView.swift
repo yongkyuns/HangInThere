@@ -197,14 +197,10 @@ struct ReplayView: View {
 
                         Spacer()
                         PoseOverlayVisibilityButton(isVisible: $showPoseOverlay)
-                        VStack(alignment: .trailing, spacing: 0) {
-                            Text("\(model.observedMovements)")
-                                .font(.system(size: 42, weight: .bold, design: .rounded))
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                            Text("movements")
-                                .font(.caption.weight(.semibold))
-                        }
+                        Text("\(model.observedMovements) \(model.observedMovements == 1 ? "rep" : "reps")")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                            .contentTransition(.numericText())
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))

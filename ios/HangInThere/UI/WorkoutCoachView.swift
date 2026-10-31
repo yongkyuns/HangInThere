@@ -303,25 +303,39 @@ struct WorkoutCoachView: View {
 struct WorkoutCoachFeedbackView: View {
     let record: WorkoutSetRecord
     var planned: WorkoutCoachRecommendation? = nil
+    var compact = false
+    var onSaved: (() -> Void)? = nil
     @State private var selected: WorkoutCoachEffort?
     @State private var suggestion: WorkoutCoachRecommendation?
     @State private var error: String?
     @State private var saving = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("How did that feel?").font(.title3.bold())
+        Group {
+            if compact { content } else { content.journeyCard() }
+        }
+            .task(id: record.id) {
+                do {
+                    selected = WorkoutCoachEffort(rating: try await WorkoutRecordStore.shared.coachingEffort(id: record.id))
+                    if !compact, selected != nil { try await refreshSuggestion() }
+                }
+                catch { self.error = "Set feedback isn't available yet. Try again once the set is saved." }
+            }
+    }
+    private var content: some View {
+        VStack(alignment: .leading, spacing: compact ? 10 : 16) {
+            Text("How did it feel?").font(compact ? .headline : .title3.bold())
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 8) { choices }.fixedSize(horizontal: true, vertical: false)
+                HStack(spacing: compact ? 6 : 8) { choices }.fixedSize(horizontal: true, vertical: false)
                 VStack(alignment: .leading, spacing: 8) { choices }
             }
             if let error { Text(error).font(.caption).foregroundStyle(.orange) }
-            if let suggestion {
+            if !compact, let suggestion {
                 Text(suggestion.reps.map { "Next set · try \($0) \($0 == 1 ? "rep" : "reps")" } ?? "Next set · practice").font(.headline)
                 DisclosureGroup("Why this target?") {
                     Text(suggestion.reason).font(.subheadline).foregroundStyle(.secondary).padding(.top, 6)
                 }.font(.subheadline)
             }
-            if selected != nil {
+            if !compact, selected != nil {
                 let duration = max(suggestion?.restSeconds ?? 120, planned?.restSeconds ?? 120)
                 TimelineView(.periodic(from: .now, by: 1)) { clock in
                     let remaining = WorkoutCoachPreferences.shared.restingSetId == record.id ? WorkoutCoachPreferences.shared.restUntil.map { max(0, Int(ceil($0.timeIntervalSince(clock.date)))) } : nil
@@ -331,14 +345,7 @@ struct WorkoutCoachFeedbackView: View {
                     }
                 }
             }
-        }.journeyCard()
-            .task(id: record.id) {
-                do {
-                    selected = WorkoutCoachEffort(rating: try await WorkoutRecordStore.shared.coachingEffort(id: record.id))
-                    if selected != nil { try await refreshSuggestion() }
-                }
-                catch { self.error = "Set feedback isn't available yet. Try again once the set is saved." }
-            }
+        }
     }
     private var choices: some View {
         ForEach(WorkoutCoachEffort.allCases, id: \.rawValue) { effort in
@@ -348,7 +355,8 @@ struct WorkoutCoachFeedbackView: View {
                     do {
                         try await WorkoutRecordStore.shared.saveCoachingEffort(id: record.id, effort: effort)
                         selected = effort; error = nil
-                        try await refreshSuggestion()
+                        if !compact { try await refreshSuggestion() }
+                        onSaved?()
                     } catch { self.error = "Feedback couldn't be saved. Please try again." }
                     saving = false
                 }
@@ -356,10 +364,12 @@ struct WorkoutCoachFeedbackView: View {
                 VStack(spacing: 6) {
                     Image(systemName: effort.symbol).font(.title3)
                     Text(effort.title).font(.caption.weight(.semibold)).multilineTextAlignment(.center)
-                }.frame(minWidth: 64, minHeight: 44)
-                    .padding(11).foregroundStyle(selected == effort ? Color.teal : Color.primary)
-                    .background(selected == effort ? Color.teal.opacity(0.15) : Color.primary.opacity(0.05), in: Capsule())
+                }.frame(minWidth: compact ? 56 : 64, minHeight: 44)
+                    .padding(compact ? 6 : 11)
+                    .foregroundStyle(selected == effort ? (compact ? Color.mint : Color.teal) : (compact ? Color.white : Color.primary))
+                    .background(selected == effort ? Color.teal.opacity(compact ? 0.3 : 0.15) : Color.primary.opacity(compact ? 0.1 : 0.05), in: Capsule())
             }.buttonStyle(.plain).disabled(saving).accessibilityAddTraits(selected == effort ? [.isSelected] : [])
+                .accessibilityIdentifier("coachEffort-\(effort.rawValue)")
         }
     }
     private func refreshSuggestion() async throws {

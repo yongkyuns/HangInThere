@@ -213,7 +213,6 @@ struct LiveSetupView: View {
     @State private var showingAnalysis = false
     @State private var showDiagnosticPose = true
     @State private var reviewRecord: WorkoutSetRecord?
-    @State private var coachFeedbackRecord: WorkoutSetRecord?
     @State private var showingDetails = false
     @State private var detailsTab: DetailsTab = .workout
     @State private var camera = LiveCameraPreviewController()
@@ -284,8 +283,8 @@ struct LiveSetupView: View {
                     readiness: camera.readinessChecklist,
                     cameraPlacement: camera.cameraPlacement,
                     coachTarget: activeCoachingPlan.map { "Plan · \($0.sets) sets" + ($0.reps.map { " × \($0) reps" } ?? " · comfortable practice") },
-                    onCoachFeedback: WorkoutCoachPreferences.shared.profile == nil ? nil : {
-                        coachFeedbackRecord = camera.latestCompletedWorkout
+                    onCoachEffortSaved: WorkoutCoachPreferences.shared.profile == nil ? nil : {
+                        Task { await camera.loadWorkoutHistory() }
                     },
                     onReadinessDetails: { openDetails(tab: .diagnostics) },
                     poseOverlayVisibility: $showDiagnosticPose,
@@ -327,13 +326,6 @@ struct LiveSetupView: View {
                                       storageError: camera.workoutStorageError, currentSet: reviewRecord)
                         .toolbar { Button("Done") { showingAnalysis = false } }
                 }
-            }
-            .sheet(item: $coachFeedbackRecord, onDismiss: { Task { await camera.loadWorkoutHistory() } }) { record in
-                NavigationStack {
-                    ScrollView { WorkoutCoachFeedbackView(record: record, planned: coachingPlan?.exercise == record.exercise ? coachingPlan : nil).padding() }
-                        .navigationTitle("Your next set")
-                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { coachFeedbackRecord = nil } } }
-                }.presentationDetents([.medium, .large])
             }
             .onChange(of: showingAnalysis) { _, visible in
                 if visible { reviewRecord = camera.workoutRecordForReview() }
@@ -878,7 +870,7 @@ struct LiveSetupView: View {
                 Text("\(camera.completedRepCount)")
                     .font(.system(size: 64, weight: .bold, design: .rounded))
                     .monospacedDigit()
-                Text(camera.completedRepCount == 1 ? "completed cycle" : "completed cycles")
+                Text(camera.completedRepCount == 1 ? "rep" : "reps")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.secondary)
             }

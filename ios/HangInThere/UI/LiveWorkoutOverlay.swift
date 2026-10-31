@@ -247,7 +247,7 @@ struct LiveWorkoutOverlay: View {
     var readiness: LiveReadinessChecklist? = nil
     var cameraPlacement: LiveCameraPlacement? = nil
     var coachTarget: String? = nil
-    var onCoachFeedback: (() -> Void)? = nil
+    var onCoachEffortSaved: (() -> Void)? = nil
     var onReadinessDetails: (() -> Void)? = nil
     var poseOverlayVisibility: Binding<Bool>? = nil
     let cameraReady: Bool
@@ -379,17 +379,13 @@ struct LiveWorkoutOverlay: View {
             }
             Spacer(minLength: 4)
             if session.phase != .idle || latestCompletedSet != nil {
-                VStack(spacing: 0) {
-                    Text("\(displayedCount)")
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
-                        .contentTransition(.numericText())
-                    Text(session.phase == .idle || session.phase == .finished ? "completed cycles" : "reps").font(.caption2.weight(.medium))
-                }
-                .foregroundStyle(.white)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(displayedCount) \(session.phase == .idle || session.phase == .finished ? "measured completed cycles in the last set" : "measured completed cycles")")
-                .accessibilityIdentifier("liveMovementCount")
+                Text("\(displayedCount) \(displayedCount == 1 ? "rep" : "reps")")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                    .contentTransition(.numericText())
+                    .foregroundStyle(.white)
+                    .accessibilityLabel("\(displayedCount) \(displayedCount == 1 ? "rep" : "reps")\(session.phase == .idle ? " in the last set" : "")")
+                    .accessibilityIdentifier("liveMovementCount")
             }
             if isRecording {
                 Circle().fill(.red).frame(width: 9, height: 9)
@@ -404,6 +400,7 @@ struct LiveWorkoutOverlay: View {
     @ViewBuilder
     private var footer: some View {
         VStack(spacing: 12) {
+            if session.phase != .running, !trackingFirstMovement, let afterSetReport { afterSetSummary(afterSetReport) }
             if session.phase == .idle {
                 HStack {
                     Spacer()
@@ -456,7 +453,6 @@ struct LiveWorkoutOverlay: View {
                         Spacer()
                     }
                 }
-                if latestCompletedSet != nil, let afterSetReport { afterSetSummary(afterSetReport) }
             case .running:
                 if let gripLabel, session.exercise == .pullUp, !needsArmRepositioning, !needsCameraRepositioning {
                     Text("Grip · " + gripLabel).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
@@ -503,18 +499,22 @@ struct LiveWorkoutOverlay: View {
                     actionButton("New set", symbol: "arrow.counterclockwise", primary: true, action: onNextSet)
                         .accessibilityIdentifier("newLiveSet")
                 }
-                if let afterSetReport { afterSetSummary(afterSetReport) }
             }
         }
     }
 
     private func afterSetSummary(_ report: WorkoutAfterSetReport) -> some View {
         VStack(spacing: 6) {
-            Text("\(report.measuredCompletedReps) reps").font(.headline).foregroundStyle(.white)
+            if let onCoachEffortSaved, let latestCompletedSet {
+                WorkoutCoachFeedbackView(record: latestCompletedSet, compact: true, onSaved: onCoachEffortSaved)
+                    .id(latestCompletedSet.id)
+            } else {
+                Text("\(report.measuredCompletedReps) \(report.measuredCompletedReps == 1 ? "rep" : "reps")").font(.headline).foregroundStyle(.white)
+            }
             if report.practiceAttempts > 0 {
                 Text("\(report.practiceAttempts) incomplete \(report.practiceAttempts == 1 ? "attempt" : "attempts")").font(.caption).foregroundStyle(.white)
             }
-            if let onCoachFeedback {
+            if onCoachEffortSaved != nil {
                 if WorkoutCoachPreferences.shared.restingSetId == latestCompletedSet?.id, let until = WorkoutCoachPreferences.shared.restUntil {
                     TimelineView(.periodic(from: .now, by: 1)) { clock in
                         let remaining = max(0, Int(ceil(until.timeIntervalSince(clock.date))))
@@ -522,8 +522,6 @@ struct LiveWorkoutOverlay: View {
                             .font(.headline.monospacedDigit()).foregroundStyle(.mint)
                     }
                 }
-                Button(action: onCoachFeedback) { Label("How did it feel?", systemImage: "sparkles").font(.subheadline.bold()).foregroundStyle(.mint) }
-                    .padding(.vertical, 6).accessibilityIdentifier("rateCompletedSet")
             }
             if let target = report.goalTarget, let value = report.goalValue {
                 ProgressView(value: min(1, value / target)) { Text("Goal: \(value.formatted()) / \(target.formatted()) \(report.goalMetric == "holdSeconds" ? "s" : "cycles")").font(.caption) }.tint(.mint)
