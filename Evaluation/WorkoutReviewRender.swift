@@ -109,7 +109,7 @@ import WorkoutCore
         NSApplication.shared.setActivationPolicy(.prohibited)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
         if let flag = CommandLine.arguments.firstIndex(of: "--pose-bands"), CommandLine.arguments.count > flag+1 {
-            struct Preview: Decodable { let id: String; let title: String; let imagePath: String; let pose: PoseResult; let progress: Double }
+            struct Preview: Decodable { let id: String; let title: String; let imagePath: String; let pose: PoseResult; let effort: Double? }
             let previews = try JSONDecoder().decode([Preview].self,
                 from: Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[flag+1])))
             for preview in previews {
@@ -117,7 +117,7 @@ import WorkoutCore
                 let view = ZStack(alignment: .topLeading) {
                     Color.black
                     Image(nsImage: image).resizable().scaledToFit()
-                    PoseOverlay(result: preview.pose, usesBothArms: true, progress: preview.progress)
+                    PoseOverlay(result: preview.pose, usesBothArms: true, effort: preview.effort)
                     Text(preview.title + " · Overlay preview").font(.headline).foregroundStyle(.white)
                         .padding(12).background(.black.opacity(0.6), in: Capsule()).padding(16)
                 }.frame(width: preview.pose.imageSize.width > preview.pose.imageSize.height ? 760 : 393,
@@ -125,30 +125,6 @@ import WorkoutCore
                 _ = try render(view, width: preview.pose.imageSize.width > preview.pose.imageSize.height ? 760 : 393,
                     height: preview.pose.imageSize.width > preview.pose.imageSize.height ? 430 : 760,
                     filename: "pose-bands-\(preview.id).png")
-            }
-            return
-        }
-        if let flag = CommandLine.arguments.firstIndex(of: "--muscle-preview"), CommandLine.arguments.count > flag+1 {
-            struct Preview: Decodable { let id: String; let title: String; let imagePath: String; let pose: PoseResult; let progress: Double }
-            let previews = try JSONDecoder().decode([Preview].self, from: Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[flag+1])))
-            for preview in previews {
-                let exercise: ExerciseCounter.Exercise = preview.id.hasPrefix("pullUp") ? .pullUp : preview.id.hasPrefix("dip") ? .dip : .pushUp
-                let phase = exercise == .pullUp ? (preview.id.contains("start") ? "hang" : "pulling") : (preview.id.contains("start") ? "support" : "lowering")
-                let t = preview.pose.timestamp.seconds
-                let activity = WorkoutActivity(phases: [.init(id: "preview", phase: phase, startedAt: t-1, endedAt: t, observedSeconds: 1)],
-                    totals: [.init(phase: phase, observedSeconds: 1)], longestHangSeconds: 0, longestSupportSeconds: 0,
-                    observedSeconds: 1, elapsedSeconds: 1, timelineTruncated: false, metricVersion: 3)
-                let landscape = preview.pose.imageSize.width > preview.pose.imageSize.height
-                let width = landscape ? 760.0 : 393.0, height = landscape ? 430.0 : 760.0
-                let view = ZStack(alignment: .top) {
-                    Color.black
-                    Image(nsImage: NSImage(contentsOfFile: preview.imagePath)!).resizable().scaledToFit()
-                    PoseOverlay(result: preview.pose, usesBothArms: true, progress: preview.progress,
-                        muscleExercise: exercise, muscleActivity: activity, musclePreview: true)
-                    Text(preview.title + " · Visual experiment").font(.headline).foregroundStyle(.white)
-                        .padding(12).background(.black.opacity(0.65), in: Capsule()).padding(16)
-                }.frame(width: width,height: height)
-                _ = try render(view,width: width,height: height,filename: "muscles-\(preview.id).png")
             }
             return
         }

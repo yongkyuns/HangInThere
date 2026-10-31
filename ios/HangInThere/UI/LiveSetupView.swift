@@ -92,7 +92,8 @@ struct PushUpPracticeView: View {
                 LiveCameraPreviewSurface(session: camera.session, rotationAngle: camera.pushUpVideoRotationAngle)
                 if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.latestPose {
                     PoseOverlay(result: pose, usesBothArms: true,
-                        progress: snapshot?.observationUsable == true ? snapshot?.progress : nil, completedReps: count, muscleExercise: .pushUp)
+                        effort: PoseOverlayEffort.pushUpRate(phase: snapshot?.phase, setStarted: snapshot?.setStarted == true,
+                            usable: snapshot?.observationUsable == true), completedReps: count)
                 }
                 VStack {
                     HStack(alignment: .top) {
@@ -448,11 +449,8 @@ struct LiveSetupView: View {
                 LiveCameraPreviewSurface(session: camera.session)
                 if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.latestPose {
                     PoseOverlay(result: pose, selectedSide: side, usesBothArms: true,
-                        progress: poseOverlayProgress(counter: camera.liveSet.counter,
-                            bodyDip: camera.liveSet.bodyDipSnapshot ?? camera.bodyDipPreparation,
-                            bodyPullUp: camera.liveSet.bodyPullUpSnapshot ?? camera.bodyPullUpPreparation),
-                        completedReps: camera.completedRepCount, muscleExercise: camera.liveSet.counter.exercise,
-                        muscleActivity: camera.activeWorkoutRecord?.activity)
+                        effort: PoseOverlayEffort.rate(activity: camera.activeWorkoutRecord?.activity, at: pose.timestamp.seconds),
+                        completedReps: camera.completedRepCount)
                     BarOverlay(imageSize: pose.imageSize, bar: camera.currentBar)
                 }
             } else {

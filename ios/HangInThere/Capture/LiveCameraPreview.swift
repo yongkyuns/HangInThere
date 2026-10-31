@@ -17,6 +17,7 @@ import class WorkoutCore.WorkoutLifecycle
 import class WorkoutCore.SideViewPushUpWorkoutBridge
 
 struct PushUpPracticeSnapshot: Decodable, Sendable {
+    let phase: String?
     struct Rep: Decodable, Sendable { let returnedAt: Double }
     struct SetSummary: Decodable, Sendable { let reps: [Rep] }
     let title: String
