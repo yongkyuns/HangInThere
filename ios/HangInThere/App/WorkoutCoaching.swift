@@ -86,6 +86,11 @@ enum WorkoutCoach {
               dayKey(date, calendar: calendar) == key else { return nil }
         return calendar.startOfDay(for: date)
     }
+    static func recordedDays(history: [WorkoutCoachSet], loggedHistory: [LoggedWorkout], calendar: Calendar = .current) -> Set<String> {
+        let dates = history.compactMap(\.trackedAtEpochMilliseconds).map { Date(timeIntervalSince1970: Double($0) / 1000) } +
+            loggedHistory.filter { !$0.sets.isEmpty }.map(\.date)
+        return Set(dates.map { dayKey($0, calendar: calendar) })
+    }
     static func schedule(profile: WorkoutCoachProfile, from now: Date, calendar: Calendar = .current) -> [Date] {
         let start = calendar.startOfDay(for: now)
         let regular = (-7..<14).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }

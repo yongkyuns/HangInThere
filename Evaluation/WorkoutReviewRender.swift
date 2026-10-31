@@ -633,7 +633,7 @@ import WorkoutCore
             }
         }
         // Beginner analytics must remain useful with zero completed reps.
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             let phase = exercise == .pullUp ? "hang" : "support"
             var practiceFixture = fixture
             practiceFixture["exercise"] = exercise.rawValue
@@ -687,7 +687,7 @@ import WorkoutCore
                 verify(text.contains { $0.contains(token) }, "Actionable framing advice is missing", filename: filename)
             }
         }
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             var running = LiveSetSession(); running.start(exercise: exercise, side: .left)
             var ended = running; ended.finish()
             var reacquiring = running; reacquiring.interrupt(reason: "sourceTimeGap")
@@ -810,7 +810,7 @@ import WorkoutCore
 
     @MainActor private static func renderSetVisuals(_ input: String) throws {
         let original = try JSONSerialization.jsonObject(with: Data(input.utf8)) as! [String: Any]
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             var object = original; object["exercise"] = exercise.rawValue
             let source = (original["reps"] as! [[String: Any]])[0]
             object["reps"] = (0..<5).map { index -> [String: Any] in

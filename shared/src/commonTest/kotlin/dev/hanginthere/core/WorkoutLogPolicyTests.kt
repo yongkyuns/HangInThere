@@ -14,6 +14,7 @@ class WorkoutLogPolicyTests {
         assertNull(WorkoutLogPolicy.lastSet("Rows", history))
         assertEquals(ExerciseCounter.Exercise.pullUp, WorkoutLogPolicy.cameraExercise("Chin-ups"))
         assertEquals(ExerciseCounter.Exercise.dip, WorkoutLogPolicy.cameraExercise("Dips"))
+        assertEquals(ExerciseCounter.Exercise.dip, WorkoutLogPolicy.cameraExercise("Parallel-bar dip"))
         assertNull(WorkoutLogPolicy.cameraExercise("Bench press"))
     }
     @Test fun conversionValidationAndSaveRevisionAreShared() {

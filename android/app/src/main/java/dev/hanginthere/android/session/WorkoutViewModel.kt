@@ -113,6 +113,13 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         replayUri?.takeIf { state.value.replay }?.let { replay(it, selection, side) }
     }
     fun startManually() { control { it.startManually() } }
+    /** Clear retained replay/interruption before the screen binds a new camera. */
+    fun prepareLive(selection: WorkoutExerciseSelection) {
+        generation.incrementAndGet()
+        synchronized(controlLock) { replayRunning = false; controls.clear() }
+        replayUri = null
+        mutableState.value = State(selection = selection, side = state.value.side)
+    }
     fun startLive(selection: WorkoutExerciseSelection = state.value.selection, side: ArmMeasurement.Side = state.value.side): Long {
         val token = generation.incrementAndGet()
         synchronized(controlLock) { replayRunning = false; controls.clear() }

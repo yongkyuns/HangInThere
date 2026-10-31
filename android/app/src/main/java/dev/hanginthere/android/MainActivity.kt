@@ -48,6 +48,7 @@ class MainActivity : ComponentActivity() {
                 if (uri != null) { capture = null; selection = WorkoutExerciseSelection.automatic; model.replay(uri); camera = true }
             }
             fun startCamera() {
+                model.prepareLive(selection)
                 log = false; history = false
                 if (cameraAllowed) camera = true else permission.launch(Manifest.permission.CAMERA)
             }

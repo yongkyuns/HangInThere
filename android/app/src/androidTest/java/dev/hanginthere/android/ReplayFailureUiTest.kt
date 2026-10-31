@@ -56,6 +56,26 @@ class ReplayFailureUiTest {
         } finally { video.delete() }
     }
 
+    @Test fun homeLiveEntryDiscardsInterruptedReplayAndStaleResults() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val model = ViewModelProvider(compose.activity)[WorkoutViewModel::class.java]
+        compose.runOnUiThread {
+            model.replay(Uri.EMPTY)
+            model.suspendForBackground()
+            assertTrue(model.state.value.replay)
+            assertTrue(model.state.value.interrupted)
+            model.prepareLive(WorkoutExerciseSelection.dip)
+        }
+        model.inferenceExecutor.submit {}.get(30, TimeUnit.SECONDS)
+        instrumentation.waitForIdleSync()
+        val ready = model.state.value
+        assertFalse(ready.replay)
+        assertFalse(ready.interrupted)
+        assertFalse(ready.finished)
+        assertEquals(WorkoutExerciseSelection.dip, ready.selection)
+        assertNull(ready.result)
+    }
+
     @Test fun terminalReplayIgnoresManualSetupWithoutLosingRetry() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val app = instrumentation.targetContext

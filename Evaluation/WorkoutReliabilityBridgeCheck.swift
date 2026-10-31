@@ -21,7 +21,7 @@ enum WorkoutReliabilityBridgeCheck {
 
     @MainActor static func run() throws {
         var cases = 0
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in ExerciseCounter.Exercise.barExercises {
             let adapter = WorkoutAnalysisAdapter()
             let edge = BarSegment(a: Point2D(x: 100, y: 500), b: Point2D(x: 900, y: 500))
             for automatic in [false, true] {

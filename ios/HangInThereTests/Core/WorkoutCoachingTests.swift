@@ -50,6 +50,15 @@ final class WorkoutCoachingTests: XCTestCase {
         XCTAssertEqual(interrupted.reps, 4, "Self-reported difficulty still matters when tracking fails")
         XCTAssertEqual(interrupted.restSeconds, 180)
     }
+    func testRecordedDaysIncludeNonemptyManualLogsAlongsideCameraSets() {
+        let yesterday = now.addingTimeInterval(-86400)
+        let logged = LoggedWorkout(epochMilliseconds: Int64(yesterday.timeIntervalSince1970 * 1000),
+            sets: [LoggedWorkoutSet(exercise: "Parallel-bar dip", reps: 5)])
+        let empty = LoggedWorkout(epochMilliseconds: Int64(now.timeIntervalSince1970 * 1000))
+        XCTAssertEqual(WorkoutCoach.recordedDays(history: [set(2)], loggedHistory: [logged, empty], calendar: calendar),
+                       [WorkoutCoach.dayKey(yesterday, calendar: calendar), WorkoutCoach.dayKey(now.addingTimeInterval(-172800), calendar: calendar)])
+        XCTAssertEqual(LoggedWorkout.cameraExercise(ExerciseCounter.Exercise.dip.title), .dip)
+    }
     func testCalendarScheduleSurvivesDaylightSavingAndMovesOnlyChosenDay() throws {
         var profile = WorkoutCoachProfile(); profile.weekdays = [1, 3, 5]
         let start = try XCTUnwrap(WorkoutCoach.date("2026-10-31", calendar: calendar))

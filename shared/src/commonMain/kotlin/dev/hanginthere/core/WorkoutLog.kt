@@ -34,7 +34,7 @@ object WorkoutLogPolicy {
     fun exerciseKey(name: String): String = name.trim().lowercase()
     fun cameraExercise(name: String): ExerciseCounter.Exercise? = when (name.lowercase().filter(Char::isLetter)) {
         "pullup", "pullups", "chinup", "chinups" -> ExerciseCounter.Exercise.pullUp
-        "dip", "dips" -> ExerciseCounter.Exercise.dip
+        "dip", "dips", "parallelbardip", "parallelbardips" -> ExerciseCounter.Exercise.dip
         else -> null
     }
     fun validSet(exercise: String, reps: Int?, load: Double?, unit: String): Boolean =

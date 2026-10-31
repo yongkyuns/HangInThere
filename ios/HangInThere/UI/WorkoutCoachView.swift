@@ -292,7 +292,7 @@ struct WorkoutCoachView: View {
     }
     private func unrecordedDay(_ profile: WorkoutCoachProfile) -> Date? {
         let joined = Calendar.current.startOfDay(for: Date(timeIntervalSince1970: Double(profile.startedAtEpochMilliseconds) / 1000))
-        let recorded = Set(history.compactMap(\.trackedAtEpochMilliseconds).map { WorkoutCoach.dayKey(Date(timeIntervalSince1970: Double($0) / 1000)) })
+        let recorded = WorkoutCoach.recordedDays(history: history, loggedHistory: loggedHistory)
         return (1...7).compactMap { Calendar.current.date(byAdding: .day, value: -$0, to: today) }.first { day in
             day >= joined && !recorded.contains(WorkoutCoach.dayKey(day)) &&
             WorkoutCoach.schedule(profile: profile, from: day).contains(day)
