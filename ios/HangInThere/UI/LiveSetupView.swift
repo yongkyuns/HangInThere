@@ -12,7 +12,7 @@ struct PushUpPracticeView: View {
     @AppStorage("hasSeenPushUpCameraGuide") private var hasSeenGuide = false
     @State private var camera = LiveCameraPreviewController(pushUpPractice: true)
     @State private var showsReview = false
-    @State private var showDiagnosticPose = false
+    @State private var showDiagnosticPose = true
     private var palette: HangPalette { HangPalette(scheme) }
     private var snapshot: PushUpPracticeSnapshot? { camera.pushUpSnapshot }
     private var count: Int { snapshot?.setStarted == true ? snapshot!.setCycles : camera.lastPushUpSetCount }
@@ -204,7 +204,7 @@ struct LiveSetupView: View {
     }
     @AppStorage("hasSeenFirstWorkoutCameraGuide") private var hasSeenCameraGuide = false
     @State private var showingAnalysis = false
-    @State private var showDiagnosticPose = false
+    @State private var showDiagnosticPose = true
     @State private var reviewRecord: WorkoutSetRecord?
     @State private var coachFeedbackRecord: WorkoutSetRecord?
     @State private var showingDetails = false

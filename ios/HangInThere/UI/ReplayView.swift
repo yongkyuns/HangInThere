@@ -27,7 +27,7 @@ struct ReplayView: View {
     @State private var showingWorkoutLog = false
     @State private var coachedWorkout: WorkoutCoachRecommendation?
     @State private var barSetup: BarSetupFrame?
-    @State private var showPoseOverlay = false
+    @State private var showPoseOverlay = true
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.colorScheme) private var colorScheme
 
