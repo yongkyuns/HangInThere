@@ -294,6 +294,7 @@ final class LiveCameraPreviewController: NSObject {
     let isPushUpPractice: Bool
     @ObservationIgnored private var pushUpBridge: SideViewPushUpWorkoutBridge?
     private(set) var pushUpSnapshot: PushUpPracticeSnapshot?
+    private(set) var pushUpDetectedPose: PoseResult?
     private(set) var lastPushUpSetCount = 0
     private(set) var pushUpVoiceSetId: String?
     private(set) var pushUpVideoRotationAngle: Double = 90
@@ -381,6 +382,8 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var lastPhoneMotionTimestamp: Double?
     @ObservationIgnored private var lastPhoneMotionReceiptUptime: Double?
     #if DEBUG
+    @ObservationIgnored private var lastPushUpDiagnosticUptime: Double?
+    @ObservationIgnored private let pushUpDiagnosticQueue = DispatchQueue(label: "dev.yongkyuns.HangInThere.pushup-diagnostic")
     private var evaluationInput = false
     private var evaluationAcquisitionEvents: [[String: Any]] = []
     #endif
@@ -455,6 +458,58 @@ final class LiveCameraPreviewController: NSObject {
             try? LiveCameraConnectionConfiguration.apply(to: output, rotationAngle: angle)
         }
     }
+
+    /// Setup feedback must explain the failed native gate; the shared counter
+    /// intentionally treats all unavailable camera evidence as one rejection.
+    var pushUpReadinessTitle: String {
+        if !isCameraReady { return state.title }
+        if !readinessFrameFresh { return "Waiting for body detection" }
+        guard let pose = pushUpDetectedPose, !pose.people.isEmpty else { return "No body detected · show a side view" }
+        if pose.imageSize.width <= pose.imageSize.height { return "Turn your phone sideways" }
+        if !motionSampleAvailable { return "Phone motion sensor unavailable" }
+        if !cameraPlacement.isUsable { return "Aim the camera level" }
+        if dipAthleteDecision?.status != "associated" { return "Show your shoulder, hip and arm" }
+        if !hasBodyCameraCalibration { return "Hold still · setting up camera" }
+        if !phoneOrientation.state.allowsLiveSet { return "Keep the phone still" }
+        if !sceneIsReady { return "Checking background · keep phone still" }
+        return pushUpSnapshot?.title ?? "Hold a side-on plank"
+    }
+
+    #if DEBUG
+    /// One overwritten, local cache file, at most once per second. No images,
+    /// audio, growing log or workout records; lets device testing inspect the
+    /// actual Vision landmarks and native gate that blocked this preview.
+    private func recordPushUpDiagnostic(_ pose: PoseResult) {
+        guard !evaluationInput else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        guard lastPushUpDiagnosticUptime.map({ now - $0 >= 1 }) ?? true else { return }
+        lastPushUpDiagnosticUptime = now
+        struct Snapshot: Encodable {
+            let recordedAt: Date
+            let pose: PoseResult
+            let title: String
+            let rotation: Double
+            let camera: String
+            let motionAvailable: Bool
+            let tiltDegrees: Double?
+            let association: String?
+            let calibrated: Bool
+            let phoneState: String
+            let sceneReady: Bool
+            let sceneFailures: Int
+        }
+        let snapshot = Snapshot(recordedAt: Date(), pose: pose, title: pushUpReadinessTitle,
+            rotation: pushUpVideoRotationAngle, camera: cameraPosition.rawValue,
+            motionAvailable: motionSampleAvailable, tiltDegrees: cameraPlacement.tiltDegrees,
+            association: dipAthleteDecision?.status, calibrated: hasBodyCameraCalibration,
+            phoneState: phoneOrientation.state.rawValue, sceneReady: sceneIsReady,
+            sceneFailures: sceneRegistrationFailures)
+        guard let data = try? JSONEncoder().encode(snapshot),
+              let directory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return }
+        let url = directory.appendingPathComponent("pushup-latest-diagnostic.json")
+        pushUpDiagnosticQueue.async { try? data.write(to: url, options: .atomic) }
+    }
+    #endif
 
     private func consumePushUpPractice(_ pose: PoseResult) {
         if pushUpBridge == nil {
@@ -1951,7 +2006,8 @@ final class LiveCameraPreviewController: NSObject {
             bufferingPolicy: .bufferingNewest(1)
         ) { continuation in
             setVideoRecorder.setEnabled(!isPushUpPractice && recordsSetVideos)
-            let analyzer = LiveFrameAnalyzer(gripEnabled: !isPushUpPractice && resolvedExercise != .dip, setVideoRecorder: setVideoRecorder) { event in
+            let estimator: any PoseEstimator = isPushUpPractice ? SideViewVisionPoseEstimator() : VisionPoseEstimator()
+            let analyzer = LiveFrameAnalyzer(estimator: estimator, gripEnabled: !isPushUpPractice && resolvedExercise != .dip, setVideoRecorder: setVideoRecorder) { event in
                 continuation.yield(event)
             }
             self.analyzer = analyzer
@@ -2375,9 +2431,13 @@ final class LiveCameraPreviewController: NSObject {
             if let cue = workoutAnalysis.trackingSpokenCue(isRunning: liveSet.phase == .running, issue: liveSet.trackingIssue) { speakWorkoutCue(cue) }
             lastProcessingMilliseconds = frame.processingMilliseconds
             if isPushUpPractice {
+                pushUpDetectedPose = rawFrame.pose
                 maybeCalibrateBodyCamera(frame)
                 maybeCheckSceneTranslation(frame)
                 consumePushUpPractice(rawFrame.pose)
+                #if DEBUG
+                recordPushUpDiagnostic(rawFrame.pose)
+                #endif
                 return
             }
             observeExerciseSelection(frame.pose)

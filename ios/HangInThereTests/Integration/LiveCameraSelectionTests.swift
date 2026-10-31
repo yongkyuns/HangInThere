@@ -418,11 +418,51 @@ struct LivePushUpPracticeTests {
         }
     }
 
+    @Test func inferenceRotationRestoresSourceCoordinatesAndDoesNotMixJoints() {
+        let size = ImageSize(width: 1280, height: 720), point = Point2D(x: 0.25, y: 0.75)
+        #expect(VisionPoseEstimator.imagePoint(point, imageSize: size, orientation: .up) == .init(x: 320, y: 180))
+        #expect(VisionPoseEstimator.imagePoint(point, imageSize: size, orientation: .right) == .init(x: 320, y: 540))
+        #expect(VisionPoseEstimator.imagePoint(point, imageSize: size, orientation: .left) == .init(x: 960, y: 180))
+        #expect(VisionPoseEstimator.imagePoint(.init(x: -0.1, y: 1), imageSize: size, orientation: .right) == nil)
+        func pose(_ joints: [PoseJoint]) -> PoseResult {
+            .init(timestamp: .init(value: 0, timescale: 30), imageSize: size,
+                people: [.init(landmarks: joints.map { .init(joint: $0, position: point, confidence: 0.6) })],
+                backend: "test", requestRevision: 1)
+        }
+        let fragmented = pose([.leftShoulder, .leftElbow, .leftWrist, .rightHip, .rightKnee, .rightAnkle])
+        let complete = pose([.leftShoulder, .leftElbow, .leftWrist, .leftHip, .leftKnee, .leftAnkle])
+        #expect(SideViewVisionPoseEstimator.visibilityScore(complete) > SideViewVisionPoseEstimator.visibilityScore(fragmented))
+    }
+
+    @Test func pushUpSetupShowsUnselectedJointsAndExplainsMissingBody() throws {
+        let clock = BodyDipCameraClock()
+        let c = LiveCameraPreviewController(phoneMotionProvider: { clock.sample }, pushUpPractice: true)
+        let context = try #require(CGContext(data: nil, width: 1000, height: 600, bitsPerComponent: 8,
+            bytesPerRow: 4000, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        let image = try #require(context.makeImage())
+        c.beginEvaluationInput(); defer { c.endEvaluationInput() }
+        func deliver(_ people: [PoseObservation], tick: Int64) {
+            clock.seconds = Double(tick)/1000
+            let pose = PoseResult(timestamp: .init(value: tick, timescale: 1000), imageSize: .init(width: 1000, height: 600),
+                people: people, backend: "partial-setup", requestRevision: 1)
+            c.acceptEvaluationFrame(.init(image: image, pose: pose, processingMilliseconds: 1))
+        }
+        deliver([], tick: 0)
+        #expect(c.pushUpReadinessTitle == "No body detected · show a side view")
+        let partial = PoseObservation(landmarks: [.init(joint: .leftElbow, position: .init(x: 200, y: 300), confidence: 0.9)])
+        deliver([partial], tick: 40)
+        #expect(c.pushUpDetectedPose?.people == [partial])
+        #expect(c.latestPose?.people.isEmpty == true)
+        #expect(c.pushUpReadinessTitle == "Show your shoulder, hip and arm")
+        #expect(!c.hasBodyCameraCalibration && c.pushUpSnapshot?.setStarted == false)
+    }
+
     /// Authored body/phone/registration observations verify routing and gates,
     /// not native estimator accuracy or physical phone performance.
     @Test(arguments: [true, false]) func practiceUsesTheSharedCounterAndSavesOnlyCameraQualifiedPushUps(cameraAvailable: Bool) async throws {
         let clock = BodyDipCameraClock()
         clock.available = cameraAvailable
+        clock.gravity = .init(-1, 0, 0) // A level landscape phone, rather than portrait-only evidence.
         let c = LiveCameraPreviewController(sceneRegistrationWorker: BodyDipCameraRegistration(),
             phoneMotionProvider: { clock.sample }, pushUpPractice: true)
         let context = try #require(CGContext(data: nil, width: 1000, height: 600, bitsPerComponent: 8,
@@ -449,6 +489,7 @@ struct LivePushUpPracticeTests {
         for _ in 0..<100 { await deliver(0) }
         #expect(c.dipAthleteDecision?.status == "associated")
         #expect(c.hasBodyCameraCalibration == cameraAvailable)
+        #expect(c.pushUpReadinessTitle == (cameraAvailable ? "Ready — lower your chest" : "Phone motion sensor unavailable"))
         #expect(c.pushUpSnapshot?.setStarted == false)
         for i in 1...10 { await deliver(Double(i)/10) }
         for _ in 0..<10 { await deliver(1) }

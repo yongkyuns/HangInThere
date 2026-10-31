@@ -17,9 +17,7 @@ struct PushUpPracticeView: View {
     private var snapshot: PushUpPracticeSnapshot? { camera.pushUpSnapshot }
     private var count: Int { snapshot?.setStarted == true ? snapshot!.setCycles : camera.lastPushUpSetCount }
     private var status: String {
-        if !camera.isCameraReady { return camera.state.title }
-        if !camera.readinessFrameFresh { return "Keep your body in view" }
-        return snapshot?.title ?? "Hold a side-on plank"
+        camera.pushUpReadinessTitle
     }
 
     var body: some View {
@@ -99,7 +97,7 @@ struct PushUpPracticeView: View {
             ZStack {
                 Color.black
                 LiveCameraPreviewSurface(session: camera.session, rotationAngle: camera.pushUpVideoRotationAngle)
-                if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.latestPose {
+                if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.pushUpDetectedPose {
                     PoseOverlay(result: pose, usesBothArms: true,
                         effort: PoseOverlayEffort.pushUpRate(phase: snapshot?.phase, setStarted: snapshot?.setStarted == true,
                             usable: snapshot?.observationUsable == true), completedReps: count)

@@ -85,3 +85,14 @@ camera registration or production athlete association.
 Replay probe: `python3 Evaluation/pushup_feasibility.py build/pushup-feasibility-v140`
 
 Checks: `python3 -m unittest discover -s Evaluation/tests -p test_pushup_feasibility.py`
+
+Live push-up capture now also runs the body estimator with quarter-turn input
+orientations, then maps the selected complete observation back to the original
+camera pixels. Selection uses same-side landmark visibility; it never combines
+joints across passes or relaxes the shared counting rules. This addresses weak
+hip/knee detections on horizontal bodies. Setup shows partial detected joints
+and distinguishes missing pose, tilt, sensors and background calibration.
+The original and horizontally mirrored side recording each retain 5/5, with
+all returns inside the frozen manual windows and zero setup/release counts;
+the front recording remains unadmitted. These are development regressions,
+not new independent qualification evidence.
