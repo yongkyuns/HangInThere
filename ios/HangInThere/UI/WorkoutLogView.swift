@@ -1,6 +1,31 @@
 import SwiftUI
 import Charts
 
+/// Decorative movement cues keep the exercise name as the accessible label.
+struct WorkoutExerciseIcon: View {
+    let exercise: String
+    var size: CGFloat = 44
+    @Environment(\.colorScheme) private var scheme
+    private var artwork: String {
+        switch exercise.lowercased().filter({ $0.isLetter }) {
+        case "pullup", "pullups", "chinup", "chinups": "ExercisePullUp"
+        case "dip", "dips", "parallelbardip", "parallelbardips": "ExerciseDip"
+        case "pushup", "pushups": "ExercisePushUp"
+        case "bench", "benchpress", "barbellbenchpress", "dumbbellbenchpress": "ExerciseBench"
+        case "ezcurl", "ezcurls", "curl", "curls", "bicepcurl", "bicepcurls", "barbellcurls", "dumbbellcurls", "hammercurls": "ExerciseCurl"
+        case "squat", "squats", "backsquat", "frontsquat", "gobletsquat": "ExerciseSquat"
+        case "row", "rows", "barbellrow", "barbellrows", "dumbbellrow", "dumbbellrows", "seatedrows", "bentoverrows": "ExerciseRow"
+        default: "ExerciseOther"
+        }
+    }
+    var body: some View {
+        Image(artwork).resizable().scaledToFit().padding(size * 0.12)
+            .frame(width: size, height: size).foregroundStyle(HangPalette(scheme).accent)
+            .background(HangPalette(scheme).garden, in: RoundedRectangle(cornerRadius: size * 0.25))
+            .accessibilityHidden(true)
+    }
+}
+
 @MainActor
 struct WorkoutLogView: View {
     @Environment(\.dismiss) private var dismiss
@@ -49,9 +74,12 @@ struct WorkoutLogView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack { ForEach(recommendations) { item in
                             Button { select(item.exercise.title) } label: {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.exercise.title).font(.subheadline.bold())
-                                    Text("\(item.sets) sets" + (item.reps.map { " × \($0)" } ?? " · comfortable reps")).font(.caption)
+                                HStack(spacing: 10) {
+                                    WorkoutExerciseIcon(exercise: item.exercise.title, size: 36)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(item.exercise.title).font(.subheadline.bold())
+                                        Text("\(item.sets) sets" + (item.reps.map { " × \($0)" } ?? " · comfortable reps")).font(.caption)
+                                    }
                                 }.padding(12).background(palette.garden, in: RoundedRectangle(cornerRadius: 14))
                             }.buttonStyle(.plain)
                         } }
@@ -59,7 +87,8 @@ struct WorkoutLogView: View {
                 }
                 VStack(alignment: .leading, spacing: 16) {
                     Button { choosingExercise = true } label: {
-                        HStack {
+                        HStack(spacing: 12) {
+                            WorkoutExerciseIcon(exercise: exercise)
                             Text(exercise).font(.title2.bold()); Spacer()
                             Image(systemName: "chevron.up.chevron.down").font(.subheadline)
                         }.contentShape(Rectangle())
@@ -193,7 +222,10 @@ struct WorkoutLogTable: View {
     var body: some View {
         ForEach(log.exercises, id: \.self) { exercise in
             VStack(alignment: .leading, spacing: 12) {
-                Text(exercise).font(.headline)
+                HStack(spacing: 10) {
+                    WorkoutExerciseIcon(exercise: exercise, size: 36)
+                    Text(exercise).font(.headline)
+                }
                 if !typeSize.isAccessibilitySize {
                     HStack { Text("Set").frame(width: 44, alignment: .leading); Text("Weight").frame(maxWidth: .infinity, alignment: .leading); Text("Reps").frame(width: 42); Text("Rest").frame(width: 48) }
                         .font(.caption).foregroundStyle(.secondary)
@@ -233,7 +265,10 @@ struct WorkoutExercisePicker: View {
         List {
             ForEach(suggestions, id: \.self) { name in
                 Button { onSelect(name) } label: {
-                    Text(name).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                    HStack(spacing: 12) {
+                        WorkoutExerciseIcon(exercise: name)
+                        Text(name).frame(maxWidth: .infinity, alignment: .leading)
+                    }.frame(minHeight: 52).contentShape(Rectangle())
                 }.buttonStyle(.plain).listRowBackground(HangPalette(scheme).surface)
             }
             if !query.isEmpty && query.count <= 80 && !suggestions.contains(where: { $0.caseInsensitiveCompare(query) == .orderedSame }) {
@@ -255,7 +290,14 @@ struct WorkoutTapCounter: View {
     @State private var error: String?
     var body: some View {
         VStack(spacing: 24) {
-            Text(set.loadLabel).font(.title3).foregroundStyle(.secondary)
+            HStack(spacing: 16) {
+                WorkoutExerciseIcon(exercise: set.exercise, size: 80)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(set.exercise).font(.title2.bold())
+                    Text(set.loadLabel).font(.title3).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+            }.accessibilityElement(children: .combine)
             Spacer()
             Button { if count < 1000 { count += 1 } } label: {
                 VStack(spacing: 8) {
@@ -276,7 +318,7 @@ struct WorkoutTapCounter: View {
             } label: { Text("Finish set").font(.headline).frame(maxWidth: .infinity, minHeight: 54) }
                 .buttonStyle(.plain).foregroundStyle(HangBrand.ink).background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 16))
                 .accessibilityIdentifier("finishTappedSet")
-        }.padding(24).hangTheme().navigationTitle(set.exercise)
+        }.padding(24).hangTheme().navigationTitle("Count reps")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(count > 0 ? "Discard" : "Back") { dismiss() } } }
             .disabled(saving).interactiveDismissDisabled(count > 0 || saving)
     }

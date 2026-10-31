@@ -32,8 +32,10 @@ import WorkoutCore
             let editor = NavigationStack { WorkoutLoggedSetEditor(set: log.sets[0], onSave: { _ in }, onDelete: {}) }
                 .frame(width: 393, height: 852).background(HangPalette(scheme).background).environment(\.colorScheme, scheme)
             _ = try render(editor, width: 393, height: 852, filename: "workout-log-editor-\(dark ? "dark" : "light").png")
-            let counter = NavigationStack { WorkoutTapCounter(set: log.sets[0], onFinish: { _ in }) }.environment(\.colorScheme, scheme)
-            _ = try render(counter, width: 393, height: 852, filename: "workout-tap-counter-\(dark ? "dark" : "light").png")
+            for width in [320.0, 393.0] {
+                let counter = NavigationStack { WorkoutTapCounter(set: log.sets[0], onFinish: { _ in }) }.environment(\.colorScheme, scheme)
+                _ = try render(counter, width: width, height: 852, filename: "workout-tap-counter-\(dark ? "dark" : "light")-\(Int(width)).png")
+            }
         }
         let accessible = NavigationStack { WorkoutLogView(initial: log, preview: true) }
             .environment(\.colorScheme, .light).environment(\.dynamicTypeSize, .accessibility3)

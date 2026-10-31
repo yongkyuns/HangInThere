@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import dev.hanginthere.android.R
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.semantics.contentDescription
@@ -39,6 +41,24 @@ private fun loadNumber(text: String) = text.replace(DecimalFormatSymbols.getInst
 private fun formatLoad(value: Double?) = value?.let { NumberFormat.getNumberInstance().apply { maximumFractionDigits = 2; isGroupingUsed = false }.format(it) }.orEmpty()
 private fun WorkoutLoggedSet.loadLabel() = load?.let { "${formatLoad(it)} $unit" } ?: "—"
 private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".format(it / 60, it % 60) } ?: "—"
+
+/** Movement artwork matches iOS; text supplies the accessible exercise name. */
+@Composable private fun WorkoutExerciseIcon(exercise: String, size: androidx.compose.ui.unit.Dp = 44.dp) {
+    val artwork = when (exercise.lowercase().filter { it.isLetter() }) {
+        "pullup", "pullups", "chinup", "chinups" -> R.drawable.exercise_pull_up
+        "dip", "dips", "parallelbardip", "parallelbardips" -> R.drawable.exercise_dip
+        "pushup", "pushups" -> R.drawable.exercise_push_up
+        "bench", "benchpress", "barbellbenchpress", "dumbbellbenchpress" -> R.drawable.exercise_bench
+        "ezcurl", "ezcurls", "curl", "curls", "bicepcurl", "bicepcurls", "barbellcurls", "dumbbellcurls", "hammercurls" -> R.drawable.exercise_curl
+        "squat", "squats", "backsquat", "frontsquat", "gobletsquat" -> R.drawable.exercise_squat
+        "row", "rows", "barbellrow", "barbellrows", "dumbbellrow", "dumbbellrows", "seatedrows", "bentoverrows" -> R.drawable.exercise_row
+        else -> R.drawable.exercise_other
+    }
+    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = androidx.compose.foundation.shape.RoundedCornerShape(size * .25f)) {
+        Icon(painterResource(artwork), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(size).padding(size * .12f))
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun WorkoutLogDialog(
@@ -105,6 +125,8 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     TextButton(onClick = { choosing = true }, enabled = !saving, modifier = Modifier.testTag("chooseLogExercise")) {
+                        WorkoutExerciseIcon(exercise)
+                        Spacer(Modifier.width(12.dp))
                         Text(exercise, style = MaterialTheme.typography.titleLarge); Text(" ▾")
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -173,7 +195,10 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     log.sets.map { it.exercise }.distinct().forEach { name ->
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(name, style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    WorkoutExerciseIcon(name, 36.dp)
+                    Text(name, style = MaterialTheme.typography.titleMedium)
+                }
                 Row { Text("Set", Modifier.weight(.6f)); Text("Weight", Modifier.weight(1.2f)); Text("Reps", Modifier.weight(.8f)); Text("Rest", Modifier.weight(.8f)) }
                 log.sets.filter { it.exercise == name }.forEachIndexed { index, set ->
                     Row(Modifier.fillMaxWidth().testTag("logged-set-${set.id}").clickable { onEdit(set) }.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -202,7 +227,11 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     WorkoutLogPage("Exercise", onClose) {
         Column(Modifier.padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedTextField(query, { query = it }, label = { Text("Find or add an exercise") }, modifier = Modifier.fillMaxWidth().testTag("exerciseSearch"), singleLine = true)
-            suggestions.forEach { name -> TextButton(onClick = { onSelect(name) }, modifier = Modifier.fillMaxWidth()) { Text(name) } }
+            suggestions.forEach { name -> TextButton(onClick = { onSelect(name) }, modifier = Modifier.fillMaxWidth()) {
+                WorkoutExerciseIcon(name)
+                Spacer(Modifier.width(12.dp))
+                Text(name, Modifier.weight(1f))
+            } }
             val name = query.trim()
             if (WorkoutLogPolicy.validSet(name, 0, null, "lb") && suggestions.none { it.equals(name, true) }) TextButton(onClick = { onSelect(name) }) { Text("Use “$name”") }
         }
@@ -216,9 +245,15 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    WorkoutLogPage(set.exercise, { if (!saving) onClose() }) {
+    WorkoutLogPage("Count reps", { if (!saving) onClose() }) {
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(set.loadLabel(), style = MaterialTheme.typography.titleMedium)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                WorkoutExerciseIcon(set.exercise, 80.dp)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(set.exercise, style = MaterialTheme.typography.titleLarge)
+                    Text(set.loadLabel(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             Spacer(Modifier.weight(1f))
             Button(onClick = { if (count < 1000) count++ }, enabled = !saving,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 240.dp).testTag("tapRep")) {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Matches the ExercisePushUp SVG in the iOS asset catalog. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="64dp" android:height="64dp" android:viewportWidth="64" android:viewportHeight="64">
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M7 54 H57"/>
+    <path android:fillColor="#FF000000" android:pathData="M7.5,27 a4.5,4.5 0,1 0,9.0,0 a4.5,4.5 0,1 0,-9.0,0"/>
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M20 30 L36 37 L52 48 L56 48 M23 32 L22 42 L16 50 M36 37 L45 45"/>
+</vector>

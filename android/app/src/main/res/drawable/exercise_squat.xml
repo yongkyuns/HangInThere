@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Matches the ExerciseSquat SVG in the iOS asset catalog. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="64dp" android:height="64dp" android:viewportWidth="64" android:viewportHeight="64">
+    <path android:fillColor="#FF000000" android:pathData="M27.5,13 a4.5,4.5 0,1 0,9.0,0 a4.5,4.5 0,1 0,-9.0,0"/>
+    <path android:fillColor="@android:color/transparent" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M30 23 L22 36 L40 41 L31 55 H44 M29 24 L39 29 L45 22 M16 24 H48 M17 19 V29 M47 19 V29"/>
+</vector>
