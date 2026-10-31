@@ -97,28 +97,6 @@ struct WorkoutLogView: View {
                             Image(systemName: "chevron.up.chevron.down").font(.subheadline)
                         }.contentShape(Rectangle())
                     }.buttonStyle(.plain).accessibilityIdentifier("chooseLogExercise")
-                    DisclosureGroup(isExpanded: $editingWeight) {
-                        let fields = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 14)) : AnyLayout(HStackLayout(alignment: .top, spacing: 14))
-                        fields {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Weight (optional)").font(.caption).foregroundStyle(palette.secondary)
-                                TextField("Optional", text: $load).workoutNumberKeyboard(decimal: true)
-                                    .hangInput().accessibilityIdentifier("logWeight")
-                            }
-                            Picker("Weight unit", selection: Binding(get: { unit }, set: { next in
-                                if let value = parsedLoad, value.isFinite, value >= 0, next != unit {
-                                    load = LoggedWorkout.convertLoad(value, from: unit, to: next)
-                                        .formatted(.number.grouping(.never).precision(.fractionLength(0...2)))
-                                }
-                                unit = next
-                            })) { Text("lb").tag("lb"); Text("kg").tag("kg") }
-                                .pickerStyle(.menu).labelsHidden().frame(width: typeSize.isAccessibilitySize ? 120 : 58)
-                                .padding(.top, typeSize.isAccessibilitySize ? 0 : 20)
-                        }
-                    } label: {
-                        Label(load.isEmpty ? "Add weight (optional)" : "\(load) \(unit)", systemImage: "scalemass")
-                            .font(.subheadline.weight(.semibold))
-                    }
                     Button {
                         counter = .init(exercise: exercise.trimmingCharacters(in: .whitespacesAndNewlines),
                             reps: 0, load: parsedLoad, unit: unit, method: "tap")
@@ -165,12 +143,23 @@ struct WorkoutLogView: View {
             .navigationTitle("Workout log")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() }.disabled(saving) }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Exercise setup", systemImage: "slider.horizontal.3") { editingWeight = true }
+                        .disabled(saving).accessibilityIdentifier("openExerciseSetup")
+                }
                 ToolbarItem(placement: .primaryAction) { Button("Exercise progress", systemImage: "chart.bar") { showingProgress = true } }
             }
             .interactiveDismissDisabled(saving)
             .task { if !preview { await reload() }; prefill() }
             .sheet(isPresented: $choosingExercise) {
                 NavigationStack { WorkoutExercisePicker(names: Array(Set(history.flatMap(\.exercises) + log.exercises))) { select($0); choosingExercise = false } }
+            }
+            .sheet(isPresented: $editingWeight) {
+                NavigationStack {
+                    WorkoutExerciseSetup(exercise: exercise, load: load, unit: unit) { nextLoad, nextUnit in
+                        load = nextLoad; unit = nextUnit; editingWeight = false
+                    }
+                }
             }
             .sheet(item: $counter) { set in
                 NavigationStack { WorkoutTapCounter(set: set) { result in
@@ -290,6 +279,49 @@ struct WorkoutExercisePicker: View {
             }
         }.hangTheme().searchable(text: $search, prompt: "Find or add an exercise").navigationTitle("Exercise")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Back") { dismiss() } } }
+    }
+}
+
+/// Draft setup is applied once; cancelling never changes subsequent set metadata.
+struct WorkoutExerciseSetup: View {
+    let exercise: String
+    @State var load: String
+    @State var unit: String
+    var onSave: (String, String) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
+    private var parsedLoad: Double? { Double(load.replacingOccurrences(of: Locale.current.decimalSeparator ?? ".", with: ".")) }
+    private var valid: Bool {
+        (load.isEmpty || parsedLoad != nil) && LoggedWorkout.validSet(exercise: exercise, reps: 0, load: parsedLoad, unit: unit)
+    }
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                HStack(spacing: 12) {
+                    WorkoutExerciseIcon(exercise: exercise)
+                    Text(exercise).font(.headline)
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Weight (optional)").font(.subheadline.weight(.semibold))
+                    TextField("None", text: $load).labelsHidden().workoutNumberKeyboard(decimal: true).hangInput()
+                        .accessibilityLabel("Weight (optional)").accessibilityIdentifier("logWeight")
+                    Picker("Weight unit", selection: Binding(get: { unit }, set: { next in
+                        if let value = parsedLoad, value.isFinite, value >= 0, next != unit {
+                            load = LoggedWorkout.convertLoad(value, from: unit, to: next)
+                                .formatted(.number.grouping(.never).precision(.fractionLength(0...2)))
+                        }
+                        unit = next
+                    })) { Text("lb").tag("lb"); Text("kg").tag("kg") }
+                        .pickerStyle(.segmented).labelsHidden()
+                    if !load.isEmpty { Button("Clear weight") { load = "" } }
+                }.journeyCard()
+                Text("Used for this exercise’s sets until you change it.").font(.footnote).foregroundStyle(.secondary)
+            }.padding(20)
+        }.hangTheme().navigationTitle("Exercise setup")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { onSave(load, unit) }.disabled(!valid) }
+            }
     }
 }
 

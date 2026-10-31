@@ -27,6 +27,11 @@ import WorkoutCore
         }
         for dark in [false, true] {
             let scheme: ColorScheme = dark ? .dark : .light
+            for width in [320.0, 393.0] {
+                let setup = NavigationStack { WorkoutExerciseSetup(exercise: "Pull-ups", load: "74", unit: "kg", onSave: { _, _ in }) }
+                    .environment(\.colorScheme, scheme)
+                _ = try render(setup, width: width, height: 852, filename: "workout-exercise-setup-\(dark ? "dark" : "light")-\(Int(width)).png")
+            }
             let empty = NavigationStack { WorkoutLogView(preview: true) }.environment(\.colorScheme, scheme)
             _ = try render(empty, width: 393, height: 852, filename: "workout-log-no-weight-\(dark ? "dark" : "light").png")
             let picker = NavigationStack { WorkoutExercisePicker(names: ["Bench press", "EZ curls"]) { _ in } }.environment(\.colorScheme, scheme)

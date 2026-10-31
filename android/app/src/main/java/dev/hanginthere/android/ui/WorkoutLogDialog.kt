@@ -76,7 +76,6 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     var unit by rememberSaveable { mutableStateOf("lb") }
     var choosing by remember { mutableStateOf(false) }
     var editingWeight by remember { mutableStateOf(false) }
-    var unitMenu by remember { mutableStateOf(false) }
     var datePicker by remember { mutableStateOf(false) }
     var counter by rememberSaveable { mutableStateOf(false) }
     var editing by remember { mutableStateOf<WorkoutLoggedSet?>(null) }
@@ -114,6 +113,7 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
         } catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = "Couldn't load your workout. Close and retry." }
     }
     WorkoutLogPage("Workout log", onClose = { if (!saving) onClose() }, actions = {
+        TextButton(onClick = { editingWeight = true }, enabled = !saving, modifier = Modifier.testTag("openExerciseSetup")) { Text("Setup") }
         TextButton(onClick = { progress = true }) { Text("Progress") }
     }) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -130,26 +130,6 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
                         WorkoutExerciseIcon(exercise)
                         Spacer(Modifier.width(12.dp))
                         Text(exercise, style = MaterialTheme.typography.titleLarge); Text(" ▾")
-                    }
-                    TextButton(onClick = { editingWeight = !editingWeight }, enabled = !saving) {
-                        Text(if (load.isBlank()) "Add weight (optional)" else "$load $unit")
-                    }
-                    if (editingWeight) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedTextField(load, { load = it }, label = { Text("Weight (optional)") }, placeholder = { Text("Optional") },
-                                modifier = Modifier.weight(1f).testTag("logWeight"), singleLine = true, enabled = !saving,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
-                            Box {
-                                TextButton(onClick = { unitMenu = true }, enabled = !saving) { Text("$unit ▾") }
-                                DropdownMenu(unitMenu, { unitMenu = false }) {
-                                    listOf("lb", "kg").forEach { next -> DropdownMenuItem(text = { Text(next) }, onClick = {
-                                        if (next != unit && parsedLoad != null && parsedLoad.isFinite() && parsedLoad >= 0)
-                                            load = formatLoad(WorkoutLogPolicy.convertLoad(parsedLoad, unit, next))
-                                        unit = next; unitMenu = false
-                                    }) }
-                                }
-                            }
-                        }
                     }
                     Button(onClick = { counter = true }, enabled = !saving && validForCounting,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp).testTag("openTapCounter")) { Text("Count reps") }
@@ -177,6 +157,9 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
         }
     }
     if (choosing) WorkoutExercisePicker((log.sets + history.flatMap { it.sets }).map { it.exercise }, onClose = { choosing = false }) { prefill(it); choosing = false; editingWeight = false }
+    if (editingWeight) WorkoutExerciseSetup(exercise, load, unit, onClose = { editingWeight = false }) { nextLoad, nextUnit ->
+        load = nextLoad; unit = nextUnit; editingWeight = false
+    }
     if (counter) WorkoutTapCounter(WorkoutLoggedSet(UUID.randomUUID().toString(), exercise.trim(), 0, parsedLoad, unit, method = "tap"), onClose = { counter = false }) { set ->
         persist(log.copy(sets = log.sets + set)); reps = set.reps.toString(); counter = false
     }
@@ -243,6 +226,35 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
             } }
             val name = query.trim()
             if (WorkoutLogPolicy.validSet(name, 0, null, "lb") && suggestions.none { it.equals(name, true) }) TextButton(onClick = { onSelect(name) }) { Text("Use “$name”") }
+        }
+    }
+}
+
+@Composable private fun WorkoutExerciseSetup(exercise: String, initialLoad: String, initialUnit: String,
+    onClose: () -> Unit, onSave: (String, String) -> Unit) {
+    var load by rememberSaveable { mutableStateOf(initialLoad) }
+    var unit by rememberSaveable { mutableStateOf(initialUnit) }
+    val parsed = loadNumber(load)
+    val valid = (load.isBlank() || parsed != null) && WorkoutLogPolicy.validSet(exercise, 0, parsed, unit)
+    WorkoutLogPage("Exercise setup", onClose) {
+        Column(Modifier.padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                WorkoutExerciseIcon(exercise)
+                Text(exercise, style = MaterialTheme.typography.titleLarge)
+            }
+            OutlinedTextField(load, { load = it }, label = { Text("Weight (optional)") }, placeholder = { Text("None") },
+                modifier = Modifier.fillMaxWidth().testTag("logWeight"), singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                listOf("lb", "kg").forEach { next -> FilterChip(selected = unit == next, onClick = {
+                    if (parsed != null && parsed.isFinite() && parsed >= 0 && next != unit)
+                        load = formatLoad(WorkoutLogPolicy.convertLoad(parsed, unit, next))
+                    unit = next
+                }, label = { Text(next) }, modifier = Modifier.weight(1f)) }
+            }
+            if (load.isNotBlank()) TextButton(onClick = { load = "" }) { Text("Clear weight") }
+            Text("Used for this exercise’s sets until you change it.", style = MaterialTheme.typography.bodySmall)
+            Button(onClick = { onSave(load, unit) }, enabled = valid, modifier = Modifier.fillMaxWidth()) { Text("Done") }
         }
     }
 }
