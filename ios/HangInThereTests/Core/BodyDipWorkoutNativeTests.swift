@@ -313,6 +313,7 @@ final class BodyDipWorkoutNativeTests: XCTestCase {
         }
         XCTAssertNil(standing.draftDeltaJson())
     }
+    #if os(iOS) // Color presentation is supplied by the iOS UI target.
     @MainActor func testHeldDipColorUsesFreshFramesBetweenRecordCheckpoints() throws {
         let adapter = WorkoutAnalysisAdapter()
         var heldFrames = 0, framesBeyondOldTimeout = 0
@@ -339,6 +340,7 @@ final class BodyDipWorkoutNativeTests: XCTestCase {
         adapter.start(exercise: .dip, recordCalendarTime: false)
         XCTAssertNil(adapter.effortObservationSeconds)
     }
+    #endif
     @MainActor func testAnalysisAdapterAndLivePresentationUseSharedBodyCountsAndMethod() async throws {
         let adapter = WorkoutAnalysisAdapter()
         var session = LiveSetSession()

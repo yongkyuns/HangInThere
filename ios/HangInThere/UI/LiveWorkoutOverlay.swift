@@ -250,6 +250,7 @@ struct LiveWorkoutOverlay: View {
     var onCoachEffortSaved: (() -> Void)? = nil
     var onReadinessDetails: (() -> Void)? = nil
     var poseOverlayVisibility: Binding<Bool>? = nil
+    var showsVoiceControls = false
     let cameraReady: Bool
     let status: String
     let statusSymbol: String
@@ -401,15 +402,19 @@ struct LiveWorkoutOverlay: View {
     private var footer: some View {
         VStack(spacing: 12) {
             if session.phase != .running, !trackingFirstMovement, let afterSetReport { afterSetSummary(afterSetReport) }
-            if session.phase == .idle {
+            if session.phase == .idle || showsVoiceControls {
                 HStack {
+                    if showsVoiceControls { WorkoutVoiceButtons() }
                     Spacer()
+                    if session.phase == .idle {
                     iconButton("arrow.triangle.2.circlepath.camera", label: "Switch to \(nextCameraName) camera", action: onSwitchCamera)
                         .disabled(!canSwitchCamera)
                         .opacity(canSwitchCamera ? 1 : 0.4)
                         .accessibilityHint("Changing cameras clears bar setup.")
                         .accessibilityIdentifier("liveCameraSelection")
+                    }
                 }
+                if showsVoiceControls { WorkoutVoiceStatus() }
             }
             if trackingFirstMovement {
                 Label("First rep · tracking", systemImage: "figure.strengthtraining.functional")

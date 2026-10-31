@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Listen for workout commands only when you turn on the microphone.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Recognize commands such as “finish set” on your iPhone.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

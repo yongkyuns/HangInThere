@@ -40,8 +40,8 @@ full-set accuracy and sustained physical-device qualification remain open; see
 - Supports a controlled camera setup: front/rear view, approximately level at
   chest/shoulder height, one athlete reasonably close with both arms visible.
   Camera movement and unavailable observations remain explicit interruptions.
-- Shows a compact count/progress overlay. Skeleton and reference geometry are
-  off by default and available through Diagnostics.
+- Shows a compact count/progress overlay with joint bands enabled by default.
+  The eye button hides them; detailed geometry is available in Diagnostics.
 - Saves silent local video from the first completed rep to the last return,
   excluding setup/release/rest outside the set. Saved video fits within
   480 × 854 (either orientation), without reducing detection input resolution.
@@ -67,6 +67,11 @@ full-set accuracy and sustained physical-device qualification remain open; see
 - Optional joint bands use the same phase-load colors for pull-ups, dips and
   push-ups: cool for support, amber for lowering, warm for pull/press or bent-arm
   holds. Unknown phases stay neutral; the vertical gauge still shows rep depth.
+- Offers opt-in iPhone voice cues and English workout commands: start/finish
+  a set, add/undo manual reps, or set an optional exercise weight. The speaker
+  button controls speech; the microphone separately enables on-device listening
+  when supported. Listening stops on exit/background. Camera rep evidence is
+  unchanged; voice cannot manufacture or undo automatically counted reps.
 - Follows the system light/dark appearance with background-free exercise artwork.
   Imported-video review remains local and retains the pixels used for analysis.
 - Offers optional, one-screen coaching setup, an editable Today workout and

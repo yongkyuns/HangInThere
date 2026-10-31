@@ -28,6 +28,7 @@ struct PushUpPracticeView: View {
                 .navigationTitle("Push-ups · Preview").navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("Back") { dismiss() } }
+                    if hasSeenGuide { ToolbarItem(placement: .topBarTrailing) { WorkoutVoiceButtons() } }
                     if hasSeenGuide {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Setup", systemImage: "info.circle") {
@@ -56,7 +57,15 @@ struct PushUpPracticeView: View {
                     if phase != .active { camera.suspendForSceneLoss() }
                     else if hasSeenGuide && !showsReview && camera.isSuspended { Task { await camera.resumeAfterInterruption() } }
                 }
-                .onDisappear { camera.stop() }
+                .onAppear { UIDevice.current.beginGeneratingDeviceOrientationNotifications() }
+                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                    guard hasSeenGuide, let orientation = LiveCameraConnectionConfiguration.interfaceOrientation(deviceOrientation: UIDevice.current.orientation) else { return }
+                    camera.setPushUpOrientation(orientation)
+                }
+                .onDisappear {
+                    UIDevice.current.endGeneratingDeviceOrientationNotifications()
+                    camera.stop()
+                }
         }
     }
 
@@ -134,6 +143,7 @@ struct PushUpPracticeView: View {
                     }.padding(compact ? 12 : 16).frame(maxWidth: 480, minHeight: compact ? 54 : 70)
                         .background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 20))
                         .accessibilityIdentifier("pushUpReadiness")
+                    WorkoutVoiceStatus()
                     HStack {
                         if let error = camera.workoutStorageError {
                             Label("Save retrying", systemImage: "exclamationmark.icloud").font(.caption)
@@ -153,6 +163,28 @@ struct PushUpPracticeView: View {
                     }
                 }.foregroundStyle(.white).padding(compact ? 12 : 16)
             }.onChange(of: geometry.size, initial: true) { _, _ in updateOrientation() }
+                .workoutVoiceContext { command in
+                    guard !showsReview, !camera.isSuspended else { return nil }
+                    switch command.action {
+                    case "finish":
+                        guard snapshot?.setStarted == true else { return "No set is running." }
+                        camera.finishPushUpPractice(); return nil
+                    case "start", "next": return "Hold a clear side-on plank. Counting starts automatically."
+                    case "add", "undo": return "Camera counting is automatic. Review corrections after the set."
+                    default: return "Set weight in exercise setup before camera counting."
+                    }
+                }
+                .onChange(of: camera.pushUpVoiceSetId.map { "\($0):\(count)" }) { _, _ in
+                    if let id = camera.pushUpVoiceSetId, snapshot?.setStarted == true, camera.readinessFrameFresh {
+                        WorkoutVoiceCoach.shared.observedCount(setId: id, count: count)
+                    }
+                }
+                .onChange(of: status) { _, value in
+                    if snapshot?.setStarted != true, camera.isCameraReady, camera.readinessFrameFresh {
+                        WorkoutVoiceCoach.shared.guidance(value)
+                    }
+                }
+
         }
     }
 
@@ -288,6 +320,7 @@ struct LiveSetupView: View {
                     },
                     onReadinessDetails: { openDetails(tab: .diagnostics) },
                     poseOverlayVisibility: $showDiagnosticPose,
+                    showsVoiceControls: true,
                     cameraReady: camera.isCameraReady,
                     status: overlayStatus,
                     statusSymbol: overlayStatusSymbol,
@@ -325,6 +358,20 @@ struct LiveSetupView: View {
                     WorkoutReviewView(sets: camera.workoutHistory, currentReps: camera.repAnalysis,
                                       storageError: camera.workoutStorageError, currentSet: reviewRecord)
                         .toolbar { Button("Done") { showingAnalysis = false } }
+                }
+            }
+            .workoutVoiceContext(handleVoiceCommand)
+            .onChange(of: showingDetails || showingAnalysis) { _, visible in
+                if visible { WorkoutVoiceCoach.shared.stopListening() }
+            }
+            .onChange(of: camera.activeWorkoutRecord.map { "\($0.id):\($0.completedCount)" }) { _, _ in
+                if let record = camera.activeWorkoutRecord, camera.readinessFrameFresh {
+                    WorkoutVoiceCoach.shared.observedCount(setId: record.id, count: record.completedCount)
+                }
+            }
+            .onChange(of: camera.readinessChecklist.actionTitle) { _, title in
+                if camera.liveSet.phase == .idle && camera.readinessFrameFresh {
+                    WorkoutVoiceCoach.shared.guidance(title.lowercased())
                 }
             }
             .onChange(of: showingAnalysis) { _, visible in
@@ -368,6 +415,30 @@ struct LiveSetupView: View {
                 camera.setWorkoutDetailsPresented(false)
                 camera.stop()
             }
+        }
+    }
+
+    private func handleVoiceCommand(_ command: WorkoutVoiceCommand) -> String? {
+        guard !showingDetails, !showingAnalysis, !camera.isSuspended else { return nil }
+        switch command.action {
+        case "start", "next":
+            if camera.liveSet.phase == .running { return "A set is already running." }
+            if let raw = command.exercise, let selected = ExerciseCounter.Exercise(rawValue: raw) {
+                guard selected != .pushUp else { return "Open the push-up camera for a side view." }
+                if selected != exercise {
+                    if camera.liveSet.phase == .finished { camera.prepareNextSet() }
+                    exerciseSelection = WorkoutExerciseSelection(exercise: selected)
+                    return "\(selected.title) selected. Show your starting position."
+                }
+            }
+            if camera.liveSet.phase == .finished { camera.prepareNextSet() }
+            return camera.startSet() ? nil : "\(camera.readinessChecklist.actionTitle.lowercased())."
+        case "finish":
+            guard camera.liveSet.phase == .running else { return "No set is running." }
+            camera.stopSet(); return nil
+        case "add", "undo": return "Camera counting is automatic. Review corrections after the set."
+        case "weight", "clearWeight": return "Set weight in exercise setup before camera counting."
+        default: return nil
         }
     }
 

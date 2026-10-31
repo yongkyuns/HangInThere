@@ -55,8 +55,37 @@ enum LiveCameraPosition: String, CaseIterable, Sendable {
 }
 
 // Keep preview, Vision pixels, frozen bar setup and debug movies in the same
-// portrait, unmirrored coordinate system, including on the front camera.
+// upright, unmirrored coordinate system, including on the front camera.
 enum LiveCameraConnectionConfiguration {
+    static func interfaceOrientation(deviceOrientation: UIDeviceOrientation) -> UIInterfaceOrientation? {
+        switch deviceOrientation {
+        case .portrait: .portrait
+        case .portraitUpsideDown: .portraitUpsideDown
+        case .landscapeLeft: .landscapeRight
+        case .landscapeRight: .landscapeLeft
+        default: nil // Lying flat does not establish a new viewing orientation.
+        }
+    }
+    static func rotationAngle(orientation: UIInterfaceOrientation, camera: LiveCameraPosition,
+                              device: AVCaptureDevice? = nil) -> Double {
+        let videoOrientation: AVCaptureVideoOrientation = switch orientation {
+        case .landscapeLeft: .landscapeLeft
+        case .landscapeRight: .landscapeRight
+        case .portraitUpsideDown: .portraitUpsideDown
+        default: .portrait
+        }
+        if #available(iOS 27, *), let device {
+            return Double(AVCaptureDevice.RotationCoordinator(device: device, previewLayer: nil)
+                .videoRotationAngleRelative(toDeviceOrientation: videoOrientation))
+        }
+        // Built-in front and rear sensors have opposite landscape orientations.
+        switch orientation {
+        case .landscapeRight: return camera == .front ? 180 : 0
+        case .landscapeLeft: return camera == .front ? 0 : 180
+        case .portraitUpsideDown: return 270
+        default: return 90
+        }
+    }
     static func apply(to connection: AVCaptureConnection, rotationAngle: Double = 90) throws {
         guard connection.isVideoRotationAngleSupported(rotationAngle) else {
             throw LiveCameraSetupError.unsupportedPortraitRotation
@@ -266,7 +295,9 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var pushUpBridge: SideViewPushUpWorkoutBridge?
     private(set) var pushUpSnapshot: PushUpPracticeSnapshot?
     private(set) var lastPushUpSetCount = 0
+    private(set) var pushUpVoiceSetId: String?
     private(set) var pushUpVideoRotationAngle: Double = 90
+    @ObservationIgnored private var pushUpInterfaceOrientation: UIInterfaceOrientation = .portrait
     private var bodyCameraIdle: Bool { isPushUpPractice ? pushUpSnapshot?.setStarted != true : liveSet.phase == .idle }
     private(set) var dipAthleteDecision: BodyAthleteSelectionDecision?
     var usesBodyDipTracking: Bool { exercise == .dip }
@@ -373,7 +404,6 @@ final class LiveCameraPreviewController: NSObject {
     @ObservationIgnored private var automaticBarPolicy = AutomaticApparatusReference()
     @ObservationIgnored private var automaticBarTask: Task<Void, Never>?
     @ObservationIgnored private var lastAutomaticBarSeconds: Double?
-    @ObservationIgnored private let countdownSpeech = AVSpeechSynthesizer()
     @ObservationIgnored private var lastHandsFreeFrameUptime: Double?
     private(set) var workoutDetailsPresented = false
     @ObservationIgnored private var discardNextSetFrame = false
@@ -413,12 +443,10 @@ final class LiveCameraPreviewController: NSObject {
 
     func setPushUpOrientation(_ orientation: UIInterfaceOrientation) {
         guard isPushUpPractice else { return }
-        let angle: Double = switch orientation {
-        case .landscapeRight: 0
-        case .landscapeLeft: 180
-        case .portraitUpsideDown: 270
-        default: 90
-        }
+        pushUpInterfaceOrientation = orientation
+        let device = session.inputs.compactMap { ($0 as? AVCaptureDeviceInput)?.device }
+            .first { $0.position == cameraPosition.capturePosition }
+        let angle = LiveCameraConnectionConfiguration.rotationAngle(orientation: orientation, camera: cameraPosition, device: device)
         guard angle != pushUpVideoRotationAngle else { return }
         finishPushUpPractice(reason: "orientationChanged")
         clearBar()
@@ -441,6 +469,7 @@ final class LiveCameraPreviewController: NSObject {
             let json = try pushUpBridge.observeJson(poseJson: String(decoding: JSONEncoder().encode(pose), as: UTF8.self),
                 camera: moved ? "moved" : qualified ? "ready" : "unavailable")
             let snapshot = try JSONDecoder().decode(PushUpPracticeSnapshot.self, from: Data(json.utf8))
+            if pushUpSnapshot?.setStarted != true && snapshot.setStarted { speakWorkoutCue("Set started.") }
             pushUpSnapshot = snapshot
             if let ended = snapshot.endedSet { lastPushUpSetCount = ended.reps.count }
             collectPushUpWrites()
@@ -456,11 +485,15 @@ final class LiveCameraPreviewController: NSObject {
             do {
                 let write = try JSONDecoder().decode(Write.self, from: Data(json.utf8))
                 if write.finalized {
+                    pushUpVoiceSetId = nil
+                    let previous = workoutHistory.first { $0.id != write.record.id && $0.exercise == .pushUp && $0.completedCount > 0 }?.completedCount
+                    if write.record.completedCount > 0 { WorkoutVoiceCoach.shared.completed(count: write.record.completedCount, previous: previous, saved: false) }
                     lastPushUpSetCount = write.record.completedCount
                     latestCompletedWorkout = write.record
                     workoutHistory.insert(write.record, at: 0)
                     workoutHistory = Array(workoutHistory.prefix(50))
                 }
+                if !write.finalized { pushUpVoiceSetId = write.record.id }
                 persistWorkout(write.record, finalized: write.finalized)
                 pushUpBridge.acknowledgeWrite()
             } catch {
@@ -576,6 +609,9 @@ final class LiveCameraPreviewController: NSObject {
         dipAthleteSelection.reset()
         dipAthleteDecision = nil
         cameraPosition = position
+        if isPushUpPractice {
+            pushUpVideoRotationAngle = LiveCameraConnectionConfiguration.rotationAngle(orientation: pushUpInterfaceOrientation, camera: position)
+        }
         automaticBarPolicy.reset()
         automaticExercise.reset()
         clearBar()
@@ -1110,17 +1146,14 @@ final class LiveCameraPreviewController: NSObject {
         workoutAnalysis.resetReadiness()
         qualifiedStartPose = nil
         lastHandsFreeFrameUptime = nil
-        countdownSpeech.stopSpeaking(at: .immediate)
+        WorkoutVoiceCoach.shared.stopSpeaking()
     }
 
     private func speakWorkoutCue(_ text: String) {
         #if DEBUG
         guard !evaluationInput else { return }
         #endif
-        countdownSpeech.stopSpeaking(at: .immediate)
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        countdownSpeech.speak(utterance)
+        WorkoutVoiceCoach.shared.speak(text)
     }
 
     private func updateHandsFreeStart(_ frame: ProcessedFrame) {
@@ -1538,7 +1571,10 @@ final class LiveCameraPreviewController: NSObject {
         archivedSetId = record.id
         if let report = try? record.afterSetReport() {
             latestAfterSetReport = report
-            speakWorkoutCue(report.spokenCue)
+            if record.completedCount > 0 {
+                let previous = workoutHistory.first { $0.id != record.id && $0.exercise == record.exercise && $0.completedCount > 0 }?.completedCount
+                WorkoutVoiceCoach.shared.completed(count: record.completedCount, previous: previous, saved: false)
+            } else { speakWorkoutCue(report.spokenCue) }
         }
         latestCompletedWorkout = record.hasPractice ? record : nil
         finishSetVideo(record)
@@ -1832,6 +1868,10 @@ final class LiveCameraPreviewController: NSObject {
             throw LiveCameraSetupError.noCamera
         }
 
+        if isPushUpPractice {
+            pushUpVideoRotationAngle = LiveCameraConnectionConfiguration.rotationAngle(orientation: pushUpInterfaceOrientation,
+                camera: cameraPosition, device: device)
+        }
         let input = try AVCaptureDeviceInput(device: device)
         let output = AVCaptureVideoDataOutput()
         output.alwaysDiscardsLateVideoFrames = true

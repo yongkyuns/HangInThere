@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A15300000000000000000006 /* WorkoutVoiceCoachTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15300000000000000000005 /* WorkoutVoiceCoachTests.swift */; };
+		A15300000000000000000004 /* UI/WorkoutVoiceControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15300000000000000000003 /* UI/WorkoutVoiceControls.swift */; };
+		A15300000000000000000002 /* App/WorkoutVoiceCoach.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15300000000000000000001 /* App/WorkoutVoiceCoach.swift */; };
 		A13700000000000000000002 /* Analysis/WorkoutCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13700000000000000000001; };
 		A13700000000000000000004 /* WorkoutCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13700000000000000000003; };
 		A13500000000000000000006 /* WorkoutLoggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A13500000000000000000005; };
@@ -132,6 +135,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A15300000000000000000005 /* WorkoutVoiceCoachTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutVoiceCoachTests.swift; sourceTree = "<group>"; };
+		A15300000000000000000003 /* UI/WorkoutVoiceControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UI/WorkoutVoiceControls.swift; sourceTree = "<group>"; };
+		A15300000000000000000001 /* App/WorkoutVoiceCoach.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/WorkoutVoiceCoach.swift; sourceTree = "<group>"; };
 		A13700000000000000000001 /* Analysis/WorkoutCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis/WorkoutCalendar.swift; sourceTree = "<group>"; };
 		A13700000000000000000003 /* WorkoutCalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCalendarTests.swift; sourceTree = "<group>"; };
 		A13500000000000000000005 /* WorkoutLoggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLoggingTests.swift; sourceTree = "<group>"; };
@@ -334,6 +340,8 @@
 				A13500000000000000000003 /* UI/WorkoutLogView.swift */,
 				A13700000000000000000001 /* Analysis/WorkoutCalendar.swift */,
 				A13500000000000000000001 /* App/WorkoutLogging.swift */,
+				A15300000000000000000003 /* UI/WorkoutVoiceControls.swift */,
+				A15300000000000000000001 /* App/WorkoutVoiceCoach.swift */,
 				A12300000000000000000003 /* Capture/WorkoutKeyframes.swift */,
 				A12300000000000000000005 /* UI/WorkoutSetVisuals.swift */,
 				A12500000000000000000003 /* UI/WorkoutCoachView.swift */,
@@ -419,6 +427,7 @@
 				ACC100000000000000000002 /* WorkoutLibraryStoreTests.swift */,
 				ACB100000000000000000007 /* WorkoutGripInferenceTests.swift */,
 				ACF000000000000000000001 /* LiveCameraSelectionTests.swift */,
+				A15300000000000000000005 /* WorkoutVoiceCoachTests.swift */,
 				ACF000000000000000000003 /* WorkoutStartFeedbackTimerTests.swift */,
 				ACF000000000000000000007 /* BitmapFrameRendererTests.swift */,
 				AAB000000000000000000005 /* AutomaticBarReplayTests.swift */,
@@ -673,6 +682,8 @@
 				A13500000000000000000004 /* UI/WorkoutLogView.swift in Sources */,
 				A13700000000000000000002 /* Analysis/WorkoutCalendar.swift in Sources */,
 				A13500000000000000000002 /* App/WorkoutLogging.swift in Sources */,
+				A15300000000000000000004 /* UI/WorkoutVoiceControls.swift in Sources */,
+				A15300000000000000000002 /* App/WorkoutVoiceCoach.swift in Sources */,
 				A12300000000000000000004 /* Capture/WorkoutKeyframes.swift in Sources */,
 				A12300000000000000000006 /* UI/WorkoutSetVisuals.swift in Sources */,
 				A12500000000000000000004 /* UI/WorkoutCoachView.swift in Sources */,
@@ -693,6 +704,7 @@
 				A12200000000000000000004 /* CountedSetVideoRecorderTests.swift in Sources */,
 				ACB200000000000000000007 /* WorkoutGripInferenceTests.swift in Sources */,
 				ACF000000000000000000002 /* LiveCameraSelectionTests.swift in Sources */,
+				A15300000000000000000006 /* WorkoutVoiceCoachTests.swift in Sources */,
 				ACF000000000000000000004 /* WorkoutStartFeedbackTimerTests.swift in Sources */,
 				ACF000000000000000000008 /* BitmapFrameRendererTests.swift in Sources */,
 				AAB000000000000000000006 /* AutomaticBarReplayTests.swift in Sources */,

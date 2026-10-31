@@ -143,11 +143,17 @@ struct WorkoutLogView: View {
             .navigationTitle("Workout log")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() }.disabled(saving) }
+                ToolbarItem(placement: .primaryAction) { WorkoutVoiceButtons() }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Exercise setup", systemImage: "slider.horizontal.3") { editingWeight = true }
                         .disabled(saving).accessibilityIdentifier("openExerciseSetup")
                 }
                 ToolbarItem(placement: .primaryAction) { Button("Exercise progress", systemImage: "chart.bar") { showingProgress = true } }
+            }
+            .safeAreaInset(edge: .bottom) { WorkoutVoiceStatus().padding(.horizontal, 20) }
+            .workoutVoiceContext(handleVoiceCommand)
+            .onChange(of: choosingExercise || editingWeight || editingSet != nil || showingProgress) { _, visible in
+                if visible { WorkoutVoiceCoach.shared.stopListening() }
             }
             .interactiveDismissDisabled(saving)
             .task { if !preview { await reload() }; prefill() }
@@ -164,7 +170,10 @@ struct WorkoutLogView: View {
             .sheet(item: $counter) { set in
                 NavigationStack { WorkoutTapCounter(set: set) { result in
                     var next = log; next.sets.append(result)
-                    try await persist(next); reps = String(result.reps); counter = nil
+                    let previous = log.sets.last { LoggedWorkout.exerciseKey($0.exercise) == LoggedWorkout.exerciseKey(result.exercise) }?.reps
+                    try await persist(next)
+                    WorkoutVoiceCoach.shared.completed(count: result.reps, previous: previous)
+                    reps = String(result.reps); counter = nil
                 } }
             }
             .sheet(item: $editingSet) { set in
@@ -187,6 +196,24 @@ struct WorkoutLogView: View {
                 })
             }
             #endif
+    }
+    private func handleVoiceCommand(_ command: WorkoutVoiceCommand) -> String? {
+        guard !saving, !choosingExercise, !editingWeight, editingSet == nil, counter == nil,
+              !showingCamera, !showingProgress else { return nil }
+        switch command.action {
+        case "start", "next":
+            if let raw = command.exercise, let selected = ExerciseCounter.Exercise(rawValue: raw) { select(selected.title) }
+            guard validForCounting else { return "Check exercise setup before starting." }
+            counter = .init(exercise: exercise.trimmingCharacters(in: .whitespacesAndNewlines),
+                reps: 0, load: parsedLoad, unit: unit, method: "tap")
+            return "Counting \(exercise.lowercased())."
+        case "weight":
+            guard let value = command.load, let nextUnit = command.unit else { return nil }
+            load = value.formatted(.number.grouping(.never).precision(.fractionLength(0...2))); unit = nextUnit
+            return "Weight set to \(load) \(unit == "kg" ? "kilograms" : "pounds")."
+        case "clearWeight": load = ""; return "No weight set."
+        default: return "Start a set to count reps."
+        }
     }
     private func entry() -> LoggedWorkoutSet { .init(exercise: exercise.trimmingCharacters(in: .whitespacesAndNewlines), reps: Int(reps) ?? 0, load: parsedLoad, unit: unit) }
     private func select(_ name: String) {
@@ -342,28 +369,58 @@ struct WorkoutTapCounter: View {
                 Spacer(minLength: 0)
             }.accessibilityElement(children: .combine)
             Spacer()
-            Button { if count < 1000 { count += 1 } } label: {
+            Button { addRep() } label: {
                 VStack(spacing: 8) {
                     Text("\(count)").font(.system(size: 100, weight: .bold, design: .rounded)).monospacedDigit().contentTransition(.numericText())
                     Label("Tap for a rep", systemImage: "plus").font(.headline)
                 }.frame(maxWidth: .infinity, minHeight: 250).foregroundStyle(HangBrand.ink)
                     .background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 32))
             }.buttonStyle(.plain).accessibilityLabel("Add rep").accessibilityValue("\(count)").accessibilityIdentifier("tapRep")
-            Button("Undo rep", systemImage: "minus.circle") { count = max(0, count - 1) }.disabled(count == 0)
+            Button("Undo rep", systemImage: "minus.circle") { undoRep() }.disabled(count == 0)
             Spacer()
             if let error { Text(error).foregroundStyle(.orange) }
-            Button {
-                var result = set; result.reps = count
-                result.startedAtEpochMilliseconds = Int64(started.timeIntervalSince1970 * 1000)
-                result.endedAtEpochMilliseconds = Int64(Date().timeIntervalSince1970 * 1000)
-                saving = true
-                Task { do { try await onFinish(result) } catch { self.error = error.localizedDescription }; saving = false }
-            } label: { Text("Finish set").font(.headline).frame(maxWidth: .infinity, minHeight: 54) }
+            Button { finish() } label: { Text("Finish set").font(.headline).frame(maxWidth: .infinity, minHeight: 54) }
                 .buttonStyle(.plain).foregroundStyle(HangBrand.ink).background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 16))
                 .accessibilityIdentifier("finishTappedSet")
         }.padding(24).hangTheme().navigationTitle("Count reps")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(count > 0 ? "Discard" : "Back") { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(count > 0 ? "Discard" : "Back") { dismiss() } }
+                ToolbarItem(placement: .primaryAction) { WorkoutVoiceButtons() }
+            }
+            .safeAreaInset(edge: .bottom) { WorkoutVoiceStatus().padding(.horizontal, 24) }
+            .workoutVoiceContext { command in
+                guard !saving else { return nil }
+                switch command.action {
+                case "add": addRep(); return nil
+                case "undo": undoRep(); return nil
+                case "finish": finish(); return nil
+                case "weight", "clearWeight": return "Set weight before the next set."
+                default: return "This set is already counting."
+                }
+            }
             .disabled(saving).interactiveDismissDisabled(count > 0 || saving)
+    }
+    private func addRep() {
+        guard !saving, count < 1000 else { return }
+        count += 1; WorkoutVoiceCoach.shared.count(count)
+    }
+    private func undoRep() {
+        guard !saving, count > 0 else { return }
+        count -= 1; WorkoutVoiceCoach.shared.speak("\(count) \(count == 1 ? "rep" : "reps").")
+    }
+    private func finish() {
+        guard !saving else { return }
+        var result = set; result.reps = count
+        result.startedAtEpochMilliseconds = Int64(started.timeIntervalSince1970 * 1000)
+        result.endedAtEpochMilliseconds = Int64(Date().timeIntervalSince1970 * 1000)
+        saving = true
+        Task {
+            do { try await onFinish(result) } catch {
+                self.error = error.localizedDescription
+                WorkoutVoiceCoach.shared.speak("Couldn't save the set. Your count is still here.")
+            }
+            saving = false
+        }
     }
 }
 

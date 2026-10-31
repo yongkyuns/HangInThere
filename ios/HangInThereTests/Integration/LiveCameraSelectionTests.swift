@@ -1,5 +1,6 @@
 #if os(iOS)
 import AVFoundation
+import UIKit
 import CryptoKit
 import ObservedRailPixels
 import Testing
@@ -382,14 +383,39 @@ struct LivePushUpPracticeTests {
         #expect(normal.usesBodyPullUpTracking)
         #expect(!preview.usesBodyPullUpTracking && preview.usesBodyMotionTracking)
         preview.setPushUpOrientation(.landscapeRight)
-        #expect(preview.pushUpVideoRotationAngle == 0)
-        preview.setPushUpOrientation(.landscapeLeft)
         #expect(preview.pushUpVideoRotationAngle == 180)
+        preview.setPushUpOrientation(.landscapeLeft)
+        #expect(preview.pushUpVideoRotationAngle == 0)
         normal.setPushUpOrientation(.landscapeLeft)
         #expect(normal.pushUpVideoRotationAngle == 90)
         preview.setPushUpOrientation(.portrait)
         #expect(preview.pushUpVideoRotationAngle == 90)
         #expect(preview.session.inputs.isEmpty && preview.workoutHistory.isEmpty)
+    }
+
+    @Test func halfTurnsUpdateOrientationEvenWhenLandscapeDimensionsStayTheSame() {
+        #expect(LiveCameraConnectionConfiguration.interfaceOrientation(deviceOrientation: .landscapeLeft) == .landscapeRight)
+        #expect(LiveCameraConnectionConfiguration.interfaceOrientation(deviceOrientation: .landscapeRight) == .landscapeLeft)
+        #expect(LiveCameraConnectionConfiguration.interfaceOrientation(deviceOrientation: .faceUp) == nil)
+        #expect(LiveCameraConnectionConfiguration.interfaceOrientation(deviceOrientation: .faceDown) == nil)
+        let c = LiveCameraPreviewController(pushUpPractice: true)
+        c.setPushUpOrientation(.landscapeLeft)
+        let angle = c.pushUpVideoRotationAngle
+        c.setPushUpOrientation(.landscapeRight)
+        #expect(abs(c.pushUpVideoRotationAngle - angle) == 180)
+    }
+
+    @Test func frontAndRearLandscapeAnglesStayCorrectWhenSwitchingCameras() async {
+        let c = LiveCameraPreviewController(pushUpPractice: true)
+        for orientation in [UIInterfaceOrientation.landscapeLeft, .landscapeRight] {
+            c.setPushUpOrientation(orientation)
+            let front = c.pushUpVideoRotationAngle
+            #expect(front == (orientation == .landscapeLeft ? 0 : 180))
+            #expect(await c.selectCamera(.rear))
+            #expect(c.pushUpVideoRotationAngle == (orientation == .landscapeLeft ? 180 : 0))
+            #expect(await c.selectCamera(.front))
+            #expect(c.pushUpVideoRotationAngle == front)
+        }
     }
 
     /// Authored body/phone/registration observations verify routing and gates,
