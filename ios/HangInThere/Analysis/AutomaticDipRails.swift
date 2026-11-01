@@ -434,7 +434,7 @@ struct AutomaticApparatusReference: Sendable {
     }
     static func search(pose: PoseResult, exercise: ExerciseCounter.Exercise) -> Search? {
         switch exercise {
-        case .pushUp: return nil
+        case .pushUp, .sitUp, .legRaise, .lyingLegRaise: return nil
         case .pullUp:
             guard let grip = AutomaticPullUpBar.grip(in: pose) else { return nil }
             return Search(hands: [grip.left, grip.right], regions: [grip.region], gripSides: [.left, .right])
@@ -465,7 +465,7 @@ struct AutomaticApparatusReference: Sendable {
         if source != context { clearEvidence(); source = context }
         let bar: ConfirmedBar?
         switch exercise {
-        case .pushUp: return nil
+        case .pushUp, .sitUp, .legRaise, .lyingLegRaise: return nil
         case .pullUp:
             bar = pullUp.observe(pose: pose, candidates: candidates.first ?? []); state = pullUp.state
             referenceStabilityDiagnostic = pullUp.referenceStabilityDiagnostic

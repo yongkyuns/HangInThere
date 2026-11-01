@@ -14,6 +14,9 @@ internal object WorkoutCountingMethod {
             SideViewPushUpMotion.frontCountMethod -> version == SideViewPushUpMotion.frontPolicyVersion
             else -> false
         }
+        else if (exercise == ExerciseCounter.Exercise.lyingLegRaise) method == LyingLegRaiseMotion.countMethod && version != null && version in 1..LyingLegRaiseMotion.policyVersion
+        else if (exercise == ExerciseCounter.Exercise.legRaise) method == HangingLegRaiseMotion.countMethod && version != null && version in 1..HangingLegRaiseMotion.policyVersion
+        else if (exercise == ExerciseCounter.Exercise.sitUp) method == SideViewSitUpMotion.countMethod && version != null && version in 1..SideViewSitUpMotion.policyVersion
         else isSupportedDip(method, version)
     fun isSupportedDip(method: String?, version: Int?): Boolean = when(method) {
         BilateralDipWorkout.countMethod -> version == BilateralDipMotion.policyVersion
@@ -22,7 +25,7 @@ internal object WorkoutCountingMethod {
         BilateralTorsoDipMotion.countMethod -> version != null && version in 1..BilateralTorsoDipMotion.policyVersion
         else -> false
     }
-    fun isImageMotion(method: String?): Boolean = method in listOf(SideViewPushUpMotion.frontCountMethod, SideViewPushUpWorkout.countMethod, BilateralDipWorkout.countMethod, BodyDipMotion.countMethod, DipCycleMotion.countMethod, BilateralTorsoDipMotion.countMethod, PullUpCycleMotion.countMethod,OverheadPullUpMotion.countMethod)
+    fun isImageMotion(method: String?): Boolean = method in listOf(LyingLegRaiseMotion.countMethod, HangingLegRaiseMotion.countMethod, SideViewSitUpMotion.countMethod, SideViewPushUpMotion.frontCountMethod, SideViewPushUpWorkout.countMethod, BilateralDipWorkout.countMethod, BodyDipMotion.countMethod, DipCycleMotion.countMethod, BilateralTorsoDipMotion.countMethod, PullUpCycleMotion.countMethod,OverheadPullUpMotion.countMethod)
     fun validCountConfirmation(rep: RepRecord,sourceEnd: Double?): Boolean {
         if(rep.countMethod!=OverheadPullUpMotion.countMethod)return rep.countConfirmedAt==null
         if(!rep.isCompleteForAnalytics)return rep.countConfirmedAt==null

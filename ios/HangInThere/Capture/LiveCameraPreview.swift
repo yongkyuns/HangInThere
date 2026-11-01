@@ -14,7 +14,7 @@ import class WorkoutCore.BodyAthleteAssociation
 import class WorkoutCore.OverheadPullUpMotion
 import class WorkoutCore.OverheadPullUpWorkout
 import class WorkoutCore.WorkoutLifecycle
-import class WorkoutCore.SideViewPushUpWorkoutBridge
+import class WorkoutCore.FloorWorkoutBridge
 
 struct PushUpPracticeSnapshot: Decodable, Sendable {
     let phase: String?
@@ -292,8 +292,10 @@ final class LiveCameraPreviewController: NSObject {
     private(set) var liveSet = LiveSetSession()
     private let workoutAnalysis = WorkoutAnalysisAdapter()
     @ObservationIgnored private let dipAthleteSelection: BodyAthleteSelection
+    // Shared floor-camera lifetime; legacy property names retain push-up diagnostics.
     let isPushUpPractice: Bool
-    @ObservationIgnored private var pushUpBridge: SideViewPushUpWorkoutBridge?
+    let floorExercise: ExerciseCounter.Exercise
+    @ObservationIgnored private var pushUpBridge: FloorWorkoutBridge?
     private(set) var pushUpSnapshot: PushUpPracticeSnapshot?
     private(set) var pushUpDetectedPose: PoseResult?
     private(set) var lastPushUpSetCount = 0
@@ -429,12 +431,13 @@ final class LiveCameraPreviewController: NSObject {
 
     init(sceneRegistrationWorker: any StaticSceneRegistering = VisionStaticSceneRegistrationWorker(),
          phoneMotionProvider: (@MainActor () -> PhoneMotionSample?)? = nil,
-         pushUpPractice: Bool = false) {
+         pushUpPractice: Bool = false, floorExercise: ExerciseCounter.Exercise = .pushUp) {
         self.sceneRegistrationWorker = sceneRegistrationWorker
         self.phoneMotionProvider = phoneMotionProvider
         self.isPushUpPractice = pushUpPractice
+        self.floorExercise = floorExercise
         self.pushUpBridge = nil
-        self.dipAthleteSelection = BodyAthleteSelection(profile: pushUpPractice ? .pushup : .upright)
+        self.dipAthleteSelection = BodyAthleteSelection(profile: pushUpPractice ? (floorExercise == .pushUp ? .pushup : .projectedtorso) : .upright)
         super.init()
     }
 
@@ -468,15 +471,15 @@ final class LiveCameraPreviewController: NSObject {
     var pushUpReadinessTitle: String {
         if !isCameraReady { return state.title }
         if !readinessFrameFresh { return "Waiting for body detection" }
-        guard let pose = pushUpDetectedPose, !pose.people.isEmpty else { return "Show your body · front or side view" }
+        guard let pose = pushUpDetectedPose, !pose.people.isEmpty else { return floorExercise == .lyingLegRaise ? "Show your body · side view" : floorExercise == .legRaise ? "Show your body · hands to knees" : floorExercise == .sitUp ? "Show your body · side view" : "Show your body · front or side view" }
         if pose.imageSize.width <= pose.imageSize.height { return "Turn your phone sideways" }
         if !motionSampleAvailable { return "Phone motion sensor unavailable" }
         if !cameraPlacement.isUsable { return "Aim the camera level" }
-        if dipAthleteDecision?.status != "associated" { return "Show your arms and upper body" }
+        if dipAthleteDecision?.status != "associated" { return floorExercise == .lyingLegRaise ? "Show shoulder, hip and knee" : floorExercise == .legRaise ? "Show shoulder, hand, hip and knee" : floorExercise == .sitUp && isPushUpPractice ? "Show shoulder, hip and knee" : "Show your arms and upper body" }
         if !hasBodyCameraCalibration { return "Hold still · setting up camera" }
         if !phoneOrientation.state.allowsLiveSet { return "Keep the phone still" }
         if !sceneIsReady { return "Checking background · keep phone still" }
-        return pushUpSnapshot?.title ?? "Hold a plank · front or side view"
+        return pushUpSnapshot?.title ?? (floorExercise == .lyingLegRaise ? "Lie back · legs extended" : floorExercise == .legRaise ? "Hang still · legs down" : floorExercise == .sitUp ? "Lie back · bend your knees" : "Hold a plank · front or side view")
     }
 
     #if DEBUG
@@ -490,6 +493,7 @@ final class LiveCameraPreviewController: NSObject {
         lastPushUpDiagnosticUptime = now
         struct Snapshot: Encodable {
             let recordedAt: Date
+            let exercise: String
             let pose: PoseResult
             let title: String
             let rotation: Double
@@ -500,27 +504,37 @@ final class LiveCameraPreviewController: NSObject {
             let associationReason: String?
             let countCue: String?
             let countingView: String?
+            let phase: String?
+            let setStarted: Bool
+            let setCycles: Int
+            let progress: Double?
+            let targetReached: Bool
+            let observationUsable: Bool
             let processingMilliseconds: Double
             let calibrated: Bool
             let phoneState: String
             let sceneReady: Bool
             let sceneFailures: Int
         }
-        let snapshot = Snapshot(recordedAt: Date(), pose: pose, title: pushUpReadinessTitle,
+        let snapshot = Snapshot(recordedAt: Date(), exercise: floorExercise.rawValue, pose: pose, title: pushUpReadinessTitle,
             rotation: pushUpVideoRotationAngle, camera: cameraPosition.rawValue,
             motionAvailable: motionSampleAvailable, tiltDegrees: cameraPlacement.tiltDegrees,
             association: dipAthleteDecision?.status, associationReason: dipAthleteDecision?.reason,
             countCue: pushUpSnapshot?.title, countingView: pushUpSnapshot?.view,
+            phase: pushUpSnapshot?.phase, setStarted: pushUpSnapshot?.setStarted == true,
+            setCycles: pushUpSnapshot?.setCycles ?? 0, progress: pushUpSnapshot?.progress,
+            targetReached: pushUpSnapshot?.targetReached == true, observationUsable: pushUpSnapshot?.observationUsable == true,
             processingMilliseconds: frame.processingMilliseconds,
             calibrated: hasBodyCameraCalibration,
             phoneState: phoneOrientation.state.rawValue, sceneReady: sceneIsReady,
             sceneFailures: sceneRegistrationFailures)
         guard let data = try? JSONEncoder().encode(snapshot),
               let directory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return }
-        let url = directory.appendingPathComponent("pushup-latest-diagnostic.json")
+        let name = floorExercise.rawValue.lowercased() + "-latest-diagnostic"
+        let url = directory.appendingPathComponent(name + ".json")
         pushUpDiagnosticQueue.async {
             // Remove the temporary still used to diagnose the physical-phone test.
-            try? FileManager.default.removeItem(at: directory.appendingPathComponent("pushup-latest-diagnostic.jpg"))
+            try? FileManager.default.removeItem(at: directory.appendingPathComponent(name + ".jpg"))
             try? data.write(to: url, options: .atomic)
         }
     }
@@ -528,7 +542,7 @@ final class LiveCameraPreviewController: NSObject {
 
     private func consumePushUpPractice(_ pose: PoseResult) {
         if pushUpBridge == nil {
-            pushUpBridge = SideViewPushUpWorkoutBridge(sessionId: UUID().uuidString,
+            pushUpBridge = FloorWorkoutBridge(exercise: floorExercise.rawValue, sessionId: UUID().uuidString,
                 trackedAtEpochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
         }
         guard let pushUpBridge else { return }
@@ -557,10 +571,11 @@ final class LiveCameraPreviewController: NSObject {
                 if write.finalized {
                     finishSetVideo(write.record)
                     pushUpVoiceSetId = nil
-                    let previous = workoutHistory.first { $0.id != write.record.id && $0.exercise == .pushUp && $0.completedCount > 0 }?.completedCount
+                    let previous = workoutHistory.first { $0.id != write.record.id && $0.exercise == floorExercise && $0.completedCount > 0 }?.completedCount
                     if write.record.completedCount > 0 { WorkoutVoiceCoach.shared.completed(count: write.record.completedCount, previous: previous, saved: false) }
                     lastPushUpSetCount = write.record.completedCount
                     latestCompletedWorkout = write.record
+                    latestAfterSetReport = try? write.record.afterSetReport()
                     workoutHistory.insert(write.record, at: 0)
                     workoutHistory = Array(workoutHistory.prefix(50))
                 }
@@ -568,7 +583,7 @@ final class LiveCameraPreviewController: NSObject {
                 persistWorkout(write.record, finalized: write.finalized)
                 pushUpBridge.acknowledgeWrite()
             } catch {
-                workoutStorageError = "Push-up summary unavailable: \(error.localizedDescription)"
+                workoutStorageError = "Workout summary unavailable: \(error.localizedDescription)"
                 break // Keep the pending write; never silently discard evidence.
             }
         }

@@ -1,0 +1,376 @@
+{
+  "schema_version": 1,
+  "scope": "public_situp_v1",
+  "conditions": "Side or modest oblique view; ordinary bent-knee floor sit-ups; shoulder, hip and knee visible; small foot/head crops allowed; no exercise-time viewpoint cuts, bench/GHD/leg-tuck/V-up variants or severe occlusions. No held-start verification during image screening.",
+  "selection": "First 32 SHA256(situp-v163:source_name) among mirrored train situps with 3..20 labels, <=15MB and author annotation; selected before image review and inference",
+  "grouping": "Conservative publisher-family roles, unverified athlete identity. Publisher open-set test labels are distinct from project development/test roles.",
+  "annotation": {
+    "url": "https://raw.githubusercontent.com/SvipRepetitionCounting/TransRAC/68bdd4daa60ed7c3174a7f6bf86f6537b6fa0979/open_set/new_test.csv",
+    "sha256": "447926645df02a7599b3f5f842ae0ffb8458f4b117bcbefe430ff98d1b51d989"
+  },
+  "count_policy": 1,
+  "screening": [
+    {
+      "id": "train3327",
+      "included": false,
+      "reason": "Leg-tuck/V-up variant"
+    },
+    {
+      "id": "stu8-56",
+      "included": false,
+      "reason": "Weighted overhead variant"
+    },
+    {
+      "id": "val1075",
+      "included": false,
+      "reason": "Portrait, athlete too small and obstructed"
+    },
+    {
+      "id": "val1074",
+      "included": false,
+      "reason": "Overhead leg-raise variant"
+    },
+    {
+      "id": "stu5-60",
+      "included": false,
+      "reason": "Bench leg-tuck variant"
+    },
+    {
+      "id": "stu7-55",
+      "included": false,
+      "reason": "Frontal portrait view with hidden legs"
+    },
+    {
+      "id": "stu8-55",
+      "included": false,
+      "reason": "V-up variant and exercise-time viewpoint cuts"
+    },
+    {
+      "id": "stu6-49",
+      "included": false,
+      "reason": "Decline bench and exercise-time close-up cuts"
+    },
+    {
+      "id": "test1995",
+      "included": false,
+      "reason": "Portrait, severe crop and occlusion"
+    },
+    {
+      "id": "train3301",
+      "included": false,
+      "reason": "Frontal severe crop"
+    },
+    {
+      "id": "stu4-58",
+      "included": false,
+      "reason": "Frontal square view with substantial leg occlusion"
+    },
+    {
+      "id": "stu9-59",
+      "included": false,
+      "reason": "Decline bench variant"
+    },
+    {
+      "id": "stu7-58",
+      "included": false,
+      "reason": "GHD equipment variant"
+    },
+    {
+      "id": "stu2-63",
+      "included": false,
+      "reason": "Exercise-time viewpoint cuts"
+    },
+    {
+      "id": "stu1-53",
+      "included": true,
+      "reason": "Side floor sit-ups; feet partly under sofa"
+    },
+    {
+      "id": "stu10-58",
+      "included": true,
+      "reason": "Side floor sit-ups; small foot obstruction"
+    },
+    {
+      "id": "stu1-64",
+      "included": false,
+      "reason": "Partial crunch variant"
+    },
+    {
+      "id": "stu8-50",
+      "included": false,
+      "reason": "Decline bench with viewpoint cuts"
+    },
+    {
+      "id": "val1089",
+      "included": false,
+      "reason": "Decline bench variant"
+    },
+    {
+      "id": "train3365",
+      "included": false,
+      "reason": "Butterfly/leg variant and nearby competitors"
+    },
+    {
+      "id": "stu2-66",
+      "included": true,
+      "reason": "Floor sit-ups, modest oblique view with mirror"
+    },
+    {
+      "id": "stu7-61",
+      "included": false,
+      "reason": "Reverse crunch and overhead viewpoint cuts"
+    },
+    {
+      "id": "stu6-56",
+      "included": false,
+      "reason": "Portrait overhead crop"
+    },
+    {
+      "id": "stu4-56",
+      "included": false,
+      "reason": "Decline bench variant"
+    },
+    {
+      "id": "train3382",
+      "included": false,
+      "reason": "Twisting/punching variant"
+    },
+    {
+      "id": "stu9-58",
+      "included": false,
+      "reason": "Bench leg-tuck variant"
+    },
+    {
+      "id": "stu5-52",
+      "included": true,
+      "reason": "Side floor sit-ups with tutorial graphics; clear subject"
+    },
+    {
+      "id": "stu4-51",
+      "included": true,
+      "reason": "Side/oblique floor sit-ups; small foot obstruction"
+    },
+    {
+      "id": "train3324",
+      "included": false,
+      "reason": "V-up variant"
+    },
+    {
+      "id": "train3367",
+      "included": false,
+      "reason": "Machine-assisted variant"
+    },
+    {
+      "id": "train3309",
+      "included": false,
+      "reason": "Portrait bench variant"
+    },
+    {
+      "id": "stu2-61",
+      "included": false,
+      "reason": "Partial crunch variant with tutorial cuts"
+    }
+  ],
+  "cases": [
+    {
+      "id": "stu1-53",
+      "source_name": "stu1_53.mp4",
+      "sha256": "eca13730ad3e4bf275669fda14d5ca36af8b1842209ec3a81acac3930b7ba26f",
+      "bytes": 12381300,
+      "count": 9,
+      "cycle_frames": [
+        [
+          136,
+          169
+        ],
+        [
+          169,
+          196
+        ],
+        [
+          196,
+          218
+        ],
+        [
+          218,
+          242
+        ],
+        [
+          242,
+          264
+        ],
+        [
+          264,
+          286
+        ],
+        [
+          286,
+          312
+        ],
+        [
+          312,
+          335
+        ],
+        [
+          335,
+          358
+        ]
+      ],
+      "author_split": "test",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development",
+      "source_group": "stu1",
+      "frames": 450,
+      "duration_seconds": 30.0
+    },
+    {
+      "id": "stu10-58",
+      "source_name": "stu10_58.mp4",
+      "sha256": "e8ea773dec6248ab26909fe521837fa2525ac188cae227d7e86ac3b688bf3d22",
+      "bytes": 6265060,
+      "count": 5,
+      "cycle_frames": [
+        [
+          29,
+          170
+        ],
+        [
+          170,
+          255
+        ],
+        [
+          256,
+          352
+        ],
+        [
+          352,
+          443
+        ],
+        [
+          443,
+          527
+        ]
+      ],
+      "author_split": "test",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test",
+      "source_group": "stu10",
+      "frames": 528,
+      "duration_seconds": 22.022
+    },
+    {
+      "id": "stu2-66",
+      "source_name": "stu2_66.mp4",
+      "sha256": "4e195d04e7cda91947567b3d72c15e178d9946bb273a137b8997539e3ee9e346",
+      "bytes": 6628568,
+      "count": 6,
+      "cycle_frames": [
+        [
+          7,
+          88
+        ],
+        [
+          89,
+          174
+        ],
+        [
+          174,
+          258
+        ],
+        [
+          258,
+          391
+        ],
+        [
+          391,
+          499
+        ],
+        [
+          499,
+          604
+        ]
+      ],
+      "author_split": "test",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "development",
+      "source_group": "stu2",
+      "frames": 690,
+      "duration_seconds": 23.023
+    },
+    {
+      "id": "stu5-52",
+      "source_name": "stu5_52.mp4",
+      "sha256": "7ff645e339dbe4ff7be931404d7bce1d96dd1f946792d8dc1038abc81252d943",
+      "bytes": 11221708,
+      "count": 4,
+      "cycle_frames": [
+        [
+          466,
+          534
+        ],
+        [
+          534,
+          622
+        ],
+        [
+          622,
+          712
+        ],
+        [
+          712,
+          810
+        ]
+      ],
+      "author_split": "test",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test",
+      "source_group": "stu5",
+      "frames": 1199,
+      "duration_seconds": 40.00663333333333
+    },
+    {
+      "id": "stu4-51",
+      "source_name": "stu4_51.mp4",
+      "sha256": "8f7c0fc21b7b282f6ec4dc9da227d1f43ea84a579889b1e74dd8b8d706c4e906",
+      "bytes": 8297850,
+      "count": 6,
+      "cycle_frames": [
+        [
+          45,
+          157
+        ],
+        [
+          159,
+          260
+        ],
+        [
+          407,
+          589
+        ],
+        [
+          643,
+          817
+        ],
+        [
+          819,
+          946
+        ],
+        [
+          946,
+          1059
+        ]
+      ],
+      "author_split": "test",
+      "mirror_split": "train",
+      "mirror_revision": "ae2e0b0496124d900d4e54a8e92f7ec15a292afd",
+      "role": "test",
+      "source_group": "stu4",
+      "frames": 1072,
+      "duration_seconds": 36.01701856265315
+    }
+  ]
+}

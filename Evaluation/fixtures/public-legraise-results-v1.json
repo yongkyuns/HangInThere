@@ -1,0 +1,144 @@
+{
+  "scope": "Apple Vision host video replay; camera ready assumed; shared Kotlin policy 1; not device qualification",
+  "cases": [
+    {
+      "id": "leg_raises_12",
+      "role": "development",
+      "source_group": "fitnessfaqs",
+      "expected": 1,
+      "observed": 0,
+      "returned_at": [],
+      "first_ready": null,
+      "cues": {
+        "Hang still \u00b7 legs down": 133,
+        "Hold for a moment": 5,
+        "Show one athlete \u00b7 hands to knees": 18,
+        "Show shoulder, hand, hip and knee": 34
+      },
+      "frames": 190,
+      "source_sha256": "4b46ed4c10fdabbae2a4c8c2f9f2c769ef39152bfb766c5eb2c67f1e775fb381",
+      "policy": 1,
+      "status": "completed",
+      "limitations": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles"
+    },
+    {
+      "id": "leg_raises_14",
+      "role": "development",
+      "source_group": "fitnessfaqs",
+      "expected": 2,
+      "observed": 0,
+      "returned_at": [],
+      "first_ready": null,
+      "cues": {
+        "Hang still \u00b7 legs down": 117,
+        "Hold for a moment": 25,
+        "Show one athlete \u00b7 hands to knees": 37,
+        "Show shoulder, hand, hip and knee": 116
+      },
+      "frames": 295,
+      "source_sha256": "d204278f594bdc586ae8c039d1aeac8e3df4d277bdf0453a9a04fa0769c5ddf0",
+      "policy": 1,
+      "status": "completed",
+      "limitations": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles"
+    },
+    {
+      "id": "leg_raises_9",
+      "role": "development",
+      "source_group": "fitnessfaqs",
+      "expected": 1,
+      "observed": 1,
+      "returned_at": [
+        6.5065
+      ],
+      "first_ready": 3.7037,
+      "cues": {
+        "Hang still \u00b7 legs down": 29,
+        "Hold for a moment": 62,
+        "Lower your legs": 52,
+        "Raise knees to hip height": 43,
+        "Ready \u00b7 raise your legs": 1,
+        "Show one athlete \u00b7 hands to knees": 20,
+        "Show shoulder, hand, hip and knee": 4
+      },
+      "frames": 211,
+      "source_sha256": "880e84000a9334ac8be397f40d1496bcbb89a4bea27392838ff46e8abc151b75",
+      "policy": 1,
+      "status": "completed",
+      "limitations": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles"
+    },
+    {
+      "id": "leg_raises_17",
+      "role": "test",
+      "source_group": "backyard",
+      "expected": 3,
+      "observed": 3,
+      "returned_at": [
+        4.92,
+        8.24,
+        11.56
+      ],
+      "first_ready": 1.68,
+      "cues": {
+        "Hang still \u00b7 legs down": 11,
+        "Hold for a moment": 16,
+        "Lower your legs": 156,
+        "Raise knees to hip height": 125,
+        "Ready \u00b7 raise your legs": 1,
+        "Show one athlete \u00b7 hands to knees": 15,
+        "Show shoulder, hand, hip and knee": 1
+      },
+      "frames": 325,
+      "source_sha256": "3f736a58c24f417444c341fa3014f90f5d0d9a845d53d19f867a5a10b0c5cfaf",
+      "policy": 1,
+      "status": "completed",
+      "limitations": "held-out side view; upward camera angle; report separately from controlled placement"
+    },
+    {
+      "id": "leg_raises_20",
+      "role": "test",
+      "source_group": "dark-gym",
+      "expected": 1,
+      "observed": 0,
+      "returned_at": [],
+      "first_ready": null,
+      "cues": {
+        "Hang still \u00b7 legs down": 31,
+        "Hold for a moment": 21,
+        "Show one athlete \u00b7 hands to knees": 15
+      },
+      "frames": 67,
+      "source_sha256": "20d1af0f3683788c7b3f159e643da974f7e2b33a4c60419e4d5cac440845cb36",
+      "policy": 1,
+      "status": "completed",
+      "limitations": "held-out side view; short clip without held start; includes setup/release"
+    },
+    {
+      "id": "leg_raises_7",
+      "role": "test",
+      "source_group": "woman-gym",
+      "expected": 5,
+      "observed": 0,
+      "returned_at": [],
+      "first_ready": null,
+      "cues": {
+        "Hang still \u00b7 legs down": 43,
+        "Hold for a moment": 137,
+        "Show one athlete \u00b7 hands to knees": 22,
+        "Show shoulder, hand, hip and knee": 152
+      },
+      "frames": 354,
+      "source_sha256": "8818367ce333fd1749884ede76957f7abe22161bd0de15a7d1a42bc106323d57",
+      "policy": 1,
+      "status": "completed",
+      "limitations": "front-view diagnostic; hands clipped by source frame; out of supported framing"
+    }
+  ],
+  "source_sha256": {
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/HangingLegRaiseMotion.kt": "6310aab27b07ab914660938f48a90109ea57a758eb2d4859fe43724b6ece303a",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/HangingLegRaiseWorkout.kt": "92937d4062766ec7023f335a4a4a76796a60c06c03dccba7e65e89b9479e31ff",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/BodyAthleteAssociation.kt": "3a1abc6ba8ed46a138fd46044626b1fca7aea28c865348e057ec02dd82233908",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/SideViewSitUpWorkout.kt": "502d5c360855f39fffd70a0c8956e9dd0821770656c68a83444fa632fdf93efc",
+    "ios/HangInThere/Pose/VisionPoseEstimator.swift": "ac2ed48bcee3789da02d5488c8b2e054b4b37560f58e9cbe8900337c935ded45",
+    "Evaluation/PushUpCoverageReplay.swift": "8935c27f4141b60e11988c884e43f7ce287cd4c5f1b24484819e6de4ab7d0e00"
+  }
+}

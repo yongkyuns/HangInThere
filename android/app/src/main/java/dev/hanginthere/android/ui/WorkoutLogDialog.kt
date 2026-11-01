@@ -43,11 +43,14 @@ private fun WorkoutLoggedSet.loadLabel() = load?.let { "${formatLoad(it)} $unit"
 private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".format(it / 60, it % 60) } ?: "—"
 
 /** Movement artwork matches iOS; text supplies the accessible exercise name. */
-@Composable private fun WorkoutExerciseIcon(exercise: String, size: androidx.compose.ui.unit.Dp = 44.dp) {
+@Composable internal fun WorkoutExerciseIcon(exercise: String, size: androidx.compose.ui.unit.Dp = 44.dp) {
     val artwork = when (exercise.lowercase().filter { it.isLetter() }) {
         "pullup", "pullups", "chinup", "chinups" -> R.drawable.exercise_pull_up
         "dip", "dips", "parallelbardip", "parallelbardips" -> R.drawable.exercise_dip
         "pushup", "pushups" -> R.drawable.exercise_push_up
+        "lyinglegraise", "lyinglegraises", "floorlegraise", "floorlegraises" -> R.drawable.exercise_lying_leg_raise
+        "situp", "situps" -> R.drawable.exercise_sit_up
+        "legraise", "legraises", "hanginglegraise", "hanginglegraises", "hangingkneeraise", "hangingkneeraises" -> R.drawable.exercise_leg_raise
         "bench", "benchpress", "barbellbenchpress", "dumbbellbenchpress" -> R.drawable.exercise_bench
         "ezcurl", "ezcurls", "curl", "curls", "bicepcurl", "bicepcurls", "barbellcurls", "dumbbellcurls", "hammercurls" -> R.drawable.exercise_curl
         "squat", "squats", "backsquat", "frontsquat", "gobletsquat" -> R.drawable.exercise_squat
@@ -70,6 +73,7 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     var log by remember(initial?.id) { mutableStateOf(initial ?: newLog()) }
     var history by remember { mutableStateOf(emptyList<WorkoutLog>()) }
     var cameraSets by remember { mutableStateOf(emptyList<WorkoutSetDigest>()) }
+    var activityGoals by remember { mutableStateOf(emptyList<WorkoutActivityGoalProgress>()) }
     var exercise by rememberSaveable { mutableStateOf(initial?.sets?.lastOrNull()?.exercise ?: "Pull-ups") }
     var reps by rememberSaveable { mutableStateOf("5") }
     var load by rememberSaveable { mutableStateOf("") }
@@ -80,7 +84,9 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     var counter by rememberSaveable { mutableStateOf(false) }
     var editing by remember { mutableStateOf<WorkoutLoggedSet?>(null) }
     var progress by remember { mutableStateOf(false) }
+    var trainingTips by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
+    var pendingSummary by remember { mutableStateOf<Int?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val parsedLoad = loadNumber(load)
@@ -95,6 +101,9 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
         saving = true
         try {
             val saved = withContext(Dispatchers.IO) { store.saveWorkoutLog(next) }
+            if (saved.sets.size > log.sets.size) pendingSummary = saved.sets.last().reps
+            activityGoals = runCatching { withContext(Dispatchers.IO) { WorkoutActivityProgress.report(store.libraryForReview(),System.currentTimeMillis(),java.time.ZoneId.systemDefault().id,java.util.Calendar.getInstance().firstDayOfWeek).goals } }
+                .getOrElse { if(it is kotlinx.coroutines.CancellationException)throw it; emptyList() }
             log = saved; history = (history.filter { it.id != saved.id } + saved).sortedByDescending { it.epochMilliseconds }; error = null
         } finally { saving = false }
     }
@@ -103,12 +112,32 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
         catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = "Couldn't save the set. Try again." }
     } }
     fun entry(count: Int = reps.toIntOrNull() ?: 0) = WorkoutLoggedSet(UUID.randomUUID().toString(), exercise.trim(), count, parsedLoad, unit)
+    val voiceActive = !counter && !choosing && !editingWeight && !datePicker && editing == null && !progress && !trainingTips
+    val voice = rememberWorkoutVoiceCoach(active = voiceActive) { command ->
+        if (saving) null else when(command.action) {
+            "start", "next" -> {
+                command.exercise?.let { requested ->
+                    val name = ExerciseCounter.Exercise.entries.firstOrNull { it.name == requested }?.title
+                    if (name != null) prefill(name)
+                }
+                if ((load.isBlank() || loadNumber(load) != null) && WorkoutLogPolicy.validSet(exercise, 0, loadNumber(load), unit)) { counter = true; "Counting ${exercise.lowercase()}." }
+                else "Check the exercise setup first."
+            }
+            "weight" -> { load = formatLoad(command.load); unit = command.unit ?: unit; "Weight set to $load $unit." }
+            "clearWeight" -> { load = ""; "No weight set." }
+            else -> "Start a set to count reps."
+        }
+    }
+    LaunchedEffect(pendingSummary, voiceActive, saving) {
+        if (voiceActive && !saving) pendingSummary?.let { voice.speak(WorkoutVoice.summary(it, null)); pendingSummary = null }
+    }
     LaunchedEffect(store, initial?.id) {
         try {
             val state = withContext(Dispatchers.IO) { store.libraryForReview() }
             history = state.workoutLogs
             log = history.firstOrNull { it.id == log.id } ?: log
             cameraSets = WorkoutJourney.workout(state, log.id, System.currentTimeMillis())?.sets.orEmpty()
+            activityGoals = withContext(Dispatchers.IO) { WorkoutActivityProgress.report(state,System.currentTimeMillis(),java.time.ZoneId.systemDefault().id,java.util.Calendar.getInstance().firstDayOfWeek).goals }
             prefill(exercise)
         } catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = "Couldn't load your workout. Close and retry." }
     }
@@ -117,6 +146,11 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
         TextButton(onClick = { progress = true }) { Text("Progress") }
     }) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                WorkoutVoiceButtons(voice)
+                Spacer(Modifier.weight(1f))
+            }
+            WorkoutVoiceStatus(voice)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = { datePicker = true }, enabled = !saving && cameraSets.isEmpty()) {
                     Text(DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(log.epochMilliseconds)))
@@ -150,6 +184,14 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
             if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (log.sets.isEmpty() && cameraSets.isEmpty()) Text("Add a result or open the tap counter.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             WorkoutLogTable(log) { if (!saving) editing = it }
+            WorkoutTrainingTipCard(exercise, if (log.sets.isEmpty()) "prepare" else "review", ordinal = log.sets.size.takeIf { it > 0 }) { trainingTips = it }
+            activityGoals.firstOrNull { WorkoutActivityProgress.exerciseKey(it.goal.exercise) == WorkoutActivityProgress.exerciseKey(exercise) }?.let { progress ->
+                Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                    Text(if(progress.achieved) "Goal reached" else "${progress.remaining} reps to your ${if(progress.goal.period==WorkoutGoalPeriod.week) "weekly" else "daily"} goal",style=MaterialTheme.typography.titleMedium)
+                    LinearProgressIndicator(progress={progress.fraction.toFloat()},modifier=Modifier.fillMaxWidth())
+                    Text("${progress.reps} / ${progress.goal.target} reps")
+                } }
+            }
             if (cameraSets.isNotEmpty()) Text("Camera sets", style = MaterialTheme.typography.titleMedium)
             cameraSets.forEach { set -> Card(Modifier.fillMaxWidth()) { Row(Modifier.padding(16.dp)) {
                 Text(set.exercise.title, Modifier.weight(1f)); Text("${set.completedReps} reps")
@@ -266,12 +308,32 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    WorkoutLogPage("Count reps", { if (!saving) onClose() }) {
+    fun finish() {
+        if (saving) return
+        saving = true
+        scope.launch {
+            try { onFinish(set.copy(id = id, reps = count, startedAtEpochMilliseconds = started, endedAtEpochMilliseconds = System.currentTimeMillis())) }
+            catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = true }
+            finally { saving = false }
+        }
+    }
+    val voice = rememberWorkoutVoiceCoach { command ->
+        if (saving) null else when(command.action) {
+            "add" -> { if (count < 1000) count++; null }
+            "undo" -> { if (count > 0) count--; null }
+            "finish" -> { finish(); null }
+            "weight", "clearWeight" -> "Set weight before the next set."
+            else -> "This set is already counting."
+        }
+    }
+    LaunchedEffect(count) { if (count > 0) voice.speak(count.toString(), interrupt = false) }
+    WorkoutLogPage("Count reps", { if (!saving) onClose() }, actions = { WorkoutVoiceButtons(voice) }) {
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 WorkoutExerciseIcon(set.exercise, 80.dp)
                 Text(set.exercise, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
             }
+            WorkoutVoiceStatus(voice)
             Spacer(Modifier.weight(1f))
             Button(onClick = { if (count < 1000) count++ }, enabled = !saving,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 240.dp).testTag("tapRep")) {
@@ -280,12 +342,7 @@ private fun restLabel(seconds: Double?) = seconds?.toInt()?.let { "%d:%02d".form
             TextButton(onClick = { count-- }, enabled = count > 0 && !saving) { Text("Undo") }
             if (error) Text("Couldn't save. Your count is still here.", color = MaterialTheme.colorScheme.error)
             Spacer(Modifier.weight(1f))
-            Button(onClick = { scope.launch {
-                saving = true
-                try { onFinish(set.copy(id = id, reps = count, startedAtEpochMilliseconds = started, endedAtEpochMilliseconds = System.currentTimeMillis())) }
-                catch (failure: Throwable) { if (failure is kotlinx.coroutines.CancellationException) throw failure; error = true }
-                finally { saving = false }
-            } }, enabled = !saving, modifier = Modifier.fillMaxWidth().testTag("finishTapSet")) { Text("Finish set") }
+            Button(onClick = ::finish, enabled = !saving, modifier = Modifier.fillMaxWidth().testTag("finishTapSet")) { Text("Finish set") }
         }
     }
 }

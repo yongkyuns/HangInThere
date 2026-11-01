@@ -52,62 +52,14 @@ struct LiveReadinessChecklistView: View {
                 .background(.black.opacity(0.82), in: RoundedRectangle(cornerRadius: 16))
             } else {
                 Button { onDetails?() } label: {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(spacing: 8) {
-                            Image(systemName: checklist.allPassed ? "checkmark.circle.fill" :
-                                    checklist.checks.first(where: { $0.status == .blocked }).map { checkIcon($0.id) } ?? "hourglass")
-                                .font(.system(size: 24, weight: .semibold))
-                                .foregroundStyle(checklist.allPassed ? .green : .orange)
-                            Text(compactTitle)
-                                .font(.system(size: 21, weight: .heavy, design: .rounded))
-                                .lineLimit(1).minimumScaleFactor(0.65)
-                                .accessibilityIdentifier("liveReadinessAction")
-                            Spacer(minLength: 0)
-                            Image(systemName: "info.circle").font(.system(size: 16))
-                                .foregroundStyle(.white.opacity(0.65))
-                        }
-                        HStack(spacing: 2) {
-                            ForEach(checklist.checks) { check in
-                                Image(systemName: checkIcon(check.id))
-                                    .font(.system(size: 17, weight: .semibold))
-                                    .foregroundStyle(color(check.status))
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 28)
-                                    .overlay(alignment: .bottomTrailing) {
-                                        Image(systemName: symbol(check.status))
-                                            .font(.system(size: 9, weight: .bold))
-                                            .foregroundStyle(color(check.status))
-                                            .background(.black, in: Circle())
-                                    }
-                                    .accessibilityLabel("\(check.title): \(statusTitle(check.status)). \(check.value)")
-                                    .accessibilityIdentifier("liveReadiness-\(check.id)")
-                            }
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .frame(height: 96)
-                    .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(checklist.allPassed ? .green : .orange.opacity(0.7)))
+                    WorkoutCameraStatus(title: compactTitle, ready: checklist.allPassed, showsDetails: true)
+                        .accessibilityIdentifier("liveReadinessAction")
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint("Open workout details for the complete start checks. \(checklist.actionDetail)")
             }
         }
         .accessibilityIdentifier("liveReadinessChecklist")
-    }
-
-    private func checkIcon(_ id: String) -> String {
-        switch id {
-        case "feed": "camera.fill"
-        case "placement": "level"
-        case "arms": "figure.arms.open"
-        case "exercise": "dumbbell.fill"
-        case "rails": "viewfinder"
-        case "phone": "iphone"
-        case "scene": "photo"
-        default: "figure.strengthtraining.traditional"
-        }
     }
 
     private var compactTitle: String {
@@ -220,7 +172,7 @@ struct LiveCameraPlacementCard: View {
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14)
-        .frame(height: 96)
+        .frame(height: 72)
         .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(placement.title). \(placement.instruction). \(placement.diagnostic)")
@@ -230,10 +182,135 @@ struct LiveCameraPlacementCard: View {
 
 // Camera-independent chrome, shared by the live feed and render reviews. The
 // owner supplies current session evidence and handles camera/presentation work.
+/// Common camera chrome; each detector supplies its own measured state and footer.
+struct WorkoutCameraChrome<Progress: View, Footer: View>: View {
+    let title: String
+    let count: Int
+    var tracking: String? = nil
+    var healthy = true
+    var recording = false
+    var canClose = true
+    var poseVisibility: Binding<Bool>? = nil
+    let onClose: () -> Void
+    let onReview: () -> Void
+    let onOptions: () -> Void
+    @ViewBuilder var progress: () -> Progress
+    @ViewBuilder var footer: () -> Footer
+
+    var body: some View {
+        GeometryReader { geometry in
+            let landscape = geometry.size.width > geometry.size.height
+            VStack(spacing: 0) {
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        WorkoutCameraIcon(symbol: "xmark", label: "Back", action: onClose).disabled(!canClose)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(title).font(.subheadline.bold()).lineLimit(1)
+                            if let tracking {
+                                Text(tracking).font(.system(size: 11, weight: .bold)).lineLimit(1)
+                                    .foregroundStyle(healthy ? .mint : .orange)
+                                    .accessibilityIdentifier("liveTrackingStatus")
+                            }
+                        }
+                        Spacer(minLength: 0)
+                        if landscape { repCount; recordingIndicator }
+                        WorkoutCameraIcon(symbol: "chart.xyaxis.line", label: "Workout analysis", action: onReview)
+                        WorkoutCameraIcon(symbol: "slider.horizontal.3", label: "Workout settings and details", action: onOptions)
+                            .accessibilityIdentifier("liveWorkoutOptions")
+                    }
+                    if !landscape {
+                        HStack {
+                            repCount
+                            recordingIndicator
+                            Spacer()
+                            if let poseVisibility { PoseOverlayVisibilityButton(isVisible: poseVisibility) }
+                        }
+                    }
+                }
+                Spacer(minLength: 8)
+                ViewThatFits(in: .vertical) {
+                    footer()
+                    ScrollView { footer() }
+                }
+                .frame(maxWidth: landscape ? 280 : 360)
+                .frame(maxHeight: geometry.size.height * (landscape ? 0.74 : 0.60), alignment: .bottom)
+                .frame(maxWidth: .infinity, alignment: landscape ? .trailing : .center)
+            }
+            .overlay(alignment: .topTrailing) {
+                if landscape, let poseVisibility { PoseOverlayVisibilityButton(isVisible: poseVisibility).padding(.top, 60) }
+            }
+            .overlay(alignment: .topLeading) { progress().padding(.top, landscape ? 74 : 128) }
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 12)
+        .background {
+            VStack(spacing: 0) {
+                LinearGradient(colors: [.black.opacity(0.65), .clear], startPoint: .top, endPoint: .bottom).frame(height: 130)
+                Spacer()
+                LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom).frame(height: 200)
+            }.ignoresSafeArea().allowsHitTesting(false)
+        }
+    }
+    private var repCount: some View {
+        Text("\(count) \(count == 1 ? "rep" : "reps")")
+            .font(.system(size: 32, weight: .bold, design: .rounded)).monospacedDigit()
+            .lineLimit(1).fixedSize().contentTransition(.numericText())
+            .accessibilityIdentifier("liveMovementCount")
+    }
+    @ViewBuilder private var recordingIndicator: some View {
+        if recording { Circle().fill(.red).frame(width: 9, height: 9).accessibilityLabel("Video recording active") }
+    }
+
+}
+
+struct WorkoutCameraIcon: View {
+    let symbol: String
+    let label: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol).font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white).frame(width: 44, height: 44)
+                .background(.black.opacity(0.65), in: Circle())
+        }.buttonStyle(.plain).accessibilityLabel(label)
+    }
+}
+
+struct WorkoutCameraAction: View {
+    let title: String
+    let symbol: String
+    var primary = false
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: symbol).font(.subheadline.weight(.semibold))
+                .foregroundStyle(primary ? .black : .white).padding(.horizontal, 22).frame(minHeight: 48)
+                .background(primary ? Color.cyan : Color.black.opacity(0.72), in: Capsule())
+        }.buttonStyle(.plain)
+    }
+}
+
+struct WorkoutCameraStatus: View {
+    let title: String
+    let ready: Bool
+    var showsDetails = false
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: ready ? "checkmark.circle.fill" : "viewfinder")
+                .font(.system(size: 24, weight: .semibold)).foregroundStyle(ready ? .mint : .orange)
+            Text(title).font(.system(size: 21, weight: .heavy, design: .rounded))
+                .lineLimit(2).minimumScaleFactor(0.8).frame(maxWidth: .infinity, alignment: .leading)
+            if showsDetails { Image(systemName: "info.circle").font(.system(size: 16)).foregroundStyle(.white.opacity(0.65)).accessibilityHidden(true) }
+        }.foregroundStyle(.white).padding(.horizontal, 14).frame(height: 72)
+            .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
+    }
+}
+
 struct LiveWorkoutOverlay: View {
     let session: LiveSetSession
     let liveCompletedReps: Int
     var latestCompletedSet: WorkoutSetRecord? = nil
+    var completedSetCount = 1
     var afterSetReport: WorkoutAfterSetReport? = nil
     var showsSetStarted = false
     var preparedPullUp: BodyPullUpWorkoutSnapshot? = nil
@@ -294,41 +371,18 @@ struct LiveWorkoutOverlay: View {
     }
 
     var body: some View {
-        GeometryReader { available in
-            let landscape = available.size.width > available.size.height
-            VStack(spacing: 0) {
-                header
-                Spacer(minLength: 12)
-                footer.frame(maxWidth: landscape ? 260 : 360)
-                    .frame(maxWidth: .infinity, alignment: landscape ? .trailing : .center)
-            }
-            .overlay(alignment: .topTrailing) {
-                if let poseOverlayVisibility {
-                    PoseOverlayVisibilityButton(isVisible: poseOverlayVisibility).padding(.top, 76)
-                }
-            }
-            .overlay(alignment: .leading) {
+        WorkoutCameraChrome(title: exerciseTitle ?? (session.exercise == .pullUp ? "Pull-ups" : "Dips"),
+            count: displayedCount,
+            tracking: session.phase == .running ? (needsArmRepositioning || needsCameraRepositioning ? "CHECK VIEW" : session.trackingIssue == nil ? "TRACKING" : "PAUSED") : nil,
+            healthy: session.trackingIssue == nil && !needsArmRepositioning && !needsCameraRepositioning,
+            recording: isRecording, canClose: canClose, poseVisibility: poseOverlayVisibility,
+            onClose: onClose, onReview: onResults, onOptions: onOptions) {
                 if session.phase == .running || showsPreparedMovement, !needsArmRepositioning, !needsCameraRepositioning {
                     ExerciseProgressView(counter: session.counter,
                         bodyDipSnapshot: session.phase == .running ? session.bodyDipSnapshot : preparedDip,
                         bodyPullUpSnapshot: session.phase == .running ? session.bodyPullUpSnapshot : preparedPullUp)
                 }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 12)
-        .background {
-            VStack(spacing: 0) {
-                LinearGradient(colors: [.black.opacity(0.65), .clear], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 130)
-                Spacer()
-                LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 200)
-            }
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
-        }
+            } footer: { footer }
         .overlay(alignment: .top) {
             if showsSetStarted, session.phase == .running, !needsArmRepositioning, !needsCameraRepositioning {
                 HStack(spacing: 8) {
@@ -362,46 +416,13 @@ struct LiveWorkoutOverlay: View {
         session.exercise == .pullUp ? "Hold your hang" : "Hold your top support"
     }
 
-    private var header: some View {
-        HStack(alignment: .center, spacing: 6) {
-            iconButton("xmark", label: "Close live workout", action: onClose)
-                .disabled(!canClose)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(exerciseTitle ?? (session.exercise == .pullUp ? "Pull-up" : "Dips"))
-                    .font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1)
-                if session.phase == .running {
-                    Label(needsArmRepositioning || needsCameraRepositioning ? "CHECK VIEW" : session.trackingIssue == nil ? "TRACKING" : "PAUSED", systemImage: "circle.fill")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(session.trackingIssue == nil && !needsArmRepositioning && !needsCameraRepositioning ? .green : .orange)
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .accessibilityIdentifier("liveTrackingStatus")
-                }
-            }
-            Spacer(minLength: 4)
-            if session.phase != .idle || latestCompletedSet != nil {
-                Text("\(displayedCount) \(displayedCount == 1 ? "rep" : "reps")")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-                    .contentTransition(.numericText())
-                    .foregroundStyle(.white)
-                    .accessibilityLabel("\(displayedCount) \(displayedCount == 1 ? "rep" : "reps")\(session.phase == .idle ? " in the last set" : "")")
-                    .accessibilityIdentifier("liveMovementCount")
-            }
-            if isRecording {
-                Circle().fill(.red).frame(width: 9, height: 9)
-                    .accessibilityLabel("Video recording active")
-            }
-            iconButton("chart.xyaxis.line", label: "Workout analysis", action: onResults)
-            iconButton("slider.horizontal.3", label: "Workout settings and details", action: onOptions)
-                .accessibilityIdentifier("liveWorkoutOptions")
-        }
-    }
-
     @ViewBuilder
     private var footer: some View {
         VStack(spacing: 12) {
             if session.phase != .running, !trackingFirstMovement, let afterSetReport { afterSetSummary(afterSetReport) }
+            if showsVoiceControls, session.phase == .finished, let latestCompletedSet {
+                WorkoutBetweenSetTip(exercise: latestCompletedSet.exercise.rawValue, completedSets: completedSetCount)
+            }
             if session.phase == .idle || showsVoiceControls {
                 HStack {
                     if showsVoiceControls { WorkoutVoiceButtons() }
@@ -437,7 +458,7 @@ struct LiveWorkoutOverlay: View {
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 14)
-                .frame(maxWidth: .infinity).frame(height: 96)
+                .frame(maxWidth: .infinity).frame(height: 72)
                 .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("\(LiveArmVisibilityFeedback.title). \(LiveArmVisibilityFeedback.instruction)")
@@ -500,8 +521,8 @@ struct LiveWorkoutOverlay: View {
                     .padding(12)
                     .background(.black.opacity(0.7), in: Capsule())
                 HStack(spacing: 12) {
-                    actionButton("Results", symbol: "list.bullet", action: onResults)
-                    actionButton("New set", symbol: "arrow.counterclockwise", primary: true, action: onNextSet)
+                    actionButton("Review", symbol: "chart.xyaxis.line", action: onResults)
+                    actionButton("Next set", symbol: "arrow.counterclockwise", primary: true, action: onNextSet)
                         .accessibilityIdentifier("newLiveSet")
                 }
             }
@@ -529,7 +550,7 @@ struct LiveWorkoutOverlay: View {
                 }
             }
             if let target = report.goalTarget, let value = report.goalValue {
-                ProgressView(value: min(1, value / target)) { Text("Goal: \(value.formatted()) / \(target.formatted()) \(report.goalMetric == "holdSeconds" ? "s" : "cycles")").font(.caption) }.tint(.mint)
+                ProgressView(value: min(1, value / target)) { Text(report.goalLabel ?? "Goal: \(value.formatted()) / \(target.formatted()) \(report.goalMetric == "holdSeconds" ? "s" : "reps")").font(.caption) }.tint(.mint)
             }
         }.padding(10).background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
     }
@@ -544,27 +565,11 @@ struct LiveWorkoutOverlay: View {
     }
 
     private func iconButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 44, height: 44)
-                .background(.black.opacity(0.65), in: Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
+        WorkoutCameraIcon(symbol: symbol, label: label, action: action)
     }
 
     private func actionButton(_ title: String, symbol: String, primary: Bool = false,
                               action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: symbol)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(primary ? .black : .white)
-                .padding(.horizontal, 22)
-                .frame(minHeight: 48)
-                .background(primary ? Color.cyan : Color.black.opacity(0.72), in: Capsule())
-        }
-        .buttonStyle(.plain)
+        WorkoutCameraAction(title: title, symbol: symbol, primary: primary, action: action)
     }
 }

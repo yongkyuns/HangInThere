@@ -12,8 +12,8 @@ struct WorkoutVoiceCommand: Decodable, Equatable, Sendable {
     var exercise: String? = nil
     var load: Double? = nil
     var unit: String? = nil
-    static func parse(_ text: String) -> Self? {
-        guard let json = WorkoutVoiceBridge().commandJson(text: text) else { return nil }
+    static func parse(_ text: String, isFinal: Bool = true) -> Self? {
+        guard let json = WorkoutVoiceBridge().finalCommandJson(text: text, isFinal: isFinal) else { return nil }
         return try? JSONDecoder().decode(Self.self, from: Data(json.utf8))
     }
 }
@@ -30,9 +30,11 @@ final class WorkoutVoiceCoach: NSObject {
         }
     }
     private(set) var listening = false
+    private(set) var microphoneEnabled = false
     private(set) var authorizing = false
     private(set) var status: String?
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let authorizeSpeech: @MainActor () async -> Bool
     @ObservationIgnored private let speaker = AVSpeechSynthesizer()
     @ObservationIgnored private var countedSet: String?
     @ObservationIgnored private var spokenCount = 0
@@ -45,40 +47,64 @@ final class WorkoutVoiceCoach: NSObject {
     @ObservationIgnored private var request: SFSpeechAudioBufferRecognitionRequest?
     @ObservationIgnored private var recognition: SFSpeechRecognitionTask?
     @ObservationIgnored private var tapInstalled = false
-    @ObservationIgnored private var wantsListening = false
+    @ObservationIgnored private var audioSessionMode: Bool?
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var authorizationGeneration = 0
-    @ObservationIgnored private var pendingCommand: Task<Void, Never>?
     @ObservationIgnored private var restart: Task<Void, Never>?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     #endif
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, authorizeSpeech: (@MainActor () async -> Bool)? = nil) {
         self.defaults = defaults
+        self.authorizeSpeech = authorizeSpeech ?? {
+            #if os(iOS)
+            await withCheckedContinuation { continuation in
+                SFSpeechRecognizer.requestAuthorization { continuation.resume(returning: $0 == .authorized) }
+            }
+            #else
+            false
+            #endif
+        }
         enabled = defaults.bool(forKey: "workoutVoiceEnabled")
         super.init()
         speaker.delegate = self
         #if os(iOS)
-        for name in [UIApplication.didEnterBackgroundNotification, AVAudioSession.interruptionNotification] {
+        for name in [UIApplication.didEnterBackgroundNotification, AVAudioSession.interruptionNotification,
+                     AVAudioSession.mediaServicesWereLostNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 Task { @MainActor in self?.stopListening(); self?.speaker.stopSpeaking(at: .immediate) }
             })
         }
+        observers.append(NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] notification in
+            let reason = (notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? NSNumber)?.uintValue
+            guard reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue else { return }
+            Task { @MainActor in
+                self?.stopListening(); self?.speaker.stopSpeaking(at: .immediate)
+                self?.status = "Audio route changed. Tap the microphone to retry."
+            }
+        })
         #endif
     }
     func activate(_ id: UUID, handler: @escaping (WorkoutVoiceCommand) -> String?) {
+        if contexts.last?.id != id { stopListening(); speaker.stopSpeaking(at: .immediate) }
         contexts.removeAll { $0.id == id }
         contexts.append((id, handler))
     }
     func deactivate(_ id: UUID) {
+        let wasActive = contexts.last?.id == id
         contexts.removeAll { $0.id == id }
-        if contexts.isEmpty { stopListening(); speaker.stopSpeaking(at: .immediate) }
+        if wasActive { stopListening(); speaker.stopSpeaking(at: .immediate) }
     }
     func speak(_ text: String, interrupt: Bool = true) {
         guard enabled, !contexts.isEmpty, !text.isEmpty else { return }
         if speaker.isSpeaking && !interrupt { return }
         #if os(iOS)
         endRecognition()
+        do {
+            try configureAudioSession(microphone: microphoneEnabled)
+        } catch {
+            stopListening(); status = "Audio is busy. Try the voice controls again."; return
+        }
         #endif
         if interrupt { speaker.stopSpeaking(at: .immediate) }
         let utterance = AVSpeechUtterance(string: text)
@@ -116,26 +142,29 @@ final class WorkoutVoiceCoach: NSObject {
     }
     func stopListening() {
         #if os(iOS)
-        wantsListening = false
+        microphoneEnabled = false
         authorizationGeneration += 1
         authorizing = false
         endRecognition()
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        releaseAudioSessionIfIdle()
         #endif
         listening = false
         status = nil
     }
     func toggleListening() async {
         #if os(iOS)
-        if wantsListening || authorizing { stopListening(); return }
+        if microphoneEnabled || authorizing { stopListening(); return }
         guard !contexts.isEmpty else { return }
         authorizing = true; status = nil
         authorizationGeneration += 1
         let token = authorizationGeneration
-        let speechAllowed = await withCheckedContinuation { continuation in
-            SFSpeechRecognizer.requestAuthorization { continuation.resume(returning: $0 == .authorized) }
-        }
+        let speechAllowed = await authorizeSpeech()
         guard token == authorizationGeneration else { return }
+        guard speechAllowed else {
+            authorizing = false
+            status = "Allow speech access in Settings to use voice commands."
+            return
+        }
         let microphoneAllowed = await AVAudioApplication.requestRecordPermission()
         guard token == authorizationGeneration else { return }
         authorizing = false
@@ -144,7 +173,7 @@ final class WorkoutVoiceCoach: NSObject {
             return
         }
         guard UIApplication.shared.applicationState == .active, !contexts.isEmpty else { return }
-        wantsListening = true
+        microphoneEnabled = true
         startRecognition()
         #else
         status = "Voice commands are available on iPhone."
@@ -153,7 +182,6 @@ final class WorkoutVoiceCoach: NSObject {
     #if os(iOS)
     private func endRecognition() {
         generation += 1
-        pendingCommand?.cancel(); pendingCommand = nil
         restart?.cancel(); restart = nil
         audio.stop()
         if tapInstalled { audio.inputNode.removeTap(onBus: 0); tapInstalled = false }
@@ -161,20 +189,18 @@ final class WorkoutVoiceCoach: NSObject {
         request = nil; recognition = nil; listening = false
     }
     private func startRecognition() {
-        guard wantsListening, !contexts.isEmpty, UIApplication.shared.applicationState == .active else { return }
+        guard microphoneEnabled, !contexts.isEmpty, UIApplication.shared.applicationState == .active else { return }
         guard !speaker.isSpeaking else { return }
         endRecognition()
         guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")),
               recognizer.isAvailable, recognizer.supportsOnDeviceRecognition else {
-            wantsListening = false
+            stopListening()
             status = "On-device English voice recognition is unavailable. Spoken cues still work."
             return
         }
         self.recognizer = recognizer
         do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .mixWithOthers, .allowBluetooth])
-            try session.setActive(true)
+            try configureAudioSession(microphone: true)
             let request = SFSpeechAudioBufferRecognitionRequest()
             request.requiresOnDeviceRecognition = true
             request.shouldReportPartialResults = true
@@ -201,35 +227,42 @@ final class WorkoutVoiceCoach: NSObject {
         }
     }
     private func received(text: String?, final: Bool, failed: Bool, token: Int) {
-        pendingCommand?.cancel()
         if failed && !final {
-            endRecognition(); wantsListening = false
+            stopListening()
             status = "Voice commands paused. Tap the microphone to retry."
             return
         }
-        if let text, let command = WorkoutVoiceCommand.parse(text) {
-            pendingCommand = Task { [weak self] in
-                if !final { try? await Task.sleep(for: .milliseconds(750)) }
-                guard !Task.isCancelled, let self, self.generation == token else { return }
-                self.endRecognition()
-                if let response = self.perform(command) {
-                    self.status = response; self.speak(response)
-                }
-                self.resumeSoon()
-            }
+        if let text, let command = WorkoutVoiceCommand.parse(text, isFinal: final) {
+            endRecognition()
+            if let response = perform(command) { status = response; speak(response) }
+            resumeSoon()
         } else if final || failed {
             endRecognition()
-            if failed { wantsListening = false; status = "Voice commands paused. Tap the microphone to retry." }
+            if failed { stopListening(); status = "Voice commands paused. Tap the microphone to retry." }
             else { resumeSoon() }
         }
     }
     private func resumeSoon() {
         restart?.cancel()
+        releaseAudioSessionIfIdle()
         restart = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(400))
-            guard !Task.isCancelled, let self, self.wantsListening, !self.speaker.isSpeaking else { return }
+            guard !Task.isCancelled, let self, self.microphoneEnabled, !self.speaker.isSpeaking else { return }
             self.startRecognition()
         }
+    }
+    private func configureAudioSession(microphone: Bool) throws {
+        guard audioSessionMode != microphone else { return }
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(microphone ? .playAndRecord : .playback, mode: .default,
+            options: microphone ? [.defaultToSpeaker, .mixWithOthers, .allowBluetooth] : [.mixWithOthers])
+        try session.setActive(true)
+        audioSessionMode = microphone
+    }
+    private func releaseAudioSessionIfIdle() {
+        guard audioSessionMode != nil, !microphoneEnabled, !speaker.isSpeaking else { return }
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        audioSessionMode = nil
     }
     private enum VoiceError: Error { case noMicrophone }
     #endif

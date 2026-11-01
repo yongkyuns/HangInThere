@@ -64,6 +64,7 @@ object WorkoutLibraryBackup {
                 require(latest.size == 1) { "Workout log edits conflict" }; latest.single()
             }.filter { log -> (existing.workoutLogDeletions + incoming.workoutLogDeletions).none { it.id == log.id } },
             goals = union(existing.goals, incoming.goals) { it.comparisonKey }, plans = union(existing.plans, incoming.plans) { it.id },
+            activityGoals = union(existing.activityGoals, incoming.activityGoals) { WorkoutActivityProgress.exerciseKey(it.exercise) },
             defaultContexts = union(existing.defaultContexts, incoming.defaultContexts) { it.exercise },
             merges = union(existing.merges, incoming.merges) { it.id }.filter { group ->
                 val sourceParts = entries.flatMap { WorkoutCorrections.project(it.measured, WorkoutCorrections.current(ledger, it.measured.id)) }.map { it.id }

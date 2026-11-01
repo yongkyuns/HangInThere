@@ -37,6 +37,7 @@ struct JourneySetSummary: Codable, Equatable, Identifiable, Sendable {
     let coaching: JourneyCoaching
     let reps: [JourneyRepSummary]
 }
+struct JourneySessionProgress: Codable, Equatable, Sendable { let bestSet: Int; let previousReps: Int?; let headline: String }
 struct JourneyWorkoutSummary: Codable, Equatable, Identifiable, Sendable {
     let id: String
     let epochMilliseconds: Int64?
@@ -46,7 +47,8 @@ struct JourneyWorkoutSummary: Codable, Equatable, Identifiable, Sendable {
     let quality: JourneyQuality
     let sets: [JourneySetSummary]
     var workoutLog: LoggedWorkout? = nil
-    var totalReps: Int { completedReps + (workoutLog?.reps ?? 0) }
+    var progress: JourneySessionProgress? = nil
+    var totalReps: Int { completedReps + sets.reduce(0) { $0 + $1.reportedReps } + (workoutLog?.reps ?? 0) }
     var exerciseNames: [String] {
         (exercises.map(\.title) + (workoutLog?.exercises ?? [])).reduce(into: []) { if !$0.contains($1) { $0.append($1) } }
     }

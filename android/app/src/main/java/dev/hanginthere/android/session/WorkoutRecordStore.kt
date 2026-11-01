@@ -181,6 +181,7 @@ class WorkoutRecordStore(private val context: Context, private val directory: Fi
         libraryCache = state
         deletedIds = state.deletions.map { it.setId }.toSet()
         writeAtomic(libraryFile, WorkoutRecordCodec.json.encodeToString(state))
+        if (directory == File(context.filesDir,"workouts")) WorkoutReminders.refresh(context)
     }
     private fun deleted(id: String): Boolean { if (libraryCache == null) libraryState(); return id in deletedIds }
     @Synchronized fun libraryCommand(command: WorkoutLibraryCommand): WorkoutLibraryState {

@@ -212,7 +212,7 @@ class WorkoutLibraryTests {
         assertTrue(WorkoutLibrary.retainedMedia(library.mediaPolicy, library.media, 100002 + 86400000).isEmpty())
     }
     @Test fun profilesPreserveCountAndPhaseVersions() {
-        assertEquals(3, WorkoutExerciseProfiles.all.size)
+        assertEquals(ExerciseCounter.Exercise.entries.toSet(), WorkoutExerciseProfiles.all.map { it.id }.toSet())
         assertTrue(WorkoutExerciseProfiles.all.filter { it.id in ExerciseCounter.barExercises }
             .all { it.countPolicyVersion == ExerciseCounter.policyVersion && it.phaseMetricVersion == 3 })
         val pushUp = WorkoutExerciseProfiles.profile(ExerciseCounter.Exercise.pushUp)

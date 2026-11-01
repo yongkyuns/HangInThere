@@ -1,0 +1,237 @@
+{
+  "scope": "Exploratory public RGB diagnostics; no held-out positive qualification. Apple Vision host observations with camera stability assumed, final common policy replayed on JVM and native.",
+  "policy_version": 1,
+  "boundary_policy_version": 12,
+  "cases": [
+    {
+      "id": "bench-166",
+      "role": "development",
+      "kind": "positive",
+      "source_group": "bdfe7f1d",
+      "publisher_counts": [
+        10
+      ],
+      "expected_count": 10,
+      "observed": 4,
+      "events": [
+        {
+          "startedAt": 2.8666666666666667,
+          "raisedAt": 9.2,
+          "returnedAt": 19.8
+        },
+        {
+          "startedAt": 19.833333333333332,
+          "raisedAt": 20.733333333333334,
+          "returnedAt": 22.7
+        },
+        {
+          "startedAt": 22.8,
+          "raisedAt": 24.3,
+          "returnedAt": 25.666666666666668
+        },
+        {
+          "startedAt": 25.966666666666665,
+          "raisedAt": 26.733333333333334,
+          "returnedAt": 28.666666666666668
+        }
+      ],
+      "cues": {
+        "Show one athlete \u00b7 side view": 18,
+        "Lie back \u00b7 legs extended": 45,
+        "Hold for a moment": 4,
+        "Ready \u00b7 raise your legs": 1,
+        "Raise your legs": 135,
+        "Lower your legs": 719,
+        "Keep your legs extended": 39
+      },
+      "source_sha256": "973a2c620dc8a2efa695ace1e28bc2a4bb07ed2baf60636f57b71fccafc64c78",
+      "trace_sha256": "937c5e5ceb61fa5df02742bc31262903a1690c25221847e846a3c532fba14b93"
+    },
+    {
+      "id": "bench-58",
+      "role": "development",
+      "kind": "positive",
+      "source_group": "199aec58",
+      "publisher_counts": [
+        8
+      ],
+      "expected_count": 8,
+      "observed": 5,
+      "events": [
+        {
+          "startedAt": 3.6666666666666665,
+          "raisedAt": 4.266666666666667,
+          "returnedAt": 6.466666666666667
+        },
+        {
+          "startedAt": 7.233333333333333,
+          "raisedAt": 7.966666666666667,
+          "returnedAt": 9.966666666666667
+        },
+        {
+          "startedAt": 14.233333333333333,
+          "raisedAt": 14.966666666666667,
+          "returnedAt": 17.2
+        },
+        {
+          "startedAt": 18.066666666666666,
+          "raisedAt": 19.0,
+          "returnedAt": 21.233333333333334
+        },
+        {
+          "startedAt": 22.066666666666666,
+          "raisedAt": 22.866666666666667,
+          "returnedAt": 25.433333333333334
+        }
+      ],
+      "cues": {
+        "Show one athlete \u00b7 side view": 100,
+        "Lie back \u00b7 legs extended": 167,
+        "Hold for a moment": 16,
+        "Ready \u00b7 raise your legs": 3,
+        "Raise your legs": 225,
+        "Lower your legs": 374,
+        "Keep your torso down": 40,
+        "Keep your legs extended": 1,
+        "Keep shoulder, hip and foot visible": 4,
+        "Show shoulder, hip and knee": 1
+      },
+      "source_sha256": "168ef0d64bd146a12bb3e2cd495cfd2c5f3cf8cfbe913cf6f7c7085f6e9b1431",
+      "trace_sha256": "287abf0b2d6c2340d6f1ed2de0b9e67201c46f05d7a080202d57412a026b3d82"
+    },
+    {
+      "id": "bench-64",
+      "role": "development",
+      "kind": "negative",
+      "source_group": "199aec58",
+      "publisher_counts": [
+        12
+      ],
+      "expected_count": 0,
+      "observed": 0,
+      "events": [],
+      "cues": {
+        "Show one athlete \u00b7 side view": 105,
+        "Lie back \u00b7 legs extended": 240,
+        "Hold for a moment": 20,
+        "Ready \u00b7 raise your legs": 5,
+        "Raise your legs": 186,
+        "Keep your legs extended": 280,
+        "Keep your torso down": 121,
+        "Keep shoulder, hip and foot visible": 4
+      },
+      "source_sha256": "4fffda015b19a903f05bb4cf722e7df5a52b9af70eb14935303e6bf69dbb9e73",
+      "trace_sha256": "84e17359b3983bd2eeb67df48c78c235dcdd31b6123151380a4ee94676f28974"
+    },
+    {
+      "id": "bench-207",
+      "role": "test",
+      "kind": "negative",
+      "source_group": "fc3d98d5",
+      "publisher_counts": [
+        6
+      ],
+      "expected_count": 0,
+      "observed": 0,
+      "events": [],
+      "cues": {
+        "Show one athlete \u00b7 side view": 18,
+        "Lie back \u00b7 legs extended": 244,
+        "Hold for a moment": 12,
+        "Ready \u00b7 raise your legs": 3,
+        "Raise your legs": 225,
+        "Keep your legs extended": 432,
+        "Keep your torso down": 27
+      },
+      "source_sha256": "b26b15130447529232aeeda916a8efc4a5db99cbe4fecb88f593f2230037195c",
+      "trace_sha256": "fcc294d5163647714dcfe029c907fd9d0bf8053cffb24c6a9485441a53dccdb0"
+    },
+    {
+      "id": "bench-201",
+      "role": "test",
+      "kind": "negative",
+      "source_group": "fc3d98d5",
+      "publisher_counts": [
+        6
+      ],
+      "expected_count": 0,
+      "observed": 0,
+      "events": [],
+      "cues": {
+        "Show one athlete \u00b7 side view": 18,
+        "Lie back \u00b7 legs extended": 64,
+        "Hold for a moment": 4,
+        "Ready \u00b7 raise your legs": 1,
+        "Raise your legs": 682,
+        "Keep your legs extended": 42
+      },
+      "source_sha256": "be1314937678f0ef6d64816b50a70ab110ba16a063c0f6b5ede53fc4227f4d62",
+      "trace_sha256": "fbd57632cfb11534576470d242ca337889fa5bd99e4b2a99ac7c9ae5c4d897eb"
+    },
+    {
+      "id": "bench-187",
+      "role": "test",
+      "kind": "variantDiagnostic",
+      "source_group": "d1075a73",
+      "publisher_counts": [
+        14
+      ],
+      "expected_count": 14,
+      "observed": 6,
+      "events": [
+        {
+          "startedAt": 1.9,
+          "raisedAt": 5.3,
+          "returnedAt": 6.266666666666667
+        },
+        {
+          "startedAt": 6.966666666666667,
+          "raisedAt": 7.4,
+          "returnedAt": 11.466666666666667
+        },
+        {
+          "startedAt": 12.066666666666666,
+          "raisedAt": 15.933333333333334,
+          "returnedAt": 16.833333333333332
+        },
+        {
+          "startedAt": 17.366666666666667,
+          "raisedAt": 19.6,
+          "returnedAt": 23.0
+        },
+        {
+          "startedAt": 23.7,
+          "raisedAt": 27.9,
+          "returnedAt": 29.066666666666666
+        },
+        {
+          "startedAt": 29.9,
+          "raisedAt": 32.36666666666667,
+          "returnedAt": 34.9
+        }
+      ],
+      "cues": {
+        "Show one athlete \u00b7 side view": 34,
+        "Lie back \u00b7 legs extended": 6,
+        "Hold for a moment": 4,
+        "Ready \u00b7 raise your legs": 1,
+        "Raise your legs": 224,
+        "Lower your legs": 972,
+        "Keep shoulder, hip and foot visible": 4,
+        "Keep your legs extended": 16
+      },
+      "source_sha256": "463cf3b4b5af57622583a342cb3b205ebcb580b2c59cea2764d28c400fbc414f",
+      "trace_sha256": "55b758c54d4517a224d8b48f5cefb3e105f277a72507e8e5df638c1a6ba58c36"
+    }
+  ],
+  "source_sha256": {
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/LyingLegRaiseMotion.kt": "4b4d7ea9697be9927fec8b3c0607140bcb4876cf551c1784c5a4ef4d5dde504e",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/LyingLegRaiseWorkout.kt": "4cd7474e9e150cd9e4cea9d1e9df3b8322b5eef2abeced31b5bb886c1d46d3c9",
+    "shared/src/commonMain/kotlin/dev/hanginthere/core/BodyAthleteAssociation.kt": "307cd416cc7519f358c6e1696b99dd4da6ed4f8caed1ca7ec38f1d7143fe64e7",
+    "ios/HangInThere/Pose/VisionPoseEstimator.swift": "ac2ed48bcee3789da02d5488c8b2e054b4b37560f58e9cbe8900337c935ded45",
+    "Evaluation/PushUpCoverageReplay.swift": "0d701f7bcf5ef4f1402c8f2a527bb75e9fcc6291c34d69caa071d7cf6f129f6f",
+    "Evaluation/LegRaiseTraceReplay.swift": "43df6d4ec1577d64b0c34b0b14f5fb05c2ec2b3465561b2869a74fcacdbd2d1a"
+  },
+  "native_jvm_event_parity": true,
+  "native_trace_report_sha256": "a31434aa0764a768d2ad793179d68fa670c23063ce5fbf06035d2c804932ce2a"
+}

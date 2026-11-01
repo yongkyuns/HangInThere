@@ -8,6 +8,34 @@ import Testing
 
 @MainActor
 struct PoseOverlayPresentationTests {
+    @Test func effortHueEasesTowardPeakAndResetsOnMissingEvidence() {
+        var heat = PoseOverlayEffortSmoothing()
+        #expect(heat.level == 0)
+        heat.observe(1,elapsed: 0.02)
+        #expect(heat.level > 0 && heat.level < 0.15)
+        for _ in 0..<30 { heat.observe(1,elapsed: 0.02) }
+        #expect(heat.level > 0.9 && heat.level < 1)
+        heat.observe(nil,elapsed: 0.02)
+        #expect(heat.level == 0)
+        heat.observe(1,elapsed: 0.5)
+        #expect(heat.level == 0)
+        heat.observe(1,elapsed: 0.02,enabled: false)
+        #expect(heat.level == 1)
+        heat.observe(.nan,elapsed: 0.02)
+        #expect(heat.level == 0)
+        #expect(PoseOverlayEffort.floorRate(exercise: .lyingLegRaise,phase: "lifting",
+            setStarted: false,usable: true,progress: 0.5) == 0.5)
+        #expect(PoseOverlayEffort.floorRate(exercise: .lyingLegRaise,phase: "lifting",
+            setStarted: false,usable: false,progress: 1) == nil)
+        func rgb(_ value: Double?) -> (CGFloat,CGFloat,CGFloat) {
+            var r: CGFloat=0,g: CGFloat=0,b: CGFloat=0,a: CGFloat=0
+            UIColor(PoseOverlayEffort.color(value)).getRed(&r,green: &g,blue: &b,alpha: &a)
+            return (r,g,b)
+        }
+        let base=rgb(nil),peak=rgb(1)
+        #expect(base.1 > 0.8 && base.0 < 0.2)
+        #expect(peak.0 > 0.95 && peak.1 < 0.25)
+    }
     private func pose(_ tick: Int64, x: Double = 100, missing: Bool = false,
                       backend: String = "display-test", people: Int = 1) -> PoseResult {
         let person = PoseObservation(landmarks: missing ? [] : [Landmark(joint: .leftElbow,
@@ -535,7 +563,7 @@ struct LivePushUpPracticeTests {
             let record = try #require(c.latestCompletedWorkout)
             #expect(record.exercise == .pushUp && record.completedCount == 1)
             #expect(record.countMethod == (framing == .front ? "frontViewPushUp" : "sideViewPushUp"))
-            #expect(record.countPolicyVersion == (framing == .front ? 1 : 2) && record.boundaryPolicyVersion == 9)
+            #expect(record.countPolicyVersion == (framing == .front ? 1 : 4) && record.boundaryPolicyVersion == 9)
             #expect(record.trackedAtEpochMilliseconds != nil && record.activity == nil)
             #expect(record.reps.first?.right.maximum == nil)
             #expect(WorkoutTempo(record: record).reps.count == 1)

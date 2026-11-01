@@ -1,7 +1,64 @@
 import XCTest
+import WorkoutCore
+#if os(iOS)
+import UserNotifications
+#endif
 @testable import HangInThere
 
 @MainActor final class WorkoutReminderTests: XCTestCase {
+    func testTipsNeedExplicitPermissionAndWorkWithoutCoachingProfile() async {
+        let center = ReminderCenterStub(status: .notDetermined, grantsPermission: true)
+        let defaults = suite(); let service = WorkoutReminders(center: center, defaults: defaults)
+        await service.refresh(profile: nil)
+        var requests = await center.permissionRequests
+        XCTAssertEqual(requests, 0)
+        await service.setTipSettings(.init(notificationsEnabled: true), profile: nil)
+        requests = await center.permissionRequests
+        XCTAssertEqual(requests, 1)
+        let pending = await center.pendingIdentifiers()
+        XCTAssertEqual(pending.count, 18)
+        XCTAssertTrue(pending.allSatisfy { $0.hasPrefix(TrainingTipNotificationPlan.prefix) })
+        let reloaded = WorkoutReminders(center: center, defaults: defaults)
+        XCTAssertEqual(reloaded.tipSettings, service.tipSettings)
+        XCTAssertFalse(reloaded.settings.enabled)
+    }
+    func testTipDenialDoesNotEnableNotificationsOrDisableWorkoutSuggestions() async {
+        let center = ReminderCenterStub(status: .notDetermined, grantsPermission: false)
+        let service = WorkoutReminders(center: center, defaults: suite())
+        await service.setTipSettings(.init(notificationsEnabled: true), profile: nil)
+        XCTAssertFalse(service.tipSettings.notificationsEnabled)
+        XCTAssertTrue(service.tipSettings.workoutTipsEnabled)
+        let pending = await center.pendingIdentifiers()
+        XCTAssertTrue(pending.isEmpty)
+    }
+    func testTipAndWorkoutSchedulesCoexistAndCanBeDisabledIndependently() async {
+        let center = ReminderCenterStub(); await center.seed("unrelated")
+        let service = WorkoutReminders(center: center, defaults: suite())
+        let profile = WorkoutCoachProfile()
+        await service.setEnabled(true, profile: profile)
+        await service.setTipSettings(.init(notificationsEnabled: true), profile: profile)
+        var pending = await center.pendingIdentifiers()
+        XCTAssertEqual(pending.count, 59) // 40 workout + 18 informational + unrelated.
+        await service.setTipSettings(.init(workoutTipsEnabled: false), profile: profile)
+        pending = await center.pendingIdentifiers()
+        XCTAssertEqual(pending.count, 41)
+        XCTAssertTrue(pending.contains("unrelated"))
+        XCTAssertFalse(service.tipSettings.workoutTipsEnabled)
+        await service.setTipSettings(.init(notificationsEnabled: true), profile: profile)
+        await service.setEnabled(false, profile: profile)
+        pending = await center.pendingIdentifiers()
+        XCTAssertEqual(pending.count, 19)
+    }
+    func testDisablingTipsDuringAnAddCannotLeaveStaleRequests() async {
+        let center = ReminderCenterStub(pauseFirstAdd: true)
+        let service = WorkoutReminders(center: center, defaults: suite())
+        let enabling = Task { await service.setTipSettings(.init(notificationsEnabled: true), profile: nil) }
+        await center.waitForPausedAdd()
+        await service.setTipSettings(.init(), profile: nil)
+        await center.resumeAdd(); await enabling.value
+        let pending = await center.pendingIdentifiers()
+        XCTAssertTrue(pending.isEmpty)
+    }
     private var calendar: Calendar {
         var result = Calendar(identifier: .gregorian); result.timeZone = TimeZone(identifier: "America/Toronto")!; return result
     }
@@ -18,7 +75,7 @@ import XCTest
         profile.movedDays = ["2026-10-29": "2026-10-30"]
         let settings = WorkoutReminderSettings(enabled: true, hour: 18, minute: 15)
         let plan = WorkoutReminderPlan.occurrences(profile: profile, settings: settings, now: date("2026-10-29", hour: 19), calendar: calendar)
-        XCTAssertEqual(plan.count, 60)
+        XCTAssertEqual(plan.count, WorkoutReminderPlan.maximumCount)
         XCTAssertEqual(plan.first?.id, "workout-reminder.2026-10-30")
         XCTAssertEqual(plan.first?.components.hour, 18)
         XCTAssertEqual(plan.first?.components.minute, 15)
@@ -70,7 +127,7 @@ import XCTest
         var requests = await center.permissionRequests
         XCTAssertEqual(requests, 1)
         var pending = await center.pendingIdentifiers()
-        XCTAssertEqual(pending.count, 61)
+        XCTAssertEqual(pending.count, WorkoutReminderPlan.maximumCount + 1)
         await service.setTime(hour: 9, minute: 45, profile: profile)
         var scheduled = await center.occurrences
         XCTAssertEqual(Set(scheduled.values.map { $0.components.hour }), [9])
@@ -123,9 +180,29 @@ import XCTest
         await center.setFailAdds(false)
         await service.refresh(profile: WorkoutCoachProfile())
         pending = await center.pendingIdentifiers()
-        XCTAssertEqual(pending.count, 60)
+        XCTAssertEqual(pending.count, WorkoutReminderPlan.maximumCount)
         XCTAssertNil(service.error)
     }
+    func testRecordedActivityRemovesThatDayAndDeletingItRestoresTheReminder() async throws {
+        let center = ReminderCenterStub()
+        let service = WorkoutReminders(center: center, defaults: suite())
+        var profile = WorkoutCoachProfile(); profile.weekdays = Array(1...7)
+        await service.setEnabled(true, profile: profile)
+        let first = try XCTUnwrap(service.nextReminder)
+        let day = try WorkoutCalendarBridge().day(epochMilliseconds: Int64(first.timeIntervalSince1970 * 1000), timeZoneId: TimeZone.current.identifier).day
+        await service.refresh(profile: profile, completedDays: [day])
+        XCTAssertGreaterThan(try XCTUnwrap(service.nextReminder), first)
+        await service.refresh(profile: profile, completedDays: [])
+        XCTAssertEqual(service.nextReminder, first)
+    }
+    #if os(iOS)
+    func testNativeCalendarTriggerMatchesThePlannedReminder() throws {
+        var profile = WorkoutCoachProfile(); profile.weekdays = Array(1...7)
+        let first = try XCTUnwrap(WorkoutReminderPlan.occurrences(profile: profile, settings: .init(enabled: true, hour: 18, minute: 15)).first)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: first.components, repeats: false)
+        XCTAssertEqual(try XCTUnwrap(trigger.nextTriggerDate()).timeIntervalSince1970, first.date.timeIntervalSince1970, accuracy: 1)
+    }
+    #endif
 }
 
 private actor ReminderCenterStub: WorkoutReminderNotificationCenter {

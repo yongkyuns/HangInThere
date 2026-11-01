@@ -3,17 +3,26 @@ import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
 
-/// Side-view preview saves observed timing; independent video qualification is pending.
+/// Motion previews use the shared workout camera controls.
 @MainActor
 struct PushUpPracticeView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.colorScheme) private var scheme
-    @AppStorage("hasSeenPushUpCameraGuide") private var hasSeenGuide = false
-    @State private var camera = LiveCameraPreviewController(pushUpPractice: true)
+    @AppStorage private var hasSeenGuide: Bool
+    let exercise: ExerciseCounter.Exercise
+    @State private var camera: LiveCameraPreviewController
+    init(exercise: ExerciseCounter.Exercise = .pushUp) {
+        self.exercise = exercise
+        _hasSeenGuide = AppStorage(wrappedValue: false, exercise == .lyingLegRaise ? "hasSeenLyingLegRaiseCameraGuide" : exercise == .legRaise ? "hasSeenLegRaiseCameraGuide" : exercise == .sitUp ? "hasSeenSitUpCameraGuide" : "hasSeenPushUpCameraGuide")
+        _camera = State(initialValue: LiveCameraPreviewController(pushUpPractice: true, floorExercise: exercise))
+    }
+    private var isLyingLegRaise: Bool { exercise == .lyingLegRaise }
+    private var isLegRaise: Bool { exercise == .legRaise || isLyingLegRaise }
+    private var isSitUp: Bool { exercise == .sitUp }
+    private var exerciseName: String { isLyingLegRaise ? "Lying leg raises" : isLegRaise ? "Hanging leg raises" : isSitUp ? "Sit-ups" : "Push-ups" }
     @State private var showsReview = false
+    @State private var dismissedSetId: String?
     @State private var showDiagnosticPose = true
-    private var palette: HangPalette { HangPalette(scheme) }
     private var snapshot: PushUpPracticeSnapshot? { camera.pushUpSnapshot }
     private var count: Int { snapshot?.setStarted == true ? snapshot!.setCycles : camera.lastPushUpSetCount }
     private var status: String {
@@ -23,18 +32,9 @@ struct PushUpPracticeView: View {
     var body: some View {
         NavigationStack {
             Group { if hasSeenGuide { liveCamera } else { guide } }
-                .navigationTitle("Push-ups · Preview").navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("Back") { dismiss() } }
-                    if hasSeenGuide { ToolbarItem(placement: .topBarTrailing) { WorkoutVoiceButtons() } }
-                    if hasSeenGuide {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Setup", systemImage: "info.circle") {
-                                camera.suspendForSceneLoss(); hasSeenGuide = false
-                            }
-                        }
-                    }
-                }
+                .navigationTitle(exerciseName + " · Preview").navigationBarTitleDisplayMode(.inline)
+                .toolbar(hasSeenGuide ? .hidden : .visible, for: .navigationBar)
+                .statusBarHidden(hasSeenGuide)
                 .hangTheme()
                 .sheet(isPresented: $showsReview, onDismiss: {
                     if hasSeenGuide && scenePhase == .active { Task { await camera.resumeAfterInterruption() } }
@@ -75,113 +75,107 @@ struct PushUpPracticeView: View {
     }
 
     private var guide: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Image("PushUpIllustration").resizable().scaledToFit().frame(height: 135)
-                    .frame(maxWidth: .infinity).accessibilityHidden(true)
-                Text("A little space.\nA clear view.").font(.largeTitle.bold())
-                Label("Low, steady phone · landscape", systemImage: "rectangle.landscape.rotate")
-                Label("Front or side · keep your arms visible", systemImage: "viewfinder")
-                Label("Hold a straight plank until Ready", systemImage: "checkmark.circle")
-            }.font(.headline).padding(24).frame(maxWidth: 560).frame(maxWidth: .infinity)
+        WorkoutCameraGuideView(exercise: exercise, onContinue: { hasSeenGuide = true }, onCancel: { dismiss() })
+            .accessibilityIdentifier("pushUpSetupGuide")
+    }
+
+    private func review() {
+        camera.finishPushUpPractice()
+        camera.suspendForSceneLoss()
+        showsReview = true
+    }
+
+    private var footer: some View {
+        VStack(spacing: 12) {
+            if snapshot?.setStarted != true, let record = camera.latestCompletedWorkout, record.id != dismissedSetId {
+                WorkoutCoachFeedbackView(record: record, compact: true)
+                    .id(record.id).padding(10)
+                    .background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
+                WorkoutBetweenSetTip(exercise: exercise.rawValue, completedSets: max(1, camera.workoutHistory.count))
+            }
+            HStack {
+                WorkoutVoiceButtons()
+                Spacer()
+                WorkoutCameraIcon(symbol: "arrow.triangle.2.circlepath.camera",
+                    label: "Switch to \(camera.cameraPosition == .front ? "rear" : "front") camera") {
+                    Task { await camera.selectCamera(camera.cameraPosition == .rear ? .front : .rear) }
+                }.disabled(!camera.canSwitchCamera).opacity(camera.canSwitchCamera ? 1 : 0.4)
+                    .accessibilityIdentifier("pushUpCameraSelection")
+            }
+            WorkoutVoiceStatus()
+            WorkoutCameraStatus(title: status, ready: snapshot?.observationUsable == true && camera.readinessFrameFresh)
+                .accessibilityIdentifier("pushUpReadiness")
+            if camera.state == .denied { Button("Settings") { camera.openSettings() } }
+            if let error = camera.workoutStorageError {
+                Label("Save retrying", systemImage: "exclamationmark.icloud").font(.caption)
+                    .foregroundStyle(.orange).accessibilityLabel(error)
+            } else if let error = camera.workoutVideoError {
+                Label("Video unavailable", systemImage: "exclamationmark.triangle").font(.caption)
+                    .foregroundStyle(.orange).accessibilityLabel(error)
+            }
+            if snapshot?.setStarted == true {
+                WorkoutCameraAction(title: "Finish set", symbol: "stop.fill") { camera.finishPushUpPractice() }
+                    .accessibilityIdentifier("stopLiveSet")
+            } else if let record = camera.latestCompletedWorkout, record.id != dismissedSetId {
+                HStack(spacing: 12) {
+                    WorkoutCameraAction(title: "Review", symbol: "chart.xyaxis.line", action: review)
+                        .accessibilityIdentifier("reviewPushUpSet")
+                    WorkoutCameraAction(title: "Next set", symbol: "arrow.counterclockwise", primary: true) {
+                        dismissedSetId = record.id
+                    }.accessibilityIdentifier("newLiveSet")
+                }
+            }
+            if snapshot?.setStarted != true, let report = camera.latestAfterSetReport, let label = report.goalLabel,
+               let target = report.goalTarget, let value = report.goalValue {
+                ProgressView(value: min(1, value / target)) { Text(label).font(.subheadline.bold()).foregroundStyle(.mint) }.tint(.mint)
+            }
+            if camera.isSuspended && !showsReview {
+                WorkoutCameraAction(title: "Resume camera", symbol: "play.fill", primary: true) {
+                    Task { await camera.resumeAfterInterruption() }
+                }
+            }
         }
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 10) {
-                Text(camera.recordsSetVideos ? "Counted video · key moments · tempo" : "Sets and tempo saved").font(.caption).foregroundStyle(palette.secondary)
-                Button { hasSeenGuide = true } label: {
-                    Label("Open camera", systemImage: "camera.fill").font(.headline)
-                        .frame(maxWidth: .infinity).padding(17).foregroundStyle(HangBrand.ink)
-                        .background(HangBrand.lime, in: RoundedRectangle(cornerRadius: 18))
-                }.buttonStyle(.plain).accessibilityIdentifier("openPushUpCamera")
-            }.padding(20).background(palette.background)
-        }
-        .accessibilityIdentifier("pushUpSetupGuide")
     }
 
     private var liveCamera: some View {
         GeometryReader { geometry in
-            let compact = geometry.size.height < 400
             ZStack {
                 Color.black
                 LiveCameraPreviewSurface(session: camera.session, rotationAngle: camera.pushUpVideoRotationAngle)
                 if showDiagnosticPose, camera.readinessFrameFresh, let pose = camera.pushUpDetectedPose {
                     PoseOverlay(result: pose, usesBothArms: true,
-                        effort: PoseOverlayEffort.pushUpRate(phase: snapshot?.phase, setStarted: snapshot?.setStarted == true,
-                            usable: snapshot?.observationUsable == true), completedReps: count)
+                        effort: PoseOverlayEffort.floorRate(exercise: exercise, phase: snapshot?.phase, setStarted: snapshot?.setStarted == true,
+                            usable: snapshot?.observationUsable == true, progress: snapshot?.progress), completedReps: count)
                 }
-                VStack {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("\(count)").font(.system(size: compact ? 56 : 76, weight: .bold, design: .rounded)).monospacedDigit()
-                            Text(snapshot?.setStarted == true ? "This set" : "Last set").font(.headline)
-                            if compact { Text("Preview").font(.caption) }
-                        }.padding(compact ? 12 : 16).background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 20))
-                            .accessibilityElement(children: .ignore).accessibilityLabel("\(count) push-ups")
-                        Spacer()
-                        VStack(spacing: 12) {
-                            PoseOverlayVisibilityButton(isVisible: $showDiagnosticPose)
-                            GeometryReader { bar in
-                                Capsule().fill(.white.opacity(0.2))
-                                Capsule().fill(snapshot?.targetReached == true ? Color.green : HangBrand.lime)
-                                    .frame(height: bar.size.height * CGFloat(camera.readinessFrameFresh ? snapshot?.progress ?? 0 : 0))
-                                    .frame(maxHeight: .infinity, alignment: .bottom)
-                            }.frame(width: 18, height: min(140, geometry.size.height * (compact ? 0.24 : 0.35)))
-                                .accessibilityLabel("Push-up depth progress")
+                WorkoutCameraChrome(title: exerciseName + " · Preview", count: count,
+                    tracking: snapshot?.setStarted == true ? (camera.readinessFrameFresh && snapshot?.observationUsable == true ? "TRACKING" : "PAUSED") : nil,
+                    healthy: camera.readinessFrameFresh && snapshot?.observationUsable == true,
+                    recording: camera.recordingVideoSetId != nil, poseVisibility: $showDiagnosticPose,
+                    onClose: { dismiss() }, onReview: review,
+                    onOptions: { camera.suspendForSceneLoss(); hasSeenGuide = false }) {
+                        if snapshot?.setStarted == true || snapshot?.progress != nil {
+                            RepProgressView(title: exerciseName + " progress", cue: status,
+                                fraction: snapshot?.progress ?? 0, isStarting: false, isCounted: false,
+                                isPaused: !camera.readinessFrameFresh || snapshot?.observationUsable != true,
+                                isFinished: false, trackedArmCount: 0, targetReached: snapshot?.targetReached == true,
+                                outwardCue: isLegRaise ? "Raise" : isSitUp ? "Sit up" : "Lower", returnCue: isLegRaise ? "Lower" : isSitUp ? "Lie back" : "Press up",
+                                identifier: "floorRepProgress")
                         }
-                    }
-                    Spacer(minLength: 8)
-                    HStack {
-                        Spacer()
-                        Button { Task { await camera.selectCamera(camera.cameraPosition == .rear ? .front : .rear) } } label: {
-                            Image(systemName: "arrow.triangle.2.circlepath.camera").font(.system(size: 18, weight: .semibold))
-                                .frame(width: 44, height: 44).background(.black.opacity(0.65), in: Circle())
-                        }.buttonStyle(.plain).disabled(!camera.canSwitchCamera)
-                            .opacity(camera.canSwitchCamera ? 1 : 0.4)
-                            .accessibilityLabel("Switch to \(camera.cameraPosition == .front ? "rear" : "front") camera")
-                            .accessibilityIdentifier("pushUpCameraSelection")
-                    }.frame(maxWidth: 480)
-                    HStack(spacing: 12) {
-                        Image(systemName: snapshot?.observationUsable == true && camera.readinessFrameFresh ? "checkmark.circle.fill" : "viewfinder")
-                            .foregroundStyle(snapshot?.observationUsable == true && camera.readinessFrameFresh ? Color.green : Color.orange)
-                        Text(status).font(.title3.bold()).minimumScaleFactor(0.8).lineLimit(2)
-                        if camera.state == .denied { Button("Settings") { camera.openSettings() } }
-                    }.padding(compact ? 12 : 16).frame(maxWidth: 480, minHeight: compact ? 54 : 70)
-                        .background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 20))
-                        .accessibilityIdentifier("pushUpReadiness")
-                    WorkoutVoiceStatus()
-                    HStack {
-                        if let error = camera.workoutStorageError {
-                            Label("Save retrying", systemImage: "exclamationmark.icloud").font(.caption)
-                                .foregroundStyle(.orange).accessibilityLabel(error)
-                        } else if let error = camera.workoutVideoError {
-                            Label("Video unavailable", systemImage: "exclamationmark.triangle").font(.caption)
-                                .foregroundStyle(.orange).accessibilityLabel(error)
-                        } else if camera.recordingVideoSetId != nil {
-                            Label("Recording", systemImage: "record.circle.fill").font(.caption).foregroundStyle(.red)
-                        } else if !compact {
-                            Text(camera.recordsSetVideos ? "Video · key moments · tempo" : "Sets & tempo · video off").font(.caption)
-                        }
-                        Spacer()
-                        if snapshot?.setStarted == true { Button("Finish set") { camera.finishPushUpPractice() }.font(.headline) }
-                        if camera.latestCompletedWorkout != nil {
-                            Button("Review", systemImage: "chart.bar.xaxis") {
-                                camera.finishPushUpPractice()
-                                camera.suspendForSceneLoss(); showsReview = true
-                            }.font(.headline).accessibilityIdentifier("reviewPushUpSet")
-                        }
-                        if camera.isSuspended && !showsReview {
-                            Button("Resume camera") { Task { await camera.resumeAfterInterruption() } }.font(.headline)
-                        }
-                    }
-                }.foregroundStyle(.white).padding(compact ? 12 : 16)
+                    } footer: { footer }
+
             }.onChange(of: geometry.size, initial: true) { _, _ in updateOrientation() }
-                .workoutVoiceContext { command in
+                .workoutVoiceContext(active: !showsReview && !camera.isSuspended) { command in
                     guard !showsReview, !camera.isSuspended else { return nil }
                     switch command.action {
                     case "finish":
                         guard snapshot?.setStarted == true else { return "No set is running." }
                         camera.finishPushUpPractice(); return nil
-                    case "start", "next": return "Hold a clear plank, facing the camera or sideways. Counting starts automatically."
+                    case "start", "next":
+                        if let requested = command.exercise, requested != exercise.rawValue {
+                            return "Choose that exercise on the home screen."
+                        }
+                        dismissedSetId = camera.latestCompletedWorkout?.id
+                        return isLyingLegRaise ? "Lie back with legs extended. Counting starts automatically." : isLegRaise ? "Hang still with legs down. Counting starts automatically." : isSitUp ? "Lie back with knees bent. Counting starts automatically." : "Hold a clear plank. Counting starts automatically."
                     case "add", "undo": return "Camera counting is automatic. Review corrections after the set."
                     default: return "Set weight in exercise setup before camera counting."
                     }
@@ -218,6 +212,9 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var apparatusText: String {
         switch exercise {
+        case .lyingLegRaise: "Side view · steady phone · shoulder, hip and knees visible"
+        case .legRaise: "Side or three-quarter view · hands, hip and knees visible"
+        case .sitUp: "Side view · steady phone · shoulder, hip and legs visible"
         case .pushUp: "Front or side · steady phone · arms and hips visible"
         case .pullUp:
             "Face the camera or turn your back to it. Keep both hands visible; bar detection is not required."
@@ -228,6 +225,9 @@ struct LiveSetupGuide: Equatable, Sendable {
 
     var bodyText: String {
         switch exercise {
+        case .lyingLegRaise: "Side view · steady phone · shoulder, hip and knees visible"
+        case .legRaise: "Side or three-quarter view · hands, hip and knees visible"
+        case .sitUp: "Side view · steady phone · shoulder, hip and legs visible"
         case .pushUp: "Front or side · steady phone · arms and hips visible"
         case .pullUp:
             "Keep both arms, torso, hips, and as much of the legs as practical in frame."
@@ -315,6 +315,7 @@ struct LiveSetupView: View {
                     session: camera.liveSet,
                     liveCompletedReps: camera.completedRepCount,
                     latestCompletedSet: camera.latestCompletedWorkout,
+                    completedSetCount: max(1, camera.workoutHistory.count),
                     afterSetReport: camera.latestAfterSetReport,
                     showsSetStarted: camera.showsSetStarted,
                     preparedPullUp: preparedPullUp,
@@ -372,7 +373,7 @@ struct LiveSetupView: View {
                         .toolbar { Button("Done") { showingAnalysis = false } }
                 }
             }
-            .workoutVoiceContext(handleVoiceCommand)
+            .workoutVoiceContext(active: !showingDetails && !showingAnalysis && !camera.isSuspended, handleVoiceCommand)
             .onChange(of: showingDetails || showingAnalysis) { _, visible in
                 if visible { WorkoutVoiceCoach.shared.stopListening() }
             }
@@ -436,7 +437,7 @@ struct LiveSetupView: View {
         case "start", "next":
             if camera.liveSet.phase == .running { return "A set is already running." }
             if let raw = command.exercise, let selected = ExerciseCounter.Exercise(rawValue: raw) {
-                guard selected != .pushUp else { return "Open the push-up camera for a side view." }
+                guard selected == .pullUp || selected == .dip else { return "Choose that exercise on the home screen." }
                 if selected != exercise {
                     if camera.liveSet.phase == .finished { camera.prepareNextSet() }
                     exerciseSelection = WorkoutExerciseSelection(exercise: selected)

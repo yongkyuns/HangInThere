@@ -184,11 +184,17 @@ final class CountedSetVideoRecorderTests: XCTestCase {
             result = try JSONDecoder().decode(WorkoutSetRecord.self, from: JSONSerialization.data(withJSONObject: object))
             return result
         }
-        for exercise in ExerciseCounter.Exercise.allCases {
+        for exercise in [ExerciseCounter.Exercise.pullUp, .dip, .pushUp] {
             let tempo = WorkoutTempo(record: try set(exercise))
             XCTAssertEqual(try XCTUnwrap(tempo.change), 0.5, accuracy: 0.001)
             XCTAssertNil(WorkoutTempo(record: try set(exercise, changedRange: true)).change)
             XCTAssertNil(WorkoutTempo(record: try set(exercise, poorCoverage: true)).change)
+        }
+        for exercise in [ExerciseCounter.Exercise.sitUp, .legRaise, .lyingLegRaise] {
+            let tempo = WorkoutTempo(record: try set(exercise))
+            XCTAssertEqual(tempo.reps.count, 3)
+            XCTAssertNil(tempo.change)
+            XCTAssertTrue(tempo.reps.allSatisfy { $0.lifting == $0.outward })
         }
         XCTAssertNil(WorkoutTempo(record: record("one")).change)
     }

@@ -23,7 +23,7 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     data class State(val bitmap: Bitmap? = null, val result: AnalysisPipeline.Result? = null, val error: String? = null,
         val replay: Boolean = false, val finished: Boolean = false, val selection: WorkoutExerciseSelection = WorkoutExerciseSelection.automatic,
         val side: ArmMeasurement.Side = ArmMeasurement.Side.left, val interrupted: Boolean = false,
-        val replayOutcome: ReplayOutcome.Kind? = null)
+        val replayOutcome: ReplayOutcome.Kind? = null, val floorExercise: ExerciseCounter.Exercise? = null)
     private val mutableState = MutableStateFlow(State())
     val state = mutableState.asStateFlow()
     // Main/UI owner survives recomposition and Activity recreation. Inference
@@ -114,22 +114,22 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
     }
     fun startManually() { control { it.startManually() } }
     /** Clear retained replay/interruption before the screen binds a new camera. */
-    fun prepareLive(selection: WorkoutExerciseSelection) {
+    fun prepareLive(selection: WorkoutExerciseSelection, floorExercise: ExerciseCounter.Exercise? = null) {
         generation.incrementAndGet()
         synchronized(controlLock) { replayRunning = false; controls.clear() }
         replayUri = null
-        mutableState.value = State(selection = selection, side = state.value.side)
+        mutableState.value = State(selection = selection, side = state.value.side, floorExercise = floorExercise)
     }
     fun startLive(selection: WorkoutExerciseSelection = state.value.selection, side: ArmMeasurement.Side = state.value.side): Long {
         val token = generation.incrementAndGet()
         synchronized(controlLock) { replayRunning = false; controls.clear() }
-        mutableState.value = State(selection = selection, side = side)
+        mutableState.value = State(selection = selection, side = side, floorExercise = state.value.floorExercise)
         attitude.start()
         inferenceExecutor.execute {
             if (token != generation.get()) return@execute
             pipeline?.close(); pipeline = null
             if (token != generation.get()) return@execute
-            try { pipeline = AnalysisPipeline(getApplication(), selection, side) }
+            try { pipeline = AnalysisPipeline(getApplication(), selection, side, floorExercise = state.value.floorExercise) }
             catch (error: Throwable) { publish(token, mutableState.value.copy(error = error.message ?: "Unable to initialize analysis")) }
         }
         return token

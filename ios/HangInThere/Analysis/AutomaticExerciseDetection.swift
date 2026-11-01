@@ -6,7 +6,7 @@ enum WorkoutExerciseSelection: String, CaseIterable, Sendable {
     case automatic, pullUp, dip
 
     init(exercise: ExerciseCounter.Exercise) {
-        precondition(exercise != .pushUp, "Push-ups use the side-view preview route")
+        precondition(exercise != .pushUp && exercise != .sitUp, "Push-ups use the side-view preview route")
         self = exercise == .pullUp ? .pullUp : .dip
     }
     var exercise: ExerciseCounter.Exercise? {

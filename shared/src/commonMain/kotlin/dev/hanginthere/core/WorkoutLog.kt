@@ -30,7 +30,7 @@ object WorkoutLogValidation {
 
 /** Entry, tap-count and camera-linked logs use one policy on both platforms. */
 object WorkoutLogPolicy {
-    val suggestedExercises = listOf("Pull-ups", "Dips", "Bench press", "EZ curls", "Push-ups", "Squats", "Rows")
+    val suggestedExercises = listOf("Pull-ups", "Dips", "Bench press", "EZ curls", "Push-ups", "Sit-ups", "Hanging leg raises", "Lying leg raises", "Squats", "Rows")
     fun exerciseKey(name: String): String = name.trim().lowercase()
     fun cameraExercise(name: String): ExerciseCounter.Exercise? = when (name.lowercase().filter(Char::isLetter)) {
         "pullup", "pullups", "chinup", "chinups" -> ExerciseCounter.Exercise.pullUp

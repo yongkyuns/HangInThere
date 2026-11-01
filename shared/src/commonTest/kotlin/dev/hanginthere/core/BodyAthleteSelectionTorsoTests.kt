@@ -3,6 +3,24 @@ package dev.hanginthere.core
 import kotlin.test.*
 
 class BodyAthleteSelectionTorsoTests {
+    @Test fun disjointCollinearAthletesCannotWinAZeroAreaDominanceTie() {
+        val owner=BodyAthleteSelection(BodyAthleteAssociation.Profile.projectedTorso)
+        fun frame(ms: Long, people: Int): PoseResult {
+            val subjects=(0 until people).map { index ->
+                PoseObservation(listOf(PoseJoint.leftShoulder,PoseJoint.leftHip,PoseJoint.leftKnee).mapIndexed { j,joint ->
+                    Landmark(joint,Point2D(100.0+200*j,200.0+250*index),.95)
+                })
+            }
+            return PoseResult(PresentationTime(ms,1000),ImageSize(1000.0,600.0),subjects,"collinear-test",1)
+        }
+        for(ms in 0L..800L step 40) {
+            val result=owner.observe(frame(ms,2))
+            assertNotEquals(BodyAthleteAssociation.Status.associated,result.status)
+            assertNull(result.candidateIndex)
+        }
+        for(ms in 840L..1480L step 40) owner.observe(frame(ms,1))
+        assertEquals(BodyAthleteAssociation.Status.associated,owner.frame!!.decision.status)
+    }
     private fun pose(ms: Long,span: Double=50.0,torso: Double=150.0,x: Double=500.0,
         hipFault: String?=null): PoseResult {
         val points=listOf(

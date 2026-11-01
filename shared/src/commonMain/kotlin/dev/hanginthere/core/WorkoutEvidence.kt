@@ -34,6 +34,10 @@ object WorkoutEvidence {
         } } == true
 
     fun assess(rep: RepRecord, setEndReason: String? = null): WorkoutAttemptAssessment {
+        val lyingLegRaise = rep.exercise == ExerciseCounter.Exercise.lyingLegRaise
+        val legRaise = rep.exercise == ExerciseCounter.Exercise.legRaise || lyingLegRaise
+        val sitUp = rep.exercise == ExerciseCounter.Exercise.sitUp
+        val timingOnly = sitUp || legRaise
         val pushUp = rep.exercise == ExerciseCounter.Exercise.pushUp && rep.countMethod in listOf(SideViewPushUpWorkout.countMethod, SideViewPushUpMotion.frontCountMethod)
         val endedActiveAttempt = rep.closeReason == "inProgress" && setEndReason != null && setEndReason != "running"
         val status = when {
@@ -54,7 +58,7 @@ object WorkoutEvidence {
             WorkoutAttemptStatus.ended -> "Attempt ended"
         }
         val explanation = when (status) {
-            WorkoutAttemptStatus.completed -> if (pushUp)
+            WorkoutAttemptStatus.completed -> if (legRaise) "A ${if (lyingLegRaise) "lying" else "hanging"} leg lift and return were recorded. Anatomical form and load are unverified." else if (sitUp) "A side-view sit-up and return were recorded. Anatomical form and load are unverified." else if (pushUp)
                 "A ${if (rep.countMethod == SideViewPushUpMotion.frontCountMethod) "front" else "side"}-view lowering and return were recorded. Exercise form and load are unverified."
                 else if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 "Both-arm image travel and return were recorded. Anatomical depth, form and load are unverified."
@@ -69,13 +73,14 @@ object WorkoutEvidence {
         val left = coverage(rep.left.coverage)
         val right = coverage(rep.right.coverage)
         val notes = buildList {
-            if (pushUp) add("${if (rep.countMethod == SideViewPushUpMotion.frontCountMethod) "Front" else "Side"}-view preview: angle measurements use the same visible arm throughout the attempt.")
+            if (legRaise) add("Leg-raise timing is recorded; muscle effort is not measured.") else if (sitUp) add("Sit-up timing is recorded; elbow range and muscle effort are not measured.")
+            else if (pushUp) add("${if (rep.countMethod == SideViewPushUpMotion.frontCountMethod) "Front" else "Side"}-view preview: angle measurements use the same visible arm throughout the attempt.")
             else if (WorkoutCountingMethod.isImageMotion(rep.countMethod))
                 add("Bilateral image-motion cycle. Anatomical depth, form and load are unverified.")
             if (duration == null) add("Observed-time coverage is unavailable.")
             else if (duration < 1 - 1e-9) add("Some source time was not observed; gaps do not add hold time.")
-            if (left == null && !pushUp) add("Left-arm time coverage is unavailable.")
-            if (right == null && !pushUp) add("Right-arm time coverage is unavailable.")
+            if (left == null && !pushUp && !timingOnly) add("Left-arm time coverage is unavailable.")
+            if (right == null && !pushUp && !timingOnly) add("Right-arm time coverage is unavailable.")
             if (left != null && left < minimumAngleComparisonCoverage || right != null && right < minimumAngleComparisonCoverage)
                 add("Limited arm observations: inspect the available measurements before comparing range.")
             add("Coverage describes recorded time. Camera angles do not verify exercise form.")
@@ -83,7 +88,7 @@ object WorkoutEvidence {
         // An accepted interruption still has an unrecorded return. Its label
         // must not make the observed prefix comparable to a whole attempt.
         val nonInterruptedEnding = rep.closeReason in listOf("returned", "partial", "manual", "disengaged", "endOfInput")
-        val comparable = nonInterruptedEnding && status !in listOf(WorkoutAttemptStatus.inProgress, WorkoutAttemptStatus.interrupted) &&
+        val comparable = !timingOnly && nonInterruptedEnding && status !in listOf(WorkoutAttemptStatus.inProgress, WorkoutAttemptStatus.interrupted) &&
             (if (pushUp) listOf(rep.left, rep.right).count {
                 (coverage(it.coverage) ?: -1.0) >= minimumAngleComparisonCoverage && validRange(it)
             } == 1 else left != null && right != null && left >= minimumAngleComparisonCoverage && right >= minimumAngleComparisonCoverage &&

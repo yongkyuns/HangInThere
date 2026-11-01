@@ -68,9 +68,9 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
                             Text(assessment.title,style=MaterialTheme.typography.titleMedium)
                             assessment.reason?.let { Text(it,style=MaterialTheme.typography.bodyMedium) }
                         }
-                        if(selected.samples.isEmpty())Text("Motion curve unavailable. The timing summary is saved.") else AnglePlot(selected)
+                        if(selected.samples.isEmpty())Text(if(selected.exercise in listOf(ExerciseCounter.Exercise.legRaise,ExerciseCounter.Exercise.lyingLegRaise)) "Leg-raise phase timings" else if(selected.exercise==ExerciseCounter.Exercise.sitUp) "Sit-up phase timings" else "Motion curve unavailable. The timing summary is saved.") else AnglePlot(selected)
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(18.dp)) {
-                            JourneyMetric(selected.outboundSeconds?.let(::journeySeconds) ?: "—",if(selected.exercise==ExerciseCounter.Exercise.pullUp)"To peak" else "To bottom",Modifier.weight(1f))
+                            JourneyMetric(selected.outboundSeconds?.let(::journeySeconds) ?: "—",if(selected.exercise in listOf(ExerciseCounter.Exercise.legRaise,ExerciseCounter.Exercise.lyingLegRaise))"Raise" else if(selected.exercise==ExerciseCounter.Exercise.sitUp)"Sit up" else if(selected.exercise==ExerciseCounter.Exercise.pullUp)"To peak" else "To bottom",Modifier.weight(1f))
                             JourneyMetric(selected.returnSeconds?.let(::journeySeconds) ?: "—","Return",Modifier.weight(1f))
                         }
                         JourneyDisclosure("Camera measurements") {
@@ -82,9 +82,10 @@ fun WorkoutReviewDialog(current: List<RepRecord>, history: List<WorkoutSetRecord
                     } else if(summary!=null) {
                         JourneySetHeadline(summary)
                         JourneyCoachingCard(summary.coaching)
+                        WorkoutTrainingTipCard(summary.exercise.name, "review")
                         if(completed.isNotEmpty()) {
                             Text("Your reps",style=MaterialTheme.typography.titleLarge)
-                            Text(if(summary.exercise==ExerciseCounter.Exercise.pullUp)"Pull · Lower" else "Lower · Press",style=MaterialTheme.typography.labelMedium)
+                            Text(if(summary.exercise in listOf(ExerciseCounter.Exercise.legRaise,ExerciseCounter.Exercise.lyingLegRaise))"Raise · Lower" else if(summary.exercise==ExerciseCounter.Exercise.sitUp)"Sit up · Lie back" else if(summary.exercise==ExerciseCounter.Exercise.pullUp)"Pull · Lower" else "Lower · Press",style=MaterialTheme.typography.labelMedium)
                             completed.forEach { rep -> key(rep.id) { JourneyRepRow(rep,maximum) { selectedRep=rep.id } } }
                         }
                         if(attempts.isNotEmpty())JourneyDisclosure("Other attempts · ${attempts.size}") {

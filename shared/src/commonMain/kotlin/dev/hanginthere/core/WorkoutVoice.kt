@@ -7,8 +7,8 @@ import kotlinx.serialization.encodeToString
 @Serializable data class WorkoutVoiceCommand(val action: String, val exercise: String? = null,
     val load: Double? = null, val unit: String? = null)
 object WorkoutVoice {
-    fun command(text: String): WorkoutVoiceCommand? {
-        if (text.length > 160) return null
+    fun command(text: String, isFinal: Boolean = true): WorkoutVoiceCommand? {
+        if (!isFinal || text.length > 160) return null
         val words = text.lowercase().replace(Regex("(?<=[a-z])-(?=[a-z])"), " ").trim().trimEnd('.', '!', '?').split(Regex("\\s+"))
         val phrase = words.joinToString(" ").removePrefix("please ").removeSuffix(" please")
         val action = when (phrase) {
@@ -27,6 +27,9 @@ object WorkoutVoice {
             "start pull ups", "start pullups", "start chin ups", "start chinups" -> "pullUp"
             "start dips" -> "dip"
             "start push ups", "start pushups" -> "pushUp"
+            "start sit ups", "start situps" -> "sitUp"
+            "start lying raises", "start lying leg raises", "start floor leg raises" -> "lyingLegRaise"
+            "start leg raises", "start hanging raises", "start hanging leg raises", "start knee raises" -> "legRaise"
             else -> null
         }
         if (exercise != null) return WorkoutVoiceCommand("start", exercise = exercise)
@@ -69,5 +72,6 @@ object WorkoutVoice {
 }
 class WorkoutVoiceBridge {
     fun commandJson(text: String): String? = WorkoutVoice.command(text)?.let { WorkoutRecordCodec.json.encodeToString(it) }
+    fun finalCommandJson(text: String, isFinal: Boolean): String? = WorkoutVoice.command(text, isFinal)?.let { WorkoutRecordCodec.json.encodeToString(it) }
     fun summary(count: Int, previous: Int, saved: Boolean): String = WorkoutVoice.summary(count, previous.takeIf { it >= 0 }, saved)
 }

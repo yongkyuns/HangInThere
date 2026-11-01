@@ -67,6 +67,9 @@ private fun journeyQualityColor(level: String): Color = when(level) {
     loadCalendar: (suspend (List<WorkoutCalendarDayRange>) -> List<WorkoutPracticeDay>)? = null,
     loadRange: (suspend (WorkoutCalendarDayRange?, WorkoutJourneyCursor?) -> WorkoutJourneyPage)? = null,
     onEditWorkout: (WorkoutSessionDigest) -> Unit = {},
+    activityReport: WorkoutActivityReport? = null,
+    onSaveActivityGoal: suspend (WorkoutActivityGoal) -> Boolean = { false },
+    onRemoveActivityGoal: suspend (WorkoutActivityGoal) -> Boolean = { false },
 ) {
     var selectedWorkoutId by remember { mutableStateOf<String?>(null) }
     var selectedRange by remember { mutableStateOf<WorkoutCalendarDayRange?>(null) }
@@ -155,6 +158,16 @@ private fun journeyQualityColor(level: String): Color = when(level) {
                         WorkoutLogTable(log) { onEditWorkout(workout) }
                         TextButton(onClick = { onEditWorkout(workout) }) { Text("Continue / edit workout") }
                     }
+                    workout.progress?.takeIf { workout.totalReps > 0 }?.let { progress ->
+                        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                            Text(progress.headline,style=MaterialTheme.typography.titleMedium)
+                            Row {
+                                JourneyMetric("${progress.bestSet}","Most reps in a set",Modifier.weight(1f))
+                                progress.previousReps?.let { JourneyMetric("$it","Previous workout reps",Modifier.weight(1f)) }
+                            }
+                            if(progress.previousReps!=null)Text("Recorded volume · same exercises",style=MaterialTheme.typography.labelSmall)
+                        } }
+                    }
                     if (workout.sets.isNotEmpty()) Text("Camera sets", style = MaterialTheme.typography.titleLarge)
                 }
             }
@@ -184,12 +197,14 @@ private fun journeyQualityColor(level: String): Color = when(level) {
         }
         LazyColumn(Modifier.weight(1f).testTag("workout-history-list"), state = historyScroll,
             contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if(selectedDay == null && activityReport != null) item { WorkoutActivityPanel(activityReport,onSaveActivityGoal,onRemoveActivityGoal); Spacer(Modifier.height(16.dp)); WorkoutReminderControls() }
+            if (selectedDay == null) item { WorkoutTrainingTipCard() }
             if (showCalendar) item {
                 WorkoutCalendarPanel(anchor, mode, zone, selectedRange, activity ?: report.days, loadCalendar != null && activity == null && !calendarFailure,
                     onAnchor = { anchor = it }, onMode = { mode = it }, onSelect = { selectedRange = it }, onShowAll = { selectedRange = null })
                 if (calendarFailure) Text("Calendar couldn't load. Close and reopen to retry.", color = MaterialTheme.colorScheme.error)
             }
-            if (showCalendar && selectedDay == null) item {
+            if (showCalendar && selectedDay == null && activityReport == null) item {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text("Last 28 days", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {

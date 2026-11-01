@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "dataset": "34data/workout-vids",
+  "revision": "f1c551e140fa3c8d1dc6b4dfa41caf4d994509b7",
+  "archive_bytes": 4896803778,
+  "archive_sha256": "b7846648570bbc4dbf2697c8896980cab02e1e0d509bee9ea685b61815937aea",
+  "annotation": "Project manual visible-cycle labels, not publisher repetition annotations. Initial/final partial cycles excluded; no synthetic start frames. Coarse review anchors are documented; event timing accuracy is not claimed.",
+  "selection": "Screened all 21 leg-raises clips before inference; grouped by visible source family. No test family used for tuning.",
+  "screening": [
+    {
+      "id": "leg_raises_1",
+      "duration": 13.678333,
+      "bytes": 30106923,
+      "sha256": "fa7ef8ddd4ce09741940c720175aeb97bf3aff0bbf3e3652ee70aa0c76e6ed3a",
+      "group": "chair-room",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "chair support",
+      "file": "leg_raises_1.MOV"
+    },
+    {
+      "id": "leg_raises_10",
+      "duration": 6.239567,
+      "bytes": 3232025,
+      "sha256": "d027ef3dc47f0a7880688b029a4990a1d387e3f98e17352c33d6bcab77682c31",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_10.mp4"
+    },
+    {
+      "id": "leg_raises_11",
+      "duration": 8.274938,
+      "bytes": 4990173,
+      "sha256": "84ca20cd2171aa7d5efd142ffa7fd1840f0db58133e24649be6e0ebcf85c42e2",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_11.mp4"
+    },
+    {
+      "id": "leg_raises_12",
+      "duration": 6.339667,
+      "bytes": 3595559,
+      "sha256": "4b46ed4c10fdabbae2a4c8c2f9f2c769ef39152bfb766c5eb2c67f1e775fb381",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "development",
+      "expected_complete_cycles": 1,
+      "screening": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles",
+      "file": "leg_raises_12.mp4"
+    },
+    {
+      "id": "leg_raises_13",
+      "duration": 6.039375,
+      "bytes": 3720413,
+      "sha256": "52f8f352a3f368214abc82826f15c1957ca2cff3fec55cd6ff8da61d6096910d",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_13.mp4"
+    },
+    {
+      "id": "leg_raises_14",
+      "duration": 9.843167,
+      "bytes": 5546292,
+      "sha256": "d204278f594bdc586ae8c039d1aeac8e3df4d277bdf0453a9a04fa0769c5ddf0",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "development",
+      "expected_complete_cycles": 2,
+      "screening": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles",
+      "file": "leg_raises_14.mp4"
+    },
+    {
+      "id": "leg_raises_15",
+      "duration": 5.005,
+      "bytes": 2897333,
+      "sha256": "1d6609a6ae19e1819c5524548bc972f03ee29a5542c1b8a73d2326b640edd607",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_15.mp4"
+    },
+    {
+      "id": "leg_raises_16",
+      "duration": 8.76,
+      "bytes": 6609275,
+      "sha256": "0d1f855b2b39aadafa3bb2ec36af6e57e35163f198433557673f2f7fb655e208",
+      "group": "backyard",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "inverted/toes-to-bar variant",
+      "file": "leg_raises_16.mp4"
+    },
+    {
+      "id": "leg_raises_17",
+      "duration": 13.0,
+      "bytes": 9331560,
+      "sha256": "3f736a58c24f417444c341fa3014f90f5d0d9a845d53d19f867a5a10b0c5cfaf",
+      "group": "backyard",
+      "exercise": "legRaise",
+      "role": "test",
+      "expected_complete_cycles": 3,
+      "screening": "held-out side view; upward camera angle; report separately from controlled placement",
+      "file": "leg_raises_17.mp4"
+    },
+    {
+      "id": "leg_raises_18",
+      "duration": 6.006,
+      "bytes": 4280372,
+      "sha256": "61e814c3d73a1314b563828ab3e6272226282941e7547e1043dee4594b3e9299",
+      "group": "gym-tutorial",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_18.mp4"
+    },
+    {
+      "id": "leg_raises_19",
+      "duration": 8.842167,
+      "bytes": 3184455,
+      "sha256": "cc69741910c7c48e9c89fb81612cb289472e3dc511effdf97c96596452e61d4c",
+      "group": "gym-tutorial",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_19.mp4"
+    },
+    {
+      "id": "leg_raises_2",
+      "duration": 14.813333,
+      "bytes": 32330205,
+      "sha256": "d03cfe407f2eb00f99ebf48a16f33cdbd7004a9caa79dfc21e5c77c3325fa4fa",
+      "group": "chair-room",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "chair support",
+      "file": "leg_raises_2.MOV"
+    },
+    {
+      "id": "leg_raises_20",
+      "duration": 2.794458,
+      "bytes": 2025741,
+      "sha256": "20d1af0f3683788c7b3f159e643da974f7e2b33a4c60419e4d5cac440845cb36",
+      "group": "dark-gym",
+      "exercise": "legRaise",
+      "role": "test",
+      "expected_complete_cycles": 1,
+      "screening": "held-out side view; short clip without held start; includes setup/release",
+      "file": "leg_raises_20.mp4"
+    },
+    {
+      "id": "leg_raises_21",
+      "duration": 2.5025,
+      "bytes": 1864791,
+      "sha256": "0a330056144335e6e3113827446859e13321bbded6fdad74e7cb1147833eea3b",
+      "group": "dark-gym",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_21.mp4"
+    },
+    {
+      "id": "leg_raises_3",
+      "duration": 12.043333,
+      "bytes": 26435222,
+      "sha256": "c7182405d2041ed639d9fc1fdde446e3e6e5adb3458478b197466a521ca9f599",
+      "group": "chair-room",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "chair support",
+      "file": "leg_raises_3.MOV"
+    },
+    {
+      "id": "leg_raises_4",
+      "duration": 7.506667,
+      "bytes": 16456409,
+      "sha256": "e43176f84beb33d8d2c7b9382a8d23b997e33e696cd6ecaf05c4570fe5b124f5",
+      "group": "chair-room",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "chair support",
+      "file": "leg_raises_4.MOV"
+    },
+    {
+      "id": "leg_raises_5",
+      "duration": 15.813333,
+      "bytes": 34692746,
+      "sha256": "85c8beaff456875cbd4195eb47a4f3d0e3f43a32c28479c562681e6c0d3cc3a0",
+      "group": "chair-room",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "chair support",
+      "file": "leg_raises_5.MOV"
+    },
+    {
+      "id": "leg_raises_6",
+      "duration": 11.71,
+      "bytes": 25738556,
+      "sha256": "e8dc3f76651ae65f32decd31fdef99f95ee08c45d3fc6e9880d79e2cf21172a5",
+      "group": "chair-room",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "chair support",
+      "file": "leg_raises_6.MOV"
+    },
+    {
+      "id": "leg_raises_7",
+      "duration": 11.8118,
+      "bytes": 8329916,
+      "sha256": "8818367ce333fd1749884ede76957f7abe22161bd0de15a7d1a42bc106323d57",
+      "group": "woman-gym",
+      "exercise": "legRaise",
+      "role": "test",
+      "expected_complete_cycles": 5,
+      "screening": "front-view diagnostic; hands clipped by source frame; out of supported framing",
+      "file": "leg_raises_7.mp4"
+    },
+    {
+      "id": "leg_raises_8",
+      "duration": 11.344667,
+      "bytes": 7083396,
+      "sha256": "0614fd57827525940ece8eb5c2a7ec8065badbaf7d1560337de86c84ad87b4bf",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "screened-out",
+      "expected_complete_cycles": null,
+      "screening": "substantial hand or knee crop / tutorial inset",
+      "file": "leg_raises_8.mp4"
+    },
+    {
+      "id": "leg_raises_9",
+      "duration": 7.040375,
+      "bytes": 4398699,
+      "sha256": "880e84000a9334ac8be397f40d1496bcbb89a4bea27392838ff46e8abc151b75",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "development",
+      "expected_complete_cycles": 1,
+      "screening": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles",
+      "file": "leg_raises_9.mp4"
+    }
+  ],
+  "cases": [
+    {
+      "id": "leg_raises_12",
+      "duration": 6.339667,
+      "bytes": 3595559,
+      "sha256": "4b46ed4c10fdabbae2a4c8c2f9f2c769ef39152bfb766c5eb2c67f1e775fb381",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "development",
+      "expected_complete_cycles": 1,
+      "screening": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles",
+      "cycle_review_seconds": [
+        [
+          0.6,
+          2.0,
+          4.0
+        ]
+      ],
+      "cycle_timing_note": "Coarse visual review anchors; not precision timing ground truth.",
+      "file": "leg_raises_12.mp4",
+      "archive_entry": {
+        "name": "leg raises/leg raises_12.mp4",
+        "offset": 1069762693,
+        "compressed": 3595559,
+        "bytes": 3595559,
+        "method": 0
+      }
+    },
+    {
+      "id": "leg_raises_14",
+      "duration": 9.843167,
+      "bytes": 5546292,
+      "sha256": "d204278f594bdc586ae8c039d1aeac8e3df4d277bdf0453a9a04fa0769c5ddf0",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "development",
+      "expected_complete_cycles": 2,
+      "screening": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles",
+      "cycle_review_seconds": [
+        [
+          2.7,
+          4.0,
+          5.8
+        ],
+        [
+          6.7,
+          8.0,
+          9.6
+        ]
+      ],
+      "cycle_timing_note": "Coarse visual review anchors; not precision timing ground truth.",
+      "file": "leg_raises_14.mp4",
+      "archive_entry": {
+        "name": "leg raises/leg raises_14.mp4",
+        "offset": 1060495872,
+        "compressed": 5546292,
+        "bytes": 5546292,
+        "method": 0
+      }
+    },
+    {
+      "id": "leg_raises_17",
+      "duration": 13.0,
+      "bytes": 9331560,
+      "sha256": "3f736a58c24f417444c341fa3014f90f5d0d9a845d53d19f867a5a10b0c5cfaf",
+      "group": "backyard",
+      "exercise": "legRaise",
+      "role": "test",
+      "expected_complete_cycles": 3,
+      "screening": "held-out side view; upward camera angle; report separately from controlled placement",
+      "cycle_review_seconds": [
+        [
+          2.1,
+          3.5,
+          5.0
+        ],
+        [
+          5.4,
+          6.6,
+          8.2
+        ],
+        [
+          8.8,
+          10.0,
+          11.5
+        ]
+      ],
+      "cycle_timing_note": "Coarse visual review anchors; not precision timing ground truth.",
+      "file": "leg_raises_17.mp4",
+      "archive_entry": {
+        "name": "leg raises/leg raises_17.mp4",
+        "offset": 1041657530,
+        "compressed": 9331560,
+        "bytes": 9331560,
+        "method": 0
+      }
+    },
+    {
+      "id": "leg_raises_20",
+      "duration": 2.794458,
+      "bytes": 2025741,
+      "sha256": "20d1af0f3683788c7b3f159e643da974f7e2b33a4c60419e4d5cac440845cb36",
+      "group": "dark-gym",
+      "exercise": "legRaise",
+      "role": "test",
+      "expected_complete_cycles": 1,
+      "screening": "held-out side view; short clip without held start; includes setup/release",
+      "cycle_review_seconds": [
+        [
+          0.0,
+          0.9,
+          2.0
+        ]
+      ],
+      "cycle_timing_note": "Coarse visual review anchors; not precision timing ground truth.",
+      "file": "leg_raises_20.mp4",
+      "archive_entry": {
+        "name": "leg raises/leg raises_20.mp4",
+        "offset": 1032166788,
+        "compressed": 2025741,
+        "bytes": 2025741,
+        "method": 0
+      }
+    },
+    {
+      "id": "leg_raises_7",
+      "duration": 11.8118,
+      "bytes": 8329916,
+      "sha256": "8818367ce333fd1749884ede76957f7abe22161bd0de15a7d1a42bc106323d57",
+      "group": "woman-gym",
+      "exercise": "legRaise",
+      "role": "test",
+      "expected_complete_cycles": 5,
+      "screening": "front-view diagnostic; hands clipped by source frame; out of supported framing",
+      "cycle_review_seconds": [
+        [
+          0.0,
+          0.8,
+          1.8
+        ],
+        [
+          2.3,
+          3.3,
+          4.3
+        ],
+        [
+          4.8,
+          5.8,
+          6.8
+        ],
+        [
+          7.2,
+          8.2,
+          9.3
+        ],
+        [
+          9.7,
+          10.7,
+          11.8
+        ]
+      ],
+      "cycle_timing_note": "Coarse visual review anchors; not precision timing ground truth.",
+      "file": "leg_raises_7.mp4",
+      "archive_entry": {
+        "name": "leg raises/leg raises_7.mp4",
+        "offset": 1021971966,
+        "compressed": 8329916,
+        "bytes": 8329916,
+        "method": 0
+      }
+    },
+    {
+      "id": "leg_raises_9",
+      "duration": 7.040375,
+      "bytes": 4398699,
+      "sha256": "880e84000a9334ac8be397f40d1496bcbb89a4bea27392838ff46e8abc151b75",
+      "group": "fitnessfaqs",
+      "exercise": "legRaise",
+      "role": "development",
+      "expected_complete_cycles": 1,
+      "screening": "side/oblique hanging raises; source ends/starts mid-cycle; annotate only fully visible lift-return cycles",
+      "cycle_review_seconds": [
+        [
+          3.5,
+          5.2,
+          6.9
+        ]
+      ],
+      "cycle_timing_note": "Coarse visual review anchors; not precision timing ground truth.",
+      "file": "leg_raises_9.mp4",
+      "archive_entry": {
+        "name": "leg raises/leg raises_9.mp4",
+        "offset": 1010489757,
+        "compressed": 4398699,
+        "bytes": 4398699,
+        "method": 0
+      }
+    }
+  ],
+  "url": "https://huggingface.co/datasets/34data/workout-vids",
+  "archive_url": "https://huggingface.co/datasets/34data/workout-vids/resolve/f1c551e140fa3c8d1dc6b4dfa41caf4d994509b7/videos.zip",
+  "media_license": "No license declared in the dataset card; media is not redistributed in this repository."
+}

@@ -6,7 +6,6 @@ import android.os.Looper
 import android.os.SystemClock
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -52,15 +51,11 @@ fun WorkoutStartFeedbackOverlay(snapshot: WorkoutRuntime.Snapshot?, live: Boolea
         }
     }
     if (visible && live && running && foreground && policy.remainingSeconds(nowSeconds()) > 0) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(Modifier.padding(24.dp).widthIn(max = 420.dp)
-                .background(Color.Black.copy(alpha = .85f), RoundedCornerShape(24.dp))
-                .border(2.dp, Color(0xFF69F0AE), RoundedCornerShape(24.dp)).padding(24.dp)
-                .testTag("liveSetStarted"), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("SET STARTED", color = Color(0xFF69F0AE), fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
-                val healthy = snapshot?.let { it.setupIssue == null && it.trackingIssue == null } == true
-                Text(if (healthy) "Tracking your reps" else "Reacquiring your pose",
-                    color = if (healthy) Color.White else Color(0xFFFFB74D), fontSize = 18.sp)
+        Box(Modifier.fillMaxSize().statusBarsPadding().padding(top = 84.dp), contentAlignment = Alignment.TopCenter) {
+            Box(Modifier.width(200.dp).height(48.dp)
+                .background(Color.Black.copy(alpha = .8f), RoundedCornerShape(24.dp))
+                .testTag("liveSetStarted"), contentAlignment = Alignment.Center) {
+                Text("SET STARTED", color = Color(0xFF69F0AE), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
             }
         }
     }
@@ -96,24 +91,25 @@ internal class WorkoutStartSpeaker(context: Context) {
 }
 
 @Composable internal fun WorkoutSessionFeedbackEffects(snapshot: WorkoutRuntime.Snapshot?, live: Boolean,
-    foreground: Boolean, completion: WorkoutCompletionFeedback) {
+    foreground: Boolean, completion: WorkoutCompletionFeedback, announce: ((String) -> Unit)? = null) {
     val context = LocalContext.current
     val tracking = remember { WorkoutTrackingFeedback() }
-    val speaker = if (live && foreground) remember(context) { WorkoutStartSpeaker(context) } else null
+    val announcement by rememberUpdatedState(announce)
+    val speaker = if (announce == null && live && foreground) remember(context) { WorkoutStartSpeaker(context) } else null
     DisposableEffect(speaker) { onDispose { speaker?.close() } }
     LaunchedEffect(snapshot?.activeSetId, snapshot?.trackingIssue, snapshot?.phase, live, foreground) {
         val id = snapshot?.activeSetId
         if (live && foreground && id != null) {
             val running = snapshot.phase == LiveSetSession.Phase.running
-            tracking.observe(id, running, snapshot.trackingIssue, SystemClock.elapsedRealtimeNanos() / 1e9)?.let { speaker?.speak(it) }
+            tracking.observe(id, running, snapshot.trackingIssue, SystemClock.elapsedRealtimeNanos() / 1e9)?.let { announcement?.invoke(it) ?: speaker?.speak(it) }
             if (running && snapshot.trackingIssue != null) {
                 delay(650)
-                tracking.observe(id, true, snapshot.trackingIssue, SystemClock.elapsedRealtimeNanos() / 1e9)?.let { speaker?.speak(it) }
+                tracking.observe(id, true, snapshot.trackingIssue, SystemClock.elapsedRealtimeNanos() / 1e9)?.let { announcement?.invoke(it) ?: speaker?.speak(it) }
             }
         }
     }
     LaunchedEffect(snapshot?.latestCompletedSet?.id, live, foreground) {
         val record = snapshot?.latestCompletedSet
-        if (record != null && completion.begin(record.id, live, foreground)) speaker?.speak(WorkoutFeedback.summary(record).spokenCue)
+        if (record != null && completion.begin(record.id, live, foreground)) announcement?.invoke(WorkoutFeedback.summary(record).spokenCue) ?: speaker?.speak(WorkoutFeedback.summary(record).spokenCue)
     }
 }

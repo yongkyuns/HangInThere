@@ -6,9 +6,9 @@ object WorkoutLifecycle {
     const val boundaryPolicyVersion = 2
     /** Storage retains dip v3/v4 and source-owned overhead pull-up v5/v6/v7/v8;
      * existing observed-bar/legacy owners retain their original v1/v2. */
-    const val supportedBoundaryPolicyVersion = 9
+    const val supportedBoundaryPolicyVersion = 12
     internal fun supportsBoundaryPolicy(exercise: ExerciseCounter.Exercise, method: String?, version: Int,
-        countVersion: Int?) = version in 1..boundaryPolicyVersion && method != OverheadPullUpMotion.countMethod && exercise != ExerciseCounter.Exercise.pushUp ||
+        countVersion: Int?) = version in 1..boundaryPolicyVersion && method != OverheadPullUpMotion.countMethod && exercise !in listOf(ExerciseCounter.Exercise.pushUp, ExerciseCounter.Exercise.sitUp, ExerciseCounter.Exercise.legRaise, ExerciseCounter.Exercise.lyingLegRaise) ||
         version == 3 && exercise == ExerciseCounter.Exercise.dip &&
             method in listOf(DipCycleMotion.countMethod, BilateralTorsoDipMotion.countMethod) ||
         version == 4 && exercise == ExerciseCounter.Exercise.dip &&
@@ -22,6 +22,12 @@ object WorkoutLifecycle {
         version == 8 && exercise == ExerciseCounter.Exercise.pullUp &&
             method == OverheadPullUpMotion.countMethod && countVersion == 4 ||
         version == SideViewPushUpWorkout.boundaryPolicyVersion && exercise == ExerciseCounter.Exercise.pushUp &&
+            WorkoutCountingMethod.isSupported(exercise, method, countVersion) ||
+        version == LyingLegRaiseMotion.boundaryPolicyVersion && exercise == ExerciseCounter.Exercise.lyingLegRaise &&
+            WorkoutCountingMethod.isSupported(exercise, method, countVersion) ||
+        version == HangingLegRaiseMotion.boundaryPolicyVersion && exercise == ExerciseCounter.Exercise.legRaise &&
+            WorkoutCountingMethod.isSupported(exercise, method, countVersion) ||
+        version == SideViewSitUpMotion.boundaryPolicyVersion && exercise == ExerciseCounter.Exercise.sitUp &&
             WorkoutCountingMethod.isSupported(exercise, method, countVersion)
     fun shouldResume(endReason: String?) = endReason == "disengaged" || endReason == "trackingLost"
     fun observationOutage(elapsedSeconds: Double) = elapsedSeconds.isFinite() && elapsedSeconds > AutomaticSetBoundary.outageSeconds

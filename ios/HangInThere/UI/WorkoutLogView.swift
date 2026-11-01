@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import WorkoutCore
 
 /// Decorative movement cues keep the exercise name as the accessible label.
 struct WorkoutExerciseIcon: View {
@@ -11,6 +12,9 @@ struct WorkoutExerciseIcon: View {
         case "pullup", "pullups", "chinup", "chinups": "ExercisePullUp"
         case "dip", "dips", "parallelbardip", "parallelbardips": "ExerciseDip"
         case "pushup", "pushups": "ExercisePushUp"
+        case "lyinglegraise", "lyinglegraises", "floorlegraise", "floorlegraises": "ExerciseLyingLegRaise"
+        case "situp", "situps": "ExerciseSitUp"
+        case "legraise", "legraises", "hanginglegraise", "hanginglegraises", "hangingkneeraise", "hangingkneeraises": "ExerciseLegRaise"
         case "bench", "benchpress", "barbellbenchpress", "dumbbellbenchpress": "ExerciseBench"
         case "ezcurl", "ezcurls", "curl", "curls", "bicepcurl", "bicepcurls", "barbellcurls", "dumbbellcurls", "hammercurls": "ExerciseCurl"
         case "squat", "squats", "backsquat", "frontsquat", "gobletsquat": "ExerciseSquat"
@@ -33,6 +37,7 @@ struct WorkoutLogView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var log: LoggedWorkout
     @State private var history: [LoggedWorkout] = []
+    @State private var activityGoals: [ActivityGoalProgress] = []
     @State private var cameraSets: [JourneySetSummary]
     @State private var exercise: String
     @State private var reps = "5"
@@ -44,8 +49,10 @@ struct WorkoutLogView: View {
     @State private var editingWeight = false
     @State private var editingSet: LoggedWorkoutSet?
     @State private var counter: LoggedWorkoutSet?
+    @State private var pendingVoiceSummary: (count: Int, previous: Int?)?
     @State private var showingCamera = false
     @State private var showingProgress = false
+    @State private var showingTrainingTips = false
     private let recommendations: [WorkoutCoachRecommendation]
     private let preview: Bool
     init(initial: LoggedWorkout = .init(), cameraSets: [JourneySetSummary] = [],
@@ -56,6 +63,10 @@ struct WorkoutLogView: View {
     }
     private var palette: HangPalette { HangPalette(scheme) }
     private var parsedLoad: Double? { Double(load.replacingOccurrences(of: Locale.current.decimalSeparator ?? ".", with: ".")) }
+    private var currentActivityGoal: ActivityGoalProgress? {
+        let key = WorkoutActivityBridge().exerciseKey(name: exercise)
+        return activityGoals.first { WorkoutActivityBridge().exerciseKey(name: $0.goal.exercise) == key }
+    }
     private var validForCounting: Bool {
         (load.isEmpty || parsedLoad != nil) && LoggedWorkout.validSet(exercise: exercise, reps: 0, load: parsedLoad, unit: unit)
     }
@@ -132,6 +143,14 @@ struct WorkoutLogView: View {
                         description: Text("Add a result or open the tap counter."))
                 }
                 WorkoutLogTable(log: log) { editingSet = $0 }.disabled(saving)
+                WorkoutTrainingTipCard(exercise: exercise, moment: log.sets.isEmpty ? "prepare" : "review", seed: log.sets.isEmpty ? nil : Int64(log.sets.count - 1), onPresentationChanged: { showingTrainingTips = $0 })
+                if let progress = currentActivityGoal {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(progress.achieved ? "Goal reached" : "\(progress.remaining) reps to your \(progress.goal.period == "week" ? "weekly" : "daily") goal").font(.headline)
+                        ProgressView(value: progress.fraction).tint(.teal)
+                        Text("\(progress.reps) / \(progress.goal.target) reps").font(.subheadline).monospacedDigit()
+                    }.journeyCard()
+                }
                 if !cameraSets.isEmpty {
                     Text("Camera sets").font(.headline)
                     ForEach(cameraSets) { set in
@@ -151,10 +170,7 @@ struct WorkoutLogView: View {
                 ToolbarItem(placement: .primaryAction) { Button("Exercise progress", systemImage: "chart.bar") { showingProgress = true } }
             }
             .safeAreaInset(edge: .bottom) { WorkoutVoiceStatus().padding(.horizontal, 20) }
-            .workoutVoiceContext(handleVoiceCommand)
-            .onChange(of: choosingExercise || editingWeight || editingSet != nil || showingProgress) { _, visible in
-                if visible { WorkoutVoiceCoach.shared.stopListening() }
-            }
+            .workoutVoiceContext(active: !choosingExercise && !editingWeight && editingSet == nil && !showingProgress && counter == nil && !showingCamera && !showingTrainingTips, handleVoiceCommand)
             .interactiveDismissDisabled(saving)
             .task { if !preview { await reload() }; prefill() }
             .sheet(isPresented: $choosingExercise) {
@@ -167,12 +183,17 @@ struct WorkoutLogView: View {
                     }
                 }
             }
-            .sheet(item: $counter) { set in
+            .sheet(item: $counter, onDismiss: {
+                if let summary = pendingVoiceSummary {
+                    pendingVoiceSummary = nil
+                    WorkoutVoiceCoach.shared.completed(count: summary.count, previous: summary.previous)
+                }
+            }) { set in
                 NavigationStack { WorkoutTapCounter(set: set) { result in
                     var next = log; next.sets.append(result)
                     let previous = log.sets.last { LoggedWorkout.exerciseKey($0.exercise) == LoggedWorkout.exerciseKey(result.exercise) }?.reps
                     try await persist(next)
-                    WorkoutVoiceCoach.shared.completed(count: result.reps, previous: previous)
+                    pendingVoiceSummary = (result.reps, previous)
                     reps = String(result.reps); counter = nil
                 } }
             }
@@ -235,14 +256,21 @@ struct WorkoutLogView: View {
         let next = try await WorkoutRecordStore.shared.saveWorkoutLog(value, updatingTimestamp: true)
         log = next; history.removeAll { $0.id == next.id }; history.append(next)
         history.sort { $0.epochMilliseconds > $1.epochMilliseconds }; error = nil
+        await refreshGoals()
     }
     private func reload() async {
         do {
             history = try await WorkoutRecordStore.shared.workoutLogs()
             if let saved = history.first(where: { $0.id == log.id }) { log = saved }
             cameraSets = try await WorkoutRecordStore.shared.workoutSummary(id: log.id)?.sets ?? cameraSets
+            await refreshGoals()
         } catch { self.error = error.localizedDescription }
     }
+    private func refreshGoals() async {
+        if let json = try? await WorkoutRecordStore.shared.libraryActivityReport(now: Int64(Date().timeIntervalSince1970 * 1000), timeZoneId: TimeZone.current.identifier, firstWeekday: Int32(Calendar.current.firstWeekday)),
+           let report = try? JSONDecoder().decode(ActivityReport.self, from: Data(json.utf8)) { activityGoals = report.goals }
+    }
+
 }
 
 struct WorkoutLogTable: View {

@@ -88,8 +88,25 @@ tasks.named<org.gradle.api.tasks.testing.Test>("jvmTest") {
     val pushUpOutput = providers.environmentVariable("PUSHUP_REPLAY_OUTPUT")
     inputs.property("PUSHUP_REPLAY_OUTPUT", pushUpOutput.orElse(""))
     pushUpOutput.orNull?.let { outputs.dir(it).withPropertyName("PUSHUP_REPLAY_OUTPUT") }
+    val sitUpManifest = providers.environmentVariable("SITUP_REPLAY_MANIFEST")
+    inputs.property("SITUP_REPLAY_MANIFEST", sitUpManifest.orElse(""))
+    sitUpManifest.orNull?.let { inputs.file(it).withPropertyName("SITUP_REPLAY_MANIFEST") }
+    val sitUpOutput = providers.environmentVariable("SITUP_REPLAY_OUTPUT")
+    inputs.property("SITUP_REPLAY_OUTPUT", sitUpOutput.orElse(""))
+    sitUpOutput.orNull?.let { outputs.dir(it).withPropertyName("SITUP_REPLAY_OUTPUT") }
+    outputs.upToDateWhen { sitUpManifest.orNull == null }
     // The opt-in replay verifies hashes of external traces; never cache that verification.
     outputs.upToDateWhen { pushUpManifest.orNull == null }
+
+    for (prefix in listOf("LEGRAISE", "LYING_LEGRAISE")) {
+        val manifest = providers.environmentVariable("${prefix}_REPLAY_MANIFEST")
+        inputs.property("${prefix}_REPLAY_MANIFEST", manifest.orElse(""))
+        manifest.orNull?.let { inputs.file(it).withPropertyName("${prefix}_REPLAY_MANIFEST").withPathSensitivity(PathSensitivity.ABSOLUTE) }
+        val output = providers.environmentVariable("${prefix}_REPLAY_OUTPUT")
+        inputs.property("${prefix}_REPLAY_OUTPUT", output.orElse(""))
+        output.orNull?.let { outputs.dir(it).withPropertyName("${prefix}_REPLAY_OUTPUT") }
+        outputs.upToDateWhen { manifest.orNull == null }
+    }
 
 }
 if (!appleOnly) extensions.configure<com.android.build.gradle.LibraryExtension> {

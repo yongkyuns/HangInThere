@@ -50,9 +50,11 @@ object WorkoutSetPresentation {
                 val lo = metric.minimum; val hi = metric.maximum
                 if (lo == null || hi == null || !lo.isFinite() || !hi.isFinite() || hi <= lo || (metric.coverage ?: 0.0) < .8) null else hi-lo
             }
-            TempoRep(rep.id, rep.ordinal, outward, returning, if (record.exercise == ExerciseCounter.Exercise.pullUp) outward else returning,
+            TempoRep(rep.id, rep.ordinal, outward, returning, if (record.exercise in listOf(ExerciseCounter.Exercise.pullUp, ExerciseCounter.Exercise.sitUp, ExerciseCounter.Exercise.legRaise, ExerciseCounter.Exercise.lyingLegRaise)) outward else returning,
                 angles.takeIf { it.isNotEmpty() }?.average(), (rep.durationCoverage ?: 0.0) >= .8 && !rep.curveTruncated)
         }
+        if (record.exercise in listOf(ExerciseCounter.Exercise.legRaise, ExerciseCounter.Exercise.lyingLegRaise)) return Tempo(reps, null, "Leg-raise phase timings are recorded. Range and fatigue are not measured.")
+        if (record.exercise == ExerciseCounter.Exercise.sitUp) return Tempo(reps, null, "Sit-up phase timings are recorded. Range and fatigue are not measured.")
         if (reps.size < 3) return Tempo(reps, null, "Three comparable reps are needed to show a tempo trend.")
         val comparison = reps.take(2)+reps.last()
         if (comparison.any { !it.reliable || (it.range ?: 0.0) < 20 })
@@ -68,7 +70,7 @@ object WorkoutSetPresentation {
         if (!clipStart.isFinite()) return emptyList()
         val end = record.completedReps.mapNotNull { it.returnedAt }.maxOrNull()?.takeIf { it.isFinite() } ?: return emptyList()
         return record.completedReps.take(60).flatMap { rep ->
-            listOf("Start" to rep.startedAt, (if (rep.exercise == ExerciseCounter.Exercise.pullUp) "Top" else "Bottom") to rep.extremeAt,
+            listOf("Start" to rep.startedAt, (if (rep.exercise in listOf(ExerciseCounter.Exercise.pullUp, ExerciseCounter.Exercise.sitUp, ExerciseCounter.Exercise.legRaise, ExerciseCounter.Exercise.lyingLegRaise)) "Top" else "Bottom") to rep.extremeAt,
                 "Return" to rep.returnedAt).mapNotNull { (phase, time) ->
                 time?.takeIf { it.isFinite() && it >= clipStart && it <= end }?.let { Keyframe(rep.id, rep.ordinal, phase, it, it-clipStart) }
             }

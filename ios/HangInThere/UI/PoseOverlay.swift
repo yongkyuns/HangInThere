@@ -27,16 +27,31 @@ struct PoseOverlaySmoothing {
     }
 }
 
+/// Display-only color easing; invalid observations immediately return to green.
+struct PoseOverlayEffortSmoothing {
+    private(set) var level = 0.0
+
+    mutating func observe(_ rate: Double?, elapsed: Double, enabled: Bool = true) {
+        guard let rate, rate.isFinite else { level = 0; return }
+        let target = min(1, max(0, rate))
+        guard enabled else { level = target; return }
+        guard elapsed.isFinite, elapsed > 0, elapsed <= 0.35 else { level = 0; return }
+        level += (target - level) * (1 - exp(-elapsed / 0.22))
+    }
+}
+
 /// One visual language for every exercise. Raw pose and counter inputs are never
-/// changed. Working arms use the existing relative phase-load estimate.
+/// changed. Color displays the current relative effort cue across visible joints.
 struct PoseOverlay: View {
     let result: PoseResult
     var selectedSide: ArmMeasurement.Side? = nil
     var usesBothArms = false
     var effort: Double? = nil
+    var animatesEffort = true
     var completedReps = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var smoothing = PoseOverlaySmoothing()
+    @State private var effortSmoothing = PoseOverlayEffortSmoothing()
     @State private var pulseStarted: Date?
 
     private struct FrameKey: Equatable {
@@ -57,7 +72,7 @@ struct PoseOverlay: View {
         return selectedSide.map { [$0] } ?? []
     }
     private var effortColor: Color {
-        PoseOverlayEffort.color(result.people.count == 1 && !trackedSides.isEmpty ? effort : nil)
+        PoseOverlayEffort.color(result.people.count == 1 ? (reduceMotion || !animatesEffort ? effort : effortSmoothing.level) : nil)
     }
 
     var body: some View {
@@ -80,11 +95,17 @@ struct PoseOverlay: View {
             if old.backend != new.backend || old.revision != new.revision || old.size != new.size ||
                 new.people.count != 1 || !gap.isFinite || gap <= 0 || gap > 0.35 { pulseStarted = nil }
             smoothing.observe(result, enabled: !reduceMotion)
+            let continuous = old.backend == new.backend && old.revision == new.revision && old.size == new.size
+            effortSmoothing.observe(new.people.count == 1 ? effort : nil,
+                elapsed: continuous ? gap : 0, enabled: !reduceMotion && animatesEffort)
         }
         .onChange(of: completedReps) { old, new in
             pulseStarted = !reduceMotion && new == old + 1 ? Date() : nil
         }
-        .onChange(of: reduceMotion) { _, enabled in if enabled { pulseStarted = nil } }
+        .onChange(of: reduceMotion) { _, enabled in
+            if enabled { pulseStarted = nil }
+            effortSmoothing.observe(result.people.count == 1 ? effort : nil, elapsed: 0, enabled: !enabled && animatesEffort)
+        }
         .task(id: pulseStarted) {
             guard pulseStarted != nil else { return }
             do { try await Task.sleep(for: .milliseconds(450)); pulseStarted = nil } catch { }
@@ -105,7 +126,7 @@ struct PoseOverlay: View {
             let p = layout.displayPoint(point.position)
             return CGPoint(x: p.x, y: p.y)
         }
-        func clarity(_ confidence: Double) -> Double { 0.2 + 0.8 * min(1, max(0, (confidence - 0.3) / 0.45)) }
+        func clarity(_ confidence: Double) -> Double { 0.55 + 0.45 * min(1, max(0, (confidence - 0.3) / 0.45)) }
         let torso = [PoseJoint.leftShoulder, .rightShoulder, .rightHip, .leftHip].compactMap(landmark)
         if torso.count == 4 {
             var path = Path(); path.move(to: screen(torso[0]))
@@ -122,10 +143,11 @@ struct PoseOverlay: View {
                 let radius = min(base * 2.1, max(base * 0.7, length * 0.075)) * (working ? 1 : 0.68)
                 let path = Self.band(p, q, radius, radius * taper)
                 let opacity = clarity(min(from.confidence, to.confidence))
-                let color = working ? effortColor : Color(red: 0.65, green: 0.82, blue: 0.76)
-                context.fill(path, with: .linearGradient(Gradient(colors: [color.opacity((working ? 0.4 : 0.13) * opacity),
-                    color.opacity((working ? 0.66 : 0.23) * opacity)]), startPoint: p, endPoint: q))
-                context.stroke(path, with: .color(color.opacity((working ? 0.65 : 0.2) * opacity)), lineWidth: 0.7)
+                let color = effortColor
+                context.stroke(path, with: .color(.black.opacity(0.55 * opacity)), lineWidth: 2.4)
+                context.fill(path, with: .linearGradient(Gradient(colors: [color.opacity((working ? 0.78 : 0.55) * opacity),
+                    color.opacity((working ? 0.95 : 0.75) * opacity)]), startPoint: p, endPoint: q))
+                context.stroke(path, with: .color(color.opacity(0.85 * opacity)), lineWidth: 0.7)
             }
         }
         for joint in Self.joints {
@@ -133,7 +155,7 @@ struct PoseOverlay: View {
             let p = screen(point)
             let working = sides.contains { $0.joints.contains(joint) }
             let radius = base * (working ? 0.68 : 0.42)
-            let color = working ? effortColor : Color(red: 0.65, green: 0.82, blue: 0.76)
+            let color = effortColor
             let opacity = clarity(point.confidence)
             if working && pulse > 0 {
                 let halo = radius + (1 - pulse) * base * 3.5
@@ -141,7 +163,7 @@ struct PoseOverlay: View {
                     with: .color(Color.mint.opacity(pulse * 0.65 * opacity)), lineWidth: 1.5)
             }
             context.fill(Path(ellipseIn: CGRect(x: p.x - radius, y: p.y - radius, width: radius * 2, height: radius * 2)),
-                with: .color(color.opacity((working ? 0.95 : 0.45) * opacity)))
+                with: .color(color.opacity((working ? 1 : 0.85) * opacity)))
             if working {
                 context.fill(Path(ellipseIn: CGRect(x: p.x - radius * 0.34, y: p.y - radius * 0.34,
                     width: radius * 0.68, height: radius * 0.68)), with: .color(.white.opacity(opacity * 0.8)))
@@ -174,7 +196,7 @@ struct PoseOverlay: View {
 }
 
 /// Relative phase-load display only; never measured force or personal fatigue.
-/// Unknown or stale evidence stays neutral instead of borrowing a previous hue.
+/// Unknown or stale evidence returns to the default green.
 enum PoseOverlayEffort {
     static func rate(activity: WorkoutActivity?, at seconds: Double, observedAt: Double?) -> Double? {
         guard seconds.isFinite, let observedAt, observedAt.isFinite,
@@ -182,6 +204,12 @@ enum PoseOverlayEffort {
               current.observedSeconds.isFinite, current.observedSeconds > 0,
               current.endedAt.isFinite, observedAt >= current.endedAt else { return nil }
         return WorkoutSetPresentationBridge().weight(phase: current.phase)?.doubleValue
+    }
+    static func floorRate(exercise: ExerciseCounter.Exercise, phase: String?, setStarted: Bool, usable: Bool, progress: Double? = nil) -> Double? {
+        if usable, let progress, progress.isFinite { return min(1, max(0, progress)) }
+        if exercise != .sitUp && exercise != .legRaise && exercise != .lyingLegRaise { return pushUpRate(phase: phase, setStarted: setStarted, usable: usable) }
+        guard setStarted, usable else { return nil }
+        switch phase { case "lifting": return 1; case "raised": return 0.8; case "ready": return 0.25; default: return nil }
     }
     static func pushUpRate(phase: String?, setStarted: Bool, usable: Bool) -> Double? {
         guard setStarted, usable else { return nil }
@@ -195,9 +223,8 @@ enum PoseOverlayEffort {
         return WorkoutSetPresentationBridge().weight(phase: observedPhase)?.doubleValue
     }
     static func color(_ rate: Double?) -> Color {
-        guard let rate, rate.isFinite else { return Color(red: 0.56, green: 0.68, blue: 0.65) }
-        let t = min(1,max(0,rate))
-        return t < 0.5 ? Color(red: 0.35+1.16*t,green: 0.77-0.08*t,blue: 0.65-0.56*t) :
-            Color(red: 0.93+0.10*(t-0.5),green: 0.73-0.60*(t-0.5),blue: 0.37+0.06*(t-0.5))
+        let t = rate.flatMap { $0.isFinite ? min(1,max(0,$0)) : nil } ?? 0
+        return t < 0.5 ? Color(red: 0.16+1.64*t,green: 0.86-0.08*t,blue: 0.39-0.50*t) :
+            Color(red: 0.98+0.04*(t-0.5),green: 0.82-1.26*(t-0.5),blue: 0.14+0.04*(t-0.5))
     }
 }

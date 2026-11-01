@@ -17,6 +17,9 @@ struct ReplayView: View {
     }
     @State private var liveWorkout: LiveWorkoutDestination?
     @State private var showingPushUps = false
+    @State private var showingSitUps = false
+    @State private var showingLegRaises = false
+    @State private var showingLyingLegRaises = false
     private enum LibraryDestination: String, Identifiable {
         case history = "History", recordings = "Recordings"
         var id: String { rawValue }
@@ -79,6 +82,9 @@ struct ReplayView: View {
             }
             #if os(iOS)
             .fullScreenCover(isPresented: $showingPushUps) { PushUpPracticeView() }
+            .fullScreenCover(isPresented: $showingLyingLegRaises) { PushUpPracticeView(exercise: .lyingLegRaise) }
+            .fullScreenCover(isPresented: $showingLegRaises) { PushUpPracticeView(exercise: .legRaise) }
+            .fullScreenCover(isPresented: $showingSitUps) { PushUpPracticeView(exercise: .sitUp) }
             #endif
             .sheet(isPresented: $showingWorkoutLog) { NavigationStack { WorkoutLogView() } }
             .sheet(isPresented: $showingCoach, onDismiss: {
@@ -145,7 +151,7 @@ struct ReplayView: View {
             onStartExercise: { liveWorkout = LiveWorkoutDestination(exercise: $0) },
             onReviewVideo: { libraryDestination = .recordings },
             onHistory: { libraryDestination = .history }, onCoach: { showingCoach = true },
-            onLogWorkout: { showingWorkoutLog = true }, onStartPushUp: { showingPushUps = true })
+            onLogWorkout: { showingWorkoutLog = true }, onStartPushUp: { showingPushUps = true }, onStartSitUp: { showingSitUps = true }, onStartLegRaise: { showingLegRaises = true }, onStartLyingLegRaise: { showingLyingLegRaises = true })
     }
 
     private var sessionHeader: some View {

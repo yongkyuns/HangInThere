@@ -12,16 +12,38 @@ import java.util.UUID
 /** Serial native observations into the same motion controllers as the iOS app. */
 class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, side: ArmMeasurement.Side,
     automaticWorkouts: Boolean = true, private val persistWorkouts: Boolean = true,
-    recordStoreOverride: WorkoutRecordStore? = null, private val replay: Boolean = false) : Closeable {
+    recordStoreOverride: WorkoutRecordStore? = null, private val replay: Boolean = false, private val floorExercise: ExerciseCounter.Exercise? = null) : Closeable {
     data class Result(val pose: PoseResult, val snapshot: WorkoutRuntime.Snapshot, val progress: Double, val cue: String,
         val analysisMillis: Double, val reps: List<RepRecord> = emptyList(), val history: List<WorkoutSetRecord> = emptyList(),
         val storageError: String? = null, val currentSet: WorkoutSetRecord? = null,
         val motion: MotionWorkoutRuntime.Snapshot? = null,
+        val targetReached: Boolean = false, val observationUsable: Boolean = false,
         val rawPose: PoseResult = pose, val camera: OverheadPullUpMotion.Camera = OverheadPullUpMotion.Camera.unavailable)
     // Replay has no live calendar timestamps or recorded phone-motion sensor.
     val runtime = MotionWorkoutRuntime(selection, automaticWorkouts,
         nowEpochMilliseconds = { if (replay) null else System.currentTimeMillis() }, newSetId = { UUID.randomUUID().toString() })
-    private val athlete = BodyAthleteSelection()
+    private val isFloor get() = floorExercise != null
+    private val athlete = BodyAthleteSelection(when(floorExercise) { ExerciseCounter.Exercise.pushUp -> BodyAthleteAssociation.Profile.pushUp
+        ExerciseCounter.Exercise.sitUp, ExerciseCounter.Exercise.legRaise, ExerciseCounter.Exercise.lyingLegRaise -> BodyAthleteAssociation.Profile.projectedTorso
+        else -> BodyAthleteAssociation.Profile.upright })
+    private val lyingLegRaises = if (floorExercise == ExerciseCounter.Exercise.lyingLegRaise) LyingLegRaiseWorkout(UUID.randomUUID().toString(), if (replay) null else System.currentTimeMillis()) else null
+    private val legRaises = if (floorExercise == ExerciseCounter.Exercise.legRaise) HangingLegRaiseWorkout(UUID.randomUUID().toString(), if (replay) null else System.currentTimeMillis()) else null
+    private val sitUps = if (floorExercise == ExerciseCounter.Exercise.sitUp) SideViewSitUpWorkout(UUID.randomUUID().toString(), if (replay) null else System.currentTimeMillis()) else null
+    private val pushUps = if (floorExercise == ExerciseCounter.Exercise.pushUp)
+        SideViewPushUpWorkout(UUID.randomUUID().toString(), if (replay) null else System.currentTimeMillis(), true) else null
+    private data class FloorState(val title: String, val progress: Double?, val targetReached: Boolean,
+        val observationUsable: Boolean, val setStarted: Boolean, val setCycles: Int)
+    private var floorState: FloorState? = null
+    private fun observeFloor(pose: PoseResult, camera: SideViewPushUpMotion.Camera): FloorState =
+        lyingLegRaises?.observe(pose,camera)?.let { FloorState(it.title,it.progress,it.targetReached,it.observationUsable,it.setStarted,it.setCycles) }
+            ?: legRaises?.observe(pose,camera)?.let { FloorState(it.title,it.progress,it.targetReached,it.observationUsable,it.setStarted,it.setCycles) }
+            ?: sitUps?.observe(pose, camera)?.let { FloorState(it.title,it.progress,it.targetReached,it.observationUsable,it.setStarted,it.setCycles) }
+            ?: checkNotNull(pushUps).observe(pose,camera).let { FloorState(it.title,it.progress,it.targetReached,it.observationUsable,it.setStarted,it.setCycles) }
+    private fun finishFloor(reason: String) { lyingLegRaises?.finish(reason); legRaises?.finish(reason); sitUps?.finish(reason); pushUps?.finish(reason) }
+
+    private var floorRecord: WorkoutSetRecord? = null
+    private var floorCompleted: WorkoutSetRecord? = null
+    private val hasStarted get() = if (isFloor) floorState?.setStarted == true else runtime.hasStarted
     private val poses = PoseEstimator(context)
     private val grips = GripInference(context)
     private val scene = SceneRegistration()
@@ -45,6 +67,10 @@ class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, si
     private var queuedSetId: String? = null
     private var retryAfterNanos = 0L
     val snapshot get(): WorkoutRuntime.Snapshot {
+        if (isFloor) return WorkoutRuntime.Snapshot(checkNotNull(floorExercise), floorExercise,
+            if (floorState?.setStarted == true) LiveSetSession.Phase.running else LiveSetSession.Phase.idle,
+            floorState?.setCycles ?: 0, null, null, AutomaticPullUpBar.State.lookingForGrip, phone.state, stability.state,
+            issue, generation, isReplayReview = replay, latestCompletedSet = floorCompleted, activeSetId = floorRecord?.id)
         val state = runtime.snapshot
         return WorkoutRuntime.Snapshot(state.exercise, state.exercise, state.phase, state.movements, null, null,
             AutomaticPullUpBar.State.lookingForGrip, phone.state, stability.state, issue, generation,
@@ -59,7 +85,7 @@ class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, si
     fun process(bitmap: Bitmap, ptsUs: Long, attitude: PhoneAttitude.Sample?, paused: Boolean = false): Result {
         val started = System.nanoTime()
         val body = poses.estimate(bitmap, ptsUs)
-        val raw = body.copy(gripObservation = if (runtime.snapshot.exercise == ExerciseCounter.Exercise.pullUp)
+        val raw = body.copy(gripObservation = if (!isFloor && runtime.snapshot.exercise == ExerciseCounter.Exercise.pullUp)
             grips.observe(bitmap, body) else null)
         val decision = athlete.observe(raw)
         val pose = checkNotNull(athlete.selectedPose)
@@ -68,10 +94,10 @@ class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, si
         val motionFresh = attitude != null && seconds-attitude.seconds in 0.0..0.5
         val placementReady = replay || attitude?.let { WorkoutCameraPlacement.isUsable(WorkoutCameraPlacement.attitudeTiltDegrees(it.quaternion)) } == true
         val associated = decision.status == BodyAthleteAssociation.Status.associated
-        val eligible = placementReady && motionFresh && associated && PullUpArmMeasurement(pose).arms.size == 2 && !paused
+        val eligible = placementReady && motionFresh && associated && (isFloor || PullUpArmMeasurement(pose).arms.size == 2) && !paused
         val contextChanged = referenceSize != null && (referenceSize != pose.imageSize || referenceContext != (pose.backend to pose.requestRevision))
         if (contextChanged) {
-            runtime.interrupt("setupInvalidated"); resetCamera()
+            if (isFloor) finishFloor("setupInvalidated") else runtime.interrupt("setupInvalidated"); resetCamera()
         }
         var moved = false
         if (referenceSize != null) {
@@ -86,12 +112,12 @@ class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, si
             moved = phone.state == PhoneOrientationStability.State.moved || stability.state == StaticSceneStability.State.moved
         }
         val needsReference = referenceSize == null || acquisition.shouldReacquire(pose.timestamp.value, pose.timestamp.timescale,
-            stability.isReady(seconds), !runtime.hasStarted, eligible && phone.state == PhoneOrientationStability.State.stable)
+            stability.isReady(seconds), !hasStarted, eligible && phone.state == PhoneOrientationStability.State.stable)
         // Actual displacement revokes private preparation and requires a new image epoch.
-        if (moved && !runtime.hasStarted) {
+        if (moved && !hasStarted) {
             runtime.resetPreparation(); resetCamera()
         }
-        if ((needsReference || moved) && !runtime.hasStarted && eligible) {
+        if ((needsReference || moved) && !hasStarted && eligible) {
             runtime.resetPreparation(); scene.freeze(bitmap); referenceSize = pose.imageSize; referenceContext = pose.backend to pose.requestRevision
             phone.calibrate(attitude!!.quaternion, attitude.seconds); stability.calibrate(pose.imageSize)
             acquisition.beginReference(pose.timestamp.value, pose.timestamp.timescale)
@@ -101,6 +127,13 @@ class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, si
             phone.state == PhoneOrientationStability.State.stable && stability.isReady(seconds) && acquisition.hasIndependentEvidence && !paused
         val camera = when { moved -> OverheadPullUpMotion.Camera.moved
             lastCameraReady -> OverheadPullUpMotion.Camera.ready; else -> OverheadPullUpMotion.Camera.unavailable }
+        if (isFloor) {
+            floorState = observeFloor(raw, SideViewPushUpMotion.Camera.valueOf(camera.name))
+            issue = when { !placementReady -> "cameraPlacementNeeded"; !lastCameraReady -> "sceneStabilityNeeded"; else -> null }
+            val title = when { !placementReady -> if (floorExercise == ExerciseCounter.Exercise.legRaise) "Level phone · side or three-quarter view" else if (floorExercise in listOf(ExerciseCounter.Exercise.sitUp, ExerciseCounter.Exercise.lyingLegRaise)) "Low, level phone · side view" else "Low, level phone · front or side"; !lastCameraReady -> "Keep the phone still"; else -> checkNotNull(floorState).title }
+            val result = refreshRecords(Result(pose, snapshot, floorState?.progress ?: 0.0, title, 0.0, rawPose = raw, camera = camera))
+            return result.copy(analysisMillis = (System.nanoTime()-started)/1e6)
+        }
         val motion = runtime.observe(athlete, camera, automaticStart = !paused)
         issue = when {
             paused -> "paused"
@@ -120,6 +153,24 @@ class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, si
         phone.reset(); stability.reset(); acquisition.reset(); lastCameraReady = false; grips.reset()
     }
     private fun persistRecords() {
+        if (isFloor) {
+            while (true) {
+                val write = lyingLegRaises?.nextWrite()?.let { it.record to it.finalized }
+                    ?: legRaises?.nextWrite()?.let { it.record to it.finalized }
+                    ?: sitUps?.nextWrite()?.let { it.record to it.finalized }
+                    ?: pushUps?.nextWrite()?.let { it.record to it.finalized } ?: break
+                if (persistWorkouts) recordStore.enqueue(write.first, finalized = write.second)
+                if (write.second) {
+                    floorCompleted = write.first; floorRecord = null
+                    history = (listOf(write.first)+history.filter { it.id != write.first.id }).take(50)
+                } else floorRecord = write.first
+                if (lyingLegRaises != null) lyingLegRaises.acknowledgeWrite() else if (legRaises != null) legRaises.acknowledgeWrite() else if (sitUps != null) sitUps.acknowledgeWrite() else checkNotNull(pushUps).acknowledgeWrite()
+            }
+            if (persistWorkouts && System.nanoTime() >= retryAfterNanos) runCatching { recordStore.flushPending() }
+                .onSuccess { storageError = null; retryAfterNanos = 0L }
+                .onFailure { storageError = "Workout save will retry: ${it.message}"; retryAfterNanos = System.nanoTime()+1_000_000_000L }
+            return
+        }
         if (!persistWorkouts) return
         runtime.currentSet?.let { record ->
             if (!runtime.isFinished && (draftSetId != record.id || draftRevision != runtime.revision)) {
@@ -137,25 +188,31 @@ class AnalysisPipeline(context: Context, selection: WorkoutExerciseSelection, si
     }
     fun refreshRecords(result: Result): Result {
         persistRecords()
+        if (isFloor) return result.copy(snapshot = snapshot, reps = floorRecord?.reps.orEmpty(), history = history,
+            storageError = storageError, currentSet = floorRecord, progress = floorState?.progress ?: 0.0,
+            targetReached = floorState?.targetReached == true, observationUsable = floorState?.observationUsable == true,
+            cue = if (issue == "waitingForFrame") "Waiting for body detection" else result.cue)
         // Keep replay results in memory only, including every completed set.
         if (!persistWorkouts) runtime.latestCompletedSet?.takeIf { it.hasPractice }?.let { record ->
             history = (listOf(record)+history.filter { it.id != record.id }).take(50)
         }
         val record = runtime.currentSet
         return result.copy(snapshot = snapshot, reps = record?.reps.orEmpty(), history = history, storageError = storageError,
-            currentSet = record, motion = runtime.snapshot, progress = runtime.snapshot.targetProgress ?: 0.0)
+            currentSet = record, motion = runtime.snapshot, progress = runtime.snapshot.targetProgress ?: 0.0,
+            targetReached = runtime.snapshot.targetReached, observationUsable = runtime.snapshot.observationUsable)
     }
     fun tick(sourceNow: Double, result: Result): Result {
-        runtime.tick(sourceNow)
+        if (!isFloor) runtime.tick(sourceNow)
         if (latestSourceSeconds?.let { sourceNow-it > ExerciseCounter.maximumGapSeconds } == true) {
             issue = "waitingForFrame"; lastCameraReady = false
+            if (isFloor) { finishFloor("sourceFramesUnavailable"); floorState = null }
         }
         return refreshRecords(result)
     }
-    fun stop(reason: String = "manual") { runtime.finish(reason); persistRecords() }
-    fun nextSet() { runtime.nextSet() }
-    fun interrupt(reason: LiveSetSession.EndReason) { runtime.interrupt(reason.name); persistRecords() }
-    fun startManually() { if (lastCameraReady) runtime.requestManualStart() }
+    fun stop(reason: String = "manual") { if (isFloor) { finishFloor(reason); floorState = null } else runtime.finish(reason); persistRecords() }
+    fun nextSet() { if (isFloor) { stop(); floorCompleted = null } else runtime.nextSet() }
+    fun interrupt(reason: LiveSetSession.EndReason) { if (isFloor) stop(reason.name) else { runtime.interrupt(reason.name); persistRecords() } }
+    fun startManually() { if (lastCameraReady && !isFloor) runtime.requestManualStart() }
     private fun cue(state: MotionWorkoutRuntime.Snapshot): String = when {
         issue == "cameraPlacementNeeded" -> "Phone at chest height · aim level"
         state.phase == LiveSetSession.Phase.finished -> "Set finished"

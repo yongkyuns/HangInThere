@@ -48,7 +48,7 @@ struct LibraryInsights: Decodable, Sendable {
 }
 struct LibraryMedia: Decodable, Identifiable, Sendable { let id: String; let setId: String; let bytes: Int64; let attachedAtEpochMilliseconds: Int64 }
 struct LibraryMediaPolicy: Codable, Sendable { var enabled: Bool; var maximumClips: Int; var maximumBytes: Int64; var maximumAgeDays: Int }
-struct LibraryDashboard: Decodable, Sendable { let page: LibraryPage; let insights: LibraryInsights; let mediaPolicy: LibraryMediaPolicy; let media: [LibraryMedia]; let diagnosticsConsent: Bool; let revision: Int64 }
+struct LibraryDashboard: Decodable, Sendable { let page: LibraryPage; let insights: LibraryInsights; let mediaPolicy: LibraryMediaPolicy; let media: [LibraryMedia]; let diagnosticsConsent: Bool; let revision: Int64; var activity: ActivityReport? = nil }
 struct WorkoutLibraryDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.json] }
     var text: String
@@ -123,7 +123,10 @@ struct WorkoutLibraryView: View {
                     if let dashboard {
                         switch tab {
                         case .progress:
-                            if let overview = dashboard.insights.overview { WorkoutJourneyView(overview: overview, revision: dashboard.revision, calendarPreview: previewMode ? overview.days : nil) }
+                            if let overview = dashboard.insights.overview { WorkoutJourneyView(overview: overview, activity: dashboard.activity,
+                                onSaveActivityGoal: { await command(["action": "activityGoal", "activityGoal": ["exercise": $0.exercise, "target": $0.target, "period": $0.period]]) },
+                                onRemoveActivityGoal: { await command(["action": "deleteActivityGoal", "id": $0.exercise]) },
+                                revision: dashboard.revision, calendarPreview: previewMode ? overview.days : nil) }
                             else { ContentUnavailableView("Record your first workout", systemImage: "chart.bar") }
                         case .history:
                             if let overview = dashboard.insights.overview { WorkoutJourneyView(overview: overview, showsOverview: false, revision: dashboard.revision, calendarPreview: previewMode ? overview.days : nil) }
@@ -238,7 +241,7 @@ struct WorkoutLibraryView: View {
                 Button("Use this context for future live sets") { Task { await command(["action": "defaultContext", "id": key]) } }
                 Text("Saves assistance, load, equipment and camera setup.").font(.caption)
                 Button("Clear future workout context") { Task { await command(["action": "clearDefaultContexts"]) } }
-                Text("Your chosen goal").font(.headline)
+                Text("Comparison target").font(.headline)
                 if let goal = report.goal { Text("\(goal.target.formatted()) \(goal.metric == "holdSeconds" ? "seconds" : "completed cycles") · \(report.goalAchieved ? "Reached" : "In progress")") }
                 if let suggestion = report.suggestedGoal {
                     Text("Recent-session suggestion: \(suggestion.target.formatted()) \(suggestion.metric == "holdSeconds" ? "seconds" : "cycles")").font(.caption)
@@ -247,9 +250,9 @@ struct WorkoutLibraryView: View {
                 if let goal = report.goal, let value = report.goalBest {
                     ProgressView(value: min(1, value / goal.target)) { Text("Observed progress: \(value.formatted()) / \(goal.target.formatted())") }
                 }
-                Picker("Goal metric", selection: $goalMetric) { Text("Hold seconds").tag("holdSeconds"); Text("Completed cycles").tag("completedReps") }
+                Picker("Comparison metric", selection: $goalMetric) { Text("Hold seconds").tag("holdSeconds"); Text("Completed cycles").tag("completedReps") }
                 TextField("Target", text: $goalTarget).textFieldStyle(.roundedBorder)
-                Button("Save chosen goal") { Task {
+                Button("Save comparison target") { Task {
                     guard let parts = try? JSONDecoder().decode([String].self, from: Data(key.utf8)), let name = parts.first, let exercise = ExerciseCounter.Exercise(rawValue: name) else { return }
                     await saveGoal(key: key, exercise: exercise)
                 } }.disabled(Double(goalTarget) == nil || comparison != report.selectedComparisonKey)

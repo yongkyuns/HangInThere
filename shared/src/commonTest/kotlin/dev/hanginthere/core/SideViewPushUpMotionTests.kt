@@ -80,6 +80,28 @@ class SideViewPushUpMotionTests {
         assertEquals(1, completed.values.single().reps.size)
         assertEquals("bodyTrackingLost", completed.values.single().endReason)
     }
+    @Test fun briefHipAngleFailuresPreservePhaseButCannotSupplyAnEndpoint() {
+        fun hipAboveLine(p: PoseResult) = p.copy(people = p.people.map { person ->
+            person.copy(landmarks = person.landmarks.map {
+                if (it.joint == PoseJoint.leftHip) it.copy(position = it.position.copy(y = it.position.y-100)) else it
+            })
+        })
+        top(); lower()
+        val unknown = feed(200) { hipAboveLine(it) }
+        assertEquals(SideViewPushUpMotion.Phase.lowered, unknown.phase)
+        assertEquals(SideViewPushUpMotion.Cue.straightLegs, unknown.cue)
+        assertFalse(unknown.observationUsable); assertNull(unknown.progress)
+        assertEquals(0, unknown.cycles)
+        assertEquals(1, feed().cycles)
+        // Arm depth with invalid body geometry cannot establish a bottom.
+        feed { hipAboveLine(pose(lowered = true)) }
+        assertEquals(1, feed().cycles)
+        lower()
+        feed(1200) { hipAboveLine(it) }
+        assertEquals(1, top().cycles)
+        assertEquals(1, completed.values.single().reps.size)
+        assertEquals("bodyTrackingLost", completed.values.single().endReason)
+    }
     @Test fun eitherLegEndpointCanBeMissingWithoutBlockingAnObservedCycle() {
         for (missing in listOf(setOf(PoseJoint.leftAnkle), setOf(PoseJoint.leftKnee))) {
             val f = SideViewPushUpMotionTests()
@@ -89,6 +111,35 @@ class SideViewPushUpMotionTests {
             f.feed { f.pose(lowered = true, missing = missing) }
             assertEquals(1, f.feed { f.pose(missing = missing) }.cycles)
         }
+    }
+    @Test fun projectedBodyWidthIsNeitherWorkingDistanceNorPostureRelease() {
+        fun compressed(p: PoseResult) = p.copy(people = p.people.map { person ->
+            person.copy(landmarks = person.landmarks.map {
+                it.copy(position = Point2D(160+(it.position.x-160)*.55, it.position.y))
+            })
+        })
+        for (compressStart in listOf(false, true)) {
+            val f = SideViewPushUpMotionTests()
+            val prepared = f.feed(2400) { if (compressStart) compressed(it) else it }
+            assertEquals(SideViewPushUpMotion.Phase.ready, prepared.phase)
+            f.feed { compressed(f.pose(lowered = true)) }
+            assertEquals(1, f.feed { compressed(it) }.cycles)
+            assertNull(f.motion.latestCompletedSet)
+        }
+    }
+    @Test fun armForeshorteningAtTheBottomDoesNotReapplyStartingDistanceGate() {
+        top()
+        val bottom = feed { pose(lowered = true).let { p ->
+            p.copy(people = p.people.map { person -> person.copy(landmarks = person.landmarks.map {
+                when (it.joint) {
+                    PoseJoint.leftShoulder -> it.copy(position = Point2D(160.0, 350.0))
+                    PoseJoint.leftElbow -> it.copy(position = Point2D(200.0, 380.0))
+                    else -> it
+                }
+            }) })
+        } }
+        assertEquals(SideViewPushUpMotion.Phase.lowered, bottom.phase)
+        assertEquals(1, feed().cycles)
     }
     @Test fun bothLegEndpointsMissingCannotAcquireAndObservedKneelingStillReleases() {
         val missing = setOf(PoseJoint.leftKnee, PoseJoint.leftAnkle)

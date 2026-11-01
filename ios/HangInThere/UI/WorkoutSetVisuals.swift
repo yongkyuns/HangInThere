@@ -71,17 +71,17 @@ struct WorkoutTempoCard: View {
                 Text("No rep timings recorded.").foregroundStyle(.secondary)
             } else {
                 HStack(spacing: 16) {
-                    Label(record.exercise == .pullUp ? "Pull" : "Lower", systemImage: "circle.fill").foregroundStyle(.teal)
-                    Label(record.exercise == .pullUp ? "Lower" : "Press", systemImage: "circle.fill").foregroundStyle(.orange)
+                    Label([.legRaise, .lyingLegRaise].contains(record.exercise) ? "Raise" : record.exercise == .sitUp ? "Sit up" : record.exercise == .pullUp ? "Pull" : "Lower", systemImage: "circle.fill").foregroundStyle(.teal)
+                    Label([.legRaise, .lyingLegRaise].contains(record.exercise) ? "Lower" : record.exercise == .sitUp ? "Lie back" : record.exercise == .pullUp ? "Lower" : "Press", systemImage: "circle.fill").foregroundStyle(.orange)
                 }.font(.caption.bold())
                 Chart(tempo.reps) { rep in
                     BarMark(x: .value("Rep", String(rep.ordinal)), y: .value("Seconds", rep.outward))
                         .foregroundStyle(.teal)
-                        .accessibilityLabel("Rep \(rep.ordinal), \(record.exercise == .pullUp ? "pull" : "lower")")
+                        .accessibilityLabel("Rep \(rep.ordinal), \([.legRaise, .lyingLegRaise].contains(record.exercise) ? "Raise" : record.exercise == .sitUp ? "sit up" : record.exercise == .pullUp ? "pull" : "lower")")
                         .accessibilityValue(String(format: "%.1f seconds", rep.outward))
                     BarMark(x: .value("Rep", String(rep.ordinal)), y: .value("Seconds", rep.returning))
                         .foregroundStyle(.orange.opacity(0.75))
-                        .accessibilityLabel("Rep \(rep.ordinal), \(record.exercise == .pullUp ? "lower" : "press")")
+                        .accessibilityLabel("Rep \(rep.ordinal), \([.legRaise, .lyingLegRaise].contains(record.exercise) ? "lower" : record.exercise == .sitUp ? "lie back" : record.exercise == .pullUp ? "lower" : "press")")
                         .accessibilityValue(String(format: "%.1f seconds", rep.returning))
                 }.chartYAxisLabel("Seconds").frame(height: 145)
                 if let change = tempo.change {
@@ -171,9 +171,9 @@ struct WorkoutVideoReview: View {
                 }
                 if let error = data.thumbnailError { Text(error).font(.caption).foregroundStyle(.orange) }
                 if let record = data.record {
-                    WorkoutDemandCard(record: record)
+                    if !record.exercise.isPreviewExercise { WorkoutDemandCard(record: record) }
                     WorkoutTempoCard(record: record)
-                    WorkoutMuscleCard(exercise: record.exercise)
+                    if !record.exercise.isPreviewExercise { WorkoutMuscleCard(exercise: record.exercise) }
                 }
             }.padding()
         }.navigationTitle("Set review")

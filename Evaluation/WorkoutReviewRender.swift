@@ -117,6 +117,113 @@ import WorkoutCore
         """
         NSApplication.shared.setActivationPolicy(.prohibited)
         try FileManager.default.createDirectory(atPath: "build/workout-analysis/render", withIntermediateDirectories: true)
+        if CommandLine.arguments.contains("--home-artwork-only") {
+            let assets = "ios/HangInThere/Assets.xcassets"
+            func artwork(_ name: String, file: String = "illustration.png") -> Image {
+                Image(nsImage: NSImage(contentsOfFile: "\(assets)/\(name).imageset/\(file)")!)
+            }
+            for dark in [false, true] {
+                for width in [320.0, 393.0] {
+                    let home = ScrollView {
+                        HomeScreenView(onLiveWorkout: {}, onStartExercise: { _ in }, onReviewVideo: {}, onHistory: {},
+                            onCoach: {}, onLogWorkout: {}, onStartPushUp: {}, onStartSitUp: {}, onStartLegRaise: {}, onStartLyingLegRaise: {},
+                            pullUpArtwork: artwork("PullUpIllustration"), dipArtwork: artwork("DipIllustration"),
+                            pushUpArtwork: artwork("PushUpIllustration"), sitUpArtwork: artwork("SitUpIllustration"), legRaiseArtwork: artwork("LegRaiseIllustration"), lyingLegRaiseArtwork: artwork("LyingLegRaiseIllustration"),
+                            brandArtwork: artwork("BrandIcon", file: "forest-glow.png"))
+                    }.environment(\.colorScheme, dark ? .dark : .light)
+                    _ = try render(home, width: width, height: 1100, filename: "home-restored-artwork-\(dark ? "dark" : "light")-\(Int(width)).png")
+                }
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--training-tips-only") {
+            guard let catalog = TrainingTips.catalog, let tip = catalog.tips.first(where: { $0.id == "pull-brace" }) else {
+                throw NSError(domain: "TrainingTipsRender", code: 1)
+            }
+            for dark in [false, true] {
+                for width in [320.0, 393.0] {
+                    let scheme: ColorScheme = dark ? .dark : .light
+                    let library = NavigationStack { WorkoutTrainingTipsView() }.hangTheme().environment(\.colorScheme, scheme)
+                    _ = try render(library, width: width, height: 852, filename: "training-tips-\(dark ? "dark" : "light")-\(Int(width)).png")
+                    let detail = NavigationStack { WorkoutTrainingTipDetail(tip: tip) }.hangTheme().environment(\.colorScheme, scheme)
+                    _ = try render(detail, width: width, height: 852, filename: "training-tip-detail-\(dark ? "dark" : "light")-\(Int(width)).png")
+                }
+            }
+            let accessible = NavigationStack { WorkoutTrainingTipDetail(tip: tip) }.hangTheme()
+                .environment(\.dynamicTypeSize, .accessibility3).environment(\.colorScheme, .dark)
+            _ = try render(accessible, width: 393, height: 1100, filename: "training-tip-large-text.png")
+            let card = ScrollView { WorkoutTrainingTipCard(exercise: "dip", moment: "review").padding(20) }.hangTheme()
+            _ = try render(card, width: 320, height: 350, filename: "training-tip-card.png")
+            let rest = ScrollView {
+                VStack(spacing: 14) {
+                    ForEach(["pullUp", "dip", "pushUp", "sitUp"], id: \.self) { exercise in
+                        WorkoutBetweenSetTip(exercise: exercise, completedSets: 1)
+                    }
+                }.padding(20)
+            }.background(Color.black)
+            _ = try render(rest, width: 320, height: 500, filename: "training-tips-between-sets.png")
+            return
+        }
+        if CommandLine.arguments.contains("--activity-summary-only") {
+            let now: Int64 = 1793203200000
+            for variant in ["empty", "progress", "reached"] {
+                var state = try JSONSerialization.jsonObject(with: Data(WorkoutLibraryBridge().emptyJson().utf8)) as! [String: Any]
+                if variant != "empty" {
+                    let multiplier = variant == "reached" ? 3 : 1
+                    let log = LoggedWorkout(id: "weekly-preview", epochMilliseconds: now,
+                        sets: [.init(exercise: "Pull-ups", reps: 8 * multiplier), .init(exercise: "Dips", reps: 12 * multiplier), .init(exercise: "Push-ups", reps: 10)], updatedAtEpochMilliseconds: now)
+                    state["workoutLogs"] = try JSONSerialization.jsonObject(with: JSONEncoder().encode([log]))
+                    state["activityGoals"] = [["exercise": "Pull-ups", "target": 20, "period": "week"], ["exercise": "Dips", "target": 30, "period": "week"]]
+                }
+                let json = String(decoding: try JSONSerialization.data(withJSONObject: state), as: UTF8.self)
+                let report = try JSONDecoder().decode(ActivityReport.self, from: Data(WorkoutActivityBridge().reportJson(stateJson: json, now: now, timeZoneId: "America/Toronto", firstWeekday: 2).utf8))
+                for dark in [false,true] {
+                    for width in [320.0,393.0] {
+                        let view = ScrollView { WorkoutActivityPanel(report: report).padding(16) }
+                            .background(HangPalette(dark ? .dark : .light).background).environment(\.colorScheme,dark ? .dark : .light)
+                        let filename = "activity-\(variant)-\(dark ? "dark" : "light")-\(Int(width)).png"
+                        let text = try render(view,width:width,height:1100,filename:filename).joined()
+                        verify(text.contains("thisweek") && text.contains("yourrepgoals"),"Activity summary clipped",filename:filename)
+                        if variant == "reached" { verify(text.contains("goalreached"),"Reached goal feedback missing",filename:filename) }
+                    }
+                }
+            }
+            return
+        }
+        if CommandLine.arguments.contains("--workout-camera-only") {
+            for exercise in [ExerciseCounter.Exercise.pullUp, .dip, .pushUp, .sitUp] {
+                let name = exercise == .pullUp ? "Pull-ups" : exercise == .dip ? "Dips" : exercise == .pushUp ? "Push-ups" : "Sit-ups"
+                for (width,height) in [(320.0,640.0),(844.0,390.0)] {
+                    let view = WorkoutCameraChrome(title: name, count: 3, tracking: "TRACKING",
+                        recording: true, poseVisibility: .constant(true), onClose: {}, onReview: {}, onOptions: {}) {
+                        RepProgressView(title: "Rep progress", cue: "Move", fraction: 0.65,
+                            isStarting: false, isCounted: false, isPaused: false, isFinished: false,
+                            trackedArmCount: 2, outwardCue: exercise == .pullUp ? "Pull up" : exercise == .sitUp ? "Sit up" : "Lower",
+                            identifier: "previewProgress")
+                    } footer: {
+                        VStack(spacing: 12) {
+                            HStack { Spacer(); WorkoutCameraIcon(symbol: "arrow.triangle.2.circlepath.camera", label: "Switch camera", action: {}) }
+                            WorkoutCameraStatus(title: "Keep moving", ready: true)
+                            WorkoutCameraAction(title: "Finish set", symbol: "stop.fill", action: {})
+                        }
+                    }.background(Color.gray.opacity(0.3))
+                    let filename = "workout-camera-\(exercise.rawValue)-\(Int(width)).png"
+                    let text = try render(view, width: width, height: height, filename: filename).joined()
+                    verify(text.contains("3reps") && text.contains("finishset"), "Camera controls clipped", filename: filename)
+                }
+                for dark in [false,true] {
+                    let guide = NavigationStack { WorkoutCameraGuideView(exercise: exercise, onContinue: {}, onCancel: {}) }
+                        .environment(\.colorScheme, dark ? .dark : .light)
+                    _ = try render(guide, width: 393, height: 852, filename: "workout-guide-\(exercise.rawValue)-\(dark ? "dark" : "light").png")
+                }
+            }
+            for dark in [false,true] {
+                let home = ScrollView { HomeScreenView(onLiveWorkout: {}, onStartExercise: { _ in }, onReviewVideo: {}, onHistory: {}, onStartPushUp: {}, onStartSitUp: {}) }
+                    .environment(\.colorScheme, dark ? .dark : .light)
+                _ = try render(home, width: 393, height: 852, filename: "workout-home-\(dark ? "dark" : "light").png")
+            }
+            return
+        }
         if let flag = CommandLine.arguments.firstIndex(of: "--pose-bands"), CommandLine.arguments.count > flag+1 {
             struct Preview: Decodable { let id: String; let title: String; let imagePath: String; let pose: PoseResult; let effort: Double? }
             let previews = try JSONDecoder().decode([Preview].self,
@@ -126,7 +233,7 @@ import WorkoutCore
                 let view = ZStack(alignment: .topLeading) {
                     Color.black
                     Image(nsImage: image).resizable().scaledToFit()
-                    PoseOverlay(result: preview.pose, usesBothArms: true, effort: preview.effort)
+                    PoseOverlay(result: preview.pose, usesBothArms: true, effort: preview.effort, animatesEffort: false)
                     Text(preview.title + " · Overlay preview").font(.headline).foregroundStyle(.white)
                         .padding(12).background(.black.opacity(0.6), in: Capsule()).padding(16)
                 }.frame(width: preview.pose.imageSize.width > preview.pose.imageSize.height ? 760 : 393,

@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "scope": "Published clip-count agreement, not valid-rep recall, form grading, or live-device qualification",
+  "conditions": "Side or modest oblique view; ordinary bent-knee floor sit-ups; shoulder, hip and knee visible; small foot/head crops allowed; no exercise-time viewpoint cuts, bench/GHD/leg-tuck/V-up variants or severe occlusions. No held-start verification during image screening.",
+  "pose_backend": "Production SideViewVisionPoseEstimator / Apple Vision on macOS; final common Kotlin rules replay the same pinned observations",
+  "annotation_phase_adjudicated": false,
+  "count_policy": 1,
+  "boundary_policy": 10,
+  "screened_sources": 32,
+  "included_sources": 5,
+  "published_reps": 30,
+  "counted_returns": 19,
+  "native_frames": 3940,
+  "cases": [
+    {
+      "id": "stu1-53",
+      "role": "development",
+      "published_reps": 9,
+      "initial_prototype_returns": 1,
+      "counted_returns": 9,
+      "first_ready_seconds": 7.8,
+      "native_frames": 450,
+      "trace_sha256": "06e51d1e611d0e21cf19d8a76133c88f7bc545fbcdc0e01e67a611a8120c7343",
+      "native_jvm_durable_agree": true,
+      "cues": {
+        "Show one athlete \u00b7 side view": 40,
+        "Lie back \u00b7 bend your knees": 117,
+        "Hold for a moment": 9,
+        "Ready \u00b7 sit up": 132,
+        "Lower all the way back": 145,
+        "Show shoulder, hip and knee": 7
+      }
+    },
+    {
+      "id": "stu10-58",
+      "role": "test",
+      "published_reps": 5,
+      "initial_prototype_returns": 1,
+      "counted_returns": 4,
+      "first_ready_seconds": 3.7120416666666665,
+      "native_frames": 528,
+      "trace_sha256": "77685229f5cea7b333b3e40b15ba97e775d49310eb785b749be38c601917a964",
+      "native_jvm_durable_agree": true,
+      "cues": {
+        "Show one athlete \u00b7 side view": 15,
+        "Lie back \u00b7 bend your knees": 30,
+        "Hold for a moment": 44,
+        "Ready \u00b7 sit up": 262,
+        "Lower all the way back": 173,
+        "Lie back \u00b7 reset your position": 4
+      }
+    },
+    {
+      "id": "stu2-66",
+      "role": "development",
+      "published_reps": 6,
+      "initial_prototype_returns": 3,
+      "counted_returns": 3,
+      "first_ready_seconds": 9.142466666666667,
+      "native_frames": 690,
+      "trace_sha256": "5e4ecf7759a45027463103ddee53fda3f2eb820d7fc3236f66efc8082bd0a2e5",
+      "native_jvm_durable_agree": true,
+      "cues": {
+        "Show one athlete \u00b7 side view": 35,
+        "Lie back \u00b7 bend your knees": 189,
+        "Show shoulder, hip and knee": 1,
+        "Hold for a moment": 54,
+        "Ready \u00b7 sit up": 131,
+        "Lower all the way back": 280
+      }
+    },
+    {
+      "id": "stu5-52",
+      "role": "test",
+      "published_reps": 4,
+      "initial_prototype_returns": 3,
+      "counted_returns": 3,
+      "first_ready_seconds": 18.018,
+      "native_frames": 1199,
+      "trace_sha256": "7c653137ba466a8500326af493157d1e25ac9530d03f0663dae1b768a788eae5",
+      "native_jvm_durable_agree": true,
+      "cues": {
+        "Show one athlete \u00b7 side view": 299,
+        "Show shoulder, hip and knee": 178,
+        "Hold for a moment": 87,
+        "Lie back \u00b7 bend your knees": 86,
+        "Ready \u00b7 sit up": 331,
+        "Lower all the way back": 144,
+        "Lie back \u00b7 reset your position": 6,
+        "Place the phone beside you": 68
+      }
+    },
+    {
+      "id": "stu4-51",
+      "role": "test",
+      "published_reps": 6,
+      "initial_prototype_returns": 0,
+      "counted_returns": 0,
+      "first_ready_seconds": 4.665271491390017,
+      "native_frames": 1073,
+      "trace_sha256": "6288b3da12a36fd705415229ef822ea8a8198a3eb8f4cf4b6f9f8d7b67480d94",
+      "native_jvm_durable_agree": true,
+      "cues": {
+        "Show one athlete \u00b7 side view": 19,
+        "Hold for a moment": 182,
+        "Lie back \u00b7 bend your knees": 227,
+        "Ready \u00b7 sit up": 581,
+        "Lie back \u00b7 reset your position": 64
+      }
+    }
+  ]
+}

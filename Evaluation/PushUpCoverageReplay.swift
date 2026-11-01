@@ -11,6 +11,8 @@ import WorkoutCore
         let id: String
         let path: String
         let sha256: String
+        /// Floor exercise; absent preserves existing push-up manifests.
+        let exercise: String?
         /// Fractional top-left crop; nil preserves the complete decoded image.
         let crop: [Double]?
     }
@@ -59,7 +61,7 @@ import WorkoutCore
             }
             defer { try? trace?.close() }
             let reader = VideoReplayReader(estimator: Estimator(crop: spec.crop))
-            let counter = SideViewPushUpWorkoutBridge(sessionId: spec.id, trackedAtEpochMilliseconds: 0)
+            let counter = FloorWorkoutBridge(exercise: spec.exercise ?? "pushUp", sessionId: ["legRaise", "lyingLegRaise"].contains(spec.exercise ?? "") ? spec.id.replacingOccurrences(of: "_", with: "-") : spec.id, trackedAtEpochMilliseconds: 0)
             var events: [[String: Any]] = [], cues: [String: Int] = [:], views: [String: Int] = [:], frames = 0
             var records: [String: [String: Any]] = [:], firstReady: Double?, firstSet: Double?
             var usableFrames = 0, processing: [Double] = [], failure: String?
@@ -79,7 +81,7 @@ import WorkoutCore
                     let state = try counter.observeJson(poseJson: json, camera: "ready")
                     let row = try JSONSerialization.jsonObject(with: Data(state.utf8)) as! [String: Any]
                     if let rep = row["rep"] as? [String: Any] { events.append(rep) }
-                    cues[row["cue"] as? String ?? "unknown", default: 0] += 1
+                    cues[row["cue"] as? String ?? row["title"] as? String ?? "unknown", default: 0] += 1
                     if let view = row["view"] as? String { views[view, default: 0] += 1 }
                     if row["observationUsable"] as? Bool == true { usableFrames += 1 }
                     if firstReady == nil && row["phase"] as? String == "ready" { firstReady = frame.pose.timestamp.seconds }
@@ -101,8 +103,14 @@ import WorkoutCore
                             "firstReadyAt": firstReady as Any? ?? NSNull(), "firstSetAt": firstSet as Any? ?? NSNull(),
                             "usableFrames": usableFrames,
                             "poseProcessingP95Milliseconds": processing.isEmpty ? NSNull() : processing[min(processing.count-1, Int(Double(processing.count)*0.95))] as Any,
-                            "countPolicies": ["side": Int(SideViewPushUpMotion.companion.policyVersion),
-                                              "front": Int(SideViewPushUpMotion.companion.frontPolicyVersion)],
+                            "countPolicies": spec.exercise == "lyingLegRaise"
+                                ? ["lying": Int(LyingLegRaiseMotion.companion.policyVersion)]
+                                : spec.exercise == "legRaise"
+                                ? ["hanging": Int(HangingLegRaiseMotion.companion.policyVersion)]
+                                : spec.exercise == "sitUp"
+                                ? ["side": Int(SideViewSitUpMotion.companion.policyVersion)]
+                                : ["side": Int(SideViewPushUpMotion.companion.policyVersion),
+                                   "front": Int(SideViewPushUpMotion.companion.frontPolicyVersion)],
                             "sourceSHA256": spec.sha256])
             // Checkpoint every completed/failed source; one decoder failure must
             // not erase earlier results or disappear from the denominator.

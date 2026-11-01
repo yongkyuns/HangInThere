@@ -31,7 +31,7 @@ import java.util.Date
 import java.util.TimeZone
 import java.util.UUID
 
-internal data class LibraryDashboard(val state: WorkoutLibraryState, val page: WorkoutHistoryPage, val insights: WorkoutLibraryInsights)
+internal data class LibraryDashboard(val state: WorkoutLibraryState, val page: WorkoutHistoryPage, val insights: WorkoutLibraryInsights, val activity: WorkoutActivityReport? = null)
 internal typealias LibraryDashboardLoader = suspend (WorkoutRecordStore, WorkoutHistoryCursor?, String?) -> LibraryDashboard
 
 internal suspend fun loadLibraryDashboard(store: WorkoutRecordStore, cursor: WorkoutHistoryCursor?, key: String?): LibraryDashboard =
@@ -41,7 +41,7 @@ internal suspend fun loadLibraryDashboard(store: WorkoutRecordStore, cursor: Wor
         LibraryLoadDiagnostics.io("io.store.return", store)
         val now = System.currentTimeMillis()
         LibraryDashboard(state, WorkoutLibrary.page(state, cursor), WorkoutInsights.report(state, key,
-            now, TimeZone.getDefault().getOffset(now) / 60000)).also {
+            now, TimeZone.getDefault().getOffset(now) / 60000), WorkoutActivityProgress.report(state,now,java.time.ZoneId.systemDefault().id,java.util.Calendar.getInstance().firstDayOfWeek)).also {
             LibraryLoadDiagnostics.io("io.return", store)
         }
     }
@@ -206,7 +206,9 @@ private sealed interface LibraryLoadStatus {
                     dashboard?.insights?.overview?.let { overview ->
                         WorkoutJourneyPanel(overview, loadPage = ::journeyPage, modifier = Modifier.weight(1f), onOpenSet = ::openJourneySet,
                             revision = dashboard!!.state.revision, loadCalendar = ::calendarDays, loadRange = ::journeyRange,
-                            onEditWorkout = { editingLog = it.workoutLog })
+                            onEditWorkout = { editingLog = it.workoutLog }, activityReport = dashboard?.activity,
+                            onSaveActivityGoal = { goal -> try { withContext(Dispatchers.IO) { store.libraryCommand(WorkoutLibraryCommand("activityGoal",activityGoal=goal,atEpochMilliseconds=System.currentTimeMillis())) }; load(); true } catch(failure:Exception) { if(failure is kotlinx.coroutines.CancellationException) throw failure; error="Couldn’t save goal";false } },
+                            onRemoveActivityGoal = { goal -> try { withContext(Dispatchers.IO) { store.libraryCommand(WorkoutLibraryCommand("deleteActivityGoal",id=goal.exercise,atEpochMilliseconds=System.currentTimeMillis())) }; load(); true } catch(failure:Exception) { if(failure is kotlinx.coroutines.CancellationException) throw failure; error="Couldn’t remove goal";false } })
                     }
                 } else Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     val current = dashboard
@@ -241,7 +243,7 @@ private sealed interface LibraryLoadStatus {
                                 TextButton(onClick = { apply(WorkoutLibraryCommand("clearDefaultContexts", atEpochMilliseconds = System.currentTimeMillis())) }) { Text("Clear future workout context") }
                                 var target by remember(comparison) { mutableStateOf(report.goal?.target?.toString().orEmpty()) }
                                 var metric by remember(comparison) { mutableStateOf(report.goal?.metric ?: WorkoutGoalMetric.holdSeconds) }
-                                Text("Your chosen goal", style = MaterialTheme.typography.titleMedium)
+                                Text("Comparison target", style = MaterialTheme.typography.titleMedium)
                                 report.goal?.let { Text("${it.target} ${it.metric.name} · ${if (report.goalAchieved) "Reached" else "In progress"}") }
                                 report.suggestedGoal?.let { suggestion ->
                                     Text("Recent-session suggestion: ${suggestion.target} ${if (suggestion.metric == WorkoutGoalMetric.holdSeconds) "seconds" else "cycles"}")
@@ -257,7 +259,7 @@ private sealed interface LibraryLoadStatus {
                                 Button(onClick = {
                                     val exercise = current.page.sets.firstOrNull { it.comparisonKey == comparison }?.exercise ?: report.goal?.exercise ?: ExerciseCounter.Exercise.valueOf(WorkoutRecordCodec.json.decodeFromString<List<String>>(comparison).first())
                                     target.toDoubleOrNull()?.let { apply(WorkoutLibraryCommand("goal", goal = WorkoutLibraryGoal(comparison, WorkoutGoal(exercise, metric, it, System.currentTimeMillis())), atEpochMilliseconds = System.currentTimeMillis())) }
-                                }, enabled = target.toDoubleOrNull() != null) { Text("Save chosen goal") }
+                                }, enabled = target.toDoubleOrNull() != null) { Text("Save comparison target") }
                             }
                             Text("${report.consistencyDaysLast28} practice days in the last 28 days", style = MaterialTheme.typography.titleMedium)
                             Text("Holds and attempts count as practice; repeated sets on one day earn one practice day.")

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Matches the ExerciseRow SVG in the iOS asset catalog. -->
+<!-- Generated from ExerciseRow.imageset/icon.svg; run scripts/generate-exercise-icons.py. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="64dp" android:height="64dp" android:viewportWidth="64" android:viewportHeight="64">
-    <path android:fillColor="#FF000000" android:pathData="M14.5,18 a4.5,4.5 0,1 0,9.0,0 a4.5,4.5 0,1 0,-9.0,0"/>
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M24 25 L40 35 L37 46 L44 56 H53 M40 35 L30 47 L24 56 H16 M26 27 L20 39 L32 42 M27 43 H45 M29 38 V48 M43 38 V48"/>
+    <path android:fillColor="@android:color/transparent" android:pathData="M8 45 H25 M10 40 V50 M23 40 V50" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeAlpha="0.75"/>
+    <path android:fillColor="#FF000000" android:pathData="M14,12 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0"/>
+    <path android:fillColor="#FF000000" android:pathData="M26 21 L42 31 L38 39 L22 28 Z"/>
+    <path android:fillColor="@android:color/transparent" android:pathData="M28 26 L25 35 L17 40 M40 36 L36 47 L45 55 H53 M39 37 L30 46 L27 55 H22" android:strokeColor="#FF000000" android:strokeWidth="6.5" android:strokeLineCap="round" android:strokeLineJoin="round"/>
 </vector>

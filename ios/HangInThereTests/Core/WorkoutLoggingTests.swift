@@ -47,4 +47,25 @@ struct WorkoutLoggingTests {
         try await restored.libraryRestore(backup)
         #expect(try await restored.workoutLogs().isEmpty)
     }
+    @Test func activityGoalAndSummarySurviveNativeStorageAndManualEdits() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = WorkoutRecordStore(directory: root)
+        let now = Int64(Date().timeIntervalSince1970 * 1000)
+        var log = LoggedWorkout(epochMilliseconds: now, sets: [.init(exercise: "Push-ups", reps: 5)])
+        try await store.saveWorkoutLog(log)
+        let command: [String: Any] = ["action": "activityGoal", "activityGoal": ["exercise": "Push-ups", "target": 10, "period": "week"], "atEpochMilliseconds": now]
+        _ = try await store.libraryCommand(String(decoding: JSONSerialization.data(withJSONObject: command), as: UTF8.self))
+        struct Goal: Decodable { let remaining: Int; let achieved: Bool }
+        struct Activity: Decodable { let goals: [Goal] }
+        struct Dashboard: Decodable { let activity: Activity }
+        func report() async throws -> Activity {
+            let json = try await store.libraryDashboard(key: nil, cursor: nil, now: now + 1000, offset: 0)
+            return try JSONDecoder().decode(Dashboard.self, from: Data(json.utf8)).activity
+        }
+        #expect(try await report().goals.first?.remaining == 5)
+        log.sets[0].reps = 10; log.updatedAtEpochMilliseconds += 1
+        try await store.saveWorkoutLog(log)
+        #expect(try await report().goals.first?.achieved == true)
+    }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from ExerciseSitUp.imageset/icon.svg; run scripts/generate-exercise-icons.py. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="64dp" android:height="64dp" android:viewportWidth="64" android:viewportHeight="64">
+    <path android:fillColor="@android:color/transparent" android:pathData="M7 54 H58" android:strokeColor="#FF000000" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeAlpha="0.75"/>
+    <path android:fillColor="#FF000000" android:pathData="M14,14 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0"/>
+    <path android:fillColor="#FF000000" android:pathData="M21 23 Q25 20 28 25 L38 41 Q35 48 29 47 Z"/>
+    <path android:fillColor="@android:color/transparent" android:pathData="M25 28 L32 32 L39 26 M34 44 L44 31 L54 49 H58" android:strokeColor="#FF000000" android:strokeWidth="6.5" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+</vector>

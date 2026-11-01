@@ -72,13 +72,15 @@ internal object WorkoutComparisonKey {
 object WorkoutExerciseProfiles {
     val all: List<WorkoutExerciseProfile> = ExerciseCounter.Exercise.entries.map {
         WorkoutExerciseProfile(it, it.title,
-            if (it == ExerciseCounter.Exercise.pullUp) WorkoutMotionPhase.hang else WorkoutMotionPhase.support,
-            if (it == ExerciseCounter.Exercise.pullUp) "Hang" else "Top support",
-            if (it == ExerciseCounter.Exercise.pushUp) listOf(WorkoutGoalMetric.completedReps) else WorkoutGoalMetric.entries,
-            if (it == ExerciseCounter.Exercise.pushUp) SideViewPushUpMotion.policyVersion else ExerciseCounter.policyVersion, WorkoutPhaseAnalysis.metricVersion,
+            if (it in listOf(ExerciseCounter.Exercise.pullUp, ExerciseCounter.Exercise.legRaise)) WorkoutMotionPhase.hang else WorkoutMotionPhase.support,
+            if (it in listOf(ExerciseCounter.Exercise.pullUp, ExerciseCounter.Exercise.legRaise)) "Hang" else "Top support",
+            if (it in listOf(ExerciseCounter.Exercise.pushUp, ExerciseCounter.Exercise.sitUp, ExerciseCounter.Exercise.legRaise, ExerciseCounter.Exercise.lyingLegRaise)) listOf(WorkoutGoalMetric.completedReps) else WorkoutGoalMetric.entries,
+            if (it == ExerciseCounter.Exercise.lyingLegRaise) LyingLegRaiseMotion.policyVersion else if (it == ExerciseCounter.Exercise.legRaise) HangingLegRaiseMotion.policyVersion else if (it == ExerciseCounter.Exercise.sitUp) SideViewSitUpMotion.policyVersion else if (it == ExerciseCounter.Exercise.pushUp) SideViewPushUpMotion.policyVersion else ExerciseCounter.policyVersion, WorkoutPhaseAnalysis.metricVersion,
             when (it) {
                 ExerciseCounter.Exercise.pullUp -> listOf("chin clearance", "anatomical form")
                 ExerciseCounter.Exercise.dip -> listOf("dip depth", "lockout", "anatomical form")
+                ExerciseCounter.Exercise.lyingLegRaise, ExerciseCounter.Exercise.legRaise -> listOf("anatomical form", "load", "fatigue")
+                ExerciseCounter.Exercise.sitUp -> listOf("anatomical form", "load", "fatigue")
                 ExerciseCounter.Exercise.pushUp -> listOf("anatomical depth", "form", "load", "fatigue")
             })
     }

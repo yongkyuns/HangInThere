@@ -1,4 +1,6 @@
 import Foundation
+
+extension Notification.Name { static let workoutActivityChanged = Notification.Name("dev.hanginthere.workout-activity-changed") }
 import Observation
 import WorkoutCore
 
@@ -411,12 +413,14 @@ actor WorkoutRecordStore {
     static let shared = WorkoutRecordStore()
     private let directory: URL
     private let gripDirectory: URL
+    private let sendsActivityUpdates: Bool
     private let writes = WorkoutWriteQueue()
     private var activeJournalIds: Set<String> = []
     private var libraryCache: String?
     private var libraryDeletedIds: Set<String> = []
     private var restoringLibrary = false
     init(directory: URL? = nil) {
+        sendsActivityUpdates = directory == nil
         gripDirectory = directory?.appendingPathComponent("GripCorrections", isDirectory: true) ?? WorkoutGripCorrectionStore.archiveDirectory
         self.directory = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("Workouts", isDirectory: true)
@@ -625,6 +629,7 @@ actor WorkoutRecordStore {
         let object = try JSONSerialization.jsonObject(with: Data(state.utf8)) as? [String: Any]
         libraryDeletedIds = Set((object?["deletions"] as? [[String: Any]] ?? []).compactMap { $0["setId"] as? String })
         try Data(state.utf8).write(to: libraryURL, options: .atomic)
+        if sendsActivityUpdates { NotificationCenter.default.post(name: .workoutActivityChanged, object: nil) }
     }
     private func libraryDeleted(_ id: String) throws -> Bool {
         if libraryCache == nil { _ = try libraryState() }
@@ -685,7 +690,7 @@ actor WorkoutRecordStore {
         return try decodeAfterSet(state: state, id: id)
     }
     private func decodeAfterSet(state: String, id: String) throws -> WorkoutAfterSetReport {
-        let json = try WorkoutFeedbackBridge().librarySummaryJson(stateJson: state, setId: id)
+        let json = try WorkoutFeedbackBridge().activitySummaryJson(stateJson: state, setId: id, now: Int64(Date().timeIntervalSince1970 * 1000), timeZoneId: TimeZone.current.identifier, firstWeekday: Int32(Calendar.current.firstWeekday))
         return try JSONDecoder().decode(WorkoutAfterSetReport.self, from: Data(json.utf8))
     }
     func libraryJourneySet(id: String) throws -> String {
@@ -715,12 +720,16 @@ actor WorkoutRecordStore {
         try pruneLibraryMedia(state)
         return state
     }
+    func libraryActivityReport(now: Int64, timeZoneId: String, firstWeekday: Int32) throws -> String {
+        try WorkoutActivityBridge().reportJson(stateJson: libraryState(), now: now, timeZoneId: timeZoneId, firstWeekday: firstWeekday)
+    }
     func libraryDashboard(key: String?, cursor: String?, now: Int64, offset: Int32) throws -> String {
         let state = try maintainLibraryMedia(now: now)
         let bridge = WorkoutLibraryBridge()
         let object = try JSONSerialization.jsonObject(with: Data(state.utf8)) as? [String: Any] ?? [:]
         let dashboard: [String: Any] = [
             "page": try JSONSerialization.jsonObject(with: Data(bridge.pageJson(stateJson: state, cursorJson: cursor, limit: 25).utf8)),
+            "activity": try JSONSerialization.jsonObject(with: Data(WorkoutActivityBridge().reportJson(stateJson: state, now: now, timeZoneId: TimeZone.current.identifier, firstWeekday: Int32(Calendar.current.firstWeekday)).utf8)),
             "insights": try JSONSerialization.jsonObject(with: Data(bridge.insightsJson(stateJson: state, comparisonKey: key, nowEpochMilliseconds: now, utcOffsetMinutes: offset).utf8)),
             "mediaPolicy": object["mediaPolicy"] ?? [:], "media": object["media"] ?? [],
             "diagnosticsConsent": object["diagnosticsConsent"] ?? false, "revision": object["revision"] ?? 0]

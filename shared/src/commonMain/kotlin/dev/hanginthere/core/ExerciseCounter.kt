@@ -11,8 +11,8 @@ import kotlin.math.*
  */
 class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMeasurement.Side = ArmMeasurement.Side.left) {
     @Serializable enum class Exercise {
-        pullUp, dip, pushUp;
-        val title: String get() = when (this) { pullUp -> "Pull-up"; dip -> "Parallel-bar dip"; pushUp -> "Push-up" }
+        pullUp, dip, pushUp, sitUp, legRaise, lyingLegRaise;
+        val title: String get() = when (this) { pullUp -> "Pull-up"; dip -> "Parallel-bar dip"; pushUp -> "Push-up"; sitUp -> "Sit-up"; legRaise -> "Hanging leg raise"; lyingLegRaise -> "Lying leg raise" }
     }
     @Serializable enum class Phase {
         seekingStart, ready, outbound, returning, finished;
@@ -226,7 +226,7 @@ class ExerciseCounter(val exercise: Exercise = Exercise.pullUp, val side: ArmMea
     }
 
     fun consume(pose: PoseResult, referenceEdge: BarSegment? = null): Event? {
-        if (exercise == Exercise.pushUp) { interrupt("unsupportedExercise"); return null }
+        if (exercise in listOf(Exercise.pushUp, Exercise.sitUp, Exercise.legRaise, Exercise.lyingLegRaise)) { interrupt("unsupportedExercise"); return null }
         if (phase == Phase.finished) return null
         val time = pose.timestamp
         if (!time.seconds.isFinite()) return interrupt("invalidTimestamp")

@@ -37,7 +37,7 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
         val setupHint: String = SideViewPushUpMotion.setupHint, val view: View? = null)
 
     companion object {
-        const val policyVersion = 2
+        const val policyVersion = 4
         const val frontPolicyVersion = 1
         const val frontCountMethod = "frontViewPushUp"
         const val setupHint = "Side view · Steady phone · Arm, hip and knee or ankle visible"
@@ -52,9 +52,12 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
     }
     private data class Measurement(val side: ArmMeasurement.Side, val degrees: Double?,
         val shoulder: Point2D?, val wrist: Point2D?, val armLength: Double?,
-        val bodyDegrees: Double?, val bodyAxis: Double?, val kneeDegrees: Double?, val bodySpan: Double?) {
-        fun plank(width: Double) = bodyDegrees != null && bodyDegrees >= 150 &&
-            bodyAxis != null && bodyAxis <= 30 && bodySpan != null && bodySpan >= .4*width
+        val bodyDegrees: Double?, val bodyAxis: Double?, val kneeDegrees: Double?) {
+        fun plank() = bodyDegrees != null && bodyDegrees >= 150 && bodyAxis != null && bodyAxis <= 30
+        // Horizontal body span shrinks with yaw and when an ankle disappears.
+        // Use the measured counting arm's resolution for working distance instead.
+        fun closeEnough(height: Double) = armLength != null && armLength >= .25*height
+        fun startingPlank(height: Double) = plank() && closeEnough(height)
     }
     private data class Calibration(val since: PresentationTime, val samples: MutableList<Measurement>)
     private data class Anchor(val degrees: Double, val shoulderY: Double, val wrist: Point2D, val armLength: Double,
@@ -143,6 +146,7 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
         }
         val selected = checkNotNull(source.selectedPose)
         val width = selected.imageSize.width
+        val height = selected.imageSize.height
         val observed = ArmMeasurement.Side.entries.associateWith { measure(selected, it) }
         val front = if (allowFrontView) measureFront(selected, observed) else null
         // Expire old evidence BEFORE accepting a newly returned measurement.
@@ -153,9 +157,12 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
         val m = if (view == View.front) front else side?.let { observed.getValue(it) }
         if (m != null) {
             if (m.degrees != null) lastArm = time
-            if (if (view == View.front) frontSupported(selected, m) else m.plank(width)) lastBody = time
+            if (if (view == View.front) frontSupported(selected, m) else m.plank()) lastBody = time
+            // A short projected hip bend is unusable posture evidence, not proof
+            // of leaving the set. Preserve phase through the existing bounded
+            // body gap; an observed kneel or excessive body tilt establishes release.
             val released = view != View.front && (m.kneeDegrees?.let { it < 140 } == true ||
-                (m.bodyDegrees != null && !m.plank(width)))
+                m.bodyAxis?.let { it > 30 } == true)
             if (released) {
                 // Positive current posture earns release dwell, never missing joints.
                 endpointSince = null; candidates.clear(); departure = null; deepest = null
@@ -188,7 +195,7 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
             } else frontCalibration = null
             for (s in ArmMeasurement.Side.entries) {
                 val value = observed.getValue(s)
-                if (value.degrees == null || value.degrees < 150 || !value.plank(width) ||
+                if (value.degrees == null || value.degrees < 150 || !value.startingPlank(height) ||
                     value.kneeDegrees?.let { it < 150 } == true) {
                     candidates.remove(s); continue
                 }
@@ -218,16 +225,17 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
             return result(when {
                 visible.bodyDegrees == null -> Cue.wholeBody
                 visible.bodyAxis!! > 30 -> Cue.sidePlank
-                visible.bodySpan!! < .4*width -> Cue.closer
+                !visible.closeEnough(height) -> Cue.closer
                 else -> Cue.straightLegs
             })
         }
         val value = (if (view == View.front) front else observed.getValue(checkNotNull(side)))
             ?: run { endpointSince = null; return result(Cue.bothArms) }
         val fixed = checkNotNull(anchor)
-        if (value.degrees == null || !(if (view == View.front) frontSupported(selected, value) else value.plank(width))) {
+        if (value.degrees == null || !(if (view == View.front) frontSupported(selected, value) else value.plank())) {
             endpointSince = null
-            return result(if (view == View.front) Cue.frontPlank else if (value.degrees == null) Cue.armHidden else Cue.wholeBody)
+            return result(if (view == View.front) Cue.frontPlank else if (value.degrees == null) Cue.armHidden
+                else if (value.bodyDegrees != null) Cue.straightLegs else Cue.wholeBody)
         }
         val drift = hypot(value.wrist!!.x-fixed.wrist.x, value.wrist.y-fixed.wrist.y)/fixed.armLength
         val otherDrift = fixed.otherWrist?.let { prior ->
@@ -285,7 +293,7 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
         // angle on return is checked independently at the return endpoint.
         return Measurement(ArmMeasurement.Side.left, max(l.degrees, r.degrees),
             Point2D((l.shoulder.x+r.shoulder.x)/2, (l.shoulder.y+r.shoulder.y)/2),
-            l.wrist, scale, null, null, null, null)
+            l.wrist, scale, null, null, null)
     }
     private fun frontSupported(pose: PoseResult, m: Measurement): Boolean {
         val p = pose.people.single()
@@ -330,7 +338,7 @@ class SideViewPushUpMotion(private val allowFrontView: Boolean = false) {
         return Measurement(side, arm?.elbowDegrees, shoulder, wrist,
             arm?.let { it.upperArmPixels+it.forearmPixels }, body,
             body?.let { atan2(abs(bodyEnd!!.y-shoulder!!.y), abs(bodyEnd.x-shoulder.x))*180/PI },
-            angle(hip, knee, ankle), body?.let { abs(bodyEnd!!.x-shoulder!!.x) })
+            angle(hip, knee, ankle))
     }
 }
 

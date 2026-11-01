@@ -18,7 +18,7 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source,
     constructor(source: ForegroundAssociation.Source): this(source, Profile.upright)
     /** Side-view capture uses one shoulder–hip segment as a spatial anchor.
      * It does not use exercise posture or borrow the opposite side on loss. */
-    enum class Profile { upright, sideView, pushUp }
+    enum class Profile { upright, sideView, pushUp, projectedTorso }
     @Serializable enum class Status { acquiring, associated, ambiguous, lost }
     @Serializable data class Decision(val status: Status, val reason: String,
         val candidateIndex: Int? = null, val seconds: Double? = null,
@@ -94,7 +94,7 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source,
             selected = ranked.first()
             val c = candidates[selected]
             if (c.body==null || !measurable(c.region) ||
-                ranked.size > 1 && c.region.area < 1.8*candidates[ranked[1]].region.area)
+                ranked.size > 1 && (c.region.area <= 0 || c.region.area < 1.8*candidates[ranked[1]].region.area))
                 return unavailable("ambiguousCandidates")
         }
         val region = candidates[selected].region
@@ -135,12 +135,30 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source,
         val points = person.landmarks.filter { it.confidence >= ArmMeasurement.confidenceThreshold }.map { it.position }
         if (points.isEmpty()) return null
         val region = Region(points.minOf { it.x }, points.minOf { it.y }, points.maxOf { it.x }, points.maxOf { it.y })
+        if (profile == Profile.projectedTorso) {
+            // Locate the athlete from complete observed shoulder–hip pairs.
+            // Losing an unused far-side hip must not discard a visible torso.
+            // Motion owners independently bind their counting side; this spatial
+            // anchor never supplies or substitutes an exercise joint.
+            val floor = 2*ArmMeasurement.minimumSegmentFraction*min(source.imageSize.width, source.imageSize.height)
+            val torsos = ArmMeasurement.Side.entries.mapNotNull { side ->
+                val shoulder = person.landmark(side.joints.first())?.position ?: return@mapNotNull null
+                val hip = person.landmark(if (side == ArmMeasurement.Side.left) PoseJoint.leftHip else PoseJoint.rightHip)
+                    ?.position ?: return@mapNotNull null
+                val length = hypot(shoulder.x-hip.x,shoulder.y-hip.y)
+                if (length < floor) null else BodyAnchor(shoulder.x,shoulder.y,length,null)
+            }
+            val body = torsos.takeIf { it.isNotEmpty() }?.let {
+                BodyAnchor(it.map { a -> a.x }.average(),it.map { a -> a.y }.average(),it.map { a -> a.span }.average(),null)
+            }
+            return Candidate(region,body,points)
+        }
         // Head-on push-ups retain the paired-shoulder anchor despite foreshortened
         // or hidden hips. A narrow side projection keeps the existing torso anchor.
         // The chosen anchor kind remains bound for this association epoch.
         val useSide = when (profile) {
             Profile.upright -> false
-            Profile.sideView -> true
+            Profile.sideView, Profile.projectedTorso -> true
             Profile.pushUp -> anchor?.let { it.side != null } ?: run {
                 val shoulders = listOf(PoseJoint.leftShoulder, PoseJoint.rightShoulder)
                     .mapNotNull { person.landmark(it)?.position }
@@ -194,7 +212,11 @@ class BodyAthleteAssociation(private val source: ForegroundAssociation.Source,
     }
     private fun measurable(r: Region): Boolean {
         val floor = 2*ArmMeasurement.minimumSegmentFraction*min(source.imageSize.width, source.imageSize.height)
-        return r.width >= floor && r.height >= floor
+        // A flat side-on body can have collinear shoulder/hip/knee points.
+        // This profile still requires the measured torso anchor above, source
+        // continuity and unique association; image-area thickness adds no evidence.
+        return if (profile == Profile.projectedTorso) max(r.width,r.height) >= floor
+            else r.width >= floor && r.height >= floor
     }
     private fun compatible(a: BodyAnchor, b: BodyAnchor, reference: BodyAnchor, elapsed: Double): Boolean {
         // Frame-rate-aware spatial envelope in measured shoulder spans. This

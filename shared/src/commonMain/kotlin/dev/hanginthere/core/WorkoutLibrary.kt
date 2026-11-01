@@ -35,6 +35,7 @@ import kotlinx.serialization.encodeToString
     val schemaVersion: Int = 1,
     val workoutLogs: List<WorkoutLog> = emptyList(),
     val workoutLogDeletions: List<WorkoutLogDeletion> = emptyList(),
+    val activityGoals: List<WorkoutActivityGoal> = emptyList(),
 )
 @Serializable data class WorkoutHistoryCursor(val epochMilliseconds: Long?, val id: String, val revision: Long)
 @Serializable data class WorkoutHistoryPage(val sets: List<WorkoutReviewedSet>, val nextCursor: WorkoutHistoryCursor?, val revision: Long)
@@ -43,7 +44,7 @@ import kotlinx.serialization.encodeToString
     val plan: WorkoutPlan? = null, val id: String? = null, val media: WorkoutLocalMedia? = null,
     val mediaPolicy: WorkoutMediaPolicy? = null, val consent: Boolean? = null,
     val setIds: List<String> = emptyList(),
-    val atEpochMilliseconds: Long, val workoutLog: WorkoutLog? = null)
+    val atEpochMilliseconds: Long, val workoutLog: WorkoutLog? = null, val activityGoal: WorkoutActivityGoal? = null)
 
 /** Shared application state changes are explicit commands outside the frame path. */
 object WorkoutLibrary {
@@ -53,6 +54,8 @@ object WorkoutLibrary {
         activity = record.activity?.copy(phases = emptyList()), grip = null)
     fun validate(state: WorkoutLibraryState) {
         require(state.schemaVersion == 1 && state.revision >= 0)
+        require(state.activityGoals.size <= 256 && state.activityGoals.map { WorkoutActivityProgress.exerciseKey(it.exercise) }.distinct().size == state.activityGoals.size)
+        state.activityGoals.forEach { it.validate() }
         require(state.workoutLogs.size <= maximumEntries && state.workoutLogs.map { it.id }.distinct().size == state.workoutLogs.size)
         require(state.workoutLogDeletions.size <= maximumEntries && state.workoutLogDeletions.map { it.id }.distinct().size == state.workoutLogDeletions.size)
         state.workoutLogDeletions.forEach { require(WorkoutCorrections.safeId(it.id) && it.deletedAtEpochMilliseconds > 0) }
@@ -269,6 +272,11 @@ object WorkoutLibrary {
                 }
                 state.copy(reviews = reviews)
             }
+            "activityGoal" -> {
+                val goal = requireNotNull(command.activityGoal); goal.validate()
+                state.copy(activityGoals = state.activityGoals.filter { WorkoutActivityProgress.exerciseKey(it.exercise) != WorkoutActivityProgress.exerciseKey(goal.exercise) } + goal)
+            }
+            "deleteActivityGoal" -> state.copy(activityGoals = state.activityGoals.filter { WorkoutActivityProgress.exerciseKey(it.exercise) != WorkoutActivityProgress.exerciseKey(requireNotNull(command.id)) })
             "goal" -> {
                 val input = requireNotNull(command.goal)
                 // The selected comparison group supplies this automatically;

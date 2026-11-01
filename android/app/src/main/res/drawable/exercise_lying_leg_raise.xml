@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from ExerciseLyingLegRaise.imageset/icon.svg; run scripts/generate-exercise-icons.py. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="64dp" android:height="64dp" android:viewportWidth="64" android:viewportHeight="64">
+    <path android:fillColor="@android:color/transparent" android:pathData="M5 54H59" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeAlpha="0.75"/>
+    <path android:fillColor="#FF000000" android:pathData="M12 48a4.5 4.5 0 1 0 0-9 4.5 4.5 0 1 0 0 9Z M20 42Q23 39 28 41L35 44 33 51 22 49Q18 47 20 42Z"/>
+    <path android:fillColor="@android:color/transparent" android:pathData="M23 47L34 49 M35 46L42 32 50 14 M34 49L46 34 55 17" android:strokeColor="#FF000000" android:strokeWidth="6.5" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+</vector>

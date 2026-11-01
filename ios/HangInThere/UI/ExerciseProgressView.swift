@@ -178,7 +178,7 @@ private func targetFraction(_ cycle: Double) -> Double {
 }
 
 // A compact position gauge at the video edge, independent of completed-rep count.
-private struct RepProgressView: View {
+struct RepProgressView: View {
     let title: String
     let cue: String
     let fraction: Double

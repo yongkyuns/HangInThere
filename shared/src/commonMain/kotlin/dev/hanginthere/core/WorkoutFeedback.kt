@@ -6,8 +6,18 @@ import kotlinx.serialization.decodeFromString
 
 @Serializable data class WorkoutAfterSetReport(val title: String, val measuredCompletedReps: Int,
     val practiceAttempts: Int, val observedHoldSeconds: Double?, val observation: String, val spokenCue: String,
-    val policyVersion: Int = 1, val goalTarget: Double? = null, val goalValue: Double? = null, val goalMetric: WorkoutGoalMetric? = null)
+    val policyVersion: Int = 1, val goalTarget: Double? = null, val goalValue: Double? = null, val goalMetric: WorkoutGoalMetric? = null,
+    val goalLabel: String? = null)
 object WorkoutFeedback {
+    fun activitySummary(state: WorkoutLibraryState, id: String, now: Long, timeZoneId: String, firstWeekday: Int): WorkoutAfterSetReport {
+        val base = summary(state,id)
+        val exercise = WorkoutLibrary.sourceSets(state).filter { it.sourceSetId == id }.map { it.exercise }.distinct().singleOrNull() ?: return base
+        val progress = WorkoutActivityProgress.report(state,now,timeZoneId,firstWeekday).goals.firstOrNull {
+            WorkoutActivityProgress.exerciseKey(it.goal.exercise) == WorkoutActivityProgress.exerciseKey(exercise.title)
+        } ?: return base
+        return base.copy(goalTarget=progress.goal.target.toDouble(),goalValue=progress.reps.toDouble(),goalMetric=WorkoutGoalMetric.completedReps,
+            goalLabel=if(progress.achieved) "${if(progress.goal.period==WorkoutGoalPeriod.week) "Weekly" else "Daily"} goal reached" else "${progress.remaining} reps to your ${if(progress.goal.period==WorkoutGoalPeriod.week) "weekly" else "daily"} goal")
+    }
     fun summary(record: WorkoutSetRecord): WorkoutAfterSetReport {
         require(record.endReason != "running")
         val hold = record.activity?.let { if (record.exercise == ExerciseCounter.Exercise.pullUp) it.longestHangSeconds else it.longestSupportSeconds }
@@ -71,6 +81,8 @@ class WorkoutCompletionFeedback {
     }
 }
 class WorkoutFeedbackBridge {
+    @Throws(IllegalArgumentException::class) fun activitySummaryJson(stateJson: String, setId: String, now: Long, timeZoneId: String, firstWeekday: Int): String = WorkoutRecordCodec.json.encodeToString(
+        WorkoutFeedback.activitySummary(WorkoutRecordCodec.json.decodeFromString(stateJson),setId,now,timeZoneId,firstWeekday))
     @Throws(IllegalArgumentException::class) fun librarySummaryJson(stateJson: String, setId: String): String = WorkoutRecordCodec.json.encodeToString(
         WorkoutFeedback.summary(WorkoutRecordCodec.json.decodeFromString(stateJson), setId))
     @Throws(IllegalArgumentException::class) fun summaryJson(recordJson: String): String = WorkoutRecordCodec.json.encodeToString(

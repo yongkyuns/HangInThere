@@ -106,6 +106,7 @@ struct WorkoutAfterSetReport: Codable, Equatable, Sendable {
     var goalTarget: Double? = nil
     var goalValue: Double? = nil
     var goalMetric: String? = nil
+    var goalLabel: String? = nil
 }
 
 // A review projection of shared policy, never a persisted confidence/form score.

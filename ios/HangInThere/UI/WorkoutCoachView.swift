@@ -1,4 +1,5 @@
 import SwiftUI
+import WorkoutCore
 #if os(iOS)
 import UIKit
 #endif
@@ -126,6 +127,7 @@ struct WorkoutCoachView: View {
                         Text("\(profile.goal.title) · \(profile.minutes) min").font(.title2.bold())
                         if let error { Text(error).foregroundStyle(.orange).accessibilityIdentifier("coachError") }
                         week(profile)
+                        WorkoutTrainingTipCard(moment: "plan")
                         #if os(iOS)
                         WorkoutReminderControls(profile: profile)
                         #endif
@@ -300,6 +302,217 @@ struct WorkoutCoachView: View {
     }
 }
 
+// The source text, filters and recommendation policy live in shared Kotlin.
+struct TrainingTipSource: Codable, Identifiable, Sendable {
+    let id: String; let publisher: String; let title: String; let url: String; let kind: String; let checkedOn: String
+}
+struct TrainingTip: Codable, Identifiable, Sendable {
+    let id: String; let category: String; let title: String; let cue: String; let detail: String
+    let sourceIds: [String]; let exercises: [String]; let moments: [String]
+    var symbol: String {
+        switch category {
+        case "Preparation": "sun.max"
+        case "Technique": "figure.strengthtraining.functional"
+        case "Progression": "chart.line.uptrend.xyaxis"
+        case "Recovery": "moon.zzz"
+        case "Nutrition": "drop"
+        case "Safety": "heart"
+        default: "calendar"
+        }
+    }
+}
+struct TrainingTipCatalog: Codable, Sendable {
+    let version: Int; let audience: String; let sources: [TrainingTipSource]; let tips: [TrainingTip]
+}
+enum TrainingTips {
+    @MainActor static var suggestionsEnabled: Bool {
+        #if os(iOS)
+        WorkoutReminders.shared.tipSettings.workoutTipsEnabled
+        #else
+        true
+        #endif
+    }
+    static let catalog = try? JSONDecoder().decode(TrainingTipCatalog.self, from: Data(WorkoutTipsBridge().catalogJson().utf8))
+    static func query(exercise: String?, category: String?, search: String) -> [TrainingTip] {
+        (try? JSONDecoder().decode([TrainingTip].self, from: Data(WorkoutTipsBridge().queryJson(exercise: exercise, category: category, search: search).utf8))) ?? []
+    }
+    static func featured(exercise: String?, moment: String, seed: Int64? = nil) -> TrainingTip? {
+        let localDay = Int64(floor((Date().timeIntervalSince1970 + Double(TimeZone.current.secondsFromGMT())) / 86400))
+        return try? JSONDecoder().decode(TrainingTip.self, from: Data(WorkoutTipsBridge().featuredJson(exercise: exercise, moment: moment, day: seed ?? localDay).utf8))
+    }
+}
+
+/// A single optional tip, outside the live camera. All details are user-initiated.
+struct WorkoutTrainingTipCard: View {
+    @Environment(\.colorScheme) private var scheme
+    var exercise: String? = nil
+    var moment = "plan"
+    var seed: Int64? = nil
+    var onPresentationChanged: (Bool) -> Void = { _ in }
+    @State private var expanded = false
+    @State private var library = false
+    var body: some View {
+        if TrainingTips.suggestionsEnabled, let tip = TrainingTips.featured(exercise: exercise, moment: moment, seed: seed) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Label("Training tip", systemImage: tip.symbol).font(.subheadline.bold()).foregroundStyle(HangPalette(scheme).accent)
+                    Spacer()
+                    Button { library = true } label: { Image(systemName: "books.vertical").frame(minWidth: 44, minHeight: 44) }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Browse training tips").accessibilityIdentifier("browseTrainingTips")
+                }
+                Button { expanded = true } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(tip.title).font(.headline)
+                            Text(tip.cue).font(.subheadline).foregroundStyle(HangPalette(scheme).secondary)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right").font(.caption).padding(.top, 4)
+                    }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityIdentifier("trainingTip-\(tip.id)")
+            }.journeyCard()
+                .onChange(of: expanded || library) { _, presented in onPresentationChanged(presented) }
+                .sheet(isPresented: $expanded) {
+                    NavigationStack { WorkoutTrainingTipDetail(tip: tip).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { expanded = false } } } }.hangTheme()
+                }
+                .sheet(isPresented: $library) { NavigationStack { WorkoutTrainingTipsView(exercise: exercise).toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { library = false } } } }.hangTheme() }
+        }
+    }
+}
+
+/// A brief cue after a finished set. No interactive panel covers the camera.
+struct WorkoutBetweenSetTip: View {
+    let exercise: String
+    let completedSets: Int
+    var body: some View {
+        if TrainingTips.suggestionsEnabled,
+           let tip = try? JSONDecoder().decode(TrainingTip.self, from: Data(WorkoutTipDeliveryBridge().betweenSetsJson(exercise: exercise, completedSets: Int32(completedSets), running: false, replay: false, enabled: true).utf8)) {
+            Label(tip.cue, systemImage: "lightbulb")
+                .font(.system(size: 17, weight: .semibold)).foregroundStyle(HangBrand.lime)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                .background(.black.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
+                .accessibilityIdentifier("betweenSetTrainingTip")
+        }
+    }
+}
+
+#if os(iOS)
+struct WorkoutTipSettingsView: View {
+    @State private var reminders = WorkoutReminders.shared
+    @Environment(\.openURL) private var openURL
+    private func edit(_ update: (inout TrainingTipDeliverySettings) -> Void) {
+        var next = reminders.tipSettings; update(&next)
+        Task { await reminders.setTipSettings(next, profile: WorkoutCoachPreferences.shared.profile) }
+    }
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Workout tips", isOn: Binding(get: { reminders.tipSettings.workoutTipsEnabled }, set: { value in edit { $0.workoutTipsEnabled = value } }))
+                    .accessibilityIdentifier("toggleWorkoutTips")
+            } footer: { Text("Relevant tips between sets, in setup and in reviews.") }
+            Section {
+                Toggle("Tip notifications", isOn: Binding(get: { reminders.tipSettings.notificationsEnabled }, set: { value in edit { $0.notificationsEnabled = value } }))
+                    .accessibilityIdentifier("toggleTipNotifications")
+                if reminders.tipSettings.notificationsEnabled {
+                    Picker("Frequency", selection: Binding(get: { reminders.tipSettings.daily }, set: { value in edit { $0.daily = value } })) {
+                        Text("Three times a week").tag(false)
+                        Text("Daily").tag(true)
+                    }
+                    DatePicker("Time", selection: Binding(get: {
+                        Calendar.current.date(bySettingHour: reminders.tipSettings.hour, minute: reminders.tipSettings.minute, second: 0, of: Date()) ?? Date()
+                    }, set: { date in edit { $0.hour = Calendar.current.component(.hour, from: date); $0.minute = Calendar.current.component(.minute, from: date) } }), displayedComponents: .hourAndMinute)
+                }
+                if let error = reminders.error {
+                    Text(error).font(.footnote).foregroundStyle(.orange)
+                    if reminders.authorization == .denied {
+                        Button("Open notification settings") { if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) } }
+                    }
+                }
+            } footer: { Text("Quiet tips at your chosen time. Three times a week is Monday, Wednesday and Friday.") }
+            Section { NavigationLink("Browse training tips") { WorkoutTrainingTipsView() } }
+        }.navigationTitle("Settings").hangTheme()
+    }
+}
+#endif
+
+struct WorkoutTrainingTipsView: View {
+    @Environment(\.colorScheme) private var scheme
+    @State private var exercise: String
+    @State private var category = "All topics"
+    @State private var search = ""
+    init(exercise: String? = nil) {
+        let key = exercise.map { WorkoutActivityBridge().exerciseKey(name: $0) }
+        _exercise = State(initialValue: key.flatMap { ["pullups": "Pull-ups", "dips": "Dips", "pushups": "Push-ups", "situps": "Sit-ups"][$0] } ?? "All exercises")
+    }
+    private var categories: [String] { ["All topics"] + (TrainingTips.catalog?.tips.map(\.category).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } } ?? []) }
+    private var tips: [TrainingTip] { TrainingTips.query(exercise: exercise == "All exercises" ? nil : exercise, category: category == "All topics" ? nil : category, search: search) }
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Picker("Exercise", selection: $exercise) {
+                        ForEach(["All exercises", "Pull-ups", "Dips", "Push-ups", "Sit-ups"], id: \.self) { Text($0).tag($0) }
+                    }.pickerStyle(.menu).labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer(minLength: 0)
+                    Picker("Topic", selection: $category) { ForEach(categories, id: \.self) { Text($0).tag($0) } }.pickerStyle(.menu).labelsHidden().frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                Text("\(tips.count) tips · Sources included").font(.caption).foregroundStyle(HangPalette(scheme).secondary)
+                ForEach(tips) { tip in
+                    NavigationLink { WorkoutTrainingTipDetail(tip: tip) } label: {
+                        HStack(alignment: .top, spacing: 14) {
+                            Image(systemName: tip.symbol).font(.title3).foregroundStyle(HangPalette(scheme).accent).frame(width: 30)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(tip.title).font(.headline)
+                                Text(tip.cue).font(.subheadline).foregroundStyle(HangPalette(scheme).secondary)
+                                Text(tip.category).font(.caption).foregroundStyle(HangPalette(scheme).accent)
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(HangPalette(scheme).secondary)
+                        }.frame(maxWidth: .infinity, alignment: .leading).journeyCard()
+                    }.buttonStyle(.plain)
+                }
+                if tips.isEmpty { ContentUnavailableView(TrainingTips.catalog == nil ? "Tips unavailable" : "No matching tips", systemImage: "books.vertical", description: Text("Try another topic, exercise or search.")) }
+                if let audience = TrainingTips.catalog?.audience { Text(audience).font(.footnote).foregroundStyle(HangPalette(scheme).secondary) }
+            }.padding(20)
+        }.navigationTitle("Training tips").searchable(text: $search, prompt: "Search tips")
+            .background(HangPalette(scheme).background)
+    }
+}
+
+struct WorkoutTrainingTipDetail: View {
+    @Environment(\.colorScheme) private var scheme
+    let tip: TrainingTip
+    private var sources: [TrainingTipSource] { TrainingTips.catalog?.sources.filter { tip.sourceIds.contains($0.id) } ?? [] }
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Label(tip.category, systemImage: tip.symbol).font(.subheadline.bold()).foregroundStyle(HangPalette(scheme).accent)
+                Text(tip.title).font(.largeTitle.bold())
+                Text(tip.cue).font(.title3.weight(.medium))
+                Text(tip.detail).font(.body)
+                if !tip.exercises.isEmpty { Text("For \(tip.exercises.map { ExerciseCounter.Exercise(rawValue: $0)?.title ?? $0 }.joined(separator: ", "))").font(.subheadline).foregroundStyle(HangPalette(scheme).secondary) }
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Sources").font(.headline)
+                    ForEach(sources) { source in
+                        if let url = URL(string: source.url) {
+                            Link(destination: url) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Label(source.publisher, systemImage: "arrow.up.right.square").font(.headline)
+                                    Text(source.title).font(.subheadline)
+                                    Text(source.kind + " · Checked " + source.checkedOn).font(.caption).foregroundStyle(HangPalette(scheme).secondary)
+                                }.frame(maxWidth: .infinity, alignment: .leading).journeyCard()
+                            }
+                        }
+                    }
+                    Text("Adapted from the linked guidance. Not an endorsement or individual medical assessment.").font(.footnote).foregroundStyle(HangPalette(scheme).secondary)
+                }
+            }.padding(22)
+        }.navigationTitle("Training tip")
+    }
+}
+
 struct WorkoutCoachFeedbackView: View {
     let record: WorkoutSetRecord
     var planned: WorkoutCoachRecommendation? = nil
@@ -381,7 +594,7 @@ struct WorkoutCoachFeedbackView: View {
 }
 
 #if os(iOS)
-private struct WorkoutReminderControls: View {
+struct WorkoutReminderControls: View {
     let profile: WorkoutCoachProfile
     @State private var reminders = WorkoutReminders.shared
     @State private var changing = false

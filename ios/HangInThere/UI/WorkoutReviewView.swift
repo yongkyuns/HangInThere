@@ -50,20 +50,21 @@ struct WorkoutReviewView: View {
                 } else if let summary {
                     headline(summary)
                     JourneyCoachingCard(coaching: summary.coaching)
+                    WorkoutTrainingTipCard(exercise: summary.exercise.rawValue, moment: "review")
                     if let record, showsSourcePhases {
-                        if goalsEnabled, record.exercise != .pushUp, WorkoutCoachPreferences.shared.profile != nil, record.endReason != "running" {
+                        if goalsEnabled, !record.exercise.isPreviewExercise, WorkoutCoachPreferences.shared.profile != nil, record.endReason != "running" {
                             WorkoutCoachFeedbackView(record: record)
                         }
-                        if record.exercise != .pushUp { WorkoutDemandCard(record: record) }
+                        if !record.exercise.isPreviewExercise { WorkoutDemandCard(record: record) }
                         WorkoutTempoCard(record: record)
-                        if record.exercise != .pushUp { WorkoutMuscleCard(exercise: record.exercise) }
+                        if !record.exercise.isPreviewExercise { WorkoutMuscleCard(exercise: record.exercise) }
                     }
                     if !completed.isEmpty {
                         VStack(alignment: .leading, spacing: 14) {
                             HStack { Text("Your reps").font(.title3.bold()); Spacer(); Text("Tap to explore").font(.caption).foregroundStyle(.secondary) }
                             HStack(spacing: 14) {
-                                phaseLegend(summary.exercise == .pullUp ? "Pull" : "Lower", color: .blue)
-                                phaseLegend(summary.exercise == .pullUp ? "Lower" : "Press", color: Color.blue.opacity(0.5))
+                                phaseLegend([.legRaise, .lyingLegRaise].contains(summary.exercise) ? "Raise" : summary.exercise == .sitUp ? "Sit up" : summary.exercise == .pullUp ? "Pull" : "Lower", color: .blue)
+                                phaseLegend([.legRaise, .lyingLegRaise].contains(summary.exercise) ? "Lower" : summary.exercise == .sitUp ? "Lie back" : summary.exercise == .pullUp ? "Lower" : "Press", color: Color.blue.opacity(0.5))
                             }.font(.caption)
                             ForEach(completed) { rep in repLink(rep) }
                         }
@@ -117,7 +118,7 @@ struct WorkoutReviewView: View {
     private func headline(_ set: JourneySetSummary) -> some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(alignment: .top) {
-                Text(set.exercise.title + (set.exercise == .pushUp ? " · Preview" : "")).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                Text(set.exercise.title + (set.exercise.isPreviewExercise ? " · Preview" : "")).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 Spacer(minLength: 8)
                 Button { showsRating = true } label: { JourneyQualityBadge(quality: set.quality) }.buttonStyle(.plain)
                     .popover(isPresented: $showsRating) { Text(set.quality.explanation).font(.subheadline).padding().frame(idealWidth: 280) }
@@ -132,7 +133,7 @@ struct WorkoutReviewView: View {
             if set.completedReps > 0 && set.holdSeconds != nil || set.outwardSeconds != nil || set.returnSeconds != nil {
                 HStack(alignment: .top, spacing: 12) {
                     if set.completedReps > 0, let value = set.holdSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "Longest hang" : "Support hold") }
-                    if let value = set.outwardSeconds { JourneyMetric(value: seconds(value), label: set.exercise == .pullUp ? "To peak" : "To bottom") }
+                    if let value = set.outwardSeconds { JourneyMetric(value: seconds(value), label: [.legRaise, .lyingLegRaise].contains(set.exercise) ? "Raise" : set.exercise == .sitUp ? "Sit up" : set.exercise == .pullUp ? "To peak" : "To bottom") }
                     if let value = set.returnSeconds { JourneyMetric(value: seconds(value), label: "Return") }
                 }
             }
@@ -190,7 +191,7 @@ struct WorkoutRepDetailView: View {
             if !rep.samples.isEmpty { angleChart(rep) }
             else { ContentUnavailableView("Motion curve unavailable", systemImage: "chart.xyaxis.line", description: Text("The timing summary is saved.")) }
             HStack(alignment: .top, spacing: 16) {
-                JourneyMetric(value: seconds(rep.outboundSeconds), label: rep.exercise == .pullUp ? "To peak" : "To bottom")
+                JourneyMetric(value: seconds(rep.outboundSeconds), label: [.legRaise, .lyingLegRaise].contains(rep.exercise) ? "Raise" : rep.exercise == .sitUp ? "Sit up" : rep.exercise == .pullUp ? "To peak" : "To bottom")
                 JourneyMetric(value: seconds(rep.returnSeconds), label: "Return")
             }
             DisclosureGroup("Camera measurements") {

@@ -6,9 +6,11 @@ import Foundation
 // grip-to-shoulder axis, independent of the rail silhouette direction.
 struct ExerciseCounter: Sendable {
     enum Exercise: String, CaseIterable, Codable, Sendable {
-        case pullUp, dip, pushUp
+        case pullUp, dip, pushUp, sitUp, legRaise, lyingLegRaise
+        var isPreviewExercise: Bool { isFloorExercise || self == .legRaise }
+        var isFloorExercise: Bool { self == .pushUp || self == .sitUp || self == .lyingLegRaise }
         static let barExercises: [Self] = [.pullUp, .dip]
-        var title: String { switch self { case .pullUp: "Pull-up"; case .dip: "Parallel-bar dip"; case .pushUp: "Push-up" } }
+        var title: String { switch self { case .pullUp: "Pull-up"; case .dip: "Parallel-bar dip"; case .pushUp: "Push-up"; case .sitUp: "Sit-up"; case .legRaise: "Hanging leg raise"; case .lyingLegRaise: "Lying leg raise" } }
     }
     enum Phase: String, Codable, Sendable {
         case seekingStart, ready, outbound, returning, finished
@@ -310,7 +312,7 @@ struct ExerciseCounter: Sendable {
 
     @discardableResult
     mutating func consume(_ pose: PoseResult, referenceEdge: BarSegment?) -> Event? {
-        guard exercise != .pushUp else { interrupt(reason: "unsupportedExercise"); return nil }
+        guard !exercise.isPreviewExercise else { interrupt(reason: "unsupportedExercise"); return nil }
         guard phase != .finished else { return nil }
         let time = pose.timestamp
         guard time.seconds.isFinite else { return interrupt(reason: "invalidTimestamp") }

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Matches the ExercisePullUp SVG in the iOS asset catalog. -->
+<!-- Generated from ExercisePullUp.imageset/icon.svg; run scripts/generate-exercise-icons.py. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="64dp" android:height="64dp" android:viewportWidth="64" android:viewportHeight="64">
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M9 9 H55 M9 6 V12 M55 6 V12"/>
-    <path android:fillColor="#FF000000" android:pathData="M27.5,22 a4.5,4.5 0,1 0,9.0,0 a4.5,4.5 0,1 0,-9.0,0"/>
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M32 31 V43 M25 31 H39 M25 31 L18 25 V11 M39 31 L46 25 V11 M32 43 L24 52 L32 57 M32 43 L40 52 L35 57"/>
+    <path android:fillColor="@android:color/transparent" android:pathData="M10 8 H54" android:strokeColor="#FF000000" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:strokeAlpha="0.75"/>
+    <path android:fillColor="#FF000000" android:pathData="M27,20 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0"/>
+    <path android:fillColor="#FF000000" android:pathData="M25 28 Q32 25 39 28 L37 41 H27 Z"/>
+    <path android:fillColor="@android:color/transparent" android:pathData="M26 30 L19 23 V10 M38 30 L45 23 V10" android:strokeColor="#FF000000" android:strokeWidth="6.5" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path android:fillColor="@android:color/transparent" android:pathData="M29 40 V54 M35 40 V54" android:strokeColor="#FF000000" android:strokeWidth="6.5" android:strokeLineCap="round" android:strokeLineJoin="round"/>
 </vector>

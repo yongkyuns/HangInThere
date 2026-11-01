@@ -1,5 +1,164 @@
 import SwiftUI
 
+struct ActivityGoal: Codable, Equatable, Identifiable, Sendable {
+    let exercise: String
+    let target: Int
+    var period = "week"
+    var id: String { exercise }
+}
+struct ActivityGoalProgress: Codable, Equatable, Identifiable, Sendable {
+    let goal: ActivityGoal
+    let reps: Int; let cameraReps: Int; let loggedReps: Int; let remaining: Int
+    let fraction: Double; let achieved: Bool
+    var id: String { goal.id }
+}
+struct ActivityDay: Codable, Equatable, Identifiable, Sendable {
+    let day: Int64; let reps: Int; let active: Bool; let future: Bool
+    var id: Int64 { day }
+    var label: String {
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar.veryShortStandaloneWeekdaySymbols[calendar.component(.weekday, from: Date(timeIntervalSince1970: Double(day) * 86400)) - 1]
+    }
+}
+struct ExerciseActivity: Codable, Equatable, Identifiable, Sendable {
+    let exercise: String; let reps: Int; let sets: Int; let bestSet: Int
+    var id: String { exercise }
+}
+struct ActivityReport: Codable, Equatable, Sendable {
+    let reps: Int; let sets: Int; let activeDays: Int; let cameraReps: Int; let loggedReps: Int
+    let previousReps: Int; let previousActiveDays: Int
+    let days: [ActivityDay]; let goals: [ActivityGoalProgress]; let exercises: [ExerciseActivity]
+    let excludedUndatedSets: Int; let headline: String; let comparison: String
+}
+
+struct WorkoutActivityPanel: View {
+    let report: ActivityReport
+    var onSave: (ActivityGoal) async -> Bool = { _ in false }
+    var onRemove: (ActivityGoal) async -> Bool = { _ in false }
+    @State private var editing: ActivityGoal?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack { Text("This week").font(.headline); Spacer(); Image(systemName: "chart.bar.fill").foregroundStyle(.teal) }
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
+                    JourneyMetric(value: "\(report.reps)", label: "Reps")
+                    JourneyMetric(value: "\(report.sets)", label: "Sets")
+                    JourneyMetric(value: "\(report.activeDays)", label: "Active days")
+                }
+                HStack(alignment: .bottom, spacing: 10) {
+                    ForEach(report.days) { day in
+                        VStack(spacing: 6) {
+                            Text(day.reps > 0 ? "\(day.reps)" : " ").font(.caption2).monospacedDigit()
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(day.active ? Color.teal : Color.primary.opacity(day.future ? 0.04 : 0.10))
+                                .frame(height: max(6, 54 * CGFloat(day.reps) / CGFloat(max(1, report.days.map(\.reps).max() ?? 1))))
+                            Text(day.label).font(.caption).foregroundStyle(.secondary)
+                        }.frame(maxWidth: .infinity).accessibilityElement(children: .ignore)
+                            .accessibilityLabel("\(day.label), \(day.reps) reps\(day.active ? ", active day" : "")")
+                    }
+                }.frame(height: report.reps == 0 ? 48 : 92, alignment: .bottom)
+                Text(report.headline).font(.headline)
+                Label(report.comparison, systemImage: report.reps > report.previousReps ? "arrow.up.right" : "calendar")
+                    .font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                if report.cameraReps > 0 || report.loggedReps > 0 {
+                    Text("Camera \(report.cameraReps) · Logged \(report.loggedReps)").font(.caption).foregroundStyle(.secondary)
+                }
+            }.journeyCard().accessibilityIdentifier("weeklyWorkoutSummary")
+            HStack {
+                Text("Your rep goals").font(.title3.bold())
+                Spacer()
+                Button("Add goal", systemImage: "plus.circle") { editing = ActivityGoal(exercise: "Pull-ups", target: 0) }
+                    .labelStyle(.iconOnly).accessibilityIdentifier("addActivityGoal")
+            }
+            if report.goals.isEmpty { Text("Choose a target. Every recorded rep adds up.").font(.subheadline).foregroundStyle(.secondary) }
+            ForEach(report.goals) { progress in
+                Button { editing = progress.goal } label: {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            WorkoutExerciseIcon(exercise: progress.goal.exercise, size: 40)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(progress.goal.exercise).font(.headline)
+                                Text(progress.goal.period == "day" ? "Daily target" : "Weekly target").font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Text("\(progress.reps) / \(progress.goal.target)").font(.headline).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                            if progress.achieved { Image(systemName: "checkmark.circle.fill").foregroundStyle(.teal) }
+                        }
+                        ProgressView(value: progress.fraction).tint(.teal)
+                        Text(progress.achieved ? "Goal reached · \(progress.reps) reps" : "\(progress.remaining) reps to go")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(progress.achieved ? Color.teal : Color.primary)
+                    }.journeyCard()
+                }.buttonStyle(.plain).accessibilityIdentifier("activityGoal-\(progress.goal.exercise)")
+            }
+            #if os(iOS)
+            if let profile = WorkoutCoachPreferences.shared.profile { WorkoutReminderControls(profile: profile) }
+            #endif
+            if !report.exercises.isEmpty {
+                DisclosureGroup("This week by exercise") {
+                    ForEach(report.exercises) { item in
+                        HStack {
+                            Text(item.exercise)
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 3) {
+                                Text("\(item.reps) reps · \(item.sets) sets").font(.subheadline.bold())
+                                Text("Best set · \(item.bestSet) reps").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }.padding(.vertical, 6)
+                    }
+                }.journeyCard()
+            }
+            if report.excludedUndatedSets > 0 {
+                Text("\(report.excludedUndatedSets) undated sets aren’t assigned to a week.").font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .sheet(item: $editing) { goal in
+            ActivityGoalEditor(goal: goal, exercises: report.exercises.map(\.exercise) + report.goals.map { $0.goal.exercise },
+                onSave: onSave, onRemove: onRemove)
+        }
+    }
+}
+private struct ActivityGoalEditor: View {
+    let goal: ActivityGoal
+    let exercises: [String]
+    let onSave: (ActivityGoal) async -> Bool
+    let onRemove: (ActivityGoal) async -> Bool
+    @Environment(\.dismiss) private var dismiss
+    @State private var exercise: String
+    @State private var target: String
+    @State private var period: String
+    @State private var saving = false
+    @State private var failure = false
+    init(goal: ActivityGoal, exercises: [String], onSave: @escaping (ActivityGoal) async -> Bool, onRemove: @escaping (ActivityGoal) async -> Bool) {
+        self.goal = goal; self.exercises = exercises; self.onSave = onSave; self.onRemove = onRemove
+        _exercise = State(initialValue: goal.exercise); _target = State(initialValue: goal.target > 0 ? String(goal.target) : ""); _period = State(initialValue: goal.period)
+    }
+    var body: some View {
+        NavigationStack {
+            Form {
+                Picker("Exercise", selection: $exercise) {
+                    ForEach(Array(Set(exercises + [goal.exercise, "Pull-ups", "Dips", "Push-ups", "Sit-ups", "Bench press", "EZ curls"])).sorted(), id: \.self) { Text($0).tag($0) }
+                }.disabled(goal.target > 0)
+                Picker("Target period", selection: $period) { Text("Daily").tag("day"); Text("Weekly").tag("week") }.pickerStyle(.segmented)
+                TextField("Reps", text: $target).hangInput()
+                    #if os(iOS)
+                    .keyboardType(.numberPad)
+                    #endif
+                Text(period == "week" ? "Counts all recorded reps this week." : "Counts all recorded reps today.").font(.caption).foregroundStyle(.secondary)
+                if failure { Text("Couldn’t save. Please try again.").foregroundStyle(.orange) }
+                Button("Save goal") { Task {
+                    guard let count = Int(target), (1...100000).contains(count) else { return }
+                    saving = true
+                    if await onSave(ActivityGoal(exercise: exercise, target: count, period: period)) { dismiss() } else { failure = true }
+                    saving = false
+                } }.disabled(Int(target).map { !(1...100000).contains($0) } ?? true)
+                if goal.target > 0 { Button("Remove goal", role: .destructive) { Task { saving = true; if await onRemove(goal) { dismiss() } else { failure = true }; saving = false } } }
+            }.disabled(saving).hangTheme().navigationTitle("Rep goal")
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Back") { dismiss() }.disabled(saving) } }
+        }
+    }
+}
+
+
 extension JourneyQuality {
     var color: Color {
         switch level {
@@ -81,6 +240,9 @@ struct WorkoutJourneyView: View {
     private struct CalendarQuery: Equatable { let days: [WorkoutCalendarDay]; let overview: JourneyOverview; let revision: Int64? }
     let overview: JourneyOverview
     var showsOverview = true
+    var activity: ActivityReport? = nil
+    var onSaveActivityGoal: (ActivityGoal) async -> Bool = { _ in false }
+    var onRemoveActivityGoal: (ActivityGoal) async -> Bool = { _ in false }
     var revision: Int64? = nil
     var calendarPreview: [JourneyPracticeDay]? = nil
     @State private var selectedDay: WorkoutCalendarDay?
@@ -102,13 +264,15 @@ struct WorkoutJourneyView: View {
     var body: some View {
         LazyVStack(alignment: .leading, spacing: 24) {
             if showsOverview {
+                if selectedDay == nil, let activity { WorkoutActivityPanel(report: activity, onSave: onSaveActivityGoal, onRemove: onRemoveActivityGoal) }
+                if selectedDay == nil { WorkoutTrainingTipCard() }
                 WorkoutCalendarView(date: $calendarDate, mode: $calendarMode, selected: selectedDay,
                     activity: calendarPreview ?? calendarActivity ?? overview.days,
                     loading: calendarPreview == nil && calendarActivity == nil && calendarFailure == nil,
                     onSelect: { day in selectedDay = day },
                     onShowAll: { selectedDay = nil })
                 if let calendarFailure { Text(calendarFailure).font(.caption).foregroundStyle(.secondary) }
-                if selectedDay == nil {
+                if selectedDay == nil && activity == nil {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Last 28 days").font(.subheadline).foregroundStyle(.secondary)
                         HStack(alignment: .top) {
@@ -288,6 +452,16 @@ struct JourneyWorkoutView: View {
                     ContentUnavailableView("No sets left in this workout", systemImage: "square.and.pencil")
                 } else {
                 JourneyWorkoutRow(workout: current, showsDisclosure: false)
+                if let progress = current.progress, current.totalReps > 0 {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label(progress.headline, systemImage: "chart.line.uptrend.xyaxis").font(.headline)
+                        HStack {
+                            JourneyMetric(value: "\(progress.bestSet)", label: "Most reps in a set")
+                            if let previous = progress.previousReps { JourneyMetric(value: "\(previous)", label: "Previous workout reps") }
+                        }
+                        if progress.previousReps != nil { Text("Recorded volume · same exercises").font(.caption).foregroundStyle(.secondary) }
+                    }.journeyCard()
+                }
                 if let log = current.workoutLog {
                     WorkoutLogTable(log: log) { _ in editing = true }
                     Button("Continue / edit workout", systemImage: "square.and.pencil") { editing = true }

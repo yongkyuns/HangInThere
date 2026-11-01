@@ -88,6 +88,7 @@ struct HangIllustrations: View {
 }
 
 struct HomeScreenView: View {
+    @State private var showsSettings = false
     var onLiveWorkout: () -> Void
     var onStartExercise: (ExerciseCounter.Exercise) -> Void
     var onReviewVideo: () -> Void
@@ -95,9 +96,15 @@ struct HomeScreenView: View {
     var onCoach: (() -> Void)? = nil
     var onLogWorkout: (() -> Void)? = nil
     var onStartPushUp: (() -> Void)? = nil
+    var onStartSitUp: (() -> Void)? = nil
+    var onStartLegRaise: (() -> Void)? = nil
+    var onStartLyingLegRaise: (() -> Void)? = nil
     var pullUpArtwork = Image("PullUpIllustration")
     var dipArtwork = Image("DipIllustration")
     var pushUpArtwork = Image("PushUpIllustration")
+    var sitUpArtwork = Image("SitUpIllustration")
+    var legRaiseArtwork = Image("LegRaiseIllustration")
+    var lyingLegRaiseArtwork = Image("LyingLegRaiseIllustration")
     var brandArtwork = Image("BrandIcon")
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -126,21 +133,16 @@ struct HomeScreenView: View {
         .foregroundStyle(palette.foreground)
         .background(palette.background)
         .fontDesign(.rounded)
+        #if os(iOS)
+        .sheet(isPresented: $showsSettings) {
+            NavigationStack { WorkoutTipSettingsView().toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { showsSettings = false } } } }.hangTheme()
+        }
+        #endif
     }
 
     private var actions: some View {
         VStack(spacing: 12) {
-            if dynamicTypeSize.isAccessibilitySize {
-                secondaryAction("Start pull-ups", symbol: "play.fill", action: { onStartExercise(.pullUp) })
-                    .accessibilityIdentifier("startPullUpWorkout")
-                secondaryAction("Start dips", symbol: "play.fill", action: { onStartExercise(.dip) })
-                    .accessibilityIdentifier("startDipWorkout")
-                if let onStartPushUp {
-                    secondaryAction("Start push-ups", symbol: "play.fill", action: onStartPushUp)
-                        .accessibilityIdentifier("startPushUpWorkout")
-                        .accessibilityHint("Side-view preview. Sets and rep timing are saved to History.")
-                }
-            }
+            if dynamicTypeSize.isAccessibilitySize { exerciseShortcuts }
             liveButton
             if let onLogWorkout {
                 secondaryAction("Log a workout", symbol: "square.and.pencil", action: onLogWorkout)
@@ -169,6 +171,10 @@ struct HomeScreenView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             Spacer(minLength: 0)
+            #if os(iOS)
+            Button { showsSettings = true } label: { Image(systemName: "gearshape").frame(width: 44, height: 44) }
+                .buttonStyle(.plain).accessibilityLabel("Settings").accessibilityIdentifier("openSettings")
+            #endif
         }
     }
 
@@ -178,32 +184,53 @@ struct HomeScreenView: View {
                 .font(.system(size: wideLayout ? 26 : 30, weight: .heavy, design: .rounded))
                 .tracking(-1)
                 .lineLimit(2)
-            HangIllustrations(pullUp: pullUpArtwork, dip: dipArtwork, showsLabels: true,
-                onPullUp: { onStartExercise(.pullUp) }, onDip: { onStartExercise(.dip) })
-                .frame(height: wideLayout ? 190 : 215)
-            if let onStartPushUp {
-                Button(action: onStartPushUp) {
-                    HStack(spacing: 16) {
-                        pushUpArtwork.resizable().scaledToFit().frame(width: 140, height: 68)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text("Push-ups").font(.headline)
-                            Text("Preview").font(.caption.weight(.semibold)).foregroundStyle(palette.secondary)
-                        }
-                        Spacer(minLength: 0)
-                        Image(systemName: "play.fill").font(.subheadline).accessibilityHidden(true)
-                    }
-                    .padding(14).frame(maxWidth: .infinity)
-                    .background(palette.garden, in: RoundedRectangle(cornerRadius: 20))
-                    .contentShape(RoundedRectangle(cornerRadius: 20))
-                }.buttonStyle(.plain)
-                    .accessibilityLabel("Start push-ups workout")
-                    .accessibilityHint("Side-view preview. Sets and rep timing are saved to History.")
-                    .accessibilityIdentifier("startPushUpWorkout")
-            }
+            exerciseShortcuts
         }
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .accessibilityElement(children: .contain)
+    }
+
+    private var exerciseShortcuts: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? [GridItem(.flexible())] : [GridItem(.flexible()), GridItem(.flexible())]
+        return LazyVGrid(columns: layout, spacing: 12) {
+            exerciseShortcut("Pull-ups", artwork: pullUpArtwork, preview: false, identifier: "startPullUpWorkout") { onStartExercise(.pullUp) }
+            exerciseShortcut("Dips", artwork: dipArtwork, preview: false, identifier: "startDipWorkout") { onStartExercise(.dip) }
+            if let onStartPushUp {
+                exerciseShortcut("Push-ups", artwork: pushUpArtwork, preview: true, identifier: "startPushUpWorkout", action: onStartPushUp)
+            }
+            if let onStartSitUp {
+                exerciseShortcut("Sit-ups", artwork: sitUpArtwork, preview: true, identifier: "startSitUpWorkout", action: onStartSitUp)
+            }
+            if let onStartLegRaise {
+                exerciseShortcut("Hanging raises", artwork: legRaiseArtwork, preview: true, identifier: "startLegRaiseWorkout", action: onStartLegRaise)
+            }
+            if let onStartLyingLegRaise {
+                exerciseShortcut("Lying raises", artwork: lyingLegRaiseArtwork, preview: true, identifier: "startLyingLegRaiseWorkout", action: onStartLyingLegRaise)
+            }
+        }
+    }
+
+    private func exerciseShortcut(_ title: String, artwork: Image, preview: Bool, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 12) {
+                artwork.resizable().scaledToFit()
+                    .frame(maxWidth: .infinity).frame(height: 140)
+                    .accessibilityHidden(true)
+                HStack(alignment: .center, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(title).font(.headline)
+                        if preview { Text("Preview").font(.caption.weight(.medium)).foregroundStyle(palette.secondary) }
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "play.fill").font(.caption).accessibilityHidden(true)
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                .background(palette.surface, in: RoundedRectangle(cornerRadius: 20))
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(palette.border))
+                .contentShape(RoundedRectangle(cornerRadius: 20))
+        }.buttonStyle(.plain).accessibilityLabel("Start \(title.lowercased()) workout")
+            .accessibilityIdentifier(identifier)
     }
 
     private var liveButton: some View {
@@ -255,6 +282,7 @@ struct HomeScreenView: View {
 }
 
 struct WorkoutCameraGuideView: View {
+    var exercise: ExerciseCounter.Exercise? = nil
     var onContinue: () -> Void
     var onCancel: () -> Void
     @Environment(\.colorScheme) private var scheme
@@ -264,9 +292,26 @@ struct WorkoutCameraGuideView: View {
                 Image(systemName: "person.fill.viewfinder").font(.system(size: 56)).foregroundStyle(.teal)
                     .accessibilityHidden(true)
                 Text("A clear view. A good start.").font(.largeTitle.bold())
-                instruction("iphone", "Phone at chest height", "Keep it level and steady.")
-                instruction("person.fill.turn.right", "Face the camera, or face away", "Use a front or rear view.")
-                instruction("figure.arms.open", "Both arms in frame", "Keep shoulders, elbows and hands visible.")
+                if exercise == .lyingLegRaise {
+                    instruction("rectangle.landscape.rotate", "Low, level phone", "Use landscape beside you, aimed level.")
+                    instruction("viewfinder", "Side view", "Keep shoulder, hip and knees visible. Include feet when possible.")
+                    instruction("checkmark.circle", "Lie back · legs extended", "Wait for Ready, lift your legs, then lower fully. Keep your torso down.")
+                } else if exercise == .legRaise {
+                    instruction("iphone", "Steady, level phone", "Use landscape with a side or three-quarter view.")
+                    instruction("viewfinder", "Hands to knees visible", "Keep one shoulder, hand, hip and knee in view.")
+                    instruction("checkmark.circle", "Hang with legs down", "Hold still until Ready, lift your legs, then lower fully.")
+                } else if exercise == .pushUp || exercise == .sitUp {
+                    instruction("rectangle.landscape.rotate", "Low, level phone", "Use landscape and keep it steady.")
+                    instruction("viewfinder", exercise == .sitUp ? "Side view" : "Front or side view",
+                        exercise == .sitUp ? "Show shoulder, hip and bent knees." : "Keep shoulders, elbows, hands and hips visible.")
+                    instruction("checkmark.circle", "Hold your starting pose",
+                        exercise == .sitUp ? "Lie back with knees bent. Wait for Ready." : "Hold a straight plank. Wait for Ready.")
+                } else {
+                    instruction("iphone", "Phone at chest height", "Keep it level and steady.")
+                    instruction("person.fill.turn.right", "Face the camera, or face away", "Use a front or rear view.")
+                    instruction("figure.arms.open", "Both arms in frame", "Keep shoulders, elbows and hands visible.")
+                }
+                WorkoutTrainingTipCard(exercise: exercise?.rawValue, moment: "prepare")
             }.padding(24).frame(maxWidth: 540, alignment: .leading).frame(maxWidth: .infinity)
         }
         .safeAreaInset(edge: .bottom) {

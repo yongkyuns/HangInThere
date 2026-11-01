@@ -205,7 +205,7 @@ class WorkoutActionsTest {
                 MaterialTheme { WorkoutActions(state, onFinish = { error("Stale finish action") }, onNext = { retried = true }, onRestart = {}) }
             }
         }
-        compose.onNodeWithText("End set").assertDoesNotExist()
+        compose.onNodeWithText("Finish set").assertDoesNotExist()
         compose.onNodeWithText("Evaluate again").assertIsDisplayed().performClick()
         assertTrue(retried)
     }

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "dataset": "anonymousatom/pushupbench",
+  "url": "https://huggingface.co/datasets/anonymousatom/pushupbench",
+  "revision": "2e3129f81f4d6f0c2f19d2d7d033e714ec617786",
+  "license": "Dataset card: CC-BY-4.0; raw media is not redistributed",
+  "selection": "All six selected from names before image review; positive and negative screening recorded before inference. Publisher-family 199aec58 is development only; other source families are test only. After inspecting the failed standard test clip, positive clips are exploratory development/diagnostics only; no held-out positive accuracy claim is made.",
+  "count_definition": "Publisher action counts retained. Positive counts may include partial initial/final lifts; complete-cycle reconciliation is reported separately rather than changing these labels.",
+  "cases": [
+    {
+      "id": "bench-58",
+      "file": "bench-58.mp4",
+      "source": "199aec58_0053_leg raise clap_[8].mp4",
+      "url": "https://huggingface.co/datasets/anonymousatom/pushupbench/resolve/2e3129f81f4d6f0c2f19d2d7d033e714ec617786/199aec58_0053_leg%20raise%20clap_%5B8%5D.mp4",
+      "source_group": "199aec58",
+      "role": "development",
+      "kind": "positive",
+      "publisher_counts": [
+        8
+      ],
+      "expected_count": 8,
+      "sha256": "168ef0d64bd146a12bb3e2cd495cfd2c5f3cf8cfbe913cf6f7c7085f6e9b1431",
+      "bytes": 1568806,
+      "duration_seconds": 31.1,
+      "exercise": "lyingLegRaise",
+      "screening": "Supine straight-leg lifts; source may begin mid-cycle; no artificial start hold"
+    },
+    {
+      "id": "bench-166",
+      "file": "bench-166.mp4",
+      "source": "bdfe7f1d_0257_leg raises_[10].mp4",
+      "url": "https://huggingface.co/datasets/anonymousatom/pushupbench/resolve/2e3129f81f4d6f0c2f19d2d7d033e714ec617786/bdfe7f1d_0257_leg%20raises_%5B10%5D.mp4",
+      "source_group": "bdfe7f1d",
+      "role": "development",
+      "kind": "positive",
+      "publisher_counts": [
+        10
+      ],
+      "expected_count": 10,
+      "sha256": "973a2c620dc8a2efa695ace1e28bc2a4bb07ed2baf60636f57b71fccafc64c78",
+      "bytes": 4191614,
+      "duration_seconds": 32.1,
+      "exercise": "lyingLegRaise",
+      "screening": "Standard bilateral lying raises; promoted from test after failure inspection; not held-out qualification."
+    },
+    {
+      "id": "bench-187",
+      "file": "bench-187.mp4",
+      "source": "d1075a73_0226_straight leg lower_[14].mp4",
+      "url": "https://huggingface.co/datasets/anonymousatom/pushupbench/resolve/2e3129f81f4d6f0c2f19d2d7d033e714ec617786/d1075a73_0226_straight%20leg%20lower_%5B14%5D.mp4",
+      "source_group": "d1075a73",
+      "role": "test",
+      "kind": "variantDiagnostic",
+      "publisher_counts": [
+        14
+      ],
+      "expected_count": 14,
+      "sha256": "463cf3b4b5af57622583a342cb3b205ebcb580b2c59cea2764d28c400fbc414f",
+      "bytes": 5486885,
+      "duration_seconds": 42.033333,
+      "exercise": "lyingLegRaise",
+      "screening": "Full review shows alternating single-leg lowering with the other leg held up; outside bilateral preview profile. Published 14 remains in report."
+    },
+    {
+      "id": "bench-64",
+      "file": "bench-64.mp4",
+      "source": "199aec58_0903_reverse crunch leg extension_[12].mp4",
+      "url": "https://huggingface.co/datasets/anonymousatom/pushupbench/resolve/2e3129f81f4d6f0c2f19d2d7d033e714ec617786/199aec58_0903_reverse%20crunch%20leg%20extension_%5B12%5D.mp4",
+      "source_group": "199aec58",
+      "role": "development",
+      "kind": "negative",
+      "publisher_counts": [
+        12
+      ],
+      "expected_count": 0,
+      "sha256": "4fffda015b19a903f05bb4cf722e7df5a52b9af70eb14935303e6bf69dbb9e73",
+      "bytes": 1712466,
+      "duration_seconds": 32.133,
+      "exercise": "lyingLegRaise",
+      "screening": "Different motion: reverse crunch/tuck"
+    },
+    {
+      "id": "bench-201",
+      "file": "bench-201.mp4",
+      "source": "fc3d98d5_0519_leg lift variantion_[6].mp4",
+      "url": "https://huggingface.co/datasets/anonymousatom/pushupbench/resolve/2e3129f81f4d6f0c2f19d2d7d033e714ec617786/fc3d98d5_0519_leg%20lift%20variantion_%5B6%5D.mp4",
+      "source_group": "fc3d98d5",
+      "role": "test",
+      "kind": "negative",
+      "publisher_counts": [
+        6
+      ],
+      "expected_count": 0,
+      "sha256": "be1314937678f0ef6d64816b50a70ab110ba16a063c0f6b5ede53fc4227f4d62",
+      "bytes": 3879849,
+      "duration_seconds": 27.034,
+      "exercise": "lyingLegRaise",
+      "screening": "Different motion: prone/plank leg lift"
+    },
+    {
+      "id": "bench-207",
+      "file": "bench-207.mp4",
+      "source": "fc3d98d5_0844_leg lift variantion_[6].mp4",
+      "url": "https://huggingface.co/datasets/anonymousatom/pushupbench/resolve/2e3129f81f4d6f0c2f19d2d7d033e714ec617786/fc3d98d5_0844_leg%20lift%20variantion_%5B6%5D.mp4",
+      "source_group": "fc3d98d5",
+      "role": "test",
+      "kind": "negative",
+      "publisher_counts": [
+        6
+      ],
+      "expected_count": 0,
+      "sha256": "b26b15130447529232aeeda916a8efc4a5db99cbe4fecb88f593f2230037195c",
+      "bytes": 4586595,
+      "duration_seconds": 32.034,
+      "exercise": "lyingLegRaise",
+      "screening": "Different motion: prone/plank leg lift"
+    }
+  ]
+}

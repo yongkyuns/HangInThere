@@ -20,7 +20,9 @@ complete an endpoint. Camera movement, ambiguous athletes and long tracking or
 source gaps interrupt the set. Neither profile verifies form, anatomical depth,
 load or whether unseen knees remain straight.
 
-Side policy 2 retains the partial-leg behavior and old policy-1 compatibility.
+Side policy 4 retains partial-leg behavior and policies 1–3 compatibility.
+It separates starting distance from posture and briefly pauses on unusable hip
+geometry without inventing endpoints; see the [public-video audit](PUBLIC_PUSHUP_BASELINE.md).
 Front policy 1 uses `frontViewPushUp`, keeping its comparisons separate from
 `sideViewPushUp`. Recorded angle metrics use the same actual visible arm through
 an attempt; front cycle validation additionally checks the other arm.

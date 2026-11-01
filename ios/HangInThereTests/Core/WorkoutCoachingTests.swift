@@ -2,6 +2,14 @@ import XCTest
 @testable import HangInThere
 
 final class WorkoutCoachingTests: XCTestCase {
+    func testTrainingTipsDecodeSharedCatalogAndFilterExercise() throws {
+        let catalog = try XCTUnwrap(TrainingTips.catalog)
+        XCTAssertFalse(catalog.sources.isEmpty)
+        let tips = TrainingTips.query(exercise: "Push-ups", category: "Technique", search: "")
+        XCTAssertTrue(tips.contains { $0.id == "push-line" })
+        XCTAssertFalse(tips.contains { $0.id == "pull-brace" })
+        XCTAssertTrue(tips.allSatisfy { $0.sourceIds.allSatisfy { id in catalog.sources.contains { $0.id == id } } })
+    }
     private var calendar: Calendar {
         var result = Calendar(identifier: .gregorian); result.timeZone = TimeZone(identifier: "America/Toronto")!; return result
     }
