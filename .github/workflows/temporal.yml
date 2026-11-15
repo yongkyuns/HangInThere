@@ -90,9 +90,11 @@ jobs:
           python3 scripts/prepare-temporal-pilot.py --cache Data/external/temporal --output Data/local/temporal --fetch
       - name: Run actual production video and pose pipeline
         run: ./scripts/evaluate.sh Data/local/temporal/manifest.json --root Data/local/temporal --output Evaluation/output/temporal-poses --public-output
+      - name: Check raw-counter identity and fail-closed scoring regressions
+        run: python3 -m unittest scripts.tests.test_temporal_counter_policy9 Evaluation.tests.test_temporal
       - name: Count and score source-reviewed movements
         run: |
-          python3 scripts/score-temporal.py Data/local/temporal/reference.json --manifest Data/local/temporal/manifest.json --root Data/local/temporal --pose-output Evaluation/output/temporal-poses --output Evaluation/output/temporal-counts --public-output
+          python3 scripts/score-temporal.py Data/local/temporal/reference.json --manifest Data/local/temporal/manifest.json --root Data/local/temporal --pose-output Evaluation/output/temporal-poses --output Evaluation/output/temporal-counts --public-output --production-policy9
           python3 - <<'PY'
           import json
           from pathlib import Path
