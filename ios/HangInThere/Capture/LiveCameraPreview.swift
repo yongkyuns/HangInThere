@@ -69,6 +69,8 @@ enum LiveCameraConnectionConfiguration {
     }
     static func rotationAngle(orientation: UIInterfaceOrientation, camera: LiveCameraPosition,
                               device: AVCaptureDevice? = nil) -> Double {
+        // Xcode 26 does not declare the iOS 27 rotation API, even inside #available.
+        #if compiler(>=6.4)
         let videoOrientation: AVCaptureVideoOrientation = switch orientation {
         case .landscapeLeft: .landscapeLeft
         case .landscapeRight: .landscapeRight
@@ -79,6 +81,7 @@ enum LiveCameraConnectionConfiguration {
             return Double(AVCaptureDevice.RotationCoordinator(device: device, previewLayer: nil)
                 .videoRotationAngleRelative(toDeviceOrientation: videoOrientation))
         }
+        #endif
         // Built-in front and rear sensors have opposite landscape orientations.
         switch orientation {
         case .landscapeRight: return camera == .front ? 180 : 0

@@ -78,16 +78,7 @@ struct PoseOverlay: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: pulseStarted == nil || reduceMotion)) { timeline in
             Canvas { context, size in
-                let display = reduceMotion ? result : smoothing.pose ?? result
-                guard let layout = AspectFit(image: display.imageSize,
-                    viewport: ImageSize(width: size.width, height: size.height)) else { return }
-                let base = max(2, min(display.imageSize.width, display.imageSize.height) * layout.scale * 0.012)
-                let elapsed = pulseStarted.map { timeline.date.timeIntervalSince($0) } ?? 1
-                let pulse = reduceMotion ? 0 : max(0, 1 - elapsed / 0.42)
-                for person in display.people {
-                    draw(person, context: &context, layout: layout, base: base,
-                        imageSize: display.imageSize, sides: trackedSides, pulse: pulse)
-                }
+                drawFrame(context: context, size: size, at: timeline.date)
             }
         }
         .onChange(of: frameKey, initial: true) { old, new in
@@ -112,6 +103,22 @@ struct PoseOverlay: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    // Canvas supplies a value-type context. Keep a mutable local copy for the
+    // existing drawing helpers and type-check drawing separately from the view.
+    private func drawFrame(context: GraphicsContext, size: CGSize, at date: Date) {
+        var context = context
+        let display = reduceMotion ? result : smoothing.pose ?? result
+        let viewport = ImageSize(width: Double(size.width), height: Double(size.height))
+        guard let layout = AspectFit(image: display.imageSize, viewport: viewport) else { return }
+        let base = CGFloat(max(2, min(display.imageSize.width, display.imageSize.height) * layout.scale * 0.012))
+        let elapsed = pulseStarted.map { date.timeIntervalSince($0) } ?? 1
+        let pulse = reduceMotion ? 0 : max(0, 1 - elapsed / 0.42)
+        for person in display.people {
+            draw(person, context: &context, layout: layout, base: base,
+                imageSize: display.imageSize, sides: trackedSides, pulse: pulse)
+        }
     }
 
     private func draw(_ person: PoseObservation, context: inout GraphicsContext, layout: AspectFit,
