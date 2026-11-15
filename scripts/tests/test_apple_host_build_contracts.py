@@ -62,6 +62,14 @@ class AppleHostBuildContracts(unittest.TestCase):
         self.assertIn('WorkoutTipsBridge().catalogJson()', app)
         self.assertNotIn('import SwiftUI', app)
 
+    def test_overlay_imports_only_its_shared_presentation_bridge(self):
+        overlay = source('ios/HangInThere/UI/PoseOverlay.swift')
+        # WorkoutCore also exports PoseJoint. Importing the whole framework
+        # shadows the app's observation joint type inside drawing helpers.
+        imports = re.findall(r'^import[^\n]*WorkoutCore[^\n]*$', overlay, re.MULTILINE)
+        self.assertEqual(imports, ['import class WorkoutCore.WorkoutSetPresentationBridge'])
+        self.assertIn('WorkoutSetPresentationBridge().weight(', overlay)
+
     def test_ios_27_camera_api_is_guarded_for_the_pinned_older_sdk(self):
         camera = source('ios/HangInThere/Capture/LiveCameraPreview.swift')
         start = camera.index('    static func rotationAngle(')

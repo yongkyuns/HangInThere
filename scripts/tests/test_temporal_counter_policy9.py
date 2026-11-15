@@ -164,7 +164,9 @@ class TemporalCounterPolicy9IntegrationTests(unittest.TestCase):
     def execute_fixture_counter(self, command, *, check):
         self.assertTrue(check)
         self.assertEqual(Path(command[0]), t.ev.ROOT / "scripts/count-replay.sh")
-        self.assertEqual(Path(command[1]), self.observation_path)
+        # CLI paths are canonicalized; macOS temporary paths can use /var
+        # while resolve() returns the same file under /private/var.
+        self.assertEqual(Path(command[1]).resolve(), self.observation_path.resolve())
         self.assertEqual(command[2:4], ["pullUp", "left"])
         t.ev.write_json(Path(command[4]), self.counter)
 
@@ -190,6 +192,32 @@ class TemporalCounterPolicy9IntegrationTests(unittest.TestCase):
         self.assertEqual(report["clips"][0]["counter_summary"]["policyVersion"], 9)
         self.assertEqual(self.reference_path.read_bytes(), self.reference_bytes)
         self.assertEqual(self.manifest_path.read_bytes(), self.manifest_bytes)
+
+    def test_cli_accepts_a_symlinked_temporary_root_without_changing_evidence(self):
+        # macOS /var aliases /private/var. Reproduce this on any POSIX host
+        # instead of relying on the runner's particular temporary directory.
+        with tempfile.TemporaryDirectory() as temporary:
+            alias = Path(temporary) / "source"
+            alias.symlink_to(self.root.resolve(), target_is_directory=True)
+            original = self.root
+            for name in ("reference_path", "manifest_path", "pose_output", "output", "observation_path"):
+                setattr(self, name, alias / getattr(self, name).relative_to(original))
+            self.root = alias
+            self.assertNotEqual(self.observation_path, self.observation_path.resolve())
+            self.assertEqual(self.run_cli(strict=True), 0)
+            self.assertTrue(t.ev.read_json(self.output / "report.json")["all_events_matched"])
+            self.assertEqual(self.reference_path.read_bytes(), self.reference_bytes)
+            self.assertEqual(self.manifest_path.read_bytes(), self.manifest_bytes)
+
+    def test_fixture_still_rejects_a_different_observation_file(self):
+        other = self.root / "other" / self.observation_path.name
+        other.parent.mkdir()
+        other.write_bytes(self.observation_path.read_bytes())
+        output = self.root / "wrong-counter.json"
+        command = [str(t.ev.ROOT / "scripts/count-replay.sh"), str(other), "pullUp", "left", str(output)]
+        with self.assertRaises(AssertionError):
+            self.execute_fixture_counter(command, check=True)
+        self.assertFalse(output.exists())
 
     def test_zero_movements_preserve_all_misses_and_fatal_strict_exit(self):
         self.counter["events"] = []

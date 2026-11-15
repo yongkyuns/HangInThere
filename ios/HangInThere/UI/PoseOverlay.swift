@@ -1,5 +1,6 @@
 import SwiftUI
-import WorkoutCore
+// Keep the app's PoseJoint unambiguous; only this shared bridge is used here.
+import class WorkoutCore.WorkoutSetPresentationBridge
 
 /// Display-only easing. Missing points disappear immediately; gaps, source
 /// changes, crowds and large jumps never borrow an earlier athlete's geometry.
