@@ -93,7 +93,8 @@ struct PublicReplayConfigurationTests {
         let old = PublicReplayCountingIdentity(model: legacy)
         let new = PublicReplayCountingIdentity(model: candidate)
         #expect(!legacy.usesBilateralDip && candidate.usesBilateralDip)
-        #expect(old.method == "selectedGripWithAvailableArms" && old.policyVersion == 8)
+        // The historical configuration name is not the current counter identity.
+        #expect(old.method == "selectedGripWithAvailableArms" && old.policyVersion == 9)
         #expect(new.method == "bilateralDipImageMotion" && new.policyVersion == 1)
     }
 
@@ -101,7 +102,20 @@ struct PublicReplayConfigurationTests {
         let model = ReplayController(dipMethod: PublicReplayPipeline.bilateralDipsV1.dipMethod)
         let identity = PublicReplayCountingIdentity(model: model)
         #expect(!model.usesBilateralDip)
-        #expect(identity.method == "bothUsableArms" && identity.policyVersion == 8)
+        #expect(identity.method == "bothUsableArms" && identity.policyVersion == 9)
+    }
+
+    @MainActor @Test func exportedIdentityKeepsProductionAndCandidatePoliciesDistinct() {
+        let production = ReplayController(dipMethod: PublicReplayPipeline.legacyV8.dipMethod)
+        let candidate = ReplayController(dipMethod: PublicReplayPipeline.bilateralDipsV1.dipMethod)
+        production.configureCounting(exercise: .dip, side: .right)
+        candidate.configureCounting(exercise: .dip, side: .right)
+        let productionFields = PublicReplayCountingIdentity(model: production).fields
+        let candidateFields = PublicReplayCountingIdentity(model: candidate).fields
+        #expect(productionFields["count_method"] as? String == "selectedGripWithAvailableArms")
+        #expect(productionFields["count_policy_version"] as? Int == 9)
+        #expect(candidateFields["count_method"] as? String == "bilateralDipImageMotion")
+        #expect(candidateFields["count_policy_version"] as? Int == 1)
     }
 
     private func decode(_ fields: [String: Any] = [:]) throws -> PublicReplayManifest {
