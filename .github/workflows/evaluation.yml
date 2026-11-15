@@ -65,6 +65,11 @@ jobs:
           name: evaluation-source
           retention-days: 7
           path: build/evaluation-source.zip
+      # Match the interpreter used by the host regression suite. The pinned
+      # annotation wheels must not follow the runner's changing system Python.
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
       - name: Install isolated host-only annotation dependencies
         run: |
           python3 -m venv /tmp/hit-import-env

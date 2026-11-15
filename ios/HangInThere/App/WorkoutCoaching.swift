@@ -236,3 +236,43 @@ extension WorkoutRecordStore {
                           "atEpochMilliseconds": Int64(Date().timeIntervalSince1970 * 1000)]), as: UTF8.self))
     }
 }
+
+// The source text, filters and recommendation policy live in shared Kotlin.
+struct TrainingTipSource: Codable, Identifiable, Sendable {
+    let id: String; let publisher: String; let title: String; let url: String; let kind: String; let checkedOn: String
+}
+struct TrainingTip: Codable, Identifiable, Sendable {
+    let id: String; let category: String; let title: String; let cue: String; let detail: String
+    let sourceIds: [String]; let exercises: [String]; let moments: [String]
+    var symbol: String {
+        switch category {
+        case "Preparation": "sun.max"
+        case "Technique": "figure.strengthtraining.functional"
+        case "Progression": "chart.line.uptrend.xyaxis"
+        case "Recovery": "moon.zzz"
+        case "Nutrition": "drop"
+        case "Safety": "heart"
+        default: "calendar"
+        }
+    }
+}
+struct TrainingTipCatalog: Codable, Sendable {
+    let version: Int; let audience: String; let sources: [TrainingTipSource]; let tips: [TrainingTip]
+}
+enum TrainingTips {
+    @MainActor static var suggestionsEnabled: Bool {
+        #if os(iOS)
+        WorkoutReminders.shared.tipSettings.workoutTipsEnabled
+        #else
+        true
+        #endif
+    }
+    static let catalog = try? JSONDecoder().decode(TrainingTipCatalog.self, from: Data(WorkoutTipsBridge().catalogJson().utf8))
+    static func query(exercise: String?, category: String?, search: String) -> [TrainingTip] {
+        (try? JSONDecoder().decode([TrainingTip].self, from: Data(WorkoutTipsBridge().queryJson(exercise: exercise, category: category, search: search).utf8))) ?? []
+    }
+    static func featured(exercise: String?, moment: String, seed: Int64? = nil) -> TrainingTip? {
+        let localDay = Int64(floor((Date().timeIntervalSince1970 + Double(TimeZone.current.secondsFromGMT())) / 86400))
+        return try? JSONDecoder().decode(TrainingTip.self, from: Data(WorkoutTipsBridge().featuredJson(exercise: exercise, moment: moment, day: seed ?? localDay).utf8))
+    }
+}

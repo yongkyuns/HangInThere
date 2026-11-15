@@ -1,5 +1,6 @@
 import SwiftUI
-import WorkoutCore
+// Keep the app's PoseJoint unambiguous; only this shared bridge is used here.
+import class WorkoutCore.WorkoutSetPresentationBridge
 
 /// Display-only easing. Missing points disappear immediately; gaps, source
 /// changes, crowds and large jumps never borrow an earlier athlete's geometry.
@@ -76,42 +77,73 @@ struct PoseOverlay: View {
     }
 
     var body: some View {
+        observedCanvas
+            .task(id: pulseStarted) { await finishPulse() }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+
+    // Bound each SwiftUI expression independently. Observer logic is typed
+    // outside the generic modifier chain; display timing and drawing are unchanged.
+    private var animatedCanvas: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: pulseStarted == nil || reduceMotion)) { timeline in
             Canvas { context, size in
-                let display = reduceMotion ? result : smoothing.pose ?? result
-                guard let layout = AspectFit(image: display.imageSize,
-                    viewport: ImageSize(width: size.width, height: size.height)) else { return }
-                let base = max(2, min(display.imageSize.width, display.imageSize.height) * layout.scale * 0.012)
-                let elapsed = pulseStarted.map { timeline.date.timeIntervalSince($0) } ?? 1
-                let pulse = reduceMotion ? 0 : max(0, 1 - elapsed / 0.42)
-                for person in display.people {
-                    draw(person, context: &context, layout: layout, base: base,
-                        imageSize: display.imageSize, sides: trackedSides, pulse: pulse)
-                }
+                drawFrame(context: context, size: size, at: timeline.date)
             }
         }
-        .onChange(of: frameKey, initial: true) { old, new in
-            let gap = new.time.elapsedSeconds(since: old.time)
-            if old.backend != new.backend || old.revision != new.revision || old.size != new.size ||
-                new.people.count != 1 || !gap.isFinite || gap <= 0 || gap > 0.35 { pulseStarted = nil }
-            smoothing.observe(result, enabled: !reduceMotion)
-            let continuous = old.backend == new.backend && old.revision == new.revision && old.size == new.size
-            effortSmoothing.observe(new.people.count == 1 ? effort : nil,
-                elapsed: continuous ? gap : 0, enabled: !reduceMotion && animatesEffort)
+    }
+
+    private var observedCanvas: some View {
+        animatedCanvas
+            .onChange(of: frameKey, initial: true) { old, new in
+                observeFrame(from: old, to: new)
+            }
+            .onChange(of: completedReps) { old, new in
+                observeCompletedReps(from: old, to: new)
+            }
+            .onChange(of: reduceMotion) { _, enabled in
+                observeReduceMotion(enabled)
+            }
+    }
+
+    private func observeFrame(from old: FrameKey, to new: FrameKey) {
+        let gap = new.time.elapsedSeconds(since: old.time)
+        if old.backend != new.backend || old.revision != new.revision || old.size != new.size ||
+            new.people.count != 1 || !gap.isFinite || gap <= 0 || gap > 0.35 { pulseStarted = nil }
+        smoothing.observe(result, enabled: !reduceMotion)
+        let continuous = old.backend == new.backend && old.revision == new.revision && old.size == new.size
+        effortSmoothing.observe(new.people.count == 1 ? effort : nil,
+            elapsed: continuous ? gap : 0, enabled: !reduceMotion && animatesEffort)
+    }
+
+    private func observeCompletedReps(from old: Int, to new: Int) {
+        pulseStarted = !reduceMotion && new == old + 1 ? Date() : nil
+    }
+
+    private func observeReduceMotion(_ enabled: Bool) {
+        if enabled { pulseStarted = nil }
+        effortSmoothing.observe(result.people.count == 1 ? effort : nil, elapsed: 0, enabled: !enabled && animatesEffort)
+    }
+
+    private func finishPulse() async {
+        guard pulseStarted != nil else { return }
+        do { try await Task.sleep(for: .milliseconds(450)); pulseStarted = nil } catch { }
+    }
+
+    // Canvas supplies a value-type context. Keep a mutable local copy for the
+    // existing drawing helpers and type-check drawing separately from the view.
+    private func drawFrame(context: GraphicsContext, size: CGSize, at date: Date) {
+        var context = context
+        let display = reduceMotion ? result : smoothing.pose ?? result
+        let viewport = ImageSize(width: Double(size.width), height: Double(size.height))
+        guard let layout = AspectFit(image: display.imageSize, viewport: viewport) else { return }
+        let base = CGFloat(max(2, min(display.imageSize.width, display.imageSize.height) * layout.scale * 0.012))
+        let elapsed = pulseStarted.map { date.timeIntervalSince($0) } ?? 1
+        let pulse = reduceMotion ? 0 : max(0, 1 - elapsed / 0.42)
+        for person in display.people {
+            draw(person, context: &context, layout: layout, base: base,
+                imageSize: display.imageSize, sides: trackedSides, pulse: pulse)
         }
-        .onChange(of: completedReps) { old, new in
-            pulseStarted = !reduceMotion && new == old + 1 ? Date() : nil
-        }
-        .onChange(of: reduceMotion) { _, enabled in
-            if enabled { pulseStarted = nil }
-            effortSmoothing.observe(result.people.count == 1 ? effort : nil, elapsed: 0, enabled: !enabled && animatesEffort)
-        }
-        .task(id: pulseStarted) {
-            guard pulseStarted != nil else { return }
-            do { try await Task.sleep(for: .milliseconds(450)); pulseStarted = nil } catch { }
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 
     private func draw(_ person: PoseObservation, context: inout GraphicsContext, layout: AspectFit,

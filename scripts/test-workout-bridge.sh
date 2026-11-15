@@ -6,7 +6,7 @@ cd "$ROOT"
 PLATFORM_NAME=macosx ARCHS="$(uname -m)" CONFIGURATION=Debug scripts/build-workout-core.sh
 FRAMEWORK="$ROOT/build/WorkoutCore/macosx/Debug"
 mkdir -p build/workout-analysis
-swiftc -swift-version 6 -parse-as-library -O -whole-module-optimization -F "$FRAMEWORK" -framework WorkoutCore -lc++ \
+xcrun --sdk macosx swiftc -sdk "$(xcrun --sdk macosx --show-sdk-path)" -swift-version 6 -parse-as-library -O -whole-module-optimization -F "$FRAMEWORK" -framework WorkoutCore -lc++ \
   ios/HangInThere/Analysis/*.swift ios/HangInThere/App/WorkoutAnalysisAdapter.swift \
   ios/HangInThere/App/WorkoutProgression.swift ios/HangInThere/App/WorkoutGripReview.swift \
   ios/HangInThere/App/WorkoutRepPresentation.swift \

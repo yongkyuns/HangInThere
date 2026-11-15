@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   controlled-dip:
-    name: Fixed-camera single-athlete dip
+    name: Single-athlete dip diagnostic (progressive zoom)
     runs-on: macos-15
     timeout-minutes: 15
     env:
@@ -20,7 +20,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Prepare frozen controlled dip
+      - name: Check raw-counter identity and fail-closed scoring regressions
+        run: python3 -m unittest scripts.tests.test_temporal_counter_policy9 Evaluation.tests.test_temporal
+      - name: Prepare frozen single-athlete dip
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
           python3 scripts/prepare-temporal-pilot.py \
@@ -41,7 +43,7 @@ jobs:
             --root Data/local/controlled-movement \
             --pose-output Evaluation/output/controlled-dip-poses \
             --output Evaluation/output/controlled-dip-counts \
-            --public-output
+            --public-output --production-policy9
           python3 - <<'PY'
           import json, os
           from pathlib import Path
@@ -54,7 +56,7 @@ jobs:
           assert c['status'] == 'scored' and c['form_verification'] == 'unverified'
           m=c['event_metrics']
           with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as out:
-              out.write('## Controlled fixed-camera dip diagnostic\n\n')
+              out.write('## Single-athlete dip diagnostic (progressive zoom; not fixed-camera qualification)\n\n')
               out.write(f"TP={m['true_positives']} · FP={m['false_positives']} · FN={m['false_negatives']} · exact_count={m['exact_count']}\n")
           if m['false_positives'] or m['false_negatives']:
               print('::warning::Controlled dip has missed/extra movement events; execution success is not accuracy qualification')

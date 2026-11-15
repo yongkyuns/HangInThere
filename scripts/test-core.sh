@@ -26,4 +26,4 @@ let package = Package(name: "HangInThereCoreTests", platforms: [.macOS(.v14)], t
                 swiftSettings: [.unsafeFlags(["-F", framework])])
 ])
 SWIFT
-swift test --package-path "$WORK"
+xcrun --sdk macosx swift test --package-path "$WORK"

@@ -26,7 +26,7 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
       - name: Check selected-exercise routing and fail-closed evidence regressions
-        run: python3 -m unittest scripts.tests.test_temporal_native_replay Evaluation.tests.test_temporal scripts.tests.test_public_workout_datasets
+        run: python3 -m unittest scripts.tests.test_temporal_native_replay scripts.tests.test_temporal_policy9_contract scripts.tests.test_temporal_policy9_replay Evaluation.tests.test_temporal scripts.tests.test_public_workout_datasets
       - name: Prepare unchanged frozen public videos and selected-exercise manifest
         run: |
           if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
@@ -37,7 +37,7 @@ jobs:
         run: ./scripts/evaluate-public-workouts-apple.sh build/temporal-selected/input/manifest.json build/temporal-selected/input build/temporal-selected/native-report.json
       - name: Verify full source evidence and score every original movement label
         run: |
-          python3 scripts/temporal_native_replay.py score --reference build/temporal-selected/reference.json --manifest build/temporal-selected/input/manifest.json --native build/temporal-selected/native-report.json --output build/temporal-selected/report.json
+          python3 scripts/temporal_policy9_replay.py --reference build/temporal-selected/reference.json --manifest build/temporal-selected/input/manifest.json --native build/temporal-selected/native-report.json --output build/temporal-selected/report.json
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -72,7 +72,7 @@ jobs:
           name: temporal-selected-replay
           path: build/temporal-selected
       - name: Preserve missed, extra and setup-unavailable movements as fatal accuracy failures
-        run: python3 scripts/temporal_native_replay.py score --reference build/temporal-selected/reference.json --manifest build/temporal-selected/input/manifest.json --native build/temporal-selected/native-report.json --output build/temporal-selected/strict-report.json --require-exact-events
+        run: python3 scripts/temporal_policy9_replay.py --reference build/temporal-selected/reference.json --manifest build/temporal-selected/input/manifest.json --native build/temporal-selected/native-report.json --output build/temporal-selected/strict-report.json --require-exact-events
 
   temporal:
     name: Real video event counts (not form qualification)
@@ -90,9 +90,11 @@ jobs:
           python3 scripts/prepare-temporal-pilot.py --cache Data/external/temporal --output Data/local/temporal --fetch
       - name: Run actual production video and pose pipeline
         run: ./scripts/evaluate.sh Data/local/temporal/manifest.json --root Data/local/temporal --output Evaluation/output/temporal-poses --public-output
+      - name: Check raw-counter identity and fail-closed scoring regressions
+        run: python3 -m unittest scripts.tests.test_temporal_counter_policy9 Evaluation.tests.test_temporal
       - name: Count and score source-reviewed movements
         run: |
-          python3 scripts/score-temporal.py Data/local/temporal/reference.json --manifest Data/local/temporal/manifest.json --root Data/local/temporal --pose-output Evaluation/output/temporal-poses --output Evaluation/output/temporal-counts --public-output
+          python3 scripts/score-temporal.py Data/local/temporal/reference.json --manifest Data/local/temporal/manifest.json --root Data/local/temporal --pose-output Evaluation/output/temporal-poses --output Evaluation/output/temporal-counts --public-output --production-policy9
           python3 - <<'PY'
           import json
           from pathlib import Path

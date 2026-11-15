@@ -4,6 +4,8 @@
 Runs the exact Swift counter on a complete, hash-bound production pose stream.
 Exit 0 means processing/scoring completed, not accuracy qualification. Optional
 --require-exact-events returns 3 when this diagnostic contains missed or extra events.
+--production-policy9 explicitly evaluates the v9 production counter against the
+unchanged v8 annotations. Without it, the original exact-policy contract applies.
 """
 from __future__ import annotations
 import argparse
@@ -41,12 +43,29 @@ def reference_edge_in_pose_space(ref, observations):
     return [edge[0] * sx, edge[1] * sy, edge[2] * sx, edge[3] * sy]
 
 
-def validate_run(ref, clip, pose_report, counter, observations, completion):
+def validate_counter_policy(ref, counter, *, production_policy9=False):
+    summary = counter["summary"]
+    if not production_policy9:
+        ev.require(summary["policyVersion"] == ref["counter_policy_version"], "Counter policy changed")
+        return
+    # These are independent identities, not an alias or a rewritten reference.
+    # v9 preserves the raw counter endpoints; shared set analytics changed.
+    # No arbitrary policy override or candidate method is accepted here.
+    ev.require(type(ref.get("counter_policy_version")) is int and ref["counter_policy_version"] == 8,
+               "Production-v9 scoring requires unchanged policy-8 references")
+    ev.require(type(summary.get("policyVersion")) is int and summary["policyVersion"] == 9,
+               "Expected the production policy-9 counter")
+    method = {"pullUp": "bothUsableArms", "dip": "selectedGripWithAvailableArms"}.get(ref.get("exercise"))
+    ev.require(method is not None and summary.get("armTracking") == method,
+               "Wrong production policy-9 counting method")
+
+
+def validate_run(ref, clip, pose_report, counter, observations, completion, *, production_policy9=False):
     reference_check(ref, clip)
     ev.require(pose_report["status"] == "processed" and completion["status"] == "processed", "Incomplete pose run")
     ev.require(counter["summary"]["phase"] == "finished" and counter["summary"]["formVerification"] == "unverified", "Unfinished or unsupported count verdict")
     ev.require(counter["summary"]["exercise"] == ref["exercise"] and counter["summary"]["side"] == ref["side"], "Counter policy selection differs")
-    ev.require(counter["summary"]["policyVersion"] == ref["counter_policy_version"], "Counter policy changed")
+    validate_counter_policy(ref, counter, production_policy9=production_policy9)
     expected_edge = reference_edge_in_pose_space(ref, observations)
     actual_edge = counter.get("referenceEdge")
     if expected_edge is None:
@@ -78,7 +97,7 @@ def validate_run(ref, clip, pose_report, counter, observations, completion):
         ev.require(counter["summary"][key] == totals[outcome], "Summary and events disagree")
 
 
-def run(reference_path, manifest_path, root, pose_output, output, public=False):
+def run(reference_path, manifest_path, root, pose_output, output, public=False, *, production_policy9=False):
     manifest = ev.read_json(manifest_path)
     clips = ev.validate_manifest(manifest, root)
     refs = ev.read_json(reference_path)
@@ -114,7 +133,8 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
             ev.require(ev.digest(ev.ROOT / path) == sha, "Counter source changed")
             if path.startswith("ios/HangInThere/"):
                 ev.require(pose["source_files_sha256"].get(path) == sha, "Pose/counter app source differs")
-        validate_run(ref, clip, row, counter, observations, ev.read_json(completion_path))
+        validate_run(ref, clip, row, counter, observations, ev.read_json(completion_path),
+                     production_policy9=production_policy9)
         scores = score_events(ref, [e["sourceSeconds"] for e in counter["events"] if e["outcome"] == "movement"])
         hist = dict(Counter(len(x["people"]) for x in observations))
         records.append({"id": clip["id"], "exercise": clip["exercise"], "side": ref["side"], "status": "scored",
@@ -131,6 +151,9 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
               "event_matcher_sha256": ev.digest(Path(temporal_events.__file__)),
               "reference_validator_sha256": ev.digest(Path(temporal_references.__file__)),
               "source_commit": pose["source_commit"], "clips": records}
+    if production_policy9:
+        report.update(counter_policy_version=9, reference_counter_policy_version=8,
+                      counter_policy_contract="production_v9_against_frozen_v8")
     # Report errors even if the aggregate count happens to match. No averaging of
     # distinct exercises, no counting a missing measurement as a correct event.
     report["all_events_matched"] = all(not r["event_metrics"]["false_positives"] and not r["event_metrics"]["false_negatives"] for r in records)
@@ -138,20 +161,29 @@ def run(reference_path, manifest_path, root, pose_output, output, public=False):
     return report
 
 
-if __name__ == "__main__":
+def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("reference", type=Path); p.add_argument("--manifest", required=True, type=Path)
     p.add_argument("--root", required=True, type=Path); p.add_argument("--pose-output", required=True, type=Path)
     p.add_argument("--output", required=True, type=Path); p.add_argument("--public-output", action="store_true")
     p.add_argument("--require-exact-events", action="store_true")
-    a = p.parse_args()
+    p.add_argument("--production-policy9", action="store_true",
+                   help="Require the v9 production method while preserving the frozen v8 annotation identity")
+    a = p.parse_args(argv)
     try:
-        report = run(a.reference.resolve(), a.manifest.resolve(), a.root.resolve(), a.pose_output.resolve(), a.output.resolve(), a.public_output)
+        report = run(a.reference.resolve(), a.manifest.resolve(), a.root.resolve(), a.pose_output.resolve(), a.output.resolve(), a.public_output,
+                     production_policy9=a.production_policy9)
         for row in report["clips"]:
             m = row["event_metrics"]
             print(f'{row["id"]}: TP={m["true_positives"]} FP={m["false_positives"]} FN={m["false_negatives"]}; scored time={m["scored_time_fraction"]:.1%}; form unverified')
         if not report["all_events_matched"]:
             print('Temporal pilot has missed/extra movement events; completed scoring is NOT passed accuracy qualification.')
-            if a.require_exact_events: raise SystemExit(3)
+            if a.require_exact_events: return 3
+        return 0
     except (ValueError, KeyError, TypeError, OSError, subprocess.CalledProcessError) as error:
-        print(f'Temporal evaluation incomplete: {error}', file=sys.stderr); raise SystemExit(2)
+        print(f'Temporal evaluation incomplete: {error}', file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
